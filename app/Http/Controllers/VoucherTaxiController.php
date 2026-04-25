@@ -33,152 +33,34 @@ use App\Http\Controllers\Traits\HasAutonbr;
 
 class VoucherTaxiController extends Controller
 {
+
     use HasAutonbr;
     public function index()
-{
-    $user = Auth::user();
-
-    if (!$user) {
-        return redirect()->route('login');
-    }
-
-    $cpnyIds = is_string($user->cpny_id)
-        ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-        : (array) $user->cpny_id;
-
-    $deptIds = is_string($user->department_id)
-        ? array_filter(array_map('trim', explode(',', $user->department_id)))
-        : (array) $user->department_id;
-
-    $q = TrVoucherTaxi::query()
-        ->whereIn('cpny_id', $cpnyIds)
-        ->whereIn('department_id', $deptIds);
-
-    $all        = (clone $q)->count();
-    $onProgress = (clone $q)->where('status', 'P')->count();
-    $reject     = (clone $q)->where('status', 'R')->count();
-    $revise     = (clone $q)->where('status', 'D')->count();
-    $completed  = (clone $q)->where('status', 'C')->count();
-
-    return view('pages.vouchertaxi.vouchertaxi', compact(
-        'all',
-        'onProgress',
-        'reject',
-        'revise',
-        'completed'
-    ));
-}
-
-public function json(Request $request)
-{
-    $user = Auth::user();
-
-    if (!$user) {
-        return response()->json(['message' => 'Unauthorized'], 401);
-    }
-
-    $cpnyIds = is_string($user->cpny_id)
-        ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-        : (array) $user->cpny_id;
-
-    $deptIds = is_string($user->department_id)
-        ? array_filter(array_map('trim', explode(',', $user->department_id)))
-        : (array) $user->department_id;
-
-    $draw   = (int) $request->input('draw', 1);
-    $start  = (int) $request->input('start', 0);
-    $length = (int) $request->input('length', 25);
-    $search = trim((string) $request->input('search.value', ''));
-    $status = (string) $request->query('status', '');
-
-    $columns = [
-        0 => 'vt.docid',
-        1 => 'vt.vaucher_date',
-        2 => 'vt.date_used',
-        3 => 'vt.cpny_id',
-        4 => 'vt.department_id',
-        5 => 'vt.user_peminta',
-        6 => 'vt.to',
-        7 => 'vt.perpose',
-        8 => 'vt.status',
-    ];
-
-    $orderIdx = (int) $request->input('order.0.column', 0);
-    $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-    $orderCol = $columns[$orderIdx] ?? 'vt.docid';
-
-    $baseTable = (new TrVoucherTaxi)->getTable();
-
-    $base = TrVoucherTaxi::from($baseTable . ' as vt')
-        ->whereIn('vt.cpny_id', $cpnyIds)
-        ->whereIn('vt.department_id', $deptIds);
-
-    if ($status !== '') {
-        $base->where('vt.status', $status);
-    }
-
-    $recordsTotal = (clone $base)->count();
-
-    if ($search !== '') {
-        $base->where(function ($q) use ($search) {
-            $q->where('vt.docid', 'ilike', "%{$search}%")
-                ->orWhere('vt.vaucher_date', 'ilike', "%{$search}%")
-                ->orWhere('vt.date_used', 'ilike', "%{$search}%")
-                ->orWhere('vt.cpny_id', 'ilike', "%{$search}%")
-                ->orWhere('vt.department_id', 'ilike', "%{$search}%")
-                ->orWhere('vt.user_peminta', 'ilike', "%{$search}%")
-                ->orWhere('vt.to', 'ilike', "%{$search}%")
-                ->orWhere('vt.perpose', 'ilike', "%{$search}%")
-                ->orWhere('vt.status', 'ilike', "%{$search}%")
-                ->orWhere('vt.created_by', 'ilike', "%{$search}%");
-        });
-    }
-
-    $recordsFiltered = (clone $base)->count();
-
-    $data = $base->select([
-            'vt.id',
-            'vt.docid',
-            'vt.vaucher_date',
-            'vt.date_used',
-            'vt.cpny_id',
-            'vt.department_id',
-            'vt.user_peminta',
-            'vt.to',
-            'vt.perpose',
-            'vt.status',
-            'vt.created_by',
-        ])
-        ->orderBy($orderCol, $orderDir)
-        ->orderBy('vt.docid', 'desc')
-        ->skip($start)
-        ->take($length)
-        ->get();
-
-    $data->transform(function ($row) {
-        $row->eid = Hashids::encode($row->id);
-        unset($row->id);
-        return $row;
-    });
-
-    return response()->json([
-        'draw'            => $draw,
-        'recordsTotal'    => $recordsTotal,
-        'recordsFiltered' => $recordsFiltered,
-        'data'            => $data,
-    ]);
-}
-
-
-    
-    public function createItemReq()
-    {        
-        $user = Auth::user();       
+    {
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
         }
 
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
+
+        $deptIds = is_string($user->department_id)
+            ? array_filter(array_map('trim', explode(',', $user->department_id)))
+            : (array) $user->department_id;
+
+        $q = TrVoucherTaxi::query()
+            ->whereIn('cpny_id', $cpnyIds)
+            ->whereIn('department_id', $deptIds);
+
+        $all        = (clone $q)->count();
+        $onProgress = (clone $q)->where('status', 'P')->count();
+        $reject     = (clone $q)->where('status', 'R')->count();
+        $revise     = (clone $q)->where('status', 'D')->count();
+        $completed  = (clone $q)->where('status', 'C')->count();
+     
         $usercpny = Usercpny::where('username', $user->username)
             ->get();       
         
@@ -187,92 +69,212 @@ public function json(Request $request)
         $userdept = Userdept::where('username', $user->username)
             ->get();
         $userdept2 = Userdept::where('username', $user->username)
-            ->first();                   
-       
-        $akses_stock = SysUserRole::where('username', $user->username)
-            ->where('role_id','WHSACCESS')
-            ->first();
+            ->first(); 
+        $company = MsCompany::where('status', 'A')
+            ->select('cpny_id', 'cpny_name')
+            ->get(); 
+            
 
-        return view('pages.itemrequest.createitemreq', compact('usercpny','usercpny2','userdept','userdept2','akses_stock'));
+        $requesters = User::query()
+            ->whereNotNull('username')
+            ->whereIn('department_id', $deptIds)
+            ->where('status', 'A')
+            ->select('username')
+            ->orderBy('username')
+            ->get();
+
+        return view('pages.vouchertaxi.vouchertaxi', compact(
+            'all',
+            'onProgress',
+            'reject',
+            'revise',
+            'completed',
+            'usercpny',
+            'usercpny2',
+            'userdept',
+            'userdept2',
+            'requesters',
+            'company'
+
+        ));
     }
 
-    public function storeItemReq(Request $request)
+    public function json(Request $request)
     {
-        $request->validate([
-            'cpny_id'               => 'required|string',
-            'department_id'         => 'required|string',
-            'inventory_type'        => 'required|string', // <-- pastikan ada validasi
-            'inventory_descr_req'   => 'required|string|min:5',
-            'attachments.*'         => 'nullable|file|max:10240',
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
+
+        $deptIds = is_string($user->department_id)
+            ? array_filter(array_map('trim', explode(',', $user->department_id)))
+            : (array) $user->department_id;
+
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 25);
+        $search = trim((string) $request->input('search.value', ''));
+        $status = (string) $request->query('status', '');
+
+        $columns = [
+            0 => 'vt.docid',
+            1 => 'vt.vaucher_date',
+            2 => 'vt.date_used',
+            3 => 'vt.cpny_id',
+            4 => 'vt.department_id',
+            5 => 'vt.user_peminta',
+            6 => 'vt.to',
+            7 => 'vt.perpose',
+            8 => 'vt.status',
+        ];
+
+        $orderIdx = (int) $request->input('order.0.column', 0);
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'vt.docid';
+
+        $baseTable = (new TrVoucherTaxi)->getTable();
+
+        $base = TrVoucherTaxi::from($baseTable . ' as vt')
+            ->whereIn('vt.cpny_id', $cpnyIds)
+            ->whereIn('vt.department_id', $deptIds);
+
+        if ($status !== '') {
+            $base->where('vt.status', $status);
+        }
+
+        $recordsTotal = (clone $base)->count();
+
+        if ($search !== '') {
+            $base->where(function ($q) use ($search) {
+                $q->where('vt.docid', 'ilike', "%{$search}%")
+                    ->orWhere('vt.vaucher_date', 'ilike', "%{$search}%")
+                    ->orWhere('vt.date_used', 'ilike', "%{$search}%")
+                    ->orWhere('vt.cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('vt.department_id', 'ilike', "%{$search}%")
+                    ->orWhere('vt.user_peminta', 'ilike', "%{$search}%")
+                    ->orWhere('vt.to', 'ilike', "%{$search}%")
+                    ->orWhere('vt.perpose', 'ilike', "%{$search}%")
+                    ->orWhere('vt.status', 'ilike', "%{$search}%")
+                    ->orWhere('vt.created_by', 'ilike', "%{$search}%");
+            });
+        }
+
+        $recordsFiltered = (clone $base)->count();
+
+        $data = $base->select([
+                'vt.id',
+                'vt.docid',
+                'vt.vaucher_date',
+                'vt.date_used',
+                'vt.cpny_id',
+                'vt.department_id',
+                'vt.user_peminta',
+                'vt.to',
+                'vt.perpose',
+                'vt.type_trip',
+                'vt.cpny_id_expense',
+                'vt.user_topup',
+                'vt.status',
+                'vt.created_by',
+            ])
+            ->orderBy($orderCol, $orderDir)
+            ->orderBy('vt.docid', 'desc')
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        $data->transform(function ($row) {
+            $row->eid = Hashids::encode($row->id);
+            unset($row->id);
+            return $row;
+        });
+
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
+        ]);
+    }
+
+    public function storeVoucher(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'cpny_id'          => ['required'],
+            'department_id'    => ['required'],
+            'user_peminta'     => ['required'],
+            'date_used'        => ['required', 'date'],
+            'type_trip'        => ['required'],
+            'to'               => ['required'],
+            'perpose'          => ['required'],
+            'cpny_id_expense'  => ['required'],
+            'user_topup'       => ['required'],
         ]);
 
-        $user = $request->user();
-        $username = $user->username ?? 'system';
+        DB::connection('pgsql5')->beginTransaction();
 
-        $dt    = now();
-        $year  = (int) $dt->year;
-        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $doctype = 'SR';
-
-        $cpny_id = $request->cpny_id;
-        $department_id = $request->department_id;
-
-        $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
-
-        // validasi setup approval exist
-        $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
-
-        DB::beginTransaction();
         try {
+            $dt       = now();
+            $year     = (int) $dt->year;
+            $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+            $doctype  = 'VCR';
+            $username = $user->username;
+
+            $cpny_id       = $validated['cpny_id_expense'];
+            $department_id = $validated['department_id'];
+
+            $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+
+            // validasi setup approval exist
+            $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
+
             // autonbr
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
                 $month,
                 $username,
-                'Item Request'
+                'Voucher Taxi'
             );
+
             $urutan = (int) $auto['next'];
+            $tglbln = substr((string) $year, 2) . $month;
+            $docid  = $doctype . $tglbln . sprintf('%03d', $urutan);
 
-            $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
+            $voucher = TrVoucherTaxi::create([
+                'docid'           => $docid,
+                'vaucher_date'    => $dt->toDateString(),
+                'cpny_id'         => $validated['cpny_id'],
+                'department_id'   => $validated['department_id'],
+                'user_peminta'    => $validated['user_peminta'],
+                'to'              => $validated['to'],
+                'perpose'         => $validated['perpose'],
+                'date_used'       => $validated['date_used'],
+                'cpny_id_expense' => $validated['cpny_id_expense'],
+                'type_trip'       => $validated['type_trip'],
+                'user_topup'      => $validated['user_topup'],
+                'status'          => 'P',
+                'created_by'      => $username,
+                'created_at'      => now(),
+                'updated_by'      => $username,
+                'updated_at'      => now(),
+            ]);
 
-            // insert header
-            $itemReq = new TrVoucherTaxi();
-            $itemReq->irid                  = $docid;
-            $itemReq->irdate                = $dt->toDateString();
-            $itemReq->cpny_id               = $cpny_id;
-            $itemReq->department_id         = $department_id;
-            $itemReq->inventory_type        = $request->inventory_type;
-            $itemReq->inventory_descr_req   = $request->inventory_descr_req;
-            $itemReq->pic_item_req          = $username;
-            $itemReq->status                = 'P';
-            $itemReq->created_by            = $username;
-            $itemReq->save();
+            $ctx = ['ignore_nominal' => true];
 
-            // =========================
-            // CTX approval (FIXED)
-            // =========================
-            $invType = strtoupper(trim((string)$request->inventory_type)); // STOCK | NONSTOCK
-
-            // ✅ kalau user input aneh, amankan
-            if (!in_array($invType, ['STOCK', 'NONSTOCK'], true)) {
-                throw new \RuntimeException("Invalid inventory_type: {$invType}");
-            }
-
-            /**
-             * IMPORTANT:
-             * - JANGAN kirim approval_conditions "NONSTOCK" karena fallback "contains"
-             *   bisa bikin STOCK ikut match (nonstock mengandung stock).
-             * - Kirim inventory_type saja, dan pastikan ApprovalController punya
-             *   checker khusus untuk condition STOCK/NONSTOCK.
-             */
-            $ctx = [
-                'ignore_nominal' => true,
-                'inventory_type' => $invType, // <-- dipakai checker STOCK/NONSTOCK
-            ];
-
-            // Generate TrApproval
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
                 $docid,
                 $doctype,
@@ -283,246 +285,40 @@ public function json(Request $request)
                 $dt
             );
 
-            // simpan hint approver pertama (opsional)
-            if ($firstApprovalUsernames) {
-                $itemReq->completed_by = $firstApprovalUsernames;
-                $itemReq->completed_at = $dt;
-                $itemReq->save();
-            }
-
-            // upload attachments (optional)
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'        => $docid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $request->cpny_id,
-                    'departementid' => $request->department_id,
-                    'base_folder'   => 'att-item-request',
-                    'created_by'    => $username,
-                ];
-
-                try {
-                    $uploader = app(TrAttachmentController::class);
-                    $uploader->uploadInternal($meta, (array)$request->file('attachments'));
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Failed to upload attachment',
-                        'error'   => $e->getMessage(),
-                    ], 500);
-                }
-            }
-
-            $eid = Hashids::encode($itemReq->id);
+            $eid = Hashids::encode($voucher->id);
 
             $approvalCtl->notifyFirstApprover(
                 $docid,
                 $doctype,
-                $itemReq->status,
-                'Item Request',
-                url('/showitemreq/' . $eid),
+                $voucher->status,
+                'Voucher Taxi',
+                url('/showvouchertaxi/' . $eid),
                 [
-                    'info'      => $request->inventory_descr_req,
-                    'createdby' => $itemReq->created_by,
+                    'info'      => $voucher->perpose,
+                    'createdby' => $voucher->created_by,
                     'date'      => $dt->toDateTimeString(),
                 ]
             );
 
-            DB::commit();
+            DB::connection('pgsql5')->commit();
 
             return response()->json([
-                'message' => 'Item Request created successfully',
-                'irid'    => $docid,
-                'eid'     => $eid,
+                'success' => true,
+                'message' => 'Voucher Taxi berhasil dibuat',
+                'redirect' => url('/showvouchertaxi/' . Hashids::encode($voucher->id))
             ]);
 
         } catch (\Throwable $e) {
-            DB::rollBack();
-            report($e);
+            DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-                'message' => 'Failed to create Item Request',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'success' => false,
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
-       
-    public function storeItemReq_zzzz(Request $request)
-    {
-        // dd($request->all());
-        $request->validate([
-            'cpny_id'               => 'required|string',
-            'department_id'         => 'required|string',
-            'inventory_descr_req'   => 'required|string|min:5',
-            'attachments.*'         => 'nullable|file|max:10240',
-        ]);
-
-        $user = $request->user();
-        $username = $user->username ?? 'system';
-        $dt    = now();
-        $year  = (int) $dt->year;
-        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $doctype = 'SR'; // Item Request
-
-        $cpny_id = $request->cpny_id;
-        $department_id = $request->department_id;
-
-        // ===== generate TrApproval dari MsApproval sesuai context =====
-        $approvalCtl = app(ApprovalController::class);
-
-        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
-
-        DB::beginTransaction();
-        try {
-
-            /* =========================
-            * Generate IRID (Autonumber)
-            * ========================= */           
-
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $seq = 1;
-            // } else {
-            //     $seq = $autonbr->number + 1;
-            //     $autonbr->update(['number' => $seq]);
-            // }
-
-            // $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $seq);
-
-            $auto = $this->nextAutonbr(
-                $doctype,
-                $year,
-                $month,
-                $username,
-                'Item Request'
-            );
-            $urutan = (int) $auto['next'];
-
-            $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-           
-            /* =========================
-            * Insert HEADER
-            * ========================= */
-            $itemReq = new TrVoucherTaxi();
-            $itemReq->irid                  = $docid;
-            $itemReq->irdate                = $dt->toDateString();
-            $itemReq->cpny_id               = $cpny_id;
-            $itemReq->department_id         = $department_id;
-            $itemReq->inventory_type        = $request->inventory_type;
-            $itemReq->inventory_descr_req   = $request->inventory_descr_req;
-            $itemReq->pic_item_req          = $username;
-            $itemReq->status                = 'P'; // default: On Progress
-            $itemReq->created_by            = $username;
-            $itemReq->save();
-
-            // =========================
-            // CTX approval
-            // =========================
-            $invType = strtoupper(trim($request->inventory_type)); // STOCK | NONSTOCK
-
-            $ctx = [
-                'ignore_nominal' => true,
-                // pilih jalur approval berdasarkan inventory_type
-                // pastikan string ini sesuai yang ada di MsApproval (condition)
-                'approval_conditions' => [
-                    $invType === 'STOCK' ? 'STOCK' : 'NONSTOCK'
-                ],
-            ];
-
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $cpny_id,
-                $department_id,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            // (opsional) simpan hint approver pertama di itemReq seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $itemReq->completed_by = $firstApprovalUsernames;
-                $itemReq->completed_at = $dt;
-                $itemReq->save();
-            }
-
-            /* =========================
-            * Upload Attachments (optional)
-            * ========================= */
-            if ($request->hasFile('attachments')) {
-
-                $meta = [
-                    'refnbr'        => $docid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $request->cpny_id,
-                    'departementid' => $request->department_id,
-                    'base_folder'   => 'att-item-request',
-                    'created_by'    => $username,
-                ];
-
-                try {
-                    $uploader = app(TrAttachmentController::class);
-                    $uploader->uploadInternal($meta, (array) $request->file('attachments'));
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Failed to upload attachment',
-                        'error'   => $e->getMessage(),
-                    ], 500);
-                }
-            }
-
-            $eid = Hashids::encode($itemReq->id);
-
-            $approvalCtl->notifyFirstApprover(
-                    $docid,
-                    $doctype,
-                    $itemReq->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                    'Item Request',
-                    url('/showitemreq/' . $eid),
-                    [
-                        'info'      => $request->inventory_descr_req,
-                        'createdby' => $itemReq->created_by,
-                        'date'      => $dt->toDateTimeString(),
-                    ]
-                );
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Item Request created successfully',
-                'irid'    => $docid,
-                'eid'     => Hashids::encode($itemReq->id),
-            ]);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            report($e);
-
-            return response()->json([
-                'message' => 'Failed to create Item Request',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
-            ], 500);
-        }
-    }
-
    
-    public function editItemReq($hash)
+    public function editVoucherTaxi($hash)
     {
         $user = Auth::user();
         if (!$user) {
@@ -602,81 +398,79 @@ public function json(Request $request)
 
 
 
-   public function updateItemReq(Request $request, $hash)
+    public function updateVoucherTaxi(Request $request, $docid)
     {
-        $request->validate([
-            'cpny_id'               => 'required|string',
-            'department_id'         => 'required|string',
-            'inventory_type'        => 'required|string',   // ✅ samakan dengan store
-            'inventory_descr_req'   => 'required|string|min:5',
-            'attachments.*'         => 'nullable|file|max:10240',
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'cpny_id'          => ['required'],
+            'department_id'    => ['required'],
+            'user_peminta'     => ['required'],
+            'date_used'        => ['required', 'date'],
+            'type_trip'        => ['required'],
+            'to'               => ['required'],
+            'perpose'          => ['required'],
+            'cpny_id_expense'  => ['required'],
+            'user_topup'       => ['required'],
         ]);
 
-        $user     = $request->user();
-        $username = $user->username ?? 'system';
-        $dt       = now();
-        $doctype  = 'SR';
+        DB::connection('pgsql5')->beginTransaction();
 
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        DB::beginTransaction();
         try {
-            $itemReq = TrVoucherTaxi::lockForUpdate()->findOrFail($id);
+            $voucher = TrVoucherTaxi::where('docid', $docid)->firstOrFail();
 
-            // =========================
-            // APPROVAL STATUS CHECK
-            // =========================
-            if (in_array($itemReq->status, ['C', 'A'], true)) {
-                return response()->json([
-                    'message' => 'Item Request sudah selesai / approved dan tidak bisa diedit.'
-                ], 422);
+            if ($voucher->status !== 'D') {
+                throw new \Exception('Voucher Taxi hanya bisa diedit saat status Revise / Draft.');
             }
 
-            $cpny_id       = $request->cpny_id;
-            $department_id = $request->department_id;
+            if ($voucher->created_by !== $user->username) {
+                throw new \Exception('Anda tidak berhak edit Voucher Taxi ini.');
+            }
 
-            // =========================
-            // UPDATE HEADER
-            // =========================
-            $itemReq->cpny_id             = $cpny_id;
-            $itemReq->department_id       = $department_id;
-            $itemReq->inventory_type      = $request->inventory_type;
-            $itemReq->inventory_descr_req = $request->inventory_descr_req;
-            $itemReq->status              = 'P';
-            $itemReq->updated_by          = $username;
-            $itemReq->save();
+            $doctype       = 'VCR';
+            $dt            = now();
+            $username      = $user->username;
+            $cpny_id       = $validated['cpny_id_expense'];
+            $department_id = $validated['department_id'];
 
-            // =========================
-            // RE-GENERATE APPROVAL
-            // =========================
-            $approvalCtl = app(ApprovalController::class);
+            $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
 
-            // 1) hapus approval lama
-            // TrApproval::where('refnbr', $itemReq->irid)
-            //     ->where('aprv_doctype', $doctype) // ✅ lebih aman
-            //     ->delete();
-
-            // 2) load rule approval
+            // Validasi approval setup baru
             $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
 
-            // =========================
-            // CTX approval (FIXED seperti store)
-            // =========================
-            $invType = strtoupper(trim((string)$request->inventory_type)); // STOCK | NONSTOCK
+            $voucher->cpny_id          = $validated['cpny_id'];
+            $voucher->department_id    = $validated['department_id'];
+            $voucher->user_peminta     = $validated['user_peminta'];
+            $voucher->to               = $validated['to'];
+            $voucher->perpose          = $validated['perpose'];
+            $voucher->date_used        = $validated['date_used'];
+            $voucher->cpny_id_expense  = $validated['cpny_id_expense'];
+            $voucher->type_trip        = $validated['type_trip'];
+            $voucher->user_topup       = $validated['user_topup'];
+            $voucher->status           = 'P';
+            // $voucher->completed_by     = null;
+            // $voucher->completed_at     = null;
+            $voucher->updated_by       = $username;
+            $voucher->updated_at       = $dt;
+            $voucher->save();
 
-            if (!in_array($invType, ['STOCK', 'NONSTOCK'], true)) {
-                throw new \RuntimeException("Invalid inventory_type: {$invType}");
-            }
+            // TrApproval::where('refnbr', $voucher->docid)
+            //     ->where('doctype', $doctype)
+            //     ->delete();
 
             $ctx = [
-                'ignore_nominal' => true,
-                'inventory_type' => $invType, // ✅ dipakai checker stock/nonstock
+                'ignore_nominal' => true
             ];
 
-            // 3) generate approval baru
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $itemReq->irid,
+                $voucher->docid,
                 $doctype,
                 $cpny_id,
                 $department_id,
@@ -685,744 +479,383 @@ public function json(Request $request)
                 $dt
             );
 
-            // simpan hint approver pertama
             if ($firstApprovalUsernames) {
-                $itemReq->completed_by = $firstApprovalUsernames;
-                $itemReq->completed_at = $dt;
-                $itemReq->save();
+                $voucher->completed_by = is_array($firstApprovalUsernames)
+                    ? implode(',', $firstApprovalUsernames)
+                    : $firstApprovalUsernames;
+
+                $voucher->completed_at = $dt;
+                $voucher->save();
             }
 
-            // =========================
-            // UPLOAD ATTACHMENTS (optional)
-            // =========================
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'        => $itemReq->irid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $cpny_id,
-                    'departementid' => $department_id,
-                    'base_folder'   => 'att-item-request',
-                    'created_by'    => $username,
-                ];
-
-                $uploader = app(TrAttachmentController::class);
-                $uploader->uploadInternal($meta, (array)$request->file('attachments'));
-            }
-
-            // =========================
-            // NOTIFY FIRST APPROVER
-            // =========================
-            $eid = Hashids::encode($itemReq->id);
+            $eid = Hashids::encode($voucher->id);
 
             $approvalCtl->notifyFirstApprover(
-                $itemReq->irid,
+                $docid,
                 $doctype,
-                $itemReq->status, // P
-                'Item Request',
-                url('/showitemreq/' . $eid),
+                $voucher->status,
+                'Voucher Taxi',
+                url('/showvouchertaxi/' . $eid),
                 [
-                    'info'      => $itemReq->inventory_descr_req,
-                    'createdby' => $itemReq->created_by,
+                    'info'      => $voucher->perpose,
+                    'createdby' => $voucher->created_by,
                     'date'      => $dt->toDateTimeString(),
                 ]
             );
 
-            DB::commit();
+
+            DB::connection('pgsql5')->commit();
 
             return response()->json([
-                'message' => 'Item Request updated successfully',
-                'irid'    => $itemReq->irid,
-                'eid'     => $eid,
+                'success' => true,
+                'message' => 'Voucher Taxi berhasil diupdate dan dikirim ulang approval.',
+                'redirect' => url('/showvouchertaxi/' . Hashids::encode($voucher->id))
             ]);
-
         } catch (\Throwable $e) {
-            DB::rollBack();
-            report($e);
+            DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-                'message' => 'Failed to update Item Request',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
+                'success' => false,
+                'message' => $e->getMessage()
             ], 500);
         }
     }
-          
+            
 
-    public function showItemReq($hash)
+    public function showVoucherTaxi($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
         $user = Auth::user();
-        if (!$user) return redirect()->route('login');
 
-        // ===== HEADER (SR) =====
-        $itemReq = TrVoucherTaxi::with([
-            'creator:username,name', // pastikan relasi creator ada di model
-            'inventory:inventoryid,inventory_descr'
-        ])->findOrFail($id);
-
-        // ===== (opsional) DETAIL =====
-        // Kalau SR memang tidak punya detail table, hapus ini.
-        // Kalau tabel detail ada tapi doc key-nya irid, sesuaikan where-nya.
-        $itemReqDetail = collect(); // default kosong
-
-        // ===== ATTACHMENTS (tr_attachment) =====
-        $rows = TrAttachment::where('refnbr', $itemReq->irid)
-            ->where('doctype', 'SR')              // <- PENTING: pastikan kamu simpan doctype 'SR' di attachment
-            ->where('status', 'A')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $config      = config('filesystems.disks.gcs');
-        $keyFilePath = $config['key_file'];
-        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
-            $keyFilePath = base_path($keyFilePath);
+        if (!$user) {
+            return redirect()->route('login');
         }
 
-        $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
-            'keyFilePath' => $keyFilePath,
-        ]);
-        $bucket = $storage->bucket($config['bucket']);
+        $voucher = TrVoucherTaxi::with([
+            'creator:username,name',
+        ])->findOrFail($id);
 
-        $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
-            $object     = $bucket->object($objectPath);
+        $company = MsCompany::where('status', 'A')
+            ->select('cpny_id', 'cpny_name')
+            ->get();
 
-            $signedUrl = null;
-            try {
-                $signedUrl = $object->signedUrl(
-                    new \DateTimeImmutable('+10 minutes'),
-                    ['version' => 'v4']
-                );
-            } catch (\Throwable $e) {
-                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
-            }
+        $canProcessGaAdvice = TrApproval::where('refnbr', $voucher->docid)            
+            ->where('aprv_leveling', 2)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->exists();
 
-            return (object) [
-                'id'           => $r->id,
-                'display_name' => $r->attachment_name,
-                'created_by'   => $r->created_by,
-                'created_at'   => $r->created_at,
-                'url'          => $signedUrl,
-                'folder'       => $r->folder,
-                'filename'     => $r->filename,
-                'extention'    => $r->extention,
-                'size'         => $r->filesize,
-            ];
-        });
-
-        $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = ($itemReq->created_by === $loginUsername);
-
-        return view('pages.itemrequest.showitemreq', compact(
-            'itemReq',
-            'itemReqDetail',
-            'attachments',
+        return view('pages.vouchertaxi.showvouchertaxi', compact(
+            'voucher',
             'hash',
-            'canUpload'
+            'company',
+            'canProcessGaAdvice'
         ));
     }
 
+    public function updateGaAdvice(Request $request, $docid)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'max_budget'      => ['required', 'numeric', 'min:0'],
+            'max_trip'        => ['required', 'numeric', 'min:0'],
+            'cpny_id_expense' => ['required', 'string'],
+        ]);
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $voucher = TrVoucherTaxi::where('docid', $docid)->firstOrFail();
+
+            $voucher->max_budget      = $validated['max_budget'];
+            $voucher->max_trip        = $validated['max_trip'];
+            $voucher->cpny_id_expense = $validated['cpny_id_expense'];
+            $voucher->checked_by      = $user->username;
+            $voucher->checked_at      = now();
+            $voucher->updated_by      = $user->username;
+            $voucher->updated_at      = now();
+            $voucher->save();
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'GA Advice berhasil disimpan.',
+                'data' => [
+                    'max_budget'      => $voucher->max_budget,
+                    'max_trip'        => $voucher->max_trip,
+                    'cpny_id_expense' => $voucher->cpny_id_expense,
+                    'checked_by'      => $voucher->checked_by,
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
       
-    public function approveItemReq(Request $request, $docid)
+    public function approveVoucherTaxi(Request $request, $docid)
     {
         $user    = $request->user();
-        $doctype = 'SR';
+        $doctype = 'VCR';
 
-        $itemReq = TrVoucherTaxi::with('creator')->where('irid', $docid)->first();
-        if (!$itemReq) return response()->json(['success'=>false,'message'=>'Item Request not found'],404);
+        $voucher = TrVoucherTaxi::with('creator')
+            ->where('docid', $docid)
+            ->first();
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($itemReq->id);
-        $docUrl   = url('/showitemreq/' . $eid);
-        $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
+        if (!$voucher) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Voucher Taxi not found'
+            ], 404);
+        }
+
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
+        $docUrl   = url('/showvouchertaxi/' . $eid);
+        $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
-            $itemReq->irid,
+            $voucher->docid,
             $doctype,
             $user->username,
             $user->name,
 
-            // complete: update header/detail + email creator complete
-            function (string $refnbr, \Carbon\Carbon $now) use ($itemReq, $fullname, $docUrl) {
-                $itemReq->status       = 'C';
-                $itemReq->completed_by = $itemReq->completed_by ?: auth()->user()->username;
-                $itemReq->completed_at = $now;
-                $itemReq->save();               
+            // complete: update header + email creator complete
+            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
+                $voucher->status       = 'C';
+                $voucher->completed_by = $voucher->completed_by ?: auth()->user()->username;
+                $voucher->completed_at = $now;
+                $voucher->updated_by   = auth()->user()->username;
+                $voucher->updated_at   = $now;
+                $voucher->save();
 
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $itemReq->irid,
-                    'Item Request',
+                    $voucher->docid,
+                    'Voucher Taxi',
                     'C',
-                    $itemReq->created_by,
+                    $voucher->created_by,
                     $docUrl,
                     [
-                        'cpnyid'   => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
-                        'deptname' => $itemReq->department_id ?? $itemReq->departementid ?? '',
-                        'date'     => $itemReq->itemReqdate,
-                        'info'     => $itemReq->inventory_descr_req,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname, 
+                        'cpnyid'    => $voucher->cpny_id ?? '',
+                        'deptname'  => $voucher->department_id ?? '',
+                        'date'      => $voucher->vaucher_date,
+                        'info'      => $voucher->perpose,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
                     ]
                 );
             },
 
             // notify next approver
-            function ($next, \Carbon\Carbon $now) use ($itemReq, $docUrl) {
+            function ($next, \Carbon\Carbon $now) use ($voucher, $docUrl) {
                 app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                    $itemReq->irid,
-                    'SR',
+                    $voucher->docid,
+                    'VCR',
                     'P',
-                    'Item Request',
+                    'Voucher Taxi',
                     $docUrl,
                     [
-                        'info'      => $itemReq->inventory_descr_req,
-                        'createdby' => $itemReq->created_by,
+                        'info'      => $voucher->perpose,
+                        'createdby' => $voucher->created_by,
                         'date'      => $now->toDateTimeString(),
                     ]
                 );
 
-                // jejak terakhir diproses (optional)
-                $itemReq->completed_by = auth()->user()->username;
-                $itemReq->completed_at = $now;
-                $itemReq->save();
-            }
-        );
-
-        if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Approve failed'], 403);
-        }
-
-        return response()->json(['success'=>true,'message'=>'Task approved successfully']);
-    }
-
-    public function rejectItemReq(Request $request, $docid)
-    {
-        $user    = $request->user();
-        $doctype = 'SR';
-
-        $itemReq = \App\Models\TrVoucherTaxi::with('creator')->where('irid', $docid)->first();
-        if (!$itemReq) return response()->json(['success'=>false,'message'=>'Item Request not found'],404);
-
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($itemReq->id);
-        $docUrl   = url('/showitemreq/' . $eid);
-        $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
-
-        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
-            $itemReq->irid,
-            $doctype,
-            $user->username,
-            $user->name,
-
-            function (string $refnbr, \Carbon\Carbon $now) use ($itemReq, $fullname, $docUrl) {
-                $itemReq->status       = 'R';
-                $itemReq->completed_by = auth()->user()->username;
-                $itemReq->completed_at = $now;
-                $itemReq->save();
-
-                // optional: tandai detail R
-                // \App\Models\TrVoucherTaxidetail::where('irid', $itemReq->irid)->update(['status' => 'R']);
-
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $itemReq->irid,
-                    'Item Request',
-                    'R',
-                    $itemReq->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'   => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
-                        'deptname' => $itemReq->department_id ?? $itemReq->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $itemReq->inventory_descr_req,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname, 
-                    ]
-                );
-
-                // simpan komentar (jika ada)
-                try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($itemReq->id, 'SR', request());
-                } catch (\Throwable $e) {}
-            }
-        );
-
-        if (!$result['ok']) {
-            return response()->json(['success'=>false,'message'=>$result['message'] ?? 'Reject failed'], 403);
-        }
-
-        return response()->json(['success'=>true,'message'=>'Item Request rejected successfully']);
-    }
-
-    public function reviseItemReq(Request $request, $docid)
-    {
-        $user    = $request->user();
-        $doctype = 'SR';
-
-        $itemReq = \App\Models\TrVoucherTaxi::with('creator')->where('irid', $docid)->first();
-        if (!$itemReq) return response()->json(['success'=>false,'message'=>'Item Request not found'],404);
-
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($itemReq->id);
-        $docUrl   = url('/showitemreq/' . $eid);
-        $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
-
-        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
-            $itemReq->irid,            // refnbr
-            $doctype,                 // PT
-            $user->username,          // actor
-            $user->name,              // actor
-            function (string $refnbr, \Carbon\Carbon $now) use ($itemReq, $fullname, $docUrl) {
-                // === HEADER Item Request -> D ===
-                $itemReq->status       = 'D';
-                $itemReq->completed_by = auth()->user()->username;
-                $itemReq->completed_at = $now;
-                $itemReq->save();
-
-                // (opsional) DETAIL -> D
-                // \App\Models\TrVoucherTaxidetail::where('irid', $itemReq->irid)->update(['status' => 'D']);
-
-                // === Email ke requester ===
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $itemReq->irid,
-                    'Item Request',
-                    'D',
-                    $itemReq->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'   => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
-                        'deptname' => $itemReq->department_id ?? $itemReq->departementid ?? '',
-                        'date'     => $now->toDateString(),
-                        'info'     => $itemReq->inventory_descr_req,
-                        'fullname' => $fullname,
-                        'name'     => $fullname,
-                        'createdby'=> $fullname,   // <<< tambahkan ini
-                    ]
-                );
-
-
-                // === Simpan komentar (jika ada) ===
-                try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($itemReq->id, 'SR', request());
-                } catch (\Throwable $e) {}
+                // jejak terakhir diproses
+                $voucher->completed_by = auth()->user()->username;
+                $voucher->completed_at = $now;
+                $voucher->updated_by   = auth()->user()->username;
+                $voucher->updated_at   = $now;
+                $voucher->save();
             }
         );
 
         if (!$result['ok']) {
             return response()->json([
-                'success'=>false,
-                'message'=>$result['message'] ?? 'Revise failed'
+                'success' => false,
+                'message' => $result['message'] ?? 'Approve failed'
             ], 403);
         }
 
-        return response()->json(['success'=>true,'message'=>'Item Request revised successfully']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Voucher Taxi approved successfully'
+        ]);
     }
 
-    // public function approveItemRequest(Request $request, $docid)
-    // {
-    //     $now  = Carbon::now();
-    //     $user = $request->user();
-    //     $doctype = 'SR';
+    public function rejectVoucherTaxi(Request $request, $docid)
+    {
+        $user    = $request->user();
+        $doctype = 'VCR';
 
-    //     // Ambil header + creator
-    //     $itemReq = TrVoucherTaxi::with('creator')->where('irid', $docid)->first();
-    //     if (!$itemReq) {
-    //         return response()->json(['success' => false, 'message' => 'Item Request not found'], 404);
-    //     }
-    //     $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
+        $voucher = TrVoucherTaxi::with('creator')
+            ->where('docid', $docid)
+            ->first();
 
-    //     // Cari row approval PENDING level terendah yang sudah "aktif" (aprv_datebefore != null)
-    //     // Lalu pastikan user saat ini termasuk dalam daftar aprv_username (support ; atau ,)
-    //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $itemReq->irid)
-    //         ->where('aprv_doctype', $doctype)
-    //         ->where('status', 'P')
-    //         ->whereNotNull('aprv_datebefore')
-    //         ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
-    //         ->first();
+        if (!$voucher) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Voucher Taxi not found'
+            ], 404);
+        }
 
-    //     if (!$currentPending) {
-    //         return response()->json(['success' => false, 'message' => "No active approval step."], 403);
-    //     }
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
+        $docUrl   = url('/showvouchertaxi/' . $eid);
+        $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
-    //     // Apakah user berhak approve di step ini?
-    //     $list = preg_split('/[;,]/', (string)$currentPending->aprv_username);
-    //     $list = array_filter(array_map('trim', (array)$list));
-    //     $canApprove = in_array(strtolower($user->username), array_map('strtolower', $list), true);
+        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+            $voucher->docid,
+            $doctype,
+            $user->username,
+            $user->name,
 
-    //     if (!$canApprove) {
-    //         return response()->json(['success' => false, 'message' => "You can't approve!"], 403);
-    //     }
+            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
+                $voucher->status       = 'R';
+                $voucher->completed_by = auth()->user()->username;
+                $voucher->completed_at = $now;
+                $voucher->updated_by   = auth()->user()->username;
+                $voucher->updated_at   = $now;
+                $voucher->save();
 
-    //     DB::beginTransaction();
-    //     try {
-    //         // 1) Set current approver -> Approved
-    //         $currentPending->status        = 'A';
-    //         $currentPending->aprv_dateafter= $now;
-    //         // opsional: cap keberadaan approver aktual
-    //         $currentPending->aprv_username = $user->username;
-    //         $currentPending->aprv_name     = $user->name;
-    //         $currentPending->save();
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $voucher->docid,
+                    'Voucher Taxi',
+                    'R',
+                    $voucher->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'    => $voucher->cpny_id ?? '',
+                        'deptname'  => $voucher->department_id ?? '',
+                        'date'      => $now->toDateString(),
+                        'info'      => $voucher->perpose ?? '',
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
 
-    //         // Update header informasi "terakhir diproses"
-    //         $itemReq->completed_by = $user->username;
-    //         $itemReq->completed_at = $now;
-    //         $itemReq->save();
+                try {
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($voucher->id, 'VCR', request());
+                } catch (\Throwable $e) {
+                    \Log::warning('Send reject comment Voucher Taxi failed', [
+                        'docid' => $voucher->docid,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        );
 
-    //         // 2) Masih ada pending lain?
-    //         $pendingCount = TrApproval::query()
-    //             ->where('refnbr', $itemReq->irid)
-    //             ->where('aprv_doctype', $doctype)
-    //             ->where('status', 'P')
-    //             ->count();
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Reject failed'
+            ], 403);
+        }
 
-    //         $eid = Hashids::encode($itemReq->id);
-    //         $subjectMap = [
-    //             'P' => 'Waiting Approval',
-    //             'R' => 'Rejected Approval',
-    //             'D' => 'Revise Approval',
-    //             'A' => 'Approved',
-    //             'C' => 'Completed',
-    //         ];
+        return response()->json([
+            'success' => true,
+            'message' => 'Voucher Taxi rejected successfully'
+        ]);
+    }
 
-    //         if ($pendingCount === 0) {
-    //             // 3) Tidak ada approver lagi -> dokumen complete
-    //             $itemReq->status       = 'C';
-    //             $itemReq->completed_by = $user->username;
-    //             $itemReq->completed_at = $now;
-    //             $itemReq->save();
+    public function reviseVoucherTaxi(Request $request, $docid)
+    {
+        $user    = $request->user();
+        $doctype = 'VCR';
 
-    //             // Close semua detail
-    //             TrVoucherTaxidetail::where('irid', $itemReq->irid)->update(['status' => 'C']);
+        $voucher = TrVoucherTaxi::with('creator')
+            ->where('docid', $docid)
+            ->first();
 
-    //             // Kirim email ke requester (creator)
-    //             $status        = 'C';
-    //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
+        if (!$voucher) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Voucher Taxi not found'
+            ], 404);
+        }
 
-    //             $data = [
-    //                 'docid'     => $itemReq->irid,
-    //                 'cpnyid'    => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
-    //                 'deptname'  => $itemReq->department_id ?? $itemReq->departementid ?? '',
-    //                 'date'      => $itemReq->itemReqdate,
-    //                 'fullname'  => $fullname,
-    //                 'name'      => $fullname,
-    //                 'createdby' => $fullname,
-    //                 'docname'   => 'Item Request',
-    //                 'info'      => $itemReq->inventory_descr_req,
-    //                 'status'    => $status,
-    //                 'url'       => url('/showitemrequests/' . $eid),
-    //             ];
+        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
+        $docUrl   = url('/showvouchertaxi/' . $eid);
+        $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
-    //             $recipients = User::where('username', $itemReq->created_by)
-    //                 ->where('status', 'A')
-    //                 ->get();
+        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+            $voucher->docid,          // refnbr
+            $doctype,
+            $user->username,
+            $user->name,
 
-    //             foreach ($recipients as $rcp) {
-    //                 try {
-    //                     $to = $rcp->notification_email ?? $rcp->email;
-    //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-    //                         $message->to($to)
-    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Item Request')
-    //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //                     });
-    //                 } catch (\Throwable $e) {
-    //                     Log::error('Failed sending Item Request completion email', ['error' => $e->getMessage()]);
-    //                 }
-    //             }
+            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
 
-    //         } else {
-    //             // 4) Masih ada approver berikutnya -> aktifkan step berikutnya (level terendah)
-    //             $next = TrApproval::query()
-    //                 ->where('refnbr', $itemReq->irid)
-    //                 ->where('aprv_doctype', $doctype)
-    //                 ->where('status', 'P')
-    //                 ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
-    //                 ->first();
+                // === HEADER -> D (Revise) ===
+                $voucher->status       = 'D';
+                $voucher->completed_by = auth()->user()->username;
+                $voucher->completed_at = $now;
+                $voucher->updated_by   = auth()->user()->username;
+                $voucher->updated_at   = $now;
+                $voucher->save();
 
-    //             if ($next) {
-    //                 // Stempel "datebefore" untuk approver berikutnya
-    //                 if (empty($next->aprv_datebefore)) {
-    //                     $next->aprv_datebefore = $now;
-    //                     $next->save();
-    //                 }
+                // === Email ke requester ===
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $voucher->docid,
+                    'Voucher Taxi',
+                    'D',
+                    $voucher->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid'    => $voucher->cpny_id ?? '',
+                        'deptname'  => $voucher->department_id ?? '',
+                        'date'      => $now->toDateString(),
+                        'info'      => $voucher->perpose ?? '',
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
 
-    //                 // Kirim email ke approver level berikutnya via ApprovalController (reusable)
-    //                 app(ApprovalController::class)->notifyFirstApprover(
-    //                     $itemReq->irid,
-    //                     $doctype,
-    //                     'P',
-    //                     'Item Request',
-    //                     url('/showitemrequests/' . $eid),
-    //                     [
-    //                         'info'      => $itemReq->inventory_descr_req,
-    //                         'createdby' => $itemReq->created_by,
-    //                         'date'      => $now->toDateTimeString(),
-    //                     ]
-    //                 );
-    //             }
-    //         }
+                // === Simpan komentar ===
+                try {
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($voucher->id, 'VCR', request());
+                } catch (\Throwable $e) {
+                    \Log::warning('Send revise comment Voucher Taxi failed', [
+                        'docid' => $voucher->docid,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        );
 
-    //         DB::commit();
-    //         return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Revise failed'
+            ], 403);
+        }
 
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Approve Item Request failed', ['error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
-    //     }
-    // }
-    
-    // public function rejectItemRequest(Request $request, $docid)
-    // {
-    //     $now     = Carbon::now();
-    //     $user    = $request->user();
-    //     $doctype = 'SR';
+        return response()->json([
+            'success' => true,
+            'message' => 'Voucher Taxi revised successfully'
+        ]);
+    }
 
-    //     // Header + creator
-    //     $itemReq = TrVoucherTaxi::with('creator')->where('irid', $docid)->first();
-    //     if (!$itemReq) {
-    //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
-    //     }
-    //     $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
-
-    //     // Row approval aktif (pending + sudah "dibuka" datebefore)
-    //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $itemReq->irid)
-    //         ->where('aprv_doctype', $doctype)
-    //         ->where('status', 'P')
-    //         ->whereNotNull('aprv_datebefore')
-    //         ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
-    //         ->first();
-
-    //     if (!$currentPending) {
-    //         return response()->json(['success' => false, 'message' => "No active approval step."], 403);
-    //     }
-
-    //     // Cek apakah user termasuk approver di step ini
-    //     $list = preg_split('/[;,]/', (string)$currentPending->aprv_username);
-    //     $list = array_filter(array_map('trim', (array)$list));
-    //     $canReject = in_array(strtolower($user->username), array_map('strtolower', $list), true);
-
-    //     if (!$canReject) {
-    //         return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
-    //     }
-
-    //     DB::beginTransaction();
-    //     try {
-    //         // 1) Tandai approval saat ini sebagai Rejected
-    //         $currentPending->status         = 'R';
-    //         $currentPending->aprv_dateafter = $now;
-    //         // catat siapa yang mengeksekusi
-    //         $currentPending->aprv_username  = $user->username;
-    //         $currentPending->aprv_name      = $user->name;
-    //         $currentPending->save();
-
-    //         // 2) Update header Item Request -> Rejected
-    //         $itemReq->status       = 'R';
-    //         $itemReq->completed_by = $user->username;
-    //         $itemReq->completed_at = $now;
-    //         $itemReq->save();
-
-    //         // 3) Batalkan semua approval yang masih pending (status 'X')
-    //         TrApproval::query()
-    //             ->where('refnbr', $itemReq->irid)
-    //             ->where('aprv_doctype', $doctype)
-    //             ->where('status', 'P')
-    //             ->update(['status' => 'X']);
-
-    //         DB::commit();
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Reject Item Request failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
-    //     }
-
-    //     // 4) Kirim Email ke requester (creator) -> Rejected
-    //     try {
-    //         $status       = 'R';
-    //         $subjectMap   = [
-    //             'P' => 'Waiting Approval',
-    //             'R' => 'Rejected Approval',
-    //             'D' => 'Revise Approval',
-    //             'A' => 'Approved',
-    //             'C' => 'Completed',
-    //         ];
-    //         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-    //         $eid           = Hashids::encode($itemReq->id);
-
-    //         $data = [
-    //             'docid'     => $itemReq->irid,
-    //             'cpnyid'    => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
-    //             'deptname'  => $itemReq->department_id ?? $itemReq->departementid ?? '',
-    //             'date'      => $now->toDateString(),
-    //             'fullname'  => $fullname,
-    //             'name'      => $fullname,
-    //             'createdby' => $fullname,
-    //             'docname'   => 'Item Request',
-    //             'info'      => $itemReq->inventory_descr_req,
-    //             'status'    => $status,
-    //             'url'       => url('/showitemrequests/' . $eid),
-    //         ];
-
-    //         $recipients = User::where('username', $itemReq->created_by)
-    //             ->where('status', 'A')
-    //             ->get();
-
-    //         foreach ($recipients as $rcp) {
-    //             $to = $rcp->notification_email ?? $rcp->email;
-    //             if (!$to) continue;
-
-    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-    //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Item Request')
-    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //             });
-    //         }
-    //     } catch (\Throwable $e) {
-    //         Log::error('Failed sending Item Request rejected email', [
-    //             'docid' => $itemReq->irid,
-    //             'error' => $e->getMessage()
-    //         ]);
-    //     }
-
-    //     // 5) Simpan komentar penolakan (jika ada)
-    //     try {
-    //         app('App\Http\Controllers\SendCommentController')->sendmsg($itemReq->id, $doctype, $request);
-    //     } catch (\Throwable $e) {
-    //         Log::warning('SendComment after reject failed', [
-    //             'docid' => $itemReq->irid,
-    //             'error' => $e->getMessage()
-    //         ]);
-    //     }
-
-    //     return response()->json(['success' => true, 'message' => 'Item Request rejected successfully']);
-    // }
-
-    // public function reviseItemRequest(Request $request, $docid)
-    // {
-    //     $now     = Carbon::now();
-    //     $user    = $request->user();
-    //     $doctype = 'SR';
-
-    //     // 1) Ambil header + creator
-    //     $itemReq = TrVoucherTaxi::with('creator')->where('irid', $docid)->first();
-    //     if (!$itemReq) {
-    //         return response()->json(['success' => false, 'message' => 'Item Request not found'], 404);
-    //     }
-    //     $fullname = data_get($itemReq, 'creator.name') ?: $itemReq->created_by;
-
-    //     // 2) Validasi: user harus approver aktif (status P) pada step terendah yang sudah "dibuka" (aprv_datebefore != null)
-    //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $itemReq->irid)
-    //         ->where('aprv_doctype', $doctype)
-    //         ->where('status', 'P')
-    //         ->whereNotNull('aprv_datebefore')
-    //         ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
-    //         ->first();
-
-    //     if (!$currentPending) {
-    //         return response()->json(['success' => false, 'message' => "No active approval step."], 403);
-    //     }
-
-    //     // 3) Cek user termasuk approver di step ini (mendukung ; atau ,)
-    //     $list = preg_split('/[;,]/', (string)$currentPending->aprv_username);
-    //     $list = array_filter(array_map('trim', (array)$list));
-    //     $canRevise = in_array(strtolower($user->username), array_map('strtolower', $list), true);
-
-    //     if (!$canRevise) {
-    //         return response()->json(['success' => false, 'message' => "You can't revise!"], 403);
-    //     }
-
-    //     DB::beginTransaction();
-    //     try {
-    //         // 4) Tandai approval saat ini sebagai Revise (D)
-    //         $currentPending->status         = 'D';
-    //         $currentPending->aprv_dateafter = $now;
-    //         // catat eksekutor aktual
-    //         $currentPending->aprv_username  = $user->username;
-    //         $currentPending->aprv_name      = $user->name;
-    //         $currentPending->save();
-
-    //         // 5) Update header Item Request -> D (Revise)
-    //         $itemReq->status       = 'D';
-    //         $itemReq->completed_by = $user->username;
-    //         $itemReq->completed_at = $now;
-    //         $itemReq->save();
-
-    //         // (opsional) tandai detail sebagai D juga kalau mau:
-    //         // TrVoucherTaxidetail::where('irid', $itemReq->irid)->update(['status' => 'D']);
-
-    //         // 6) Batalkan semua approval lain yang masih pending (status 'X')
-    //         TrApproval::query()
-    //             ->where('refnbr', $itemReq->irid)
-    //             ->where('aprv_doctype', $doctype)
-    //             ->where('status', 'P')
-    //             ->update(['status' => 'X']);
-
-    //         DB::commit();
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         Log::error('Revise Item Request failed', ['docid' => $docid, 'error' => $e->getMessage()]);
-    //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
-    //     }
-
-    //     // 7) Kirim email ke requester (creator) -> Revise
-    //     try {
-    //         $status        = 'D';
-    //         $subjectMap    = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
-    //         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-    //         $eid           = Hashids::encode($itemReq->id);
-
-    //         $data = [
-    //             'docid'     => $itemReq->irid,
-    //             'cpnyid'    => $itemReq->cpny_id ?? $itemReq->cpnyid ?? '',
-    //             'deptname'  => $itemReq->department_id ?? $itemReq->departementid ?? '',
-    //             'date'      => $now->toDateString(), // atau pakai $currentPending->aprv_dateafter
-    //             'fullname'  => $fullname,
-    //             'name'      => $fullname,
-    //             'createdby' => $fullname,
-    //             'docname'   => 'Item Request',
-    //             'info'      => $itemReq->inventory_descr_req,
-    //             'status'    => $status,
-    //             'url'       => url('/showitemrequests/' . $eid),
-    //         ];
-
-    //         $recipients = User::where('username', $itemReq->created_by)
-    //             ->where('status', 'A')
-    //             ->get();
-
-    //         foreach ($recipients as $rcp) {
-    //             $to = $rcp->notification_email ?? $rcp->email;
-    //             if (!$to) continue;
-
-    //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
-    //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' Item Request')
-    //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-    //             });
-    //         }
-    //     } catch (\Throwable $e) {
-    //         Log::error('Failed sending Item Request revise email', [
-    //             'docid' => $itemReq->irid,
-    //             'error' => $e->getMessage()
-    //         ]);
-    //     }
-
-    //     // 8) Simpan komentar revisi (jika ada)
-    //     try {
-    //         app('App\Http\Controllers\SendCommentController')->sendmsg($itemReq->id, $doctype, $request);
-    //     } catch (\Throwable $e) {
-    //         Log::warning('SendComment after revise failed', [
-    //             'docid' => $itemReq->irid,
-    //             'error' => $e->getMessage()
-    //         ]);
-    //     }
-
-    //     return response()->json(['success' => true, 'message' => 'Item Request revised successfully']);
-    // }
-    
-
-    
+        
     public function tracking($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -1532,7 +965,7 @@ public function json(Request $request)
         ]);
     }
 
-    public function printItemRequest($hash)
+    public function printVoucherTaxiuest($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
