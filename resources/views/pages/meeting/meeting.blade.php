@@ -1,49 +1,72 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full p-2">
+    <div class="max-w-9xl mx-auto w-full p-4">
 
         {{-- HEADER --}}
         <div class="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 
             {{-- LEFT --}}
-            <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                    Meeting Calendar
-                </h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Schedule and manage your meetings
-                </p>
+            <div class="flex items-start gap-3">
+                {{-- ICON --}}
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-500/10">
+                    <!-- calendar icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        class="h-5 w-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Meeting Calendar
+                    </h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Manage and schedule meetings efficiently
+                    </p>
+                </div>
             </div>
 
-            {{-- RIGHT --}}
-            <div class="flex items-center gap-2 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
+            {{-- RIGHT (TABS) --}}
+            <div class="flex items-center gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
 
-                <a href="{{ url('/calendar') }}"
-                    class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-900 shadow-sm dark:bg-white/10 dark:text-white">
+                {{-- ACTIVE --}}
+                <a href="{{ url('/meeting') }}"
+                    class="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-900 shadow-sm transition dark:bg-white/10 dark:text-white">
+
+                    <!-- icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M8 7V3m8 4V3m-9 8h10" />
+                    </svg>
+
                     Calendar
                 </a>
-                {{-- @if (auth()->user()->user_role === 'admin')
-                <a href="{{ url('/meetinglist') }}"
-                    class="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10">
-                    All Meetings
-                </a>
-                @endif --}}
+
+                {{-- INACTIVE --}}
                 <a href="{{ url('/meetingteams') }}"
-                    class="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10">
+                    class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10">
+
+                    <!-- video icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                    </svg>
+
                     Teams / Zoom
                 </a>
-{{--
-                <a href="{{ url('/list_zoom') }}"
-                    class="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10">
-                    Zoom List
-                </a> --}}
+
 
             </div>
         </div>
 
         {{-- CALENDAR --}}
-        <div class="rounded-2xl border bg-white p-4 dark:bg-gray-900">
+        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900">
             <div id="calendar"></div>
         </div>
+
 
         <!-- 🔥 CREATE MODAL -->
         <div id="schedule-show"
@@ -976,7 +999,7 @@
                     rows.forEach(row => {
                         const name = row.querySelector('[name="external_name[]"]').value.trim();
                         const email = row.querySelector('[name="external_email[]"]').value
-                        .trim();
+                            .trim();
 
                         if (!name || !email) {
                             valid = false;

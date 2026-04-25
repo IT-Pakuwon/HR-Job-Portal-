@@ -75,6 +75,7 @@ use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\ReportBastController;
 use App\Http\Controllers\ReportCanvassSheetController;
+use App\Http\Controllers\ReportGeneralGAController;
 use App\Http\Controllers\ReportOperationalController;
 use App\Http\Controllers\ReportPurchasingController;
 use App\Http\Controllers\ReportWarehouseController;
@@ -1162,7 +1163,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/inforoom_{id}', [MeetingController::class, 'getRoom']);
     // Route::get('/infoacc_{id}', [MeetingController::class, 'getAccessories']);
     Route::post('/savemeeting', [MeetingController::class, 'storeMeeting'])->name('meeting.store');
-    Route::get('/meetinglist', [MeetingController::class, 'MeetingList'])->name('meetinglist');
+    // Route::get('/meetinglist', [MeetingController::class, 'MeetingList'])->name('meetinglist');
     Route::get('/meetinglist/json', [MeetingController::class, 'json'])->name('meetinglist.json');
     // Route::get('/showmeeting/{hash}', [MeetingController::class, 'showMeeting'])->name('meeting.show');
     Route::put('/updatemeeting/{id}', [MeetingController::class, 'updateMeeting'])->name('updatemeeting');
@@ -1174,7 +1175,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/updateteams/{id}', [MeetingController::class, 'updateTeams']);
 
 
-    Route::get('/teamslist', [MeetingController::class, 'TeamsList'])->name('teamslist');
+    // Route::get('/teamslist', [MeetingController::class, 'TeamsList'])->name('teamslist');
     Route::get('/teamslist/json', [MeetingController::class, 'jsonTeams'])->name('teamslist.json');
 
     Route::get('/vouchertaxi', [VoucherTaxiController::class, 'index'])->name('vouchertaxi');
@@ -1654,6 +1655,22 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/view/detail', function () {
             return view('pages.report-bast.bast-detail');
+        });
+    });
+
+    Route::prefix('report-ga')->group(function () {
+
+        Route::get('/', [ReportGeneralGAController::class, 'index'])
+            ->name('reportga');
+
+        Route::get('/json/{type}', [ReportGeneralGAController::class, 'json'])
+            ->name('report.ga.json');
+
+        Route::get('/export/{type}', [ReportGeneralGAController::class, 'export'])
+            ->name('report.ga.export');
+
+        Route::get('/view/{type}', function ($type) {
+            return view('pages.report.' . $type);
         });
     });
 

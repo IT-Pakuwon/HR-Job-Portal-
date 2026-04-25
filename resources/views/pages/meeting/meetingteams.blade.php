@@ -1,62 +1,76 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full p-2">
+    <div class="max-w-9xl mx-auto w-full p-4">
 
         {{-- HEADER --}}
         <div class="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 
             {{-- LEFT --}}
-            <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                    Booking Teams / Zoom
-                </h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Schedule and manage your meetings
-                </p>
+            <div class="flex items-start gap-3">
+
+                {{-- ICON --}}
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10">
+                    <!-- video meeting icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                    </svg>
+                </div>
+
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Booking Teams / Zoom
+                    </h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Schedule and manage your online meetings
+                    </p>
+                </div>
             </div>
 
-            {{-- RIGHT --}}
-            <div class="flex items-center gap-2 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
+            {{-- RIGHT (SEGMENTED NAV) --}}
+            <div class="flex items-center gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
 
                 {{-- Calendar --}}
-                <a href="{{ url('/calendar') }}"
-                    class="{{ request()->is('calendar')
+                <a href="{{ url('/meeting') }}"
+                    class="{{ request()->is('meeting')
                         ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                        : 'text-gray-600 hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10' }} rounded-lg px-3 py-1.5 text-sm font-medium transition">
+                        : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
+
+                    {{-- icon --}}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M8 7V3m8 4V3m-9 8h10" />
+                    </svg>
+
                     Calendar
                 </a>
 
-                {{-- Admin Only --}}
-                {{-- @if (auth()->user()->user_role === 'admin')
-                    <a href="{{ url('/meetinglist') }}"
-                        class="{{ request()->is('meetinglist')
-                            ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                            : 'text-gray-600 hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10' }} rounded-lg px-3 py-1.5 text-sm font-medium transition">
-                        All Meetings
-                    </a>
-                @endif --}}
-
-                {{-- Teams / Zoom (ACTIVE HERE) --}}
+                {{-- Teams / Zoom --}}
                 <a href="{{ url('/meetingteams') }}"
                     class="{{ request()->is('meetingteams')
                         ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                        : 'text-gray-600 hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10' }} rounded-lg px-3 py-1.5 text-sm font-medium transition">
+                        : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
+
+                    {{-- icon --}}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                    </svg>
+
                     Teams / Zoom
                 </a>
 
-                {{-- Zoom List --}}
-                {{-- <a href="{{ url('/list_zoom') }}"
-                    class="{{ request()->is('list_zoom')
-                        ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                        : 'text-gray-600 hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10' }} rounded-lg px-3 py-1.5 text-sm font-medium transition">
-                    Zoom List
-                </a> --}}
-
             </div>
         </div>
+
         {{-- CALENDAR --}}
-        <div class="rounded-2xl border bg-white p-4 dark:bg-gray-900">
+        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900">
             <div id="calendar"></div>
         </div>
+
         {{-- Modal --}}
         <div id="schedule-show"
             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
@@ -232,7 +246,7 @@
                     </div>
 
                     <!-- MEETING LINK (🔥 CLEAN NOTION STYLE) -->
-                    <div class="space-y-4 rounded-xl border border-gray-200 bg-white p-4 dark:bg-gray-800">
+                    <div class="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:bg-gray-800">
 
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-medium uppercase tracking-wide text-gray-400">
@@ -572,10 +586,10 @@
                             </button>
 
                             ${isAdmin ? `
-                                    <button onclick="enableEdit('${props.teams_url}')"
-                                        class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
-                                        Edit
-                                    </button>` : ''}
+                                        <button onclick="enableEdit('${props.teams_url}')"
+                                            class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
+                                            Edit
+                                        </button>` : ''}
                         </div>
 
                     </div>
