@@ -1,143 +1,271 @@
 <x-app-layout>
-    <style>
-      
-
-        .fc .fc-timeline-slot-lane {
-            height: 120px !important;
-        }
-    </style>
     <div class="max-w-9xl mx-auto w-full p-2">
-        @if (session('success'))
-            <div class="mb-4 rounded-lg border border-green-300 bg-green-100 px-4 py-3 text-sm text-green-800">
-                {{ session('success') }}
+
+        {{-- HEADER --}}
+        <div class="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+
+            {{-- LEFT --}}
+            <div>
+                <h1 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                    Booking Teams / Zoom
+                </h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Schedule and manage your meetings
+                </p>
             </div>
-        @endif
 
-        @if ($errors->any())
-            <div class="mb-4 rounded-lg border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-800">
-                <div class="font-semibold">Terjadi kesalahan:</div>
-                <ul class="mt-2 list-disc pl-5">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+            {{-- RIGHT --}}
+            <div class="flex items-center gap-2 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
 
-        <div class="rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-            <div class="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                    <h1 class="text-lg font-extrabold text-gray-700 dark:text-white">Meeting Calendar</h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">
-                        Request Meeting Room
-                    </p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <a href="{{ url('/meeting') }}"
-                        class="inline-flex items-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700">
-                        Request Meeting
-                    </a>
+                {{-- Calendar --}}
+                <a href="{{ url('/calendar') }}"
+                    class="{{ request()->is('calendar')
+                        ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                        : 'text-gray-600 hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10' }} rounded-lg px-3 py-1.5 text-sm font-medium transition">
+                    Calendar
+                </a>
 
+                {{-- Admin Only --}}
+                {{-- @if (auth()->user()->user_role === 'admin')
                     <a href="{{ url('/meetinglist') }}"
-                        class="inline-flex items-center rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-300">
-                        All Meeting
+                        class="{{ request()->is('meetinglist')
+                            ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                            : 'text-gray-600 hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10' }} rounded-lg px-3 py-1.5 text-sm font-medium transition">
+                        All Meetings
                     </a>
+                @endif --}}
 
-                    <a href="{{ url('/list_zoom') }}"
-                        class="inline-flex items-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600">
-                        List Teams Meeting
-                    </a>
-                </div>
-            </div>
+                {{-- Teams / Zoom (ACTIVE HERE) --}}
+                <a href="{{ url('/meetingteams') }}"
+                    class="{{ request()->is('meetingteams')
+                        ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                        : 'text-gray-600 hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10' }} rounded-lg px-3 py-1.5 text-sm font-medium transition">
+                    Teams / Zoom
+                </a>
 
-             
+                {{-- Zoom List --}}
+                {{-- <a href="{{ url('/list_zoom') }}"
+                    class="{{ request()->is('list_zoom')
+                        ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                        : 'text-gray-600 hover:bg-white/50 dark:text-gray-300 dark:hover:bg-white/10' }} rounded-lg px-3 py-1.5 text-sm font-medium transition">
+                    Zoom List
+                </a> --}}
 
-            <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-gray-800">
-                <div id="calendar"></div>
             </div>
         </div>
-
+        {{-- CALENDAR --}}
+        <div class="rounded-2xl border bg-white p-4 dark:bg-gray-900">
+            <div id="calendar"></div>
+        </div>
         {{-- Modal --}}
-        <div id="schedule-show" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-            <div class="w-full max-w-4xl rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800">
-                <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">Create Meeting</h2>
+        <div id="schedule-show"
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+
+            <div class="w-full max-w-4xl rounded-2xl border bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
+
+                {{-- HEADER --}}
+                <div class="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Create Meeting
+                        </h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            Fill the details below to schedule a meeting
+                        </p>
+                    </div>
+
                     <button type="button" id="closeScheduleModal"
-                        class="rounded-md px-3 py-1 text-sm text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                        class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800">
                         ✕
                     </button>
                 </div>
 
+                {{-- BODY --}}
                 <form id="meetingForm" action="{{ url('/saveteams') }}" method="post">
                     @csrf
 
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                Start - End <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="datetimes" name="datetimes"
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                readonly required>
+                    <div class="space-y-5 px-6 py-5">
+
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                            {{-- DATE --}}
+                            <div>
+                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Start - End *
+                                </label>
+                                <input type="text" id="datetimes" name="datetimes"
+                                    class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                    readonly required>
+                            </div>
+
+                            {{-- ROOM --}}
+                            <div>
+                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Room *
+                                </label>
+                                <select id="room_id_display"
+                                    class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                    disabled>
+                                </select>
+                                <input type="hidden" id="room_id" name="room_id">
+                            </div>
+
+                            {{-- TITLE --}}
+                            <div class="md:col-span-2">
+                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Title *
+                                </label>
+                                <input type="text" id="title" name="title"
+                                    class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                    placeholder="e.g. Weekly Sync Meeting" required>
+                            </div>
+
+                            {{-- DESCRIPTION --}}
+                            <div class="md:col-span-2">
+                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Description *
+                                </label>
+                                <textarea name="descr" rows="4"
+                                    class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                    placeholder="Write meeting details..." required></textarea>
+                            </div>
+
+                            {{-- ACCESSORIES --}}
+                            <div class="md:col-span-2">
+                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Accessories
+                                </label>
+                                <select id="acc_id" name="acc_id[]"
+                                    class="meeting-multi mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                    multiple>
+                                </select>
+                            </div>
+
                         </div>
 
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                Room <span class="text-red-500">*</span>
-                            </label>
-                            <select id="room_id_display"
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                disabled>
-                            </select>
-                            <input type="hidden" id="room_id" name="room_id">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                Title <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="title" name="title"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                placeholder="Title Meeting" required>
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                Description <span class="text-red-500">*</span>
-                            </label>
-                            <textarea name="descr" rows="4"
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                placeholder="Enter Description ..." required></textarea>
-                        </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-white">
-                                Accessories
-                            </label>
-                            <select id="acc_id" name="acc_id[]"
-                                class="meeting-multi w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                multiple>
-                            </select>
-                        </div>                                               
                     </div>
 
-                    <div class="mt-6 flex justify-end gap-2">
+                    {{-- FOOTER --}}
+                    <div
+                        class="flex items-center justify-between rounded-b-2xl border-t bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50">
+
                         <button type="button" id="cancelScheduleModal"
-                            class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700">
-                            Close
+                            class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700">
+                            Cancel
                         </button>
 
                         <button type="submit" id="submitBtn"
-                            class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
-                            <svg id="loadingSpinner" class="mr-2 hidden h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60">
+
+                            <svg id="loadingSpinner" class="hidden h-4 w-4 animate-spin"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                                </path>
                             </svg>
-                            <span id="submitText">Submit</span>
+
+                            <span id="submitText">Create Meeting</span>
                         </button>
+
                     </div>
+
                 </form>
+            </div>
+        </div>
+
+        <!-- MODAL -->
+        <div id="viewMeetingModal"
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+
+            <div class="w-full max-w-2xl rounded-2xl border bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
+
+                <!-- HEADER -->
+                <div class="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Meeting Details
+                        </h2>
+                        <p class="text-xs text-gray-500">Teams / Zoom Booking</p>
+                    </div>
+
+                    <button onclick="closeViewModal()"
+                        class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- BODY -->
+                <div class="space-y-8 px-8 py-6 text-sm">
+
+                    <!-- TITLE -->
+                    <div>
+                        <h2 id="view_title" class="text-xl font-semibold text-gray-900 dark:text-white"></h2>
+                        <p id="view_time" class="mt-1 text-sm text-gray-500"></p>
+                    </div>
+
+                    <!-- META GRID (NOTION STYLE) -->
+                    <div class="grid grid-cols-2 gap-x-10 gap-y-4 text-sm">
+
+                        <div>
+                            <div class="text-xs text-gray-400">Platform</div>
+                            <div id="view_room" class="font-medium text-gray-900 dark:text-white"></div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-gray-400">Accessories</div>
+                            <div id="view_acc" class="text-gray-700 dark:text-gray-300"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- DESCRIPTION -->
+                    <div>
+                        <div class="mb-1 text-xs text-gray-400">Description</div>
+                        <div id="view_desc" class="leading-relaxed text-gray-700 dark:text-gray-300"></div>
+                    </div>
+
+                    <!-- PARTICIPANTS -->
+                    <div>
+                        <div class="mb-1 text-xs text-gray-400">Participants</div>
+                        <div id="view_participants" class="leading-relaxed text-gray-700 dark:text-gray-300"></div>
+                    </div>
+
+                    <!-- MEETING LINK (🔥 CLEAN NOTION STYLE) -->
+                    <div class="space-y-4 rounded-xl border border-gray-200 bg-white p-4 dark:bg-gray-800">
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium uppercase tracking-wide text-gray-400">
+                                Meeting Link
+                            </span>
+                            <div id="link_status_badge"></div>
+                        </div>
+
+                        <div id="view_teams"></div>
+
+                        @if (auth()->user()->user_role === 'admin')
+                            <div id="link_action_area"></div>
+                        @endif
+
+                    </div>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="flex items-center justify-between border-t px-6 py-4 dark:border-gray-700">
+
+                    <button onclick="cancelMeeting()"
+                        class="rounded-lg bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600">
+                        Cancel Meeting
+                    </button>
+
+                    <button onclick="closeViewModal()"
+                        class="rounded-lg bg-gray-200 px-4 py-2 text-sm dark:bg-gray-700 dark:text-white">
+                        Close
+                    </button>
+
+                </div>
+
             </div>
         </div>
     </div>
@@ -153,6 +281,7 @@
 
     <script>
         let calendarInstance = null;
+        let currentEventId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
@@ -184,7 +313,7 @@
                 if (accTom) {
                     accTom.clear();
                     accTom.clearOptions();
-                }             
+                }
 
                 resetSubmitState();
             }
@@ -209,16 +338,9 @@
                 headerToolbar: {
                     left: 'today prev,next',
                     center: 'title',
-                    right: 'resourceTimelineDay,resourceTimelineThreeDays,timeGridWeek,dayGridMonth,listWeek'
+                    right: 'resourceTimelineDay,timeGridWeek,dayGridMonth,listWeek'
                 },
                 initialView: 'resourceTimelineDay',
-                views: {
-                    resourceTimelineThreeDays: {
-                        type: 'resourceTimeline',
-                        duration: { days: 3 },
-                        buttonText: '3 days'
-                    }
-                },
                 resourceAreaHeaderContent: 'Rooms',
 
                 resources: [
@@ -231,93 +353,110 @@
                     @endforeach
                 ],
 
-                events: [
-                    @foreach ($meetings as $showmeeting)
-                        {
-                            id: @json($showmeeting->id),
-                            resourceId: @json($showmeeting->room_id),
-                            start: @json(\Carbon\Carbon::parse($showmeeting->start_meeting_time)->format('Y-m-d H:i:s')),
-                            end: @json(\Carbon\Carbon::parse($showmeeting->end_meeting_time)->format('Y-m-d H:i:s')),
-                            title: @json(trim(($showmeeting->user_peminta ? $showmeeting->user_peminta . ' - ' : '') . $showmeeting->meeting_title)),
-                            url: "{{ url('/showmeeting/' . \Vinkla\Hashids\Facades\Hashids::encode($showmeeting->id)) }}"
-                        },
-                    @endforeach
-                ],
-
+                events: '/calendar-json',
                 // selectOverlap: function(event) {
                 //     return event.rendering === 'background';
                 // },
                 selectOverlap: true,
 
-                eventClick: function(info) {
-                    info.jsEvent.preventDefault(); // supaya tidak reload default
 
-                    if (info.event.url) {
-                        window.location.href = info.event.url;
-                    }
+
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault();
+
+                    openViewMeetingModal(info.event);
                 },
 
-                select: function(info) {
-                    var addstart = moment(info.startStr).format('YYYY-MM-DD hh:mm A');
-                    var addend = moment(info.endStr).format('YYYY-MM-DD hh:mm A');
-                    var adddate = moment(info.endStr).format('YYYY-MM-DD');
+                eventContent: function(arg) {
+                    const p = arg.event.extendedProps;
 
-                    var dateblock = @json($dateblock);
-                    var usergroups = @json($user->groups ?? '');
-                    var hasCsAccess = @json($hasCsAccess);
-                    var id = info.resource ? info.resource.id : null;
-                    var roomTitle = info.resource ? info.resource.title : '';
+                    let status = '';
+                    let bg = '';
+
+                    if (!p.teams_url) {
+                        status = 'Waiting';
+                        bg = 'bg-yellow-100 text-yellow-700';
+                    } else if (p.isTeams) {
+                        status = 'Teams';
+                        bg = 'bg-blue-100 text-blue-700';
+                    } else {
+                        status = 'Zoom';
+                        bg = 'bg-purple-100 text-purple-700';
+                    }
+
+                    return {
+                        html: `
+                        <div class="rounded-lg px-2 py-1 text-[11px] space-y-1">
+
+                            <div class="font-semibold truncate">
+                                ${p.user || ''}
+                            </div>
+
+                            <div class="truncate opacity-90">
+                                ${arg.event.title}
+                            </div>
+
+                            <div class="flex items-center justify-between">
+
+                                <span class="text-[10px] px-1.5 py-0.5 rounded ${bg}">
+                                    ${status}
+                                </span>
+
+                                <span class="text-[10px] text-gray-400">
+                                    ${moment(arg.event.start).format('HH:mm')}
+                                </span>
+
+                            </div>
+
+                        </div>
+                        `
+                    };
+                },
+                select: function(info) {
+
+                    const start = moment(info.startStr);
+                    const end = moment(info.endStr);
 
                     resetMeetingForm();
 
-                    $('#datetimes').val(addstart + ' - ' + addend);
-                    $('#room_id').val(id);
-                    $('#room_id_display').empty().append('<option value="' + id + '">' + roomTitle + '</option>');
+                    // Fill form
+                    $('#datetimes').val(
+                        start.format('YYYY-MM-DD hh:mm A') + ' - ' + end.format(
+                            'YYYY-MM-DD hh:mm A')
+                    );
 
-                    $.ajax({
-                        url: 'infoacc_' + id,
-                        type: 'get',
-                        dataType: 'json',
-                        success: function(response) {
+                    $('#room_id').val(info.resource.id);
+                    $('#room_id_display')
+                        .empty()
+                        .append(`<option>${info.resource.title}</option>`);
+
+                    // 🔥 LOAD ACCESSORIES (CORRECT ENDPOINT)
+                    fetch(`/get-accessories/${info.resource.id}`)
+                        .then(res => res.json())
+                        .then(data => {
                             if (accTom) {
                                 accTom.clear();
                                 accTom.clearOptions();
 
-                                $.each(response, function(key, value) {
+                                Object.entries(data).forEach(([id, name]) => {
                                     accTom.addOption({
-                                        value: key,
-                                        text: value
+                                        value: id,
+                                        text: name
                                     });
                                 });
 
                                 accTom.refreshOptions(false);
                             }
-                        },
-                        error: function() {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Gagal mengambil accessories.'
-                            });
-                        }
-                    });
+                        })
+                        .catch(() => {
+                            Swal.fire('Error', 'Failed to load accessories', 'error');
+                        });
 
-                    if (adddate > dateblock) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Cannot Create',
-                            text: 'Cannot create for selected date.'
-                        });
-                    } else if (!hasCsAccess && (id == 'd' || id == 'h')) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Room Restricted',
-                            text: 'Unable to book this room, Please contact Reception!'
-                        });
-                    } else {
-                        openModal();
-                    }
+                    // OPEN MODAL
+                    document.getElementById('schedule-show').classList.remove('hidden');
+                    document.getElementById('schedule-show').classList.add('flex');
                 }
+
             });
 
             calendarInstance.render();
@@ -326,7 +465,17 @@
                 e.preventDefault();
 
                 const $form = $(this);
-                const formData = $form.serialize();               
+                let formData = $form.serialize();
+
+                // 👉 extract datetime
+                let datetimeVal = $('#datetimes').val();
+
+                if (datetimeVal && datetimeVal.includes(' - ')) {
+                    let [start, end] = datetimeVal.split(' - ');
+
+                    formData += `&start_datetime=${encodeURIComponent(start)}`;
+                    formData += `&end_datetime=${encodeURIComponent(end)}`;
+                }
 
                 $('#submitBtn').prop('disabled', true);
                 $('#submitText').text('Loading...');
@@ -369,15 +518,16 @@
                     }
                 });
             });
-       
+
+
 
         });
     </script>
 
     <script>
         let accTom = null;
-       
-        function initTomSelect() {           
+
+        function initTomSelect() {
 
             if (!accTom) {
                 accTom = new TomSelect('#acc_id', {
@@ -392,6 +542,248 @@
         document.addEventListener('DOMContentLoaded', function() {
             initTomSelect();
         });
+
+
+        function renderLinkSection(props) {
+
+            const container = document.getElementById('view_teams');
+            const badge = document.getElementById('link_status_badge');
+            const action = document.getElementById('link_action_area');
+
+            const isAdmin = !!action;
+
+            // =========================
+            // ✅ HAS LINK
+            // =========================
+            if (props.teams_url) {
+
+                container.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+
+                        <a href="${props.teams_url}" target="_blank"
+                            class="text-blue-600 font-medium hover:underline">
+                            Open Meeting
+                        </a>
+
+                        <div class="flex items-center gap-2">
+                            <button onclick="copyLink('${props.teams_url}')"
+                                class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
+                                Copy
+                            </button>
+
+                            ${isAdmin ? `
+                                    <button onclick="enableEdit('${props.teams_url}')"
+                                        class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
+                                        Edit
+                                    </button>` : ''}
+                        </div>
+
+                    </div>
+                `;
+
+                badge.innerHTML = `
+                    <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                        Ready
+                    </span>
+                `;
+
+                if (isAdmin) {
+                    action.innerHTML = ''; // no extra button needed
+                }
+
+            } else {
+
+                // =========================
+                // ❌ NO LINK
+                // =========================
+
+                container.innerHTML = `
+                    <div class="text-gray-400 text-sm">
+                        Waiting for meeting link
+                    </div>
+                `;
+
+                badge.innerHTML = `
+                    <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
+                        Pending
+                    </span>
+                `;
+
+                if (isAdmin) {
+                    action.innerHTML = `
+                        <button onclick="enableEdit('')"
+                            class="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded">
+                            Process
+                        </button>
+                    `;
+                }
+            }
+        }
+
+        function enableEdit(currentLink = '') {
+
+            const action = document.getElementById('link_action_area');
+
+            action.innerHTML = `
+                <div class="flex items-center gap-2">
+
+                    <input type="text" id="edit_meeting_link"
+                        value="${currentLink}"
+                        class="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                        placeholder="Paste meeting link">
+
+                    <button onclick="saveMeetingLink()"
+                        class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Save
+                    </button>
+
+                </div>
+            `;
+        }
+
+        function saveMeetingLink() {
+
+            const link = document.getElementById('edit_meeting_link').value;
+
+            if (!link) {
+                Swal.fire('Warning', 'Please input meeting link', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '/updateteams/' + currentEventId,
+                type: 'PUT',
+                data: {
+                    meeting_link: link,
+                    _token: $('input[name="_token"]').val()
+                },
+                success: function() {
+
+                    Swal.fire('Success', 'Link saved', 'success');
+
+                    // update modal UI
+                    renderLinkSection({
+                        teams_url: link
+                    });
+
+                    // 🔥 UPDATE EVENT LIVE (NO RELOAD)
+                    const event = calendarInstance.getEventById(currentEventId);
+
+                    if (event) {
+                        event.setExtendedProp('teams_url', link);
+
+                        // 🔵 DONE = BLUE
+                        event.setProp('backgroundColor', '#3b82f6');
+                        event.setProp('borderColor', '#3b82f6');
+                    }
+
+                    // optional sync
+                    calendarInstance.refetchEvents();
+                },
+                error: function() {
+                    Swal.fire('Error', 'Failed to save link', 'error');
+                }
+            });
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link);
+            Swal.fire('Copied!', 'Link copied to clipboard', 'success');
+        }
+
+        function openViewMeetingModal(event) {
+
+            currentEventId = event.id;
+
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+
+            const props = event.extendedProps || {};
+
+            document.getElementById('view_title').innerText = event.title;
+
+            document.getElementById('view_time').innerText =
+                moment(event.start).format('ddd, DD MMM YYYY HH:mm') +
+                ' → ' +
+                moment(event.end).format('HH:mm');
+
+            document.getElementById('view_room').innerText = props.room || '-';
+            document.getElementById('view_desc').innerText = props.description || '-';
+
+            document.getElementById('view_acc').innerText =
+                (props.accessories && props.accessories.length) ?
+                props.accessories.join(', ') :
+                '-';
+
+            let participantsHtml = '-';
+
+            if (props.participants && props.participants.length) {
+                participantsHtml = props.participants.map(p => {
+                    let company = p.company ? ` (${p.company})` : '';
+                    return `${p.name} - ${p.email}${company}`;
+                }).join('<br>');
+            }
+
+            document.getElementById('view_participants').innerHTML = participantsHtml;
+
+            const teamsEl = document.getElementById('view_teams');
+            const badge = document.getElementById('link_status_badge');
+            const input = document.getElementById('edit_meeting_link');
+
+            renderLinkSection(props);
+
+            document.getElementById('viewMeetingModal').classList.remove('hidden');
+            document.getElementById('viewMeetingModal').classList.add('flex');
+        }
+
+        function closeViewModal() {
+            const modal = document.getElementById('viewMeetingModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function cancelMeeting() {
+
+            Swal.fire({
+                title: 'Cancel this meeting?',
+                text: "This action cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#9ca3af',
+                confirmButtonText: 'Yes, cancel it',
+                cancelButtonText: 'No'
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    $.ajax({
+                        url: '/cancel-meeting/' + currentEventId,
+                        type: 'POST',
+                        data: {
+                            _token: $('input[name="_token"]').val()
+                        },
+                        success: function() {
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Cancelled',
+                                text: 'Meeting has been cancelled.'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Failed to cancel meeting', 'error');
+                        }
+                    });
+
+                }
+
+            });
+        }
     </script>
-   
+
 </x-app-layout>

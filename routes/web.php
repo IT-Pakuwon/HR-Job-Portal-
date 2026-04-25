@@ -10,6 +10,7 @@ use App\Http\Controllers\AttachmentMasterController;
 use App\Http\Controllers\AutonbrController;
 use App\Http\Controllers\BastController;
 use App\Http\Controllers\BastListController;
+use App\Http\Controllers\BookingCarController;
 use App\Http\Controllers\BQCSController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\BudgetMonitorController;
@@ -57,6 +58,7 @@ use App\Http\Controllers\MappingIssueERPController;
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\MasterTrainingController;
+use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MsApplicationController;
 use App\Http\Controllers\MsApprovalController;
 use App\Http\Controllers\MsCategoryController;
@@ -77,6 +79,7 @@ use App\Http\Controllers\ReportOperationalController;
 use App\Http\Controllers\ReportPurchasingController;
 use App\Http\Controllers\ReportWarehouseController;
 use App\Http\Controllers\RfcaListController;
+use App\Http\Controllers\RfpController;
 use App\Http\Controllers\SelfRegisterApplicantController;
 use App\Http\Controllers\SendCommentController;
 use App\Http\Controllers\SpbController;
@@ -92,11 +95,12 @@ use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
 use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysRoleController;
+// INTEGRATION
 use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
-// INTEGRATION
 use App\Http\Controllers\TenantController;
+use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TopController;
 use App\Http\Controllers\TrainingRegistrationController;
 use App\Http\Controllers\TrAttachmentController;
@@ -104,6 +108,7 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UsersEngController;
 use App\Http\Controllers\UserSyncController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VoucherTaxiController;
 use App\Http\Controllers\WoController;
 use App\Http\Controllers\WorkInstructionController;
 use App\Http\Controllers\WorksCategoryController;
@@ -117,13 +122,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
-use App\Http\Controllers\TestEmailController;
-use App\Http\Controllers\RfpController;
-use App\Http\Controllers\MeetingController;
-use App\Http\Controllers\VoucherTaxiController;
-use App\Http\Controllers\BookingCarController;
-
-
 
 // use Illuminate\Support\Facades\Response;
 // use Illuminate\Support\Facades\File;
@@ -385,7 +383,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('applicant.mapping.store');
     Route::post('/applicant/mapping/rollback', [SelfRegisterApplicantController::class, 'rollbackMapping'])
     ->name('applicant.mapping.rollback');
-
 
     Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
     Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');
@@ -1148,7 +1145,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/eng/workscategory/update', [WorksCategoryController::class, 'update'])->name('workscategory.update');
     Route::post('/eng/workscategory/delete/{id}', [WorksCategoryController::class, 'delete']);
 
-
     Route::get('/rfp', [RfpController::class, 'index'])->name('rfp');
     Route::get('/rfp/json', [RfpController::class, 'json'])->name('rfp.json');
     Route::get('/showrfp/{hash}', [RfpController::class, 'showRfp']);
@@ -1164,14 +1160,19 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/meeting', [MeetingController::class, 'index'])->name('meeting');
     Route::get('/inforoom_{id}', [MeetingController::class, 'getRoom']);
-    Route::get('/infoacc_{id}', [MeetingController::class, 'getAccessories']);
+    // Route::get('/infoacc_{id}', [MeetingController::class, 'getAccessories']);
     Route::post('/savemeeting', [MeetingController::class, 'storeMeeting'])->name('meeting.store');
     Route::get('/meetinglist', [MeetingController::class, 'MeetingList'])->name('meetinglist');
     Route::get('/meetinglist/json', [MeetingController::class, 'json'])->name('meetinglist.json');
-    Route::get('/showmeeting/{hash}', [MeetingController::class, 'showMeeting'])->name('meeting.show');
+    // Route::get('/showmeeting/{hash}', [MeetingController::class, 'showMeeting'])->name('meeting.show');
     Route::put('/updatemeeting/{id}', [MeetingController::class, 'updateMeeting'])->name('updatemeeting');
+    Route::get('/calendar-json', [MeetingController::class, 'calendarJson']);
+    Route::get('/get-accessories/{id}', [MeetingController::class, 'getAccessories']);
     Route::get('/meetingteams', [MeetingController::class, 'MeetingTeams'])->name('meetingteams');
     Route::post('/saveteams', [MeetingController::class, 'storeTeams'])->name('teams.store');
+    Route::post('/cancel-meeting/{id}', [MeetingController::class, 'cancelMeeting']);
+    Route::put('/updateteams/{id}', [MeetingController::class, 'updateTeams']);
+
 
     Route::get('/teamslist', [MeetingController::class, 'TeamsList'])->name('teamslist');
     Route::get('/teamslist/json', [MeetingController::class, 'jsonTeams'])->name('teamslist.json');
@@ -1603,7 +1604,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('report-cs')->group(function () {
-
         Route::get('/', [ReportCanvassSheetController::class, 'index'])
             ->name('reportcs');
 
@@ -1625,7 +1625,6 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/cs/{hash}/tracking', [ReportCanvassSheetController::class, 'tracking']);
-
     });
 
     Route::prefix('report-operational')->group(function () {
