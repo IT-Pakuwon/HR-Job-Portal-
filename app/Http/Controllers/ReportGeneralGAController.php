@@ -2,8 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MsMeetingRoom;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
+use App\Exports\MeetingRoomExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MeetingOnlineExport;
 class ReportGeneralGAController extends Controller
 {
     /*
@@ -13,7 +20,9 @@ class ReportGeneralGAController extends Controller
     */
     public function index()
     {
-        return view('pages.report-ga.index');
+        $rooms = MsMeetingRoom::pluck('room_name', 'room_id');
+
+        return view('pages.report-ga.index', compact('rooms'));
     }
 
     /*
@@ -24,7 +33,6 @@ class ReportGeneralGAController extends Controller
     public function json(Request $request, $type)
     {
         switch ($type) {
-
             case 'meeting-room':
                 return $this->meetingRoomJson($request);
 
@@ -50,7 +58,6 @@ class ReportGeneralGAController extends Controller
     public function export(Request $request, $type)
     {
         switch ($type) {
-
             case 'meeting-room':
                 return $this->exportMeetingRoom($request);
 
@@ -75,16 +82,313 @@ class ReportGeneralGAController extends Controller
     | Keep each report isolated (clean & scalable)
     */
 
-    private function meetingRoomJson(Request $request)
+    private function meetingRoomJson($request)
     {
-        // TODO: query + datatable
-        return response()->json([]);
+        $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
+        $query = DB::connection('pgsql5')
+            ->table('tr_meeting as m')
+
+            ->leftJoin('ms_meeting_room as r', 'r.room_id', '=', 'm.room_id')
+
+            ->leftJoin('ms_meeting_accessories as a', function ($join) {
+                $join->on(DB::raw('a.acc_id::text'), '=', DB::raw("ANY(string_to_array(m.acc_id, ','))"));
+            })
+
+            // ->leftJoin('ms_department as d', 'd.department_id', '=', 'm.department_id')
+            ->select([
+                'm.docid',
+                'm.meeting_date',
+                'm.start_meeting_time',
+                'm.end_meeting_time',
+                'm.meeting_title',
+                'm.user_peminta',
+                'm.total_participant',
+                'm.external_participant',
+                'm.status',
+                'm.department_id',
+                'r.room_name',
+
+                // 'd.department_name',
+
+                DB::raw("STRING_AGG(DISTINCT a.acc_name, ', ') as accessories"),
+            ])
+
+            ->groupBy([
+                'm.docid',
+                'm.meeting_date',
+                'm.start_meeting_time',
+                'm.end_meeting_time',
+                'm.meeting_title',
+                'm.user_peminta',
+                'm.total_participant',
+                'm.external_participant',
+                'm.status',
+                'm.department_id',
+                'r.room_name',
+                // 'd.department_name',
+            ]);
+
+        // 🔥 EXCLUDE ONLINE ONLY
+        $query->where(function ($q) {
+            $q->whereNull('m.zoom_id')
+            ->whereNull('m.msteams_event_id')
+            ->where('r.room_name', 'not ilike', '%Teams%')
+            ->where('r.room_name', 'not ilike', '%Zoom%');
+        });
+        // FILTER
+        if ($request->date_from) {
+            $query->whereDate('m.meeting_date', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('m.meeting_date', '<=', $request->date_to);
+        }
+
+        if ($request->room) {
+            $query->where('r.room_name', $request->room);
+        }
+
+        if ($request->requester) {
+            $query->where('m.user_peminta', 'ilike', "%{$request->requester}%");
+        }
+
+        if ($request->status) {
+            $query->where('m.status', $request->status);
+        }
+
+        $users = User::pluck('name', 'username');
+
+        return DataTables::of($query)
+            ->addColumn('accessories', function ($row) {
+                return $row->accessories ?: '-';
+            })
+
+            ->editColumn('meeting_date', fn ($row) => $row->meeting_date
+            ? Carbon::parse($row->meeting_date)->format('d-M-Y')
+            : ''
+            )
+
+            ->addColumn('time', function ($row) {
+                if (!$row->start_meeting_time || !$row->end_meeting_time) {
+                    return '-';
+                }
+
+                return
+                    Carbon::parse($row->start_meeting_time)->format('H:i')
+                    .' - '.
+                    Carbon::parse($row->end_meeting_time)->format('H:i');
+            })
+
+            ->addColumn('department', function ($row) use ($departments) {
+                return $departments[$row->department_id] ?? '-';
+            })
+            ->addColumn('start_time', function ($row) {
+                if (!$row->start_meeting_time) {
+                    return '-';
+                }
+
+                return Carbon::parse($row->start_meeting_time)->format('H:i');
+            })
+
+            ->addColumn('end_time', function ($row) {
+                if (!$row->end_meeting_time) {
+                    return '-';
+                }
+
+                return Carbon::parse($row->end_meeting_time)->format('H:i');
+            })
+
+            ->addColumn('requester', fn ($row) => $users[$row->user_peminta] ?? $row->user_peminta
+            )
+
+            ->addColumn('type', fn ($row) => $row->external_participant ? 'External' : 'Internal'
+            )
+
+            ->addColumn('duration', function ($row) {
+                if (!$row->start_meeting_time || !$row->end_meeting_time) {
+                    return 0;
+                }
+
+                return Carbon::parse($row->start_meeting_time)
+                    ->diffInMinutes(Carbon::parse($row->end_meeting_time));
+            })
+
+            ->addColumn('duration_label', function ($row) {
+                if (!$row->start_meeting_time || !$row->end_meeting_time) {
+                    return '-';
+                }
+
+                $minutes = Carbon::parse($row->start_meeting_time)
+                    ->diffInMinutes(Carbon::parse($row->end_meeting_time));
+
+                return round($minutes / 60, 1).' hrs';
+            })
+
+            ->addColumn('status_label', fn ($row) => match ($row->status) {
+                'X' => 'Cancelled',
+                // 'C' => 'Completed',
+                // 'P' => 'On Progress',
+                default => 'Active',
+            }
+            )
+
+            ->orderColumn('meeting_date', 'm.meeting_date $1')
+
+            ->make(true);
     }
 
-    private function meetingOnlineJson(Request $request)
+    private function meetingOnlineJson($request)
     {
-        // TODO
-        return response()->json([]);
+        $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
+        $users = User::pluck('name', 'username');
+
+        $query = DB::connection('pgsql5')
+            ->table('tr_meeting as m')
+
+            ->leftJoin('ms_meeting_room as r', 'r.room_id', '=', 'm.room_id')
+
+            ->leftJoin('ms_meeting_accessories as a', function ($join) {
+                $join->on(
+                    DB::raw("a.acc_id::text"),
+                    '=',
+                    DB::raw("ANY(COALESCE(string_to_array(m.acc_id, ','), ARRAY[]::text[]))")
+                );
+            })
+
+            ->select([
+                'm.docid',
+                'm.meeting_date',
+                'm.start_meeting_time',
+                'm.end_meeting_time',
+                'm.meeting_title',
+                'm.user_peminta',
+                'm.total_participant',
+                'm.external_participant',
+                'm.status',
+                'm.department_id',
+                'm.zoom_id',
+                'm.msteams_event_id',
+                'r.room_name',
+
+                DB::raw("STRING_AGG(DISTINCT a.acc_name, ', ') as accessories"),
+            ])
+
+            ->groupBy([
+                'm.docid',
+                'm.meeting_date',
+                'm.start_meeting_time',
+                'm.end_meeting_time',
+                'm.meeting_title',
+                'm.user_peminta',
+                'm.total_participant',
+                'm.external_participant',
+                'm.status',
+                'm.department_id',
+                'm.zoom_id',
+                'm.msteams_event_id',
+                'r.room_name',
+            ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | 🔥 INCLUDE ONLY ONLINE
+        |--------------------------------------------------------------------------
+        */
+        $query->where(function ($q) {
+
+            $q->where('r.room_name', 'ilike', '%Teams Only%')
+            ->orWhere('r.room_name', 'ilike', '%Zoom Only%');
+        });
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+        if ($request->date_from) {
+            $query->whereDate('m.meeting_date', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('m.meeting_date', '<=', $request->date_to);
+        }
+
+        if ($request->requester) {
+            $query->where('m.user_peminta', 'ilike', "%{$request->requester}%");
+        }
+
+        if ($request->status) {
+            $query->where('m.status', $request->status);
+        }
+
+        if ($request->platform === 'zoom') {
+            $query->whereNotNull('m.zoom_id');
+        }
+
+        if ($request->platform === 'teams') {
+            $query->whereNotNull('m.msteams_event_id');
+        }
+
+        return DataTables::of($query)
+
+            ->addColumn('accessories', fn ($row) => $row->accessories ?: '-')
+
+            ->editColumn('meeting_date', fn ($row) =>
+                $row->meeting_date
+                    ? Carbon::parse($row->meeting_date)->format('d-M-Y')
+                    : ''
+            )
+
+            ->addColumn('start_time', fn ($row) =>
+                $row->start_meeting_time
+                    ? Carbon::parse($row->start_meeting_time)->format('H:i')
+                    : '-'
+            )
+
+            ->addColumn('end_time', fn ($row) =>
+                $row->end_meeting_time
+                    ? Carbon::parse($row->end_meeting_time)->format('H:i')
+                    : '-'
+            )
+
+            ->addColumn('department', fn ($row) =>
+                $departments[$row->department_id] ?? '-'
+            )
+
+            ->addColumn('requester', fn ($row) =>
+                $users[$row->user_peminta] ?? $row->user_peminta
+            )
+
+            ->addColumn('type', fn ($row) =>
+                $row->external_participant ? 'External' : 'Internal'
+            )
+
+            ->addColumn('platform', function ($row) {
+
+                $room = strtolower($row->room_name ?? '');
+
+                if (str_contains($room, 'teams')) return 'Teams';
+                if (str_contains($room, 'zoom')) return 'Zoom';
+
+                return '-';
+            })
+            ->addColumn('duration_label', function ($row) {
+
+                if (!$row->start_meeting_time || !$row->end_meeting_time) return '-';
+
+                $minutes = Carbon::parse($row->start_meeting_time)
+                    ->diffInMinutes(Carbon::parse($row->end_meeting_time));
+
+                return round($minutes / 60, 1) . ' hrs';
+            })
+
+            ->addColumn('status_label', fn ($row) => match ($row->status) {
+                'X' => 'Cancelled',
+                default => 'Active',
+            })
+
+            ->make(true);
+
+
     }
 
     private function operationalCarJson(Request $request)
@@ -107,12 +411,18 @@ class ReportGeneralGAController extends Controller
 
     private function exportMeetingRoom(Request $request)
     {
-        // TODO
+        return Excel::download(
+            new MeetingRoomExport($request),
+            'meeting-room-report.xlsx'
+        );
     }
 
     private function exportMeetingOnline(Request $request)
     {
-        // TODO
+        return Excel::download(
+            new MeetingOnlineExport($request),
+            'meeting-online-report.xlsx'
+        );
     }
 
     private function exportOperationalCar(Request $request)

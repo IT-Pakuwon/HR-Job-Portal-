@@ -1,149 +1,200 @@
-<x-app-layout>
+  <div class="space-y-4">
 
-<div class="space-y-4">
+      {{-- FILTER PANEL --}}
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
 
-    {{-- FILTER PANEL --}}
-    <div class="p-6 bg-gray-50/60 rounded-2xl border border-gray-200 shadow-sm">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+        {{-- GRID --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
 
-            <div>
-                <label class="text-xs text-gray-500">Date From</label>
-                <input type="date" id="date_from" class="form-input">
+            {{-- DATE FROM --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Date From</label>
+                <input type="date" id="date_from" class="form-input w-full">
             </div>
 
-            <div>
-                <label class="text-xs text-gray-500">Date To</label>
-                <input type="date" id="date_to" class="form-input">
+            {{-- DATE TO --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Date To</label>
+                <input type="date" id="date_to" class="form-input w-full">
             </div>
 
-            <div>
-                <label class="text-xs text-gray-500">Room</label>
-                <input type="text" id="room" placeholder="Room name" class="form-input">
+            {{-- ROOM --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Room</label>
+                <select id="room" class="form-input w-full">
+                    <option value="">All Rooms</option>
+                    @foreach ($rooms as $id => $name)
+                        <option value="{{ $name }}">{{ $name }}</option>
+                    @endforeach
+                </select>
             </div>
 
-            <div>
-                <label class="text-xs text-gray-500">Requester</label>
-                <input type="text" id="requester" placeholder="User" class="form-input">
+            {{-- REQUESTER --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Requester</label>
+                <input type="text" id="requester" placeholder="Search user..." class="form-input w-full">
             </div>
 
-            <div>
-                <label class="text-xs text-gray-500">Status</label>
-                <select id="status" class="form-input">
-                    <option value="">All</option>
+            {{-- STATUS --}}
+            <div class="space-y-1">
+                <label class="text-xs font-medium text-gray-500">Status</label>
+                <select id="status" class="form-input w-full">
+                    <option value="">All Status</option>
                     <option value="A">Active</option>
                     <option value="X">Cancelled</option>
                 </select>
             </div>
 
-            <div class="flex items-end gap-2">
-                <button id="filterBtn" class="px-4 py-2 text-sm text-white bg-gray-900 rounded-lg">
+            {{-- ACTION BUTTONS --}}
+            <div class="flex items-end justify-end gap-2">
+
+                <button id="filterBtn"
+                    class="px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition">
                     Apply
                 </button>
 
-                <button id="resetBtn" class="px-4 py-2 text-sm bg-white border rounded-lg">
+                <button id="resetBtn"
+                    class="px-4 py-2 text-sm font-medium border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition">
                     Reset
                 </button>
 
-                <button id="exportBtn" class="px-4 py-2 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <button id="exportBtn"
+                    class="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition">
                     Export
                 </button>
+
             </div>
 
         </div>
-    </div>
-
-    {{-- TABLE --}}
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm">
-
-        <div class="px-6 py-4 border-b">
-            <h2 class="text-sm font-semibold text-gray-800">
-                Meeting Room Report
-            </h2>
-        </div>
-
-        <div class="overflow-x-auto p-5">
-            <table id="meetingRoomTable" class="min-w-full text-sm">
-
-                <thead class="text-xs text-gray-500 bg-gray-50 uppercase">
-                    <tr>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Room</th>
-                        <th>Title</th>
-                        <th>Requester</th>
-                        <th>Participants</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-
-            </table>
-        </div>
 
     </div>
 
-</div>
-<script>
-$(function () {
+      {{-- TABLE --}}
+      <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-    let type = 'meeting-room';
+          <div class="border-b px-6 py-4">
+              <h2 class="text-sm font-semibold text-gray-800">
+                  Meeting Room Report
+              </h2>
+          </div>
 
-    let table = $('#meetingRoomTable').DataTable({
-        processing: true,
-        serverSide: true,
-        responsive: true,
-        searching: false,
+          <div class="overflow-x-auto p-5">
+              <table id="meetingRoomTable" class="min-w-full text-sm">
 
-        dom:
-            "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
-            'rt' +
-            "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
+                  <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                      <tr>
+                          <th>Doc ID</th>
+                          <th>Date</th>
+                          <th>Start</th>
+                          <th>End</th>
+                          <th>Room</th>
+                          <th>Accessories</th>
+                          <th>Title</th>
+                          <th>Requester</th>
+                          <th>Department</th>
+                          <th>Participants</th>
+                          <th>Type</th>
+                          <th>Duration</th>
+                          <th>Status</th>
+                      </tr>
+                  </thead>
 
-        ajax: {
-            url: '/report-ga/json/' + type,
-            data: function (d) {
-                d.date_from = $('#date_from').val();
-                d.date_to = $('#date_to').val();
-                d.room = $('#room').val();
-                d.requester = $('#requester').val();
-                d.status = $('#status').val();
-            }
-        },
+              </table>
+          </div>
 
-        columns: [
-            { data: 'meeting_date' },
-            { data: 'time' },
-            { data: 'room_name' },
-            { data: 'meeting_title' },
-            { data: 'requester' },
-            { data: 'total_participant' },
-            { data: 'type' },
-            { data: 'status_label' }
-        ],
+      </div>
 
-        order: [[0, 'desc']]
-    });
+  </div>
+  <script>
+      $(function() {
 
-    $('#filterBtn').click(() => table.ajax.reload());
+          let type = 'meeting-room';
 
-    $('#resetBtn').click(() => {
-        $('#date_from, #date_to, #room, #requester').val('');
-        $('#status').val('');
-        table.ajax.reload();
-    });
+          let table = $('#meetingRoomTable').DataTable({
+              processing: true,
+              serverSide: true,
+              responsive: true,
+              searching: false,
 
-    $('#exportBtn').click(() => {
-        let url = '/report-ga/export/' + type;
+              dom: "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
+                  'rt' +
+                  "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
 
-        url += '?date_from=' + $('#date_from').val();
-        url += '&date_to=' + $('#date_to').val();
-        url += '&room=' + $('#room').val();
-        url += '&requester=' + $('#requester').val();
+              ajax: {
+                  url: '/report-ga/json/' + type,
+                  data: function(d) {
+                      d.date_from = $('#date_from').val();
+                      d.date_to = $('#date_to').val();
+                      d.room = $('#room').val();
+                      d.requester = $('#requester').val();
+                      d.status = $('#status').val();
+                  }
+              },
 
-        window.location.href = url;
-    });
+              columns: [{
+                      data: 'docid'
+                  },
+                  {
+                      data: 'meeting_date'
+                  },
+                  {
+                      data: 'start_time'
+                  },
+                  {
+                      data: 'end_time'
+                  },
+                  {
+                      data: 'room_name'
+                  },
+                  {
+                      data: 'accessories'
+                  },
+                  {
+                      data: 'meeting_title'
+                  },
+                  {
+                      data: 'requester'
+                  },
+                  {
+                      data: 'department'
+                  },
+                  {
+                      data: 'total_participant'
+                  },
+                  {
+                      data: 'type'
+                  },
+                  {
+                      data: 'duration_label'
+                  },
+                {
+                      data: 'status_label'
+                  }
+              ],
 
-});
-</script>
+              order: [
+                  [0, 'desc']
+              ]
+          });
 
-</x-app-layout>
+          $('#filterBtn').click(() => table.ajax.reload());
+
+          $('#resetBtn').click(() => {
+              $('#date_from, #date_to, #room, #requester').val('');
+              $('#status').val('');
+              table.ajax.reload();
+          });
+
+          $('#exportBtn').click(() => {
+              let url = '/report-ga/export/' + type;
+
+              url += '?date_from=' + $('#date_from').val();
+              url += '&date_to=' + $('#date_to').val();
+              url += '&room=' + $('#room').val();
+              url += '&requester=' + $('#requester').val();
+
+              window.location.href = url;
+          });
+
+      });
+  </script>

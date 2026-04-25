@@ -65,43 +65,35 @@
 
         {{-- Report Content --}}
         <div id="reportContainer">
+            @include('pages.report-ga.meeting-room')
+        </div>
 
-            <div id="report-meeting-room" class="hidden">
-                @include('pages.report-ga.meeting-room')
-            </div>
+        <div id="report-meeting-online" class="hidden">
+            @include('pages.report-ga.meeting-online')
+        </div>
 
-            <div id="report-meeting-online" class="hidden">
-                @include('pages.report-ga.meeting-online')
-            </div>
+        <div id="report-operational-car" class="hidden">
+            @include('pages.report-ga.operational-car')
+        </div>
 
-            <div id="report-operational-car" class="hidden">
-                @include('pages.report-ga.operational-car')
-            </div>
-
-            <div id="report-voucher-taxi" class="hidden">
-                @include('pages.report-ga.voucher-taxi')
-            </div>
-
+        <div id="report-voucher-taxi" class="hidden">
+            @include('pages.report-ga.voucher-taxi')
         </div>
 
     </div>
 
     <script>
-        document.querySelectorAll('.report-filter').forEach(btn => {
-            btn.addEventListener('click', function (e) {
+            $(document).on('click', '.report-filter', function(e) {
+
                 e.preventDefault();
 
-                const target = this.dataset.report;
+                let report = $(this).data('report');
 
-                // hide all
-                document.querySelectorAll('#reportContainer > div')
-                    .forEach(el => el.classList.add('hidden'));
+                $('#reportContainer > div').addClass('hidden');
 
-                // show selected
-                document.getElementById('report-' + target)
-                    .classList.remove('hidden');
-            });
-        });
-    </script>
+                $('#report-' + report).removeClass('hidden');
+
+            })
+     </script>
 
 </x-app-layout>
