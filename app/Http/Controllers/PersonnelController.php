@@ -605,7 +605,7 @@ class PersonnelController extends Controller
                 'date' => $t_approval_next->aprv_datebefore,
                 'name' => $user->username, // atau $t_approval_next->created_by sesuai kebutuhan
                 'info' => $request->job_title,
-                'url' => url('/showpersonels/'.$eid),
+                'url' => url('/showpersonnels/'.$eid),
             ];
 
             // kirim email ke semua approver di level ini (bisa multi username)
@@ -1189,7 +1189,7 @@ class PersonnelController extends Controller
                         'date' => $next->aprv_datebefore,
                         'name' => $user->username,
                         'info' => $request->job_title,
-                        'url' => url('/showpersonels/'.$eid),
+                        'url' => url('/showpersonnels/'.$eid),
                     ];
 
                     foreach ($emailTargets as $recipient) {
@@ -1376,7 +1376,7 @@ class PersonnelController extends Controller
                 'date' => $t_approval_next->aprvdatebefore,
                 'name' => $t_approval_next->created_user,
                 'info' => $request->job_title,
-                'url' => url('/showvpersonels/'.$eid),
+                'url' => url('/showpersonnels/'.$eid),
             ];
 
             $multiapp = explode(',', $t_approval_next->aprvusername);
@@ -1624,7 +1624,7 @@ class PersonnelController extends Controller
                 'date' => $tNext->aprv_datebefore,
                 'name' => $tNext->created_by ?? $user->username, // fallback
                 'info' => $personnel->job_title,
-                'url' => url('/showvpersonels/'.$eid),
+                'url' => url('/showpersonnels/'.$eid),
             ];
 
             $multiapp = explode(',', $tNext->aprv_username);
@@ -1687,7 +1687,7 @@ class PersonnelController extends Controller
             'date' => $tApproval->aprv_datebefore,
             'name' => $tApproval->created_by ?? $user->username,
             'info' => $personnel->job_title,
-            'url' => url('/showvpersonels/'.$eid),
+            'url' => url('/showpersonnels/'.$eid),
         ];
 
         $creator = User::where('username', $personnel->created_user)
@@ -1753,7 +1753,7 @@ class PersonnelController extends Controller
             'date' => $tApproval->aprv_datebefore,
             'name' => $tApproval->created_by ?? $user->username,
             'info' => $personnel->job_title,
-            'url' => url('/showvpersonels/'.$eid),
+            'url' => url('/showpersonnels/'.$eid),
         ];
 
         $creator = User::where('username', $personnel->created_user)
@@ -1835,7 +1835,7 @@ class PersonnelController extends Controller
     //             'date' => $t_approval_next->aprvdatebefore,
     //             'name' => $t_approval_next->created_user,
     //             'info' => $personnel->job_title,
-    //             'url' => url('/showvpersonels' .'/' . $eid)
+    //             'url' => url('/showpersonnels' .'/' . $eid)
 
     //         );
 
@@ -1907,7 +1907,7 @@ class PersonnelController extends Controller
     //         'date' => $t_approval->aprvdatebefore,
     //         'name' => $t_approval->created_user,
     //         'info' => $personnel->job_title,
-    //         'url' => url('/showvpersonels' .'/' . $eid)
+    //         'url' => url('/showpersonnels' .'/' . $eid)
 
     //     );
 
@@ -1979,7 +1979,7 @@ class PersonnelController extends Controller
     //         'date' => $t_approval->aprvdatebefore,
     //         'name' => $t_approval->created_user,
     //         'info' => $personnel->job_title,
-    //         'url' => url('/showvpersonels' .'/' . $eid)
+    //         'url' => url('/showpersonnels' .'/' . $eid)
 
     //     );
 
