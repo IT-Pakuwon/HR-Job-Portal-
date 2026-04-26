@@ -644,7 +644,6 @@
             });
         },
 
-
             eventClick: function(info) {
                 info.jsEvent.preventDefault();
                 document.activeElement?.blur();
