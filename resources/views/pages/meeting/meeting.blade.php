@@ -171,7 +171,7 @@
                                 <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
                                     Description
                                 </label>
-                                <textarea name="descr" rows="3" required placeholder="Write a short description..."
+                                <textarea  id="descr" name="descr" rows="3" required placeholder="Write a short description..."
                                     class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-gray-300 dark:border-gray-700"></textarea>
                             </div>
 
@@ -1046,7 +1046,7 @@
                     { id: 'end_datetime', label: 'End Time' },
                     { id: 'room_id', label: 'Room' },
                     { id: 'title', label: 'Title' },
-                    { id: 'descr', label: 'Description' }, // 🔥 added
+                    { id: 'descr', label: 'Description' },
                     { id: 'participant', label: 'Participants' },
                     { id: 'internal_pic', label: 'Internal PIC Name' } // 🔥 added
                 ];
