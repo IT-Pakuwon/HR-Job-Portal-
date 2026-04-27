@@ -464,9 +464,11 @@
 <script src="https://unpkg.com/tippy.js@6"></script>
 
 <script>
+    window.currentUserId = @json(auth()->user()->username);
     window.hasCSACCESS = @json($hasCsAccess ?? false);
     window.editMeetingId = null;
     window.isEditMode = false;
+    window.currentUsername = @json(auth()->user()->name);
     document.addEventListener('DOMContentLoaded', function() {
         const RESTRICTED_ROOMS = [
                 'Ruang Meeting 33-1',
@@ -677,20 +679,23 @@
                 window.selectedEvent = e;
                 const props = e.extendedProps;
 
-                const currentUser = window.currentUsername;
-                const creator = props.username;
-
+                // ✅ DEFINE FIRST (VERY IMPORTANT)
                 const editBtn = document.getElementById('editMeetingBtn');
                 const cancelBtn = document.getElementById('cancelMeetingBtn');
 
-                if (creator === currentUser) {
+                const currentUserId = window.currentUserId;
+                const creatorId = props.username; // ✅ FIXED FIELD
+
+                // ✅ SAFETY CHECK (avoid null crash)
+                if (!editBtn || !cancelBtn) return;
+
+                if (creatorId === currentUserId) {
                     editBtn.classList.remove('hidden');
                     cancelBtn.classList.remove('hidden');
                 } else {
                     editBtn.classList.add('hidden');
                     cancelBtn.classList.add('hidden');
                 }
-
                 // 🔥 BASIC INFO FILL
                 document.getElementById('view_title').innerText = e.title || '-';
 
@@ -1674,11 +1679,20 @@
 
                 window.accTom.refreshOptions(false);
 
-                if (props.accessories) {
-                    props.accessories.forEach(id => {
-                        window.accTom.addItem(id, true);
+        if (props.accessories) {
+            props.accessories.forEach(acc => {
+
+                // ensure option exists
+                if (!window.accTom.options[acc.id]) {
+                    window.accTom.addOption({
+                        value: acc.id,
+                        text: acc.name
                     });
                 }
+
+                window.accTom.addItem(acc.id, true);
+            });
+        }
             });
 
 

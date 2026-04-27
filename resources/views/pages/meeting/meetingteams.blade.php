@@ -95,7 +95,7 @@
         <div id="schedule-show"
             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
             <div class="w-full max-w-4xl rounded-2xl bg-white shadow-xl dark:bg-gray-900 max-h-[90vh] flex flex-col">
-                <div class="space-y-6 px-6 py-5 overflow-y-auto">
+                <div class="overflow-y-auto">
 
                         {{-- HEADER --}}
                         <div class="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
@@ -746,10 +746,15 @@
             document.getElementById('view_room').innerText = props.room || '-';
             document.getElementById('view_desc').innerText = props.description || '-';
 
+            // document.getElementById('view_acc').innerText =
+            //     (props.accessories && props.accessories.length) ?
+            //     props.accessories.join(', ') :
+            //     '-';
+
             document.getElementById('view_acc').innerText =
-                (props.accessories && props.accessories.length) ?
-                props.accessories.join(', ') :
-                '-';
+            (props.accessories && props.accessories.length)
+                ? props.accessories.map(a => a.name).join(', ')
+                : '-';
 
             let participantsHtml = '-';
 

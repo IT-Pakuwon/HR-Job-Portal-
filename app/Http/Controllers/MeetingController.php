@@ -221,6 +221,7 @@ class MeetingController extends Controller
 
         $accMap = MsMeetingAccessories::pluck('acc_name', 'acc_id');
 
+
         return response()->json(
             TrMeeting::where('status', '!=', 'X')
                 ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
@@ -241,15 +242,18 @@ class MeetingController extends Controller
                         });
 
                     // ✅ FIX ACCESSORIES HERE
-                    $accessories = [];
-                    if (!empty($m->acc_id)) {
-                        $ids = explode(',', $m->acc_id);
+                    $ids = collect(explode(',', (string) $m->acc_id))
+                        ->map(fn($x) => trim($x))
+                        ->filter()
+                        ->values();
 
-                        $accessories = collect($ids)
-                            ->map(fn($id) => $accMap[$id] ?? null)
-                            ->filter()
-                            ->values();
-                    }
+                    $accessories = $ids
+                        ->map(fn($id) => [
+                            'id' => $id,
+                            'name' => $accMap[$id] ?? null
+                        ])
+                        ->filter(fn($a) => $a['name'])
+                        ->values();
 
                     return [
                         'id' => Hashids::encode($m->id),
@@ -505,34 +509,26 @@ class MeetingController extends Controller
             $this->sendMeetingEmail($meeting, 'create');
 
             // kalau acc_id ada -> coba create Teams meeting
-            if (!empty($meeting->acc_id)) {
-                $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
+            $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
 
-                if (!empty($teamsResult['success'])) {
-                    $meeting->msteams_event_id = $teamsResult['msteams_event_id'] ?? null;
-                    $meeting->msteams_join_url = $teamsResult['msteams_join_url'] ?? null;
+            if (!empty($teamsResult['success'])) {
+                $meeting->msteams_event_id = $teamsResult['msteams_event_id'] ?? null;
+                $meeting->msteams_join_url = $teamsResult['msteams_join_url'] ?? null;
 
-                    // optional, kalau response mengandung ini bisa sekalian disimpan
-                    if (!empty($teamsResult['msteams_passcode'])) {
-                        $meeting->msteams_passcode = $teamsResult['msteams_passcode'];
-                    }
-
-                    if (!empty($teamsResult['msteams_meetingid'])) {
-                        $meeting->msteams_meetingid = $teamsResult['msteams_meetingid'];
-                    }
-
-                    $meeting->updated_by = $authUser->username ?? $username;
-                    $meeting->updated_at = now();
-                    $meeting->save();
-                } else {
-                    Log::warning('Teams meeting was not created', [
-                        'meeting_id' => $meeting->id,
-                        'docid' => $meeting->docid,
-                        'reason' => $teamsResult['message'] ?? 'Unknown error',
-                    ]);
+                if (!empty($teamsResult['msteams_passcode'])) {
+                    $meeting->msteams_passcode = $teamsResult['msteams_passcode'];
                 }
-            }
 
+                if (!empty($teamsResult['msteams_meetingid'])) {
+                    $meeting->msteams_meetingid = $teamsResult['msteams_meetingid'];
+                }
+
+                // 🔥 IMPORTANT: save owner (already set inside function)
+                $meeting->updated_by = $authUser->username ?? $username;
+                $meeting->updated_at = now();
+
+                $meeting->save(); // ✅ THIS saves msteams_owner too
+            }
             // // CC email dari requester
             // $ccEmail = User::query()
             //     ->where('username', $username)
@@ -695,6 +691,7 @@ class MeetingController extends Controller
             ], 422);
         }
 
+        // 🔥 Parse datetime
         [$startRaw, $endRaw] = array_pad(explode(' - ', $request->datetimes), 2, null);
 
         if (!$startRaw || !$endRaw) {
@@ -722,9 +719,8 @@ class MeetingController extends Controller
         }
 
         $authUser = auth()->user();
-
         $username = $authUser->username ?? 'SYSTEM';
-        $name = $authUser->name ?? $username;
+
         $year = $startMeeting->format('Y');
         $month = $startMeeting->format('m');
 
@@ -733,13 +729,6 @@ class MeetingController extends Controller
 
         $department = explode(',', (string) $authUser->department_id);
         $firstDepartment = trim($department[0] ?? '');
-
-        $internalEmails = collect([
-            'rikiparahat@pakuwon.com',
-            // 'miftahulfahri@pakuwon.com',
-        ]);
-
-        $emailList = $internalEmails->implode(',');
 
         $accList = collect($request->acc_id ?? [])
             ->filter()
@@ -750,6 +739,7 @@ class MeetingController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
+            // ✅ 1. CREATE MEETING FIRST
             $docid = $this->generateMeetingDocId($year, $month, $username);
 
             $meeting = TrMeeting::on('pgsql5')->create([
@@ -771,58 +761,23 @@ class MeetingController extends Controller
                 'updated_at' => now(),
             ]);
 
-            $room = MsMeetingRoom::query()
-             ->where('room_id', $meeting->room_id)
-             ->value('room_name');
+            // ✅ 2. CREATE TEAMS MEETING
+            $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
 
+            if (!empty($teamsResult['success'])) {
+                $meeting->msteams_event_id = $teamsResult['msteams_event_id'] ?? null;
+                $meeting->msteams_join_url = $teamsResult['msteams_join_url'] ?? null;
+                $meeting->msteams_passcode = $teamsResult['msteams_passcode'] ?? null;
+                $meeting->msteams_meetingid = $teamsResult['msteams_meetingid'] ?? null;
+                $meeting->updated_at = now();
+                $meeting->save();
+            }
+
+            // ✅ 3. COMMIT DB
             DB::connection('pgsql5')->commit();
 
-            // CC email dari requester
-            $ccEmail = User::query()
-                ->where('username', $username)
-                ->value('notification_email');
-
-            // Gabungkan email TO dari internal + external
-            $toEmails = $internalEmails;
-
-            if ($toEmails->isNotEmpty()) {
-                $mailData = [
-                    'docid' => $meeting->docid,
-                    'title' => $meeting->meeting_title,
-                    'description' => $meeting->meeting_descr,
-                    'meeting_date' => $meeting->meeting_date,
-                    'start_time' => Carbon::parse($meeting->start_meeting_time)->format('d-m-Y H:i'),
-                    'end_time' => Carbon::parse($meeting->end_meeting_time)->format('d-m-Y H:i'),
-                    'room_id' => $room,
-                    'requester' => $meeting->user_peminta,
-                    'participant' => $meeting->total_participant,
-                    'external_participant' => $meeting->external_participant,
-                    'msteams_join_url' => $meeting->msteams_join_url,
-                ];
-
-                \Mail::send([], [], function ($message) use ($toEmails, $ccEmail, $mailData) {
-                    $htmlBody = '
-                        <h3>Request '.e($mailData['room_id']).'</h3>
-                        <table cellpadding="6" cellspacing="0" border="0">
-                            <tr><td><strong>Doc ID</strong></td><td>: '.e($mailData['docid']).'</td></tr>
-                            <tr><td><strong>Title</strong></td><td>: '.e($mailData['title']).'</td></tr>
-                            <tr><td><strong>Description</strong></td><td>: '.e($mailData['description']).'</td></tr>
-                            <tr><td><strong>Start</strong></td><td>: '.e($mailData['start_time']).'</td></tr>
-                            <tr><td><strong>End</strong></td><td>: '.e($mailData['end_time']).'</td></tr>
-                            <tr><td><strong>Room</strong></td><td>: '.e($mailData['room_id']).'</td></tr>
-                            <tr><td><strong>Requester</strong></td><td>: '.e($mailData['requester']).'</td></tr>
-                        </table>
-                    ';
-
-                    $message->to($toEmails->all())
-                        ->subject('Request '.$mailData['room_id'].' - '.$mailData['title'])
-                        ->html($htmlBody);
-
-                    if (!empty($ccEmail)) {
-                        $message->cc($ccEmail);
-                    }
-                });
-            }
+            // ✅ 4. SEND EMAIL (AFTER TEAMS READY)
+            $this->sendTeamsEmail($meeting, 'create');
 
             return response()->json([
                 'success' => true,
@@ -832,6 +787,7 @@ class MeetingController extends Controller
                     'docid' => $meeting->docid,
                 ],
             ]);
+
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
@@ -1001,6 +957,68 @@ class MeetingController extends Controller
                 ->attachData($ics, 'meeting.ics', [
                     'mime' => "text/calendar; charset=utf-8; method={$method}",
                 ]);
+        });
+    }
+
+    protected function sendTeamsEmail($meeting, $type = 'create')
+    {
+        $participants = DB::connection('pgsql5')
+            ->table('tr_meeting_participant')
+            ->where('docid', $meeting->docid)
+            ->where('status', 'A')
+            ->get();
+
+        $toEmails = $participants->pluck('email_participant')->filter()->unique();
+        if ($toEmails->isEmpty()) return;
+
+        $start = Carbon::parse($meeting->start_meeting_time);
+        $end = Carbon::parse($meeting->end_meeting_time);
+
+        $subjectPrefix = match ($type) {
+            'update' => '[TEAMS UPDATED]',
+            'cancel' => '[TEAMS CANCELLED]',
+            default  => '[TEAMS INVITATION]',
+        };
+
+        $htmlBody = "
+        <div style='font-family:Arial,sans-serif;font-size:14px;color:#333;'>
+
+            <p>Dear Sir/Madam,</p>
+
+            <p>
+                You are invited to a <strong>Microsoft Teams Meeting</strong>.
+            </p>
+
+            <table cellpadding='6' cellspacing='0'>
+                <tr><td><strong>Title</strong></td><td>: {$meeting->meeting_title}</td></tr>
+                <tr><td><strong>Date</strong></td><td>: {$start->format('d F Y')}</td></tr>
+                <tr><td><strong>Time</strong></td><td>: {$start->format('H:i')} - {$end->format('H:i')}</td></tr>
+                <tr><td><strong>Description</strong></td><td>: {$meeting->meeting_descr}</td></tr>
+            </table>
+
+            <br>
+
+            <div style='padding:12px;background:#f3f4f6;border-radius:8px;'>
+                <p><strong>Join Microsoft Teams Meeting</strong></p>
+                <a href='{$meeting->msteams_join_url}' target='_blank'
+                    style='display:inline-block;padding:10px 16px;
+                    background:#2563eb;color:#fff;border-radius:6px;
+                    text-decoration:none;font-weight:600;'>
+                    Join Meeting
+                </a>
+            </div>
+
+            <br>
+
+            <p>Thank you.</p>
+
+        </div>
+        ";
+
+        \Mail::send([], [], function ($message) use ($toEmails, $htmlBody, $subjectPrefix, $meeting) {
+            $message->to($toEmails->all())
+                ->subject("{$subjectPrefix} {$meeting->meeting_title}")
+                ->html($htmlBody);
         });
     }
 
@@ -1452,6 +1470,11 @@ class MeetingController extends Controller
         $roomName = MsMeetingRoom::where('room_id', $request->room_id)
             ->value('room_name');
 
+        $restrictedRooms = [
+            'Ruang Meeting 33-1',
+            'Ruang Meeting 33-5',
+        ];
+
         // 🔒 BLOCK BASED ON NAME
          if (in_array($roomName, $restrictedRooms) && !$hasCSACCESS) {
             return response()->json([
@@ -1463,6 +1486,9 @@ class MeetingController extends Controller
         $oldStart = $meeting->start_meeting_time;
         $oldEnd = $meeting->end_meeting_time;
         $oldRoom = $meeting->room_id;
+        $oldAccId = $meeting->acc_id;
+
+
 
         try {
             $request->validate([
@@ -1589,6 +1615,7 @@ class MeetingController extends Controller
             $meeting->participant_external_list = $externalEmailList;
             $meeting->room_id = $request->room_id;
             $meeting->acc_id = $accList;
+            $accessoryChanged = (string) $oldAccId !== (string) $accList;
             $meeting->updated_by = $username;
             $meeting->updated_at = now();
             $meeting->save();
@@ -1751,26 +1778,39 @@ class MeetingController extends Controller
                 || (string) $oldRoom !== (string) $meeting->room_id;
 
             if ($scheduleOrRoomChanged && !empty($meeting->acc_id)) {
-                $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
+
+                $accessoryChanged = (string) $oldAccId !== (string) $meeting->acc_id;
+
+                if ($accessoryChanged && $meeting->msteams_event_id) {
+
+                    // 🔥 DELETE OLD
+                    $this->deleteMicrosoftTeamsMeeting($meeting);
+
+                    // 🔥 RESET
+                    $meeting->msteams_event_id = null;
+                    $meeting->msteams_join_url = null;
+
+                    // 🔥 CREATE NEW
+                    $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
+
+                } else {
+
+                    if ($meeting->msteams_event_id) {
+                        // 🔥 NORMAL UPDATE
+                        $teamsResult = $this->updateMicrosoftTeamsMeeting($meeting);
+                    } else {
+                        // 🔥 CREATE
+                        $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
+                    }
+                }
 
                 if (!empty($teamsResult['success'])) {
                     $meeting->msteams_event_id = $teamsResult['msteams_event_id'] ?? $meeting->msteams_event_id;
                     $meeting->msteams_join_url = $teamsResult['msteams_join_url'] ?? $meeting->msteams_join_url;
-                    $meeting->msteams_passcode = $teamsResult['msteams_passcode'] ?? $meeting->msteams_passcode;
-                    $meeting->msteams_meetingid = $teamsResult['msteams_meetingid'] ?? $meeting->msteams_meetingid;
-                    $meeting->updated_by = $username;
-                    $meeting->updated_at = now();
                     $meeting->save();
-                } else {
-                    Log::warning('Teams meeting was not updated after meeting edit', [
-                        'meeting_id' => $meeting->id,
-                        'docid' => $meeting->docid,
-                        'reason' => $teamsResult['message'] ?? 'Unknown error',
-                    ]);
                 }
             }
-
-            DB::connection('pgsql5')->commit();
+                        DB::connection('pgsql5')->commit();
             $this->sendMeetingEmail($meeting, 'update');
 
             return response()->json([
@@ -1823,7 +1863,11 @@ class MeetingController extends Controller
         $meeting->save();
 
         // 🔥 SEND UPDATE EMAIL
-        $this->sendMeetingEmail($meeting, 'update');
+        if (!empty($meeting->msteams_join_url)) {
+            $this->sendTeamsEmail($meeting, 'cancel');
+        } else {
+            $this->sendMeetingEmail($meeting, 'cancel');
+        }
 
         return response()->json([
             'success' => true,
@@ -1831,6 +1875,95 @@ class MeetingController extends Controller
         ]);
     }
 
+    protected function updateMicrosoftTeamsMeeting($meeting): array
+    {
+        try {
+            if (!$meeting->msteams_event_id) {
+                return ['success' => false, 'message' => 'No existing Teams event'];
+            }
+
+            $token = $this->getMicrosoftGraphToken();
+            $tz = config('app.timezone', 'Asia/Jakarta');
+
+            $userId = $this->resolveTeamsOwner($meeting);
+
+            if (!$userId) {
+                return ['success' => false, 'message' => 'Teams owner not found'];
+            }
+
+            $url = "https://graph.microsoft.com/v1.0/users/{$userId}/events/{$meeting->msteams_event_id}?sendUpdates=all";
+
+            $payload = [
+                'subject' => $meeting->meeting_title,
+                'body' => [
+                    'contentType' => 'HTML',
+                    'content' => $meeting->meeting_descr,
+                ],
+                'start' => [
+                    'dateTime' => \Carbon\Carbon::parse($meeting->start_meeting_time, $tz)->format('Y-m-d\TH:i:s'),
+                    'timeZone' => $tz,
+                ],
+                'end' => [
+                    'dateTime' => \Carbon\Carbon::parse($meeting->end_meeting_time, $tz)->format('Y-m-d\TH:i:s'),
+                    'timeZone' => $tz,
+                ],
+            ];
+
+            $response = \Http::withToken($token)
+                ->patch($url, $payload);
+
+            if (!$response->successful()) {
+                return [
+                    'success' => false,
+                    'message' => $response->body()
+                ];
+            }
+
+            return ['success' => true];
+
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    protected function deleteMicrosoftTeamsMeeting($meeting): array
+    {
+        try {
+            if (!$meeting->msteams_event_id) {
+                return ['success' => false, 'message' => 'No Teams event'];
+            }
+
+            $token = $this->getMicrosoftGraphToken();
+
+            $userId = $this->resolveTeamsOwner($meeting);
+
+            if (!$userId) {
+                return ['success' => false, 'message' => 'Teams owner not found'];
+            }
+
+            $url = "https://graph.microsoft.com/v1.0/users/{$userId}/events/{$meeting->msteams_event_id}?sendUpdates=all";
+
+            $response = \Http::withToken($token)->delete($url);
+
+            if (!$response->successful()) {
+                return [
+                    'success' => false,
+                    'message' => $response->body()
+                ];
+            }
+
+            return ['success' => true];
+
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
     // public function cancelMeeting($id)
     // {
     //     $meeting = TrMeeting::on('pgsql5')->find($id);
@@ -1868,11 +2001,17 @@ class MeetingController extends Controller
             abort(403);
         }
 
+
         $meeting->status = 'X';
         $meeting->updated_by = auth()->user()->username;
         $meeting->updated_at = now();
         $meeting->save();
         $this->sendMeetingEmail($meeting, 'cancel');
+
+        if (!empty($meeting->msteams_event_id)) {
+            $this->deleteMicrosoftTeamsMeeting($meeting);
+        }
+
 
         return response()->json([
             'success' => true,
@@ -1953,7 +2092,7 @@ class MeetingController extends Controller
             ];
         }
 
-        return $this->createMicrosoftTeamsMeeting(
+        $result = $this->createMicrosoftTeamsMeeting(
             userId: $accessory->userid_msteams,
             subject: $meeting->meeting_title ?: ('Meeting '.$meeting->docid),
             startDateTime: $meeting->start_meeting_time,
@@ -1961,7 +2100,32 @@ class MeetingController extends Controller
             description: $meeting->meeting_descr,
             externalId: $meeting->docid
         );
+
+        // // 🔥 ADD THIS
+        // if (!empty($result['success'])) {
+        //     $meeting->msteams_owner = $accessory->userid_msteams;
+        // }
+
+        return $result;
     }
+
+    protected function resolveTeamsOwner($meeting): ?string
+    {
+        $accIds = collect(explode(',', (string) $meeting->acc_id))
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values();
+
+        if ($accIds->isEmpty()) return null;
+
+        $accessory = MsMeetingAccessories::on('pgsql5')
+            ->whereIn('acc_id', $accIds)
+            ->whereNotNull('userid_msteams')
+            ->first();
+
+        return $accessory->userid_msteams ?? null;
+    }
+
 
     protected function createMicrosoftTeamsMeeting(
         string $userId,
