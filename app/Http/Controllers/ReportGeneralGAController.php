@@ -152,10 +152,14 @@ class ReportGeneralGAController extends Controller
             $query->where('m.user_peminta', 'ilike', "%{$request->requester}%");
         }
 
-        if ($request->status) {
-            $query->where('m.status', $request->status);
+        if ($request->status === 'A') {
+            // Active = everything except cancelled
+            $query->where('m.status', '!=', 'X');
         }
 
+        if ($request->status === 'X') {
+            $query->where('m.status', 'X');
+        }
         $users = User::pluck('name', 'username');
 
         return DataTables::of($query)

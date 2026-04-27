@@ -324,6 +324,228 @@
                 resetMeetingForm();
             });
 
+            // calendarInstance = new FullCalendar.Calendar(calendarEl, {
+            // schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+
+            // initialView: isMobile ? 'timeGridDay' : 'resourceTimelineDay',
+            // height: isMobile ? 'auto' : '75vh',
+
+            // headerToolbar: {
+            //     left: 'today prev,next',
+            //     center: 'title',
+            //     right: isMobile
+            //         ? 'timeGridDay,timeGridWeek'
+            //         : 'resourceTimelineDay,timeGridWeek,dayGridMonth,listWeek'
+            // },
+
+            // resources: isMobile ? [] : [
+            //     @foreach ($rooms as $showroom)
+            //     {
+            //         id: @json($showroom->room_id),
+            //         title: @json($showroom->room_name),
+            //         eventColor: @json($showroom->eventcolor ?: '#2563eb')
+            //     },
+            //     @endforeach
+            // ],
+
+            // events: [
+            //     @foreach ($meetings as $showmeeting)
+            //     {
+            //         id: @json($showmeeting->id),
+            //         resourceId: @json($showmeeting->room_id),
+            //         start: @json(\Carbon\Carbon::parse($showmeeting->start_meeting_time)->format('Y-m-d H:i:s')),
+            //         end: @json(\Carbon\Carbon::parse($showmeeting->end_meeting_time)->format('Y-m-d H:i:s')),
+            //         title: @json(trim(($showmeeting->user_peminta ? $showmeeting->user_peminta . ' - ' : '') . $showmeeting->meeting_title)),
+            //         extendedProps: {
+            //             type: @json($showmeeting->external_participant ? 'external' : 'internal'),
+            //             isTeams: @json($showmeeting->is_teams ?? false)
+            //         },
+            //         url: "{{ url('/showmeeting/' . \Vinkla\Hashids\Facades\Hashids::encode($showmeeting->id)) }}"
+            //     },
+            //     @endforeach
+            // ],
+
+            // selectable: true,
+            // eventOverlap: false,
+            // slotEventOverlap: false,
+
+            // select: function(info) {
+
+            //     const start = info.start;
+            //     const end = info.end;
+            //     const resourceId = info.resource ? info.resource.id : null;
+
+            //     // 🚫 conflict check (only if resource exists)
+            //     const hasConflict = calendarInstance.getEvents().some(e => {
+            //         if (!resourceId) return false;
+
+            //         return (
+            //             e.getResources()[0]?.id === resourceId &&
+            //             (
+            //                 (start >= e.start && start < e.end) ||
+            //                 (end > e.start && end <= e.end) ||
+            //                 (start <= e.start && end >= e.end)
+            //             )
+            //         );
+            //     });
+
+            //     if (hasConflict) {
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'Time Conflict',
+            //             text: 'Room already booked in this time slot.'
+            //         });
+            //         return;
+            //     }
+
+            //     // normal flow
+            //     const addstart = moment(info.startStr).format('YYYY-MM-DD hh:mm A');
+            //     const addend = moment(info.endStr).format('YYYY-MM-DD hh:mm A');
+
+            //     const id = info.resource ? info.resource.id : null;
+            //     const roomTitle = info.resource ? info.resource.title : '';
+
+            //     resetMeetingForm();
+
+            //     $('#datetimes').val(addstart + ' - ' + addend);
+            //     $('#room_id').val(id);
+
+            //     if (id) {
+            //         $('#room_id_display')
+            //             .empty()
+            //             .append(`<option value="${id}">${roomTitle}</option>`);
+            //     }
+
+            //     openModal();
+            // },
+
+            // eventClick: function(info) {
+            //     info.jsEvent.preventDefault();
+            //     if (info.event.url) {
+            //         window.location.href = info.event.url;
+            //     }
+            // },
+
+            // eventContent: function(arg) {
+            //     const title = arg.event.title;
+            //     const type = arg.event.extendedProps.type;
+            //     const isTeams = arg.event.extendedProps.isTeams;
+
+            //     return {
+            //         html: `
+            //             <div class="fc-custom-event">
+            //                 <div class="fc-event-title">${title}</div>
+            //                 <div class="fc-event-meta">
+            //                     ${type === 'external' ? 'External' : 'Internal'} • ${isTeams ? 'Teams' : 'No Teams'}
+            //                 </div>
+            //             </div>
+            //         `
+            //     };
+            // }
+
+            //     select: function(info) {
+
+            //     const start = info.start;
+            //     const end = info.end;
+            //     const resourceId = info.resource.id;
+
+            //     const hasConflict = calendarInstance.getEvents().some(e => {
+            //         return (
+            //             e.getResources()[0]?.id === resourceId &&
+            //             (
+            //                 (start >= e.start && start < e.end) ||
+            //                 (end > e.start && end <= e.end) ||
+            //                 (start <= e.start && end >= e.end)
+            //             )
+            //         );
+            //     });
+
+            //     if (hasConflict) {
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'Time Conflict',
+            //             text: 'Room already booked in this time slot.'
+            //         });
+            //         return;
+            //     }
+
+            //     // lanjut normal
+            // },
+
+            //     selectOverlap: function(event) {
+            //         return event.rendering === 'background';
+            //     },
+
+            //     eventClick: function(info) {
+            //         info.jsEvent.preventDefault(); // supaya tidak reload default
+
+            //         if (info.event.url) {
+            //             window.location.href = info.event.url;
+            //         }
+            //     },
+
+            //     select: function(info) {
+            //         var addstart = moment(info.startStr).format('YYYY-MM-DD hh:mm A');
+            //         var addend = moment(info.endStr).format('YYYY-MM-DD hh:mm A');
+            //         var adddate = moment(info.endStr).format('YYYY-MM-DD');
+
+            //         var dateblock = @json($dateblock);
+            //         var usergroups = @json($user->groups ?? '');
+            //         var hasCsAccess = @json($hasCsAccess);
+            //         var id = info.resource ? info.resource.id : null;
+            //         var roomTitle = info.resource ? info.resource.title : '';
+
+            //         resetMeetingForm();
+
+            //         $('#datetimes').val(addstart + ' - ' + addend);
+            //         $('#room_id').val(id);
+            //         $('#room_id_display').empty().append('<option value="' + id + '">' + roomTitle + '</option>');
+
+            //         $.ajax({
+            //             url: 'infoacc_' + id,
+            //             type: 'get',
+            //             dataType: 'json',
+            //             success: function(response) {
+            //                 if (accTom) {
+            //                     accTom.clear();
+            //                     accTom.clearOptions();
+
+            //                     $.each(response, function(key, value) {
+            //                         accTom.addOption({
+            //                             value: key,
+            //                             text: value
+            //                         });
+            //                     });
+
+            //                     accTom.refreshOptions(false);
+            //                 }
+            //             },
+            //             error: function() {
+            //                 Swal.fire({
+            //                     icon: 'error',
+            //                     title: 'Error',
+            //                     text: 'Gagal mengambil accessories.'
+            //                 });
+            //             }
+            //         });
+
+            //         if (adddate > dateblock) {
+            //             Swal.fire({
+            //                 icon: 'warning',
+            //                 title: 'Cannot Create',
+            //                 text: 'Cannot create for selected date.'
+            //             });
+            //         } else if (!hasCsAccess && (id == 'd' || id == 'h')) {
+            //             Swal.fire({
+            //                 icon: 'warning',
+            //                 title: 'Room Restricted',
+            //                 text: 'Unable to book this room, Please contact Reception!'
+            //             });
+            //         } else {
+            //             openModal();
+            //         }
+            //     }
+            // });
 
             const isMobile = window.innerWidth < 768;
 

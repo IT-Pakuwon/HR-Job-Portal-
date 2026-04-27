@@ -263,6 +263,7 @@ class MeetingController extends Controller
 
                         'extendedProps' => [
                             'user' => $users[$m->user_peminta] ?? $m->user_peminta,
+                            'username' => $m->user_peminta, // ✅ ADD THIS
                             'room' => $roomMap[$m->room_id] ?? '-',
                             'type' => $m->external_participant ? 'external' : 'internal',
                             'participants' => $participants,
@@ -332,6 +333,28 @@ class MeetingController extends Controller
         }
 
         $authUser = auth()->user();
+
+        $hasCSACCESS = SysUserRole::where('username', $authUser->username)
+            ->where('role_id', 'CSACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        // 🔥 GET ROOM NAME
+        $roomName = MsMeetingRoom::where('room_id', $request->room_id)
+            ->value('room_name');
+
+        $restrictedRooms = [
+            'Ruang Meeting 33-1',
+            'Ruang Meeting 33-5',
+        ];
+
+        // 🔒 BLOCK BASED ON NAME
+         if (in_array($roomName, $restrictedRooms) && !$hasCSACCESS) {
+            return response()->json([
+                'success' => false,
+                'message' => 'We\'re sorry, this room is restricted'
+            ], 403);
+        }
 
         $username = $authUser->username ?? 'SYSTEM';
         $name = $authUser->name ?? $username;
@@ -1417,6 +1440,25 @@ class MeetingController extends Controller
 
         $meeting = TrMeeting::on('pgsql5')->find($id);
         abort_if(!$meeting, 404);
+
+       $authUser = auth()->user();
+
+        $hasCSACCESS = SysUserRole::where('username', $authUser->username)
+            ->where('role_id', 'CSACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        // 🔥 GET ROOM NAME
+        $roomName = MsMeetingRoom::where('room_id', $request->room_id)
+            ->value('room_name');
+
+        // 🔒 BLOCK BASED ON NAME
+         if (in_array($roomName, $restrictedRooms) && !$hasCSACCESS) {
+            return response()->json([
+                'success' => false,
+                'message' => 'We\'re sorry, this room is restricted'
+            ], 403);
+        }
 
         $oldStart = $meeting->start_meeting_time;
         $oldEnd = $meeting->end_meeting_time;

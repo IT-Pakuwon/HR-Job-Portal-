@@ -430,12 +430,12 @@
 
                     <div class="flex gap-2">
                         <button id="editMeetingBtn"
-                            class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                            class="hidden rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
                             Edit
                         </button>
 
                         <button id="cancelMeetingBtn"
-                            class="rounded-md bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600">
+                            class="hidden rounded-md bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600">
                             Cancel
                         </button>
                     </div>
@@ -464,9 +464,14 @@
 <script src="https://unpkg.com/tippy.js@6"></script>
 
 <script>
+    window.hasCSACCESS = @json($hasCsAccess ?? false);
     window.editMeetingId = null;
     window.isEditMode = false;
     document.addEventListener('DOMContentLoaded', function() {
+        const RESTRICTED_ROOMS = [
+                'Ruang Meeting 33-1',
+                'Ruang Meeting 33-5'
+            ];
 
         window.endPicker = flatpickr("#end_datetime", {
             enableTime: true,
@@ -664,12 +669,27 @@
         },
 
             eventClick: function(info) {
+
                 info.jsEvent.preventDefault();
                 document.activeElement?.blur();
 
                 const e = info.event;
                 window.selectedEvent = e;
                 const props = e.extendedProps;
+
+                const currentUser = window.currentUsername;
+                const creator = props.username;
+
+                const editBtn = document.getElementById('editMeetingBtn');
+                const cancelBtn = document.getElementById('cancelMeetingBtn');
+
+                if (creator === currentUser) {
+                    editBtn.classList.remove('hidden');
+                    cancelBtn.classList.remove('hidden');
+                } else {
+                    editBtn.classList.add('hidden');
+                    cancelBtn.classList.add('hidden');
+                }
 
                 // 🔥 BASIC INFO FILL
                 document.getElementById('view_title').innerText = e.title || '-';
@@ -915,11 +935,77 @@
                 modal.classList.add('flex');
             },
 
+            eventDrop: function(info) {
+
+                const event = info.event;
+                const hasCSACCESS = window.hasCSACCESS;
+
+                // get room_id safely
+                const resourceId =
+                    event.getResources()?.[0]?.id ||
+                    event.extendedProps.room_id ||
+                    null;
+
+                const roomName = event.getResources()?.[0]?.title || '';
+
+                if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Restricted Room',
+                        text: "We're sorry, this room is managed by Receptionist Office 8 - Lvl. 32. Please contact them for booking."
+                    });
+
+                    info.revert(); // 🔥 VERY IMPORTANT
+                    return;
+                }
+
+                // ✅ continue your update logic here if you have one
+            },
+
+            eventResize: function(info) {
+
+                const event = info.event;
+                const hasCSACCESS = window.hasCSACCESS;
+
+                const resourceId =
+                    event.getResources()?.[0]?.id ||
+                    event.extendedProps.room_id ||
+                    null;
+
+                const roomName = event.getResources()?.[0]?.title || '';
+
+                if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Restricted Room',
+                        text: "We're sorry, this room is managed by Receptionist Office 8 - Lvl. 32. Please contact them for booking."
+                    });
+
+                    info.revert(); // 🔥 IMPORTANT
+                    return;
+                }
+
+                // ✅ continue update logic if any
+            },
+
             select: function(info) {
                 document.activeElement?.blur();
-
                 let resourceId = info.resource ? info.resource.id : null;
 
+                const roomName = info.resource?.title || '';
+
+                if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) {// 🔥 use real ID
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Restricted Room',
+                        text: "We're sorry, this room is managed by Receptionist Office 8 - Lvl. 32. Please contact them for booking."
+                    });
+
+                    window.calendar.unselect();
+                    return;
+                }
                 if (!resourceId) {
                     const fallbackRoom = @json($rooms->first()->room_id ?? null);
 
