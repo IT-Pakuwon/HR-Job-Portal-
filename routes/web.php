@@ -150,30 +150,42 @@ Route::get('/avatar/{filename}', function ($filename) {
 });
 
 Route::redirect('/', 'login');
+
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
-        'login' => ['required'], // Bisa email, username, atau NIP
+        'login' => ['required'],
         'password' => ['required'],
-        // 'g-recaptcha-response' => ['required', 'captcha'],
     ]);
 
     // Cari user berdasarkan email, username, atau NIP
     $user = User::where('status', 'A')
-                ->where('email', $credentials['login'])
-                ->orWhere('username', $credentials['login'])
-                ->orWhere('npk', $credentials['login'])
-                ->first();
+        ->where(function ($query) use ($credentials) {
+            $query->where('email', $credentials['login'])
+                  ->orWhere('username', $credentials['login'])
+                  ->orWhere('npk', $credentials['login']);
+        })
+        ->first();
 
-    if (!$user || !Auth::attempt(['email' => $user->email, 'password' => $credentials['password']])) {
-        throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
+    if (!$user || !Auth::attempt([
+        'email' => $user->email,
+        'password' => $credentials['password']
+    ])) {
+        throw ValidationException::withMessages([
+            'login' => ['These credentials do not match our records.']
+        ]);
     }
 
     return redirect()->intended('/dashboard');
-})->name('login');
+})->name('login.submit'); // ✅ FIXED (was duplicate)
+
+Route::post('/logout', function () {
+    Auth::logout();
+    return redirect('/login');
+})->name('logout');
 
 Route::get('/modules', function () {
     return view('layouts.module');
@@ -1173,13 +1185,26 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/saveteams', [MeetingController::class, 'storeTeams'])->name('teams.store');
     Route::post('/cancel-meeting/{id}', [MeetingController::class, 'cancelMeeting']);
     Route::put('/updateteams/{id}', [MeetingController::class, 'updateTeams']);
-
-
     // Route::get('/teamslist', [MeetingController::class, 'TeamsList'])->name('teamslist');
     Route::get('/teamslist/json', [MeetingController::class, 'jsonTeams'])->name('teamslist.json');
 
-    Route::get('/vouchertaxi', [VoucherTaxiController::class, 'index'])->name('vouchertaxi');
-    Route::get('/vouchertaxi/json', [VoucherTaxiController::class, 'json'])->name('vouchertaxi.json');
+    Route::get('/vouchertaxi', [VoucherTaxiController::class, 'index'])
+        ->name('vouchertaxi');
+
+    Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
+
+        Route::get('/json', [VoucherTaxiController::class, 'json'])->name('json');
+
+        Route::get('/create', [VoucherTaxiController::class, 'create'])->name('create');
+        Route::post('/store', [VoucherTaxiController::class, 'store'])->name('store');
+
+        Route::get('/edit/{id}', [VoucherTaxiController::class, 'edit'])->name('edit');
+        Route::post('/update/{id}', [VoucherTaxiController::class, 'update'])->name('update');
+
+        Route::delete('/delete/{id}', [VoucherTaxiController::class, 'destroy'])->name('delete');
+        Route::get('/show/{id}', [VoucherTaxiController::class, 'show'])->name('show');
+
+    });
 
     Route::get('/bookingcar', [BookingCarController::class, 'index'])->name('bookingcar');
     Route::get('/bookingcar/json', [BookingCarController::class, 'json'])->name('bookingcar.json');
@@ -1659,7 +1684,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('report-ga')->group(function () {
-
         Route::get('/', [ReportGeneralGAController::class, 'index'])
             ->name('reportga');
 
@@ -1670,7 +1694,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.ga.export');
 
         Route::get('/view/{type}', function ($type) {
-            return view('pages.report.' . $type);
+            return view('pages.report.'.$type);
         });
     });
 

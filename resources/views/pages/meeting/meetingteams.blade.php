@@ -2,67 +2,87 @@
     <div class="max-w-9xl mx-auto w-full p-4">
 
         {{-- HEADER --}}
-        <div class="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div class="mb-4 rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
 
-            {{-- LEFT --}}
-            <div class="flex items-start gap-3">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-                {{-- ICON --}}
-                <div
-                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10">
-                    <!-- video meeting icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-                    </svg>
+                {{-- LEFT --}}
+                <div class="flex items-center gap-3">
+
+                    {{-- ICON --}}
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl
+                        {{ request()->is('meeting')
+                            ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/10'
+                            : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10' }}">
+
+                        @if(request()->is('meeting'))
+                            <!-- calendar -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        @else
+                            <!-- video -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                            </svg>
+                        @endif
+                    </div>
+
+                    {{-- TITLE --}}
+                    <div>
+                        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            {{ request()->is('meeting') ? 'Meeting Calendar' : 'Booking Teams / Zoom' }}
+                        </h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ request()->is('meeting')
+                                ? 'Manage and schedule meetings efficiently'
+                                : 'Schedule and manage your online meetings' }}
+                        </p>
+                    </div>
+
                 </div>
 
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
-                        Booking Teams / Zoom
-                    </h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Schedule and manage your online meetings
-                    </p>
+                {{-- RIGHT (TABS) --}}
+                <div class="flex items-center gap-1 rounded-xl bg-gray-100/80 p-1 dark:bg-white/5">
+
+                    <a href="{{ url('/meeting') }}"
+                        class="{{ request()->is('meeting')
+                            ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                            : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }}
+                        flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M8 7V3m8 4V3m-9 8h10" />
+                        </svg>
+
+                        Calendar
+                    </a>
+
+                    <a href="{{ url('/meetingteams') }}"
+                        class="{{ request()->is('meetingteams')
+                            ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                            : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }}
+                        flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                        </svg>
+
+                        Teams / Zoom
+                    </a>
+
                 </div>
+
             </div>
 
-            {{-- RIGHT (SEGMENTED NAV) --}}
-            <div class="flex items-center gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
-
-                {{-- Calendar --}}
-                <a href="{{ url('/meeting') }}"
-                    class="{{ request()->is('meeting')
-                        ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                        : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
-
-                    {{-- icon --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M8 7V3m8 4V3m-9 8h10" />
-                    </svg>
-
-                    Calendar
-                </a>
-
-                {{-- Teams / Zoom --}}
-                <a href="{{ url('/meetingteams') }}"
-                    class="{{ request()->is('meetingteams')
-                        ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                        : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
-
-                    {{-- icon --}}
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-                    </svg>
-
-                    Teams / Zoom
-                </a>
-
+            <div class="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700 border border-blue-100">
+                ℹ️ Multiple bookings are allowed — you can proceed even if the slot is already booked.
             </div>
         </div>
 
@@ -104,8 +124,8 @@
 
                             {{-- DATE --}}
                             <div>
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Start - End *
+                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Start - End
                                 </label>
                                 <input type="text" id="datetimes" name="datetimes"
                                     class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -114,8 +134,8 @@
 
                             {{-- ROOM --}}
                             <div>
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Room *
+                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Room
                                 </label>
                                 <select id="room_id_display"
                                     class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -126,8 +146,8 @@
 
                             {{-- TITLE --}}
                             <div class="md:col-span-2">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Title *
+                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Title
                                 </label>
                                 <input type="text" id="title" name="title"
                                     class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -136,8 +156,8 @@
 
                             {{-- DESCRIPTION --}}
                             <div class="md:col-span-2">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Description *
+                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Description
                                 </label>
                                 <textarea name="descr" rows="4"
                                     class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
@@ -146,7 +166,7 @@
 
                             {{-- ACCESSORIES --}}
                             <div class="md:col-span-2">
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
                                     Accessories
                                 </label>
                                 <select id="acc_id" name="acc_id[]"
