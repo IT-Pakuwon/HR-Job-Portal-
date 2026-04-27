@@ -262,16 +262,30 @@ class BastListController extends Controller
 
         // ========= ENRICH / FORMAT =========
         // Map PONBR -> id (TrPo) supaya link PO bisa dipakai
+        // $poIdMap = [];
+        // $ponbrsForMap = $rows->pluck('ponbr')->filter()->unique()->values()->all();
+        // if (!empty($ponbrsForMap)) {
+        //     // $poIdMap = TrPo::whereIn('ponbr', $ponbrsForMap)
+        //     //     ->pluck('id', 'ponbr')
+        //     //     ->toArray();
+        //     $poIdMap = TrPO::whereIn('ponbr', $ponbrsForMap)
+        //         ->when(!empty($cpnyList), fn ($q) => $q->where('cpny_id', $cpnyList))
+        //         ->pluck('id', 'ponbr')
+        //         ->toArray();
+        // }
         $poIdMap = [];
         $ponbrsForMap = $rows->pluck('ponbr')->filter()->unique()->values()->all();
+
         if (!empty($ponbrsForMap)) {
-            // $poIdMap = TrPo::whereIn('ponbr', $ponbrsForMap)
-            //     ->pluck('id', 'ponbr')
-            //     ->toArray();
-            $poIdMap = TrPO::whereIn('ponbr', $ponbrsForMap)
-                ->when(!empty($cpnyList), fn ($q) => $q->where('cpny_id', $cpnyList))
-                ->pluck('id', 'ponbr')
-                ->toArray();
+            $poRows = TrPO::query()
+                ->select('id', 'ponbr', 'cpny_id')
+                ->whereIn('ponbr', $ponbrsForMap)
+                ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
+                ->get();
+
+            foreach ($poRows as $po) {
+                $poIdMap[$po->cpny_id . '||' . $po->ponbr] = $po->id;
+            }
         }
 
         $rows->transform(function ($r) use ($scope, $poIdMap) {
@@ -285,7 +299,10 @@ class BastListController extends Controller
                 $r->term_eid = Hashids::encode((string) $r->id);
 
                 // PO link mapping (tetap)
-                $poId = $poIdMap[$r->ponbr] ?? null;
+                // $poId = $poIdMap[$r->ponbr] ?? null;
+                // $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;
+                $poKey = ($r->cpny_id ?? '') . '||' . ($r->ponbr ?? '');
+                $poId = $poIdMap[$poKey] ?? null;
                 $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;
 
                 // ✅ format tanggal spk
@@ -303,7 +320,10 @@ class BastListController extends Controller
                 $r->bastid_eid = Hashids::encode((string) $r->id);
 
                 // 🔗 PO link via PONBR
-                $poId = $poIdMap[$r->ponbr] ?? null;
+                // $poId = $poIdMap[$r->ponbr] ?? null;
+                // $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;
+                $poKey = ($r->cpny_id ?? '') . '||' . ($r->ponbr ?? '');
+                $poId = $poIdMap[$poKey] ?? null;
                 $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;
 
                 // 🔗 SPPB/J/K/T link (berdasar prefix)

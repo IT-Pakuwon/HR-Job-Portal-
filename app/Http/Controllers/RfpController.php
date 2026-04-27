@@ -565,11 +565,14 @@ class RfpController extends Controller
 
         $rfp = TrRfp::findOrFail($id);
 
-        if (!empty($rfp->user_receive)) {
-            $rfp->user_receive   = '';
+        $updatedBy = $user->username ?? $user->name;
+
+        // Jika sudah receive, maka rollback
+        if (!empty($rfp->user_receive) && !empty($rfp->receive_date)) {
+            $rfp->user_receive   = null;
             $rfp->receive_date   = null;
             $rfp->status_receive = 'P';
-            $rfp->updated_by     = $user->username ?? $user->name;
+            $rfp->updated_by     = $updatedBy;
             $rfp->updated_at     = now();
             $rfp->save();
 
@@ -579,10 +582,11 @@ class RfpController extends Controller
             ]);
         }
 
-        $rfp->user_receive   = $user->username ?? $user->name;
+        // Jika belum receive, maka update receive
+        $rfp->user_receive   = $updatedBy;
         $rfp->receive_date   = now();
         $rfp->status_receive = 'C';
-        $rfp->updated_by     = $user->username ?? $user->name;
+        $rfp->updated_by     = $updatedBy;
         $rfp->updated_at     = now();
         $rfp->save();
 
@@ -592,7 +596,7 @@ class RfpController extends Controller
         ]);
     }
 
-    public function updateTreasury($hash)
+    public function updateTreasury_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -633,6 +637,59 @@ class RfpController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Payment updated successfully.',
+        ]);
+    }
+
+    public function updateTreasury($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+
+        if (!$user->hasRole('APTREACCESS')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to update or rollback payment.'
+            ], 403);
+        }
+
+        $rfp = TrRfp::findOrFail($id);
+
+        if ($rfp->status_receive !== 'C' && empty($rfp->user_payment) && empty($rfp->payment_date)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Finance receive belum completed.'
+            ], 422);
+        }
+
+        $updatedBy = $user->username ?? $user->name;
+
+        if (!empty($rfp->user_payment) && !empty($rfp->payment_date)) {
+            $rfp->user_payment   = null;
+            $rfp->payment_date   = null;
+            $rfp->status_payment = 'P';
+            $rfp->updated_by     = $updatedBy;
+            $rfp->updated_at     = now();
+            $rfp->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Treasury rollback successfully.',
+            ]);
+        }
+
+        $rfp->user_payment   = $updatedBy;
+        $rfp->payment_date   = now();
+        $rfp->status_payment = 'C';
+        $rfp->updated_by     = $updatedBy;
+        $rfp->updated_at     = now();
+        $rfp->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Treasury updated successfully.',
         ]);
     }
     public function approveRfp(Request $request, $docid)

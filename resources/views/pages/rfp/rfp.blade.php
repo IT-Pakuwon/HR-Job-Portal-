@@ -73,26 +73,6 @@
                         <p class="shrink-0 text-base font-extrabold">{{ $rfpAll ?? 0 }}</p>
                     </div>
                 </a>
-{{--
-                <a href="#" class="status-filter group block h-full" data-scope="finance_received">
-                    <div class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md">
-                        <div class="flex h-7 w-7 items-center justify-center">🏦</div>
-                        <div class="flex flex-col leading-tight">
-                            <p class="text-sm font-medium">Finance Received</p>
-                        </div>
-                        <p class="text-base font-extrabold">{{ $financeReceived ?? 0 }}</p>
-                    </div>
-                </a>
-
-                <a href="#" class="status-filter group block h-full" data-scope="treasury_received">
-                    <div class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-700 hover:-translate-y-1 hover:bg-green-100 hover:shadow-md">
-                        <div class="flex h-7 w-7 items-center justify-center">💰</div>
-                        <div class="flex flex-col leading-tight">
-                            <p class="text-sm font-medium">Treasury Received</p>
-                        </div>
-                        <p class="text-base font-extrabold">{{ $treasuryReceived ?? 0 }}</p>
-                    </div>
-                </a> --}}
             @endif
         </div>
 
@@ -274,8 +254,7 @@
                                 maximumFractionDigits: 2
                             });
                         }
-                    },
-
+                    },                
                     {
                         data: null,
                         orderable: false,
@@ -283,54 +262,82 @@
                         render: function(data, type, row) {
 
                             if (scopeFilter !== 'rfp_all') {
-                                return '-';
+                                return '';
                             }
 
-                            // Received stage
-                            if (row.action_state === 'received') {
-                                if (!hasApFinAccess) {
-                                    return `<span class="text-gray-400 italic">No Access</span>`;
-                                }
+                            const statusText = row.finance_flow_status_text || '';
+
+                            const isReceiveCompleted =
+                                row.status_receive === 'C' ||
+                                statusText === 'Finance Received' ||
+                                statusText === 'Treasury Received';
+
+                            const isPaymentCompleted =
+                                row.user_payment && row.payment_date;
+
+                            // =========================
+                            // TREASURY UPDATE / ROLLBACK
+                            // =========================
+                            if (hasApTreAccess && isReceiveCompleted) {
+
+                                const buttonText = isPaymentCompleted
+                                    ? 'Rollback Treasury'
+                                    : 'Update Treasury';
+
+                                const btnClass = isPaymentCompleted
+                                    ? 'bg-red-600 hover:bg-red-700'
+                                    : 'bg-indigo-600 hover:bg-indigo-700';
 
                                 return `
                                     <button type="button"
-                                        class="btn-action-rfp rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700"
-                                        data-mode="received"
-                                        data-hash="${row.eid}"
-                                        data-rfpid="${row.rfp_id}"
-                                        data-keperluan="${escapeHtml(row.keperluan || '-')}"
-                                        data-amount="${row.rfp_amount || 0}"
-                                        data-user="${escapeHtml(row.user_receive || '')}"
-                                        data-date="${escapeHtml(row.receive_date || '')}"
-                                        data-button-text="${escapeHtml(row.receive_button_text || 'Update Received')}">
-                                        ${row.receive_button_text || 'Update Received'}
-                                    </button>
-                                `;
-                            }
-
-                            // Payment stage
-                            if (row.action_state === 'treasury') {
-                                if (!hasApTreAccess) {
-                                    return `<span class="text-gray-400 italic">No Access</span>`;
-                                }
-
-                                return `
-                                    <button type="button"
-                                        class="btn-action-rfp rounded bg-indigo-600 px-3 py-1 text-white hover:bg-indigo-700"
+                                        class="btn-action-rfp rounded ${btnClass} px-3 py-1 text-white"
                                         data-mode="treasury"
+                                        data-action="${isPaymentCompleted ? 'rollback' : 'update'}"
                                         data-hash="${row.eid}"
                                         data-rfpid="${row.rfp_id}"
                                         data-keperluan="${escapeHtml(row.keperluan || '-')}"
                                         data-amount="${row.rfp_amount || 0}"
                                         data-user="${escapeHtml(row.user_payment || '')}"
                                         data-date="${escapeHtml(row.payment_date || '')}"
-                                        data-button-text="${escapeHtml(row.treasury_button_text || 'Update Treasury')}">
-                                        ${row.treasury_button_text || 'Update Treasury'}
+                                        data-button-text="${buttonText}">
+                                        ${buttonText}
                                     </button>
                                 `;
                             }
 
-                            return '-';
+                            // =========================
+                            // FINANCE UPDATE / ROLLBACK
+                            // =========================
+                            if (hasApFinAccess && (statusText === 'Waiting User' || statusText === 'Finance Received')) {
+
+                                const isReceived = row.user_receive && row.receive_date;
+
+                                const buttonText = isReceived
+                                    ? 'Rollback Received'
+                                    : 'Update Received';
+
+                                const btnClass = isReceived
+                                    ? 'bg-red-600 hover:bg-red-700'
+                                    : 'bg-green-600 hover:bg-green-700';
+
+                                return `
+                                    <button type="button"
+                                        class="btn-action-rfp rounded ${btnClass} px-3 py-1 text-white"
+                                        data-mode="received"
+                                        data-action="${isReceived ? 'rollback' : 'update'}"
+                                        data-hash="${row.eid}"
+                                        data-rfpid="${row.rfp_id}"
+                                        data-keperluan="${escapeHtml(row.keperluan || '-')}"
+                                        data-amount="${row.rfp_amount || 0}"
+                                        data-user="${escapeHtml(row.user_receive || '')}"
+                                        data-date="${escapeHtml(row.receive_date || '')}"
+                                        data-button-text="${buttonText}">
+                                        ${buttonText}
+                                    </button>
+                                `;
+                            }
+
+                            return `<span class="text-gray-400 italic">No Access</span>`;
                         }
                     },
 
@@ -392,17 +399,23 @@
                 const status = $(this).data('status');
                 const scope = $(this).data('scope');
 
-                if (scope) {
+                if (scope === 'rfp_all') {
                     scopeFilter = scope;
                     statusFilter = '';
+
+                    // tampilkan kolom Action hanya saat RFP Finance
+                    table.column(11).visible(true);
                 } else {
                     statusFilter = status ?? '';
                     scopeFilter = '';
+
+                    // hide kolom Action untuk All, On Progress, Reject, Draft, Completed
+                    table.column(11).visible(false);
                 }
 
                 table.ajax.reload(null, true);
             });
-
+            
             document.querySelectorAll('.status-filter').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -410,20 +423,22 @@
                     this.classList.add('active');
                 });
             });
-
-            let selectedActionHash = null;
-            let selectedActionMode = null;
-
+     
             function formatRupiah(num) {
                 return parseFloat(num || 0).toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-            }
+            }          
+
+            let selectedActionHash = null;
+            let selectedActionMode = null;
+            let selectedActionType = null;
 
             $(document).on('click', '.btn-action-rfp', function() {
                 selectedActionHash = $(this).data('hash');
                 selectedActionMode = $(this).data('mode');
+                selectedActionType = $(this).data('action');
 
                 if (selectedActionMode === 'received' && !hasApFinAccess) {
                     toastr.error('You are not authorized to update or rollback receive.');
@@ -447,7 +462,11 @@
                 $('#modalAmount').text(formatRupiah(amount));
 
                 if (selectedActionMode === 'received') {
-                    $('#rfpActionTitle').text('Received Finance');
+                    $('#rfpActionTitle').text(
+                        selectedActionType === 'rollback'
+                            ? 'Rollback Received Finance'
+                            : 'Received Finance'
+                    );
                     $('#modalUserLabel').text('User Receive:');
                     $('#modalDateLabel').text('Date Receive:');
                 } else {
@@ -456,18 +475,16 @@
                     $('#modalDateLabel').text('Date Payment:');
                 }
 
-                // $('#modalUserValue').text(currentValueUser || currentUser);
-                // $('#modalDateValue').text(currentValueDate || formatNow());
-                // kalau data masih kosong → tampil kosong
-                if (!currentValueUser && !currentValueDate) {
-                    $('#modalUserValue').text('');
-                    $('#modalDateValue').text('');
-                } else {
-                    $('#modalUserValue').text(currentValueUser || '');
-                    $('#modalDateValue').text(currentValueDate || '');
-                }
+                $('#modalUserValue').text(currentValueUser || '');
+                $('#modalDateValue').text(currentValueDate || '');
 
-                $('#submitRfpActionBtn').text(buttonText);
+                $('#submitRfpActionBtn')
+                    .text(buttonText)
+                    .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700')
+                    .addClass(selectedActionType === 'rollback'
+                        ? 'bg-red-600 hover:bg-red-700'
+                        : 'bg-indigo-600 hover:bg-indigo-700'
+                    );
 
                 $('#rfpActionModal').removeClass('hidden').addClass('flex');
             });
@@ -495,12 +512,13 @@
                 } else {
                     url = `/rfp/${selectedActionHash}/treasury`;
                 }
-
+ 
                 $.ajax({
                     url: url,
                     type: 'POST',
                     data: {
-                        _token: '{{ csrf_token() }}'
+                        _token: '{{ csrf_token() }}',
+                        action_type: selectedActionType
                     },
                     success: function(res) {
                         if (res.success) {

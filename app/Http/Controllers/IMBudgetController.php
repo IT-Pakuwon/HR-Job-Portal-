@@ -989,7 +989,7 @@ class IMBudgetController extends Controller
         $eid_sppbjkt = $srcHeader ? Hashids::encode($srcHeader->id) : null;
 
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload     = $imbudget->created_by === $loginUsername;
+        $canUpload     = $imbudget->user_peminta === $loginUsername;
 
 
         return view('pages.imbudgets.showimbudgets', compact('imbudget','attachments','imbudgetdetail','hash','canUpload','eid_cs','eid_sppbjkt','prefix','docid'));

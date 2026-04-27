@@ -489,8 +489,11 @@ class BastController extends Controller
 
                 // NEXT APPROVER
                 function ($next, Carbon $now) use ($bast, $docUrl, $ratingScores) {
-                    if (isset($next['aprv_leveling']) && $next['aprv_leveling'] === '2.00') {
-                        // efek samping setelah lolos level 1
+                    // if (isset($next['aprv_leveling']) && $next['aprv_leveling'] === '2.00') {
+                    //     // efek samping setelah lolos level 1
+                    //     $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
+                    // }
+                    if ((float) ($next['aprv_leveling'] ?? 0) >= 2) {
                         $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
                     }
 
@@ -1190,98 +1193,6 @@ class BastController extends Controller
         ]);
     }
 
-    private function applyBastApprovalSideEffects_zzz(TrBast $bast, Carbon $approveAt, array $ratingScores = []): TrBast
-    {
-        // === 1) Update skor per-baris TrBASTRating dari payload slider (1-10)
-        //      Terima kunci berupa row->id ATAU row->rating_id.
-        if (!empty($ratingScores)) {
-            $rows = TrBASTRating::where('bast_id', $bast->bastid)->get();
-
-            foreach ($rows as $row) {
-                // cari score by id
-                $score = null;
-
-                if (array_key_exists($row->id, $ratingScores)) {
-                    $score = $ratingScores[$row->id];
-                } elseif (!is_null($row->rating_id) && array_key_exists($row->rating_id, $ratingScores)) {
-                    $score = $ratingScores[$row->rating_id];
-                }
-
-                if (!is_null($score)) {
-                    // clamp 1..10
-                    $clamped = max(1, min(10, (float) $score));
-                    $row->rating_score = $clamped;
-                    $row->updated_by = auth()->user()->username ?? 'system';
-                    $row->updated_at = now('Asia/Jakarta');
-                    $row->save();
-                }
-            }
-        }
-
-        // === 2) Hitung rata-rata terbaru (abaikan null/0)
-        $agg = TrBASTRating::where('bast_id', $bast->bastid)
-            ->whereNotNull('rating_score')
-            ->where('rating_score', '>', 0)
-            ->selectRaw('AVG(rating_score)::numeric as avg_score, COUNT(*) as cnt')
-            ->first();
-
-        $avgScore = $agg && $agg->cnt > 0 ? (float) $agg->avg_score : 0.0;
-
-        // Simpan ke header. (Tetap pakai skala 1-10; kalau mau 1-5 bintang, tinggal dibagi 2.)
-        $bast->rating_vendor = $avgScore > 0 ? round($avgScore, 1) : null;
-
-        // === 3) Handover date = tanggal approve
-        $bast->handoverdate = $approveAt->toDateString();
-
-        // === 4) Days penalty (telat jika approve > enddate)
-        $daysPenalty = 0;
-        if (!empty($bast->enddate)) {
-            $end = Carbon::parse($bast->enddate)->startOfDay();
-            $appr = $approveAt->copy()->startOfDay();
-            $diff = $end->diffInDays($appr, false);
-            $daysPenalty = $diff > 0 ? $diff : 0;
-        }
-        $bast->days_penalty = $daysPenalty;
-
-        // === 5) Total penalty = days * penalty_per_day
-        $perDay = (float) ($bast->penalty ?? 0); // kolom penalty dianggap tarif/hari
-        $bast->total_penalty = $daysPenalty > 0 ? ($daysPenalty * $perDay) : 0.0;
-
-        $bast->save();
-
-        return $bast;
-    }
-
-    private function applyBastApprovalSideEffects_xxx(TrBast $bast, ?int $ratingFromReq, Carbon $approveAt): TrBast
-    {
-        // 1) Rating
-        if (!is_null($ratingFromReq) && $ratingFromReq > 0 && $ratingFromReq <= 5) {
-            $bast->rating_vendor = $ratingFromReq;
-        }
-
-        // 2) Handover date = tanggal approve (YYYY-MM-DD)
-        $bast->handoverdate = $approveAt->toDateString();
-
-        // 3) Days penalty (telat jika approve > enddate)
-        $daysPenalty = 0;
-        if (!empty($bast->enddate)) {
-            $end = Carbon::parse($bast->enddate)->startOfDay();
-            $appr = $approveAt->copy()->startOfDay();
-
-            // Selisih hari (positif jika approve setelah enddate)
-            $diff = $end->diffInDays($appr, false);
-            $daysPenalty = $diff > 0 ? $diff : 0;
-        }
-        $bast->days_penalty = $daysPenalty;
-
-        // 4) Total penalty = days * penalty_per_day
-        $perDay = (float) ($bast->penalty ?? 0); // kolom penalty dianggap tarif/hari
-        $bast->total_penalty = $daysPenalty > 0 ? ($daysPenalty * $perDay) : 0.0;
-
-        $bast->save();
-
-        return $bast;
-    }
 
     public function getBastRatings(string $bastid)
     {
