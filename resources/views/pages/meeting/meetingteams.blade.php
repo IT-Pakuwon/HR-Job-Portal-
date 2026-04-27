@@ -93,119 +93,120 @@
 
         {{-- Modal --}}
         <div id="schedule-show"
-            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
+            <div class="w-full max-w-4xl rounded-2xl bg-white shadow-xl dark:bg-gray-900 max-h-[90vh] flex flex-col">
+                <div class="space-y-6 px-6 py-5 overflow-y-auto">
 
-            <div class="w-full max-w-4xl rounded-2xl border bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
-
-                {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                            Create Meeting
-                        </h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                            Fill the details below to schedule a meeting
-                        </p>
-                    </div>
-
-                    <button type="button" id="closeScheduleModal"
-                        class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800">
-                        ✕
-                    </button>
-                </div>
-
-                {{-- BODY --}}
-                <form id="meetingForm" action="{{ url('/saveteams') }}" method="post">
-                    @csrf
-
-                    <div class="space-y-5 px-6 py-5">
-
-                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-
-                            {{-- DATE --}}
+                        {{-- HEADER --}}
+                        <div class="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
                             <div>
-                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Start - End
-                                </label>
-                                <input type="text" id="datetimes" name="datetimes"
-                                    class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                    readonly required>
+                                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                    Create Meeting
+                                </h2>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                    Fill the details below to schedule a meeting
+                                </p>
                             </div>
 
-                            {{-- ROOM --}}
-                            <div>
-                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Room
-                                </label>
-                                <select id="room_id_display"
-                                    class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                    disabled>
-                                </select>
-                                <input type="hidden" id="room_id" name="room_id">
-                            </div>
-
-                            {{-- TITLE --}}
-                            <div class="md:col-span-2">
-                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Title
-                                </label>
-                                <input type="text" id="title" name="title"
-                                    class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                    placeholder="e.g. Weekly Sync Meeting" required>
-                            </div>
-
-                            {{-- DESCRIPTION --}}
-                            <div class="md:col-span-2">
-                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Description
-                                </label>
-                                <textarea name="descr" rows="4"
-                                    class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                    placeholder="Write meeting details..." required></textarea>
-                            </div>
-
-                            {{-- ACCESSORIES --}}
-                            <div class="md:col-span-2">
-                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Accessories
-                                </label>
-                                <select id="acc_id" name="acc_id[]"
-                                    class="meeting-multi mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                    multiple>
-                                </select>
-                            </div>
-
+                            <button type="button" id="closeScheduleModal"
+                                class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800">
+                                ✕
+                            </button>
                         </div>
 
+                        {{-- BODY --}}
+                        <form id="meetingForm" action="{{ url('/saveteams') }}" method="post">
+                            @csrf
+
+                            <div class="space-y-5 px-6 py-5">
+
+                                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                                    {{-- DATE --}}
+                                    <div>
+                                        <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            Start - End
+                                        </label>
+                                        <input type="text" id="datetimes" name="datetimes"
+                                            class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                            readonly required>
+                                    </div>
+
+                                    {{-- ROOM --}}
+                                    <div>
+                                        <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            Room
+                                        </label>
+                                        <select id="room_id_display"
+                                            class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                            disabled>
+                                        </select>
+                                        <input type="hidden" id="room_id" name="room_id">
+                                    </div>
+
+                                    {{-- TITLE --}}
+                                    <div class="md:col-span-2">
+                                        <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            Title
+                                        </label>
+                                        <input type="text" id="title" name="title"
+                                            class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                            placeholder="e.g. Weekly Sync Meeting" required>
+                                    </div>
+
+                                    {{-- DESCRIPTION --}}
+                                    <div class="md:col-span-2">
+                                        <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            Description
+                                        </label>
+                                        <textarea name="descr" rows="4"
+                                            class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                            placeholder="Write meeting details..." required></textarea>
+                                    </div>
+
+                                    {{-- ACCESSORIES --}}
+                                    <div class="md:col-span-2">
+                                        <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            Accessories
+                                        </label>
+                                        <select id="acc_id" name="acc_id[]"
+                                            class="meeting-multi mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                            multiple>
+                                        </select>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            {{-- FOOTER --}}
+                            <div
+                                class="flex items-center justify-between rounded-b-2xl border-t bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50">
+
+                                <button type="button" id="cancelScheduleModal"
+                                    class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700">
+                                    Cancel
+                                </button>
+
+                                <button type="submit" id="submitBtn"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60">
+
+                                    <svg id="loadingSpinner" class="hidden h-4 w-4 animate-spin"
+                                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                                        </path>
+                                    </svg>
+
+                                    <span id="submitText">Create Meeting</span>
+                                </button>
+
+                            </div>
+
+                        </form>
                     </div>
-
-                    {{-- FOOTER --}}
-                    <div
-                        class="flex items-center justify-between rounded-b-2xl border-t bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800/50">
-
-                        <button type="button" id="cancelScheduleModal"
-                            class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700">
-                            Cancel
-                        </button>
-
-                        <button type="submit" id="submitBtn"
-                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60">
-
-                            <svg id="loadingSpinner" class="hidden h-4 w-4 animate-spin"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-                                </path>
-                            </svg>
-
-                            <span id="submitText">Create Meeting</span>
-                        </button>
-
-                    </div>
-
-                </form>
-            </div>
+                </div>
         </div>
 
         <!-- MODAL -->

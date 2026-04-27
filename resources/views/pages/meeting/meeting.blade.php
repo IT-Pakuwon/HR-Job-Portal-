@@ -89,208 +89,208 @@
 
         <!-- 🔥 CREATE MODAL -->
         <div id="schedule-show"
-            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 p-4 backdrop-blur-sm">
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 p-4">
 
-            <div class="w-full max-w-3xl rounded-2xl bg-white shadow-xl dark:bg-gray-900">
+            <div class="w-full max-w-3xl rounded-2xl bg-white shadow-xl dark:bg-gray-900 max-h-[90vh] flex flex-col">
+                <div class="space-y-6 px-6 py-5 overflow-y-auto">
+                    {{-- HEADER --}}
+                    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                Create Meeting
+                            </h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                Schedule a new meeting session
+                            </p>
+                        </div>
 
-                {{-- HEADER --}}
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                            Create Meeting
-                        </h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                            Schedule a new meeting session
-                        </p>
+                        <button type="button" id="closeScheduleModal"
+                            class="rounded-md p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
+                            ✕
+                        </button>
                     </div>
 
-                    <button type="button" id="closeScheduleModal"
-                        class="rounded-md p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
-                        ✕
-                    </button>
-                </div>
+                    {{-- FORM --}}
+                    <form id="meetingForm" action="{{ url('/savemeeting') }}" method="post">
+                        @csrf
 
-                {{-- FORM --}}
-                <form id="meetingForm" action="{{ url('/savemeeting') }}" method="post">
-                    @csrf
+                        <div class="space-y-6 px-6 py-5">
 
-                    <div class="space-y-6 px-6 py-5">
+                            {{-- SECTION: BASIC --}}
+                            <div class="space-y-4">
 
-                        {{-- SECTION: BASIC --}}
-                        <div class="space-y-4">
+                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="req text-xs text-gray-500">Start</label>
+                                            <input type="text" id="start_datetime" name="start_datetime"
+                                                class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required >
+                                        </div>
 
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="req text-xs text-gray-500">Start</label>
-                                        <input type="text" id="start_datetime" name="start_datetime"
-                                            class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required >
+                                        <div>
+                                            <label class="req text-xs text-gray-500">End</label>
+                                            <input type="text" id="end_datetime" name="end_datetime"
+                                                class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
+                                        </div>
+
                                     </div>
 
+                                    {{-- ROOM --}}
                                     <div>
-                                        <label class="req text-xs text-gray-500">End</label>
-                                        <input type="text" id="end_datetime" name="end_datetime"
+                                        <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                            Room
+                                        </label>
+                                        <select id="room_id" name="room_id"
                                             class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
+
+                                            @foreach ($rooms as $room)
+                                                <option value="{{ $room->room_id }}">
+                                                    {{ $room->room_name }}
+                                                </option>
+                                            @endforeach
+
+                                        </select>
+
                                     </div>
 
                                 </div>
 
-                                {{-- ROOM --}}
+                                {{-- TITLE --}}
                                 <div>
                                     <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                        Room
+                                        Title
                                     </label>
-                                    <select id="room_id" name="room_id"
-                                        class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
+                                    <input type="text" id="title" name="title" required
+                                        placeholder="Meeting title..."
+                                        class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-gray-300 dark:border-gray-700">
+                                </div>
 
-                                        @foreach ($rooms as $room)
-                                            <option value="{{ $room->room_id }}">
-                                                {{ $room->room_name }}
-                                            </option>
-                                        @endforeach
+                                {{-- DESCRIPTION --}}
+                                <div>
+                                    <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                        Description
+                                    </label>
+                                    <textarea  id="descr" name="descr" rows="3" required placeholder="Write a short description..."
+                                        class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-gray-300 dark:border-gray-700"></textarea>
+                                </div>
 
+                            </div>
+
+                            {{-- SECTION: DETAILS --}}
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                                {{-- ACCESSORIES --}}
+                                <div>
+                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                        Accessories
+                                    </label>
+                                    <select id="acc_id" name="acc_id[]" multiple
+                                        class="meeting-multi mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm dark:border-gray-700" >
                                     </select>
-
                                 </div>
 
-                            </div>
-
-                            {{-- TITLE --}}
-                            <div>
-                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Title
-                                </label>
-                                <input type="text" id="title" name="title" required
-                                    placeholder="Meeting title..."
-                                    class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-gray-300 dark:border-gray-700">
-                            </div>
-
-                            {{-- DESCRIPTION --}}
-                            <div>
-                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Description
-                                </label>
-                                <textarea  id="descr" name="descr" rows="3" required placeholder="Write a short description..."
-                                    class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-gray-300 dark:border-gray-700"></textarea>
-                            </div>
-
-                        </div>
-
-                        {{-- SECTION: DETAILS --}}
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-
-                            {{-- ACCESSORIES --}}
-                            <div>
-                                <label class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Accessories
-                                </label>
-                                <select id="acc_id" name="acc_id[]" multiple
-                                    class="meeting-multi mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm dark:border-gray-700" >
-                                </select>
-                            </div>
-
-                            {{-- PARTICIPANT --}}
-                            <div>
-                                <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Participants
-                                </label>
-                                <input type="number" id="participant" name="participant" min="1" required
-                                    placeholder="Number of participants"
-                                    class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm dark:border-gray-700">
-                            </div>
-
-                        </div>
-
-                        {{-- INTERNAL PARTICIPANT --}}
-                        <div id="internalSection">
-                            <div>
-                            </div>
-                            <div class="flex w-full gap-6">
-                                <div class='flex-1'>
-                                    <label class="req text-xs font-medium text-gray-500">
-                                        Internal PIC Name
+                                {{-- PARTICIPANT --}}
+                                <div>
+                                    <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
+                                        Participants
                                     </label>
-                                    <input type="text" id="internal_pic" name="internal_pic"
-                                        value="{{ auth()->user()->name }}" readonly
-                                        class="mt-1 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm" required>
+                                    <input type="number" id="participant" name="participant" min="1" required
+                                        placeholder="Number of participants"
+                                        class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm dark:border-gray-700">
                                 </div>
-                                <div class="flex-1">
-                                    <label class="req mt-3 block text-xs font-medium text-gray-500">
-                                        Email To
-                                    </label>
-                                    <select id="username" name="username[]" multiple>
-                                        @foreach ($users as $u)
-                                            <option value="{{ $u->name }}|{{ $u->meeting_email }}"
-                                                data-email="{{ $u->meeting_email }}" data-name="{{ $u->name }}">
-                                                {{ $u->name }} ({{ $u->meeting_email }})
-                                            </option>
-                                        @endforeach
-                                    </select required>
+
+                            </div>
+
+                            {{-- INTERNAL PARTICIPANT --}}
+                            <div id="internalSection">
+                                <div>
                                 </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class='flex-1'>
+                                        <label class="req text-xs font-medium text-gray-500">
+                                            Internal PIC Name
+                                        </label>
+                                        <input type="text" id="internal_pic" name="internal_pic"
+                                            value="{{ auth()->user()->name }}" readonly
+                                            class="mt-1 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm" required>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="req mt-3 block text-xs font-medium text-gray-500">
+                                            Email To
+                                        </label>
+                                        <select id="username" name="username[]" multiple>
+                                            @foreach ($users as $u)
+                                                <option value="{{ $u->name }}|{{ $u->meeting_email }}"
+                                                    data-email="{{ $u->meeting_email }}" data-name="{{ $u->name }}">
+                                                    {{ $u->name }} ({{ $u->meeting_email }})
+                                                </option>
+                                            @endforeach
+                                        </select required>
+                                    </div>
+                                </div>
+
+                            </div>
+                            {{-- EXTERNAL TOGGLE --}}
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="is_external_participant" name="external_participant"
+                                    value="1" class="h-4 w-4 rounded border-gray-300">
+                                <label class="text-sm text-gray-600 dark:text-gray-300">
+                                    External Participant
+                                </label>
+                            </div>
+
+                            {{-- EXTERNAL SECTION --}}
+                            <div id="externalParticipantSection" class="hidden space-y-4">
+
+                                <table class="w-full overflow-hidden rounded-lg border text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="p-2 text-left">Name</th>
+                                            <th class="p-2 text-left">Email</th>
+                                            <th class="p-2 text-left">Company</th>
+                                            <th class="w-10 p-2"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="externalTableBody"></tbody>
+                                </table>
+
+                                <button type="button" onclick="addExternalRow()"
+                                    class="rounded bg-gray-900 px-3 py-1 text-xs text-white">
+                                    + Add Participant
+                                </button>
+
                             </div>
 
                         </div>
-                        {{-- EXTERNAL TOGGLE --}}
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="is_external_participant" name="external_participant"
-                                value="1" class="h-4 w-4 rounded border-gray-300">
-                            <label class="text-sm text-gray-600 dark:text-gray-300">
-                                External Participant
-                            </label>
-                        </div>
 
-                        {{-- EXTERNAL SECTION --}}
-                        <div id="externalParticipantSection" class="hidden space-y-4">
+                        {{-- FOOTER --}}
+                        <div
+                            class="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
 
-                            <table class="w-full overflow-hidden rounded-lg border text-sm">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2 text-left">Name</th>
-                                        <th class="p-2 text-left">Email</th>
-                                        <th class="p-2 text-left">Company</th>
-                                        <th class="w-10 p-2"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="externalTableBody"></tbody>
-                            </table>
+                            <button type="button" id="cancelScheduleModal"
+                                class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-white">
+                                Cancel
+                            </button>
 
-                            <button type="button" onclick="addExternalRow()"
-                                class="rounded bg-gray-900 px-3 py-1 text-xs text-white">
-                                + Add Participant
+                            <button type="button" id="submitBtn"
+                                class="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-black disabled:opacity-60">
+
+                                <svg id="loadingSpinner" class="hidden h-4 w-4 animate-spin"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                                        class="opacity-25" />
+                                    <path fill="currentColor" class="opacity-75"
+                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                </svg>
+
+                                <span id="submitText">Create Meeting</span>
                             </button>
 
                         </div>
 
-                    </div>
-
-                    {{-- FOOTER --}}
-                    <div
-                        class="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
-
-                        <button type="button" id="cancelScheduleModal"
-                            class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-white">
-                            Cancel
-                        </button>
-
-                        <button type="button" id="submitBtn"
-                            class="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-black disabled:opacity-60">
-
-                            <svg id="loadingSpinner" class="hidden h-4 w-4 animate-spin"
-                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                                    class="opacity-25" />
-                                <path fill="currentColor" class="opacity-75"
-                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                            </svg>
-
-                            <span id="submitText">Create Meeting</span>
-                        </button>
-
-                    </div>
-
-                </form>
-
+                    </form>
+                </div>
             </div>
         </div>
 
