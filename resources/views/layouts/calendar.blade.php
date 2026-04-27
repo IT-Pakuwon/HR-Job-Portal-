@@ -2,6 +2,9 @@
     /* ======================================================
    GLOBAL CALENDAR — NOTION STYLE (CLEAN / AIRY)
    ====================================================== */
+:root {
+    --row-height: 56px;
+}
 
 .fc {
     font-family: ui-sans-serif, system-ui, -apple-system;
@@ -69,34 +72,33 @@
 /* ================= RESOURCE COLUMN (ROOMS) ================= */
 
 .fc-datagrid-cell {
-    padding: 10px 12px !important;
+    height: var(--row-height) !important;
+    padding: 0 12px !important;
 }
 
+/* RIGHT (TIMELINE ROW) */
+.fc-timeline-lane {
+    height: var(--row-height) !important;
+}
 .fc-datagrid-cell-cushion {
     font-size: 12px;
     color: #374151;
 }
 
 /* room column background */
-.fc-datagrid-cell-frame {
-    background: #fafafa;
-}
 
 /* ================= ROW SPACING (IMPORTANT) ================= */
 
 /* tambah tinggi row biar lega */
-.fc-timeline-lane {
-    height: 56px !important;   /* adjust: 52–64 sweet spot */
-}
 
 /* bikin "gap illusion" antar row */
-.fc-timeline-lane-frame {
+/* .fc-timeline-lane-frame {
     padding: 6px 0;
-}
+} */
 
 /* garis jadi lebih soft */
 .fc-timeline-lane {
-    border-bottom: 1px solid #f3f4f6 !important;
+    border-bottom: 2px solid #f3f4f6 !important;
 }
 
 /* ================= EVENTS ================= */
@@ -207,11 +209,6 @@
 /* ================= CENTER EVENT VERTICALLY ================= */
 
 /* bikin lane jadi flex */
-.fc-timeline-lane-frame {
-    display: flex;
-    align-items: center; /* 🔥 ini bikin event ke tengah */
-}
-
 /* pastikan event nggak full height */
 .fc-event {
     margin-top: 0 !important;
