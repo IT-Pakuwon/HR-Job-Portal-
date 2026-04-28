@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class TrRfpNonPurchSettlement extends Model
+class TrCalrNonPurch extends Model
 {
     protected $connection = 'pgsql';
-    protected $table = "tr_rfp_nonpurchase_settlement";
+    protected $table = "tr_calr_nonpurchase";
 
     protected $fillable = [
         'calrnonpurchaseid', 'rfpnonpurchaseid', 'calrnonpurchasedate', 'datebataspenyelesaian', 'cpny_id', 'department_id', 'location_id', 

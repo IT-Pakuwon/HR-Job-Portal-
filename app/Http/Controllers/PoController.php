@@ -1976,32 +1976,7 @@ class PoController extends Controller
         $user     = Auth::user();
         $username = $user->username ?? 'system';
 
-        foreach ($dpTerms as $term) {
-
-            // === Generate nomor RFCA (rfcaid) pakai tabel autonbr, lockForUpdate ===
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = (int) $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
-
-            // $tglbln = substr((string) $year, 2) . $month;      // YYMM
-            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            // $rfcaid = $docid;
+        foreach ($dpTerms as $term) {          
 
             $auto = $this->nextAutonbr(
                 $doctype,

@@ -69,7 +69,7 @@ class CsListController extends Controller
             ->count();
 
         $all = TrCS::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
-            ->whereNotIn('status', ['H', 'D'])
+            // ->whereNotIn('status', ['H', 'D'])
             ->count();
 
         // ✅ Company dropdown list dari ms_company (pgsql2), dibatasi sesuai cpnyList user
@@ -87,6 +87,7 @@ class CsListController extends Controller
     {
         $scope = strtolower((string) $req->query('scope', 'my'));
         $filterCpny = strtoupper(trim((string) $req->query('cpny_id', '')));
+        $filterStatus = strtoupper(trim((string) $req->query('status', '')));
 
         $user = Auth::user();
         $u = $user->username ?? '';
@@ -114,6 +115,10 @@ class CsListController extends Controller
             }
         }
 
+        if ($scope === 'all' && $filterStatus !== '') {
+            $base->where('status', $filterStatus);
+        }
+
         $applyCreatorFilter = function ($q) use ($isFinanceAccess, $u) {
             if (!$isFinanceAccess) {
                 $q->where('created_by', $u);
@@ -122,7 +127,7 @@ class CsListController extends Controller
 
         switch ($scope) {
             case 'all':
-                $base->whereNotIn('status', ['H', 'D']);
+                // $base->whereNotIn('status', ['H', 'D']);
                 break;
             case 'onprogress':
                 $base->where('status', 'P')->where($applyCreatorFilter);
@@ -200,7 +205,7 @@ class CsListController extends Controller
         switch ($scope) {
             case 'all':
                 // only apply company filter, no creator filter
-                $base->whereNotIn('status', ['H', 'D']);
+                // $base->whereNotIn('status', ['H', 'D']);
                 break;
 
             case 'onprogress':
@@ -380,6 +385,7 @@ class CsListController extends Controller
                 case 'D':
                     $statusText = 'Revise';
                     $statusClass = 'bg-amber-200/60 text-amber-800 border border-amber-600/40';
+                    break;
                     // no break
                 case 'X':
                     $statusText = 'Canceled';

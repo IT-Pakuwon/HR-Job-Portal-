@@ -6931,7 +6931,9 @@ class CanvassController extends Controller
     private function generatePOFromCS(TrCS $cs, $user, $potype): void
     {
         // Idempotent: kalau sudah ada PO untuk CS ini, jangan bikin lagi
-        $already = TrPO::where('csid', $cs->csid)->exists();
+        $already = TrPO::where('csid', $cs->csid)
+            ->where('created_by', '<>','IMPORT')    
+            ->exists();
         if ($already) {
             return;
         }

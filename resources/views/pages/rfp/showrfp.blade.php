@@ -92,38 +92,35 @@
                                 ['label' => 'RP Date', 'value' => $rfp->rfp_date ? \Carbon\Carbon::parse($rfp->rfp_date)->format('d M Y') : '-'],
                                 ['label' => 'Created User', 'value' => optional($rfp->creator)->name ?: $rfp->created_by ?: '-'],
                                 ['label' => 'Vendor ID', 'value' => $rfp->vendor_id ?: '-'],
-                                ['label' => 'Vendor Name', 'value' => $rfp->vendor_name ?: '-'],
-                                // ['label' => 'PO No', 'value' => $rfp->ponbr ?: '-'],
+                                ['label' => 'Vendor Name', 'value' => $rfp->vendor_name ?: '-'],                               
                                 ['label' => 'PO No',
                                 'value' => !empty($poUrl)
                                     ? '<a href="' . e($poUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->ponbr) . '</a>'
                                     : e($rfp->ponbr ?: '-')],
-                                ['label' => 'Contract ID', 'value' => $rfp->kontrak_id ?: '-'],
-                                // ['label' => 'CS ID', 'value' => $rfp->cs_id ?: '-'],
+                                ['label' => 'Contract ID', 'value' => $rfp->kontrak_id ?: '-'],                              
                                 ['label' => 'CS ID',
                                 'value' => !empty($csUrl)
                                     ? '<a href="' . e($csUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->cs_id) . '</a>'
-                                    : e($rfp->cs_id ?: '-')],
-                                // ['label' => 'SPPBJKT ID', 'value' => $rfp->sppbjkt_id ?: '-'],
+                                    : e($rfp->cs_id ?: '-')],                                
                                 ['label' => 'SPPBJKT ID',
                                 'value' => !empty($sppbjktUrl)
                                     ? '<a href="' . e($sppbjktUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->sppbjkt_id) . '</a>'
-                                    : e($rfp->sppbjkt_id ?: '-')],
-                                ['label' => 'BAST ID', 'value' => $rfp->bastid ?: '-'],
+                                    : e($rfp->sppbjkt_id ?: '-')],                                                            
+                                ['label' => 'BAST ID',
+                                'value' => !empty($bastUrl)
+                                    ? '<a href="' . e($bastUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->bastid) . '</a>'
+                                    : e($rfp->bastid ?: '-')], 
                                 ['label' => 'IR ID', 'value' => $rfp->ir_id ?: '-'],
                                 ['label' => 'IR Date', 'value' => $rfp->ir_date ? \Carbon\Carbon::parse($rfp->ir_date)->format('d M Y H:i:s') : '-'],
                                 ['label' => 'IR Submit Date', 'value' => $rfp->ir_submit_date ? \Carbon\Carbon::parse($rfp->ir_submit_date)->format('d M Y H:i:s') : '-'],
-                                ['label' => 'Type PO', 'value' => $rfp->type_po ?: '-'],
-                                // ['label' => 'Payment Type', 'value' => $rfp->type_payment_invreg ?: '-'],
+                                ['label' => 'Type PO', 'value' => $rfp->type_po ?: '-'],                               
                                 ['label' => 'Type Payment', 'value' => e($typepayment ?: '-')],
                                 ['label' => 'Payment Period', 'value' => $rfp->period_payment ?: '-'],
                                 ['label' => 'Base Amount', 'value' => $baseAmount],
                                 ['label' => 'Tax Amount', 'value' => $taxAmount],
                                 ['label' => 'Total Amount', 'value' => $totalAmount],
                                 ['label' => 'Payment Type', 'value' => $rfp->payment_type ?: '-'],
-                                ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? 'Rp ' . number_format((float) $rfp->amount_payment, 2, ',', '.') : '-'],
-                                ['label' => 'Status Receive', 'value' => $rfp->status_receive ?: '-'],
-                                ['label' => 'Status Payment', 'value' => $rfp->status_payment ?: '-'],
+                                ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? 'Rp ' . number_format((float) $rfp->amount_payment, 2, ',', '.') : '-'],                       
                                 ['label' => 'Terbilang', 'value' => $rfp->terbilang ?: '-'],
                             ];
                         @endphp
@@ -673,38 +670,7 @@
                 return $('#rfpAttachmentTbody');
             }
 
-            // function renderAttachmentRows(rows) {
-            //     const $tb = $tbody().empty();
-
-            //     if (!rows || !rows.length) {
-            //         $tb.append(`
-            //             <tr>
-            //                 <td colspan="3" class="p-4 text-center italic text-gray-500 dark:text-gray-400">
-            //                     No attachments found.
-            //                 </td>
-            //             </tr>
-            //         `);
-            //         return;
-            //     }
-
-            //     rows.forEach(at => {
-            //         const fileName = at.name || at.display_name || '(no name)';
-            //         const createdBy = at.created_user ?? at.created_by ?? '-';
-            //         const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY HH:mm:ss') : '-';
-            //         const linkHtml = at.url
-            //             ? `<a href="${at.url}" target="_blank" class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">📎 ${fileName}</a>`
-            //             : `<span class="text-gray-700 dark:text-gray-300">📎 ${fileName}</span><span class="ml-2 text-sm text-red-500">(link unavailable)</span>`;
-
-            //         $tb.append(`
-            //             <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
-            //                 <td class="px-3 py-2">${linkHtml}</td>
-            //                 <td class="px-3 py-2">${createdBy}</td>
-            //                 <td class="px-3 py-2">${dateStr}</td>
-            //             </tr>
-            //         `);
-            //     });
-            // }
-
+          
             function renderAttachmentRows(rows) {
                 const $tb = $tbody().empty();
 

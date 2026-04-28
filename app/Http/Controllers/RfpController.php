@@ -5,9 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\MsCompany;
-// use App\Models\MsLocation;
-// use App\Models\MsSubLocation;
-// use App\Models\MsWorktypeDept;
 use App\Models\TrApproval;
 use App\Models\TrAttachment;
 use App\Models\TrRfp;
@@ -22,6 +19,7 @@ use App\Models\TrRfpStagingAttachment;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
+use App\Models\TrBast;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -424,6 +422,30 @@ class RfpController extends Controller
             }
         }
 
+        //link bast        
+        $bastUrl = null;
+
+        $bastQuery = TrBast::query();
+
+        if (!empty($rfp->bastid)) {
+            $bastQuery->whereRaw('TRIM(bastid) = ?', [trim($rfp->bastid)]);
+        } else {
+            $bastQuery->whereRaw('TRIM(ponbr) = ?', [$ponbr]);
+
+            if ($cpnyId !== '') {
+                $bastQuery->whereRaw('TRIM(cpny_id) = ?', [$cpnyId]);
+            }
+        }
+
+        $bastId = $bastQuery
+            ->orderByDesc('id')
+            ->value('id');
+        
+        if ($bastId) {
+            $bastHash = Hashids::encode($bastId);
+            $bastUrl = url("/showbast/{$bastHash}");
+        }       
+
         $rows = TrAttachment::where('refnbr', $rfp->rfp_id)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
@@ -490,8 +512,8 @@ class RfpController extends Controller
 
                 return (object) [
                     'display_name' => $r->document_name ?: $r->filename,
-                    'created_by'   => $r->created_by,
-                    'created_at'   => $r->created_at,
+                    // 'created_by'   => $r->created_by,
+                    // 'created_at'   => $r->created_at,
                     'url'          => $url,
                     'is_staging'   => true,
                 ];
@@ -543,6 +565,7 @@ class RfpController extends Controller
             'poUrl',
             'csUrl',
             'sppbjktUrl',
+            'bastUrl',
             'typepayment',
             'rfpSteps'
         ));
@@ -595,51 +618,7 @@ class RfpController extends Controller
             'message' => 'Receive updated successfully.',
         ]);
     }
-
-    public function updateTreasury_xxx($hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        $user = Auth::user();
-        abort_if(!$user, 401);
-
-        if (!$user->hasRole('APTREACCESS')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You are not authorized to update or rollback payment.'
-            ], 403);
-        }
-
-        $rfp = TrRfp::findOrFail($id);
-
-        if (!empty($rfp->user_payment)) {
-            $rfp->user_payment   = '';
-            $rfp->payment_date   = null;
-            $rfp->status_payment = 'P';
-            $rfp->updated_by     = $user->username ?? $user->name;
-            $rfp->updated_at     = now();
-            $rfp->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment rollback successfully.',
-            ]);
-        }
-
-        $rfp->user_payment   = $user->username ?? $user->name;
-        $rfp->payment_date   = now();
-        $rfp->status_payment = 'C';
-        $rfp->updated_by     = $user->username ?? $user->name;
-        $rfp->updated_at     = now();
-        $rfp->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment updated successfully.',
-        ]);
-    }
-
+    
     public function updateTreasury($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -886,132 +865,7 @@ class RfpController extends Controller
         return response()->json(['success' => true, 'message' => 'RP revised successfully']);
     }
    
-    public function tracking($hash)
-    {
-        $id = \Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
-
-        $wo = \App\Models\TrRfp::findOrFail($id);
-
-        $getName = function (?string $username) {
-            if (!$username) return null;
-            $u = \App\Models\User::where('username', $username)->first();
-            return $u->name ?? $username;
-        };
-
-        $steps = [];
-
-        // ======================
-        // 1. SUBMITTED
-        // ======================
-        $steps[] = [
-            'type' => 'header',
-            'title' => 'WO Submitted',
-            'status' => 'C',
-            'status_label' => 'Submitted',
-            'by' => $getName($wo->created_by),
-            'at' => optional($wo->created_at)->format('Y-m-d H:i'),
-        ];
-
-        // ======================
-        // 2. GET APPROVALS
-        // ======================
-        $all = \App\Models\TrApproval::where('refnbr', $wo->woid)
-            ->where('status', '<>', 'X')
-            ->orderBy('created_at')
-            ->get();
-
-        // ======================
-        // 3. GROUP INTO CYCLES
-        // ======================
-        $groups = $all->groupBy(function ($a) {
-            return \Carbon\Carbon::parse($a->created_at)->format('Y-m-d H:i:s');
-        });
-
-        $hasMultipleCycle = $groups->count() > 1;
-        $cycleIndex = 1;
-
-        foreach ($groups as $group) {
-
-            // ✅ SHOW cycle only if needed
-            if ($hasMultipleCycle) {
-                $steps[] = [
-                    'type' => 'cycle',
-                    'title' => 'Cycle ' . $cycleIndex,
-                ];
-            }
-
-            // sort by level
-            $sorted = $group->sortBy(fn($a) => (float)$a->aprv_leveling);
-
-            foreach ($sorted as $a) {
-
-                $map = match ($a->status) {
-                    'A' => ['label' => 'Approved', 'status' => 'C'],
-                    'P' => ['label' => 'Waiting Approval', 'status' => 'P'],
-                    'R' => ['label' => 'Rejected', 'status' => 'R'],
-                    'D' => ['label' => 'Revised', 'status' => 'D'],
-                    'X' => ['label' => 'Cancelled', 'status' => 'X'],
-                    default => ['label' => 'Pending', 'status' => '_']
-                };
-
-                $steps[] = [
-                    'type' => 'approval',
-                    'title' => 'Approval Lv ' . $a->aprv_leveling,
-                    'status' => $map['status'],          // ✅ clean status
-                    'status_label' => $map['label'],     // ✅ clean label
-                    'by' => $getName($a->aprv_username),
-                    'at' => $a->aprv_dateafter
-                        ? \Carbon\Carbon::parse($a->aprv_dateafter)->format('Y-m-d H:i')
-                        : null,
-                ];
-            }
-
-            $cycleIndex++;
-        }
-
-        // ======================
-        // 4. FINAL STATUS
-        // ======================
-        if ($wo->status === 'C') {
-            $steps[] = [
-                'type' => 'footer',
-                'title' => 'Completed',
-                'status' => 'C',
-                'status_label' => 'Completed',
-                'by' => $getName($wo->completed_by),
-                'at' => optional($wo->completed_at)->format('Y-m-d H:i'),
-            ];
-        }
-
-        if ($wo->status === 'R') {
-            $steps[] = [
-                'type' => 'footer',
-                'title' => 'Rejected',
-                'status' => 'R',
-                'status_label' => 'Rejected',
-                'by' => $getName($wo->completed_by),
-                'at' => optional($wo->completed_at)->format('Y-m-d H:i'),
-            ];
-        }
-
-        if ($wo->status === 'D') {
-            $steps[] = [
-                'type' => 'footer',
-                'title' => 'Revised',
-                'status' => 'D',
-                'status_label' => 'Revised',
-                'by' => $getName($wo->completed_by),
-                'at' => optional($wo->completed_at)->format('Y-m-d H:i'),
-            ];
-        }
-
-        return response()->json([
-            'doc' => $wo->woid,
-            'steps' => array_values($steps),
-        ]);
-    }
-
+   
     public function printPdfRfp($hash)
     {
         $id = \Hashids::decode($hash)[0] ?? null;

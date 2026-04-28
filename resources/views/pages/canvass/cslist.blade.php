@@ -100,6 +100,20 @@
                         @endforeach
                     </select>
                 </div>
+
+                <div id="statusFilterWrapper" class="hidden lg:col-span-3">
+                    <label class="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-300">Status</label>
+                    <select id="filterStatus"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                        <option value="">All Status</option>
+                        <option value="H">Hold</option>
+                        <option value="D">Revise</option>
+                        <option value="P">On Progress</option>
+                        <option value="R">Rejected</option>
+                        <option value="C">Completed</option>
+                        <option value="X">Canceled</option>
+                    </select>
+                </div>
             </div>
 
 
@@ -151,6 +165,7 @@
             // ====== STATE (persist) ======
             let scope = localStorage.getItem('activeCsScope') || 'onprogress';
             let cpnyId = localStorage.getItem('csFilterCpny') || '';
+            let statusFilter = localStorage.getItem('csFilterStatus') || '';
 
             const titleMap = {
                 my: 'Canvass Sheet - My CS',
@@ -171,10 +186,23 @@
                 $(`.scope-filter[data-scope="${sc}"]`).addClass('active');
             }
 
+            function toggleStatusFilter(sc) {
+                if (sc === 'all') {
+                    $('#statusFilterWrapper').removeClass('hidden');
+                } else {
+                    $('#statusFilterWrapper').addClass('hidden');
+                    statusFilter = '';
+                    $('#filterStatus').val('');
+                    localStorage.removeItem('csFilterStatus');
+                }
+            }
+
             // init UI
             updateTitle(scope);
             highlightActive(scope);
             $('#filterCpny').val(cpnyId);
+            $('#filterStatus').val(statusFilter);
+            toggleStatusFilter(scope);
 
             const table = $('#csTable').DataTable({
                 processing: true,
@@ -234,9 +262,14 @@
                 ajax: {
                     url: "{{ route('cslist.json') }}",
                     type: "GET",
+                    // data: function(d) {
+                    //     d.scope = scope;
+                    //     d.cpny_id = cpnyId; // ✅ filter company
+                    // }
                     data: function(d) {
                         d.scope = scope;
-                        d.cpny_id = cpnyId; // ✅ filter company
+                        d.cpny_id = cpnyId;
+                        d.status = scope === 'all' ? statusFilter : '';
                     }
                 },
                 columns: [{
@@ -361,13 +394,20 @@
 
                 updateTitle(scope);
                 highlightActive(scope);
+                toggleStatusFilter(scope);
                 table.ajax.reload(null, true);
             });
 
             // change company
             $('#filterCpny').on('change', function() {
                 cpnyId = $(this).val() || '';
-                localStorage.setItem('csFilterCpny', cpnyId);
+                localStorage.setItem('csFilterCpny', cpnyId);              
+                table.ajax.reload(null, true);
+            });
+
+            $('#filterStatus').on('change', function() {
+                statusFilter = $(this).val() || '';
+                localStorage.setItem('csFilterStatus', statusFilter);
                 table.ajax.reload(null, true);
             });
 

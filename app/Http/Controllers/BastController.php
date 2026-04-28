@@ -86,6 +86,7 @@ class BastController extends Controller
         }
 
         $po = TrPO::where('ponbr', $term->ponbr)
+                ->where('cpny_id', $term->cpny_id)
                 ->first();
 
         $doctype = 'BA'; // kode dokumen BAST (ikuti konvensimu)
@@ -109,30 +110,7 @@ class BastController extends Controller
         DB::beginTransaction();
         try {
             // === autonumber (lock) ===
-            /** @var Autonbr|null $autonbr */
-            // $autonbr = \App\Models\Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = \App\Models\Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = (int) $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
-
-            // $tglbln = substr((string)$year, 2) . $month;           // YYMM
-            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            // $bastid = $docid;
+            /** @var Autonbr|null $autonbr */         
 
             $auto = $this->nextAutonbr(
                 $doctype,
