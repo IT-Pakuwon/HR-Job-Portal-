@@ -506,10 +506,6 @@ class MeetingController extends Controller
                 ->value('room_name');
 
             DB::connection('pgsql5')->commit();
-            $this->sendMeetingEmail($meeting, 'create');
-
-            // kalau acc_id ada -> coba create Teams meeting
-            $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
 
             if (!empty($teamsResult['success'])) {
                 $meeting->msteams_event_id = $teamsResult['msteams_event_id'] ?? null;
@@ -529,6 +525,13 @@ class MeetingController extends Controller
 
                 $meeting->save(); // ✅ THIS saves msteams_owner too
             }
+
+
+            $this->sendMeetingEmail($meeting, 'create');
+
+            // kalau acc_id ada -> coba create Teams meeting
+
+
             // // CC email dari requester
             // $ccEmail = User::query()
             //     ->where('username', $username)
@@ -962,6 +965,9 @@ class MeetingController extends Controller
 
     protected function sendTeamsEmail($meeting, $type = 'create')
     {
+        // ==========================
+        // 🔥 GET PARTICIPANTS
+        // ==========================
         $participants = DB::connection('pgsql5')
             ->table('tr_meeting_participant')
             ->where('docid', $meeting->docid)
@@ -969,17 +975,67 @@ class MeetingController extends Controller
             ->get();
 
         $toEmails = $participants->pluck('email_participant')->filter()->unique();
-        if ($toEmails->isEmpty()) return;
 
+        // ==========================
+        // 🔥 ADD CREATOR (IMPORTANT)
+        // ==========================
+        $creator = User::where('username', $meeting->user_peminta)->first();
+
+        if ($creator && !empty($creator->email)) {
+            $toEmails->push(strtolower($creator->email));
+        }
+
+        // ==========================
+        // 🔥 OPTIONAL: ADD ADMIN
+        // ==========================
+        $adminEmails = User::whereHas('roles', function ($q) {
+                $q->where('role_id', 'ADMIN'); // adjust if needed
+            })
+            ->pluck('email')
+            ->filter()
+            ->map(fn($e) => strtolower($e));
+
+        $toEmails = $toEmails
+            ->merge($adminEmails)
+            ->filter()
+            ->unique()
+            ->values();
+
+        // ==========================
+        // ❌ FINAL SAFETY CHECK
+        // ==========================
+        if ($toEmails->isEmpty()) {
+            \Log::warning('Teams email skipped: no recipients', [
+                'docid' => $meeting->docid
+            ]);
+            return;
+        }
+
+        // ==========================
+        // 🔥 DATE FORMAT
+        // ==========================
         $start = Carbon::parse($meeting->start_meeting_time);
         $end = Carbon::parse($meeting->end_meeting_time);
 
+        // ==========================
+        // 🔥 SUBJECT PREFIX
+        // ==========================
         $subjectPrefix = match ($type) {
             'update' => '[TEAMS UPDATED]',
             'cancel' => '[TEAMS CANCELLED]',
             default  => '[TEAMS INVITATION]',
         };
 
+        // ==========================
+        // 🔥 FALLBACK LINK
+        // ==========================
+        $teamsLink = !empty($meeting->msteams_join_url)
+            ? $meeting->msteams_join_url
+            : '#';
+
+        // ==========================
+        // 🔥 EMAIL BODY
+        // ==========================
         $htmlBody = "
         <div style='font-family:Arial,sans-serif;font-size:14px;color:#333;'>
 
@@ -1000,7 +1056,7 @@ class MeetingController extends Controller
 
             <div style='padding:12px;background:#f3f4f6;border-radius:8px;'>
                 <p><strong>Join Microsoft Teams Meeting</strong></p>
-                <a href='{$meeting->msteams_join_url}' target='_blank'
+                <a href='{$teamsLink}' target='_blank'
                     style='display:inline-block;padding:10px 16px;
                     background:#2563eb;color:#fff;border-radius:6px;
                     text-decoration:none;font-weight:600;'>
@@ -1010,16 +1066,37 @@ class MeetingController extends Controller
 
             <br>
 
-            <p>Thank you.</p>
+            <p>
+                Please make sure to join on time.<br>
+                If you have any questions, contact the meeting organizer.
+            </p>
+
+            <br>
+
+            <p>
+                Best regards,<br>
+                <strong>Pakuwon APP System</strong>
+            </p>
 
         </div>
         ";
 
-        \Mail::send([], [], function ($message) use ($toEmails, $htmlBody, $subjectPrefix, $meeting) {
-            $message->to($toEmails->all())
-                ->subject("{$subjectPrefix} {$meeting->meeting_title}")
-                ->html($htmlBody);
-        });
+        // ==========================
+        // 🔥 SEND EMAIL
+        // ==========================
+        try {
+            \Mail::send([], [], function ($message) use ($toEmails, $htmlBody, $subjectPrefix, $meeting) {
+                $message->to($toEmails->all())
+                    ->subject("{$subjectPrefix} {$meeting->meeting_title}")
+                    ->html($htmlBody);
+            });
+
+        } catch (\Throwable $e) {
+            \Log::error('Teams email failed', [
+                'docid' => $meeting->docid,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     protected function generateICS($meeting, $type = 'create')
