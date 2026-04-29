@@ -431,7 +431,7 @@ class VoucherTaxiController extends Controller
                 $doctype,
                 $voucher->status,
                 'Voucher Taxi',
-                url('/vouchertaxi#' . $eid),
+              url('/showvouchertaxi/' . $eid),
                 [
                     'info'      => $voucher->purpose,
                     'createdby' => $voucher->created_by,
@@ -646,7 +646,7 @@ class VoucherTaxiController extends Controller
                 $doctype,
                 $voucher->status,
                 'Voucher Taxi',
-                url('/vouchertaxi#' . $eid),
+              url('/showvouchertaxi/' . $eid),
                 [
                     'info'      => $voucher->purpose,
                     'createdby' => $voucher->created_by,
@@ -976,7 +976,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl   = url('/vouchertaxi#' . $eid);
+        $docUrl = url('/showvouchertaxi/' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
@@ -1071,7 +1071,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl   = url('/vouchertaxi#' . $eid);
+        $docUrl = url('/showvouchertaxi/' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
@@ -1152,7 +1152,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl   = url('/vouchertaxi#' . $eid);
+       $docUrl = url('/showvouchertaxi/' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(

@@ -1,63 +1,64 @@
 <x-app-layout>
-<div class="mb-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+    <div class="mb-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
 
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-        <!-- LEFT -->
-        <div class="flex items-center gap-3">
+            <!-- LEFT -->
+            <div class="flex items-center gap-3">
 
-            <!-- ICON -->
-            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
-                🚕
+                <!-- ICON -->
+                <div
+                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
+                    🚕
+                </div>
+
+                <!-- TITLE -->
+                <div>
+
+                    <h1 class="text-lg font-semibold tracking-tight text-gray-900">
+                        Taxi Booking
+                    </h1>
+
+                    <p class="mt-0.5 text-sm text-gray-500">
+                        Manage booking requests and taxi vouchers
+                    </p>
+
+                </div>
+
             </div>
 
-            <!-- TITLE -->
-            <div>
+            <!-- RIGHT -->
+            <div class="flex items-center gap-2">
 
-                <h1 class="text-lg font-semibold tracking-tight text-gray-900">
-                    Taxi Booking
-                </h1>
+                <!-- LIST -->
+                <button id="toggleList"
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
-                <p class="mt-0.5 text-sm text-gray-500">
-                    Manage booking requests and taxi vouchers
-                </p>
+                    <span>📋</span>
+
+                    <span>
+                        Listing
+                    </span>
+
+                </button>
+
+                <!-- CREATE -->
+                <button id="openCreateVoucherModal"
+                    class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-black">
+
+                    <span>➕</span>
+
+                    <span>
+                        New Booking
+                    </span>
+
+                </button>
 
             </div>
-
-        </div>
-
-        <!-- RIGHT -->
-        <div class="flex items-center gap-2">
-
-            <!-- LIST -->
-            <button id="toggleList"
-                class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
-
-                <span>📋</span>
-
-                <span>
-                    Listing
-                </span>
-
-            </button>
-
-            <!-- CREATE -->
-            <button id="openCreateVoucherModal"
-                class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-black">
-
-                <span>➕</span>
-
-                <span>
-                    New Booking
-                </span>
-
-            </button>
 
         </div>
 
     </div>
-
-</div>
     {{-- <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <div id="calendar"></div>
     </div> --}}
@@ -65,10 +66,9 @@
     <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
         <!-- 📅 CALENDAR -->
-        <div id="calendarWrapper"
-            class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm lg:col-span-2">
+        <div id="calendarWrapper" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm lg:col-span-2">
 
-            <div class="mb-3 text-xs text-gray-400 uppercase tracking-wide">
+            <div class="mb-3 text-xs uppercase tracking-wide text-gray-400">
                 Calendar View
             </div>
 
@@ -76,121 +76,105 @@
         </div>
 
         <!-- 📋 LIST PANEL -->
-    <div id="voucherListPanel"
-        class="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm
-            dark:border-white/10 dark:bg-[#0f172a]">
+        <div id="voucherListPanel"
+            class="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-        <!-- HEADER -->
-        <div class="border-b border-gray-100 p-4 dark:border-white/10">
+            <!-- HEADER -->
+            <div class="border-b border-gray-100 p-4 dark:border-white/10">
 
-            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start justify-between gap-3">
 
-                <div>
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
-                        Voucher List
-                    </h3>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                            Voucher List
+                        </h3>
 
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Latest requests
-                    </p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Latest requests
+                        </p>
+                    </div>
+
+                    <span id="voucherCount"
+                        class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-200">
+                        0
+                    </span>
+
                 </div>
 
-                <span id="voucherCount"
-                    class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600
-                        dark:bg-white/10 dark:text-gray-200">
-                    0
-                </span>
+                <!-- FILTER -->
+                <div class="mt-4 flex w-full flex-wrap justify-between gap-2">
+
+                    <button class="voucher-filter active-filter" data-filter="ALL">
+                        All
+                    </button>
+
+                    <button class="voucher-filter" data-filter="P">
+                        Pending
+                    </button>
+
+                    <button class="voucher-filter" data-filter="C">
+                        Completed
+                    </button>
+
+                    @if (auth()->user()->hasRole('GAACCESS'))
+                        <button class="voucher-filter" data-filter="WAITING_PROCESS">
+                            Waiting Process
+                        </button>
+                    @endif
+
+                    <button class="voucher-filter" data-filter="D">
+                        Revise
+                    </button>
+
+                    <button class="voucher-filter" data-filter="R">
+                        Rejected
+                    </button>
+
+                    <button class="voucher-filter" data-filter="X">
+                        Cancelled
+                    </button>
+
+                </div>
 
             </div>
 
-            <!-- FILTER -->
-            <div class="mt-4 flex flex-wrap gap-2 w-full justify-between">
+            <!-- BODY -->
+            <div class="flex-1 overflow-y-auto p-2">
 
-                <button class="voucher-filter active-filter"
-                    data-filter="ALL">
-                    All
-                </button>
-
-                <button class="voucher-filter"
-                    data-filter="P">
-                    Pending
-                </button>
-
-                <button class="voucher-filter"
-                    data-filter="C">
-                    Completed
-                </button>
-
-                @if(auth()->user()->hasRole('GAACCESS'))
-                <button class="voucher-filter"
-                    data-filter="WAITING_PROCESS">
-                    Waiting Process
-                </button>
-                @endif
-
-                <button class="voucher-filter"
-                    data-filter="D">
-                    Revise
-                </button>
-
-                <button class="voucher-filter"
-                    data-filter="R">
-                    Rejected
-                </button>
-
-                <button class="voucher-filter"
-                    data-filter="X">
-                    Cancelled
-                </button>
+                <div id="voucherListBody" class="space-y-2">
+                </div>
 
             </div>
 
-        </div>
+            <!-- PAGINATION -->
+            <div class="flex items-center justify-between border-t border-gray-100 px-4 py-3 dark:border-white/10">
 
-        <!-- BODY -->
-        <div class="flex-1 overflow-y-auto p-2">
+                <div id="voucherPageInfo" class="text-xs text-gray-500 dark:text-gray-400">
+                    Showing 1–5
+                </div>
 
-            <div id="voucherListBody"
-                class="space-y-2">
-            </div>
+                <div class="flex items-center gap-2">
 
-        </div>
+                    <button id="prevVoucherPage"
+                        class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5">
+                        Prev
+                    </button>
 
-        <!-- PAGINATION -->
-        <div class="flex items-center justify-between border-t border-gray-100 px-4 py-3
-                    dark:border-white/10">
+                    <button id="nextVoucherPage"
+                        class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5">
+                        Next
+                    </button>
 
-            <div id="voucherPageInfo"
-                class="text-xs text-gray-500 dark:text-gray-400">
-                Showing 1–5
-            </div>
-
-            <div class="flex items-center gap-2">
-
-                <button id="prevVoucherPage"
-                    class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs
-                        hover:bg-gray-50
-                        dark:border-white/10 dark:hover:bg-white/5">
-                    Prev
-                </button>
-
-                <button id="nextVoucherPage"
-                    class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs
-                        hover:bg-gray-50
-                        dark:border-white/10 dark:hover:bg-white/5">
-                    Next
-                </button>
+                </div>
 
             </div>
 
         </div>
-
-    </div>
 
     </div>
 
     <div id="createVoucherModal"
-        class="fixed inset-0 z-50 flex hidden items-center justify-center overflow-y-auto bg-black/40 ">
+        class="fixed inset-0 z-50 flex hidden items-center justify-center overflow-y-auto bg-black/40">
 
         <div class="mb-10 mt-16 w-full max-w-4xl overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-gray-900">
 
@@ -366,7 +350,7 @@
                         Cancel
                     </button>
 
-                    <button type="submit"  class="rounded-lg bg-black px-5 py-2 text-sm text-white hover:opacity-90">
+                    <button type="submit" class="rounded-lg bg-black px-5 py-2 text-sm text-white hover:opacity-90">
                         Submit
                     </button>
                 </div>
@@ -375,8 +359,7 @@
         </div>
     </div>
 
-    <div id="editVoucherTaxiModal"
-        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/40 p-4 ">
+    <div id="editVoucherTaxiModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/40 p-4">
 
         <div class="w-full max-w-4xl overflow-hidden rounded-lg bg-white shadow-2xl">
 
@@ -448,11 +431,8 @@
 
                             <div>
                                 <label class="text-xs text-gray-500">Requester</label>
-                               <input type="text"
-                                    id="edit_user_peminta"
-                                    name="user_peminta"
-                                    class="mt-1 w-full rounded-lg border bg-gray-100 px-3 py-2 text-sm"
-                                    readonly>
+                                <input type="text" id="edit_user_peminta" name="user_peminta"
+                                    class="mt-1 w-full rounded-lg border bg-gray-100 px-3 py-2 text-sm" readonly>
                             </div>
 
                             <div>
@@ -516,19 +496,18 @@
                                     class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
                             </div>
                         </div>
-                                                    <!-- REVISE NOTE -->
-                            <div id="editReviseReasonWrapper"
-                                class="hidden mx-8 mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-5 py-4">
+                        <!-- REVISE NOTE -->
+                        <div id="editReviseReasonWrapper"
+                            class="mx-8 mb-6 hidden rounded-lg border border-yellow-200 bg-yellow-50 px-5 py-4">
 
-                                <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
-                                    Revision Reason
-                                </div>
-
-                                <div id="edit_revise_reason"
-                                    class="text-sm font-medium text-yellow-900">
-                                </div>
-
+                            <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
+                                Revision Reason
                             </div>
+
+                            <div id="edit_revise_reason" class="text-sm font-medium text-yellow-900">
+                            </div>
+
+                        </div>
 
                     </div>
 
@@ -589,15 +568,13 @@
         </div>
     </div>
 
-    <div id="viewVoucherModal"
-        class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50">
+    <div id="viewVoucherModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50">
 
         <!-- CENTER -->
         <div class="flex min-h-screen items-center justify-center p-4">
 
             <!-- MODAL -->
-            <div
-                class="w-full max-w-6xl overflow-hidden rounded-lg border border-gray-200 bg-[#fcfcfd] shadow-2xl">
+            <div class="w-full max-w-6xl overflow-hidden rounded-lg border border-gray-200 bg-[#fcfcfd] shadow-2xl">
 
                 <!-- HEADER -->
                 <div class="flex items-start justify-between border-b border-gray-200 px-8 py-6">
@@ -615,20 +592,14 @@
                     <div class="flex items-center gap-2">
 
                         {{-- PRINT --}}
-                        <a
-                            id="printVoucherBtn"
-                            href="#"
-                            target="_blank"
-                            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
-                        >
+                        <a id="printVoucherBtn" href="#" target="_blank"
+                            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
                             🖨 Print PDF
                         </a>
 
                         {{-- CLOSE --}}
-                        <button
-                            onclick="closeViewModal()"
-                            class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black"
-                        >
+                        <button onclick="closeViewModal()"
+                            class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black">
                             ✕
                         </button>
 
@@ -643,20 +614,17 @@
                     <div class="space-y-2">
 
                         <!-- MAIN INFO -->
-                        <div
-                            class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
 
                             <!-- TOP -->
                             <div class="flex items-start justify-between border-b border-gray-100 pb-5">
 
                                 <div>
-                                    <div
-                                        class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
+                                    <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
                                         Requester
                                     </div>
 
-                                    <div id="view_user"
-                                        class="mt-2 text-base font-medium text-gray-900">
+                                    <div id="view_user" class="mt-2 text-base font-medium text-gray-900">
                                     </div>
                                 </div>
 
@@ -675,8 +643,7 @@
                                         Date
                                     </div>
 
-                                    <div id="view_date"
-                                        class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_date" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
                                 </div>
 
@@ -685,8 +652,7 @@
                                         Trip Type
                                     </div>
 
-                                    <div id="view_type_trip"
-                                        class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_type_trip" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
                                 </div>
 
@@ -695,8 +661,7 @@
                                         Origin
                                     </div>
 
-                                    <div id="view_origin"
-                                        class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_origin" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
                                 </div>
 
@@ -705,8 +670,7 @@
                                         Destination
                                     </div>
 
-                                    <div id="view_destination"
-                                        class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_destination" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
                                 </div>
 
@@ -715,13 +679,11 @@
 
                                     <div class="rounded-lg bg-indigo-50 px-5 py-4">
 
-                                        <div
-                                            class="text-[11px] uppercase tracking-[0.15em] text-indigo-500">
+                                        <div class="text-[11px] uppercase tracking-[0.15em] text-indigo-500">
                                             Route
                                         </div>
 
-                                        <div id="view_route"
-                                            class="mt-2 text-sm font-medium text-indigo-900">
+                                        <div id="view_route" class="mt-2 text-sm font-medium text-indigo-900">
                                         </div>
 
                                     </div>
@@ -733,8 +695,7 @@
                                         Company
                                     </div>
 
-                                    <div id="view_cpny"
-                                        class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_cpny" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
                                 </div>
 
@@ -743,8 +704,7 @@
                                         Department
                                     </div>
 
-                                    <div id="view_dept"
-                                        class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_dept" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
                                 </div>
 
@@ -753,16 +713,13 @@
                         </div>
 
                         <!-- PURPOSE -->
-                        <div
-                            class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
 
-                            <div
-                                class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
+                            <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
                                 Purpose
                             </div>
 
-                            <div id="view_purpose"
-                                class="mt-3 text-sm font-medium leading-relaxed text-gray-900">
+                            <div id="view_purpose" class="mt-3 text-sm font-medium leading-relaxed text-gray-900">
                             </div>
 
                         </div>
@@ -775,13 +732,11 @@
 
                                 <div>
 
-                                    <div
-                                        class="text-[11px] uppercase tracking-[0.18em] text-emerald-600">
+                                    <div class="text-[11px] uppercase tracking-[0.18em] text-emerald-600">
                                         Actual Expense
                                     </div>
 
-                                    <div
-                                        class="mt-3 text-[11px] font-medium tracking-tight text-emerald-900">
+                                    <div class="mt-3 text-[11px] font-medium tracking-tight text-emerald-900">
 
                                         <span id="view_actual_budget">
                                             Rp 0
@@ -804,13 +759,11 @@
                         <div id="reviseReasonWrapper"
                             class="hidden rounded-lg border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
 
-                            <div
-                                class="text-[11px] uppercase tracking-[0.18em] text-yellow-700">
+                            <div class="text-[11px] uppercase tracking-[0.18em] text-yellow-700">
                                 Revision Reason
                             </div>
 
-                            <div id="view_revise_reason"
-                                class="mt-3 text-sm leading-relaxed text-yellow-900">
+                            <div id="view_revise_reason" class="mt-3 text-sm leading-relaxed text-yellow-900">
                             </div>
 
                         </div>
@@ -824,8 +777,7 @@
                         <div class="flex items-center justify-between">
 
                             <div>
-                                <h3
-                                    class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+                                <h3 class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
                                     Approval Workflow
                                 </h3>
                             </div>
@@ -833,8 +785,7 @@
                             <!-- ACTIONS -->
                             <div class="flex items-center gap-2">
 
-                                <div id="approvalActions"
-                                    class="hidden flex items-center gap-2">
+                                <div id="approvalActions" class="flex hidden items-center gap-2">
 
                                     <button id="approveBtn"
                                         class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-400">
@@ -853,8 +804,7 @@
 
                                 </div>
 
-                                <div id="viewActions"
-                                    class="flex items-center gap-2">
+                                <div id="viewActions" class="flex items-center gap-2">
                                 </div>
 
                             </div>
@@ -862,12 +812,10 @@
                         </div>
 
                         <!-- APPROVAL CARD -->
-                        <div
-                            class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm min-h-auto">
+                        <div class="min-h-auto rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
 
                             <!-- TIMELINE -->
-                            <div id="approvalFlow"
-                                class="relative space-y-6">
+                            <div id="approvalFlow" class="relative space-y-6">
                             </div>
 
                         </div>
@@ -877,11 +825,9 @@
                 </div>
 
                 <!-- FOOTER -->
-                <div
-                    class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
+                <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
 
-                    <button onclick="closeViewModal()"
-                        class="text-sm text-gray-500 transition hover:text-black">
+                    <button onclick="closeViewModal()" class="text-sm text-gray-500 transition hover:text-black">
                         Close
                     </button>
 
@@ -907,15 +853,13 @@
 
     </div>
 
-    <div id="reasonModal"
-    class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50">
+    <div id="reasonModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50">
 
         <div class="w-full max-w-md rounded-lg bg-white shadow-2xl">
 
             <!-- HEADER -->
             <div class="border-b px-6 py-4">
-                <h2 id="reasonModalTitle"
-                    class="text-lg font-semibold text-gray-900">
+                <h2 id="reasonModalTitle" class="text-lg font-semibold text-gray-900">
                     Revision Reason
                 </h2>
 
@@ -927,9 +871,7 @@
             <!-- BODY -->
             <div class="p-4">
 
-                <textarea id="reasonInput"
-                    rows="5"
-                    placeholder="Type your reason here..."
+                <textarea id="reasonInput" rows="5" placeholder="Type your reason here..."
                     class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:border-black focus:outline-none"></textarea>
 
             </div>
@@ -953,8 +895,7 @@
     </div>
 
     <!-- PROCESS MODAL -->
-    <div id="processVoucherModal"
-        class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 p-4">
+    <div id="processVoucherModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 p-4">
 
         <div class="w-full max-w-2xl overflow-hidden rounded-lg bg-white shadow-2xl">
 
@@ -963,7 +904,8 @@
 
                 <div class="flex items-start gap-4">
 
-                    <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 shadow-sm">
+                    <div
+                        class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 shadow-sm">
                         💰
                     </div>
 
@@ -991,8 +933,7 @@
                     <input type="hidden" id="process_docid">
 
                     <!-- INFORMATION -->
-                    <div
-                        class="rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm">
 
                         <div class="mb-5 flex items-center justify-between">
 
@@ -1021,8 +962,7 @@
                                     Requester
                                 </div>
 
-                                <div id="process_requester"
-                                    class="mt-1 text-sm font-medium text-gray-900">
+                                <div id="process_requester" class="mt-1 text-sm font-medium text-gray-900">
                                     -
                                 </div>
                             </div>
@@ -1032,8 +972,7 @@
                                     Date Used
                                 </div>
 
-                                <div id="process_date"
-                                    class="mt-1 text-sm font-medium text-gray-900">
+                                <div id="process_date" class="mt-1 text-sm font-medium text-gray-900">
                                     -
                                 </div>
                             </div>
@@ -1043,8 +982,7 @@
                                     Company
                                 </div>
 
-                                <div id="process_company"
-                                    class="mt-1 text-sm font-medium text-gray-900">
+                                <div id="process_company" class="mt-1 text-sm font-medium text-gray-900">
                                     -
                                 </div>
                             </div>
@@ -1054,8 +992,7 @@
                                     Department
                                 </div>
 
-                                <div id="process_department"
-                                    class="mt-1 text-sm font-medium text-gray-900">
+                                <div id="process_department" class="mt-1 text-sm font-medium text-gray-900">
                                     -
                                 </div>
                             </div>
@@ -1065,8 +1002,7 @@
                                     Trip Type
                                 </div>
 
-                                <div id="process_trip"
-                                    class="mt-1 text-sm font-medium text-gray-900">
+                                <div id="process_trip" class="mt-1 text-sm font-medium text-gray-900">
                                     -
                                 </div>
                             </div>
@@ -1076,23 +1012,20 @@
                                     Current Budget
                                 </div>
 
-                                <div id="process_budget"
-                                    class="mt-1 text-sm font-semibold text-emerald-600">
+                                <div id="process_budget" class="mt-1 text-sm font-semibold text-emerald-600">
                                     -
                                 </div>
                             </div>
 
                             <div class="md:col-span-2">
 
-                                <div
-                                    class="rounded-lg border border-indigo-100 bg-indigo-50 px-5 py-4">
+                                <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-5 py-4">
 
                                     <div class="text-[11px] font-semibold uppercase tracking-wide text-indigo-500">
                                         Route
                                     </div>
 
-                                    <div id="process_route"
-                                        class="mt-2 text-sm font-semibold text-indigo-700">
+                                    <div id="process_route" class="mt-2 text-sm font-semibold text-indigo-700">
                                         -
                                     </div>
 
@@ -1102,15 +1035,13 @@
 
                             <div class="md:col-span-2">
 
-                                <div
-                                    class="rounded-lg border border-gray-200 bg-white px-5 py-4">
+                                <div class="rounded-lg border border-gray-200 bg-white px-5 py-4">
 
                                     <div class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                                         Purpose
                                     </div>
 
-                                    <div id="process_purpose"
-                                        class="mt-2 text-sm font-medium text-gray-800">
+                                    <div id="process_purpose" class="mt-2 text-sm font-medium text-gray-800">
                                         -
                                     </div>
 
@@ -1150,14 +1081,10 @@
                                     Rp
                                 </div>
 
-                                <input type="text"
-                                    id="actual_budget_display"
-                                    placeholder="0"
+                                <input type="text" id="actual_budget_display" placeholder="0"
                                     class="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-sm font-semibold text-gray-900 shadow-sm transition focus:border-black focus:outline-none focus:ring-4 focus:ring-black/5">
 
-                                <input type="hidden"
-                                    name="actual_budget"
-                                    id="actual_budget">
+                                <input type="hidden" name="actual_budget" id="actual_budget">
 
                             </div>
 
@@ -1168,17 +1095,14 @@
                 </div>
 
                 <!-- FOOTER -->
-                <div
-                    class="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-7 py-5">
+                <div class="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-7 py-5">
 
-                    <button type="button"
-                        id="closeProcessVoucherModal"
+                    <button type="button" id="closeProcessVoucherModal"
                         class="text-sm font-medium text-gray-500 transition hover:text-black">
                         Cancel
                     </button>
 
-                    <button type="submit"
-                        id="submitProcessVoucherBtn"
+                    <button type="submit" id="submitProcessVoucherBtn"
                         class="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
                         Save Process
                     </button>
@@ -1285,88 +1209,88 @@
                 events: function(fetchInfo, successCallback, failureCallback) {
 
                     fetch('/vouchertaxi/json', {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    })
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        })
 
-                    .then(async (res) => {
+                        .then(async (res) => {
 
-                        const text = await res.text();
+                            const text = await res.text();
 
-                        // console.log('RAW RESPONSE:', text);
+                            // console.log('RAW RESPONSE:', text);
 
-                        try {
-                            return JSON.parse(text);
+                            try {
+                                return JSON.parse(text);
 
-                        } catch (e) {
+                            } catch (e) {
 
-                            console.error('❌ Invalid JSON response');
-                            console.error(text);
+                                console.error('❌ Invalid JSON response');
+                                console.error(text);
 
-                            throw new Error('Server did not return valid JSON');
-                        }
-                    })
+                                throw new Error('Server did not return valid JSON');
+                            }
+                        })
 
-                    .then((res) => {
+                        .then((res) => {
 
-                        // 🔥 SAFE GUARD
-                        if (!res.data || !Array.isArray(res.data)) {
+                            // 🔥 SAFE GUARD
+                            if (!res.data || !Array.isArray(res.data)) {
 
-                            console.error('Invalid response structure:', res);
+                                console.error('Invalid response structure:', res);
 
-                            failureCallback(res);
+                                failureCallback(res);
 
-                            return;
-                        }
-
-                        const allowedstatuses = ['p', 'c', 'd', 'r'];
-
-                        const events = res.data
-                             .filter(item =>
-                                allowedstatuses.includes(String(item.status).toLowerCase()))
-                            .map(item => {
-
-                            if (!item.eid) {
-                                console.warn('⚠️ Missing EID from backend:', item);
+                                return;
                             }
 
-                            return {
-                                id: item.docid,
-                                title: item.purpose || 'Taxi',
-                                start: item.date_used,
-                                allDay: true,
+                            const allowedstatuses = ['p', 'c', 'd', 'r'];
 
-                                extendedProps: {
-                                    eid: item.eid || null,
-                                    status: item.status,
-                                    requester: item.user_peminta,
-                                    origin: item.origin,
-                                    destination: item.destination,
+                            const events = res.data
+                                .filter(item =>
+                                    allowedstatuses.includes(String(item.status).toLowerCase()))
+                                .map(item => {
 
-                                    cpny_id: item.cpny_id,
-                                    department_id: item.department_id,
-                                    cpny_id_expense: item.cpny_id_expense,
-                                    user_topup: item.user_topup,
-                                    created_by: item.created_by,
+                                    if (!item.eid) {
+                                        console.warn('⚠️ Missing EID from backend:', item);
+                                    }
 
-                                    actual_budget: item.actual_budget,
-                                    type_trip: item.type_trip,
-                                    max_budget: item.max_budget
+                                    return {
+                                        id: item.docid,
+                                        title: item.purpose || 'Taxi',
+                                        start: item.date_used,
+                                        allDay: true,
 
-                                }
-                            };
+                                        extendedProps: {
+                                            eid: item.eid || null,
+                                            status: item.status,
+                                            requester: item.user_peminta,
+                                            origin: item.origin,
+                                            destination: item.destination,
+
+                                            cpny_id: item.cpny_id,
+                                            department_id: item.department_id,
+                                            cpny_id_expense: item.cpny_id_expense,
+                                            user_topup: item.user_topup,
+                                            created_by: item.created_by,
+
+                                            actual_budget: item.actual_budget,
+                                            type_trip: item.type_trip,
+                                            max_budget: item.max_budget
+
+                                        }
+                                    };
+                                });
+
+                            successCallback(events);
+                        })
+
+                        .catch((err) => {
+
+                            console.error('❌ Calendar fetch failed:', err);
+
+                            failureCallback(err);
                         });
-
-                        successCallback(events);
-                    })
-
-                    .catch((err) => {
-
-                        console.error('❌ Calendar fetch failed:', err);
-
-                        failureCallback(err);
-                    });
                 },
                 eventClick: function(info) {
 
@@ -1540,23 +1464,15 @@
 
                     if (status === 'P') {
                         info.el.style.backgroundColor = '#3b82f6';
-                    }
-
-                    else if (status === 'C') {
+                    } else if (status === 'C') {
                         info.el.style.backgroundColor = '#10b981';
                         info.el.style.opacity = '0.85';
-                    }
-
-                    else if (status === 'D') {
+                    } else if (status === 'D') {
                         info.el.style.backgroundColor = '#facc15';
-                    }
-
-                    else if (status === 'R') {
+                    } else if (status === 'R') {
                         info.el.style.backgroundColor = '#9ca3af';
                         info.el.style.opacity = '0.7';
-                    }
-
-                    else if (status === 'X') {
+                    } else if (status === 'X') {
                         info.el.style.backgroundColor = '#6b7280';
                         info.el.style.opacity = '0.6';
                     }
@@ -1571,49 +1487,54 @@
 
             setTimeout(() => {
 
-            const eidFromUrl = window.location.hash.replace('#', '');
+                const pathParts = window.location.pathname.split('/');
 
-            if (!eidFromUrl) {
-                return;
-            }
+                const eidFromUrl = pathParts[pathParts.length - 1];
 
-            fetch(`/vouchertaxi/detail/${eidFromUrl}`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(async res => {
-
-                const text = await res.text();
-
-                // console.log('AUTO OPEN RAW:', text);
-
-                try {
-                    return JSON.parse(text);
-
-                } catch (e) {
-
-                    console.error('INVALID AUTO OPEN JSON');
-                    console.error(text);
-
-                    return null;
-                }
-            })
-            .then(res => {
-
-                if (!res || !res.success || !res.data) {
+                if (
+                    !eidFromUrl ||
+                    eidFromUrl === 'vouchertaxi'
+                ) {
                     return;
                 }
 
-                openViewModal(res.data);
+                fetch(`/vouchertaxi/detail/${eidFromUrl}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(async res => {
 
-            })
-            .catch(err => {
-                console.error('AUTO OPEN ERROR:', err);
-            });
+                        const text = await res.text();
 
-        }, 800);
+                        // console.log('AUTO OPEN RAW:', text);
+
+                        try {
+                            return JSON.parse(text);
+
+                        } catch (e) {
+
+                            console.error('INVALID AUTO OPEN JSON');
+                            console.error(text);
+
+                            return null;
+                        }
+                    })
+                    .then(res => {
+
+                        if (!res || !res.success || !res.data) {
+                            return;
+                        }
+
+                        openViewModal(res.data);
+
+                    })
+                    .catch(err => {
+                        console.error('AUTO OPEN ERROR:', err);
+                    });
+
+            }, 800);
         });
 
         function openEditModal(data) {
@@ -1666,7 +1587,7 @@
                 history.replaceState(
                     null,
                     '',
-                    `${window.location.pathname}#${data.eid}`
+                    `/showvouchertaxi/${data.eid}`
                 );
             }
 
@@ -1674,7 +1595,7 @@
             window.currentEid = data.eid;
             window.currentVoucherData = data;
 
-            document.getElementById('printVoucherBtn').href =`/vouchertaxi/print/${data.eid}`;
+            document.getElementById('printVoucherBtn').href = `/vouchertaxi/print/${data.eid}`;
 
 
             document.getElementById('viewVoucherModal').classList.remove('hidden');
@@ -1761,7 +1682,7 @@
             }
 
             // CANCEL ALLOWED FOR PENDING + REVISE
-           if (isOwner && data.status === 'D') {
+            if (isOwner && data.status === 'D') {
 
                 cancelBtn.classList.remove('hidden');
 
@@ -1774,33 +1695,33 @@
                     if (!result.isConfirmed) return;
 
                     fetch(`/vouchertaxi/cancel/${data.docid}`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document
-                                .querySelector('meta[name="csrf-token"]')
-                                .content,
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(res => {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(res => {
 
-                        if (!res.success) {
-                            showError(res.message || 'Failed cancel request');
-                            return;
-                        }
+                            if (!res.success) {
+                                showError(res.message || 'Failed cancel request');
+                                return;
+                            }
 
-                        showSuccess(res.message || 'Voucher cancelled');
+                            showSuccess(res.message || 'Voucher cancelled');
 
-                        closeViewModal();
+                            closeViewModal();
 
-                        loadVoucherList();
-                        calendar.refetchEvents();
+                            loadVoucherList();
+                            calendar.refetchEvents();
 
-                    })
-                    .catch(() => {
-                        showError('Failed cancel request');
-                    });
+                        })
+                        .catch(() => {
+                            showError('Failed cancel request');
+                        });
                 };
             }
 
@@ -1816,27 +1737,27 @@
 
             //     if (isGA && data.status === 'P') {
             //         actionDiv.innerHTML = `
-            //             <button onclick="processVoucher('${data.docid}')"
-            //                 class="px-3 py-1 bg-black text-white rounded-md text-xs">
-            //                 Process
-            //             </button>
-            //         `;
+        //             <button onclick="processVoucher('${data.docid}')"
+        //                 class="px-3 py-1 bg-black text-white rounded-md text-xs">
+        //                 Process
+        //             </button>
+        //         `;
             //     }
             // }
 
             const reviseWrapper = document.getElementById('reviseReasonWrapper');
 
-                if (data.status === 'D' && data.revise_reason) {
+            if (data.status === 'D' && data.revise_reason) {
 
-                    reviseWrapper.classList.remove('hidden');
+                reviseWrapper.classList.remove('hidden');
 
-                    document.getElementById('view_revise_reason').innerText =
-                        data.revise_reason;
+                document.getElementById('view_revise_reason').innerText =
+                    data.revise_reason;
 
-                } else {
+            } else {
 
-                    reviseWrapper.classList.add('hidden');
-                }
+                reviseWrapper.classList.add('hidden');
+            }
         }
 
         function closeViewModal() {
@@ -1866,65 +1787,65 @@
 
             el.innerHTML = `<div class="text-xs text-gray-400">Loading approval...</div>`;
 
-           fetch(`/vouchertaxi/tracking/${eid}`, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(async (res) => {
+            fetch(`/vouchertaxi/tracking/${eid}`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(async (res) => {
 
-                const text = await res.text();
+                    const text = await res.text();
 
-                // // console.log('TRACKING RAW:', text);
+                    // // console.log('TRACKING RAW:', text);
 
-                try {
-                    return JSON.parse(text);
+                    try {
+                        return JSON.parse(text);
 
-                } catch (e) {
+                    } catch (e) {
 
-                    console.error('Tracking invalid JSON');
-                    console.error(text);
+                        console.error('Tracking invalid JSON');
+                        console.error(text);
 
-                    throw new Error('Tracking endpoint returned HTML');
-                }
-            })
-            .then(res => {
+                        throw new Error('Tracking endpoint returned HTML');
+                    }
+                })
+                .then(res => {
 
-                el.innerHTML = '';
+                    el.innerHTML = '';
 
-                if (!res.steps || res.steps.length === 0) {
+                    if (!res.steps || res.steps.length === 0) {
 
-                    el.innerHTML = `
+                        el.innerHTML = `
                         <div class="text-xs text-gray-400">
                             No approval data
                         </div>
                     `;
 
-                    return;
-                }
-
-                let currentStep = null;
-
-                res.steps.forEach(step => {
-
-                    if (step.status === 'P' && !currentStep) {
-                        currentStep = step;
+                        return;
                     }
 
-                    const isActive = step.status === 'P';
-                    const isDone = step.status === 'A';
+                    let currentStep = null;
 
-                    const dotColor = isDone
-                        ? 'bg-green-500'
-                        : isActive
-                        ? 'bg-blue-500 ring-4 ring-blue-100'
-                        : 'bg-gray-300';
+                    res.steps.forEach(step => {
 
-                    const lineColor = isDone
-                        ? 'bg-green-400'
-                        : 'bg-gray-200';
+                        if (step.status === 'P' && !currentStep) {
+                            currentStep = step;
+                        }
 
-                    el.innerHTML += `
+                        const isActive = step.status === 'P';
+                        const isDone = step.status === 'A';
+
+                        const dotColor = isDone ?
+                            'bg-green-500' :
+                            isActive ?
+                            'bg-blue-500 ring-4 ring-blue-100' :
+                            'bg-gray-300';
+
+                        const lineColor = isDone ?
+                            'bg-green-400' :
+                            'bg-gray-200';
+
+                        el.innerHTML += `
                         <div class="relative pl-6">
 
                             <div class="absolute left-[7px] top-0 h-full w-[2px] ${lineColor}"></div>
@@ -1956,34 +1877,34 @@
                                 ${
                                     step.by
                                     ? `
-                                        <div class="text-xs text-gray-400 mt-1">
-                                            ${escapeHtml(step.by)}
-                                            •
-                                            ${escapeHtml(step.at || '')}
-                                        </div>
-                                    `
+                                            <div class="text-xs text-gray-400 mt-1">
+                                                ${escapeHtml(step.by)}
+                                                •
+                                                ${escapeHtml(step.at || '')}
+                                            </div>
+                                        `
                                     : `
-                                        <div class="text-xs text-gray-400 mt-1 italic">
-                                            Waiting for action
-                                        </div>
-                                    `
+                                            <div class="text-xs text-gray-400 mt-1 italic">
+                                                Waiting for action
+                                            </div>
+                                        `
                                 }
 
                                 ${
                                     step.comment
                                     ? `
-                                        <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
+                                            <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
 
-                                            <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
-                                                Reason
+                                                <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
+                                                    Reason
+                                                </div>
+
+                                                <div class="mt-1 text-xs text-yellow-900">
+                                                    ${escapeHtml(step.comment)}
+                                                </div>
+
                                             </div>
-
-                                            <div class="mt-1 text-xs text-yellow-900">
-                                                ${escapeHtml(step.comment)}
-                                            </div>
-
-                                        </div>
-                                    `
+                                        `
                                     : ''
                                 }
 
@@ -1991,65 +1912,65 @@
 
                         </div>
                     `;
-                });
+                    });
 
-                if (currentStep) {
-                    checkApprovalAccess(currentStep);
-                }
+                    if (currentStep) {
+                        checkApprovalAccess(currentStep);
+                    }
 
-                const actionDiv = document.getElementById('viewActions');
+                    const actionDiv = document.getElementById('viewActions');
 
-                if (actionDiv) {
+                    if (actionDiv) {
 
-                    actionDiv.innerHTML = '';
+                        actionDiv.innerHTML = '';
 
-                    const currentUser = String(window.currentUsername || '')
-                        .trim()
-                        .toLowerCase();
+                        const currentUser = String(window.currentUsername || '')
+                            .trim()
+                            .toLowerCase();
 
-                    const approvers = String(currentStep?.aprv_username || '')
-                        .split(',')
-                        .map(v => v.trim().toLowerCase());
+                        const approvers = String(currentStep?.aprv_username || '')
+                            .split(',')
+                            .map(v => v.trim().toLowerCase());
 
-                    const isCurrentApprover = approvers.includes(currentUser);
+                        const isCurrentApprover = approvers.includes(currentUser);
 
-                    const isGA = window.isGA === true;
+                        const isGA = window.isGA === true;
 
-                    // 🔥 ONLY ACTIVE GA APPROVER CAN PROCESS
-                    if (
-                        isGA &&
-                        isCurrentApprover &&
-                        window.currentVoucherData?.status === 'C'
-                    && !window.currentVoucherData?.actual_budget
-                    ) {
+                        // 🔥 ONLY ACTIVE GA APPROVER CAN PROCESS
+                        if (
+                            isGA &&
+                            isCurrentApprover &&
+                            window.currentVoucherData?.status === 'C' &&
+                            !window.currentVoucherData?.actual_budget
+                        ) {
 
-                        actionDiv.innerHTML = `
+                            actionDiv.innerHTML = `
                             <button id="openProcessBtn"
                                 class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
                                 Process
                             </button>
                         `;
 
-                        document.getElementById('openProcessBtn')
-                            ?.addEventListener('click', () => {
+                            document.getElementById('openProcessBtn')
+                                ?.addEventListener('click', () => {
 
-                                processVoucher(window.currentVoucherData);
-                            });
+                                    processVoucher(window.currentVoucherData);
+                                });
+                        }
                     }
-                }
 
 
-            })
-            .catch(err => {
+                })
+                .catch(err => {
 
-                console.error(err);
+                    console.error(err);
 
-                el.innerHTML = `
+                    el.innerHTML = `
                     <div class="text-xs text-red-500">
                         Failed to load approval
                     </div>
                 `;
-            });
+                });
         }
 
         function checkApprovalAccess(step) {
@@ -2081,9 +2002,9 @@
                 .split(',')
                 .map(user =>
                     user
-                        .replace(/\s+/g, '')
-                        .trim()
-                        .toLowerCase()
+                    .replace(/\s+/g, '')
+                    .trim()
+                    .toLowerCase()
                 )
                 .filter(Boolean);
 
@@ -2184,9 +2105,9 @@
                 data.purpose || '-';
 
             document.getElementById('process_budget').innerText =
-                data.max_budget
-                ? `Rp ${Number(data.max_budget).toLocaleString()}`
-                : '-';
+                data.max_budget ?
+                `Rp ${Number(data.max_budget).toLocaleString()}` :
+                '-';
         }
 
         function applyEditState(data) {
@@ -2195,10 +2116,10 @@
             const currentUser = window.currentUsername; // set this globally
             // const isOwner = data.created_by === currentUser;
             const isOwner =
-            String(data.created_by || '')
+                String(data.created_by || '')
                 .trim()
                 .toLowerCase() ===
-            String(currentUser || '')
+                String(currentUser || '')
                 .trim()
                 .toLowerCase();
             const isGA = window.isGA === true;
@@ -2391,9 +2312,9 @@
             const paginatedData = filteredData.slice(start, end);
 
             document.getElementById('voucherPageInfo').innerText =
-                filteredData.length === 0
-                ? 'No data'
-                : `Showing ${start + 1}-${Math.min(end, filteredData.length)} of ${filteredData.length}`;
+                filteredData.length === 0 ?
+                'No data' :
+                `Showing ${start + 1}-${Math.min(end, filteredData.length)} of ${filteredData.length}`;
 
             // =========================================
             // STATUS MAP
@@ -2541,25 +2462,25 @@
                         item.status === 'C' &&
                         !item.actual_budget
                         ? `
-                            <div class="mt-3 flex justify-end">
+                                <div class="mt-3 flex justify-end">
 
-                                <button
-                                    class="
-                                        process-btn
-                                        rounded-lg
-                                        bg-black
-                                        px-3 py-1.5
-                                        text-[11px]
-                                        font-medium
-                                        text-white
-                                        transition
-                                        hover:opacity-90
-                                    ">
-                                    Process
-                                </button>
+                                    <button
+                                        class="
+                                            process-btn
+                                            rounded-lg
+                                            bg-black
+                                            px-3 py-1.5
+                                            text-[11px]
+                                            font-medium
+                                            text-white
+                                            transition
+                                            hover:opacity-90
+                                        ">
+                                        Process
+                                    </button>
 
-                            </div>
-                        `
+                                </div>
+                            `
                         : ''
                     }
                 `;
@@ -2685,51 +2606,48 @@
 
         document.addEventListener('keydown', function(e) {
 
-        if (e.key === 'Escape') {
+            if (e.key === 'Escape') {
 
-            document.getElementById('createVoucherModal').classList.add('hidden');
-            document.getElementById('editVoucherTaxiModal').classList.add('hidden');
+                document.getElementById('createVoucherModal').classList.add('hidden');
+                document.getElementById('editVoucherTaxiModal').classList.add('hidden');
 
-            closeViewModal();
-            clearSelectedCell();
-        }
-
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const deptSelect = document.getElementById('department_id');
-            const userSelect = document.getElementById('user_topup');
-
-            const allOptions = Array.from(userSelect.options);
-
-            function filterUsers() {
-
-                const selectedDept = deptSelect.value;
-
-                userSelect.innerHTML = '';
-
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.text = 'Select user';
-                userSelect.appendChild(defaultOption);
-
-                allOptions.forEach(option => {
-
-                    const dept = option.getAttribute('data-dept');
-
-                    if (!option.value) return;
-
-                    if (!selectedDept || dept === selectedDept) {
-                        userSelect.appendChild(option.cloneNode(true));
-                    }
-                });
+                closeViewModal();
+                clearSelectedCell();
             }
 
-            // ✅ ONLY department triggers filter
-            deptSelect.addEventListener('change', filterUsers);
-
         });
+
+
+        const deptSelect = document.getElementById('department_id');
+        const userSelect = document.getElementById('user_topup');
+
+        const allOptions = Array.from(userSelect.options);
+
+        function filterUsers() {
+
+            const selectedDept = deptSelect.value;
+
+            userSelect.innerHTML = '';
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.text = 'Select user';
+            userSelect.appendChild(defaultOption);
+
+            allOptions.forEach(option => {
+
+                const dept = option.getAttribute('data-dept');
+
+                if (!option.value) return;
+
+                if (!selectedDept || dept === selectedDept) {
+                    userSelect.appendChild(option.cloneNode(true));
+                }
+            });
+        }
+
+        // ✅ ONLY department triggers filter
+        deptSelect.addEventListener('change', filterUsers);
 
         const createForm = document.getElementById('voucherTaxiForm');
 
@@ -2861,7 +2779,7 @@
 
                     if (!response.ok || !res.success) {
 
-                       showError(res.message || 'Update failed');
+                        showError(res.message || 'Update failed');
 
                         btn.disabled = false;
                         btn.innerHTML = originalText;
@@ -2878,7 +2796,7 @@
                         calendar.refetchEvents();
                     }
 
-                  showSuccess(res.message || 'Voucher updated successfully');
+                    showSuccess(res.message || 'Voucher updated successfully');
 
                 } catch (err) {
 
@@ -2922,9 +2840,9 @@
 
             // title
             document.getElementById('reasonModalTitle').innerText =
-                type === 'revise'
-                ? 'Revision Reason'
-                : 'Reject Reason';
+                type === 'revise' ?
+                'Revision Reason' :
+                'Reject Reason';
 
             // cancel
             document.getElementById('cancelReasonBtn').onclick = () => {
@@ -2967,41 +2885,41 @@
             btn.innerHTML = 'Processing...';
 
             fetch(urlMap[type], {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    comment: comment
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        comment: comment
+                    })
                 })
-            })
-            .then(res => res.json())
-            .then(res => {
+                .then(res => res.json())
+                .then(res => {
 
-                if (!res.success) {
-                    showError(res.message || 'Failed');
-                    return;
-                }
+                    if (!res.success) {
+                        showError(res.message || 'Failed');
+                        return;
+                    }
 
-                showSuccess(res.message || 'Success');
+                    showSuccess(res.message || 'Success');
 
-                closeViewModal();
+                    closeViewModal();
 
-                loadVoucherList();
-                calendar.refetchEvents();
+                    loadVoucherList();
+                    calendar.refetchEvents();
 
-            })
-            .catch(err => {
-                console.error(err);
-                showError('Error processing approval');
-            })
-            .finally(() => {
+                })
+                .catch(err => {
+                    console.error(err);
+                    showError('Error processing approval');
+                })
+                .finally(() => {
 
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
 
-            });
+                });
         }
 
         function showSuccess(message) {
@@ -3033,7 +2951,7 @@
             });
         }
 
-                // CLOSE PROCESS MODAL
+        // CLOSE PROCESS MODAL
         document.getElementById('closeProcessVoucherModal')
             .addEventListener('click', () => {
 
@@ -3134,15 +3052,15 @@
         const budgetDisplay = document.getElementById('actual_budget_display');
         const budgetHidden = document.getElementById('actual_budget');
 
-        budgetDisplay?.addEventListener('input', function () {
+        budgetDisplay?.addEventListener('input', function() {
 
             let value = this.value.replace(/\D/g, '');
 
             budgetHidden.value = value;
 
-            this.value = value
-                ? Number(value).toLocaleString('id-ID')
-                : '';
+            this.value = value ?
+                Number(value).toLocaleString('id-ID') :
+                '';
         });
 
         document.querySelectorAll('.voucher-filter')
@@ -3177,10 +3095,16 @@
         document.getElementById('nextVoucherPage')
             .addEventListener('click', () => {
 
-                currentVoucherPage++;
+                const totalPages = Math.ceil(
+                    voucherData.length / voucherPerPage
+                );
 
-                renderVoucherList();
+                if (currentVoucherPage < totalPages) {
+
+                    currentVoucherPage++;
+
+                    renderVoucherList();
+                }
             });
-
     </script>
 </x-app-layout>
