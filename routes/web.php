@@ -1230,12 +1230,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/print/{hash}', 'printVoucherTaxi')
             ->name('print');
 
-            Route::get('/detail/{eid}', 'detail')
-            ->name('detail');
+            Route::get('/showvouchertaxi/{eid}', 'detail')
+                ->name('detail');
         });
 
-        Route::get('/showvouchertaxi/{hash}', 'showVoucherTaxi')
-            ->name('vouchertaxi.show');
+
 
     });
 
