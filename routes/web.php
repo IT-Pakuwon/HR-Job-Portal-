@@ -1195,7 +1195,6 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
-
     Route::controller(VoucherTaxiController::class)->group(function () {
 
         Route::get('/vouchertaxi', 'index')
@@ -1205,15 +1204,19 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/json', 'json')->name('json');
 
+            Route::get('/detail/{eid}', 'detail')
+                ->name('detail');
+
             Route::post('/store', 'storeVoucher')->name('store');
 
-            Route::get('/edit/{id}', 'editVoucherTaxi')->name('edit');
             Route::post('/update/{id}', 'updateVoucherTaxi')->name('update');
 
             Route::post('/cancel/{docid}', 'cancel')->name('cancel');
 
             Route::post('/approve/{docid}', 'approveVoucherTaxi');
+
             Route::post('/reject/{docid}', 'rejectVoucherTaxi');
+
             Route::post('/revise/{docid}', 'reviseVoucherTaxi');
 
             Route::post('/process/{docid}', 'updateGaAdvice')
@@ -1221,21 +1224,18 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/tracking/{eid}', 'tracking');
 
-            // Route::get('/showvouchertaxi/{id}', 'show')
-            //     ->name('show');
-
             Route::get('/find/{eid}', 'findByHash')
                 ->name('find');
 
             Route::get('/print/{hash}', 'printVoucherTaxi')
-            ->name('print');
+                ->name('print');
 
-            Route::get('/showvouchertaxi/{eid}', 'detail')
+            Route::get('/detail/{eid}', 'detail')
                 ->name('detail');
         });
 
-
-
+        Route::get('/showvouchertaxi/{eid}', 'index')
+            ->name('vouchertaxi.detail');
     });
 
     Route::get('/bookingcar', [BookingCarController::class, 'index'])->name('bookingcar');

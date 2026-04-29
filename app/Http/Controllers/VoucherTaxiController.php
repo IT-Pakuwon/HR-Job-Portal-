@@ -748,38 +748,38 @@ class VoucherTaxiController extends Controller
         }
     }
 
-    public function showVoucherTaxi($hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404);
+    // public function showVoucherTaxi($hash)
+    // {
+    //     $id = Hashids::decode($hash)[0] ?? null;
+    //     abort_if(!$id, 404);
 
-        $user = Auth::user();
+    //     $user = Auth::user();
 
-        if (!$user) {
-            return redirect()->route('login');
-        }
+    //     if (!$user) {
+    //         return redirect()->route('login');
+    //     }
 
-        $voucher = TrVoucherTaxi::with([
-            'creator:username,name',
-        ])->findOrFail($id);
+    //     $voucher = TrVoucherTaxi::with([
+    //         'creator:username,name',
+    //     ])->findOrFail($id);
 
-        $company = MsCompany::where('status', 'A')
-            ->select('cpny_id', 'cpny_name')
-            ->get();
+    //     $company = MsCompany::where('status', 'A')
+    //         ->select('cpny_id', 'cpny_name')
+    //         ->get();
 
-        $canProcessGaAdvice = TrApproval::where('refnbr', $voucher->docid)
-            ->where('aprv_leveling', 2)
-            ->where('status', 'P')
-            ->whereNotNull('aprv_datebefore')
-            ->exists();
+    //     $canProcessGaAdvice = TrApproval::where('refnbr', $voucher->docid)
+    //         ->where('aprv_leveling', 2)
+    //         ->where('status', 'P')
+    //         ->whereNotNull('aprv_datebefore')
+    //         ->exists();
 
-        return view('pages.vouchertaxi.showvouchertaxi', compact(
-            'voucher',
-            'hash',
-            'company',
-            'canProcessGaAdvice'
-        ));
-    }
+    //     return view('pages.vouchertaxi.showvouchertaxi', compact(
+    //         'voucher',
+    //         'hash',
+    //         'company',
+    //         'canProcessGaAdvice'
+    //     ));
+    // }
 
     public function detail($eid)
     {
