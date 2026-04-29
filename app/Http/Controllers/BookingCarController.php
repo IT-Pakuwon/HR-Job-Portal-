@@ -13,7 +13,7 @@ use App\Models\Userdept;
 use App\Models\User;
 use App\Models\Site;
 use App\Models\Division;
-use App\Models\TrVoucherTaxi;
+use App\Models\TrBookingCar;
 use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use Mail;
@@ -33,7 +33,7 @@ use App\Models\SysRole;
 use App\Models\TrMessage;
 
 
-class VoucherTaxiController extends Controller
+class BookingCarController extends Controller
 {
 
     use HasAutonbr;
@@ -58,7 +58,7 @@ class VoucherTaxiController extends Controller
         $isGA = $user->hasRole('GAACCESS');
 
         // 🔹 Base query
-        $q = TrVoucherTaxi::query();
+        $q = TrBookingCar::query();
 
         // 🔥 APPLY FILTER ONLY IF NOT GA
         if (!$isGA) {
@@ -96,7 +96,7 @@ class VoucherTaxiController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('pages.vouchertaxi.vouchertaxi', compact(
+        return view('pages.bookingcar.bookingcar', compact(
             'all',
             'onProgress',
             'reject',
@@ -180,7 +180,7 @@ class VoucherTaxiController extends Controller
         // BASE QUERY
         // =========================================
 
-        $base = TrVoucherTaxi::from('tr_voucher_taxi as vt');
+        $base = TrBookingCar::from('tr_voucher_taxi as vt');
 
         // =========================================
         // STATUS FILTER
@@ -365,7 +365,7 @@ class VoucherTaxiController extends Controller
             $dt       = now();
             $year     = (int) $dt->year;
             $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-            $doctype  = 'VCR';
+            $doctype  = 'BCR';
             $username = $user->username;
 
             $cpny_id       = $validated['cpny_id_expense'];
@@ -389,7 +389,7 @@ class VoucherTaxiController extends Controller
             $tglbln = substr((string) $year, 2) . $month;
             $docid  = $doctype . $tglbln . sprintf('%03d', $urutan);
 
-            $voucher = TrVoucherTaxi::create([
+            $voucher = TrBookingCar::create([
                 'docid'           => $docid,
                 'voucher_date'    => $dt->toDateString(),
                 'cpny_id'         => $validated['cpny_id'],
@@ -431,7 +431,7 @@ class VoucherTaxiController extends Controller
                 $doctype,
                 $voucher->status,
                 'Voucher Taxi',
-              url('/showvouchertaxi/' . $eid),
+              url('/showbookingcar/' . $eid),
                 [
                     'info'      => $voucher->purpose,
                     'createdby' => $voucher->created_by,
@@ -444,7 +444,7 @@ class VoucherTaxiController extends Controller
             // return response()->json([
             //     'success' => true,
             //     'message' => 'Voucher Taxi berhasil dibuat',
-            //     'redirect' => url('/showvouchertaxi/' . Hashids::encode($voucher->id))
+            //     'redirect' => url('/showbookingcar/' . Hashids::encode($voucher->id))
             // ]);
 
             return response()->json([
@@ -465,11 +465,8 @@ class VoucherTaxiController extends Controller
         }
     }
 
-
-
-    
-
-    public function updateVoucherTaxi(Request $request, $docid)
+   
+    public function updateBookingCar(Request $request, $docid)
     {
         $user = Auth::user();
 
@@ -497,7 +494,7 @@ class VoucherTaxiController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $voucher = TrVoucherTaxi::where('docid', $docid)->firstOrFail();
+            $voucher = TrBookingCar::where('docid', $docid)->firstOrFail();
 
             if ($voucher->status !== 'D') {
                 throw new \Exception('Voucher Taxi hanya bisa diedit saat status Revise / Draft.');
@@ -507,7 +504,7 @@ class VoucherTaxiController extends Controller
                 throw new \Exception('Anda tidak berhak edit Voucher Taxi ini.');
             }
 
-            $doctype       = 'VCR';
+            $doctype       = 'BCR';
             $dt            = now();
             $username      = $user->username;
             $cpny_id       = $validated['cpny_id_expense'];
@@ -570,7 +567,7 @@ class VoucherTaxiController extends Controller
                 $doctype,
                 $voucher->status,
                 'Voucher Taxi',
-              url('/showvouchertaxi/' . $eid),
+              url('/showbookingcar/' . $eid),
                 [
                     'info'      => $voucher->purpose,
                     'createdby' => $voucher->created_by,
@@ -613,7 +610,7 @@ class VoucherTaxiController extends Controller
 
         try {
 
-            $voucher = TrVoucherTaxi::where('docid', $docid)
+            $voucher = TrBookingCar::where('docid', $docid)
                 ->firstOrFail();
 
             // 🔥 only creator
@@ -671,7 +668,7 @@ class VoucherTaxiController extends Controller
             ], 500);
         }
     }
-   
+
     public function detail($eid)
     {
         $id = Hashids::decode($eid)[0] ?? null;
@@ -683,7 +680,7 @@ class VoucherTaxiController extends Controller
             ], 404);
         }
 
-        $voucher = TrVoucherTaxi::find($id);
+        $voucher = TrBookingCar::find($id);
 
         if (!$voucher) {
 
@@ -727,7 +724,7 @@ class VoucherTaxiController extends Controller
             ]
         ]);
     }
-  
+    
     public function updateGaAdvice(Request $request, $docid)
     {
         $request->merge([
@@ -759,7 +756,7 @@ class VoucherTaxiController extends Controller
 
         try {
 
-            $voucher = TrVoucherTaxi::where('docid', $docid)
+            $voucher = TrBookingCar::where('docid', $docid)
                 ->firstOrFail();
 
             // 🔥 MUST BE COMPLETED FIRST
@@ -797,12 +794,12 @@ class VoucherTaxiController extends Controller
         }
     }
 
-    public function approveVoucherTaxi(Request $request, $docid)
+    public function approveBookingCar(Request $request, $docid)
     {
         $user    = $request->user();
-        $doctype = 'VCR';
+        $doctype = 'BCR';
 
-        $voucher = TrVoucherTaxi::with('creator')
+        $voucher = TrBookingCar::with('creator')
             ->where('docid', $docid)
             ->first();
 
@@ -814,7 +811,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl = url('/showvouchertaxi/' . $eid);
+        $docUrl = url('/showbookingcar/' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
@@ -854,7 +851,7 @@ class VoucherTaxiController extends Controller
             function ($next, \Carbon\Carbon $now) use ($voucher, $docUrl) {
                 app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
                     $voucher->docid,
-                    'VCR',
+                    'BCR',
                     'P',
                     'Voucher Taxi',
                     $docUrl,
@@ -887,7 +884,7 @@ class VoucherTaxiController extends Controller
         ]);
     }
 
-    public function rejectVoucherTaxi(Request $request, $docid)
+    public function rejectBookingCar(Request $request, $docid)
     {
 
         $request->validate([
@@ -895,9 +892,9 @@ class VoucherTaxiController extends Controller
         ]);
 
         $user    = $request->user();
-        $doctype = 'VCR';
+        $doctype = 'BCR';
 
-        $voucher = TrVoucherTaxi::with('creator')
+        $voucher = TrBookingCar::with('creator')
             ->where('docid', $docid)
             ->first();
 
@@ -909,7 +906,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl = url('/showvouchertaxi/' . $eid);
+        $docUrl = url('/showbookingcar/' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
@@ -945,7 +942,7 @@ class VoucherTaxiController extends Controller
 
                 try {
                     app(\App\Http\Controllers\SendCommentController::class)
-                        ->sendmsg($voucher->id, 'VCR', request());
+                        ->sendmsg($voucher->id, 'BCR', request());
                 } catch (\Throwable $e) {
                     \Log::warning('Send reject comment Voucher Taxi failed', [
                         'docid' => $voucher->docid,
@@ -968,7 +965,7 @@ class VoucherTaxiController extends Controller
         ]);
     }
 
-    public function reviseVoucherTaxi(Request $request, $docid)
+    public function reviseBookingCar(Request $request, $docid)
     {
 
         $request->validate([
@@ -976,9 +973,9 @@ class VoucherTaxiController extends Controller
         ]);
 
         $user    = $request->user();
-        $doctype = 'VCR';
+        $doctype = 'BCR';
 
-        $voucher = TrVoucherTaxi::with('creator')
+        $voucher = TrBookingCar::with('creator')
             ->where('docid', $docid)
             ->first();
 
@@ -990,7 +987,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-       $docUrl = url('/showvouchertaxi/' . $eid);
+       $docUrl = url('/showbookingcar/' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
@@ -1030,7 +1027,7 @@ class VoucherTaxiController extends Controller
                 // === Simpan komentar ===
                 try {
                     app(\App\Http\Controllers\SendCommentController::class)
-                        ->sendmsg($voucher->id, 'VCR', request());
+                        ->sendmsg($voucher->id, 'BCR', request());
                 } catch (\Throwable $e) {
                     \Log::warning('Send revise comment Voucher Taxi failed', [
                         'docid' => $voucher->docid,
@@ -1059,11 +1056,11 @@ class VoucherTaxiController extends Controller
 
         abort_if(!$id, 404);
 
-        $voucher = TrVoucherTaxi::findOrFail($id);
+        $voucher = TrBookingCar::findOrFail($id);
 
         return response()->json($voucher);
     }
-   
+
     public function tracking($hash)
     {
         try {
@@ -1072,7 +1069,7 @@ class VoucherTaxiController extends Controller
 
             abort_if(!$id, 404);
 
-            $voucher = TrVoucherTaxi::findOrFail($id);
+            $voucher = TrBookingCar::findOrFail($id);
 
             $getName = function (?string $username) {
 
@@ -1116,7 +1113,7 @@ class VoucherTaxiController extends Controller
 
                         $comment = DB::table('tr_comment')
                             ->where('refid', $voucher->id)
-                            ->where('doctype', 'VCR')
+                            ->where('doctype', 'BCR')
                             ->latest('created_at')
                             ->value('comment');
 
@@ -1125,7 +1122,7 @@ class VoucherTaxiController extends Controller
                         // ignore if table not exists
                     }
 
-            $comments = TrMessage::where('doctype', 'VCR')
+            $comments = TrMessage::where('doctype', 'BCR')
                 ->where('refnbr', $voucher->docid)
                 ->orderByDesc('message_date')
                 ->get([
@@ -1176,7 +1173,7 @@ class VoucherTaxiController extends Controller
             }
 
 
-           $latestComment = TrMessage::where('doctype', 'VCR')
+           $latestComment = TrMessage::where('doctype', 'BCR')
             ->where('refnbr', $voucher->docid)
             ->latest('message_date')
             ->first();
@@ -1215,7 +1212,7 @@ class VoucherTaxiController extends Controller
         }
     }    
 
-    public function printVoucherTaxi($hash)
+    public function printBookingCar($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
 
@@ -1227,7 +1224,7 @@ class VoucherTaxiController extends Controller
             return redirect()->route('login');
         }
 
-        $voucher = TrVoucherTaxi::with([
+        $voucher = TrBookingCar::with([
             'creator:username,name',
         ])->findOrFail($id);
 
@@ -1250,7 +1247,7 @@ class VoucherTaxiController extends Controller
         };
 
         $pdf = PDF::loadView(
-            'pages.vouchertaxi.pdf_vouchertaxi',
+            'pages.bookingcar.pdf_bookingcar',
             [
                 'voucher'      => $voucher,
                 'approvals'    => $approvals,

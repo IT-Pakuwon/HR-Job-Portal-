@@ -14,11 +14,11 @@ use App\Models\User;
 class SendEmailApprovalDeclined extends Command
 {
     protected $signature = 'email:approval-declined';
-    protected $description = 'Send email notification for declined approvals';
+    protected $description = 'Send summary email notification for declined approvals';
 
     public function handle()
     {
-        $this->info('Start SendEmailApprovalDeclined...');
+        $this->info('Start SendEmailApprovalDeclined Summary...');
 
         $approvals = TrApproval::query()
             ->where('status', 'D')
@@ -43,78 +43,94 @@ class SendEmailApprovalDeclined extends Command
             ->get()
             ->keyBy(fn ($row) => trim((string) $row->docid));
 
+        $summaryByCreator = [];
+
+        foreach ($approvals as $task) {
+            $refnbr = trim((string) $task->refnbr);
+            $purch  = $purchMap->get($refnbr);
+
+            if (!$purch) {
+                $this->warn("ViewtrPurch not found / not declined for refnbr: {$refnbr}");
+                continue;
+            }
+
+            $createdUser = trim((string) ($purch->created_user ?? ''));
+
+            if ($createdUser === '') {
+                $this->warn("created_user kosong untuk refnbr: {$refnbr}");
+                continue;
+            }
+
+            $eid = Hashids::encode($purch->id);
+            $baseUrl = rtrim((string) $purch->url, '/');
+
+            $docType = strtoupper(trim((string) ($task->aprv_doctype ?: $this->extractDocType($refnbr))));
+            $docName = $this->resolveDocName($docType);
+
+            $formattedDate = $task->updated_at
+                ? Carbon::parse($task->updated_at)->format('d-m-Y H:i')
+                : ($task->created_at ? Carbon::parse($task->created_at)->format('d-m-Y H:i') : '-');
+
+            $summaryByCreator[$createdUser][] = [
+                'docname'   => $docName,
+                'docid'     => $refnbr,
+                'cpnyid'    => $task->aprv_cpnyid ?: ($purch->cpnyid ?? '-'),
+                'deptname'  => $task->aprv_departementid ?: ($purch->departementid ?? '-'),
+                'date'      => $formattedDate,
+                'createdby' => $createdUser,
+                'info'      => $purch->infohd ?? '-',
+                'url'       => url($baseUrl . '/' . $eid),
+            ];
+        }
+
+        if (empty($summaryByCreator)) {
+            $this->info('No valid declined approval summary found.');
+            return self::SUCCESS;
+        }
+
+        $users = User::query()
+            ->whereIn('username', array_keys($summaryByCreator))
+            ->where('status', 'A')
+            ->whereNotNull('notification_email')
+            ->where('notification_email', '<>', '')
+            ->get()
+            ->keyBy('username');
+
         $sent = 0;
         $failed = 0;
 
-        foreach ($approvals as $task) {
+        foreach ($summaryByCreator as $username => $documents) {
             try {
-                $refnbr = trim((string) $task->refnbr);
-                $purch  = $purchMap->get($refnbr);
-
-                if (!$purch) {
-                    $this->warn("ViewtrPurch not found / not declined for refnbr: {$refnbr}");
-                    continue;
-                }
-
-                $createdUser = trim((string) ($purch->created_user ?? ''));
-
-                if ($createdUser === '') {
-                    $this->warn("created_user kosong untuk refnbr: {$refnbr}");
-                    continue;
-                }
-
-                $emailUser = User::query()
-                    ->where('username', $createdUser)
-                    ->where('status', 'A')
-                    ->whereNotNull('notification_email')
-                    ->where('notification_email', '<>', '')
-                    ->first();
+                $emailUser = $users->get($username);
 
                 if (!$emailUser) {
-                    $this->warn("Email user tidak ditemukan untuk created_user: {$createdUser}, refnbr: {$refnbr}");
+                    $this->warn("Email user tidak ditemukan untuk created_user: {$username}");
                     continue;
                 }
 
-                $eid = Hashids::encode($purch->id);
-                $baseUrl = rtrim((string) $purch->url, '/');
-
-                $docType = strtoupper(trim((string) ($task->aprv_doctype ?: $this->extractDocType($refnbr))));
-                $docName = $this->resolveDocName($docType);
-
-                $formattedDate = $task->updated_at
-                    ? Carbon::parse($task->updated_at)->format('d-m-Y H:i')
-                    : ($task->created_at ? Carbon::parse($task->created_at)->format('d-m-Y H:i') : '-');
-
-                $recipientName = $emailUser->name ?: $emailUser->username;
-
                 $data = [
-                    'docname'   => $docName,
-                    'docid'     => $refnbr,
+                    'name'      => $emailUser->name ?: $emailUser->username,
+                    'username'  => $emailUser->username,
+                    'total'     => count($documents),
+                    'documents' => $documents,
                     'status'    => 'D',
-                    'cpnyid'    => $task->aprv_cpnyid ?: ($purch->cpnyid ?? '-'),
-                    'deptname'  => $task->aprv_departementid ?: ($purch->departementid ?? '-'),
-                    'date'      => $formattedDate,
-                    'name'      => $recipientName,
-                    'createdby' => $createdUser,
-                    'info'      => $purch->infohd ?? '-',
-                    'url'       => url($baseUrl . '/' . $eid),
                 ];
 
                 Mail::send('emails.sendapprovenew', $data, function ($message) use ($data, $emailUser) {
                     $message->to($emailUser->notification_email)
-                        ->subject($data['docid'] . ' - ' . $data['docname'] . ' - Declined')
+                        ->subject('Approval Declined Summary - Total ' . $data['total'] . ' Document(s)')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');
                 });
 
                 $sent++;
-                $this->info("Email declined sent to {$emailUser->notification_email} for {$refnbr}");
+                $this->info("Email declined summary sent to {$emailUser->notification_email}");
             } catch (\Throwable $e) {
                 $failed++;
-                $this->error("Failed refnbr {$task->refnbr}: " . $e->getMessage());
+                $this->error("Failed send summary to {$username}: " . $e->getMessage());
             }
         }
 
-        $this->info("Finished. Sent: {$sent}, Failed: {$failed}");
+        $this->info("Finished. Email Sent: {$sent}, Failed: {$failed}");
 
         return self::SUCCESS;
     }

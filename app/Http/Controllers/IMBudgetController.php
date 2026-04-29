@@ -283,7 +283,7 @@ class IMBudgetController extends Controller
         $perpost       = $cs->budget_perpost  ?? $cs->perpost        ?? $request->input('perpost');
         $sppbjktid     = $cs->sppbjktid       ?? $request->input('sppbjktid');
         $user_peminta  = $cs->user_peminta    ?? $request->input('user_peminta', $username);
-        $imbudgetnote  = $cs->imbudgetnote    ?? $cs->csnote         ?? $cs->note ?? $request->input('imbudgetnote');
+        $imbudgetnote  = $cs->keperluan    ?? $cs->csnote         ?? $cs->note ?? $request->input('imbudgetnote');
 
         // === Approval engine (pakai cpny/dept hasil mapping)
         $approvalCtl = app(ApprovalController::class);
