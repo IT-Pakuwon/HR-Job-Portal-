@@ -1171,38 +1171,62 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/rfp/{id}/reject', [RfpController::class, 'rejectRfp']);
     Route::post('/rfp/{id}/revise', [RfpController::class, 'reviseRfp']);
 
-    Route::get('/meeting', [MeetingController::class, 'index'])->name('meeting');
-    Route::get('/inforoom_{id}', [MeetingController::class, 'getRoom']);
-    // Route::get('/infoacc_{id}', [MeetingController::class, 'getAccessories']);
-    Route::post('/savemeeting', [MeetingController::class, 'storeMeeting'])->name('meeting.store');
-    // Route::get('/meetinglist', [MeetingController::class, 'MeetingList'])->name('meetinglist');
-    Route::get('/meetinglist/json', [MeetingController::class, 'json'])->name('meetinglist.json');
-    // Route::get('/showmeeting/{hash}', [MeetingController::class, 'showMeeting'])->name('meeting.show');
-    Route::put('/updatemeeting/{id}', [MeetingController::class, 'updateMeeting'])->name('updatemeeting');
-    Route::get('/calendar-json', [MeetingController::class, 'calendarJson']);
-    Route::get('/get-accessories/{id}', [MeetingController::class, 'getAccessories']);
-    Route::get('/meetingteams', [MeetingController::class, 'MeetingTeams'])->name('meetingteams');
-    Route::post('/saveteams', [MeetingController::class, 'storeTeams'])->name('teams.store');
-    Route::post('/cancel-meeting/{id}', [MeetingController::class, 'cancelMeeting']);
-    Route::put('/updateteams/{id}', [MeetingController::class, 'updateTeams']);
-    // Route::get('/teamslist', [MeetingController::class, 'TeamsList'])->name('teamslist');
-    Route::get('/teamslist/json', [MeetingController::class, 'jsonTeams'])->name('teamslist.json');
 
-    Route::get('/vouchertaxi', [VoucherTaxiController::class, 'index'])
-        ->name('vouchertaxi');
+    Route::controller(MeetingController::class)->group(function () {
 
-    Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
+        Route::get('/meeting', 'index')->name('meeting');
+        Route::get('/inforoom_{id}', 'getRoom');
 
-        Route::get('/json', [VoucherTaxiController::class, 'json'])->name('json');
+        Route::post('/savemeeting', 'storeMeeting')->name('meeting.store');
+        Route::put('/updatemeeting/{id}', 'updateMeeting')->name('updatemeeting');
 
-        Route::get('/create', [VoucherTaxiController::class, 'create'])->name('create');
-        Route::post('/store', [VoucherTaxiController::class, 'store'])->name('store');
+        Route::get('/meetinglist/json', 'json')->name('meetinglist.json');
+        Route::get('/calendar-json', 'calendarJson');
 
-        Route::get('/edit/{id}', [VoucherTaxiController::class, 'edit'])->name('edit');
-        Route::post('/update/{id}', [VoucherTaxiController::class, 'update'])->name('update');
+        Route::get('/get-accessories/{id}', 'getAccessories');
 
-        Route::delete('/delete/{id}', [VoucherTaxiController::class, 'destroy'])->name('delete');
-        Route::get('/show/{id}', [VoucherTaxiController::class, 'show'])->name('show');
+        Route::get('/meetingteams', 'MeetingTeams')->name('meetingteams');
+        Route::post('/saveteams', 'storeTeams')->name('teams.store');
+        Route::put('/updateteams/{id}', 'updateTeams');
+
+        Route::post('/cancel-meeting/{id}', 'cancelMeeting');
+
+        Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
+
+    });
+
+
+    Route::controller(VoucherTaxiController::class)->group(function () {
+
+        Route::get('/vouchertaxi', 'index')
+            ->name('vouchertaxi');
+
+        Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
+
+            Route::get('/json', 'json')->name('json');
+
+            Route::post('/store', 'storeVoucher')->name('store');
+
+            Route::get('/edit/{id}', 'editVoucherTaxi')->name('edit');
+            Route::post('/update/{id}', 'updateVoucherTaxi')->name('update');
+
+            Route::post('/cancel/{docid}', 'cancel')->name('cancel');
+
+            Route::post('/approve/{docid}', 'approveVoucherTaxi');
+            Route::post('/reject/{docid}', 'rejectVoucherTaxi');
+            Route::post('/revise/{docid}', 'reviseVoucherTaxi');
+
+            Route::post('/process/{docid}', 'updateGaAdvice')
+                ->name('process');
+
+            Route::get('/tracking/{eid}', 'tracking');
+
+            // Route::get('/showvouchertaxi/{id}', 'show')
+            //     ->name('show');
+        });
+
+        Route::get('/showvouchertaxi/{hash}', 'showVoucherTaxi')
+            ->name('vouchertaxi.show');
 
     });
 

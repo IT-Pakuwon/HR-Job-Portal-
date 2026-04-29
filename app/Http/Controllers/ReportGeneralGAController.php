@@ -11,6 +11,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Exports\MeetingRoomExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MeetingOnlineExport;
+use App\Models\SysUserRole;
 class ReportGeneralGAController extends Controller
 {
     /*
@@ -20,9 +21,25 @@ class ReportGeneralGAController extends Controller
     */
     public function index()
     {
-        $rooms = MsMeetingRoom::pluck('room_name', 'room_id');
+        $rooms = MsMeetingRoom::select('room_id', 'room_name')
+            ->orderBy('room_name')
+            ->get();
 
-        return view('pages.report-ga.index', compact('rooms'));
+        $users = User::query()
+            ->where('status', 'A')
+            ->orderBy('name')
+            ->get();
+
+        $user = auth()->user();
+
+        return view('pages.report-ga.index', [
+            'rooms' => $rooms,
+            'users' => $users,
+
+            'hasCSACCESS' => $user->hasRole('CSACCESS'),
+            'hasADMIN' => strtolower($user->user_role) === 'admin',
+            'hasGAACCESS' => $user->hasRole('GAACCESS'),
+        ]);
     }
 
     /*
@@ -85,6 +102,16 @@ class ReportGeneralGAController extends Controller
     private function meetingRoomJson($request)
     {
         $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
+        $users = User::pluck('name', 'username');
+        $user = auth()->user();
+
+        $companyIds = collect(
+            explode(',', (string) $user->cpny_id)
+        )
+        ->map(fn ($x) => trim($x))
+        ->filter()
+        ->values()
+        ->toArray();
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
 
@@ -93,6 +120,9 @@ class ReportGeneralGAController extends Controller
             ->leftJoin('ms_meeting_accessories as a', function ($join) {
                 $join->on(DB::raw('a.acc_id::text'), '=', DB::raw("ANY(string_to_array(m.acc_id, ','))"));
             })
+            ->whereIn('m.cpny_id', $companyIds)
+
+
 
             // ->leftJoin('ms_department as d', 'd.department_id', '=', 'm.department_id')
             ->select([
@@ -245,6 +275,15 @@ class ReportGeneralGAController extends Controller
     {
         $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
         $users = User::pluck('name', 'username');
+        $user = auth()->user();
+
+        $companyIds = collect(
+            explode(',', (string) $user->cpny_id)
+        )
+        ->map(fn ($x) => trim($x))
+        ->filter()
+        ->values()
+        ->toArray();
 
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
@@ -258,6 +297,7 @@ class ReportGeneralGAController extends Controller
                     DB::raw("ANY(COALESCE(string_to_array(m.acc_id, ','), ARRAY[]::text[]))")
                 );
             })
+            ->whereIn('m.cpny_id', $companyIds)
 
             ->select([
                 'm.docid',

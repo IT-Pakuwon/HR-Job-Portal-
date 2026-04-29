@@ -313,6 +313,8 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script>
         let calendarInstance = null;
@@ -586,6 +588,8 @@
             const action = document.getElementById('link_action_area');
 
             const isAdmin = !!action;
+            const canEditTeams =
+            props.username === '{{ auth()->user()->username }}';
 
             // =========================
             // ✅ HAS LINK
@@ -605,12 +609,13 @@
                                 class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
                                 Copy
                             </button>
+                            ${canEditTeams ? `
+                                <button onclick="enableEdit()"
+                                    class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
+                                    Edit
+                                </button>
+                            ` : ''}
 
-                            ${isAdmin ? `
-                                        <button onclick="enableEdit('${props.teams_url}')"
-                                            class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
-                                            Edit
-                                        </button>` : ''}
                         </div>
 
                     </div>
@@ -655,71 +660,349 @@
             }
         }
 
-        function enableEdit(currentLink = '') {
+        function enableEdit() {
 
             const action = document.getElementById('link_action_area');
 
+            const currentTitle =
+                document.getElementById('view_title').innerText || '';
+
+            const currentDesc =
+                document.getElementById('view_desc').innerText || '';
+
             action.innerHTML = `
-                <div class="flex items-center gap-2">
 
-                    <input type="text" id="edit_meeting_link"
-                        value="${currentLink}"
-                        class="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                        placeholder="Paste meeting link">
+                <div class="space-y-4">
 
-                    <button onclick="saveMeetingLink()"
-                        class="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Save
-                    </button>
+                    <div>
+                        <label class="block mb-1 text-xs text-gray-500">
+                            Meeting Title
+                        </label>
+
+                        <input
+                            type="text"
+                            id="edit_meeting_title"
+                            value="${currentTitle}"
+                            class="w-full rounded-lg border border-gray-200
+                            dark:border-gray-700 px-3 py-2 text-sm
+                            bg-white dark:bg-gray-900">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+
+                        <div>
+                            <label class="block mb-1 text-xs text-gray-500">
+                                Start Time
+                            </label>
+
+                            <input
+                                type="text"
+                                id="edit_start_datetime"
+                                class="w-full rounded-lg border border-gray-200
+                                dark:border-gray-700 px-3 py-2 text-sm
+                                bg-white dark:bg-gray-900">
+                        </div>
+
+                        <div>
+                            <label class="block mb-1 text-xs text-gray-500">
+                                End Time
+                            </label>
+
+                            <input
+                                type="text"
+                                id="edit_end_datetime"
+                                class="w-full rounded-lg border border-gray-200
+                                dark:border-gray-700 px-3 py-2 text-sm
+                                bg-white dark:bg-gray-900">
+                        </div>
+
+                    </div>
+
+                    <div>
+                        <label class="block mb-1 text-xs text-gray-500">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="edit_meeting_desc"
+                            rows="4"
+                            class="w-full rounded-lg border border-gray-200
+                            dark:border-gray-700 px-3 py-2 text-sm
+                            bg-white dark:bg-gray-900">${currentDesc}</textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+
+                        <button
+                            onclick="closeEditMode()"
+                            class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm">
+                            Cancel
+                        </button>
+
+                        <button
+                            onclick="saveTeamsMeeting()"
+                            class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm">
+                            Save Changes
+                        </button>
+
+                    </div>
 
                 </div>
             `;
+
+            // 🔥 GET CURRENT EVENT
+            const event = calendarInstance.getEventById(currentEventId);
+
+            // 🔥 START PICKER
+            flatpickr("#edit_start_datetime", {
+                enableTime: true,
+                dateFormat: "Y-m-d h:i K",
+                time_24hr: false,
+                defaultDate: event ? event.start : null
+            });
+
+            // 🔥 END PICKER
+            flatpickr("#edit_end_datetime", {
+                enableTime: true,
+                dateFormat: "Y-m-d h:i K",
+                time_24hr: false,
+                defaultDate: event ? event.end : null
+            });
         }
+
+        // function saveMeetingLink() {
+
+        //     const link = document.getElementById('edit_meeting_link').value;
+
+        //     if (!link) {
+        //         Swal.fire('Warning', 'Please input meeting link', 'warning');
+        //         return;
+        //     }
+
+        //     $.ajax({
+        //         url: '/updateteams/' + currentEventId,
+        //         type: 'PUT',
+        //         data: {
+        //             meeting_link: link,
+        //             _token: $('input[name="_token"]').val()
+        //         },
+        //         success: function() {
+
+        //             Swal.fire('Success', 'Link saved', 'success');
+
+        //             // update modal UI
+        //             renderLinkSection({
+        //                 teams_url: link
+        //             });
+
+        //             // 🔥 UPDATE EVENT LIVE (NO RELOAD)
+        //             const event = calendarInstance.getEventById(currentEventId);
+
+        //             if (event) {
+        //                 event.setExtendedProp('teams_url', link);
+
+        //                 // 🔵 DONE = BLUE
+        //                 event.setProp('backgroundColor', '#3b82f6');
+        //                 event.setProp('borderColor', '#3b82f6');
+        //             }
+
+        //             // optional sync
+        //             calendarInstance.refetchEvents();
+        //         },
+        //         error: function() {
+        //             Swal.fire('Error', 'Failed to save link', 'error');
+        //         }
+        //     });
+        // }
 
         function saveMeetingLink() {
 
-            const link = document.getElementById('edit_meeting_link').value;
+            const link =
+                document.getElementById('edit_meeting_link').value;
 
-            if (!link) {
-                Swal.fire('Warning', 'Please input meeting link', 'warning');
-                return;
-            }
+            const title =
+                document.getElementById('edit_meeting_title').value;
+
+            const descr =
+                document.getElementById('edit_meeting_desc').value;
 
             $.ajax({
                 url: '/updateteams/' + currentEventId,
                 type: 'PUT',
                 data: {
                     meeting_link: link,
+                    title: title,
+                    descr: descr,
                     _token: $('input[name="_token"]').val()
                 },
-                success: function() {
 
-                    Swal.fire('Success', 'Link saved', 'success');
+                success: function(response) {
 
-                    // update modal UI
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated',
+                        text: response.message || 'Meeting updated'
+                    });
+
+                    // =========================
+                    // UPDATE MODAL UI
+                    // =========================
+
+                    document.getElementById('view_title').innerText = title;
+                    document.getElementById('view_desc').innerText = descr;
+
                     renderLinkSection({
                         teams_url: link
                     });
 
-                    // 🔥 UPDATE EVENT LIVE (NO RELOAD)
+                    // =========================
+                    // UPDATE FULLCALENDAR LIVE
+                    // =========================
+
                     const event = calendarInstance.getEventById(currentEventId);
 
                     if (event) {
+
+                        event.setProp('title', title);
+
+                        event.setExtendedProp('description', descr);
+
                         event.setExtendedProp('teams_url', link);
 
-                        // 🔵 DONE = BLUE
-                        event.setProp('backgroundColor', '#3b82f6');
-                        event.setProp('borderColor', '#3b82f6');
+                        event.setExtendedProp('isTeams', !!link);
+
+                        // optional visual refresh
+                        event.setProp(
+                            'backgroundColor',
+                            link ? '#2563eb' : '#eab308'
+                        );
+
+                        event.setProp(
+                            'borderColor',
+                            link ? '#2563eb' : '#eab308'
+                        );
                     }
 
                     // optional sync
                     calendarInstance.refetchEvents();
                 },
-                error: function() {
-                    Swal.fire('Error', 'Failed to save link', 'error');
+
+                error: function(xhr) {
+
+                    let message = 'Failed to update meeting';
+
+                    if (xhr.responseJSON?.message) {
+                        message = xhr.responseJSON.message;
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: message
+                    });
                 }
             });
         }
+
+        function saveTeamsMeeting() {
+
+            const title =
+                document.getElementById('edit_meeting_title').value;
+
+            const descr =
+                document.getElementById('edit_meeting_desc').value;
+
+            const startDatetime =
+                document.getElementById('edit_start_datetime').value;
+
+            const endDatetime =
+                document.getElementById('edit_end_datetime').value;
+
+            const datetimes =
+                `${startDatetime} - ${endDatetime}`;
+
+            $.ajax({
+
+                url: '/updateteams/' + currentEventId,
+
+                type: 'PUT',
+
+                data: {
+                    title,
+                    descr,
+                    datetimes,
+                    _token: $('input[name="_token"]').val()
+                },
+
+                success: function(response) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated',
+                        text: response.message
+                    });
+
+                    // =========================
+                    // UPDATE MODAL
+                    // =========================
+
+                    document.getElementById('view_title').innerText =
+                        title;
+
+                    document.getElementById('view_desc').innerText =
+                        descr;
+
+                    // =========================
+                    // UPDATE FULLCALENDAR
+                    // =========================
+
+                    const event =
+                        calendarInstance.getEventById(currentEventId);
+
+                    if (event) {
+
+                        const [startRaw, endRaw] =
+                            datetimes.split(' - ');
+
+                        event.setProp('title', title);
+
+                        event.setStart(moment(startRaw).toDate());
+
+                        event.setEnd(moment(endRaw).toDate());
+
+                        event.setExtendedProp(
+                            'description',
+                            descr
+                        );
+                    }
+
+                    calendarInstance.refetchEvents();
+
+                    closeEditMode();
+                },
+
+                error: function(xhr) {
+
+                    let message =
+                        'Failed to update Teams meeting';
+
+                    if (xhr.responseJSON?.message) {
+                        message = xhr.responseJSON.message;
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: message
+                    });
+                }
+            });
+        }
+
+        function closeEditMode() {
+            document.getElementById('link_action_area').innerHTML = '';
+        }
+
 
         function copyLink(link) {
             navigator.clipboard.writeText(link);

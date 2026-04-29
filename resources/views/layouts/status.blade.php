@@ -1381,3 +1381,51 @@ TABLE WRAP FIX
         word-break: break-word;
     }
 </style>
+
+<style>
+    .voucher-filter{
+        padding:6px 10px;
+        border-radius:10px;
+        font-size:11px;
+        font-weight:600;
+        transition:.2s;
+        background:#f3f4f6;
+        color:#4b5563;
+    }
+
+    .voucher-filter:hover{
+        background:#e5e7eb;
+    }
+
+    .active-filter{
+        background:#111827 !important;
+        color:white !important;
+    }
+
+    .dark .voucher-filter{
+        background:rgba(255,255,255,.06);
+        color:#d1d5db;
+    }
+
+    .dark .voucher-filter:hover{
+        background:rgba(255,255,255,.1);
+    }
+
+    .dark .active-filter{
+        background:white !important;
+        color:black !important;
+    }
+
+    .voucher-filter {
+        @apply rounded-lg px-3 py-1.5 text-xs font-medium transition;
+        @apply bg-gray-100 text-gray-600 hover:bg-gray-200;
+
+        @apply dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10;
+    }
+
+    .voucher-filter.active-filter {
+        @apply bg-gray-900 text-white;
+
+        @apply dark:bg-white dark:text-black;
+    }
+</style>

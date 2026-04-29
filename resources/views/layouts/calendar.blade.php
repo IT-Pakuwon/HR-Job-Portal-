@@ -368,4 +368,57 @@
 .fc-event {
     opacity: 1 !important;
 }
+
+/* ================= MONTH VIEW SPACING FIX ================= */
+
+/* make each day taller */
+.fc-daygrid-day-frame {
+    min-height: 120px; /* 🔥 main control (try 130–150 if you want more) */
+    padding: 10px 10px 8px;
+}
+
+/* spacing between rows */
+.fc-daygrid-body tr {
+    height: 120px;
+}
+
+/* date number spacing */
+.fc-daygrid-day-number {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+/* event spacing */
+.fc-daygrid-event {
+    margin-top: 6px !important;
+}
+
+/* make cells feel like cards */
+.fc-daygrid-day {
+    border-radius: 12px;
+    transition: all 0.15s ease;
+}
+
+/* subtle hover (Notion feel) */
+.fc-daygrid-day:hover {
+    background: #fafafa;
+}
+
+#approvalFlow > div {
+    animation: fadeSlide 0.3s ease;
+}
+
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
 </style>

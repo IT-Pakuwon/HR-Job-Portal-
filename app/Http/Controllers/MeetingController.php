@@ -507,6 +507,8 @@ class MeetingController extends Controller
 
             DB::connection('pgsql5')->commit();
 
+            $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
+
             if (!empty($teamsResult['success'])) {
                 $meeting->msteams_event_id = $teamsResult['msteams_event_id'] ?? null;
                 $meeting->msteams_join_url = $teamsResult['msteams_join_url'] ?? null;
@@ -988,9 +990,13 @@ class MeetingController extends Controller
         // ==========================
         // 🔥 OPTIONAL: ADD ADMIN
         // ==========================
-        $adminEmails = User::whereHas('roles', function ($q) {
-                $q->where('role_id', 'ADMIN'); // adjust if needed
-            })
+        $adminEmails = SysUserRole::query()
+            ->where('role_id', 'ADMIN')
+            ->where('status', 'A')
+            ->pluck('username');
+
+        $adminEmails = User::query()
+            ->whereIn('username', $adminEmails)
             ->pluck('email')
             ->filter()
             ->map(fn($e) => strtolower($e));
@@ -1914,43 +1920,189 @@ class MeetingController extends Controller
         }
     }
 
+    // public function updateTeams(Request $request, $id)
+    // {
+    //     $decoded = Hashids::decode($id);
+    //     $id = $decoded[0] ?? null;
+
+    //     $meeting = TrMeeting::on('pgsql5')->find($id);
+    //     abort_if(!$meeting, 404);
+
+    //     // 🔥 ONLY UPDATE WHAT TEAMS NEEDS
+    //     if ($request->filled('meeting_link')) {
+    //         $meeting->msteams_join_url = $request->meeting_link;
+    //     }
+
+    //     if ($request->filled('title')) {
+    //         $meeting->meeting_title = $request->title;
+    //     }
+
+    //     if ($request->filled('descr')) {
+    //         $meeting->meeting_descr = $request->descr;
+    //     }
+
+    //     $meeting->updated_by = auth()->user()->username;
+    //     $meeting->updated_at = now();
+    //     $meeting->save();
+
+    //     // 🔥 SEND UPDATE EMAIL
+    //     if (!empty($meeting->msteams_join_url)) {
+    //         $this->sendTeamsEmail($meeting, 'cancel');
+    //     } else {
+    //         $this->sendMeetingEmail($meeting, 'cancel');
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Teams meeting updated',
+    //     ]);
+    // }
+
     public function updateTeams(Request $request, $id)
     {
         $decoded = Hashids::decode($id);
         $id = $decoded[0] ?? null;
 
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid meeting ID',
+            ], 400);
+        }
+
         $meeting = TrMeeting::on('pgsql5')->find($id);
+
         abort_if(!$meeting, 404);
 
-        // 🔥 ONLY UPDATE WHAT TEAMS NEEDS
-        if ($request->filled('meeting_link')) {
-            $meeting->msteams_join_url = $request->meeting_link;
+        try {
+
+            $request->validate([
+                'title' => ['required', 'string', 'max:255'],
+                'descr' => ['required', 'string'],
+                'datetimes' => ['required', 'string'],
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
         }
 
-        if ($request->filled('title')) {
+        [$startRaw, $endRaw] = array_pad(
+            explode(' - ', $request->datetimes),
+            2,
+            null
+        );
+
+        if (!$startRaw || !$endRaw) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid datetime format',
+            ], 422);
+        }
+
+        try {
+
+            $startMeeting = Carbon::createFromFormat(
+                'Y-m-d h:i A',
+                trim($startRaw)
+            );
+
+            $endMeeting = Carbon::createFromFormat(
+                'Y-m-d h:i A',
+                trim($endRaw)
+            );
+
+        } catch (\Throwable $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid meeting date',
+            ], 422);
+        }
+
+        if ($endMeeting->lessThanOrEqualTo($startMeeting)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'End time must be greater than start time',
+            ], 422);
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+
+            // =========================
+            // UPDATE LOCAL DB
+            // =========================
+
             $meeting->meeting_title = $request->title;
-        }
 
-        if ($request->filled('descr')) {
             $meeting->meeting_descr = $request->descr;
+
+            $meeting->start_meeting_time =
+                $startMeeting->format('Y-m-d H:i:s');
+
+            $meeting->end_meeting_time =
+                $endMeeting->format('Y-m-d H:i:s');
+
+            $meeting->updated_by =
+                auth()->user()->username;
+
+            $meeting->updated_at = now();
+
+            $meeting->save();
+
+            // =========================
+            // UPDATE MICROSOFT TEAMS
+            // =========================
+
+            if (!empty($meeting->msteams_event_id)) {
+
+                $teamsResult =
+                    $this->updateMicrosoftTeamsMeeting($meeting);
+
+                if (empty($teamsResult['success'])) {
+
+                    DB::connection('pgsql5')->rollBack();
+
+                    return response()->json([
+                        'success' => false,
+                        'message' =>
+                            $teamsResult['message']
+                            ?? 'Failed updating Teams meeting',
+                    ], 500);
+                }
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            // =========================
+            // SEND UPDATED EMAIL
+            // =========================
+
+            $this->sendTeamsEmail($meeting, 'update');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Teams meeting updated successfully',
+            ]);
+
+        } catch (\Throwable $e) {
+
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
-
-        $meeting->updated_by = auth()->user()->username;
-        $meeting->updated_at = now();
-        $meeting->save();
-
-        // 🔥 SEND UPDATE EMAIL
-        if (!empty($meeting->msteams_join_url)) {
-            $this->sendTeamsEmail($meeting, 'cancel');
-        } else {
-            $this->sendMeetingEmail($meeting, 'cancel');
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Teams meeting updated',
-        ]);
     }
+
 
     protected function updateMicrosoftTeamsMeeting($meeting): array
     {
