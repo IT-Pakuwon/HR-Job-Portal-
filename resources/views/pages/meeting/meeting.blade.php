@@ -2,7 +2,8 @@
     <div class="max-w-9xl mx-auto w-full p-4">
 
         {{-- HEADER --}}
-        <div class="mb-4 rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+        <div
+            class="mb-4 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
 
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -10,20 +11,22 @@
                 <div class="flex items-center gap-3">
 
                     {{-- ICON --}}
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl
-                        {{ request()->is('meeting')
+                    <div
+                        class="{{ request()->is('meeting')
                             ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/10'
-                            : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10' }}">
+                            : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10' }} flex h-10 w-10 items-center justify-center rounded-xl">
 
-                        @if(request()->is('meeting'))
+                        @if (request()->is('meeting'))
                             <!-- calendar -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                         @else
                             <!-- video -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
                             </svg>
@@ -50,8 +53,7 @@
                     <a href="{{ url('/meeting') }}"
                         class="{{ request()->is('meeting')
                             ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                            : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }}
-                        flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
+                            : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -65,8 +67,7 @@
                     <a href="{{ url('/meetingteams') }}"
                         class="{{ request()->is('meetingteams')
                             ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
-                            : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }}
-                        flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
+                            : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -88,13 +89,13 @@
 
 
         <!-- 🔥 CREATE MODAL -->
-        <div id="schedule-show"
-            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 p-4">
+        <div id="schedule-show" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30 p-4">
 
-            <div class="w-full max-w-3xl rounded-2xl bg-white shadow-xl dark:bg-gray-900 max-h-[90vh] flex flex-col">
-                <div class="space-y-6 px-6 py-5 overflow-y-auto">
+            <div class="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-xl dark:bg-gray-900">
+                <div class="space-y-6 overflow-y-auto px-6 py-5">
                     {{-- HEADER --}}
-                    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                    <div
+                        class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
                                 Create Meeting
@@ -121,11 +122,11 @@
 
                                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                         <div>
                                             <label class="req text-xs text-gray-500">Start</label>
                                             <input type="text" id="start_datetime" name="start_datetime"
-                                                class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required >
+                                                class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
                                         </div>
 
                                         <div>
@@ -171,7 +172,7 @@
                                     <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
                                         Description
                                     </label>
-                                    <textarea  id="descr" name="descr" rows="3" required placeholder="Write a short description..."
+                                    <textarea id="descr" name="descr" rows="3" required placeholder="Write a short description..."
                                         class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm focus:ring-1 focus:ring-gray-300 dark:border-gray-700"></textarea>
                                 </div>
 
@@ -186,7 +187,7 @@
                                         Accessories
                                     </label>
                                     <select id="acc_id" name="acc_id[]" multiple
-                                        class="meeting-multi mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm dark:border-gray-700" >
+                                        class="meeting-multi mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm dark:border-gray-700">
                                     </select>
                                 </div>
 
@@ -206,14 +207,15 @@
                             <div id="internalSection">
                                 <div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div class='flex-1'>
                                         <label class="req text-xs font-medium text-gray-500">
                                             Internal PIC Name
                                         </label>
                                         <input type="text" id="internal_pic" name="internal_pic"
                                             value="{{ auth()->user()->name }}" readonly
-                                            class="mt-1 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm" required>
+                                            class="mt-1 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm"
+                                            required>
                                     </div>
                                     <div class="flex-1">
                                         <label class="req mt-3 block text-xs font-medium text-gray-500">
@@ -222,7 +224,8 @@
                                         <select id="username" name="username[]" multiple>
                                             @foreach ($users as $u)
                                                 <option value="{{ $u->name }}|{{ $u->meeting_email }}"
-                                                    data-email="{{ $u->meeting_email }}" data-name="{{ $u->name }}">
+                                                    data-email="{{ $u->meeting_email }}"
+                                                    data-name="{{ $u->name }}">
                                                     {{ $u->name }} ({{ $u->meeting_email }})
                                                 </option>
                                             @endforeach
@@ -278,8 +281,8 @@
 
                                 <svg id="loadingSpinner" class="hidden h-4 w-4 animate-spin"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                                        class="opacity-25" />
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4" class="opacity-25" />
                                     <path fill="currentColor" class="opacity-75"
                                         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                                 </svg>
@@ -459,11 +462,13 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css"/>
+<link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css" />
 <script src="https://unpkg.com/@popperjs/core@2"></script>
 <script src="https://unpkg.com/tippy.js@6"></script>
 
 <script>
+    window.minBookingDate = @json(now()->startOfDay()->format('Y-m-d'));
+    window.maxBookingDate = @json($maxBookingDate->format('Y-m-d'));
     window.currentUserId = @json(auth()->user()->username);
     window.hasCSACCESS = @json($hasCsAccess ?? false);
     window.editMeetingId = null;
@@ -471,20 +476,23 @@
     window.currentUsername = @json(auth()->user()->name);
     document.addEventListener('DOMContentLoaded', function() {
         const RESTRICTED_ROOMS = [
-                'Ruang Meeting 33-1',
-                'Ruang Meeting 33-5'
-            ];
+            'Ruang Meeting 33-1',
+            'Ruang Meeting 33-5'
+        ];
 
         window.endPicker = flatpickr("#end_datetime", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
+            minDate: "today",
             time_24hr: true
+
         });
 
         window.startPicker = flatpickr("#start_datetime", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
             time_24hr: true,
+            minDate: "today",
             onChange: function(selectedDates) {
                 if (selectedDates.length) {
                     const end = new Date(selectedDates[0]);
@@ -567,20 +575,20 @@
             // },
 
             eventContent: function(arg) {
-            const title = arg.event.title;
-            const user = arg.event.extendedProps.user;
-            const room = arg.event.extendedProps.room;
-            const type = arg.event.extendedProps.type;
-            const isTeams = arg.event.extendedProps.isTeams;
+                const title = arg.event.title;
+                const user = arg.event.extendedProps.user;
+                const room = arg.event.extendedProps.room;
+                const type = arg.event.extendedProps.type;
+                const isTeams = arg.event.extendedProps.isTeams;
 
-            const viewType = arg.view.type;
+                const viewType = arg.view.type;
 
-            // =========================
-            // ✅ WEEK & MONTH (MINIMAL)
-            // =========================
-            if (viewType === 'timeGridWeek') {
-                return {
-                    html: `
+                // =========================
+                // ✅ WEEK & MONTH (MINIMAL)
+                // =========================
+                if (viewType === 'timeGridWeek') {
+                    return {
+                        html: `
                         <div class="px-1 leading-tight">
 
                             <div class="font-medium text-[11px] truncate">
@@ -593,14 +601,14 @@
 
                         </div>
                     `
-                };
-            }
+                    };
+                }
 
-            // =========================
-            // ✅ TIMELINE / DAY (FULL)
-            // =========================
-            return {
-                html: `
+                // =========================
+                // ✅ TIMELINE / DAY (FULL)
+                // =========================
+                return {
+                    html: `
                 <div class="fc-event-custom">
 
                     <div class="fc-event-title">
@@ -618,29 +626,29 @@
 
                 </div>
                 `
-            };
-        },
+                };
+            },
 
             eventDidMount: function(info) {
 
-            const p = info.event.extendedProps;
+                const p = info.event.extendedProps;
 
-            const start = moment(info.event.start).format('DD MMM YYYY HH:mm');
-            const end = info.event.end
-                ? moment(info.event.end).format('HH:mm')
-                : '-';
+                const start = moment(info.event.start).format('DD MMM YYYY HH:mm');
+                const end = info.event.end ?
+                    moment(info.event.end).format('HH:mm') :
+                    '-';
 
-            let status = '';
+                let status = '';
 
-            if (p.status === 'X') {
-                status = '❌ Cancelled';
-            } else if (!p.teams_url) {
-                status = '🎥 No Teams/Zoom';
-            } else {
-                status = p.isTeams ? '💬 Teams Ready' : '🎥 Zoom Ready';
-            }
+                if (p.status === 'X') {
+                    status = '❌ Cancelled';
+                } else if (!p.teams_url) {
+                    status = '🎥 No Teams/Zoom';
+                } else {
+                    status = p.isTeams ? '💬 Teams Ready' : '🎥 Zoom Ready';
+                }
 
-            const html = `
+                const html = `
                 <div class="text-xs space-y-2">
 
                     <div class="font-semibold text-gray-900">
@@ -661,14 +669,14 @@
                 </div>
             `;
 
-            tippy(info.el, {
-                content: html,
-                allowHTML: true,
-                theme: 'light-border',
-                placement: 'top',
-                animation: 'scale',
-            });
-        },
+                tippy(info.el, {
+                    content: html,
+                    allowHTML: true,
+                    theme: 'light-border',
+                    placement: 'top',
+                    animation: 'scale',
+                });
+            },
 
             eventClick: function(info) {
 
@@ -995,13 +1003,171 @@
                 // ✅ continue update logic if any
             },
 
+            // select: function(info) {
+            //     document.activeElement?.blur();
+
+            //     const today = new Date();
+
+            //     today.setHours(0, 0, 0, 0);
+
+            //     const selectedDate = new Date(info.start);
+
+            //     selectedDate.setHours(0, 0, 0, 0);
+
+            //     if (selectedDate < today) {
+
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'Invalid Date',
+            //             text: 'Cannot create meeting on past dates'
+            //         });
+
+            //         window.calendar.unselect();
+            //         return;
+            //     }
+
+            //     const selectedDate = moment(info.start).format('YYYY-MM-DD');
+
+            //     if (selectedDate < window.minBookingDate) {
+
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'Invalid Date',
+            //             text: 'Booking for past dates is not allowed.'
+            //         });
+
+            //         window.calendar.unselect();
+            //         return;
+            //     }
+
+            //     if (selectedDate > window.maxBookingDate) {
+
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'Booking Limit',
+            //             text: `Booking cannot exceed ${moment(window.maxBookingDate).format('DD MMM YYYY')}`
+            //         });
+
+            //         window.calendar.unselect();
+            //         return;
+            //     }
+
+            //     let resourceId = info.resource ? info.resource.id : null;
+
+            //     const roomName = info.resource?.title || '';
+
+            //     if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) { // 🔥 use real ID
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'Restricted Room',
+            //             text: "We're sorry, this room is managed by Receptionist Office 8 - Lvl. 32. Please contact them for booking."
+            //         });
+
+            //         window.calendar.unselect();
+            //         return;
+            //     }
+            //     if (!resourceId) {
+            //         const fallbackRoom = @json($rooms->first()->room_id ?? null);
+
+            //         if (!fallbackRoom) {
+            //             Swal.fire({
+            //                 icon: 'error',
+            //                 title: 'No Room Configured',
+            //                 text: 'Please contact admin'
+            //             });
+            //             return;
+            //         }
+
+            //         resourceId = fallbackRoom;
+            //     }
+
+            //     if (!resourceId) {
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'No Room Available',
+            //             text: 'Cannot create meeting without a room'
+            //         });
+            //         window.calendar.unselect();
+            //         return;
+            //     }
+
+            //     const start = info.start;
+            //     const end = info.end;
+
+            //     const hasConflict = window.calendar.getEvents().some(e => {
+
+            //         const resources = e.getResources();
+
+            //         const eventResourceId =
+            //             resources && resources.length > 0 && resources[0] ?
+            //             resources[0].id :
+            //             null;
+
+            //         return (
+            //             eventResourceId === resourceId &&
+            //             (
+            //                 (start >= e.start && start < e.end) ||
+            //                 (end > e.start && end <= e.end) ||
+            //                 (start <= e.start && end >= e.end)
+            //             )
+            //         );
+            //     });
+
+            //     if (hasConflict) {
+            //         Swal.fire({
+            //             icon: 'warning',
+            //             title: 'Time Conflict',
+            //             text: 'Room already booked'
+            //         });
+
+            //         window.calendar.unselect();
+            //         return;
+            //     }
+
+            //     // 🔥 DIRECT OPEN YOUR REAL MODAL
+            //     openModal(start, end, resourceId);
+
+            //     window.calendar.unselect();
+            // }
+
             select: function(info) {
+
                 document.activeElement?.blur();
+
+                const selectedDate = moment(info.start).format('YYYY-MM-DD');
+
+                // ❌ past date
+                if (selectedDate < window.minBookingDate) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Invalid Date',
+                        text: 'Booking for past dates is not allowed.'
+                    });
+
+                    window.calendar.unselect();
+                    return;
+                }
+
+                // ❌ exceed max booking
+                if (selectedDate > window.maxBookingDate) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Booking Limit',
+                        text: `Booking cannot exceed ${moment(window.maxBookingDate).format('DD MMM YYYY')}`
+                    });
+
+                    window.calendar.unselect();
+                    return;
+                }
+
                 let resourceId = info.resource ? info.resource.id : null;
 
                 const roomName = info.resource?.title || '';
 
-                if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) {// 🔥 use real ID
+                if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) {
+
                     Swal.fire({
                         icon: 'warning',
                         title: 'Restricted Room',
@@ -1011,15 +1177,19 @@
                     window.calendar.unselect();
                     return;
                 }
+
                 if (!resourceId) {
+
                     const fallbackRoom = @json($rooms->first()->room_id ?? null);
 
                     if (!fallbackRoom) {
+
                         Swal.fire({
                             icon: 'error',
                             title: 'No Room Configured',
                             text: 'Please contact admin'
                         });
+
                         return;
                     }
 
@@ -1027,11 +1197,13 @@
                 }
 
                 if (!resourceId) {
+
                     Swal.fire({
                         icon: 'warning',
                         title: 'No Room Available',
                         text: 'Cannot create meeting without a room'
                     });
+
                     window.calendar.unselect();
                     return;
                 }
@@ -1044,9 +1216,9 @@
                     const resources = e.getResources();
 
                     const eventResourceId =
-                        resources && resources.length > 0 && resources[0] ?
-                        resources[0].id :
-                        null;
+                        resources && resources.length > 0 && resources[0]
+                            ? resources[0].id
+                            : null;
 
                     return (
                         eventResourceId === resourceId &&
@@ -1059,6 +1231,7 @@
                 });
 
                 if (hasConflict) {
+
                     Swal.fire({
                         icon: 'warning',
                         title: 'Time Conflict',
@@ -1069,11 +1242,11 @@
                     return;
                 }
 
-                // 🔥 DIRECT OPEN YOUR REAL MODAL
                 openModal(start, end, resourceId);
 
                 window.calendar.unselect();
             }
+
         });
 
 
@@ -1132,14 +1305,34 @@
                 e.preventDefault();
 
                 if (submitBtn.disabled) return;
-                const requiredFields = [
-                    { id: 'start_datetime', label: 'Start Time' },
-                    { id: 'end_datetime', label: 'End Time' },
-                    { id: 'room_id', label: 'Room' },
-                    { id: 'title', label: 'Title' },
-                    { id: 'descr', label: 'Description' },
-                    { id: 'participant', label: 'Participants' },
-                    { id: 'internal_pic', label: 'Internal PIC Name' } // 🔥 added
+                const requiredFields = [{
+                        id: 'start_datetime',
+                        label: 'Start Time'
+                    },
+                    {
+                        id: 'end_datetime',
+                        label: 'End Time'
+                    },
+                    {
+                        id: 'room_id',
+                        label: 'Room'
+                    },
+                    {
+                        id: 'title',
+                        label: 'Title'
+                    },
+                    {
+                        id: 'descr',
+                        label: 'Description'
+                    },
+                    {
+                        id: 'participant',
+                        label: 'Participants'
+                    },
+                    {
+                        id: 'internal_pic',
+                        label: 'Internal PIC Name'
+                    } // 🔥 added
                 ];
 
                 for (let field of requiredFields) {
@@ -1679,20 +1872,20 @@
 
                 window.accTom.refreshOptions(false);
 
-        if (props.accessories) {
-            props.accessories.forEach(acc => {
+                if (props.accessories) {
+                    props.accessories.forEach(acc => {
 
-                // ensure option exists
-                if (!window.accTom.options[acc.id]) {
-                    window.accTom.addOption({
-                        value: acc.id,
-                        text: acc.name
+                        // ensure option exists
+                        if (!window.accTom.options[acc.id]) {
+                            window.accTom.addOption({
+                                value: acc.id,
+                                text: acc.name
+                            });
+                        }
+
+                        window.accTom.addItem(acc.id, true);
                     });
                 }
-
-                window.accTom.addItem(acc.id, true);
-            });
-        }
             });
 
 
@@ -1753,9 +1946,15 @@
             </td>
 
             <td class="p-3">
-                <input name="external_email[]" value="${email}"
-                    placeholder="Email address"
-                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+                <input
+                    type="email"
+                    name="external_email[]"
+                    value="${email}"
+                    placeholder="example@gmail.com"
+                    required
+                    pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                >
             </td>
 
             <td class="p-3">

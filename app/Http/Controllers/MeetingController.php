@@ -110,6 +110,20 @@ class MeetingController extends Controller
             ->where('role_id', 'CSACCESS')
             ->pluck('role_id');
 
+        $bookingSetting = MsDasSetting::query()
+            ->where('status', 'A')
+            ->first();
+
+        // default +15 days
+        $maxBookingDate = now()->addDays(15)->endOfDay();
+
+        if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
+
+            $maxBookingDate = now()
+                ->addDays((int) $bookingSetting->setting_value_string)
+                ->endOfDay();
+        }
+
         return view('pages.meeting.meeting', [
             'selectedDate' => $date,
             'rooms' => $rooms,
@@ -120,6 +134,7 @@ class MeetingController extends Controller
             'user' => $user,
             'hasCsAccess' => $roleIds->isNotEmpty(),
             'accessories' => $accessories, // ✅ ADD THIS
+            'maxBookingDate' => $maxBookingDate, // 🔥 add this
             // 'calendarEvents' => $calendarEvents,
         ]);
     }
@@ -300,6 +315,39 @@ class MeetingController extends Controller
                 'username' => ['required', 'array', 'min:1'],
                 'username.*' => ['nullable', 'string'],
                 'external_participant' => ['nullable', 'string', 'max:255'],
+                'external_name' => [
+                    'nullable',
+                    'array',
+                    'required_if:external_participant,1',
+                ],
+
+                'external_name.*' => [
+                    'required_if:external_participant,1',
+                    'string',
+                    'max:255',
+                ],
+
+                'external_company' => [
+                    'nullable',
+                    'array',
+                    'required_if:external_participant,1',
+                ],
+
+                'external_company.*' => [
+                    'required_if:external_participant,1',
+                    'string',
+                    'max:255',
+                ],
+                'external_email' => [
+                    'nullable',
+                    'array',
+                    'required_if:external_participant,1',
+                ],
+
+                'external_email.*' => [
+                    'required_if:external_participant,1',
+                    'email:rfc,dns',
+                ],
                 'participant_external_list' => ['nullable', 'string'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -329,13 +377,56 @@ class MeetingController extends Controller
             ], 422);
         }
 
+        // ==========================
+        // BOOKING DATE LIMIT
+        // ==========================
+
+        $bookingSetting = MsDasSetting::query()
+            ->where('status', 'A')
+            ->first();
+
+        // default = +15 days
+        $maxBookingDate = now()->addDays(15)->endOfDay();
+
+        if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
+
+            // example: "+15 days"
+            $maxBookingDate = now()
+                ->addDays((int) $bookingSetting->setting_value_string)
+                ->endOfDay();
+        }
+
+        // ❌ cannot book today
+        // ❌ cannot book past date
+        $minBookingDate = now()->startOfDay();
+
+        $meetingDate = $startMeeting->copy()->startOfDay();
+
+        // validate minimum
+        if ($meetingDate->lt($minBookingDate)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking for past dates is not allowed.',
+            ], 422);
+        }
+
+        // validate maximum
+        if ($meetingDate->gt($maxBookingDate)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking cannot exceed '
+                    . $maxBookingDate->format('d M Y'),
+            ], 422);
+        }
+
         if ($endMeeting->lessThanOrEqualTo($startMeeting)) {
             return response()->json([
                 'success' => false,
                 'message' => 'End time harus lebih besar dari start time.',
             ], 422);
         }
-
         $authUser = auth()->user();
 
         $hasCSACCESS = SysUserRole::where('username', $authUser->username)
@@ -713,6 +804,50 @@ class MeetingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Tanggal meeting tidak valid.',
+            ], 422);
+        }
+
+        // ==========================
+        // BOOKING DATE LIMIT
+        // ==========================
+
+        $bookingSetting = MsDasSetting::query()
+            ->where('status', 'A')
+            ->first();
+
+        // default = +15 days
+        $maxBookingDate = now()->addDays(15)->endOfDay();
+
+        if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
+
+            // example: "+15 days"
+        $maxBookingDate = now()
+            ->addDays((int) $bookingSetting->setting_value_string)
+            ->endOfDay();
+        }
+
+        // ❌ cannot book today
+        // ❌ cannot book past date
+        $minBookingDate = now()->startOfDay();
+
+        $meetingDate = $startMeeting->copy()->startOfDay();
+
+        // validate minimum
+        if ($meetingDate->lt($minBookingDate)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking for past dates is not allowed.',
+            ], 422);
+        }
+
+        // validate maximum
+        if ($meetingDate->gt($maxBookingDate)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking cannot exceed '
+                    . $maxBookingDate->format('d M Y'),
             ], 422);
         }
 
@@ -1177,13 +1312,13 @@ class MeetingController extends Controller
             4 => 'tm.meeting_title',
             5 => 'tm.meeting_descr',
             6 => 'mr.room_name',
-            7 => 'ma.acc_name',
+            // 7 => 'ma.acc_name',
         ];
 
         $baseQuery = DB::connection('pgsql5')
             ->table('tr_meeting as tm')
-            ->leftJoin('ms_meeting_room as mr', 'tm.room_id', '=', 'mr.room_id')
-            ->leftJoin('ms_meeting_accessories as ma', 'tm.acc_id', '=', 'ma.acc_id');
+            ->leftJoin('ms_meeting_room as mr', 'tm.room_id', '=', 'mr.room_id');
+            // ->leftJoin('ms_meeting_accessories as ma', 'tm.acc_id', '=', 'ma.acc_id');
 
         $totalData = (clone $baseQuery)->count('tm.id');
         $totalFiltered = $totalData;
@@ -1216,7 +1351,7 @@ class MeetingController extends Controller
                 'tm.msteams_join_url',
 
                 'mr.room_name',
-                'ma.acc_name',
+                // 'ma.acc_name',
             ]);
 
         // ✅ FILTER DATE RANGE
@@ -1240,8 +1375,7 @@ class MeetingController extends Controller
                     ->orWhereRaw("LOWER(COALESCE(tm.user_peminta, '')) LIKE ?", ["%{$search}%"])
                     ->orWhereRaw("LOWER(COALESCE(tm.meeting_title, '')) LIKE ?", ["%{$search}%"])
                     ->orWhereRaw("LOWER(COALESCE(tm.meeting_descr, '')) LIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("LOWER(COALESCE(mr.room_name, '')) LIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("LOWER(COALESCE(ma.acc_name, '')) LIKE ?", ["%{$search}%"]);
+                    ->orWhereRaw("LOWER(COALESCE(mr.room_name, '')) LIKE ?", ["%{$search}%"]);
             });
 
             $totalFiltered = (clone $query)->count('tm.id');
@@ -1252,6 +1386,8 @@ class MeetingController extends Controller
             ->offset($start)
             ->limit($limit)
             ->get();
+
+        $accMap = MsMeetingAccessories::pluck('acc_name', 'acc_id');
 
         $data = [];
         $no = $start + 1;
@@ -1268,6 +1404,11 @@ class MeetingController extends Controller
                 ->where('docid', $row->docid)
                 ->where('status', 'A')
                 ->count();
+
+            $accNames = collect(explode(',', (string) $row->acc_id))
+                ->map(fn($id) => $accMap[trim($id)] ?? null)
+                ->filter()
+                ->implode(', ');
 
             $data[] = [
                 'no' => $no++,
@@ -1304,7 +1445,7 @@ class MeetingController extends Controller
                 'meeting_title' => $row->meeting_title ?? '-',
                 'meeting_descr' => $row->meeting_descr ?? '-',
                 'room_name' => $row->room_name ?? '-',
-                'acc_name' => $row->acc_name ?? '-',
+                'acc_name' => $accNames ?: '-',
 
                 'hash' => Hashids::encode($row->id),
             ];
@@ -1333,14 +1474,14 @@ class MeetingController extends Controller
             4 => 'tm.meeting_title',
             5 => 'tm.meeting_descr',
             6 => 'mr.room_name',
-            7 => 'ma.acc_name',
+            // 7 => 'ma.acc_name',
         ];
 
         $baseQuery = DB::connection('pgsql5')
         ->table('tr_meeting as tm')
         ->where('tm.status', '!=', 'X') // ✅ correct place
-        ->leftJoin('ms_meeting_room as mr', 'tm.room_id', '=', 'mr.room_id')
-        ->leftJoin('ms_meeting_accessories as ma', 'tm.acc_id', '=', 'ma.acc_id');
+        ->leftJoin('ms_meeting_room as mr', 'tm.room_id', '=', 'mr.room_id');
+        // ->leftJoin('ms_meeting_accessories as ma', 'tm.acc_id', '=', 'ma.acc_id');
 
         $totalData = (clone $baseQuery)->count('tm.id');
         $totalFiltered = $totalData;
@@ -1365,7 +1506,6 @@ class MeetingController extends Controller
                 'tm.acc_id',
                 'tm.status',
                 'mr.room_name',
-                'ma.acc_name',
             ]);
 
         if (!empty($search)) {
@@ -1376,8 +1516,8 @@ class MeetingController extends Controller
                     ->orWhereRaw("LOWER(COALESCE(tm.user_peminta, '')) LIKE ?", ["%{$search}%"])
                     ->orWhereRaw("LOWER(COALESCE(tm.meeting_title, '')) LIKE ?", ["%{$search}%"])
                     ->orWhereRaw("LOWER(COALESCE(tm.meeting_descr, '')) LIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("LOWER(COALESCE(mr.room_name, '')) LIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("LOWER(COALESCE(ma.acc_name, '')) LIKE ?", ["%{$search}%"]);
+                    ->orWhereRaw("LOWER(COALESCE(mr.room_name, '')) LIKE ?", ["%{$search}%"]);
+                    // ->orWhereRaw("LOWER(COALESCE(ma.acc_name, '')) LIKE ?", ["%{$search}%"]);
             });
 
             $totalFiltered = (clone $query)->count('tm.id');
@@ -1389,10 +1529,17 @@ class MeetingController extends Controller
             ->limit($limit)
             ->get();
 
+        $accMap = MsMeetingAccessories::pluck('acc_name', 'acc_id');
+
         $data = [];
         $no = $start + 1;
 
         foreach ($meetings as $row) {
+
+            $accNames = collect(explode(',', (string) $row->acc_id))
+                ->map(fn($id) => $accMap[trim($id)] ?? null)
+                ->filter()
+                ->implode(', ');
             $data[] = [
                 'no' => $no++,
                 'docid' => $row->docid ?? '-',
@@ -1406,7 +1553,7 @@ class MeetingController extends Controller
                 'meeting_title' => $row->meeting_title ?? '-',
                 'meeting_descr' => $row->meeting_descr ?? '-',
                 'room_name' => $row->room_name ?? '-',
-                'acc_name' => $row->acc_name ?? '-',
+                'acc_name' => $accNames ?: '-',
                 'status' => $row->status ?? '-',
                 'hash' => Hashids::encode($row->id),
             ];
@@ -1582,10 +1729,42 @@ class MeetingController extends Controller
                 'descr' => ['required', 'string'],
                 'acc_id' => ['nullable', 'array'],
                 'acc_id.*' => ['nullable', 'string'],
-                'participant' => ['nullable', 'string', 'max:50'],
+                'participant' => ['required', 'numeric', 'min:1'],
                 'username' => ['nullable', 'array'],
                 'username.*' => ['nullable', 'string'],
-                'external_participant' => ['nullable', 'string', 'max:255'],
+                'external_name' => [
+                    'nullable',
+                    'array',
+                    'required_if:external_participant,1',
+                ],
+
+                'external_name.*' => [
+                    'required_if:external_participant,1',
+                    'string',
+                    'max:255',
+                ],
+
+                'external_company' => [
+                    'nullable',
+                    'array',
+                    'required_if:external_participant,1',
+                ],
+
+                'external_company.*' => [
+                    'required_if:external_participant,1',
+                    'string',
+                    'max:255',
+                ],
+                'external_email' => [
+                    'nullable',
+                    'array',
+                    'required_if:external_participant,1',
+                ],
+
+                'external_email.*' => [
+                    'required_if:external_participant,1',
+                    'email:rfc,dns',
+                ],
                 'participant_external_list' => ['nullable', 'string'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -1612,6 +1791,50 @@ class MeetingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Tanggal meeting tidak valid.',
+            ], 422);
+        }
+
+        // ==========================
+        // BOOKING DATE LIMIT
+        // ==========================
+
+        $bookingSetting = MsDasSetting::query()
+            ->where('status', 'A')
+            ->first();
+
+        // default = +15 days
+        $maxBookingDate = now()->addDays(15)->endOfDay();
+
+        if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
+
+            // example: "+15 days"
+            $maxBookingDate = now()
+                ->addDays((int) $bookingSetting->setting_value_string)
+                ->endOfDay();
+        }
+
+        // ❌ cannot book today
+        // ❌ cannot book past date
+        $minBookingDate = now()->startOfDay();
+
+        $meetingDate = $startMeeting->copy()->startOfDay();
+
+        // validate minimum
+        if ($meetingDate->lt($minBookingDate)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking for past dates is not allowed.',
+            ], 422);
+        }
+
+        // validate maximum
+        if ($meetingDate->gt($maxBookingDate)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking cannot exceed '
+                    . $maxBookingDate->format('d M Y'),
             ], 422);
         }
 
@@ -1860,7 +2083,10 @@ class MeetingController extends Controller
                 || (string) $oldEnd !== (string) $meeting->end_meeting_time
                 || (string) $oldRoom !== (string) $meeting->room_id;
 
-            if ($scheduleOrRoomChanged && !empty($meeting->acc_id)) {
+                if (
+                    ($scheduleOrRoomChanged || $accessoryChanged)
+                    && !empty($meeting->acc_id)
+                ) {
 
                 $accessoryChanged = (string) $oldAccId !== (string) $meeting->acc_id;
 
@@ -2005,30 +2231,63 @@ class MeetingController extends Controller
         }
 
         try {
-
-            $startMeeting = Carbon::createFromFormat(
-                'Y-m-d h:i A',
-                trim($startRaw)
-            );
-
-            $endMeeting = Carbon::createFromFormat(
-                'Y-m-d h:i A',
-                trim($endRaw)
-            );
-
+            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
         } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tanggal meeting tidak valid.',
+            ], 422);
+        }
+
+        // ==========================
+        // BOOKING DATE LIMIT
+        // ==========================
+
+        $bookingSetting = MsDasSetting::query()
+            ->where('status', 'A')
+            ->first();
+
+        // default = +15 days
+        $maxBookingDate = now()->addDays(15)->endOfDay();
+
+        if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
+
+            // example: "+15 days"
+            $maxBookingDate = now()
+                ->addDays((int) $bookingSetting->setting_value_string)
+                ->endOfDay();
+        }
+
+        // ❌ cannot book today
+        // ❌ cannot book past date
+        $minBookingDate = now()->startOfDay();
+
+        $meetingDate = $startMeeting->copy()->startOfDay();
+
+        // validate minimum
+        if ($meetingDate->lt($minBookingDate)) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid meeting date',
+                'message' => 'Booking for past dates is not allowed.',
+            ], 422);
+        }
+
+        // validate maximum
+        if ($meetingDate->gt($maxBookingDate)) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking cannot exceed '
+                    . $maxBookingDate->format('d M Y'),
             ], 422);
         }
 
         if ($endMeeting->lessThanOrEqualTo($startMeeting)) {
-
             return response()->json([
                 'success' => false,
-                'message' => 'End time must be greater than start time',
+                'message' => 'End time harus lebih besar dari start time.',
             ], 422);
         }
 
@@ -2235,17 +2494,53 @@ class MeetingController extends Controller
         $meeting->updated_by = auth()->user()->username;
         $meeting->updated_at = now();
         $meeting->save();
-        $this->sendMeetingEmail($meeting, 'cancel');
 
         if (!empty($meeting->msteams_event_id)) {
             $this->deleteMicrosoftTeamsMeeting($meeting);
         }
+
+        $this->sendMeetingEmail($meeting, 'cancel');
 
 
         return response()->json([
             'success' => true,
             'message' => 'Meeting cancelled',
         ]);
+    }
+
+    protected function validateBookingDate(Carbon $startMeeting, Carbon $endMeeting)
+    {
+        $bookingSetting = MsDasSetting::query()
+            ->where('status', 'A')
+            ->first();
+
+        $maxBookingDate = now()->addDays(15)->endOfDay();
+
+        if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
+            $maxBookingDate = now()
+                ->addDays((int) $bookingSetting->setting_value_string)
+                ->endOfDay();
+        }
+
+        $minBookingDate = now()->startOfDay();
+
+        $meetingDate = $startMeeting->copy()->startOfDay();
+
+        if ($meetingDate->lt($minBookingDate)) {
+            throw new \Exception('Booking for past dates is not allowed.');
+        }
+
+        if ($meetingDate->gt($maxBookingDate)) {
+            throw new \Exception(
+                'Booking cannot exceed '.$maxBookingDate->format('d M Y')
+            );
+        }
+
+        if ($endMeeting->lessThanOrEqualTo($startMeeting)) {
+            throw new \Exception(
+                'End time harus lebih besar dari start time.'
+            );
+        }
     }
 
     protected function generateMeetingDocId($year, $month, $username)
