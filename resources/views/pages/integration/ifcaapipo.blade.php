@@ -228,11 +228,17 @@
 
         poTbody.innerHTML = rows.map(r => {
             const stage = (r.stage_status ?? 'H');
-            const it = String(r.integration_type ?? '').trim().toUpperCase();
+
+            // untuk kolom Integration Type
+            const itDisplay = String(r.integration_type ?? '').trim().toUpperCase();
+
+            // untuk Status P-IFCA / P-SOLOMON dan checkbox/select
+            const itStatus = String(r.status_integration_type ?? '').trim().toUpperCase();
+
             const stageLabel = (r.stage_label ?? stage);
 
             const disableByStage = (stage === 'C' || stage === 'D');
-            const disablePSolomon = (stage === 'P' && it !== 'IFCA');
+            const disablePSolomon = (stage === 'P' && itStatus !== 'IFCA');
             const disabled = disableByStage || disablePSolomon;
 
             const trClass = disabled ? 'bg-gray-50 text-gray-400' : 'hover:bg-gray-50';
@@ -250,29 +256,34 @@
                             class="poRowChk rounded border-gray-300 ${checkboxClass}"
                             value="${r.key}"
                             data-stage="${stage}"
-                            data-it="${it}"
+                            data-it="${itStatus}"
                             ${disabled ? `disabled title="${title}"` : ''}>
                     </td>
+
                     <td class="px-3 py-2 align-top">
-                        <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded text-xs font-semibold ${getIntegrationTypeBadgeClassPO(it)}">
-                            ${it || '-'}
+                        <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded text-xs font-semibold ${getIntegrationTypeBadgeClassPO(itDisplay)}">
+                            ${itDisplay || '-'}
                         </span>
                     </td>
+
                     <td class="px-3 py-2 align-top font-medium">${r.cpny_id ?? ''}</td>
                     <td class="px-3 py-2 align-top">${r.entity_cd ?? ''}</td>
                     <td class="px-3 py-2 align-top font-medium">${r.order_no ?? ''}</td>
                     <td class="px-3 py-2 align-top whitespace-nowrap">${r.order_date ?? ''}</td>
                     <td class="px-3 py-2 align-top break-words">${r.department_id ?? ''}</td>
+
                     <td class="px-3 py-2 align-top">
-                        <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeClassPO(stage, it)}">
+                        <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeClassPO(stage, itStatus)}">
                             ${stageLabel}
                         </span>
                     </td>
+
                     <td class="px-3 py-2 align-top text-gray-600">
                         <div class="whitespace-normal break-words leading-5 max-w-full">
                             ${r.payload_response ?? ''}
                         </div>
                     </td>
+
                     <td class="px-3 py-2 align-top whitespace-nowrap text-gray-600">${r.last_update ?? ''}</td>
                 </tr>
             `;
