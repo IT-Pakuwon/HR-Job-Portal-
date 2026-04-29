@@ -431,7 +431,7 @@ class VoucherTaxiController extends Controller
                 $doctype,
                 $voucher->status,
                 'Voucher Taxi',
-                url('/showvouchertaxi/' . $eid),
+                url('/vouchertaxi#' . $eid),
                 [
                     'info'      => $voucher->purpose,
                     'createdby' => $voucher->created_by,
@@ -464,6 +464,8 @@ class VoucherTaxiController extends Controller
             ], 500);
         }
     }
+
+
 
     public function editVoucherTaxi($hash)
     {
@@ -644,7 +646,7 @@ class VoucherTaxiController extends Controller
                 $doctype,
                 $voucher->status,
                 'Voucher Taxi',
-                url('/showvouchertaxi/' . $eid),
+                url('/vouchertaxi#' . $eid),
                 [
                     'info'      => $voucher->purpose,
                     'createdby' => $voucher->created_by,
@@ -746,7 +748,6 @@ class VoucherTaxiController extends Controller
         }
     }
 
-
     public function showVoucherTaxi($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -778,6 +779,62 @@ class VoucherTaxiController extends Controller
             'company',
             'canProcessGaAdvice'
         ));
+    }
+
+    public function detail($eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid voucher ID'
+            ], 404);
+        }
+
+        $voucher = TrVoucherTaxi::find($id);
+
+        if (!$voucher) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Voucher not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+
+                'docid' => $voucher->docid,
+                'eid' => $eid,
+
+                'status' => $voucher->status,
+
+                'user_peminta' => $voucher->user_peminta,
+                'created_by' => $voucher->created_by,
+
+                'date_used' => $voucher->date_used,
+
+                'origin' => $voucher->origin,
+                'destination' => $voucher->destination,
+
+                'purpose' => $voucher->purpose,
+
+                'type_trip' => $voucher->type_trip,
+
+                'cpny_id' => $voucher->cpny_id,
+                'department_id' => $voucher->department_id,
+
+                'cpny_id_expense' => $voucher->cpny_id_expense,
+                'user_topup' => $voucher->user_topup,
+
+                'actual_budget' => $voucher->actual_budget,
+                'max_budget' => $voucher->max_budget,
+
+                'revise_reason' => $voucher->revise_reason,
+            ]
+        ]);
     }
 
     // public function updateGaAdvice(Request $request, $docid)
@@ -919,7 +976,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl   = url('/showvouchertaxi/' . $eid);
+        $docUrl   = url('/vouchertaxi#' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
@@ -1014,7 +1071,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl   = url('/showvouchertaxi/' . $eid);
+        $docUrl   = url('/vouchertaxi#' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
@@ -1095,7 +1152,7 @@ class VoucherTaxiController extends Controller
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl   = url('/showvouchertaxi/' . $eid);
+        $docUrl   = url('/vouchertaxi#' . $eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
         $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
@@ -1156,6 +1213,17 @@ class VoucherTaxiController extends Controller
             'success' => true,
             'message' => 'Voucher Taxi revised successfully'
         ]);
+    }
+
+    public function findByHash($eid)
+    {
+        $id = Hashids::decode($eid)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $voucher = TrVoucherTaxi::findOrFail($id);
+
+        return response()->json($voucher);
     }
 
 
@@ -1420,101 +1488,152 @@ class VoucherTaxiController extends Controller
         }
     }
 
-    public function printVoucherTaxiuest($hash)
+    // public function printVoucherTaxiuest($hash)
+    // {
+    //     $id = Hashids::decode($hash)[0] ?? null;
+    //     abort_if(!$id, 404);
+
+    //     $authUser = Auth::user();
+    //     if (!$authUser) {
+    //         return redirect()->route('login');
+    //     }
+
+    //     // Ambil Item Request + relasi yang dibutuhkan
+    //     $itemReq = TrVoucherTaxi::with([
+    //             'requestType:requesttypeid,requesttype_name',
+    //             'creator:username,name',
+    //         ])
+    //         ->findOrFail($id);
+
+    //     // Detail baris Item Request
+    //     $itemReqdetail = TrVoucherTaxidetail::with([
+    //             'location:location_id,location_name',
+    //             'subLocation:sub_location_id,sub_location_name',
+    //         ])
+    //         ->where('irid', $itemReq->irid)
+    //         ->get();
+
+    //     // Approval list (non-cancelled)
+    //     // $approval = T_approval::where('docid', $itemReq->irid)
+    //     //     ->where('status', '<>', 'X')
+    //     //     ->orderBy('aprvid')
+    //     //     ->orderBy('created_at')
+    //     //     ->get();
+    //     $approvals = TrApproval::query()
+    //         ->where('refnbr', $itemReq->docid)
+    //         ->where('status', '<>', 'X')
+    //         ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
+    //         ->get();
+
+    //     $approve_count = $approvals->count();
+
+    //     // Company (handle null)
+    //     $company = MsCompany::where('cpny_id', $itemReq->cpny_id)->first();
+
+    //     // Mapping status dokumen
+    //     switch ($itemReq->status) {
+    //         case 'R':
+    //             $status_doc = 'Rejected';
+    //             break;
+    //         case 'C':
+    //             $status_doc = 'Completed';
+    //             break;
+    //         case 'D':
+    //             $status_doc = 'Hold';
+    //             break;
+    //         case 'X':
+    //             $status_doc = 'Cancel';
+    //             break;
+    //         default:
+    //             $status_doc = 'On Progress';
+    //             break;
+    //     }
+
+    //     $data = [
+    //         'title'               => 'Surat Permintaan Pembelian Barang',
+    //         'doc_type'            => 'Item Request',
+    //         'docid'               => $itemReq->irid,
+    //         'department_id'       => $itemReq->department_id,
+    //         'cpnyname'            => optional($company)->cpny_name,
+    //         'parent'              => optional($company)->parent,
+    //         'project'             => optional($company)->project,
+    //         // identitas & tanggal
+    //         'created_by_username' => $itemReq->created_by,
+    //         'created_by_name'     => ucwords(strtolower(optional($itemReq->creator)->name)),
+    //         'created_at_fmt'      => optional($itemReq->created_at)->format('d F Y'),
+    //         'req_date_fmt'        => optional($itemReq->created_at)->format('d M Y H:i'),
+    //         'itemReqdate'            => \Carbon\Carbon::parse($itemReq->itemReqdate)->format('d F Y'),
+    //         // konten
+    //         'keperluan'           => $itemReq->inventory_descr_req,
+    //         'status_doc'          => $status_doc,
+    //         'requesttype_name'    => optional($itemReq->requestType)->requesttype_name,
+    //     ];
+
+    //     // Kirim ke view
+    //     $pdf = \PDF::loadView(
+    //         'pages.itemrequests.pdf_itemrequests',
+    //         array_merge($data, [
+    //             'detail'         => $itemReqdetail,
+    //             'approvals'      => $approvals,
+    //             'approve_count'  => $approve_count,
+    //         ])
+    //     );
+
+    //     // Portrait jika <= 5 approver, else landscape
+    //     $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+
+    //     return $pdf->stream("pdf_itemrequests_{$itemReq->irid}.pdf");
+    // }
+
+    public function printVoucherTaxi($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
+
         abort_if(!$id, 404);
 
-        $authUser = Auth::user();
-        if (!$authUser) {
+        $user = Auth::user();
+
+        if (!$user) {
             return redirect()->route('login');
         }
 
-        // Ambil Item Request + relasi yang dibutuhkan
-        $itemReq = TrVoucherTaxi::with([
-                'requestType:requesttypeid,requesttype_name',
-                'creator:username,name',
-            ])
-            ->findOrFail($id);
+        $voucher = TrVoucherTaxi::with([
+            'creator:username,name',
+        ])->findOrFail($id);
 
-        // Detail baris Item Request
-        $itemReqdetail = TrVoucherTaxidetail::with([
-                'location:location_id,location_name',
-                'subLocation:sub_location_id,sub_location_name',
-            ])
-            ->where('irid', $itemReq->irid)
-            ->get();
-
-        // Approval list (non-cancelled)
-        // $approval = T_approval::where('docid', $itemReq->irid)
-        //     ->where('status', '<>', 'X')
-        //     ->orderBy('aprvid')
-        //     ->orderBy('created_at')
-        //     ->get();
         $approvals = TrApproval::query()
             ->where('refnbr', $voucher->docid)
             ->where('status', '<>', 'X')
             ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
             ->get();
 
-        $approve_count = $approval->count();
+        $company = MsCompany::where('cpny_id', $voucher->cpny_id)
+            ->first();
 
-        // Company (handle null)
-        $company = MsCompany::where('cpny_id', $itemReq->cpny_id)->first();
+        $status_doc = match ($voucher->status) {
+            'P' => 'On Progress',
+            'C' => 'Completed',
+            'R' => 'Rejected',
+            'D' => 'Revise',
+            'X' => 'Cancelled',
+            default => '-',
+        };
 
-        // Mapping status dokumen
-        switch ($itemReq->status) {
-            case 'R':
-                $status_doc = 'Rejected';
-                break;
-            case 'C':
-                $status_doc = 'Completed';
-                break;
-            case 'D':
-                $status_doc = 'Hold';
-                break;
-            case 'X':
-                $status_doc = 'Cancel';
-                break;
-            default:
-                $status_doc = 'On Progress';
-                break;
-        }
-
-        $data = [
-            'title'               => 'Surat Permintaan Pembelian Barang',
-            'doc_type'            => 'Item Request',
-            'docid'               => $itemReq->irid,
-            'department_id'       => $itemReq->department_id,
-            'cpnyname'            => optional($company)->cpny_name,
-            'parent'              => optional($company)->parent,
-            'project'             => optional($company)->project,
-            // identitas & tanggal
-            'created_by_username' => $itemReq->created_by,
-            'created_by_name'     => ucwords(strtolower(optional($itemReq->creator)->name)),
-            'created_at_fmt'      => optional($itemReq->created_at)->format('d F Y'),
-            'req_date_fmt'        => optional($itemReq->created_at)->format('d M Y H:i'),
-            'itemReqdate'            => \Carbon\Carbon::parse($itemReq->itemReqdate)->format('d F Y'),
-            // konten
-            'keperluan'           => $itemReq->inventory_descr_req,
-            'status_doc'          => $status_doc,
-            'requesttype_name'    => optional($itemReq->requestType)->requesttype_name,
-        ];
-
-        // Kirim ke view
-        $pdf = \PDF::loadView(
-            'pages.itemrequests.pdf_itemrequests',
-            array_merge($data, [
-                'detail'         => $itemReqdetail,
-                'approval'       => $approval,
-                'approve_count'  => $approve_count,
-            ])
+        $pdf = PDF::loadView(
+            'pages.vouchertaxi.pdf_vouchertaxi',
+            [
+                'voucher'      => $voucher,
+                'approvals'    => $approvals,
+                'company'      => $company,
+                'status_doc'   => $status_doc,
+            ]
         );
 
-        // Portrait jika <= 5 approver, else landscape
-        $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
+        $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->stream("pdf_itemrequests_{$itemReq->irid}.pdf");
+        return $pdf->stream(
+            'voucher_taxi_' . $voucher->docid . '.pdf'
+        );
     }
 
 }

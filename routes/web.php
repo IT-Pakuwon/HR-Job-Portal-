@@ -1223,6 +1223,15 @@ Route::middleware(['auth'])->group(function () {
 
             // Route::get('/showvouchertaxi/{id}', 'show')
             //     ->name('show');
+
+            Route::get('/find/{eid}', 'findByHash')
+                ->name('find');
+
+            Route::get('/print/{hash}', 'printVoucherTaxi')
+            ->name('print');
+
+            Route::get('/detail/{eid}', 'detail')
+            ->name('detail');
         });
 
         Route::get('/showvouchertaxi/{hash}', 'showVoucherTaxi')

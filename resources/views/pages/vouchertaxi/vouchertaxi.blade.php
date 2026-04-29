@@ -1,43 +1,63 @@
 <x-app-layout>
-    <div class="mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+<div class="mb-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
 
-        <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-            <!-- LEFT -->
-            <div class="flex items-center gap-4">
+        <!-- LEFT -->
+        <div class="flex items-center gap-3">
 
-                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 text-white shadow">
-                    🚕
-                </div>
-
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
-                        Taxi Booking
-                    </h1>
-                    <p class="text-sm text-gray-500">
-                        Manage and create taxi vouchers
-                    </p>
-                </div>
-
+            <!-- ICON -->
+            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
+                🚕
             </div>
 
-            <!-- RIGHT -->
-            <div class="flex items-center gap-2">
+            <!-- TITLE -->
+            <div>
 
-                <button id="toggleList"
-                    class="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">
-                    📋 <span>Listing</span>
-                </button>
+                <h1 class="text-lg font-semibold tracking-tight text-gray-900">
+                    Taxi Booking
+                </h1>
 
-                <button id="openCreateVoucherModal"
-                    class="flex items-center gap-2 rounded-lg bg-gray-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-gray-700">
-                    ➕ <span>New Booking</span>
-                </button>
+                <p class="mt-0.5 text-sm text-gray-500">
+                    Manage booking requests and taxi vouchers
+                </p>
 
             </div>
 
         </div>
+
+        <!-- RIGHT -->
+        <div class="flex items-center gap-2">
+
+            <!-- LIST -->
+            <button id="toggleList"
+                class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+
+                <span>📋</span>
+
+                <span>
+                    Listing
+                </span>
+
+            </button>
+
+            <!-- CREATE -->
+            <button id="openCreateVoucherModal"
+                class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-black">
+
+                <span>➕</span>
+
+                <span>
+                    New Booking
+                </span>
+
+            </button>
+
+        </div>
+
     </div>
+
+</div>
     {{-- <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <div id="calendar"></div>
     </div> --}}
@@ -592,10 +612,27 @@
                         </p>
                     </div>
 
-                    <button onclick="closeViewModal()"
-                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black">
-                        ✕
-                    </button>
+                    <div class="flex items-center gap-2">
+
+                        {{-- PRINT --}}
+                        <a
+                            id="printVoucherBtn"
+                            href="#"
+                            target="_blank"
+                            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+                        >
+                            🖨 Print PDF
+                        </a>
+
+                        {{-- CLOSE --}}
+                        <button
+                            onclick="closeViewModal()"
+                            class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black"
+                        >
+                            ✕
+                        </button>
+
+                    </div>
 
                 </div>
 
@@ -1257,7 +1294,7 @@
 
                         const text = await res.text();
 
-                        console.log('RAW RESPONSE:', text);
+                        // console.log('RAW RESPONSE:', text);
 
                         try {
                             return JSON.parse(text);
@@ -1333,7 +1370,7 @@
                 },
                 eventClick: function(info) {
 
-                    // console.log('EVENT CLICK:', info.event.extendedProps);
+                    // // console.log('EVENT CLICK:', info.event.extendedProps);
 
                     const createdBy = info.event.extendedProps.created_by;
                     const currentUser = window.currentUsername;
@@ -1530,9 +1567,57 @@
             if (calendar) {
                 calendar.updateSize();
             }
+
+
+            setTimeout(() => {
+
+            const eidFromUrl = window.location.hash.replace('#', '');
+
+            if (!eidFromUrl) {
+                return;
+            }
+
+            fetch(`/vouchertaxi/detail/${eidFromUrl}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(async res => {
+
+                const text = await res.text();
+
+                // console.log('AUTO OPEN RAW:', text);
+
+                try {
+                    return JSON.parse(text);
+
+                } catch (e) {
+
+                    console.error('INVALID AUTO OPEN JSON');
+                    console.error(text);
+
+                    return null;
+                }
+            })
+            .then(res => {
+
+                if (!res || !res.success || !res.data) {
+                    return;
+                }
+
+                openViewModal(res.data);
+
+            })
+            .catch(err => {
+                console.error('AUTO OPEN ERROR:', err);
+            });
+
+        }, 800);
         });
 
         function openEditModal(data) {
+
 
             document.getElementById('editVoucherTaxiModal').classList.remove('hidden');
 
@@ -1576,9 +1661,21 @@
 
         function openViewModal(data) {
 
+            if (data.eid) {
+
+                history.replaceState(
+                    null,
+                    '',
+                    `${window.location.pathname}#${data.eid}`
+                );
+            }
+
             window.currentDocid = data.docid;
             window.currentEid = data.eid;
             window.currentVoucherData = data;
+
+            document.getElementById('printVoucherBtn').href =`/vouchertaxi/print/${data.eid}`;
+
 
             document.getElementById('viewVoucherModal').classList.remove('hidden');
 
@@ -1743,7 +1840,16 @@
         }
 
         function closeViewModal() {
-            document.getElementById('viewVoucherModal').classList.add('hidden');
+
+            document.getElementById('viewVoucherModal')
+                .classList.add('hidden');
+
+            // clear hash
+            history.replaceState(
+                null,
+                '',
+                window.location.pathname
+            );
         }
 
         function loadApproval(eid) {
@@ -1769,7 +1875,7 @@
 
                 const text = await res.text();
 
-                console.log('TRACKING RAW:', text);
+                // // console.log('TRACKING RAW:', text);
 
                 try {
                     return JSON.parse(text);
@@ -1981,13 +2087,13 @@
                 )
                 .filter(Boolean);
 
-            // console.log('================ APPROVAL ACCESS ================');
-            // console.log('CURRENT USER:', currentUser);
-            // console.log('APPROVERS:', approvers);
+            // // console.log('================ APPROVAL ACCESS ================');
+            // // console.log('CURRENT USER:', currentUser);
+            // // console.log('APPROVERS:', approvers);
 
             const hasAccess = approvers.includes(currentUser);
 
-            // console.log('HAS ACCESS:', hasAccess);
+            // // console.log('HAS ACCESS:', hasAccess);
 
             if (hasAccess) {
                 actionBox.classList.remove('hidden');
@@ -2352,10 +2458,10 @@
                 row.className = `
                     voucher-item
                     group
-                    rounded-xl
+                    rounded-2xl
                     border border-gray-200
                     bg-white
-                    p-4
+                    px-4 py-3
                     cursor-pointer
                     transition-all duration-200
 
@@ -2371,51 +2477,47 @@
 
                 row.innerHTML = `
 
-                    <!-- TOP -->
                     <div class="flex items-start justify-between gap-3">
 
+                        <!-- LEFT -->
                         <div class="min-w-0 flex-1">
 
-                            <!-- DOC -->
-                            <div class="flex items-center gap-2">
+                            <!-- TOP -->
+                            <div class="flex items-center gap-2 text-[11px] text-gray-400">
 
-                                <div class="
-                                    text-[11px]
-                                    font-semibold
-                                    uppercase
-                                    tracking-wide
-                                    text-gray-400
-                                    dark:text-gray-500
-                                ">
+                                <span class="font-semibold tracking-wide">
                                     ${escapeHtml(item.docid)}
-                                </div>
+                                </span>
 
-                                <div class="
-                                    h-1 w-1 rounded-full
-                                    bg-gray-300
-                                    dark:bg-gray-600
-                                "></div>
+                                <span>•</span>
 
-                                <div class="
-                                    text-[11px]
-                                    text-gray-400
-                                    dark:text-gray-500
-                                ">
+                                <span>
                                     ${escapeHtml(item.date_used)}
-                                </div>
+                                </span>
 
                             </div>
 
                             <!-- USER -->
-                            <div class="
-                                mt-2
-                                truncate
-                                text-sm
-                                font-semibold
-                                text-gray-900
-                                dark:text-gray-100
-                            ">
+                            <div class="mt-1 truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
                                 ${escapeHtml(item.user_peminta)}
+                            </div>
+
+                            <!-- ROUTE -->
+                            <div class="mt-2 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+
+                                <span class="text-[11px] opacity-70">📍</span>
+
+                                <div class="truncate">
+                                    ${escapeHtml(item.origin || '-')}
+                                    →
+                                    ${escapeHtml(item.destination || '-')}
+                                </div>
+
+                            </div>
+
+                            <!-- PURPOSE -->
+                            <div class="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">
+                                ${escapeHtml(item.purpose || '-')}
                             </div>
 
                         </div>
@@ -2424,8 +2526,7 @@
                         <span class="
                             shrink-0
                             rounded-full
-                            px-2.5
-                            py-1
+                            px-2.5 py-1
                             text-[10px]
                             font-semibold
                             ${status.color}
@@ -2435,43 +2536,12 @@
 
                     </div>
 
-                    <!-- ROUTE -->
-                    <div class="
-                        mt-3
-                        flex items-center gap-2
-                        text-sm
-                        font-medium
-                        text-gray-700
-                        dark:text-gray-300
-                    ">
-
-                        <span class="opacity-70">📍</span>
-
-                        <div class="truncate">
-                            ${escapeHtml(item.origin || '-')}
-                            →
-                            ${escapeHtml(item.destination || '-')}
-                        </div>
-
-                    </div>
-
-                    <!-- PURPOSE -->
-                    <div class="
-                        mt-2
-                        line-clamp-1
-                        text-xs
-                        text-gray-500
-                        dark:text-gray-400
-                    ">
-                        ${escapeHtml(item.purpose || '-')}
-                    </div>
-
                     ${
                         isGA &&
                         item.status === 'C' &&
                         !item.actual_budget
                         ? `
-                            <div class="mt-4 flex justify-end">
+                            <div class="mt-3 flex justify-end">
 
                                 <button
                                     class="
@@ -2479,15 +2549,11 @@
                                         rounded-lg
                                         bg-black
                                         px-3 py-1.5
-                                        text-xs
+                                        text-[11px]
                                         font-medium
                                         text-white
                                         transition
-
                                         hover:opacity-90
-
-                                        dark:bg-white
-                                        dark:text-black
                                     ">
                                     Process
                                 </button>
@@ -2591,7 +2657,7 @@
             const viewModal = document.getElementById('viewVoucherModal');
 
             if (e.target === viewModal) {
-                viewModal.classList.add('hidden');
+                closeViewModal();
             }
 
             if (e.target === createModal) {
@@ -2623,8 +2689,8 @@
 
             document.getElementById('createVoucherModal').classList.add('hidden');
             document.getElementById('editVoucherTaxiModal').classList.add('hidden');
-            document.getElementById('viewVoucherModal').classList.add('hidden');
 
+            closeViewModal();
             clearSelectedCell();
         }
 
@@ -2778,7 +2844,7 @@
 
                     const raw = await response.text();
 
-                    console.log('UPDATE RAW RESPONSE:', raw);
+                    // console.log('UPDATE RAW RESPONSE:', raw);
 
                     let res;
 
@@ -3115,5 +3181,6 @@
 
                 renderVoucherList();
             });
+
     </script>
 </x-app-layout>
