@@ -1567,7 +1567,10 @@
 
             const reviseBox = document.getElementById('editReviseReasonWrapper');
 
-            if (data.status === 'D' && data.revise_reason) {
+            if (
+                (data.status === 'D' || data.status === 'R') &&
+                data.revise_reason
+            ) {
 
                 reviseBox.classList.remove('hidden');
 
@@ -1746,8 +1749,10 @@
             // }
 
             const reviseWrapper = document.getElementById('reviseReasonWrapper');
-
-            if (data.status === 'D' && data.revise_reason) {
+            if (
+                (data.status === 'D' || data.status === 'R') &&
+                data.revise_reason
+            ) {
 
                 reviseWrapper.classList.remove('hidden');
 
