@@ -11,6 +11,7 @@ use App\Http\Controllers\AutonbrController;
 use App\Http\Controllers\BastController;
 use App\Http\Controllers\BastListController;
 use App\Http\Controllers\BookingCarController;
+use App\Http\Controllers\BookingCarSetupController;
 use App\Http\Controllers\BQCSController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\BudgetMonitorController;
@@ -59,6 +60,7 @@ use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\MasterController;
 use App\Http\Controllers\MasterTrainingController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MeetingRoomSetupController;
 use App\Http\Controllers\MsApplicationController;
 use App\Http\Controllers\MsApprovalController;
 use App\Http\Controllers\MsCategoryController;
@@ -1191,6 +1193,30 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
     });
 
+    Route::controller(MeetingRoomSetupController::class)
+    ->prefix('meetingroom/setup')
+    ->name('meetingroom.setup.')
+    ->group(function () {
+
+        Route::get('/', 'index')->name('index');
+
+        /* ROOM */
+        Route::get('/room/json', 'jsonRoom')->name('room.json');
+        Route::get('/room/find/{id}', 'findRoom')->name('room.find');
+
+        Route::post('/room/store', 'storeRoom')->name('room.store');
+        Route::post('/room/update/{id}', 'updateRoom')->name('room.update');
+        Route::post('/room/status/{id}', 'updateRoomStatus')->name('room.status');
+
+        /* ACCESSORIES */
+        Route::get('/accessories/json', 'jsonAccessories')->name('accessories.json');
+        Route::get('/accessories/find/{id}', 'findAccessories')->name('accessories.find');
+
+        Route::post('/accessories/store', 'storeAccessories')->name('accessories.store');
+        Route::post('/accessories/update/{id}', 'updateAccessories')->name('accessories.update');
+        Route::post('/accessories/status/{id}', 'updateAccessoriesStatus')->name('accessories.status');
+    });
+
     Route::controller(VoucherTaxiController::class)->group(function () {
 
         Route::get('/vouchertaxi', 'index')->name('vouchertaxi');
@@ -1221,7 +1247,6 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(BookingCarController::class)->group(function () {
 
         Route::get('/bookingcar', 'index')->name('bookingcar');
-
         Route::prefix('bookingcar')->name('bookingcar.')->group(function () {
 
             Route::get('/json', 'json')->name('json');
@@ -1242,6 +1267,27 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');
+    });
+
+    Route::controller(BookingCarSetupController::class)->prefix('bookingcar/setup')->name('bookingcar.setup.')->group(function () {
+
+        Route::get('/', 'index')->name('index');
+
+        /* DRIVER */
+        Route::get('/driver/json', 'jsonDriver')->name('driver.json');
+        Route::get('/driver/find/{id}', 'findDriver')->name('driver.find');
+
+        Route::post('/driver/store', 'storeDriver')->name('driver.store');
+        Route::post('/driver/update/{id}', 'updateDriver')->name('driver.update');
+        Route::post('/driver/status/{id}', 'updateDriverStatus')->name('driver.status');
+
+        /* VEHICLE */
+        Route::get('/vehicle/json', 'jsonVehicle')->name('vehicle.json');
+        Route::get('/vehicle/find/{id}', 'findVehicle')->name('vehicle.find');
+
+        Route::post('/vehicle/store', 'storeVehicle')->name('vehicle.store');
+        Route::post('/vehicle/update/{id}', 'updateVehicle')->name('vehicle.update');
+        Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
