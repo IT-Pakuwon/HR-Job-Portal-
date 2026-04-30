@@ -747,6 +747,31 @@
                     participantsList = [];
                 }
 
+                const merged = participantsList.map(p => {
+
+                    if (typeof p === 'object') {
+                        return {
+                            name: p.name || '',
+                            email: p.email || '',
+                            company: p.company || '',
+                            type: p.type || (isExternal ? 'external' : 'internal')
+                        };
+                    }
+
+                    return {
+                        name: p,
+                        type: isExternal ? 'external' : 'internal'
+                    };
+                });
+
+                const totalParticipants = merged.length;
+
+                document.getElementById('view_count').innerText =
+                    totalParticipants;
+
+                document.getElementById('view_count_badge').innerText =
+                    `${totalParticipants} Participants`;
+
                 // 🔥 SPLIT INTERNAL / EXTERNAL
                 const internal = participantsList.filter(p => p.type === 'internal');
                 const external = participantsList.filter(p => p.type === 'external');
@@ -769,7 +794,7 @@
                     });
 
                     document.getElementById('internal_pic').value =
-                        internal.length ? internal[0].name : "{{ auth()->user()->name }}";
+                        props.internal_pic || "{{ auth()->user()->name }}";
                 }
 
                 // ==========================
@@ -848,20 +873,20 @@
                 container.innerHTML = '';
 
                 // 🔥 NORMALIZE DATA
-                const merged = participantsList.map(p => {
-                    if (typeof p === 'object') {
-                        return {
-                            name: p.name || '',
-                            email: p.email || '',
-                            company: p.company || '',
-                            type: p.type || (isExternal ? 'external' : 'internal')
-                        };
-                    }
-                    return {
-                        name: p,
-                        type: isExternal ? 'external' : 'internal'
-                    };
-                });
+                // const merged = participantsList.map(p => {
+                //     if (typeof p === 'object') {
+                //         return {
+                //             name: p.name || '',
+                //             email: p.email || '',
+                //             company: p.company || '',
+                //             type: p.type || (isExternal ? 'external' : 'internal')
+                //         };
+                //     }
+                //     return {
+                //         name: p,
+                //         type: isExternal ? 'external' : 'internal'
+                //     };
+                // });
 
                 document.getElementById('copyTeamsBtn')?.addEventListener('click', function() {
 
@@ -1638,30 +1663,31 @@
             }
         }
 
-        if (window.userTom) {
+        // if (window.userTom) {
 
-            if (!window.userTom._hasListener) {
-                window.userTom.on('change', function(values) {
+        //     if (!window.userTom._hasListener) {
+        //         window.userTom.on('change', function(values) {
 
-                    if (!values.length) return;
+        //             if (!values.length) return;
 
-                    const first = values[0];
-                    const option = window.userTom.options[first];
-                    const name = option.$option.dataset.name;
-                    const email = option.$option.dataset.email;
+        //             const first = values[0];
+        //             const option = window.userTom.options[first];
+        //             const name = option.$option.dataset.name;
+        //             const email = option.$option.dataset.email;
 
-                    if (option && option.$option) {
-                        const name = option.$option.dataset.name;
+        //             if (option && option.$option) {
+        //                 const name = option.$option.dataset.name;
 
-                        if (name) {
-                            document.getElementById('internal_pic').value = name;
-                        }
-                    }
-                });
+        //                 if (name) {
+        //                     document.getElementById('internal_pic').value = name;
+        //                 }
+        //             }
+        //         });
 
-                window.userTom._hasListener = true;
-            };
-        }
+        //         window.userTom._hasListener = true;
+        //     };
+        // }
+
         const form = document.getElementById('meetingForm');
         if (form) form.reset();
 
