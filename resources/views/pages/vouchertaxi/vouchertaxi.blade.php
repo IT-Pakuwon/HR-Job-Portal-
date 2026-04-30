@@ -59,25 +59,61 @@
         </div>
 
     </div>
-    {{-- <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <div id="calendar"></div>
-    </div> --}}
 
-    <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-12">
 
         <!-- 📅 CALENDAR -->
-        <div id="calendarWrapper" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm lg:col-span-2">
+        <div id="calendarWrapper" class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
+            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/10">
 
-            <div class="mb-3 text-xs uppercase tracking-wide text-gray-400">
-                Calendar View
+                <div>
+
+                    <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                        Calendar View
+                    </div>
+
+                    <div class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                        Voucher Taxi request schedule overview
+                    </div>
+
+                </div>
+
+                <div class="hidden items-center gap-2 md:flex">
+
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+
+                        <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+                        Pending Approval
+
+                    </div>
+
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        Completed
+
+                    </div>
+
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+
+                        <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                        Revise
+
+                    </div>
+                </div>
+
             </div>
 
-            <div id="calendar"></div>
+            <div class="p-5">
+
+                <div id="calendar"></div>
+
+            </div>
         </div>
 
         <!-- 📋 LIST PANEL -->
         <div id="voucherListPanel"
-            class="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+            class="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-4">
 
             <!-- HEADER -->
             <div class="border-b border-gray-100 p-4 dark:border-white/10">
@@ -1138,7 +1174,7 @@
         let selectedCell = null;
         let voucherData = [];
         let currentVoucherPage = 1;
-        let voucherPerPage = 10;
+        let voucherPerPage = 6;
         let currentVoucherFilter = 'ALL';
         document.addEventListener('DOMContentLoaded', function() {
             loadVoucherList();
@@ -1244,7 +1280,8 @@
                                 return;
                             }
 
-                            const allowedstatuses = ['p', 'c', 'd', 'r'];
+                            // const allowedstatuses = ['p', 'c', 'd', 'r'];
+                            const allowedstatuses = ['p', 'c', 'd'];
 
                             const events = res.data
                                 .filter(item =>
