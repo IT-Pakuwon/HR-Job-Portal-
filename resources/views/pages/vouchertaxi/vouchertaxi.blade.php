@@ -152,7 +152,7 @@
                         Completed
                     </button>
 
-                    @if (auth()->user()->hasRole('GAACCESS'))
+                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
                         <button class="voucher-filter" data-filter="WAITING_PROCESS">
                             Waiting Process
                         </button>

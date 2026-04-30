@@ -19,7 +19,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
 
                 <button type="button" id="toggleList"
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
@@ -31,6 +31,32 @@
                     </span>
 
                 </button>
+
+                @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+
+                    <a href="{{ route('driver') }}"
+                        class="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100">
+
+                        <span>👨‍✈️</span>
+
+                        <span>
+                            Driver List
+                        </span>
+
+                    </a>
+
+                    <a href="{{ route('operationalcar') }}"
+                        class="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100">
+
+                        <span>🚗</span>
+
+                        <span>
+                            Operational List
+                        </span>
+
+                    </a>
+
+                @endif
 
                 <button type="button" id="openCreateBookingModal"
                     class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-black">
@@ -137,6 +163,13 @@
                     <button type="button" class="booking-filter" data-filter="C">
                         Completed
                     </button>
+
+                    @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+                        <button type="button" class="booking-filter" data-filter="WAITING_PROCESS">
+                            Waiting Process
+                        </button>
+                    @endif
+
 
                     <button type="button" class="booking-filter" data-filter="D">
                         Revise
@@ -787,13 +820,6 @@
                                     <button type="button" id="rejectBookingBtn"
                                         class="rounded-lg bg-red-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-red-400">
                                         ✕ Reject
-                                    </button>
-
-                                    <button type="button" id="processBookingBtn"
-                                        class="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-indigo-400">
-
-                                        🚘 Process
-
                                     </button>
 
                                 </div>
@@ -1709,14 +1735,35 @@
 
                 let url = `/bookingcar/json?length=999`;
 
-                if (bookingCurrentFilter !== 'ALL') {
+                if (
+                    bookingCurrentFilter !== 'ALL' &&
+                    bookingCurrentFilter !== 'WAITING_PROCESS'
+                ) {
                     url += `&status=${bookingCurrentFilter}`;
                 }
 
                 const response = await fetch(url);
+
                 const result = await response.json();
 
-                bookingRows = result.data || [];
+                let rows = result.data || [];
+
+                // =====================================================
+                // WAITING PROCESS FILTER
+                // =====================================================
+
+                if (bookingCurrentFilter === 'WAITING_PROCESS') {
+
+                    rows = rows.filter(row =>
+                        row.status === 'C' &&
+                        (
+                            !row.driver ||
+                            !row.no_polisi
+                        )
+                    );
+                }
+
+                bookingRows = rows;
 
                 renderBookingList();
                 renderBookingCalendar();
@@ -1788,7 +1835,41 @@
 
                             </div>
 
-                            ${bookingStatusBadge(row.status)}
+                            <div class="flex flex-col items-end gap-2">
+
+                                ${bookingStatusBadge(row.status)}
+
+                                @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+
+                                   ${
+                                        row.status === 'C' &&
+                                        (
+                                            !row.driver ||
+                                            !row.no_polisi
+                                        )
+                                        ? `
+                                            <button
+                                                type="button"
+                                                onclick="event.stopPropagation(); openGaProcessModal('${row.eid}')  "
+                                                class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
+                                                Process
+                                            </button>
+                                        `
+                                        : `
+                                            ${
+                                                row.status === 'C'
+                                                ? `
+                                                    <div class="rounded-lg bg-emerald-100 px-3 py-1.5 text-[11px] font-semibold text-emerald-700">
+                                                        Processed
+                                                    </div>
+                                                `
+                                                : ''
+                                            }
+                                        `
+                                    }
+                                @endif
+
+                            </div>
 
                         </div>
 
@@ -1925,7 +2006,7 @@
                                 title: [
                                     `${escapeHtml(row.user_request || row.user_peminta || '-')}`,
                                     `${escapeHtml(row.location_from || '-')} → ${escapeHtml(row.destination || '-')}`,
-                                    `${row.purpose_id || '-'}`
+                                    `${row.purpose_id || '-'} - ${row.purpose_descr || '-'} `
                                 ].join('\n'),
 
                                 start: row.start_time,
@@ -2108,13 +2189,6 @@
 
                 document.getElementById('rejectBookingBtn').onclick = null;
 
-                document.getElementById(
-                    'processBookingBtn'
-                ).classList.add('hidden');
-
-                document.getElementById(
-                    'processBookingBtn'
-                ).onclick = null;
                 @if (auth()->check())
 
                     const currentUser =
@@ -2313,20 +2387,28 @@
 
                     @if (auth()->user()->hasRole('GAACCESS'))
 
-                        if (d.status === 'C') {
+                        if (
+                            d.status === 'C' &&
+                            (
+                                !d.driver ||
+                                !d.no_polisi
+                            )
+                        ) {
 
                             approvalActions.classList.remove('hidden');
 
-                            document.getElementById(
-                                'processBookingBtn'
-                            ).classList.remove('hidden');
+                            approvalActions.innerHTML = `
+                                <button
+                                    type="button"
+                                    onclick="openGaProcessModal('${d.eid}')"
+                                    class="rounded-lg bg-black px-4 py-2 text-xs font-medium text-white transition hover:bg-gray-800">
+                                    Process
+                                </button>
+                            `;
 
-                            document.getElementById(
-                                'processBookingBtn'
-                            ).onclick = function() {
+                        } else {
 
-                                openGaProcessModal(d.eid);
-                            };
+                            approvalActions.innerHTML = '';
                         }
                     @endif
                 @endif
