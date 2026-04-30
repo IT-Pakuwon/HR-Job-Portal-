@@ -971,7 +971,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Restricted Room',
-                        text: "We're sorry, this room is managed by Receptionist Office 8 - Lvl. 32. Please contact them for booking."
+                        text: "We're sorry, this room is managed by Receptionist. Please contact them for booking."
                     });
 
                     info.revert(); // 🔥 VERY IMPORTANT
@@ -998,7 +998,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Restricted Room',
-                        text: "We're sorry, this room is managed by Receptionist Office 8 - Lvl. 32. Please contact them for booking."
+                        text: "We're sorry, this room is managed by Receptionist. Please contact them for booking."
                     });
 
                     info.revert(); // 🔥 IMPORTANT
@@ -1065,7 +1065,7 @@
             //         Swal.fire({
             //             icon: 'warning',
             //             title: 'Restricted Room',
-            //             text: "We're sorry, this room is managed by Receptionist Office 8 - Lvl. 32. Please contact them for booking."
+            //             text: "We're sorry, this room is managed by Receptionist. Please contact them for booking."
             //         });
 
             //         window.calendar.unselect();
@@ -1176,7 +1176,7 @@
                     Swal.fire({
                         icon: 'warning',
                         title: 'Restricted Room',
-                        text: "We're sorry, this room is managed by Receptionist Office 8 - Lvl. 32. Please contact them for booking."
+                        text: "We're sorry, this room is managed by Receptionist. Please contact them for booking."
                     });
 
                     window.calendar.unselect();
