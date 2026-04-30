@@ -35,7 +35,7 @@ class MeetingController extends Controller
         $rooms = MsMeetingRoom::query()
 
             ->where('status', 'A')
-            ->orderBy('room_name')
+         ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->get();
         $roomColors = MsMeetingRoom::pluck('eventcolor', 'room_id');
         $roomMap = MsMeetingRoom::pluck('room_name', 'room_id');
@@ -48,7 +48,7 @@ class MeetingController extends Controller
         $meetings = TrMeeting::query()
             ->where('status', '!=', 'X') // ✅ ADD HERE
             ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
-            ->orderBy('room_id')
+          ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->orderBy('start_meeting_time')
             ->get()
             ->map(function ($m) use ($roomMap) {
@@ -154,13 +154,13 @@ class MeetingController extends Controller
 
         $rooms = MsMeetingRoom::query()
             ->whereIn('status', ['T', 'Z'])
-            ->orderBy('room_name')
+          ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->get();
 
         $meetings = TrMeeting::query()
             ->where('status', '!=', 'X')
             ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
-            ->orderBy('room_id')
+          ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->orderBy('start_meeting_time')
             ->get();
 
@@ -439,8 +439,10 @@ class MeetingController extends Controller
             ->value('room_name');
 
         $restrictedRooms = [
-            'Ruang Meeting 33-1',
-            'Ruang Meeting 33-5',
+            'Meeting Room 33-1',
+            'Meeting Room 33-5',
+            'Meeting Room 1 P6 - Mall Gandaria'
+
         ];
 
         // 🔒 BLOCK BASED ON NAME
@@ -1701,8 +1703,9 @@ class MeetingController extends Controller
             ->value('room_name');
 
         $restrictedRooms = [
-            'Ruang Meeting 33-1',
-            'Ruang Meeting 33-5',
+            'Meeting Room 33-1',
+            'Meeting Room 33-5',
+            'Meeting Room 1 P6 - Mall Gandaria',
         ];
 
         // 🔒 BLOCK BASED ON NAME

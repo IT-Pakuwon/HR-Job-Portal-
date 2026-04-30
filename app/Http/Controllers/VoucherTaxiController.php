@@ -1,42 +1,26 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\MsCompany;
-use App\Models\MsDepartment;
+use App\Models\TrApproval;
+use App\Models\TrMessage;
+use App\Models\TrVoucherTaxi;
+use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
-use App\Models\User;
-use App\Models\Site;
-use App\Models\Division;
-use App\Models\TrVoucherTaxi;
-use App\Models\MsLocation;
-use App\Models\MsSubLocation;
-use Mail;
-use Illuminate\Support\Facades\Log;
-use PDF;
-use Vinkla\Hashids\Facades\Hashids;
-use App\Http\Controllers\TrAttachmentController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
-use App\Models\TrAttachment;
-use Illuminate\Support\Str;
-use Google\Cloud\Storage\StorageClient;
-use App\Http\Controllers\ApprovalController;
-use App\Models\TrApproval;
-use App\Models\SysUserRole;
-use App\Http\Controllers\Traits\HasAutonbr;
-use App\Models\SysRole;
-use App\Models\TrMessage;
-
+use Vinkla\Hashids\Facades\Hashids;
 
 class VoucherTaxiController extends Controller
 {
-
     use HasAutonbr;
+
     public function index()
     {
         $user = Auth::user();
@@ -72,11 +56,11 @@ class VoucherTaxiController extends Controller
         }
 
         // 🔹 Counts
-        $all        = (clone $q)->count();
+        $all = (clone $q)->count();
         $onProgress = (clone $q)->where('status', 'P')->count();
-        $reject     = (clone $q)->where('status', 'R')->count();
-        $revise     = (clone $q)->where('status', 'D')->count();
-        $completed  = (clone $q)->where('status', 'C')->count();
+        $reject = (clone $q)->where('status', 'R')->count();
+        $revise = (clone $q)->where('status', 'D')->count();
+        $completed = (clone $q)->where('status', 'C')->count();
 
         // 🔹 Other data (unchanged)
         $usercpny = Usercpny::where('username', $user->username)->get();
@@ -117,7 +101,7 @@ class VoucherTaxiController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
@@ -143,8 +127,8 @@ class VoucherTaxiController extends Controller
         // DATATABLE PARAMS
         // =========================================
 
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
 
         $search = trim((string) $request->input('search.value', ''));
@@ -197,9 +181,7 @@ class VoucherTaxiController extends Controller
         // can see everything
 
         if (!$isGA) {
-
             $base->where(function ($q) use ($user, $cpnyIds, $deptIds) {
-
                 // =====================================
                 // OWN VOUCHER
                 // =====================================
@@ -214,7 +196,6 @@ class VoucherTaxiController extends Controller
                 // =====================================
 
                 $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
-
                     if (!empty($cpnyIds)) {
                         $sub->whereIn(
                             DB::raw('TRIM(vt.cpny_id)'),
@@ -251,9 +232,7 @@ class VoucherTaxiController extends Controller
         // =========================================
 
         if ($search !== '') {
-
             $base->where(function ($q) use ($search) {
-
                 $q->where('vt.docid', 'like', "%{$search}%")
                     ->orWhere('vt.voucher_date', 'like', "%{$search}%")
                     ->orWhere('vt.date_used', 'like', "%{$search}%")
@@ -309,11 +288,10 @@ class VoucherTaxiController extends Controller
         // =========================================
 
         $data->transform(function ($row) {
-
             $row->eid = Hashids::encode($row->id);
 
             $row->extendedProps = [
-                'eid' => $row->eid
+                'eid' => $row->eid,
             ];
 
             unset($row->id);
@@ -326,10 +304,10 @@ class VoucherTaxiController extends Controller
         // =========================================
 
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 
@@ -339,39 +317,39 @@ class VoucherTaxiController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
         $validated = $request->validate([
-            'cpny_id'          => ['required'],
-            'department_id'    => ['required'],
-            'user_peminta'     => ['required'],
-            'date_used'        => ['required', 'date'],
-            'type_trip'        => ['required'],
+            'cpny_id' => ['required'],
+            'department_id' => ['required'],
+            'user_peminta' => ['required'],
+            'date_used' => ['required', 'date'],
+            'type_trip' => ['required'],
             // 'to'               => ['required'],
-            'purpose'          => ['required'],
-            'cpny_id_expense'  => ['required'],
-            'user_topup'       => ['required'],
+            'purpose' => ['required'],
+            'cpny_id_expense' => ['required'],
+            'user_topup' => ['required'],
 
             // ✅ ADD THIS
-            'origin'           => ['required'],
-            'destination'      => ['required'],
+            'origin' => ['required'],
+            'destination' => ['required'],
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $dt       = now();
-            $year     = (int) $dt->year;
-            $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-            $doctype  = 'VCR';
+            $dt = now();
+            $year = (int) $dt->year;
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+            $doctype = 'VCR';
             $username = $user->username;
 
-            $cpny_id       = $validated['cpny_id_expense'];
+            $cpny_id = $validated['cpny_id_expense'];
             $department_id = $validated['department_id'];
 
-            $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+            $approvalCtl = app(ApprovalController::class);
 
             // validasi setup approval exist
             $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
@@ -386,31 +364,31 @@ class VoucherTaxiController extends Controller
             );
 
             $urutan = (int) $auto['next'];
-            $tglbln = substr((string) $year, 2) . $month;
-            $docid  = $doctype . $tglbln . sprintf('%03d', $urutan);
+            $tglbln = substr((string) $year, 2).$month;
+            $docid = $doctype.$tglbln.sprintf('%03d', $urutan);
 
             $voucher = TrVoucherTaxi::create([
-                'docid'           => $docid,
-                'voucher_date'    => $dt->toDateString(),
-                'cpny_id'         => $validated['cpny_id'],
-                'department_id'   => $validated['department_id'],
-                'user_peminta'    => $validated['user_peminta'],
+                'docid' => $docid,
+                'voucher_date' => $dt->toDateString(),
+                'cpny_id' => $validated['cpny_id'],
+                'department_id' => $validated['department_id'],
+                'user_peminta' => $validated['user_peminta'],
 
                 // ✅ ADD HERE
-                'origin'          => $validated['origin'],
-                'destination'     => $validated['destination'],
+                'origin' => $validated['origin'],
+                'destination' => $validated['destination'],
 
                 // 'to'              => $validated['to'],
-                'purpose'         => $validated['purpose'],
-                'date_used'       => $validated['date_used'],
+                'purpose' => $validated['purpose'],
+                'date_used' => $validated['date_used'],
                 'cpny_id_expense' => $validated['cpny_id_expense'],
-                'type_trip'       => $validated['type_trip'],
-                'user_topup'      => $validated['user_topup'],
-                'status'          => 'P',
-                'created_by'      => $username,
-                'created_at'      => now(),
-                'updated_by'      => $username,
-                'updated_at'      => now(),
+                'type_trip' => $validated['type_trip'],
+                'user_topup' => $validated['user_topup'],
+                'status' => 'P',
+                'created_by' => $username,
+                'created_at' => now(),
+                'updated_by' => $username,
+                'updated_at' => now(),
             ]);
             $ctx = ['ignore_nominal' => true];
 
@@ -431,11 +409,11 @@ class VoucherTaxiController extends Controller
                 $doctype,
                 $voucher->status,
                 'Voucher Taxi',
-              url('/showvouchertaxi/' . $eid),
+                url('/showvouchertaxi/'.$eid),
                 [
-                    'info'      => $voucher->purpose,
+                    'info' => $voucher->purpose,
                     'createdby' => $voucher->created_by,
-                    'date'      => $dt->toDateTimeString(),
+                    'date' => $dt->toDateTimeString(),
                 ]
             );
 
@@ -451,10 +429,9 @@ class VoucherTaxiController extends Controller
                 'success' => true,
                 'message' => 'Voucher Taxi berhasil dibuat',
                 'data' => [
-                    'docid' => $voucher->docid
-                ]
+                    'docid' => $voucher->docid,
+                ],
             ]);
-
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
@@ -465,10 +442,6 @@ class VoucherTaxiController extends Controller
         }
     }
 
-
-
-    
-
     public function updateVoucherTaxi(Request $request, $docid)
     {
         $user = Auth::user();
@@ -476,21 +449,21 @@ class VoucherTaxiController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
         $validated = $request->validate([
-            'cpny_id'          => ['required'],
-            'department_id'    => ['required'],
-            'user_peminta'     => ['required'],
-            'date_used'        => ['required', 'date'],
-            'type_trip'        => ['required'],
+            'cpny_id' => ['required'],
+            'department_id' => ['required'],
+            'user_peminta' => ['required'],
+            'date_used' => ['required', 'date'],
+            'type_trip' => ['required'],
             // 'to'               => ['required'],
-            'purpose'          => ['required'],
-            'cpny_id_expense'  => ['required'],
-            'user_topup'       => ['required'],
-            'origin'      => ['required'],
+            'purpose' => ['required'],
+            'cpny_id_expense' => ['required'],
+            'user_topup' => ['required'],
+            'origin' => ['required'],
             'destination' => ['required'],
         ]);
 
@@ -507,33 +480,33 @@ class VoucherTaxiController extends Controller
                 throw new \Exception('Anda tidak berhak edit Voucher Taxi ini.');
             }
 
-            $doctype       = 'VCR';
-            $dt            = now();
-            $username      = $user->username;
-            $cpny_id       = $validated['cpny_id_expense'];
+            $doctype = 'VCR';
+            $dt = now();
+            $username = $user->username;
+            $cpny_id = $validated['cpny_id_expense'];
             $department_id = $validated['department_id'];
 
-            $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+            $approvalCtl = app(ApprovalController::class);
 
             // Validasi approval setup baru
             $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
 
-            $voucher->cpny_id          = $validated['cpny_id'];
-            $voucher->department_id    = $validated['department_id'];
-            $voucher->user_peminta     = $validated['user_peminta'];
+            $voucher->cpny_id = $validated['cpny_id'];
+            $voucher->department_id = $validated['department_id'];
+            $voucher->user_peminta = $validated['user_peminta'];
             // $voucher->to               = $validated['to'];
-            $voucher->purpose          = $validated['purpose'];
-            $voucher->date_used        = $validated['date_used'];
-            $voucher->cpny_id_expense  = $validated['cpny_id_expense'];
-            $voucher->type_trip        = $validated['type_trip'];
-            $voucher->user_topup       = $validated['user_topup'];
-            $voucher->origin      = $validated['origin'];
+            $voucher->purpose = $validated['purpose'];
+            $voucher->date_used = $validated['date_used'];
+            $voucher->cpny_id_expense = $validated['cpny_id_expense'];
+            $voucher->type_trip = $validated['type_trip'];
+            $voucher->user_topup = $validated['user_topup'];
+            $voucher->origin = $validated['origin'];
             $voucher->destination = $validated['destination'];
-            $voucher->status           = 'P';
+            $voucher->status = 'P';
             // $voucher->completed_by     = null;
             // $voucher->completed_at     = null;
-            $voucher->updated_by       = $username;
-            $voucher->updated_at       = $dt;
+            $voucher->updated_by = $username;
+            $voucher->updated_at = $dt;
             $voucher->save();
 
             // TrApproval::where('refnbr', $voucher->docid)
@@ -541,7 +514,7 @@ class VoucherTaxiController extends Controller
             //     ->delete();
 
             $ctx = [
-                'ignore_nominal' => true
+                'ignore_nominal' => true,
             ];
 
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
@@ -570,14 +543,13 @@ class VoucherTaxiController extends Controller
                 $doctype,
                 $voucher->status,
                 'Voucher Taxi',
-              url('/showvouchertaxi/' . $eid),
+                url('/showvouchertaxi/'.$eid),
                 [
-                    'info'      => $voucher->purpose,
+                    'info' => $voucher->purpose,
                     'createdby' => $voucher->created_by,
-                    'date'      => $dt->toDateTimeString(),
+                    'date' => $dt->toDateTimeString(),
                 ]
             );
-
 
             DB::connection('pgsql5')->commit();
 
@@ -585,15 +557,15 @@ class VoucherTaxiController extends Controller
                 'success' => true,
                 'message' => 'Voucher Taxi berhasil diupdate dan dikirim ulang approval.',
                 'data' => [
-                        'docid' => $voucher->docid
-                    ]
+                    'docid' => $voucher->docid,
+                ],
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -605,14 +577,13 @@ class VoucherTaxiController extends Controller
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
         DB::beginTransaction();
 
         try {
-
             $voucher = TrVoucherTaxi::where('docid', $docid)
                 ->firstOrFail();
 
@@ -621,26 +592,24 @@ class VoucherTaxiController extends Controller
                 strtolower(trim($voucher->created_by)) !==
                 strtolower(trim($user->username))
             ) {
-
                 return response()->json([
                     'success' => false,
-                    'message' => 'You cannot cancel this request'
+                    'message' => 'You cannot cancel this request',
                 ], 403);
             }
 
             // 🔥 only revise
             if ($voucher->status !== 'D') {
-
                 return response()->json([
                     'success' => false,
-                    'message' => 'Only revise document can be cancelled'
+                    'message' => 'Only revise document can be cancelled',
                 ], 400);
             }
 
             // 🔥 cancel header
-            $voucher->status       = 'X';
-            $voucher->updated_by   = $user->username;
-            $voucher->updated_at   = now();
+            $voucher->status = 'X';
+            $voucher->updated_by = $user->username;
+            $voucher->updated_at = now();
             $voucher->completed_by = $user->username;
             $voucher->completed_at = now();
             $voucher->save();
@@ -658,20 +627,18 @@ class VoucherTaxiController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Voucher request cancelled successfully'
+                'message' => 'Voucher request cancelled successfully',
             ]);
-
         } catch (\Throwable $e) {
-
             DB::rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
-   
+
     public function detail($eid)
     {
         $id = Hashids::decode($eid)[0] ?? null;
@@ -679,24 +646,22 @@ class VoucherTaxiController extends Controller
         if (!$id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid voucher ID'
+                'message' => 'Invalid voucher ID',
             ], 404);
         }
 
         $voucher = TrVoucherTaxi::find($id);
 
         if (!$voucher) {
-
             return response()->json([
                 'success' => false,
-                'message' => 'Voucher not found'
+                'message' => 'Voucher not found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
             'data' => [
-
                 'docid' => $voucher->docid,
                 'eid' => $eid,
 
@@ -724,30 +689,29 @@ class VoucherTaxiController extends Controller
                 'max_budget' => $voucher->max_budget,
 
                 'revise_reason' => $voucher->revise_reason,
-            ]
+            ],
         ]);
     }
-  
+
     public function updateGaAdvice(Request $request, $docid)
     {
         $request->merge([
-            'actual_budget' => str_replace('.', '', $request->actual_budget)
+            'actual_budget' => str_replace('.', '', $request->actual_budget),
         ]);
         $user = auth()->user();
 
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
         // 🔥 ONLY GA
         if (!$user->hasRole('GAACCESS')) {
-
             return response()->json([
                 'success' => false,
-                'message' => 'Forbidden'
+                'message' => 'Forbidden',
             ], 403);
         }
 
@@ -758,25 +722,23 @@ class VoucherTaxiController extends Controller
         DB::beginTransaction();
 
         try {
-
             $voucher = TrVoucherTaxi::where('docid', $docid)
                 ->firstOrFail();
 
             // 🔥 MUST BE COMPLETED FIRST
             if ($voucher->status !== 'C') {
-
                 return response()->json([
                     'success' => false,
-                    'message' => 'Voucher not completed yet'
+                    'message' => 'Voucher not completed yet',
                 ], 400);
             }
 
             $voucher->update([
                 'actual_budget' => $validated['actual_budget'],
-                'checked_by'    => $user->username,
-                'checked_at'    => now(),
-                'updated_by'    => $user->username,
-                'updated_at'    => now(),
+                'checked_by' => $user->username,
+                'checked_at' => now(),
+                'updated_by' => $user->username,
+                'updated_at' => now(),
             ]);
 
             DB::commit();
@@ -785,21 +747,19 @@ class VoucherTaxiController extends Controller
                 'success' => true,
                 'message' => 'Actual budget saved',
             ]);
-
         } catch (\Throwable $e) {
-
             DB::rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
 
     public function approveVoucherTaxi(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'VCR';
 
         $voucher = TrVoucherTaxi::with('creator')
@@ -809,15 +769,15 @@ class VoucherTaxiController extends Controller
         if (!$voucher) {
             return response()->json([
                 'success' => false,
-                'message' => 'Voucher Taxi not found'
+                'message' => 'Voucher Taxi not found',
             ], 404);
         }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl = url('/showvouchertaxi/' . $eid);
+        $eid = Hashids::encode($voucher->id);
+        $docUrl = url('/showvouchertaxi/'.$eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+        $result = app(ApprovalController::class)->approveStep(
             $voucher->docid,
             $doctype,
             $user->username,
@@ -825,26 +785,26 @@ class VoucherTaxiController extends Controller
 
             // complete: update header + email creator complete
             function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
-                $voucher->status       = 'C';
+                $voucher->status = 'C';
                 $voucher->completed_by = $voucher->completed_by ?: auth()->user()->username;
                 $voucher->completed_at = $now;
-                $voucher->updated_by   = auth()->user()->username;
-                $voucher->updated_at   = $now;
+                $voucher->updated_by = auth()->user()->username;
+                $voucher->updated_at = $now;
                 $voucher->save();
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $voucher->docid,
                     'Voucher Taxi',
                     'C',
                     $voucher->created_by,
                     $docUrl,
                     [
-                        'cpnyid'    => $voucher->cpny_id ?? '',
-                        'deptname'  => $voucher->department_id ?? '',
-                        'date'      => $voucher->voucher_date,
-                        'info'      => $voucher->purpose,
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
+                        'cpnyid' => $voucher->cpny_id ?? '',
+                        'deptname' => $voucher->department_id ?? '',
+                        'date' => $voucher->voucher_date,
+                        'info' => $voucher->purpose,
+                        'fullname' => $fullname,
+                        'name' => $fullname,
                         'createdby' => $fullname,
                     ]
                 );
@@ -852,24 +812,24 @@ class VoucherTaxiController extends Controller
 
             // notify next approver
             function ($next, \Carbon\Carbon $now) use ($voucher, $docUrl) {
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
+                app(ApprovalController::class)->notifyFirstApprover(
                     $voucher->docid,
                     'VCR',
                     'P',
                     'Voucher Taxi',
                     $docUrl,
                     [
-                        'info'      => $voucher->purpose,
+                        'info' => $voucher->purpose,
                         'createdby' => $voucher->created_by,
-                        'date'      => $now->toDateTimeString(),
+                        'date' => $now->toDateTimeString(),
                     ]
                 );
 
                 // jejak terakhir diproses
                 $voucher->completed_by = auth()->user()->username;
                 $voucher->completed_at = $now;
-                $voucher->updated_by   = auth()->user()->username;
-                $voucher->updated_at   = $now;
+                $voucher->updated_by = auth()->user()->username;
+                $voucher->updated_at = $now;
                 $voucher->save();
             }
         );
@@ -877,24 +837,23 @@ class VoucherTaxiController extends Controller
         if (!$result['ok']) {
             return response()->json([
                 'success' => false,
-                'message' => $result['message'] ?? 'Approve failed'
+                'message' => $result['message'] ?? 'Approve failed',
             ], 403);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher Taxi approved successfully'
+            'message' => 'Voucher Taxi approved successfully',
         ]);
     }
 
     public function rejectVoucherTaxi(Request $request, $docid)
     {
-
         $request->validate([
-            'comment' => ['required', 'string']
+            'comment' => ['required', 'string'],
         ]);
 
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'VCR';
 
         $voucher = TrVoucherTaxi::with('creator')
@@ -904,47 +863,47 @@ class VoucherTaxiController extends Controller
         if (!$voucher) {
             return response()->json([
                 'success' => false,
-                'message' => 'Voucher Taxi not found'
+                'message' => 'Voucher Taxi not found',
             ], 404);
         }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl = url('/showvouchertaxi/' . $eid);
+        $eid = Hashids::encode($voucher->id);
+        $docUrl = url('/showvouchertaxi/'.$eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+        $result = app(ApprovalController::class)->rejectStep(
             $voucher->docid,
             $doctype,
             $user->username,
             $user->name,
 
             function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
-                $voucher->status       = 'R';
+                $voucher->status = 'R';
                 $voucher->completed_by = auth()->user()->username;
                 $voucher->completed_at = $now;
-                $voucher->updated_by   = auth()->user()->username;
-                $voucher->updated_at   = $now;
+                $voucher->updated_by = auth()->user()->username;
+                $voucher->updated_at = $now;
                 $voucher->save();
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $voucher->docid,
                     'Voucher Taxi',
                     'R',
                     $voucher->created_by,
                     $docUrl,
                     [
-                        'cpnyid'    => $voucher->cpny_id ?? '',
-                        'deptname'  => $voucher->department_id ?? '',
-                        'date'      => $now->toDateString(),
-                        'info'      => $voucher->purpose ?? '',
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
+                        'cpnyid' => $voucher->cpny_id ?? '',
+                        'deptname' => $voucher->department_id ?? '',
+                        'date' => $now->toDateString(),
+                        'info' => $voucher->purpose ?? '',
+                        'fullname' => $fullname,
+                        'name' => $fullname,
                         'createdby' => $fullname,
                     ]
                 );
 
                 try {
-                    app(\App\Http\Controllers\SendCommentController::class)
+                    app(SendCommentController::class)
                         ->sendmsg($voucher->id, 'VCR', request());
                 } catch (\Throwable $e) {
                     \Log::warning('Send reject comment Voucher Taxi failed', [
@@ -958,24 +917,23 @@ class VoucherTaxiController extends Controller
         if (!$result['ok']) {
             return response()->json([
                 'success' => false,
-                'message' => $result['message'] ?? 'Reject failed'
+                'message' => $result['message'] ?? 'Reject failed',
             ], 403);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher Taxi rejected successfully'
+            'message' => 'Voucher Taxi rejected successfully',
         ]);
     }
 
     public function reviseVoucherTaxi(Request $request, $docid)
     {
-
         $request->validate([
-            'comment' => ['required', 'string']
+            'comment' => ['required', 'string'],
         ]);
 
-        $user    = $request->user();
+        $user = $request->user();
         $doctype = 'VCR';
 
         $voucher = TrVoucherTaxi::with('creator')
@@ -985,51 +943,50 @@ class VoucherTaxiController extends Controller
         if (!$voucher) {
             return response()->json([
                 'success' => false,
-                'message' => 'Voucher Taxi not found'
+                'message' => 'Voucher Taxi not found',
             ], 404);
         }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-       $docUrl = url('/showvouchertaxi/' . $eid);
+        $eid = Hashids::encode($voucher->id);
+        $docUrl = url('/showvouchertaxi/'.$eid);
         $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+        $result = app(ApprovalController::class)->reviseStep(
             $voucher->docid,          // refnbr
             $doctype,
             $user->username,
             $user->name,
 
             function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
-
                 // === HEADER -> D (Revise) ===
-                $voucher->status       = 'D';
+                $voucher->status = 'D';
                 $voucher->completed_by = auth()->user()->username;
                 $voucher->completed_at = $now;
-                $voucher->updated_by   = auth()->user()->username;
-                $voucher->updated_at   = $now;
+                $voucher->updated_by = auth()->user()->username;
+                $voucher->updated_at = $now;
                 $voucher->save();
 
                 // === Email ke requester ===
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                app(ApprovalController::class)->notifyRequesterOnStatus(
                     $voucher->docid,
                     'Voucher Taxi',
                     'D',
                     $voucher->created_by,
                     $docUrl,
                     [
-                        'cpnyid'    => $voucher->cpny_id ?? '',
-                        'deptname'  => $voucher->department_id ?? '',
-                        'date'      => $now->toDateString(),
-                        'info'      => $voucher->purpose ?? '',
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
+                        'cpnyid' => $voucher->cpny_id ?? '',
+                        'deptname' => $voucher->department_id ?? '',
+                        'date' => $now->toDateString(),
+                        'info' => $voucher->purpose ?? '',
+                        'fullname' => $fullname,
+                        'name' => $fullname,
                         'createdby' => $fullname,
                     ]
                 );
 
                 // === Simpan komentar ===
                 try {
-                    app(\App\Http\Controllers\SendCommentController::class)
+                    app(SendCommentController::class)
                         ->sendmsg($voucher->id, 'VCR', request());
                 } catch (\Throwable $e) {
                     \Log::warning('Send revise comment Voucher Taxi failed', [
@@ -1043,13 +1000,13 @@ class VoucherTaxiController extends Controller
         if (!$result['ok']) {
             return response()->json([
                 'success' => false,
-                'message' => $result['message'] ?? 'Revise failed'
+                'message' => $result['message'] ?? 'Revise failed',
             ], 403);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher Taxi revised successfully'
+            'message' => 'Voucher Taxi revised successfully',
         ]);
     }
 
@@ -1063,11 +1020,10 @@ class VoucherTaxiController extends Controller
 
         return response()->json($voucher);
     }
-   
+
     public function tracking($hash)
     {
         try {
-
             $id = Hashids::decode($hash)[0] ?? null;
 
             abort_if(!$id, 404);
@@ -1075,12 +1031,11 @@ class VoucherTaxiController extends Controller
             $voucher = TrVoucherTaxi::findOrFail($id);
 
             $getName = function (?string $username) {
-
                 if (!$username) {
                     return null;
                 }
 
-                return \App\Models\User::where('username', $username)
+                return User::where('username', $username)
                     ->value('name') ?? $username;
             };
 
@@ -1091,12 +1046,12 @@ class VoucherTaxiController extends Controller
             // =========================
 
             $steps[] = [
-                'key'          => 'submitted',
-                'title'        => 'Voucher Taxi',
-                'status'       => 'C',
+                'key' => 'submitted',
+                'title' => 'Voucher Taxi',
+                'status' => 'C',
                 'status_label' => 'Submitted',
-                'by'           => $getName($voucher->created_by),
-                'at'           => optional($voucher->created_at)
+                'by' => $getName($voucher->created_by),
+                'at' => optional($voucher->created_at)
                     ->format('Y-m-d H:i'),
             ];
 
@@ -1110,20 +1065,17 @@ class VoucherTaxiController extends Controller
                 ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
                 ->get();
 
-                              $comment = null;
+            $comment = null;
 
-                    try {
-
-                        $comment = DB::table('tr_comment')
-                            ->where('refid', $voucher->id)
-                            ->where('doctype', 'VCR')
-                            ->latest('created_at')
-                            ->value('comment');
-
-                    } catch (\Throwable $e) {
-
-                        // ignore if table not exists
-                    }
+            try {
+                $comment = DB::table('tr_comment')
+                    ->where('refid', $voucher->id)
+                    ->where('doctype', 'VCR')
+                    ->latest('created_at')
+                    ->value('comment');
+            } catch (\Throwable $e) {
+                // ignore if table not exists
+            }
 
             $comments = TrMessage::where('doctype', 'VCR')
                 ->where('refnbr', $voucher->docid)
@@ -1132,17 +1084,15 @@ class VoucherTaxiController extends Controller
                     'username',
                     'name',
                     'message',
-                    'message_date'
+                    'message_date',
                 ]);
 
             foreach ($approvals as $aprv) {
-
                 $steps[] = [
-
-                    'key' => 'approval_' . $aprv->aprv_leveling,
+                    'key' => 'approval_'.$aprv->aprv_leveling,
 
                     'title' => $aprv->aprv_name
-                        ?: ('Approval Level ' . $aprv->aprv_leveling),
+                        ?: ('Approval Level '.$aprv->aprv_leveling),
 
                     'status' => $aprv->status,
 
@@ -1170,16 +1120,14 @@ class VoucherTaxiController extends Controller
                             ->format('Y-m-d H:i')
                         : null,
 
-
                     'comment' => $comments->first()?->message,
                 ];
             }
 
-
-           $latestComment = TrMessage::where('doctype', 'VCR')
-            ->where('refnbr', $voucher->docid)
-            ->latest('message_date')
-            ->first();
+            $latestComment = TrMessage::where('doctype', 'VCR')
+             ->where('refnbr', $voucher->docid)
+             ->latest('message_date')
+             ->first();
 
             return response()->json([
                 'success' => true,
@@ -1199,21 +1147,19 @@ class VoucherTaxiController extends Controller
                 },
 
                 'revise_reason' => $latestComment?->message,
-                'comments'      => $comments,
+                'comments' => $comments,
             ]);
-
         } catch (\Throwable $e) {
-
             \Log::error('TRACKING ERROR', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
-    }    
+    }
 
     public function printVoucherTaxi($hash)
     {
@@ -1249,21 +1195,20 @@ class VoucherTaxiController extends Controller
             default => '-',
         };
 
-        $pdf = PDF::loadView(
+        $pdf = \PDF::loadView(
             'pages.vouchertaxi.pdf_vouchertaxi',
             [
-                'voucher'      => $voucher,
-                'approvals'    => $approvals,
-                'company'      => $company,
-                'status_doc'   => $status_doc,
+                'voucher' => $voucher,
+                'approvals' => $approvals,
+                'company' => $company,
+                'status_doc' => $status_doc,
             ]
         );
 
         $pdf->setPaper('A4', 'portrait');
 
         return $pdf->stream(
-            'voucher_taxi_' . $voucher->docid . '.pdf'
+            'voucher_taxi_'.$voucher->docid.'.pdf'
         );
     }
-
 }

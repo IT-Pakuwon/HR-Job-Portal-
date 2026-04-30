@@ -476,8 +476,9 @@
     window.currentUsername = @json(auth()->user()->name);
     document.addEventListener('DOMContentLoaded', function() {
         const RESTRICTED_ROOMS = [
-            'Ruang Meeting 33-1',
-            'Ruang Meeting 33-5'
+            'Meeting Room 33-1',
+            'Meeting Room 33-5',
+            'Meeting Room 1 P6 - Mall Gandaria'
         ];
 
         window.endPicker = flatpickr("#end_datetime", {
@@ -509,6 +510,10 @@
             schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
 
             initialView: isMobile ? 'timeGridDay' : 'resourceTimelineDay',
+
+            resourceOrder: function(a, b) {
+                return parseInt(a.id) - parseInt(b.id);
+            },
 
             height: isMobile ? 'auto' : '75vh',
             contentHeight: 'auto',

@@ -1,37 +1,27 @@
 <x-app-layout>
     <div class="mb-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-            <!-- LEFT -->
             <div class="flex items-center gap-3">
-
-                <!-- ICON -->
                 <div
                     class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
-                    🚕
+                    🚘
                 </div>
 
-                <!-- TITLE -->
                 <div>
-
                     <h1 class="text-lg font-semibold tracking-tight text-gray-900">
-                        Taxi Booking
+                        Booking Car
                     </h1>
 
                     <p class="mt-0.5 text-sm text-gray-500">
-                        Manage booking requests and taxi vouchers
+                        Manage booking requests and car schedules
                     </p>
-
                 </div>
-
             </div>
 
-            <!-- RIGHT -->
             <div class="flex items-center gap-2">
 
-                <!-- LIST -->
-                <button id="toggleList"
+                <button type="button" id="toggleList"
                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                     <span>📋</span>
@@ -42,8 +32,7 @@
 
                 </button>
 
-                <!-- CREATE -->
-                <button id="openCreateVoucherModal"
+                <button type="button" id="openCreateBookingModal"
                     class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-black">
 
                     <span>➕</span>
@@ -57,36 +46,70 @@
             </div>
 
         </div>
-
     </div>
-    {{-- <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-        <div id="calendar"></div>
-    </div> --}}
 
-    <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-12">
 
-        <!-- 📅 CALENDAR -->
-        <div id="calendarWrapper" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm lg:col-span-2">
+        <div id="calendarWrapper"
+            class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
 
-            <div class="mb-3 text-xs uppercase tracking-wide text-gray-400">
-                Calendar View
+            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/10">
+
+                <div>
+
+                    <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                        Calendar View
+                    </div>
+
+                    <div class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                        Booking Car request schedule overview
+                    </div>
+
+                </div>
+
+                <div class="hidden items-center gap-2 md:flex">
+
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+
+                        <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+                        Pending
+
+                    </div>
+
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        Completed
+
+                    </div>
+
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+
+                        <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                        Revise
+
+                    </div>
+
+                </div>
+
             </div>
 
-            <div id="calendar"></div>
+            <div class="p-5">
+                <div id="calendar"></div>
+            </div>
+
         </div>
 
-        <!-- 📋 LIST PANEL -->
-        <div id="voucherListPanel"
-            class="flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+        <div id="bookingListPanel"
+            class="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-4">
 
-            <!-- HEADER -->
             <div class="border-b border-gray-100 p-4 dark:border-white/10">
 
                 <div class="flex items-start justify-between gap-3">
 
                     <div>
                         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
-                            Voucher List
+                            Booking List
                         </h3>
 
                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -94,43 +117,36 @@
                         </p>
                     </div>
 
-                    <span id="voucherCount"
+                    <span id="bookingCount"
                         class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-200">
                         0
                     </span>
 
                 </div>
 
-                <!-- FILTER -->
                 <div class="mt-4 flex w-full flex-wrap justify-between gap-2">
 
-                    <button class="voucher-filter active-filter" data-filter="ALL">
+                    <button class="booking-filter active-filter" data-filter="ALL">
                         All
                     </button>
 
-                    <button class="voucher-filter" data-filter="P">
+                    <button type="button" class="booking-filter" data-filter="P">
                         Pending
                     </button>
 
-                    <button class="voucher-filter" data-filter="C">
+                    <button type="button" class="booking-filter" data-filter="C">
                         Completed
                     </button>
 
-                    @if (auth()->user()->hasRole('GAACCESS'))
-                        <button class="voucher-filter" data-filter="WAITING_PROCESS">
-                            Waiting Process
-                        </button>
-                    @endif
-
-                    <button class="voucher-filter" data-filter="D">
+                    <button type="button" class="booking-filter" data-filter="D">
                         Revise
                     </button>
 
-                    <button class="voucher-filter" data-filter="R">
+                    <button type="button" class="booking-filter" data-filter="R">
                         Rejected
                     </button>
 
-                    <button class="voucher-filter" data-filter="X">
+                    <button type="button" class="booking-filter" data-filter="X">
                         Cancelled
                     </button>
 
@@ -138,29 +154,24 @@
 
             </div>
 
-            <!-- BODY -->
             <div class="flex-1 overflow-y-auto p-2">
-
-                <div id="voucherListBody" class="space-y-2">
-                </div>
-
+                <div id="bookingListBody" class="space-y-2"></div>
             </div>
 
-            <!-- PAGINATION -->
             <div class="flex items-center justify-between border-t border-gray-100 px-4 py-3 dark:border-white/10">
 
-                <div id="voucherPageInfo" class="text-xs text-gray-500 dark:text-gray-400">
+                <div id="bookingPageInfo" class="text-xs text-gray-500 dark:text-gray-400">
                     Showing 1–5
                 </div>
 
                 <div class="flex items-center gap-2">
 
-                    <button id="prevVoucherPage"
+                    <button type="button" id="prevBookingPage"
                         class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5">
                         Prev
                     </button>
 
-                    <button id="nextVoucherPage"
+                    <button type="button" id="nextBookingPage"
                         class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5">
                         Next
                     </button>
@@ -173,432 +184,334 @@
 
     </div>
 
-    <div id="createVoucherModal"
-        class="fixed inset-0 z-50 flex hidden items-center justify-center overflow-y-auto bg-black/40">
+    <div id="createBookingModal" class="fixed inset-0 z-50 hidden bg-black/40 p-4">
 
-        <div class="mb-10 mt-16 w-full max-w-4xl overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-gray-900">
+        <div class="flex min-h-full items-center justify-center">
 
-            <form id="voucherTaxiForm" method="POST"class="flex flex-col">
+            <div class="w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-[#0f172a]">
 
-                <!-- HEADER -->
-                <div class="border-b border-gray-200 px-8 py-6 dark:border-gray-700">
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-                        Create Voucher Taxi
-                    </h2>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Fill in the details below
-                    </p>
-                </div>
+                <form id="bookingCarForm" method="POST" class="flex flex-col">
 
-                <!-- BODY -->
-                <div class="max-h-[70vh] space-y-8 overflow-y-auto px-8 py-6">
+                    <div class="border-b border-gray-200 px-7 py-5 dark:border-white/10">
 
-                    <!-- BASIC -->
-                    <div class="space-y-4">
-                        <p class="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                            Basic Info
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                            Create Booking Car
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Fill booking request information
                         </p>
-
-                        <div class="grid gap-5 md:grid-cols-2">
-
-                            <div>
-                                <label class="text-xs text-gray-500">Company *</label>
-                                <select name="cpny_id"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none dark:border-gray-700 dark:bg-transparent"
-                                    required>
-                                    <option>Select company</option>
-                                    @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpny_id }}">{{ $p->cpny_id }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-
-                            <div>
-                                <label class="text-xs text-gray-500">Department *</label>
-                                <select name="department_id" id="department_id"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none dark:border-gray-700 dark:bg-transparent"
-                                    required>
-                                    <option>Select department</option>
-                                    @foreach ($userdept as $p)
-                                        <option value="{{ $p->department_id }}">{{ $p->department_id }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="text-xs text-gray-500">Requester *</label>
-                                <input type="text" value="{{ auth()->user()->name }}"
-                                    class="mt-1 w-full rounded-lg border bg-gray-100 px-3 py-2 text-sm" readonly>
-
-                                <input type="hidden" name="user_peminta" value="{{ auth()->user()->username }}">
-                            </div>
-
-                            <div>
-                                <label class="text-xs text-gray-500">Date Used *</label>
-                                <input type="date" name="date_used"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none dark:border-gray-700 dark:bg-transparent"
-                                    required>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- TRIP -->
-                    <div class="space-y-4">
-                        <div class="flex justify-between">
-                            <p class="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                                Trip Info
-                            </p>
-
-                            <div class="flex gap-2 rounded-lg bg-gray-100 p-1">
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="type_trip" value="Return" checked class="peer hidden">
-                                    <span
-                                        class="rounded-md px-3 py-1 text-xs peer-checked:bg-black peer-checked:text-white">
-                                        Return
-                                    </span>
-                                </label>
-
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="type_trip" value="One Way" class="peer hidden">
-                                    <span
-                                        class="rounded-md px-3 py-1 text-xs peer-checked:bg-black peer-checked:text-white">
-                                        One Way
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-
-
-                        <div class="flex justify-between gap-4">
-                            <div class="flex justify-between gap-4">
-
-                                <!-- ORIGIN -->
-                                <div class="flex-1">
-                                    <label class="text-xs text-gray-500">Origin *</label>
-                                    <input type="text" name="origin"
-                                        class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                                        placeholder="From where?" required>
-                                </div>
-
-                                <!-- DESTINATION -->
-                                <div class="flex-1">
-                                    <label class="text-xs text-gray-500">Destination *</label>
-                                    <input type="text" name="destination"
-                                        class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                                        placeholder="Where to?" required>
-                                </div>
-
-                            </div>
-
-                            <div class="flex-1">
-                                <label class="text-xs text-gray-500">Purpose *</label>
-                                <input type="text" name="purpose"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none dark:border-gray-700 dark:bg-transparent"
-                                    placeholder="Purpose..." required>
-                            </div>
-                        </div>
 
                     </div>
 
-                    <!-- FINANCE -->
-                    <div class="space-y-4">
-                        <p class="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                            Finance
-                        </p>
+                    <div class="max-h-[78vh] space-y-7 overflow-y-auto px-7 py-6">
 
-                        <div class="grid gap-5 md:grid-cols-2">
+                        <div class="space-y-4">
 
-                            <div>
-                                <label class="text-xs text-gray-500">Company Expense *</label>
-                                <select name="cpny_id_expense"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none dark:border-gray-700 dark:bg-transparent"
-                                    required>
-                                    <option>Select company</option>
-                                    @foreach ($company as $p)
-                                        <option value="{{ $p->cpny_id }}">{{ $p->cpny_name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                Basic Information
                             </div>
 
-                            <div>
-                                <label class="text-xs text-gray-500">Topup *</label>
-                                <select name="user_topup" id="user_topup"
-                                    class="mt-1 w-full rounded-lg border px-3 py-2 text-sm" required>
+                            <div class="grid gap-4 md:grid-cols-2">
 
-                                    <option value="">Select user</option>
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Company *
+                                    </label>
 
-                                    @foreach ($requesters as $p)
-                                        <option value="{{ $p->username }}" data-dept="{{ trim($p->department_id) }}">
-                                            {{ $p->name }}
+                                    <select name="cpny_id"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+
+                                        <option value="">
+                                            Select company
                                         </option>
-                                    @endforeach
 
-                                </select>
+                                        @foreach ($usercpny as $p)
+                                            <option value="{{ $p->cpny_id }}">
+                                                {{ $p->cpny_id }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Department *
+                                    </label>
+
+                                    <select name="department_id" id="booking_department_id"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+
+                                        <option value="">
+                                            Select department
+                                        </option>
+
+                                        @foreach ($userdept as $p)
+                                            <option value="{{ $p->department_id }}">
+                                                {{ $p->department_id }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-3">
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Requester *
+                                    </label>
+
+                                    <input type="text" value="{{ auth()->user()->name }}"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-100 px-3 py-2.5 text-sm text-gray-700"
+                                        readonly>
+
+                                    <input type="hidden" name="user_peminta" value="{{ auth()->user()->username }}">
+                                </div>
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        User Request *
+                                    </label>
+
+                                    <select name="user_request" id="booking_user_request"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+
+                                        <option value="">
+                                            Select passenger
+                                        </option>
+
+                                        @foreach ($requesters as $p)
+                                            <option value="{{ $p->name }}"
+                                                data-dept="{{ trim($p->department_id) }}">
+
+                                                {{ $p->name }}
+
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                </div>
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Total Passenger *
+                                    </label>
+
+                                    <input type="number" name="passenger" min="1"
+                                        placeholder="Total passenger"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+                                </div>
                             </div>
 
                         </div>
+
+                        <div class="space-y-4">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                Schedule
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-3">
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Booking Date *
+                                    </label>
+
+                                    <input type="date" name="booking_date"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+                                </div>
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Start Time *
+                                    </label>
+
+                                    <input type="time" name="start_time"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+                                </div>
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        End Time *
+                                    </label>
+
+                                    <input type="time" name="end_time"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="space-y-4">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                Trip Information
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        From *
+                                    </label>
+
+                                    <input type="text" name="location_from" placeholder="Pickup location"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+                                </div>
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Destination *
+                                    </label>
+
+                                    <input type="text" name="destination" placeholder="Destination"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="grid gap-4 md:grid-cols-2">
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Site Company *
+                                    </label>
+
+                                    <select name="cpny_id_site"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+
+                                        <option value="">
+                                            Select company
+                                        </option>
+
+                                        @foreach ($company as $p)
+                                            <option value="{{ $p->cpny_id }}">
+                                                {{ $p->cpny_name }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Purpose ID *
+                                    </label>
+
+                                    <select name="purpose_id" id="purpose_id"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
+
+                                        <option value="">
+                                            Select purpose
+                                        </option>
+
+                                        <option value="MEETING">
+                                            Meeting
+                                        </option>
+
+                                        <option value="VISIT">
+                                            Site Visit
+                                        </option>
+
+                                        <option value="EVENT">
+                                            Event
+                                        </option>
+
+                                        <option value="OTHER">
+                                            Other
+                                        </option>
+
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div id="purposeDescrWrapper" class="hidden">
+
+                                <label class="text-xs text-gray-500">
+                                    Purpose Description *
+                                </label>
+
+                                <textarea name="purpose_descr" id="purpose_descr" rows="4" placeholder="Purpose detail..."
+                                    class="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"></textarea>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
-                </div>
+                    <div
+                        class="flex items-center justify-between border-t border-gray-200 px-7 py-5 dark:border-white/10">
 
-                <!-- FOOTER -->
-                <div class="flex items-center justify-between border-t border-gray-200 px-8 py-5 dark:border-gray-700">
-                    <button type="button" id="closeCreateVoucherModal"
-                        class="text-sm text-gray-500 hover:text-gray-800">
-                        Cancel
-                    </button>
+                        <button type="button" id="closeCreateBookingModal"
+                            class="text-sm text-gray-500 transition hover:text-black dark:hover:text-white">
+                            Cancel
+                        </button>
 
-                    <button type="submit" class="rounded-lg bg-black px-5 py-2 text-sm text-white hover:opacity-90">
-                        Submit
-                    </button>
-                </div>
+                        <button type="submit"
+                            class="rounded-xl bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800">
+                            Submit Booking
+                        </button>
 
-            </form>
+                    </div>
+
+                </form>
+
+            </div>
+
         </div>
+
     </div>
 
-    <div id="editVoucherTaxiModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/40 p-4">
+    <!-- VIEW BOOKING MODAL -->
+    <div id="viewBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50">
 
-        <div class="w-full max-w-4xl overflow-hidden rounded-lg bg-white shadow-2xl">
-
-            <form id="editVoucherTaxiForm" class="flex flex-col">
-                @csrf
-
-                <input type="hidden" id="edit_docid">
-
-                <div class="flex items-center justify-between border-b px-6 py-5">
-
-                    <div class="flex items-center gap-3">
-
-                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
-                            ✏️
-                        </div>
-
-                        <div>
-                            <h2 class="text-lg font-semibold text-gray-900">
-                                Edit Booking
-                            </h2>
-
-                            <div id="editStatusBadge"
-                                class="mt-1 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
-                                Status
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="text-right text-xs leading-tight text-gray-400">
-                        <div id="editMetaUser"></div>
-                        <div id="editMetaDate"></div>
-                    </div>
-
-                </div>
-
-                <!-- BODY -->
-                <div class="max-h-[70vh] space-y-8 overflow-y-auto px-8 py-6">
-
-                    <!-- BASIC -->
-                    <div class="space-y-4">
-                        <p class="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                            Basic Info
-                        </p>
-
-                        <div class="grid gap-5 md:grid-cols-2">
-
-                            <div>
-                                <label class="text-xs text-gray-500">Company</label>
-                                <select name="cpny_id" id="edit_cpny_id"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
-                                    <option value="">Select company</option>
-                                    @foreach ($company as $c)
-                                        <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="text-xs text-gray-500">Department</label>
-                                <select name="department_id" id="edit_department_id"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
-                                    <option value="">Select department</option>
-                                    @foreach ($userdept as $p)
-                                        <option value="{{ $p->department_id }}">{{ $p->department_id }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="text-xs text-gray-500">Requester</label>
-                                <input type="text" id="edit_user_peminta" name="user_peminta"
-                                    class="mt-1 w-full rounded-lg border bg-gray-100 px-3 py-2 text-sm" readonly>
-                            </div>
-
-                            <div>
-                                <label class="text-xs text-gray-500">Date</label>
-                                <input type="date" name="date_used" id="edit_date_used"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- TRIP -->
-                    <div class="space-y-4">
-
-                        <div class="flex items-center justify-between">
-                            <p class="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                                Trip Info
-                            </p>
-
-                            <div class="flex gap-2 rounded-lg bg-gray-100 p-1">
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="type_trip" value="Return" class="peer hidden">
-                                    <span
-                                        class="rounded-md px-3 py-1 text-xs peer-checked:bg-black peer-checked:text-white">
-                                        Return
-                                    </span>
-                                </label>
-
-                                <label class="cursor-pointer">
-                                    <input type="radio" name="type_trip" value="One Way" class="peer hidden">
-                                    <span
-                                        class="rounded-md px-3 py-1 text-xs peer-checked:bg-black peer-checked:text-white">
-                                        One Way
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-between gap-4">
-                            <div class="flex justify-between gap-4">
-
-                                <!-- ORIGIN -->
-                                <div class="flex-1">
-                                    <label class="text-xs text-gray-500">Origin</label>
-                                    <input type="text" name="origin" id="edit_origin"
-                                        class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
-                                </div>
-
-                                <!-- DESTINATION -->
-                                <div class="flex-1">
-                                    <label class="text-xs text-gray-500">Destination</label>
-                                    <input type="text" name="destination" id="edit_destination"
-                                        class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
-                                </div>
-
-                            </div>
-
-                            <div class="flex-1">
-                                <label class="text-xs text-gray-500">Purpose</label>
-                                <input type="text" name="purpose" id="edit_purpose"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
-                            </div>
-                        </div>
-                        <!-- REVISE NOTE -->
-                        <div id="editReviseReasonWrapper"
-                            class="mx-8 mb-6 hidden rounded-lg border border-yellow-200 bg-yellow-50 px-5 py-4">
-
-                            <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
-                                Revision Reason
-                            </div>
-
-                            <div id="edit_revise_reason" class="text-sm font-medium text-yellow-900">
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- FINANCE -->
-                    <div class="space-y-4">
-                        <p class="text-[11px] font-medium uppercase tracking-wider text-gray-400">
-                            Finance
-                        </p>
-
-                        <div class="grid gap-5 md:grid-cols-2">
-
-                            <div>
-                                <label class="text-xs text-gray-500">Company Expense</label>
-                                <select name="cpny_id_expense" id="edit_cpny_id_expense"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
-                                    <option value="">Select company</option>
-                                    @foreach ($company as $c)
-                                        <option value="{{ $c->cpny_id }}">
-                                            {{ $c->cpny_id }} - {{ $c->cpny_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="text-xs text-gray-500">Topup</label>
-                                <select name="user_topup" id="edit_user_topup"
-                                    class="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none">
-                                    <option value="">Select user</option>
-                                    @foreach ($requesters as $p)
-                                        <option value="{{ $p->username }}">
-                                            {{ $p->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
-                <!-- FOOTER -->
-                <div class="flex items-center justify-between border-t bg-gray-50 px-6 py-4">
-
-                    <button type="button" id="cancelEditVoucherTaxiBtn"
-                        class="text-sm text-gray-500 hover:text-black">
-                        Cancel
-                    </button>
-
-                    <button type="submit" id="saveEditVoucherTaxiBtn"
-                        class="rounded-lg bg-black px-5 py-2 text-sm font-medium text-white hover:opacity-90">
-                        Save Changes
-                    </button>
-
-                </div>
-
-            </form>
-        </div>
-    </div>
-
-    <div id="viewVoucherModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50">
-
-        <!-- CENTER -->
         <div class="flex min-h-screen items-center justify-center p-4">
 
-            <!-- MODAL -->
-            <div class="w-full max-w-6xl overflow-hidden rounded-lg border border-gray-200 bg-[#fcfcfd] shadow-2xl">
+            <div class="w-full max-w-6xl overflow-hidden rounded-2xl border border-gray-200 bg-[#fcfcfd] shadow-2xl">
 
                 <!-- HEADER -->
                 <div class="flex items-start justify-between border-b border-gray-200 px-8 py-6">
 
                     <div>
+
                         <h2 class="text-xl font-semibold tracking-tight text-gray-900">
-                            Voucher Detail
+                            Booking Car Detail
                         </h2>
 
                         <p class="mt-1 text-sm text-gray-400">
                             Booking information & approval workflow
                         </p>
+
                     </div>
 
                     <div class="flex items-center gap-2">
 
-                        {{-- PRINT --}}
-                        <a id="printVoucherBtn" href="#" target="_blank"
+                        <a id="printBookingBtn" href="#" target="_blank"
                             class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
                             🖨 Print PDF
                         </a>
 
-                        {{-- CLOSE --}}
-                        <button onclick="closeViewModal()"
+                        <button type="button" onclick="closeBookingDetailModal()"
                             class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black">
                             ✕
                         </button>
@@ -610,102 +523,145 @@
                 <!-- BODY -->
                 <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[1.1fr_.9fr]">
 
-                    <!-- ================= LEFT ================= -->
-                    <div class="space-y-2">
+                    <!-- LEFT -->
+                    <div class="space-y-4">
 
-                        <!-- MAIN INFO -->
-                        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <!-- MAIN -->
+                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
 
-                            <!-- TOP -->
                             <div class="flex items-start justify-between border-b border-gray-100 pb-5">
 
                                 <div>
+
                                     <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
                                         Requester
                                     </div>
 
-                                    <div id="view_user" class="mt-2 text-base font-medium text-gray-900">
+                                    <div id="view_booking_user" class="mt-2 text-base font-semibold text-gray-900">
                                     </div>
+
+                                    <div id="view_booking_docid" class="mt-1 text-xs text-gray-400">
+                                    </div>
+
                                 </div>
 
-                                <div id="view_status_badge"
-                                    class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-                                    Pending
+                                <div id="view_booking_status_badge">
                                 </div>
 
                             </div>
 
-                            <!-- CONTENT -->
                             <div class="mt-6 grid grid-cols-2 gap-x-8 gap-y-6">
 
                                 <div>
+
                                     <div class="text-xs text-gray-400">
-                                        Date
+                                        Booking Date
                                     </div>
 
-                                    <div id="view_date" class="mt-1 text-sm font-medium text-gray-900">
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="text-xs text-gray-400">
-                                        Trip Type
-                                    </div>
-
-                                    <div id="view_type_trip" class="mt-1 text-sm font-medium text-gray-900">
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="text-xs text-gray-400">
-                                        Origin
-                                    </div>
-
-                                    <div id="view_origin" class="mt-1 text-sm font-medium text-gray-900">
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="text-xs text-gray-400">
-                                        Destination
-                                    </div>
-
-                                    <div id="view_destination" class="mt-1 text-sm font-medium text-gray-900">
-                                    </div>
-                                </div>
-
-                                <!-- ROUTE -->
-                                <div class="col-span-2">
-
-                                    <div class="rounded-lg bg-indigo-50 px-5 py-4">
-
-                                        <div class="text-[11px] uppercase tracking-[0.15em] text-indigo-500">
-                                            Route
-                                        </div>
-
-                                        <div id="view_route" class="mt-2 text-sm font-medium text-indigo-900">
-                                        </div>
-
+                                    <div id="view_booking_date" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
 
                                 </div>
 
                                 <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        Passenger
+                                    </div>
+
+                                    <div id="view_booking_passenger" class="mt-1 text-sm font-medium text-gray-900">
+                                    </div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        Start Time
+                                    </div>
+
+                                    <div id="view_booking_start" class="mt-1 text-sm font-medium text-gray-900">
+                                    </div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        End Time
+                                    </div>
+
+                                    <div id="view_booking_end" class="mt-1 text-sm font-medium text-gray-900">
+                                    </div>
+
+                                </div>
+
+                                <div>
+
                                     <div class="text-xs text-gray-400">
                                         Company
                                     </div>
 
-                                    <div id="view_cpny" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_booking_cpny" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
+
                                 </div>
 
                                 <div>
+
                                     <div class="text-xs text-gray-400">
                                         Department
                                     </div>
 
-                                    <div id="view_dept" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_booking_dept" class="mt-1 text-sm font-medium text-gray-900">
                                     </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ROUTE -->
+                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+
+                            <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
+                                Route Information
+                            </div>
+
+                            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                                <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        Pickup Location
+                                    </div>
+
+                                    <div id="view_booking_from" class="mt-1 text-sm font-medium text-gray-900">
+                                    </div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        Destination
+                                    </div>
+
+                                    <div id="view_booking_destination" class="mt-1 text-sm font-medium text-gray-900">
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="mt-5 rounded-xl bg-indigo-50 px-5 py-4">
+
+                                <div class="text-[11px] uppercase tracking-[0.15em] text-indigo-500">
+                                    Route
+                                </div>
+
+                                <div id="view_booking_route" class="mt-2 text-sm font-medium text-indigo-900">
                                 </div>
 
                             </div>
@@ -713,42 +669,73 @@
                         </div>
 
                         <!-- PURPOSE -->
-                        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
 
                             <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
                                 Purpose
                             </div>
 
-                            <div id="view_purpose" class="mt-3 text-sm font-medium leading-relaxed text-gray-900">
+                            <div id="view_booking_purpose"
+                                class="mt-3 text-sm font-medium leading-relaxed text-gray-900">
                             </div>
 
                         </div>
 
-                        <!-- ACTUAL EXPENSE -->
-                        <div id="actualExpenseWrapper"
-                            class="hidden rounded-lg border border-emerald-100 bg-emerald-50 p-4 shadow-sm">
+                        <!-- DRIVER -->
+                        <div id="driverInfoWrapper"
+                            class="hidden rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
 
                             <div class="flex items-center justify-between">
 
                                 <div>
 
                                     <div class="text-[11px] uppercase tracking-[0.18em] text-emerald-600">
-                                        Actual Expense
-                                    </div>
-
-                                    <div class="mt-3 text-[11px] font-medium tracking-tight text-emerald-900">
-
-                                        <span id="view_actual_budget">
-                                            Rp 0
-                                        </span>
-
+                                        Driver Information
                                     </div>
 
                                 </div>
 
                                 <div
                                     class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
-                                    Processed
+                                    Assigned
+                                </div>
+
+                            </div>
+
+                            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+
+                                <div>
+
+                                    <div class="text-xs text-emerald-700">
+                                        Driver
+                                    </div>
+
+                                    <div id="view_booking_driver" class="mt-1 text-sm font-semibold text-emerald-900">
+                                    </div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="text-xs text-emerald-700">
+                                        Handphone
+                                    </div>
+
+                                    <div id="view_booking_handphone"
+                                        class="mt-1 text-sm font-semibold text-emerald-900">
+                                    </div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="text-xs text-emerald-700">
+                                        No Polisi
+                                    </div>
+
+                                    <div id="view_booking_nopol" class="mt-1 text-sm font-semibold text-emerald-900">
+                                    </div>
+
                                 </div>
 
                             </div>
@@ -756,66 +743,68 @@
                         </div>
 
                         <!-- REVISE -->
-                        <div id="reviseReasonWrapper"
-                            class="hidden rounded-lg border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
+                        <div id="bookingReviseWrapper"
+                            class="hidden rounded-2xl border border-yellow-200 bg-yellow-50 p-5 shadow-sm">
 
                             <div class="text-[11px] uppercase tracking-[0.18em] text-yellow-700">
                                 Revision Reason
                             </div>
 
-                            <div id="view_revise_reason" class="mt-3 text-sm leading-relaxed text-yellow-900">
+                            <div id="view_booking_revise_reason" class="mt-3 text-sm leading-relaxed text-yellow-900">
                             </div>
 
                         </div>
 
                     </div>
 
-                    <!-- ================= RIGHT ================= -->
+                    <!-- RIGHT -->
                     <div class="space-y-4">
 
-                        <!-- HEADER -->
                         <div class="flex items-center justify-between">
 
                             <div>
+
                                 <h3 class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
                                     Approval Workflow
                                 </h3>
+
                             </div>
 
-                            <!-- ACTIONS -->
                             <div class="flex items-center gap-2">
 
-                                <div id="approvalActions" class="flex hidden items-center gap-2">
+                                <div id="bookingApprovalActions" class="flex hidden items-center gap-2">
 
-                                    <button id="approveBtn"
+                                    <button type="button" id="approveBookingBtn"
                                         class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-400">
                                         ✓ Approve
                                     </button>
 
-                                    <button id="reviseBtn"
+                                    <button type="button" id="reviseBookingBtn"
                                         class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-medium text-black transition hover:bg-amber-300">
                                         ✎ Revise
                                     </button>
 
-                                    <button id="rejectBtn"
+                                    <button type="button" id="rejectBookingBtn"
                                         class="rounded-lg bg-red-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-red-400">
                                         ✕ Reject
                                     </button>
 
-                                </div>
+                                    <button type="button" id="processBookingBtn"
+                                        class="rounded-lg bg-indigo-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-indigo-400">
 
-                                <div id="viewActions" class="flex items-center gap-2">
+                                        🚘 Process
+
+                                    </button>
+
                                 </div>
 
                             </div>
 
                         </div>
 
-                        <!-- APPROVAL CARD -->
-                        <div class="min-h-auto rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
 
-                            <!-- TIMELINE -->
-                            <div id="approvalFlow" class="relative space-y-6">
+                            <div id="bookingApprovalFlow" class="relative space-y-6">
                             </div>
 
                         </div>
@@ -827,18 +816,19 @@
                 <!-- FOOTER -->
                 <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
 
-                    <button onclick="closeViewModal()" class="text-sm text-gray-500 transition hover:text-black">
+                    <button type="button" onclick="closeBookingDetailModal()"
+                        class="text-sm text-gray-500 transition hover:text-black">
                         Close
                     </button>
 
                     <div class="flex items-center gap-3">
 
-                        <button id="cancelVoucherBtn"
+                        <button type="button" id="cancelBookingBtn"
                             class="hidden rounded-lg border border-red-200 bg-red-500 px-5 py-2 text-sm font-medium text-white transition hover:bg-red-600">
                             ✕ Cancel Request
                         </button>
 
-                        <button id="openEditFromViewBtn"
+                        <button id="editBookingBtn"
                             class="hidden rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
                             ✏️ Edit Booking
                         </button>
@@ -853,238 +843,620 @@
 
     </div>
 
-    <div id="reasonModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50">
+    <div id="editBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50">
 
-        <div class="w-full max-w-md rounded-lg bg-white shadow-2xl">
+        <div class="flex min-h-screen items-center justify-center p-4">
+
+            <div class="w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+
+                <form id="editBookingForm">
+
+                    @csrf
+
+                    <input type="hidden" id="edit_booking_docid">
+                    <input type="hidden" id="edit_booking_eid">
+
+                    <!-- HEADER -->
+                    <div class="flex items-start justify-between border-b border-gray-200 px-7 py-5">
+
+                        <div class="flex items-center gap-4">
+
+                            <div
+                                class="flex h-11 w-11 items-center justify-center rounded-xl bg-black text-lg text-white">
+                                ✏️
+                            </div>
+
+                            <div>
+
+                                <h2 class="text-lg font-semibold text-gray-900">
+                                    Edit Booking Car
+                                </h2>
+
+                                <div id="editBookingStatus"
+                                    class="mt-1 inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-medium text-gray-700">
+                                    Draft
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <button type="button" id="closeEditBookingModal"
+                            class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black">
+                            ✕
+                        </button>
+
+                    </div>
+
+                    <!-- BODY -->
+                    <div class="max-h-[78vh] space-y-7 overflow-y-auto px-7 py-6">
+
+                        <!-- BASIC -->
+                        <div class="space-y-4">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                Basic Information
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2">
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Company *
+                                    </label>
+
+                                    <select name="cpny_id" id="edit_cpny_id"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                        <option value="">
+                                            Select company
+                                        </option>
+
+                                        @foreach ($usercpny as $p)
+                                            <option value="{{ $p->cpny_id }}">
+                                                {{ $p->cpny_id }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Department *
+                                    </label>
+
+                                    <select name="department_id" id="edit_department_id"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                        <option value="">
+                                            Select department
+                                        </option>
+
+                                        @foreach ($userdept as $p)
+                                            <option value="{{ $p->department_id }}">
+                                                {{ $p->department_id }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-3">
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Requester
+                                    </label>
+
+                                    <input type="text" id="edit_user_peminta"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-100 px-3 py-2.5 text-sm text-gray-700"
+                                        readonly>
+
+                                </div>
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        User Request
+                                    </label>
+
+                                    <select id="edit_user_request" name="user_request"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                        <option value="">
+                                            Select passenger
+                                        </option>
+
+                                        @foreach ($requesters as $p)
+                                            <option value="{{ $p->name }}"
+                                                data-dept="{{ trim($p->department_id) }}">
+
+                                                {{ $p->name }}
+
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                </div>
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Passenger
+                                    </label>
+
+                                    <input type="number" name="passenger" id="edit_passenger"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- SCHEDULE -->
+                        <div class="space-y-4">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                Schedule
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-3">
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Booking Date
+                                    </label>
+
+                                    <input type="date" name="booking_date" id="edit_booking_date"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                </div>
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Start Time
+                                    </label>
+
+                                    <input type="time" name="start_time" id="edit_start_time"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                </div>
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        End Time
+                                    </label>
+
+                                    <input type="time" name="end_time" id="edit_end_time"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ROUTE -->
+                        <div class="space-y-4">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                Route Information
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2">
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Pickup Location
+                                    </label>
+
+                                    <input type="text" name="location_from" id="edit_location_from"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                </div>
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Destination
+                                    </label>
+
+                                    <input type="text" name="destination" id="edit_destination"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- PURPOSE -->
+                        <div class="space-y-4">
+
+                            <div class="grid gap-4 md:grid-cols-2">
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Site Company
+                                    </label>
+
+                                    <select name="cpny_id_site" id="edit_cpny_id_site"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                        <option value="">
+                                            Select company
+                                        </option>
+
+                                        @foreach ($company as $p)
+                                            <option value="{{ $p->cpny_id }}">
+                                                {{ $p->cpny_name }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                </div>
+
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Purpose
+                                    </label>
+
+                                    <select name="purpose_id" id="edit_purpose_id"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                        <option value="MEETING">Meeting</option>
+                                        <option value="VISIT">Site Visit</option>
+                                        <option value="EVENT">Event</option>
+                                        <option value="OTHER">Other</option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                            <div id="editPurposeDescrWrapper" class="hidden">
+
+                                <label class="text-xs text-gray-500">
+                                    Purpose Description
+                                </label>
+
+                                <textarea name="purpose_descr" id="edit_purpose_descr" rows="4"
+                                    class="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-black focus:outline-none"></textarea>
+
+                            </div>
+
+                        </div>
+
+                        <!-- REVISE -->
+                        <div id="editBookingReviseWrapper"
+                            class="hidden rounded-2xl border border-yellow-200 bg-yellow-50 p-5 shadow-sm">
+
+                            <div class="text-[11px] uppercase tracking-[0.18em] text-yellow-700">
+                                Revision Reason
+                            </div>
+
+                            <div id="edit_booking_revise_reason" class="mt-3 text-sm leading-relaxed text-yellow-900">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-7 py-5">
+
+                        <button type="button" id="cancelEditBookingBtn"
+                            class="text-sm text-gray-500 transition hover:text-black">
+                            Cancel
+                        </button>
+
+                        <button type="submit" id="saveEditBookingBtn"
+                            class="rounded-xl bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800">
+                            Save Changes
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- REASON MODAL -->
+    <div id="reasonModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 p-4">
+
+        <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
 
             <!-- HEADER -->
-            <div class="border-b px-6 py-4">
-                <h2 id="reasonModalTitle" class="text-lg font-semibold text-gray-900">
+            <div class="border-b border-gray-200 px-6 py-5">
+
+                <h2 id="reasonModalTitle" class="text-lg font-semibold tracking-tight text-gray-900">
                     Revision Reason
                 </h2>
 
                 <p class="mt-1 text-sm text-gray-500">
-                    Please provide a reason before continuing
+                    Please provide a comment before continuing
                 </p>
+
             </div>
 
             <!-- BODY -->
-            <div class="p-4">
+            <div class="p-6">
 
-                <textarea id="reasonInput" rows="5" placeholder="Type your reason here..."
-                    class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm focus:border-black focus:outline-none"></textarea>
+                <textarea id="reasonInput" rows="5" placeholder="Type your comment here..."
+                    class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-black focus:outline-none"></textarea>
+
+                <div id="reasonError" class="mt-2 hidden text-xs text-red-500">
+                    Comment is required
+                </div>
 
             </div>
 
             <!-- FOOTER -->
-            <div class="flex justify-end gap-3 border-t bg-gray-50 px-6 py-4">
+            <div class="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4">
 
                 <button id="cancelReasonBtn"
-                    class="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-100">
+                    class="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100">
                     Cancel
                 </button>
 
                 <button id="submitReasonBtn"
-                    class="rounded-lg bg-black px-5 py-2 text-sm font-medium text-white hover:opacity-90">
+                    class="rounded-xl bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
                     Submit
                 </button>
 
             </div>
 
         </div>
+
     </div>
 
-    <!-- PROCESS MODAL -->
-    <div id="processVoucherModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 p-4">
+    <div id="gaProcessModal" class="fixed inset-0 z-[80] hidden overflow-y-auto bg-black/50">
 
-        <div class="w-full max-w-2xl overflow-hidden rounded-lg bg-white shadow-2xl">
+        <div class="flex min-h-screen items-center justify-center p-4">
 
-            <!-- HEADER -->
-            <div class="border-b border-gray-100 px-7 py-6">
+            <div class="w-full max-w-2xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
 
-                <div class="flex items-start gap-4">
+                <!-- HEADER -->
+                <div class="flex items-start justify-between border-b border-gray-200 px-7 py-5">
 
-                    <div
-                        class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 shadow-sm">
-                        💰
-                    </div>
+                    <div class="flex items-center gap-4">
 
-                    <div class="flex-1">
+                        <div
+                            class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-lg text-white shadow-sm">
 
-                        <h2 class="text-xl font-semibold tracking-tight text-gray-900">
-                            Process Voucher
-                        </h2>
-
-                        <p class="mt-1 text-sm text-gray-500">
-                            Review booking information and submit actual expense
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- BODY -->
-            <form id="processVoucherForm">
-
-                <div class="max-h-[70vh] overflow-y-auto p-4">
-
-                    <input type="hidden" id="process_docid">
-
-                    <!-- INFORMATION -->
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm">
-
-                        <div class="mb-5 flex items-center justify-between">
-
-                            <div>
-                                <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
-                                    Voucher Information
-                                </div>
-
-                                <div id="process_docno"
-                                    class="mt-2 text-lg font-semibold tracking-tight text-gray-900">
-                                    -
-                                </div>
-                            </div>
-
-                            <div id="process_status"
-                                class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-600">
-                                Completed
-                            </div>
-
-                        </div>
-
-                        <div class="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
-
-                            <div>
-                                <div class="text-xs text-gray-400">
-                                    Requester
-                                </div>
-
-                                <div id="process_requester" class="mt-1 text-sm font-medium text-gray-900">
-                                    -
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="text-xs text-gray-400">
-                                    Date Used
-                                </div>
-
-                                <div id="process_date" class="mt-1 text-sm font-medium text-gray-900">
-                                    -
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="text-xs text-gray-400">
-                                    Company
-                                </div>
-
-                                <div id="process_company" class="mt-1 text-sm font-medium text-gray-900">
-                                    -
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="text-xs text-gray-400">
-                                    Department
-                                </div>
-
-                                <div id="process_department" class="mt-1 text-sm font-medium text-gray-900">
-                                    -
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="text-xs text-gray-400">
-                                    Trip Type
-                                </div>
-
-                                <div id="process_trip" class="mt-1 text-sm font-medium text-gray-900">
-                                    -
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="text-xs text-gray-400">
-                                    Current Budget
-                                </div>
-
-                                <div id="process_budget" class="mt-1 text-sm font-semibold text-emerald-600">
-                                    -
-                                </div>
-                            </div>
-
-                            <div class="md:col-span-2">
-
-                                <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-5 py-4">
-
-                                    <div class="text-[11px] font-semibold uppercase tracking-wide text-indigo-500">
-                                        Route
-                                    </div>
-
-                                    <div id="process_route" class="mt-2 text-sm font-semibold text-indigo-700">
-                                        -
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="md:col-span-2">
-
-                                <div class="rounded-lg border border-gray-200 bg-white px-5 py-4">
-
-                                    <div class="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                                        Purpose
-                                    </div>
-
-                                    <div id="process_purpose" class="mt-2 text-sm font-medium text-gray-800">
-                                        -
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- INPUT -->
-                    <div class="mt-6 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
-
-                        <div class="mb-5">
-
-                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-600">
-                                Actual Expense
-                            </div>
-
-                            <div class="mt-1 text-sm text-emerald-700">
-                                Input final taxi cost
-                            </div>
+                            🚘
 
                         </div>
 
                         <div>
 
-                            <label class="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                Actual Budget *
-                            </label>
+                            <h2 class="text-lg font-semibold tracking-tight text-gray-900">
+                                GA Process Booking Car
+                            </h2>
 
-                            <div class="relative mt-2">
+                            <p class="mt-1 text-sm text-gray-500">
+                                Assign driver & vehicle information
+                            </p>
 
-                                <div
-                                    class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-sm text-gray-400">
-                                    Rp
+                        </div>
+
+                    </div>
+
+                    <button type="button" id="closeGaProcessModal"
+                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black">
+
+                        ✕
+
+                    </button>
+
+                </div>
+
+                <!-- FORM -->
+                <form id="gaProcessForm">
+
+                    @csrf
+
+                    <input type="hidden" id="ga_process_docid">
+
+                    <!-- BODY -->
+                    <div class="space-y-6 px-7 py-6">
+
+                        <!-- BOOKING INFO -->
+                        <div class="rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+
+                                Booking Information
+
+                            </div>
+
+                            <div class="mt-4 grid gap-4 md:grid-cols-2">
+
+                                <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        Document No
+                                    </div>
+
+                                    <div id="ga_booking_docid" class="mt-1 text-sm font-semibold text-gray-900">
+                                        -
+                                    </div>
+
                                 </div>
 
-                                <input type="text" id="actual_budget_display" placeholder="0"
-                                    class="w-full rounded-lg border border-gray-200 bg-white py-3 pl-12 pr-4 text-sm font-semibold text-gray-900 shadow-sm transition focus:border-black focus:outline-none focus:ring-4 focus:ring-black/5">
+                                <div>
 
-                                <input type="hidden" name="actual_budget" id="actual_budget">
+                                    <div class="text-xs text-gray-400">
+                                        Requester
+                                    </div>
+
+                                    <div id="ga_booking_requester" class="mt-1 text-sm font-semibold text-gray-900">
+                                        -
+                                    </div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        Route
+                                    </div>
+
+                                    <div id="ga_booking_route" class="mt-1 text-sm font-semibold text-gray-900">
+                                        -
+                                    </div>
+
+                                </div>
+
+                                <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        Booking Date
+                                    </div>
+
+                                    <div id="ga_booking_date" class="mt-1 text-sm font-semibold text-gray-900">
+                                        -
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- DRIVER -->
+                        <div class="space-y-4">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+
+                                Driver Assignment
+
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2">
+
+                                <!-- DRIVER -->
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Driver *
+                                    </label>
+
+                                    <select name="driver" id="ga_driver"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none"
+                                        required>
+
+                                        <option value="">
+                                            Select driver
+                                        </option>
+
+                                        @foreach ($drivers as $d)
+                                            <option value="{{ $d->drivername }}" data-hp="{{ $d->hp }}">
+
+                                                {{ $d->drivername }}
+
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                </div>
+
+                                <!-- HP -->
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Handphone
+                                    </label>
+
+                                    <input type="text" name="handphone" id="ga_handphone"
+                                        placeholder="Driver phone number"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- VEHICLE -->
+                        <div class="space-y-4">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+
+                                Vehicle Information
+
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2">
+
+                                <!-- KENDARAAN -->
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        Vehicle *
+                                    </label>
+
+                                    <select id="ga_vehicle"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                        <option value="">
+                                            Select vehicle
+                                        </option>
+
+                                        {{-- @foreach ($kendaraan as $k)
+                                            <option value="{{ $k->no_polisi }}"
+                                                data-name="{{ $k->namakendaraan ?? '-' }}">
+
+                                                {{ $k->no_polisi }}
+                                                -
+                                                {{ $k->namakendaraan ?? '-' }}
+
+                                            </option>
+                                        @endforeach --}}
+
+                                        @foreach ($kendaraan as $k)
+                                            <option value="{{ $k->nopol_kendaraan }}"
+                                                data-name="{{ $k->kendaraan_descr ?? '-' }}">
+
+                                                {{ $k->nopol_kendaraan }}
+                                                -
+                                                {{ $k->kendaraan_descr ?? '-' }}
+
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                </div>
+
+                                <!-- NOPOL -->
+                                <div>
+
+                                    <label class="text-xs text-gray-500">
+                                        No Polisi
+                                    </label>
+
+                                    <input type="text" name="no_polisi" id="ga_no_polisi"
+                                        placeholder="Vehicle plate number"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
+
+                                </div>
 
                             </div>
 
@@ -1092,803 +1464,1059 @@
 
                     </div>
 
-                </div>
+                    <!-- FOOTER -->
+                    <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-7 py-5">
 
-                <!-- FOOTER -->
-                <div class="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-7 py-5">
+                        <button type="button" id="cancelGaProcessBtn"
+                            class="text-sm text-gray-500 transition hover:text-black">
 
-                    <button type="button" id="closeProcessVoucherModal"
-                        class="text-sm font-medium text-gray-500 transition hover:text-black">
-                        Cancel
-                    </button>
+                            Cancel
 
-                    <button type="submit" id="submitProcessVoucherBtn"
-                        class="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
-                        Save Process
-                    </button>
+                        </button>
 
-                </div>
+                        <button type="submit" id="submitGaProcessBtn"
+                            class="rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-600">
 
-            </form>
+                            Save Driver Assignment
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
 
         </div>
+
     </div>
 
-
-
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-        window.currentUsername = @json(strtolower(trim(auth()->user()->username)));
-        window.isGA = @json(auth()->user()->hasRole('GAACCESS'));
+        let bookingCalendar;
+        let bookingRows = [];
+        let bookingCurrentPage = 1;
+        const bookingPerPage = 5;
+        let bookingCurrentFilter = 'ALL';
+        let currentReasonAction = null;
+        let currentBookingDocid = null;
 
-        function escapeHtml(text) {
+        const bookingCalendarEl = document.getElementById('calendar');
+        const bookingListBody = document.getElementById('bookingListBody');
+        const bookingCount = document.getElementById('bookingCount');
+        const bookingPageInfo = document.getElementById('bookingPageInfo');
 
-            const div = document.createElement('div');
+        const prevBookingPage = document.getElementById('prevBookingPage');
+        const nextBookingPage = document.getElementById('nextBookingPage');
 
-            div.innerText = text || '';
+        const bookingFilters = document.querySelectorAll('.booking-filter');
 
-            return div.innerHTML;
+        const createBookingModal = document.getElementById('createBookingModal');
+        const openCreateBookingModal = document.getElementById('openCreateBookingModal');
+        const closeCreateBookingModal = document.getElementById('closeCreateBookingModal');
+
+        const bookingCarForm = document.getElementById('bookingCarForm');
+
+        const purposeSelect = document.getElementById('purpose_id');
+        const purposeDescrWrapper = document.getElementById('purposeDescrWrapper');
+        const purposeDescr = document.getElementById('purpose_descr');
+
+        const bookingDeptSelect = document.getElementById('booking_department_id');
+        const bookingUserRequestSelect = document.getElementById('booking_user_request');
+
+        const bookingUserRequestOptions = Array.from(
+            bookingUserRequestSelect.options
+        );
+
+        const viewBookingModal = document.getElementById('viewBookingModal');
+
+        const editBookingModal = document.getElementById('editBookingModal');
+        const editBookingForm = document.getElementById('editBookingForm');
+
+        const editDeptSelect =
+            document.getElementById('edit_department_id');
+
+        const editUserRequestSelect =
+            document.getElementById('edit_user_request');
+
+        const editUserRequestOptions = Array.from(
+            editUserRequestSelect.options
+        );
+
+        const editPurposeSelect =
+            document.getElementById('edit_purpose_id');
+
+        const editPurposeDescr =
+            document.getElementById('edit_purpose_descr');
+
+        const editPurposeDescrWrapper =
+            document.getElementById(
+                'editPurposeDescrWrapper'
+            );
+
+        function openBookingModal() {
+            createBookingModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
         }
-    </script>
-    <script>
-        let calendar;
-        let selectedCell = null;
-        let voucherData = [];
-        let currentVoucherPage = 1;
-        let voucherPerPage = 10;
-        let currentVoucherFilter = 'ALL';
-        document.addEventListener('DOMContentLoaded', function() {
-            loadVoucherList();
 
-            const calendarEl = document.getElementById('calendar');
+        function closeBookingModal() {
+            createBookingModal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+            bookingCarForm.reset();
+            purposeDescrWrapper.classList.add('hidden');
+            purposeDescr.required = false;
+        }
 
+        function closeBookingDetailModal() {
 
+            viewBookingModal.classList.add('hidden');
 
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                height: 'auto',
-                fixedWeekCount: false,
+            document.body.classList.remove('overflow-hidden');
 
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: ''
-                },
+            window.history.pushState({},
+                '',
+                '/bookingcar'
+            );
+        }
 
-                dayMaxEvents: window.isGA ? 6 : 4,
-                selectable: true,
-                moreLinkClick: 'popover',
+        function closeEditBookingModal() {
+            editBookingModal.classList.add('hidden');
 
-                dayCellContent: function(arg) {
-                    return {
-                        html: `
-                        <div class="text-xs font-medium text-gray-500">
-                            ${arg.date.getDate()}
-                        </div>
-                    `
-                    };
-                },
+            viewBookingModal.classList.remove('hidden');
 
-                dayCellDidMount: function(info) {
-
-                    info.el.classList.add('rounded-lg', 'transition', 'cursor-pointer');
-                    info.el.style.padding = '6px';
+            document.body.classList.add('overflow-hidden');
 
-                    info.el.addEventListener('mouseenter', () => {
-                        info.el.style.background = '#f9fafb';
-                    });
+            editBookingForm.reset();
+        }
+
+        openCreateBookingModal?.addEventListener('click', openBookingModal);
+        closeCreateBookingModal?.addEventListener('click', closeBookingModal);
+
+        createBookingModal?.addEventListener('click', function(e) {
+            if (e.target === createBookingModal) {
+                closeBookingModal();
+            }
+        });
+
+        document.getElementById('closeEditBookingModal')?.addEventListener(
+            'click',
+            closeEditBookingModal
+        );
+
+        document.getElementById('cancelEditBookingBtn')?.addEventListener(
+            'click',
+            closeEditBookingModal
+        );
+
+        function filterUserRequest() {
+
+            const selectedDept = bookingDeptSelect.value;
+
+            bookingUserRequestSelect.innerHTML = `
+                <option value="">Select passenger</option>
+            `;
+
+            bookingUserRequestOptions.forEach(option => {
 
-                    info.el.addEventListener('mouseleave', () => {
-                        if (info.el !== selectedCell) {
-                            info.el.style.background = '';
-                        }
-                    });
-                },
+                if (!option.value) return;
 
-                dateClick: function(info) {
+                const dept = option.getAttribute('data-dept');
 
-                    // clear previous
-                    if (selectedCell) {
-                        selectedCell.style.background = '';
-                        selectedCell.style.border = '';
-                    }
+                if (!selectedDept || dept === selectedDept) {
+                    bookingUserRequestSelect.appendChild(
+                        option.cloneNode(true)
+                    );
+                }
+            });
+        }
 
-                    // set new
-                    selectedCell = info.dayEl;
-                    selectedCell.style.background = '#eef2ff';
-                    selectedCell.style.border = '1px solid #c7d2fe';
-                    selectedCell.style.borderRadius = '12px';
+        bookingDeptSelect?.addEventListener(
+            'change',
+            filterUserRequest
+        );
 
-                    document.getElementById('createVoucherModal').classList.remove('hidden');
-                    document.querySelector('[name="date_used"]').value = info.dateStr;
-                },
+        purposeSelect?.addEventListener(
+            'change',
+            function() {
 
-                events: function(fetchInfo, successCallback, failureCallback) {
+                if (this.value === 'OTHER') {
 
-                    fetch('/vouchertaxi/json', {
-                            headers: {
-                                'Accept': 'application/json'
-                            }
-                        })
+                    purposeDescrWrapper.classList.remove('hidden');
+                    purposeDescr.required = true;
+                    purposeDescr.value = '';
 
-                        .then(async (res) => {
+                } else {
 
-                            const text = await res.text();
+                    purposeDescrWrapper.classList.add('hidden');
+                    purposeDescr.required = false;
+                    purposeDescr.value = this.value;
+                }
+            }
+        );
 
-                            // console.log('RAW RESPONSE:', text);
+        function bookingStatusBadge(status) {
 
-                            try {
-                                return JSON.parse(text);
+            const map = {
+                P: 'bg-blue-100 text-blue-700',
+                C: 'bg-emerald-100 text-emerald-700',
+                D: 'bg-yellow-100 text-yellow-700',
+                R: 'bg-red-100 text-red-700',
+                X: 'bg-gray-200 text-gray-700'
+            };
 
-                            } catch (e) {
+            const label = {
+                P: 'Pending',
+                C: 'Completed',
+                D: 'Revise',
+                R: 'Rejected',
+                X: 'Cancelled'
+            };
 
-                                console.error('❌ Invalid JSON response');
-                                console.error(text);
+            return `
+                <span class="rounded-full px-2 py-1 text-[10px] font-semibold ${map[status] || 'bg-gray-100 text-gray-700'}">
+                    ${label[status] || '-'}
+                </span>
+            `;
+        }
 
-                                throw new Error('Server did not return valid JSON');
-                            }
-                        })
+        function bookingStatusHtml(status) {
 
-                        .then((res) => {
+            const map = {
+                P: 'bg-blue-100 text-blue-700',
+                C: 'bg-emerald-100 text-emerald-700',
+                D: 'bg-yellow-100 text-yellow-700',
+                R: 'bg-red-100 text-red-700',
+                X: 'bg-gray-200 text-gray-700'
+            };
 
-                            // 🔥 SAFE GUARD
-                            if (!res.data || !Array.isArray(res.data)) {
+            const label = {
+                P: 'Pending',
+                C: 'Completed',
+                D: 'Revise',
+                R: 'Rejected',
+                X: 'Cancelled'
+            };
 
-                                console.error('Invalid response structure:', res);
+            return `
+                <div class="rounded-full px-3 py-1 text-xs font-medium ${map[status] || 'bg-gray-100 text-gray-700'}">
+                    ${label[status]}
+                </div>
+            `;
+        }
 
-                                failureCallback(res);
+        async function fetchBookingList() {
 
-                                return;
-                            }
+            try {
 
-                            const allowedstatuses = ['p', 'c', 'd', 'r'];
+                let url = `/bookingcar/json?length=999`;
 
-                            const events = res.data
-                                .filter(item =>
-                                    allowedstatuses.includes(String(item.status).toLowerCase()))
-                                .map(item => {
+                if (bookingCurrentFilter !== 'ALL') {
+                    url += `&status=${bookingCurrentFilter}`;
+                }
 
-                                    if (!item.eid) {
-                                        console.warn('⚠️ Missing EID from backend:', item);
-                                    }
+                const response = await fetch(url);
+                const result = await response.json();
 
-                                    return {
-                                        id: item.docid,
-                                        title: item.purpose || 'Taxi',
-                                        start: item.date_used,
-                                        allDay: true,
+                bookingRows = result.data || [];
 
-                                        extendedProps: {
-                                            eid: item.eid || null,
-                                            status: item.status,
-                                            requester: item.user_peminta,
-                                            origin: item.origin,
-                                            destination: item.destination,
+                renderBookingList();
+                renderBookingCalendar();
 
-                                            cpny_id: item.cpny_id,
-                                            department_id: item.department_id,
-                                            cpny_id_expense: item.cpny_id_expense,
-                                            user_topup: item.user_topup,
-                                            created_by: item.created_by,
+            } catch (err) {
 
-                                            actual_budget: item.actual_budget,
-                                            type_trip: item.type_trip,
-                                            max_budget: item.max_budget
+                console.error(err);
 
-                                        }
-                                    };
-                                });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed load booking data'
+                });
+            }
+        }
 
-                            successCallback(events);
-                        })
+        function renderBookingList() {
 
-                        .catch((err) => {
+            bookingCount.innerText = bookingRows.length;
 
-                            console.error('❌ Calendar fetch failed:', err);
+            const start = (bookingCurrentPage - 1) * bookingPerPage;
+            const end = start + bookingPerPage;
 
-                            failureCallback(err);
-                        });
-                },
-                eventClick: function(info) {
+            const rows = bookingRows.slice(start, end);
 
-                    // // console.log('EVENT CLICK:', info.event.extendedProps);
+            bookingListBody.innerHTML = '';
 
-                    const createdBy = info.event.extendedProps.created_by;
-                    const currentUser = window.currentUsername;
-
-                    const eid = info.event.extendedProps.eid;
-
-                    if (!eid) {
-                        console.warn('⚠️ Missing EID for event:', info.event);
-                    }
-
-                    const data = {
-                        docid: info.event.id,
-                        eid: eid || null,
-
-                        cpny_id: info.event.extendedProps.cpny_id,
-                        department_id: info.event.extendedProps.department_id,
-                        user_peminta: info.event.extendedProps.requester,
-
-                        date_used: info.event.startStr,
-
-                        origin: info.event.extendedProps.origin,
-                        destination: info.event.extendedProps.destination,
-
-                        purpose: info.event.title,
-
-                        cpny_id_expense: info.event.extendedProps.cpny_id_expense,
-                        user_topup: info.event.extendedProps.user_topup,
-
-                        status: info.event.extendedProps.status,
-                        created_by: createdBy,
-
-                        max_budget: info.event.extendedProps.max_budget,
-                        type_trip: info.event.extendedProps.type_trip
-                    };
-
-                    openViewModal(data);
-                },
-
-                eventContent: function(arg) {
-
-                    const title = arg.event.title;
-                    const requester = arg.event.extendedProps.requester || '';
-                    const destination = arg.event.extendedProps.destination || '';
-                    const status = arg.event.extendedProps.status;
-
-                    const statusMap = {
-                        P: 'Pending',
-                        C: 'Completed',
-                        R: 'Rejected',
-                        D: 'Revise',
-                        X: 'Cancelled'
-                    };
-
-                    const statusStyle = {
-
-                        P: {
-                            bg: '#3b82f6',
-                            dot: '#bfdbfe',
-                            text: '#ffffff'
-                        },
-
-                        C: {
-                            bg: '#10b981',
-                            dot: '#bbf7d0',
-                            text: '#ffffff'
-                        },
-
-                        D: {
-                            bg: '#facc15',
-                            dot: '#dc2626',
-                            text: '#000000'
-                        },
-
-                        R: {
-                            bg: '#9ca3af',
-                            dot: '#e5e7eb',
-                            text: '#ffffff'
-                        },
-
-                        X: {
-                            bg: '#6b7280',
-                            dot: '#d1d5db',
-                            text: '#ffffff'
-                        }
-                    };
-
-                    const current = statusStyle[status] || statusStyle.P;
-
-                    return {
-                        html: `
-                            <div style="
-                                padding:6px 8px;
-                                border-radius:10px;
-                                font-size:10px;
-                                line-height:1.2;
-                                overflow:hidden;
-                            ">
-
-                                <!-- TITLE -->
-                                <div style="
-                                    font-weight:700;
-                                    font-size:11px;
-                                    color:${current.text};
-                                    white-space:nowrap;
-                                    overflow:hidden;
-                                    text-overflow:ellipsis;
-                                ">
-                                    ${escapeHtml(requester)} - ${escapeHtml(title)}
+            if (!rows.length) {
+
+                bookingListBody.innerHTML = `
+                    <div class="flex h-32 items-center justify-center text-sm text-gray-400">
+                        No data
+                    </div>
+                `;
+
+                bookingPageInfo.innerText = 'Showing 0';
+                return;
+            }
+
+            rows.forEach(row => {
+
+                bookingListBody.innerHTML += `
+                    <div onclick="showBookingDetail('${row.eid}')"
+                        class="cursor-pointer rounded-2xl border border-gray-100 p-4 transition hover:border-gray-300 hover:bg-gray-50">
+
+                        <div class="flex items-start justify-between gap-3">
+
+                            <div class="min-w-0 flex-1">
+
+                                <div class="truncate text-sm font-semibold text-gray-900">
+                                    ${row.docid}
                                 </div>
 
-                                <!-- BOTTOM -->
-                                <div style="
-                                    margin-top:3px;
-                                    display:flex;
-                                    align-items:center;
-                                    justify-content:space-between;
-                                    gap:6px;
-                                ">
+                                <div class="mt-1 truncate text-xs text-gray-500">
+                                    ${escapeHtml(row.location_from || '-')} → ${escapeHtml(row.destination || '-')}
+                                </div>
 
-                                    <!-- DESTINATION -->
-                                    <div style="
-                                        display:flex;
-                                        align-items:center;
-                                        gap:3px;
-                                        min-width:0;
-                                        flex:1;
-                                        color:${current.text};
-                                        opacity:.9;
-                                        overflow:hidden;
-                                    ">
-                                        <span style="font-size:9px;">📍</span>
+                                <div class="mt-3 flex items-center gap-2 text-xs text-gray-400">
 
-                                        <span style="
-                                            white-space:nowrap;
-                                            overflow:hidden;
-                                            text-overflow:ellipsis;
-                                            font-size:10px;
-                                        ">
-                                            ${escapeHtml(destination)}
-                                        </span>
-                                    </div>
+                                    <span>${row.booking_date || '-'}</span>
 
-                                    <!-- STATUS DOT -->
-                                    <div style="
-                                        width:7px;
-                                        height:7px;
-                                        border-radius:999px;
-                                        background:${current.dot};
-                                        flex-shrink:0;
-                                    "></div>
+                                    <span>•</span>
+
+                                    <span>
+                                        ${row.start_time ? row.start_time.substring(11, 16) : '-'}
+                                    </span>
 
                                 </div>
 
                             </div>
-                        `
-                    };
-                },
 
-                eventDidMount: function(info) {
+                            ${bookingStatusBadge(row.status)}
 
-                    info.el.style.border = '0';
-                    info.el.style.padding = '0';
-                    info.el.style.marginBottom = '2px';
-                    info.el.style.borderRadius = '10px';
+                        </div>
 
-                    const status = info.event.extendedProps.status;
-
-                    if (status === 'P') {
-                        info.el.style.backgroundColor = '#3b82f6';
-                    } else if (status === 'C') {
-                        info.el.style.backgroundColor = '#10b981';
-                        info.el.style.opacity = '0.85';
-                    } else if (status === 'D') {
-                        info.el.style.backgroundColor = '#facc15';
-                    } else if (status === 'R') {
-                        info.el.style.backgroundColor = '#9ca3af';
-                        info.el.style.opacity = '0.7';
-                    } else if (status === 'X') {
-                        info.el.style.backgroundColor = '#6b7280';
-                        info.el.style.opacity = '0.6';
-                    }
-                }
+                    </div>
+                `;
             });
 
-            calendar.render();
-            if (calendar) {
-                calendar.updateSize();
-            }
-
-
-            setTimeout(() => {
-
-                const pathParts = window.location.pathname.split('/');
-
-                const eidFromUrl = pathParts[pathParts.length - 1];
-
-                if (
-                    !eidFromUrl ||
-                    eidFromUrl === 'vouchertaxi'
-                ) {
-                    return;
-                }
-
-                fetch(`/vouchertaxi/detail/${eidFromUrl}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(async res => {
-
-                        const text = await res.text();
-
-                        // console.log('AUTO OPEN RAW:', text);
-
-                        try {
-                            return JSON.parse(text);
-
-                        } catch (e) {
-
-                            console.error('INVALID AUTO OPEN JSON');
-                            console.error(text);
-
-                            return null;
-                        }
-                    })
-                    .then(res => {
-
-                        if (!res || !res.success || !res.data) {
-                            return;
-                        }
-
-                        openViewModal(res.data);
-
-                    })
-                    .catch(err => {
-                        console.error('AUTO OPEN ERROR:', err);
-                    });
-
-            }, 800);
-        });
-
-        function openEditModal(data) {
-
-
-            document.getElementById('editVoucherTaxiModal').classList.remove('hidden');
-
-            // fill fields
-            document.getElementById('edit_docid').value = data.docid;
-            document.getElementById('edit_cpny_id').value = data.cpny_id;
-            document.getElementById('edit_department_id').value = data.department_id;
-            document.getElementById('edit_user_peminta').value = data.user_peminta;
-            document.getElementById('edit_date_used').value = data.date_used;
-            document.getElementById('edit_origin').value = data.origin || '';
-            document.getElementById('edit_destination').value = data.destination || '';
-            document.getElementById('edit_purpose').value = data.purpose;
-            document.getElementById('edit_cpny_id_expense').value = data.cpny_id_expense;
-            document.getElementById('edit_user_topup').value = data.user_topup;
-            // 🔥 SET TRIP TYPE FROM DB
-            document.querySelectorAll('#editVoucherTaxiForm input[name="type_trip"]')
-                .forEach(radio => {
-                    radio.checked = radio.value === data.type_trip;
-                });
-            document.getElementById('editMetaUser').innerText = data.created_by || '';
-            document.getElementById('editMetaDate').innerText = data.date_used || '';
-
-            // 🔥 APPLY SMART LOGIC
-            applyEditState(data);
-            setStatusBadge(data.status);
-
-            const reviseBox = document.getElementById('editReviseReasonWrapper');
-
-            if (data.status === 'D' && data.revise_reason) {
-
-                reviseBox.classList.remove('hidden');
-
-                document.getElementById('edit_revise_reason').innerText =
-                    data.revise_reason;
-
-            } else {
-
-                reviseBox.classList.add('hidden');
-            }
+            bookingPageInfo.innerText =
+                `Showing ${start + 1}-${Math.min(end, bookingRows.length)} of ${bookingRows.length}`;
         }
 
-        function openViewModal(data) {
+        prevBookingPage?.addEventListener(
+            'click',
+            function() {
 
-            if (data.eid) {
+                if (bookingCurrentPage > 1) {
+                    bookingCurrentPage--;
+                    renderBookingList();
+                }
+            }
+        );
 
-                history.replaceState(
-                    null,
-                    '',
-                    `/showvouchertaxi/${data.eid}`
+        nextBookingPage?.addEventListener(
+            'click',
+            function() {
+
+                const maxPage = Math.ceil(
+                    bookingRows.length / bookingPerPage
                 );
+
+                if (bookingCurrentPage < maxPage) {
+                    bookingCurrentPage++;
+                    renderBookingList();
+                }
+            }
+        );
+
+        bookingFilters.forEach(btn => {
+
+            btn.addEventListener(
+                'click',
+                function() {
+
+                    bookingFilters.forEach(x => {
+                        x.classList.remove('active-filter');
+                    });
+
+                    this.classList.add('active-filter');
+
+                    bookingCurrentFilter = this.dataset.filter;
+                    bookingCurrentPage = 1;
+
+                    fetchBookingList();
+                }
+            );
+        });
+
+        function renderBookingCalendar() {
+
+            if (bookingCalendar) {
+                bookingCalendar.destroy();
             }
 
-            window.currentDocid = data.docid;
-            window.currentEid = data.eid;
-            window.currentVoucherData = data;
+            bookingCalendar = new FullCalendar.Calendar(
+                bookingCalendarEl, {
+                    initialView: 'timeGridWeek',
+                    height: 720,
+                    selectable: true,
+                    allDaySlot: false,
+                    nowIndicator: true,
+                    slotMinTime: '06:00:00',
+                    slotMaxTime: '22:00:00',
 
-            document.getElementById('printVoucherBtn').href = `/vouchertaxi/print/${data.eid}`;
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'timeGridWeek,dayGridMonth'
+                    },
+
+                    eventContent(arg) {
+
+                        const lines = arg.event.title.split('\n');
+
+                        return {
+                            html: `
+                                <div class="px-1 py-0.5 leading-tight">
+
+                                    <div class="text-[10px] font-semibold opacity-90">
+                                        ${arg.timeText}
+                                    </div>
+
+                                    <div class="mt-1 text-[11px] font-bold">
+                                        ${lines[0] || '-'}
+                                    </div>
+
+                                    <div class="mt-1 text-[10px] opacity-90">
+                                        🚘 ${lines[1] || '-'}
+                                    </div>
+
+                                    <div class="mt-1 text-[10px] opacity-90">
+                                        📌 ${lines[2] || '-'}
+                                    </div>
+
+                                </div>
+                            `
+                        };
+                    },
+
+                    select(info) {
+
+                        openBookingModal();
+
+                        document.querySelector('[name="booking_date"]').value =
+                            info.startStr.split('T')[0];
+
+                        document.querySelector('[name="start_time"]').value =
+                            info.startStr.substring(11, 16);
+
+                        document.querySelector('[name="end_time"]').value =
+                            info.endStr.substring(11, 16);
+                    },
+
+                    events: bookingRows
+                        .filter(row => row.status !== 'X')
+                        .map(row => {
+
+                            let color = '#3b82f6';
+
+                            if (row.status === 'C') color = '#10b981';
+                            if (row.status === 'D') color = '#f59e0b';
+                            if (row.status === 'R') color = '#ef4444';
+
+                            return {
+                                title: [
+                                    `${escapeHtml(row.user_request || row.user_peminta || '-')}`,
+                                    `${escapeHtml(row.location_from || '-')} → ${escapeHtml(row.destination || '-')}`,
+                                    `${row.purpose_id || '-'}`
+                                ].join('\n'),
+
+                                start: row.start_time,
+                                end: row.end_time,
+
+                                backgroundColor: color,
+                                borderColor: color,
+                                textColor: '#ffffff',
+
+                                extendedProps: {
+                                    eid: row.eid
+                                }
+                            };
+                        }),
+
+                    eventClick(info) {
+                        showBookingDetail(
+                            info.event.extendedProps.eid
+                        );
+                    }
+                }
+            );
+
+            bookingCalendar.render();
+        }
+
+        async function showBookingDetail(eid) {
+
+            window.history.pushState({},
+                '',
+                `/showbookingcar/${eid}`
+            );
 
 
-            document.getElementById('viewVoucherModal').classList.remove('hidden');
+            try {
 
-            document.getElementById('view_user').innerText = data.user_peminta;
-            document.getElementById('view_date').innerText = data.date_used;
+                const response = await fetch(
+                    `/bookingcar/detail/${eid}`
+                );
 
-            document.getElementById('view_origin').innerText = data.origin || '-';
-            document.getElementById('view_destination').innerText = data.destination || '-';
+                const result = await response.json();
 
-            document.getElementById('view_route').innerText =
-                `${data.origin || '-'} → ${data.destination || '-'}`;
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
 
-            // 🔥 ADD THESE (YOU MISSED)
-            document.getElementById('view_type_trip').innerText = data.type_trip || '-';
-            document.getElementById('view_cpny').innerText = data.cpny_id || '-';
-            document.getElementById('view_dept').innerText = data.department_id || '-';
+                const d = result.data;
 
-            document.getElementById('view_purpose').innerText = data.purpose || '-';
+                currentBookingDocid = d.docid;
 
-            const actualWrapper = document.getElementById('actualExpenseWrapper');
+                viewBookingModal.classList.remove('hidden');
 
-            if (data.actual_budget) {
+                document.body.classList.add('overflow-hidden');
 
-                actualWrapper.classList.remove('hidden');
+                // =========================================================
+                // BASIC INFO
+                // =========================================================
 
-                document.getElementById('view_actual_budget').innerText =
-                    `Rp ${Number(data.actual_budget).toLocaleString('id-ID')}`;
+                document.getElementById('view_booking_user').innerText =
+                    d.user_request || d.user_peminta || '-';
 
-            } else {
+                document.getElementById('view_booking_docid').innerText =
+                    d.docid || '-';
 
-                actualWrapper.classList.add('hidden');
-            }
+                document.getElementById('view_booking_status_badge').innerHTML =
+                    bookingStatusHtml(d.status);
 
-            // STATUS BADGE
-            const map = {
-                // A:['Approved', 'bg-emerald-100 text-emerald-600'],
-                P: ['Pending', 'bg-blue-100 text-blue-600'],
-                C: ['Completed', 'bg-green-100 text-green-600'],
-                R: ['Rejected', 'bg-gray-200 text-gray-600'],
-                D: ['Revise', 'bg-yellow-100 text-yellow-600'],
-                X: ['Cancelled', 'bg-gray-100 text-gray-600']
-            };
+                document.getElementById('view_booking_date').innerText =
+                    d.booking_date || '-';
 
-            const [label, style] = map[data.status] || ['Unknown', 'bg-gray-100'];
+                document.getElementById('view_booking_passenger').innerText =
+                    d.passenger || '-';
 
-            const el = document.getElementById('view_status_badge');
-            el.innerText = label;
-            el.className = `
-                inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium
-                ${style}
-            `;
+                document.getElementById('view_booking_start').innerText =
+                    d.start_time ?
+                    d.start_time.substring(11, 16) :
+                    '-';
 
-            // ================= EDIT BUTTON =================
+                document.getElementById('view_booking_end').innerText =
+                    d.end_time ?
+                    d.end_time.substring(11, 16) :
+                    '-';
 
-            const editBtn = document.getElementById('openEditFromViewBtn');
-            const cancelBtn = document.getElementById('cancelVoucherBtn');
-            cancelBtn.classList.add('hidden');
+                document.getElementById('view_booking_cpny').innerText =
+                    d.cpny_id || '-';
 
-            const currentUser = window.currentUsername;
+                document.getElementById('view_booking_dept').innerText =
+                    d.department_id || '-';
 
-            const isOwner = String(data.created_by || '')
-                .trim()
-                .toLowerCase() ===
-                String(currentUser || '')
-                .trim()
-                .toLowerCase();
+                // =========================================================
+                // ROUTE
+                // =========================================================
 
-            // reset
-            editBtn.classList.add('hidden');
+                document.getElementById('view_booking_from').innerText =
+                    d.location_from || '-';
 
-            // ONLY OWNER + REVISE STATUS
-            // EDIT ONLY REVISE
-            if (isOwner && data.status === 'D') {
+                document.getElementById('view_booking_destination').innerText =
+                    d.destination || '-';
 
-                editBtn.classList.remove('hidden');
+                document.getElementById('view_booking_route').innerText =
+                    `${d.location_from || '-'} → ${d.destination || '-'}`;
 
-                editBtn.onclick = () => {
+                // =========================================================
+                // PURPOSE
+                // =========================================================
 
-                    closeViewModal();
-                    openEditModal(data);
+                document.getElementById('view_booking_purpose').innerText =
+                    d.purpose_descr || '-';
 
-                };
-            }
+                // =========================================================
+                // DRIVER
+                // =========================================================
 
-            // CANCEL ALLOWED FOR PENDING + REVISE
-            if (isOwner && data.status === 'D') {
+                const driverWrapper =
+                    document.getElementById('driverInfoWrapper');
 
-                cancelBtn.classList.remove('hidden');
+                if (
+                    d.driver ||
+                    d.handphone ||
+                    d.no_polisi
+                ) {
 
-                cancelBtn.onclick = async () => {
+                    driverWrapper.classList.remove('hidden');
 
-                    const result = await showConfirm(
-                        'Cancel this voucher request?'
-                    );
+                    document.getElementById('view_booking_driver').innerText =
+                        d.driver || '-';
 
-                    if (!result.isConfirmed) return;
+                    document.getElementById('view_booking_handphone').innerText =
+                        d.handphone || '-';
 
-                    fetch(`/vouchertaxi/cancel/${data.docid}`, {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document
-                                    .querySelector('meta[name="csrf-token"]')
-                                    .content,
-                                'Accept': 'application/json'
-                            }
-                        })
-                        .then(res => res.json())
-                        .then(res => {
+                    document.getElementById('view_booking_nopol').innerText =
+                        d.no_polisi || '-';
 
-                            if (!res.success) {
-                                showError(res.message || 'Failed cancel request');
+                } else {
+
+                    driverWrapper.classList.add('hidden');
+                }
+
+                // =========================================================
+                // REVISE HISTORY RESET
+                // =========================================================
+
+                document.getElementById('bookingReviseWrapper')
+                    .classList.add('hidden');
+
+                document.getElementById('view_booking_revise_reason')
+                    .innerHTML = '';
+
+                // =========================================================
+                // PRINT
+                // =========================================================
+
+                document.getElementById('printBookingBtn').href =
+                    `/bookingcar/print/${d.eid}`;
+
+                // =========================================================
+                // BUTTONS
+                // =========================================================
+
+                const editBtn =
+                    document.getElementById('editBookingBtn');
+
+                const cancelBtn =
+                    document.getElementById('cancelBookingBtn');
+
+                const approvalActions =
+                    document.getElementById('bookingApprovalActions');
+
+                editBtn.classList.add('hidden');
+                cancelBtn.classList.add('hidden');
+                approvalActions.classList.add('hidden');
+
+                // reset old onclick
+                editBtn.onclick = null;
+                cancelBtn.onclick = null;
+
+                document.getElementById('approveBookingBtn').onclick = null;
+
+                document.getElementById('reviseBookingBtn').onclick = null;
+
+                document.getElementById('rejectBookingBtn').onclick = null;
+
+                document.getElementById(
+                    'processBookingBtn'
+                ).classList.add('hidden');
+
+                document.getElementById(
+                    'processBookingBtn'
+                ).onclick = null;
+                @if (auth()->check())
+
+                    const currentUser =
+                        '{{ strtolower(auth()->user()->username) }}';
+
+                    const isOwner =
+                        String(d.created_by || '')
+                        .toLowerCase() === currentUser;
+
+                    if (
+                        d.status === 'D' &&
+                        isOwner
+                    ) {
+
+                        editBtn.classList.remove('hidden');
+
+                        editBtn.dataset.eid = d.eid;
+                    }
+
+                    if (
+                        d.status === 'D' &&
+                        isOwner
+                    ) {
+
+                        cancelBtn.classList.remove('hidden');
+
+                        cancelBtn.onclick = async function() {
+
+                            const confirm = await Swal.fire({
+                                icon: 'warning',
+                                title: 'Cancel Booking?',
+                                text: 'This request will be cancelled.',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes, Cancel',
+                                cancelButtonText: 'Back',
+                                confirmButtonColor: '#ef4444'
+                            });
+
+                            if (!confirm.isConfirmed) {
                                 return;
                             }
 
-                            showSuccess(res.message || 'Voucher cancelled');
+                            try {
 
-                            closeViewModal();
+                                const response = await fetch(
+                                    `/bookingcar/cancel/${d.docid}`, {
+                                        method: 'POST',
 
-                            loadVoucherList();
-                            calendar.refetchEvents();
+                                        headers: {
+                                            'X-CSRF-TOKEN': document
+                                                .querySelector(
+                                                    'meta[name="csrf-token"]'
+                                                )
+                                                .getAttribute('content')
+                                        }
+                                    }
+                                );
 
-                        })
-                        .catch(() => {
-                            showError('Failed cancel request');
-                        });
-                };
-            }
+                                const result = await response.json();
 
-            loadApproval(data.eid);
+                                if (!response.ok) {
 
-            // ACTION BUTTON
-            // const isGA = window.isGA === true;
-            // const actionDiv = document.getElementById('viewActions');
+                                    throw new Error(
+                                        result.message || 'Cancel failed'
+                                    );
+                                }
 
-            // if (actionDiv) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: result.message,
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                });
 
-            //     actionDiv.innerHTML = '';
+                                closeBookingDetailModal();
 
-            //     if (isGA && data.status === 'P') {
-            //         actionDiv.innerHTML = `
-        //             <button onclick="processVoucher('${data.docid}')"
-        //                 class="px-3 py-1 bg-black text-white rounded-md text-xs">
-        //                 Process
-        //             </button>
-        //         `;
-            //     }
-            // }
+                                fetchBookingList();
 
-            const reviseWrapper = document.getElementById('reviseReasonWrapper');
+                            } catch (err) {
 
-            if (data.status === 'D' && data.revise_reason) {
-
-                reviseWrapper.classList.remove('hidden');
-
-                document.getElementById('view_revise_reason').innerText =
-                    data.revise_reason;
-
-            } else {
-
-                reviseWrapper.classList.add('hidden');
-            }
-        }
-
-        function closeViewModal() {
-
-            document.getElementById('viewVoucherModal')
-                .classList.add('hidden');
-
-            // clear hash
-            history.replaceState(
-                null,
-                '',
-                window.location.pathname
-            );
-        }
-
-        function loadApproval(eid) {
-
-            const el = document.getElementById('approvalFlow');
-            const actionBox = document.getElementById('approvalActions');
-
-            actionBox.classList.add('hidden'); // always reset
-
-            if (!eid) {
-                el.innerHTML = `<div class="text-xs text-red-500">Invalid approval reference</div>`;
-                return;
-            }
-
-            el.innerHTML = `<div class="text-xs text-gray-400">Loading approval...</div>`;
-
-            fetch(`/vouchertaxi/tracking/${eid}`, {
-                    headers: {
-                        'Accept': 'application/json'
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: err.message
+                                });
+                            }
+                        };
                     }
-                })
-                .then(async (res) => {
 
-                    const text = await res.text();
-
-                    // // console.log('TRACKING RAW:', text);
+                    let canApprove = false;
 
                     try {
-                        return JSON.parse(text);
 
-                    } catch (e) {
+                        const trackingResponse = await fetch(
+                            `/bookingcar/tracking/${d.eid}`
+                        );
 
-                        console.error('Tracking invalid JSON');
-                        console.error(text);
+                        const trackingResult = await trackingResponse.json();
 
-                        throw new Error('Tracking endpoint returned HTML');
+                        const activeStep =
+                            (trackingResult.steps || [])
+                            .find(step => step.status === 'P');
+
+                        if (activeStep?.aprv_username) {
+
+                            const approvers =
+                                String(activeStep.aprv_username)
+                                .split(',')
+                                .map(v => v.trim().toLowerCase());
+
+                            canApprove =
+                                approvers.includes(currentUser);
+                        }
+
+                    } catch (err) {
+
+                        console.error(
+                            'Failed check approval access',
+                            err
+                        );
                     }
-                })
-                .then(res => {
 
-                    el.innerHTML = '';
+                    if (canApprove && d.status === 'P') {
 
-                    if (!res.steps || res.steps.length === 0) {
+                        approvalActions.classList.remove('hidden');
 
-                        el.innerHTML = `
-                        <div class="text-xs text-gray-400">
+                        // APPROVE
+                        document.getElementById('approveBookingBtn').onclick = async function() {
+
+                            const confirm = await Swal.fire({
+                                icon: 'question',
+                                title: 'Approve Booking?',
+                                text: 'Approve this booking request?',
+                                showCancelButton: true,
+                                confirmButtonText: 'Approve'
+                            });
+
+                            if (!confirm.isConfirmed) return;
+
+                            try {
+
+                                const response = await fetch(
+                                    `/bookingcar/approve/${d.docid}`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRF-TOKEN': document
+                                                .querySelector('meta[name="csrf-token"]')
+                                                .getAttribute('content')
+                                        }
+                                    }
+                                );
+
+                                const result = await response.json();
+
+                                if (!response.ok) {
+                                    throw new Error(
+                                        result.message || 'Approve failed'
+                                    );
+                                }
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: result.message,
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                });
+
+                                closeBookingDetailModal();
+
+                                fetchBookingList();
+
+                            } catch (err) {
+
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: err.message
+                                });
+                            }
+                        };
+
+                        // REVISE
+                        document.getElementById('reviseBookingBtn').onclick =
+                            function() {
+                                openReasonModal('revise', d.docid);
+                            };
+
+                        // REJECT
+                        document.getElementById('rejectBookingBtn').onclick =
+                            function() {
+                                openReasonModal('reject', d.docid);
+                            };
+                    }
+
+                    @if (auth()->user()->hasRole('GAACCESS'))
+
+                        if (d.status === 'C') {
+
+                            approvalActions.classList.remove('hidden');
+
+                            document.getElementById(
+                                'processBookingBtn'
+                            ).classList.remove('hidden');
+
+                            document.getElementById(
+                                'processBookingBtn'
+                            ).onclick = function() {
+
+                                openGaProcessModal(d.eid);
+                            };
+                        }
+                    @endif
+                @endif
+
+                // =========================================================
+                // LOAD TRACKING
+                // =========================================================
+
+                await loadBookingTracking(d.eid);
+
+            } catch (err) {
+
+                console.error(err);
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: err.message
+                });
+            }
+        }
+
+        async function loadBookingTracking(eid) {
+
+            try {
+
+                const response = await fetch(
+                    `/bookingcar/tracking/${eid}`
+                );
+
+                const result = await response.json();
+
+                const wrapper =
+                    document.getElementById(
+                        'bookingApprovalFlow'
+                    );
+
+                wrapper.innerHTML = '';
+
+                if (!result.steps?.length) {
+
+                    wrapper.innerHTML = `
+                        <div class="text-sm text-gray-400">
                             No approval data
                         </div>
                     `;
 
-                        return;
+                    return;
+                }
+
+                let currentStep = null;
+
+                const totalSteps =
+                    result.steps.length;
+
+                result.steps.forEach((step, index) => {
+
+                    step.is_last =
+                        index === totalSteps - 1;
+
+                    if (
+                        step.status === 'P' &&
+                        !currentStep
+                    ) {
+                        currentStep = step;
                     }
 
-                    let currentStep = null;
+                    const isActive =
+                        step.status === 'P';
 
-                    res.steps.forEach(step => {
+                    const isDone =
+                        step.status === 'A' ||
+                        step.status === 'C';
 
-                        if (step.status === 'P' && !currentStep) {
-                            currentStep = step;
-                        }
+                    const isRejected =
+                        step.status === 'R';
 
-                        const isActive = step.status === 'P';
-                        const isDone = step.status === 'A';
+                    const isRevise =
+                        step.status === 'D';
 
-                        const dotColor = isDone ?
-                            'bg-green-500' :
-                            isActive ?
-                            'bg-blue-500 ring-4 ring-blue-100' :
-                            'bg-gray-300';
+                    let dotColor =
+                        'bg-gray-300';
 
-                        const lineColor = isDone ?
-                            'bg-green-400' :
-                            'bg-gray-200';
+                    let lineColor =
+                        'bg-gray-200';
 
-                        el.innerHTML += `
-                        <div class="relative pl-6">
+                    let badgeClass =
+                        'bg-gray-100 text-gray-500';
 
-                            <div class="absolute left-[7px] top-0 h-full w-[2px] ${lineColor}"></div>
+                    if (isDone) {
 
-                            <div class="absolute left-0 top-1 w-4 h-4 rounded-full ${dotColor}"></div>
+                        dotColor =
+                            'bg-emerald-500';
 
+                        lineColor =
+                            'bg-emerald-400';
+
+                        badgeClass =
+                            'bg-emerald-100 text-emerald-700';
+                    }
+
+                    if (isActive) {
+
+                        dotColor =
+                            'bg-blue-500 ring-4 ring-blue-100';
+
+                        badgeClass =
+                            'bg-blue-100 text-blue-700';
+                    }
+
+                    if (isRejected) {
+
+                        dotColor =
+                            'bg-red-500';
+
+                        lineColor =
+                            'bg-red-200';
+
+                        badgeClass =
+                            'bg-red-100 text-red-700';
+                    }
+
+                    if (isRevise) {
+
+                        dotColor =
+                            'bg-yellow-400';
+
+                        lineColor =
+                            'bg-yellow-200';
+
+                        badgeClass =
+                            'bg-yellow-100 text-yellow-700';
+                    }
+
+                    wrapper.innerHTML += `
+
+                        <div class="relative pl-7">
+
+                            ${
+                                !step.is_last
+                                ? `
+                                        <div class="absolute left-[8px] top-0 h-full w-[2px] ${lineColor}"></div>
+                                    `
+                                : ''
+                            }
+
+                            <!-- DOT -->
+                            <div class="absolute left-0 top-1">
+
+                                <div class="h-4 w-4 rounded-full ${dotColor}"></div>
+
+                            </div>
+
+                            <!-- CONTENT -->
                             <div class="pb-6">
 
-                                <div class="flex justify-between items-center">
+                                <div class="flex items-start justify-between gap-3">
 
-                                    <div class="text-sm font-semibold text-gray-900">
-                                        ${escapeHtml(step.title)}
+                                    <div class="min-w-0">
+
+                                        <div class="text-sm font-semibold text-gray-900">
+                                            ${escapeHtml(step.title || '-')}
+                                        </div>
+
+                                        ${
+                                            step.by
+                                            ? `
+                                                    <div class="mt-1 text-xs text-gray-400">
+                                                        ${escapeHtml(step.by)}
+                                                        ${
+                                                            step.at
+                                                            ? `• ${escapeHtml(step.at)}`
+                                                            : ''
+                                                        }
+                                                    </div>
+                                                `
+                                            : `
+                                                    <div class="mt-1 text-xs italic text-gray-400">
+                                                        Waiting for action
+                                                    </div>
+                                                `
+                                        }
+
                                     </div>
 
-                                    <div class="text-xs px-2 py-0.5 rounded-full
-                                        ${
-                                            isDone
-                                            ? 'bg-green-100 text-green-600'
-                                            : isActive
-                                            ? 'bg-blue-100 text-blue-600'
-                                            : 'bg-gray-100 text-gray-500'
-                                        }">
-
-                                        ${escapeHtml(step.status_label)}
+                                    <div class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${badgeClass}">
+                                        ${escapeHtml(step.status_label || '-')}
                                     </div>
 
                                 </div>
-
-                                ${
-                                    step.by
-                                    ? `
-                                            <div class="text-xs text-gray-400 mt-1">
-                                                ${escapeHtml(step.by)}
-                                                •
-                                                ${escapeHtml(step.at || '')}
-                                            </div>
-                                        `
-                                    : `
-                                            <div class="text-xs text-gray-400 mt-1 italic">
-                                                Waiting for action
-                                            </div>
-                                        `
-                                }
 
                                 ${
                                     step.comment
@@ -1896,10 +2524,10 @@
                                             <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
 
                                                 <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
-                                                    Reason
+                                                    Comment
                                                 </div>
 
-                                                <div class="mt-1 text-xs text-yellow-900">
+                                                <div class="mt-1 text-xs leading-relaxed text-yellow-900">
                                                     ${escapeHtml(step.comment)}
                                                 </div>
 
@@ -1912,1199 +2540,891 @@
 
                         </div>
                     `;
-                    });
+                });
 
-                    if (currentStep) {
-                        checkApprovalAccess(currentStep);
-                    }
+            } catch (err) {
 
-                    const actionDiv = document.getElementById('viewActions');
+                console.error(err);
 
-                    if (actionDiv) {
-
-                        actionDiv.innerHTML = '';
-
-                        const currentUser = String(window.currentUsername || '')
-                            .trim()
-                            .toLowerCase();
-
-                        const approvers = String(currentStep?.aprv_username || '')
-                            .split(',')
-                            .map(v => v.trim().toLowerCase());
-
-                        const isCurrentApprover = approvers.includes(currentUser);
-
-                        const isGA = window.isGA === true;
-
-                        // 🔥 ONLY ACTIVE GA APPROVER CAN PROCESS
-                        if (
-                            isGA &&
-                            isCurrentApprover &&
-                            window.currentVoucherData?.status === 'C' &&
-                            !window.currentVoucherData?.actual_budget
-                        ) {
-
-                            actionDiv.innerHTML = `
-                            <button id="openProcessBtn"
-                                class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
-                                Process
-                            </button>
-                        `;
-
-                            document.getElementById('openProcessBtn')
-                                ?.addEventListener('click', () => {
-
-                                    processVoucher(window.currentVoucherData);
-                                });
-                        }
-                    }
-
-
-                })
-                .catch(err => {
-
-                    console.error(err);
-
-                    el.innerHTML = `
-                    <div class="text-xs text-red-500">
+                document.getElementById(
+                    'bookingApprovalFlow'
+                ).innerHTML = `
+                    <div class="text-sm text-red-500">
                         Failed to load approval
                     </div>
                 `;
-                });
-        }
-
-        function checkApprovalAccess(step) {
-
-            const actionBox = document.getElementById('approvalActions');
-
-            if (!actionBox) {
-                console.error('approvalActions element not found');
-                return;
-            }
-
-            // reset first
-            actionBox.classList.add('hidden');
-
-            // normalize current user
-            const currentUser = String(window.currentUsername || '')
-                .replace(/\s+/g, '')
-                .trim()
-                .toLowerCase();
-
-            // validation
-            if (!step || !step.aprv_username) {
-                console.warn('Missing approval username:', step);
-                return;
-            }
-
-            // normalize approvers
-            const approvers = String(step.aprv_username)
-                .split(',')
-                .map(user =>
-                    user
-                    .replace(/\s+/g, '')
-                    .trim()
-                    .toLowerCase()
-                )
-                .filter(Boolean);
-
-            // // console.log('================ APPROVAL ACCESS ================');
-            // // console.log('CURRENT USER:', currentUser);
-            // // console.log('APPROVERS:', approvers);
-
-            const hasAccess = approvers.includes(currentUser);
-
-            // // console.log('HAS ACCESS:', hasAccess);
-
-            if (hasAccess) {
-                actionBox.classList.remove('hidden');
             }
         }
 
-        function clearSelectedCell() {
-            if (selectedCell) {
-                selectedCell.style.background = '';
-                selectedCell.style.border = '';
-                selectedCell = null;
-            }
-        }
+        const reasonModal =
+            document.getElementById('reasonModal');
 
-        function highlightRow(selected) {
+        const reasonModalTitle =
+            document.getElementById('reasonModalTitle');
 
-            document.querySelectorAll('.voucher-item')
-                .forEach(el => el.classList.remove('bg-indigo-50'));
+        const reasonInput =
+            document.getElementById('reasonInput');
 
-            selected.classList.add('bg-indigo-50');
-        }
+        const reasonError =
+            document.getElementById('reasonError');
 
+        const cancelReasonBtn =
+            document.getElementById('cancelReasonBtn');
 
-        // async function processVoucher(docid) {
+        const submitReasonBtn =
+            document.getElementById('submitReasonBtn');
 
-        //     const result = await showConfirm('Process this voucher?');
+        function openReasonModal(type, docid) {
 
-        //     if (!result.isConfirmed) return;
+            currentReasonAction = type;
 
-        //     const btns = document.querySelectorAll('.process-btn');
-        //     btns.forEach(b => b.disabled = true);
+            currentBookingDocid = docid;
 
-        //     fetch(`/vouchertaxi/process/${docid}`, {
-        //         method: 'POST',
-        //         headers: {
-        //             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-        //             'Content-Type': 'application/json'
-        //         }
-        //     })
-        //     .then(res => res.json())
-        //     .then(() => {
+            reasonInput.value = '';
 
-        //         showSuccess('Voucher processed');
+            reasonError.classList.add('hidden');
 
-        //         loadVoucherList();
-        //         calendar.refetchEvents();
-
-        //     })
-        //     .catch(() => {
-        //         showError('Failed');
-        //     });
-        // }
-
-        function processVoucher(data) {
-
-            const modal = document.getElementById('processVoucherModal');
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-
-            document.getElementById('processVoucherForm').reset();
-
-            document.getElementById('process_docid').value = data.docid;
-
-            // FILL DATA
-            document.getElementById('process_docno').innerText =
-                data.docid || '-';
-
-            document.getElementById('process_requester').innerText =
-                data.user_peminta || '-';
-
-            document.getElementById('process_date').innerText =
-                data.date_used || '-';
-
-            document.getElementById('process_company').innerText =
-                data.cpny_id || '-';
-
-            document.getElementById('process_department').innerText =
-                data.department_id || '-';
-
-            document.getElementById('process_trip').innerText =
-                data.type_trip || '-';
-
-            document.getElementById('process_route').innerText =
-                `${data.origin || '-'} → ${data.destination || '-'}`;
-
-            document.getElementById('process_purpose').innerText =
-                data.purpose || '-';
-
-            document.getElementById('process_budget').innerText =
-                data.max_budget ?
-                `Rp ${Number(data.max_budget).toLocaleString()}` :
-                '-';
-        }
-
-        function applyEditState(data) {
-
-            const status = data.status;
-            const currentUser = window.currentUsername; // set this globally
-            // const isOwner = data.created_by === currentUser;
-            const isOwner =
-                String(data.created_by || '')
-                .trim()
-                .toLowerCase() ===
-                String(currentUser || '')
-                .trim()
-                .toLowerCase();
-            const isGA = window.isGA === true;
-
-            const form = document.getElementById('editVoucherTaxiForm');
-
-            const inputs = form.querySelectorAll('input, select');
-
-            // reset first
-            inputs.forEach(el => {
-                el.disabled = false;
-                el.classList.remove('bg-gray-100', 'cursor-not-allowed');
-            });
-
-            // 🔒 COMPLETED / REJECTED → FULL LOCK
-            if (status === 'C' || status === 'R') {
-
-                inputs.forEach(el => {
-                    el.disabled = true;
-                    el.classList.add('bg-gray-100', 'cursor-not-allowed');
-                });
-
-                hideSubmit();
-                return;
+            if (type === 'revise') {
+                reasonModalTitle.innerText =
+                    'Revision Reason';
             }
 
-            // 🔐 NOT OWNER → LOCK
-            if (!isOwner && !isGA) {
-
-                inputs.forEach(el => {
-                    el.disabled = true;
-                    el.classList.add('bg-gray-100', 'cursor-not-allowed');
-                });
-
-                hideSubmit();
-                return;
+            if (type === 'reject') {
+                reasonModalTitle.innerText =
+                    'Reject Reason';
             }
 
-            // 🧾 GA SPECIAL CONTROL
-            if (isGA) {
-                // later: allow GA-only fields
-                // example:
-                // enableField('max_budget');
-            }
+            reasonModal.classList.remove('hidden');
 
-            showSubmit();
-        }
+            reasonModal.classList.add('flex');
 
-        function hideSubmit() {
-            document.getElementById('saveEditVoucherTaxiBtn').classList.add('hidden');
-        }
-
-        function showSubmit() {
-            document.getElementById('saveEditVoucherTaxiBtn').classList.remove('hidden');
-        }
-
-        function setStatusBadge(status) {
-
-            const el = document.getElementById('editStatusBadge');
-
-            const map = {
-                P: ['Pending', 'text-blue-600'],
-                C: ['Completed', 'text-green-600'],
-                R: ['Rejected', 'text-gray-500'],
-                D: ['Revise', 'text-yellow-500'],
-                X: ['Cancelled', 'text-gray-500']
-            };
-
-            const [label, color] = map[status] || ['Unknown', 'text-gray-400'];
-
-            el.innerHTML = label;
-            el.className = `text-xs mt-2 font-medium ${color}`;
-        }
-
-        function loadVoucherList() {
-
-            fetch('/vouchertaxi/json')
-                .then(res => res.json())
-                .then(res => {
-
-                    voucherData = res.data.sort((a, b) =>
-                        new Date(b.date_used) - new Date(a.date_used)
-                    );
-
-                    renderVoucherList();
-                });
-        }
-
-        function renderVoucherList() {
-
-            const tbody = document.getElementById('voucherListBody');
-            const counter = document.getElementById('voucherCount');
-
-            tbody.innerHTML = '';
-
-            const isGA = window.isGA === true;
-
-            // =========================================
-            // FILTER
-            // =========================================
-
-            let filteredData = voucherData;
-
-            // 🔥 WAITING PROCESS
-            if (currentVoucherFilter === 'WAITING_PROCESS') {
-
-                filteredData = voucherData.filter(v =>
-                    v.status === 'C' &&
-                    !v.actual_budget
-                );
-
-            }
-
-            // 🔥 NORMAL FILTER
-            else if (currentVoucherFilter !== 'ALL') {
-
-                filteredData = voucherData.filter(v =>
-                    v.status === currentVoucherFilter
-                );
-            }
-
-            counter.innerText = filteredData.length;
-
-            // =========================================
-            // EMPTY STATE
-            // =========================================
-
-            if (
-                currentVoucherFilter === 'WAITING_PROCESS' &&
-                filteredData.length === 0
-            ) {
-
-                tbody.innerHTML = `
-
-                    <div class="
-                        flex flex-col items-center justify-center
-                        rounded-2xl border border-dashed border-gray-200
-                        py-16 px-6 text-center
-                        dark:border-white/10
-                    ">
-
-                        <div class="
-                            mb-4 flex h-16 w-16 items-center justify-center
-                            rounded-full bg-emerald-100 text-3xl
-                            dark:bg-emerald-500/15
-                        ">
-                            ✅
-                        </div>
-
-                        <div class="
-                            text-base font-semibold text-gray-900
-                            dark:text-white
-                        ">
-                            Nothing is waiting for you
-                        </div>
-
-                        <div class="
-                            mt-2 text-sm text-gray-500
-                            dark:text-gray-400
-                        ">
-                            Job is done 🎉
-                        </div>
-
-                    </div>
-                `;
-
-                document.getElementById('voucherPageInfo').innerText =
-                    'No pending process';
-
-                document.getElementById('prevVoucherPage').disabled = true;
-
-                document.getElementById('nextVoucherPage').disabled = true;
-
-                return;
-            }
-
-            // =========================================
-            // PAGINATION
-            // =========================================
-
-            const totalPages = Math.ceil(filteredData.length / voucherPerPage);
-
-            if (currentVoucherPage > totalPages) {
-                currentVoucherPage = 1;
-            }
-
-            const start = (currentVoucherPage - 1) * voucherPerPage;
-            const end = start + voucherPerPage;
-
-            const paginatedData = filteredData.slice(start, end);
-
-            document.getElementById('voucherPageInfo').innerText =
-                filteredData.length === 0 ?
-                'No data' :
-                `Showing ${start + 1}-${Math.min(end, filteredData.length)} of ${filteredData.length}`;
-
-            // =========================================
-            // STATUS MAP
-            // =========================================
-
-            const statusMap = {
-
-                P: {
-                    label: 'Pending',
-                    color: `
-                        bg-blue-100 text-blue-700
-                        dark:bg-blue-500/15 dark:text-blue-300
-                    `
-                },
-
-                C: {
-                    label: 'Completed',
-                    color: `
-                        bg-emerald-100 text-emerald-700
-                        dark:bg-emerald-500/15 dark:text-emerald-300
-                    `
-                },
-
-                D: {
-                    label: 'Revise',
-                    color: `
-                        bg-yellow-100 text-yellow-700
-                        dark:bg-yellow-500/15 dark:text-yellow-300
-                    `
-                },
-
-                R: {
-                    label: 'Rejected',
-                    color: `
-                        bg-red-100 text-red-700
-                        dark:bg-red-500/15 dark:text-red-300
-                    `
-                },
-
-                X: {
-                    label: 'Cancelled',
-                    color: `
-                        bg-gray-100 text-gray-600
-                        dark:bg-gray-500/15 dark:text-gray-300
-                    `
-                }
-            };
-
-            // =========================================
-            // RENDER LIST
-            // =========================================
-
-            paginatedData.forEach(item => {
-
-                const status = statusMap[item.status] || {
-                    label: '-',
-                    color: 'bg-gray-100 text-gray-400'
-                };
-
-                const row = document.createElement('div');
-
-                row.className = `
-                    voucher-item
-                    group
-                    rounded-2xl
-                    border border-gray-200
-                    bg-white
-                    px-4 py-3
-                    cursor-pointer
-                    transition-all duration-200
-
-                    hover:-translate-y-[1px]
-                    hover:border-gray-300
-                    hover:shadow-md
-
-                    dark:border-white/10
-                    dark:bg-white/[0.03]
-                    dark:hover:border-white/20
-                    dark:hover:bg-white/[0.05]
-                `;
-
-                row.innerHTML = `
-
-                    <div class="flex items-start justify-between gap-3">
-
-                        <!-- LEFT -->
-                        <div class="min-w-0 flex-1">
-
-                            <!-- TOP -->
-                            <div class="flex items-center gap-2 text-[11px] text-gray-400">
-
-                                <span class="font-semibold tracking-wide">
-                                    ${escapeHtml(item.docid)}
-                                </span>
-
-                                <span>•</span>
-
-                                <span>
-                                    ${escapeHtml(item.date_used)}
-                                </span>
-
-                            </div>
-
-                            <!-- USER -->
-                            <div class="mt-1 truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                ${escapeHtml(item.user_peminta)}
-                            </div>
-
-                            <!-- ROUTE -->
-                            <div class="mt-2 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-
-                                <span class="text-[11px] opacity-70">📍</span>
-
-                                <div class="truncate">
-                                    ${escapeHtml(item.origin || '-')}
-                                    →
-                                    ${escapeHtml(item.destination || '-')}
-                                </div>
-
-                            </div>
-
-                            <!-- PURPOSE -->
-                            <div class="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">
-                                ${escapeHtml(item.purpose || '-')}
-                            </div>
-
-                        </div>
-
-                        <!-- STATUS -->
-                        <span class="
-                            shrink-0
-                            rounded-full
-                            px-2.5 py-1
-                            text-[10px]
-                            font-semibold
-                            ${status.color}
-                        ">
-                            ${escapeHtml(status.label)}
-                        </span>
-
-                    </div>
-
-                    ${
-                        isGA &&
-                        item.status === 'C' &&
-                        !item.actual_budget
-                        ? `
-                                <div class="mt-3 flex justify-end">
-
-                                    <button
-                                        class="
-                                            process-btn
-                                            rounded-lg
-                                            bg-black
-                                            px-3 py-1.5
-                                            text-[11px]
-                                            font-medium
-                                            text-white
-                                            transition
-                                            hover:opacity-90
-                                        ">
-                                        Process
-                                    </button>
-
-                                </div>
-                            `
-                        : ''
-                    }
-                `;
-
-                // CLICK ROW
-                row.addEventListener('click', () => {
-
-                    highlightRow(row);
-
-                    calendar.gotoDate(item.date_used);
-
-                    openViewModal(item);
-                });
-
-                // PROCESS BUTTON
-                const btn = row.querySelector('.process-btn');
-
-                if (btn) {
-
-                    btn.addEventListener('click', (e) => {
-
-                        e.stopPropagation();
-
-                        processVoucher(item);
-                    });
-                }
-
-                tbody.appendChild(row);
-            });
-
-            // =========================================
-            // PAGINATION BUTTON
-            // =========================================
-
-            document.getElementById('prevVoucherPage').disabled =
-                currentVoucherPage === 1;
-
-            document.getElementById('nextVoucherPage').disabled =
-                currentVoucherPage >= totalPages;
-        }
-
-        function toast(msg) {
-            const el = document.createElement('div');
-            el.className = 'fixed bottom-4 right-4 bg-black text-white px-4 py-2 rounded-lg text-sm shadow';
-            el.innerText = msg;
-
-            document.body.appendChild(el);
-
-            setTimeout(() => el.remove(), 3000);
-        }
-
-        const panel = document.getElementById('voucherListPanel');
-        const calendarWrapper = document.getElementById('calendarWrapper');
-        const grid = document.getElementById('mainGrid');
-        const toggleBtn = document.getElementById('toggleList');
-
-        let hidden = false;
-
-        toggleBtn.addEventListener('click', () => {
-
-            hidden = !hidden;
-
-            if (hidden) {
-                panel.classList.add('hidden');
-                grid.classList.remove('lg:grid-cols-3');
-                grid.classList.add('lg:grid-cols-1');
-            } else {
-                panel.classList.remove('hidden');
-                grid.classList.remove('lg:grid-cols-1');
-                grid.classList.add('lg:grid-cols-3');
-            }
+            document.body.classList.add('overflow-hidden');
 
             setTimeout(() => {
-                calendar.updateSize();
-            }, 300);
-        });
+                reasonInput.focus();
+            }, 100);
+        }
 
-        document.getElementById('closeCreateVoucherModal')
-            .addEventListener('click', () => {
-                document.getElementById('createVoucherModal').classList.add('hidden');
-                clearSelectedCell(); // 🔥 important
-            });
+        function closeReasonModal() {
 
-        document.getElementById('cancelEditVoucherTaxiBtn')
-            .addEventListener('click', () => {
-                document.getElementById('editVoucherTaxiModal').classList.add('hidden');
-                document.getElementById('editVoucherTaxiForm').reset();
-            });
+            reasonModal.classList.add('hidden');
 
-        window.addEventListener('click', function(e) {
+            reasonModal.classList.remove('flex');
 
-            const createModal = document.getElementById('createVoucherModal');
-            const editModal = document.getElementById('editVoucherTaxiModal');
-
-            const viewModal = document.getElementById('viewVoucherModal');
-
-            if (e.target === viewModal) {
-                closeViewModal();
+            if (
+                !viewBookingModal.classList.contains('hidden') ||
+                !editBookingModal.classList.contains('hidden')
+            ) {
+                document.body.classList.add('overflow-hidden');
+            } else {
+                document.body.classList.remove('overflow-hidden');
             }
 
-            if (e.target === createModal) {
-                createModal.classList.add('hidden');
-                clearSelectedCell();
-            }
+            currentReasonAction = null;
+            currentBookingDocid = null;
+        }
 
-            if (e.target === editModal) {
+        function filterEditUserRequest() {
 
-                editModal.classList.add('hidden');
+            const selectedDept = editDeptSelect.value;
 
-                document.getElementById('editVoucherTaxiForm').reset();
-            }
+            editUserRequestSelect.innerHTML = `
+                <option value="">
+                    Select passenger
+                </option>
+            `;
 
-        });
-
-        document.getElementById('openCreateVoucherModal')
-            .addEventListener('click', () => {
-
-                document.getElementById('voucherTaxiForm').reset();
-
-                document.getElementById('createVoucherModal')
-                    .classList.remove('hidden');
-            });
-
-        document.addEventListener('keydown', function(e) {
-
-            if (e.key === 'Escape') {
-
-                document.getElementById('createVoucherModal').classList.add('hidden');
-                document.getElementById('editVoucherTaxiModal').classList.add('hidden');
-
-                closeViewModal();
-                clearSelectedCell();
-            }
-
-        });
-
-
-        const deptSelect = document.getElementById('department_id');
-        const userSelect = document.getElementById('user_topup');
-
-        const allOptions = Array.from(userSelect.options);
-
-        function filterUsers() {
-
-            const selectedDept = deptSelect.value;
-
-            userSelect.innerHTML = '';
-
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.text = 'Select user';
-            userSelect.appendChild(defaultOption);
-
-            allOptions.forEach(option => {
-
-                const dept = option.getAttribute('data-dept');
+            editUserRequestOptions.forEach(option => {
 
                 if (!option.value) return;
 
+                const dept =
+                    option.getAttribute('data-dept');
+
                 if (!selectedDept || dept === selectedDept) {
-                    userSelect.appendChild(option.cloneNode(true));
+
+                    editUserRequestSelect.appendChild(
+                        option.cloneNode(true)
+                    );
                 }
             });
         }
 
-        // ✅ ONLY department triggers filter
-        deptSelect.addEventListener('change', filterUsers);
+        function toggleEditPurposeDescription() {
 
-        const createForm = document.getElementById('voucherTaxiForm');
+            if (editPurposeSelect.value === 'OTHER') {
 
-        if (createForm) {
-            createForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
+                editPurposeDescrWrapper.classList.remove('hidden');
 
-                const btn = this.querySelector('button[type="submit"]');
+                editPurposeDescr.required = true;
 
-                // 🔥 LOADING START
-                btn.disabled = true;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = `
-                        <span class="flex items-center gap-2">
-                            <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" stroke="white" stroke-width="4" fill="none"/>
-                            </svg>
-                            Submitting...
-                        </span>
-                    `;
+            } else {
 
-                const confirm = await showConfirm(
-                    'Submit this taxi booking request?'
+                editPurposeDescrWrapper.classList.add('hidden');
+
+                editPurposeDescr.required = false;
+
+                editPurposeDescr.value = editPurposeSelect.value;
+            }
+        }
+
+        function escapeHtml(str = '') {
+
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        editPurposeSelect?.addEventListener(
+            'change',
+            toggleEditPurposeDescription
+        );
+
+        editDeptSelect?.addEventListener(
+            'change',
+            filterEditUserRequest
+        );
+
+        cancelReasonBtn?.addEventListener(
+            'click',
+            closeReasonModal
+        );
+
+        reasonModal?.addEventListener(
+            'click',
+            function(e) {
+
+                if (e.target === reasonModal) {
+                    closeReasonModal();
+                }
+            }
+        );
+
+        submitReasonBtn?.addEventListener(
+            'click',
+            async function() {
+
+                try {
+
+                    const comment =
+                        reasonInput.value.trim();
+
+                    if (!comment) {
+
+                        reasonError.classList.remove(
+                            'hidden'
+                        );
+
+                        return;
+                    }
+
+                    submitReasonBtn.disabled = true;
+
+                    submitReasonBtn.innerText =
+                        'Submitting...';
+
+                    let url = '';
+
+                    if (currentReasonAction === 'revise') {
+                        url =
+                            `/bookingcar/revise/${currentBookingDocid}`;
+                    }
+
+                    if (currentReasonAction === 'reject') {
+                        url =
+                            `/bookingcar/reject/${currentBookingDocid}`;
+                    }
+
+                    const response =
+                        await fetch(url, {
+                            method: 'POST',
+
+                            headers: {
+                                'Content-Type': 'application/json',
+
+                                'X-CSRF-TOKEN': document
+                                    .querySelector(
+                                        'meta[name="csrf-token"]'
+                                    )
+                                    .getAttribute('content')
+                            },
+
+                            body: JSON.stringify({
+                                comment
+                            })
+                        });
+
+                    const result =
+                        await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(
+                            result.message ||
+                            'Process failed'
+                        );
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+
+                    closeReasonModal();
+
+                    closeBookingDetailModal();
+
+                    fetchBookingList();
+
+                } catch (err) {
+
+                    console.error(err);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message
+                    });
+
+                } finally {
+
+                    submitReasonBtn.disabled = false;
+
+                    submitReasonBtn.innerText =
+                        'Submit';
+                }
+            }
+        );
+
+        document.getElementById('editBookingBtn')?.addEventListener(
+            'click',
+            async function() {
+
+                const eid = this.dataset.eid;
+
+                const response = await fetch(
+                    `/bookingcar/detail/${eid}`
                 );
 
-                if (!confirm.isConfirmed) {
+                const result = await response.json();
 
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
+                if (!result.success) return;
 
-                    return;
+                const d = result.data;
+
+                // const tracking =
+                //     result.tracking || [];
+
+                viewBookingModal.classList.add('hidden');
+
+                editBookingModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+
+                document.getElementById('edit_booking_docid').value =
+                    d.docid;
+
+                document.getElementById('edit_booking_eid').value =
+                    d.eid;
+
+                document.getElementById('edit_cpny_id').value =
+                    d.cpny_id || '';
+
+                document.getElementById('edit_department_id').value =
+                    d.department_id || '';
+
+                document.getElementById('edit_user_peminta').value =
+                    d.user_peminta || '';
+
+                filterEditUserRequest();
+
+                document.getElementById('edit_user_request').value =
+                    d.user_request || '';
+
+
+                document.getElementById('edit_passenger').value =
+                    d.passenger || '';
+
+                document.getElementById('edit_booking_date').value =
+                    d.booking_date || '';
+
+                document.getElementById('edit_start_time').value =
+                    d.start_time ? d.start_time.substring(11, 16) : '';
+
+                document.getElementById('edit_end_time').value =
+                    d.end_time ? d.end_time.substring(11, 16) : '';
+
+                document.getElementById('edit_location_from').value =
+                    d.location_from || '';
+
+                document.getElementById('edit_destination').value =
+                    d.destination || '';
+
+                document.getElementById('edit_cpny_id_site').value =
+                    d.cpny_id_site || '';
+
+                document.getElementById('edit_purpose_id').value =
+                    d.purpose_id || '';
+
+                document.getElementById('edit_purpose_descr').value =
+                    d.purpose_descr || '';
+
+                toggleEditPurposeDescription();
+
+                document.getElementById('editBookingReviseWrapper')
+                    .classList.add('hidden');
+
+                document.getElementById('edit_booking_revise_reason')
+                    .innerHTML = '';
+
+                try {
+
+                    const trackingResponse = await fetch(
+                        `/bookingcar/tracking/${d.eid}`
+                    );
+
+                    const trackingResult =
+                        await trackingResponse.json();
+
+                    const reviseSteps =
+                        (trackingResult.steps || []).filter(
+                            step => ['D', 'R'].includes(step.status) &&
+                            step.comment
+                        );
+
+                    if (reviseSteps.length) {
+
+                        document.getElementById('editBookingReviseWrapper')
+                            .classList.remove('hidden');
+
+                        document.getElementById('edit_booking_revise_reason')
+                            .innerHTML = reviseSteps.map(step => `
+                                <div class="mb-3 rounded-xl border border-yellow-200 bg-white px-4 py-3">
+
+                                    <div class="flex items-center justify-between gap-3">
+
+                                        <div class="text-xs font-semibold text-yellow-700">
+                                            ${
+                                                step.status === 'D'
+                                                ? 'REVISION'
+                                                : 'REJECTION'
+                                            }
+                                        </div>
+
+                                        <div class="text-[11px] text-gray-400">
+                                            ${step.by || '-'}
+                                        </div>
+
+                                    </div>
+
+                                    ${
+                                        step.at
+                                        ? `
+                                                        <div class="mt-1 text-[11px] text-gray-400">
+                                                            ${step.at}
+                                                        </div>
+                                                    `
+                                        : ''
+                                    }
+
+                                    <div class="mt-3 text-sm leading-relaxed text-gray-700">
+                                        ${escapeHtml(step.comment)}
+                                    </div>
+
+                                </div>
+                            `).join('');
+                    }
+
+                } catch (err) {
+
+                    console.error(err);
                 }
+            }
+        );
 
-                const formData = new FormData(this);
+        bookingCarForm?.addEventListener(
+            'submit',
+            async function(e) {
 
-                fetch('/vouchertaxi/store', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: formData
-                    })
-                    .then(res => res.json())
-                    .then(res => {
+                e.preventDefault();
 
-                        if (!res.success) {
-                            showError(res.message);
+                try {
 
-                            // 🔥 RESET BUTTON
-                            btn.disabled = false;
-                            btn.innerHTML = originalText;
-                            return;
+                    const submitBtn =
+                        bookingCarForm.querySelector(
+                            'button[type="submit"]'
+                        );
+
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = 'Submitting...';
+
+                    if (purposeSelect.value !== 'OTHER') {
+                        purposeDescr.value = purposeSelect.value;
+                    }
+
+                    const formData = new FormData(bookingCarForm);
+
+                    const response = await fetch(
+                        `/bookingcar/store`, {
+                            method: 'POST',
+
+                            headers: {
+                                'X-CSRF-TOKEN': document
+                                    .querySelector(
+                                        'meta[name="csrf-token"]'
+                                    )
+                                    .getAttribute('content')
+                            },
+
+                            body: formData
                         }
+                    );
 
-                        this.reset();
-                        clearSelectedCell();
+                    const result = await response.json();
 
-                        document.getElementById('createVoucherModal').classList.add('hidden');
+                    if (!response.ok) {
+                        throw new Error(
+                            result.message || 'Submit failed'
+                        );
+                    }
 
-                        loadVoucherList();
-                        calendar.refetchEvents();
-
-                        // 🔥 RESET BUTTON
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
-
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        showError('Create failed');
-
-                        // 🔥 RESET BUTTON
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
-                    });
-            });
-        }
-
-        document.getElementById('editVoucherTaxiForm')
-            .addEventListener('submit', async function(e) {
-
-                e.preventDefault();
-
-                const btn = document.getElementById('saveEditVoucherTaxiBtn');
-
-                btn.disabled = true;
-
-                const originalText = btn.innerHTML;
-                btn.innerHTML = 'Saving...';
-
-                try {
-
-                    const docid = document.getElementById('edit_docid').value;
-
-                    const formData = new FormData(this);
-
-                    const response = await fetch(`/vouchertaxi/update/${docid}`, {
-
-                        // ✅ FIX
-                        method: 'POST',
-
-                        headers: {
-                            'X-CSRF-TOKEN': document
-                                .querySelector('meta[name="csrf-token"]')
-                                .content,
-
-                            'Accept': 'application/json'
-                        },
-
-                        body: formData
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message,
+                        timer: 1800,
+                        showConfirmButton: false
                     });
 
-                    const raw = await response.text();
-
-                    // console.log('UPDATE RAW RESPONSE:', raw);
-
-                    let res;
-
-                    try {
-
-                        res = JSON.parse(raw);
-
-                    } catch (jsonError) {
-
-                        console.error('INVALID JSON RESPONSE:', raw);
-
-                        throw new Error('Server returned HTML instead of JSON');
-                    }
-
-                    if (!response.ok || !res.success) {
-
-                        showError(res.message || 'Update failed');
-
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
-
-                        return;
-                    }
-
-                    document.getElementById('editVoucherTaxiModal')
-                        .classList.add('hidden');
-
-                    loadVoucherList();
-
-                    if (typeof calendar !== 'undefined') {
-                        calendar.refetchEvents();
-                    }
-
-                    showSuccess(res.message || 'Voucher updated successfully');
-
-                } catch (err) {
-
-                    console.error('UPDATE ERROR:', err);
-
-                    showError(err.message || 'Update failed');
-
-                } finally {
-
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
-            });
-        document.getElementById('approveBtn').onclick = () => handleApproval('approve');
-        document.getElementById('rejectBtn').onclick = () => handleApproval('reject');
-        document.getElementById('reviseBtn').onclick = () => handleApproval('revise');
-
-        function handleApproval(type) {
-
-            const docid = window.currentDocid;
-
-            if (!docid) {
-                showError('Invalid document');
-                return;
-            }
-
-            // ✅ APPROVE DIRECTLY
-            if (type === 'approve') {
-                submitApproval(type, '');
-                return;
-            }
-
-            // 🔥 OPEN MODAL
-            const modal = document.getElementById('reasonModal');
-            const input = document.getElementById('reasonInput');
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-
-            input.value = '';
-
-            // title
-            document.getElementById('reasonModalTitle').innerText =
-                type === 'revise' ?
-                'Revision Reason' :
-                'Reject Reason';
-
-            // cancel
-            document.getElementById('cancelReasonBtn').onclick = () => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            };
-
-            // submit
-            document.getElementById('submitReasonBtn').onclick = () => {
-
-                const reason = input.value.trim();
-
-                if (!reason) {
-                    showError('Reason is required');
-                    return;
-                }
-
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-
-                submitApproval(type, reason);
-            };
-        }
-
-        function submitApproval(type, comment = '') {
-
-            const docid = window.currentDocid;
-
-            const urlMap = {
-                approve: `/vouchertaxi/approve/${docid}`,
-                reject: `/vouchertaxi/reject/${docid}`,
-                revise: `/vouchertaxi/revise/${docid}`
-            };
-
-            const btn = document.getElementById(type + 'Btn');
-
-            const originalText = btn.innerHTML;
-
-            btn.disabled = true;
-            btn.innerHTML = 'Processing...';
-
-            fetch(urlMap[type], {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        comment: comment
-                    })
-                })
-                .then(res => res.json())
-                .then(res => {
-
-                    if (!res.success) {
-                        showError(res.message || 'Failed');
-                        return;
-                    }
-
-                    showSuccess(res.message || 'Success');
-
-                    closeViewModal();
-
-                    loadVoucherList();
-                    calendar.refetchEvents();
-
-                })
-                .catch(err => {
-                    console.error(err);
-                    showError('Error processing approval');
-                })
-                .finally(() => {
-
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-
-                });
-        }
-
-        function showSuccess(message) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: message,
-                timer: 2000,
-                showConfirmButton: false
-            });
-        }
-
-        function showError(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: message
-            });
-        }
-
-        function showConfirm(message) {
-            return Swal.fire({
-                title: 'Are you sure?',
-                text: message,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes',
-                cancelButtonText: 'Cancel'
-            });
-        }
-
-        // CLOSE PROCESS MODAL
-        document.getElementById('closeProcessVoucherModal')
-            .addEventListener('click', () => {
-
-                const modal = document.getElementById('processVoucherModal');
-
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            });
-
-        // SUBMIT PROCESS
-        document.getElementById('processVoucherForm')
-            .addEventListener('submit', async function(e) {
-
-                e.preventDefault();
-
-                const confirm = await Swal.fire({
-                    title: 'Process Voucher?',
-                    text: "This process can't be undone after submitting the actual budget.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Process',
-                    cancelButtonText: 'Cancel',
-                    reverseButtons: true,
-                    confirmButtonColor: '#111827',
-                    cancelButtonColor: '#d1d5db'
-                });
-
-                if (!confirm.isConfirmed) {
-                    return;
-                }
-
-                const docid = document.getElementById('process_docid').value;
-
-                const btn = document.getElementById('submitProcessVoucherBtn');
-
-                const originalText = btn.innerHTML;
-
-                btn.disabled = true;
-                btn.innerHTML = 'Processing...';
-
-                try {
-
-                    const formData = new FormData(this);
-
-                    const response = await fetch(`/vouchertaxi/process/${docid}`, {
-
-                        method: 'POST',
-
-                        headers: {
-                            'X-CSRF-TOKEN': document
-                                .querySelector('meta[name="csrf-token"]')
-                                .content,
-
-                            'Accept': 'application/json'
-                        },
-
-                        body: formData
-                    });
-
-                    const res = await response.json();
-
-                    if (!res.success) {
-
-                        showError(res.message || 'Failed process voucher');
-
-                        return;
-                    }
-
-                    showSuccess(res.message || 'Voucher processed');
-
-                    document.getElementById('processVoucherModal')
-                        .classList.add('hidden');
-
-                    document.getElementById('processVoucherModal')
-                        .classList.remove('flex');
-
-                    loadVoucherList();
-
-                    if (calendar) {
-                        calendar.refetchEvents();
-                    }
-
-                    closeViewModal();
+                    closeBookingModal();
+                    fetchBookingList();
 
                 } catch (err) {
 
                     console.error(err);
 
-                    showError('Failed process voucher');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message
+                    });
 
                 } finally {
 
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
+                    const submitBtn =
+                        bookingCarForm.querySelector(
+                            'button[type="submit"]'
+                        );
+
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit Booking';
                 }
-            });
+            }
+        );
 
-        const budgetDisplay = document.getElementById('actual_budget_display');
-        const budgetHidden = document.getElementById('actual_budget');
+        editBookingForm?.addEventListener(
+            'submit',
+            async function(e) {
 
-        budgetDisplay?.addEventListener('input', function() {
+                e.preventDefault();
 
-            let value = this.value.replace(/\D/g, '');
+                try {
 
-            budgetHidden.value = value;
+                    const submitBtn =
+                        document.getElementById(
+                            'saveEditBookingBtn'
+                        );
 
-            this.value = value ?
-                Number(value).toLocaleString('id-ID') :
-                '';
-        });
+                    submitBtn.disabled = true;
 
-        document.querySelectorAll('.voucher-filter')
-            .forEach(btn => {
+                    submitBtn.innerHTML =
+                        'Saving...';
 
-                btn.addEventListener('click', function() {
+                    if (
+                        editPurposeSelect.value !== 'OTHER'
+                    ) {
+                        editPurposeDescr.value =
+                            editPurposeSelect.value;
+                    }
 
-                    document.querySelectorAll('.voucher-filter')
-                        .forEach(b => b.classList.remove('active-filter'));
+                    const docid =
+                        document.getElementById(
+                            'edit_booking_docid'
+                        ).value;
 
-                    this.classList.add('active-filter');
+                    const formData =
+                        new FormData(editBookingForm);
 
-                    currentVoucherFilter = this.dataset.filter;
+                    formData.append(
+                        'user_peminta',
+                        document.getElementById(
+                            'edit_user_peminta'
+                        ).value
+                    );
 
-                    currentVoucherPage = 1;
+                    const response =
+                        await fetch(
+                            `/bookingcar/update/${docid}`, {
+                                method: 'POST',
 
-                    renderVoucherList();
-                });
-            });
+                                headers: {
+                                    'X-CSRF-TOKEN': document
+                                        .querySelector(
+                                            'meta[name="csrf-token"]'
+                                        )
+                                        .getAttribute('content')
+                                },
 
-        document.getElementById('prevVoucherPage')
-            .addEventListener('click', () => {
+                                body: formData
+                            }
+                        );
 
-                if (currentVoucherPage > 1) {
+                    const result =
+                        await response.json();
 
-                    currentVoucherPage--;
+                    if (!response.ok) {
+                        throw new Error(
+                            result.message ||
+                            'Update failed'
+                        );
+                    }
 
-                    renderVoucherList();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+
+                    editBookingModal.classList.add(
+                        'hidden'
+                    );
+
+                    document.body.classList.remove(
+                        'overflow-hidden'
+                    );
+
+                    fetchBookingList();
+
+                    const eid =
+                        document.getElementById(
+                            'edit_booking_eid'
+                        ).value;
+
+                    if (eid) {
+
+                        setTimeout(() => {
+                            showBookingDetail(eid);
+                        }, 300);
+
+                    }
+
+                } catch (err) {
+
+                    console.error(err);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message
+                    });
+
+                } finally {
+
+                    const submitBtn =
+                        document.getElementById(
+                            'saveEditBookingBtn'
+                        );
+
+                    submitBtn.disabled = false;
+
+                    submitBtn.innerHTML =
+                        'Save Changes';
                 }
-            });
+            }
+        );
 
-        document.getElementById('nextVoucherPage')
-            .addEventListener('click', () => {
 
-                const totalPages = Math.ceil(
-                    voucherData.length / voucherPerPage
+        // =========================================================
+        // GA PROCESS MODAL
+        // =========================================================
+
+        const gaProcessModal =
+            document.getElementById('gaProcessModal');
+
+        const gaProcessForm =
+            document.getElementById('gaProcessForm');
+
+        const gaDriver =
+            document.getElementById('ga_driver');
+
+        const gaHandphone =
+            document.getElementById('ga_handphone');
+
+        const gaVehicle =
+            document.getElementById('ga_vehicle');
+
+        const gaNoPolisi =
+            document.getElementById('ga_no_polisi');
+
+        // =========================================================
+        // OPEN MODAL
+        // =========================================================
+
+        async function openGaProcessModal(eid) {
+
+            try {
+
+                const response = await fetch(
+                    `/bookingcar/detail/${eid}`
                 );
 
-                if (currentVoucherPage < totalPages) {
+                const result = await response.json();
 
-                    currentVoucherPage++;
-
-                    renderVoucherList();
+                if (!result.success) {
+                    throw new Error(result.message);
                 }
-            });
+
+                const d = result.data;
+
+                document.getElementById(
+                    'ga_process_docid'
+                ).value = d.docid;
+
+                document.getElementById(
+                    'ga_booking_docid'
+                ).innerText = d.docid || '-';
+
+                document.getElementById(
+                        'ga_booking_requester'
+                    ).innerText =
+                    d.user_request || d.user_peminta || '-';
+
+                document.getElementById(
+                        'ga_booking_route'
+                    ).innerText =
+                    `${d.location_from || '-'} → ${d.destination || '-'}`;
+
+                document.getElementById(
+                        'ga_booking_date'
+                    ).innerText =
+                    d.booking_date || '-';
+
+                gaDriver.value =
+                    d.driver || '';
+
+                gaHandphone.value =
+                    d.handphone || '';
+
+                gaNoPolisi.value =
+                    d.no_polisi || '';
+
+                gaVehicle.value =
+                    d.no_polisi || '';
+
+                gaProcessModal.classList.remove('hidden');
+
+                document.body.classList.add('overflow-hidden');
+
+            } catch (err) {
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: err.message
+                });
+            }
+        }
+
+        // =========================================================
+        // CLOSE MODAL
+        // =========================================================
+
+        function closeGaProcessModal() {
+
+            gaProcessModal.classList.add('hidden');
+
+            gaProcessForm.reset();
+
+            if (
+                !viewBookingModal.classList.contains('hidden')
+            ) {
+                document.body.classList.add('overflow-hidden');
+            } else {
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        // =========================================================
+        // AUTO FILL DRIVER HP
+        // =========================================================
+
+        gaDriver?.addEventListener(
+            'change',
+            function() {
+
+                const selected =
+                    this.options[this.selectedIndex];
+
+                gaHandphone.value =
+                    selected.dataset.hp || '';
+            }
+        );
+
+        // =========================================================
+        // AUTO FILL NOPOL
+        // =========================================================
+
+        gaVehicle?.addEventListener(
+            'change',
+            function() {
+
+                gaNoPolisi.value =
+                    this.value || '';
+            }
+        );
+
+        // =========================================================
+        // CLOSE EVENTS
+        // =========================================================
+
+        document.getElementById(
+            'closeGaProcessModal'
+        )?.addEventListener(
+            'click',
+            closeGaProcessModal
+        );
+
+        document.getElementById(
+            'cancelGaProcessBtn'
+        )?.addEventListener(
+            'click',
+            closeGaProcessModal
+        );
+
+        gaProcessModal?.addEventListener(
+            'click',
+            function(e) {
+
+                if (e.target === gaProcessModal) {
+                    closeGaProcessModal();
+                }
+            }
+        );
+
+        // =========================================================
+        // SUBMIT PROCESS
+        // =========================================================
+
+        gaProcessForm?.addEventListener(
+            'submit',
+            async function(e) {
+
+                e.preventDefault();
+
+                try {
+
+                    const submitBtn =
+                        document.getElementById(
+                            'submitGaProcessBtn'
+                        );
+
+                    submitBtn.disabled = true;
+
+                    submitBtn.innerHTML =
+                        'Saving...';
+
+                    const docid =
+                        document.getElementById(
+                            'ga_process_docid'
+                        ).value;
+
+                    const formData =
+                        new FormData(gaProcessForm);
+
+                    const response =
+                        await fetch(
+                            `/bookingcar/process/${docid}`, {
+                                method: 'POST',
+
+                                headers: {
+                                    'X-CSRF-TOKEN': document
+                                        .querySelector(
+                                            'meta[name="csrf-token"]'
+                                        )
+                                        .getAttribute('content')
+                                },
+
+                                body: formData
+                            }
+                        );
+
+                    const result =
+                        await response.json();
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            result.message ||
+                            'Process failed'
+                        );
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+
+                    closeGaProcessModal();
+
+                    closeBookingDetailModal();
+
+                    fetchBookingList();
+
+                } catch (err) {
+
+                    console.error(err);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message
+                    });
+
+                } finally {
+
+                    const submitBtn =
+                        document.getElementById(
+                            'submitGaProcessBtn'
+                        );
+
+                    submitBtn.disabled = false;
+
+                    submitBtn.innerHTML =
+                        'Save Driver Assignment';
+                }
+            }
+        );
+
+        filterUserRequest();
+        fetchBookingList().then(() => {
+
+            const path = window.location.pathname;
+
+            const match = path.match(/\/showbookingcar\/(.+)/);
+
+            if (match && match[1]) {
+
+                showBookingDetail(match[1]);
+            }
+        });
     </script>
 </x-app-layout>

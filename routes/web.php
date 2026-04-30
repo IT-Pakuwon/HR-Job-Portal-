@@ -172,11 +172,9 @@ Route::post('/login', function (Request $request) {
 
     if (!$user || !Auth::attempt([
         'email' => $user->email,
-        'password' => $credentials['password']
+        'password' => $credentials['password'],
     ])) {
-        throw ValidationException::withMessages([
-            'login' => ['These credentials do not match our records.']
-        ]);
+        throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
     }
 
     return redirect()->intended('/dashboard');
@@ -184,6 +182,7 @@ Route::post('/login', function (Request $request) {
 
 Route::post('/logout', function () {
     Auth::logout();
+
     return redirect('/login');
 })->name('logout');
 
@@ -1171,9 +1170,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/rfp/{id}/reject', [RfpController::class, 'rejectRfp']);
     Route::post('/rfp/{id}/revise', [RfpController::class, 'reviseRfp']);
 
-
     Route::controller(MeetingController::class)->group(function () {
-
         Route::get('/meeting', 'index')->name('meeting');
         Route::get('/inforoom_{id}', 'getRoom');
 
@@ -1192,85 +1189,71 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cancel-meeting/{id}', 'cancelMeeting');
 
         Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
-
     });
 
     Route::controller(VoucherTaxiController::class)->group(function () {
 
-        Route::get('/vouchertaxi', 'index')
-            ->name('vouchertaxi');
+        Route::get('/vouchertaxi', 'index')->name('vouchertaxi');
 
         Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
 
             Route::get('/json', 'json')->name('json');
-
-            Route::get('/detail/{eid}', 'detail')
-                ->name('detail');
+            Route::get('/detail/{eid}', 'detail')->name('detail');
+            Route::get('/tracking/{eid}', 'tracking')->name('tracking');
+            Route::get('/find/{eid}', 'findByHash')->name('find');
+            Route::get('/print/{hash}', 'printVoucherTaxi')->name('print');
 
             Route::post('/store', 'storeVoucher')->name('store');
-
             Route::post('/update/{id}', 'updateVoucherTaxi')->name('update');
-
             Route::post('/cancel/{docid}', 'cancel')->name('cancel');
 
-            Route::post('/approve/{docid}', 'approveVoucherTaxi');
+            Route::post('/approve/{docid}', 'approveVoucherTaxi')->name('approve');
+            Route::post('/reject/{docid}', 'rejectVoucherTaxi')->name('reject');
+            Route::post('/revise/{docid}', 'reviseVoucherTaxi')->name('revise');
 
-            Route::post('/reject/{docid}', 'rejectVoucherTaxi');
-
-            Route::post('/revise/{docid}', 'reviseVoucherTaxi');
-
-            Route::post('/process/{docid}', 'updateGaAdvice')
-                ->name('process');
-
-            Route::get('/tracking/{eid}', 'tracking');
-
-            Route::get('/find/{eid}', 'findByHash')
-                ->name('find');
-
-            Route::get('/print/{hash}', 'printVoucherTaxi')
-                ->name('print');
-
-            Route::get('/detail/{eid}', 'detail')
-                ->name('detail');
+            Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
         });
 
-        Route::get('/showvouchertaxi/{eid}', 'index')
-            ->name('vouchertaxi.detail');
+        Route::get('/showvouchertaxi/{eid}', 'index')->name('vouchertaxi.show');
     });
+
 
     Route::controller(BookingCarController::class)->group(function () {
 
         Route::get('/bookingcar', 'index')->name('bookingcar');
+
         Route::prefix('bookingcar')->name('bookingcar.')->group(function () {
+
             Route::get('/json', 'json')->name('json');
             Route::get('/detail/{eid}', 'detail')->name('detail');
-            Route::post('/store', 'storeVoucher')->name('store');
-            Route::post('/update/{id}', 'updateBookingCar')->name('update');
+            Route::get('/tracking/{eid}', 'tracking')->name('tracking');
+            Route::get('/find/{eid}', 'findByHash')->name('find');
+            Route::get('/print/{hash}', 'printBookingCar')->name('print');
+
+            Route::post('/store', 'storeBookingCar')->name('store');
+            Route::post('/update/{docid}', 'updateBookingCar')->name('update');
             Route::post('/cancel/{docid}', 'cancel')->name('cancel');
+
             Route::post('/approve/{docid}', 'approveBookingCar')->name('approve');
             Route::post('/reject/{docid}', 'rejectBookingCar')->name('reject');
             Route::post('/revise/{docid}', 'reviseBookingCar')->name('revise');
+
             Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
-            Route::get('/tracking/{eid}', 'tracking');
-            Route::get('/find/{eid}', 'findByHash')->name('find');
-            Route::get('/print/{hash}', 'printBookingCar')->name('print');
-            Route::get('/detail/{eid}', 'detail')->name('detail');
         });
 
-        Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.detail');
+        Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
     Route::get('/imbudgetnonpurch/json', [IMBudgetNonPurchController::class, 'json'])->name('imbudgetnonpurch.json');
-    Route::get('/showimbudgetnonpurch/{hash}', [IMBudgetNonPurchController::class, 'showIMBudgetNonPurch']);     
+    Route::get('/showimbudgetnonpurch/{hash}', [IMBudgetNonPurchController::class, 'showIMBudgetNonPurch']);
     Route::get('/imbudgetnonpurch/{id}/tracking-detail', [IMBudgetNonPurchController::class, 'trackingDetail']);
     Route::get('/imbudgetnonpurch/{id}/tracking-detail/item', [IMBudgetNonPurchController::class, 'trackingDetailItem']);
     Route::get('/pdf_imbudgetnonpurch/{hash}', [IMBudgetNonPurchController::class, 'printIMBudgetNonPurch']);
-    Route::get('/imbudgetnonpurch/export/{id}', [IMBudgetNonPurchController::class, 'exportDetail'])->name('imbudgetnonpurch.export'); 
-
+    Route::get('/imbudgetnonpurch/export/{id}', [IMBudgetNonPurchController::class, 'exportDetail'])->name('imbudgetnonpurch.export');
 
     Route::get('/createimbudgetnonpurch', [IMBudgetNonPurchController::class, 'createIMBudgetNonPurch']);
-    Route::post('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'storeIMBudgetNonPurch'])->name('imbudgetnonpurch.store'); 
+    Route::post('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'storeIMBudgetNonPurch'])->name('imbudgetnonpurch.store');
     Route::get('/editimbudgetnonpurch/{hash}', [IMBudgetNonPurchController::class, 'editIMBudgetNonPurch']);
     Route::put('/imbudgetnonpurch/{id}', [IMBudgetNonPurchController::class, 'updateIMBudgetNonPurch'])->name('imbudgetnonpurch.update');
     Route::put('/imbudgetnonpurch/remove-attachment/{id}', [IMBudgetNonPurchController::class, 'removeAttachment']);

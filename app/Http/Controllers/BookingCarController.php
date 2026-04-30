@@ -1,42 +1,25 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use App\Models\Autonbr;
+use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsCompany;
-use App\Models\MsDepartment;
+use App\Models\TrApproval;
+use App\Models\TrBookingCar;
+use App\Models\TrMessage;
+use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
-use App\Models\User;
-use App\Models\Site;
-use App\Models\Division;
-use App\Models\TrBookingCar;
-use App\Models\MsLocation;
-use App\Models\MsSubLocation;
-use Mail;
-use Illuminate\Support\Facades\Log;
-use PDF;
-use Vinkla\Hashids\Facades\Hashids;
-use App\Http\Controllers\TrAttachmentController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
-use App\Models\TrAttachment;
-use Illuminate\Support\Str;
-use Google\Cloud\Storage\StorageClient;
-use App\Http\Controllers\ApprovalController;
-use App\Models\TrApproval;
-use App\Models\SysUserRole;
-use App\Http\Controllers\Traits\HasAutonbr;
-use App\Models\SysRole;
-use App\Models\TrMessage;
-
+use Vinkla\Hashids\Facades\Hashids;
 
 class BookingCarController extends Controller
 {
-
     use HasAutonbr;
+
     public function index()
     {
         $user = Auth::user();
@@ -45,7 +28,10 @@ class BookingCarController extends Controller
             return redirect()->route('login');
         }
 
-        // 🔹 Normalize company & department
+        // =========================================
+        // NORMALIZE COMPANY & DEPARTMENT
+        // =========================================
+
         $cpnyIds = is_string($user->cpny_id)
             ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
             : (array) $user->cpny_id;
@@ -54,61 +40,176 @@ class BookingCarController extends Controller
             ? array_filter(array_map('trim', explode(',', $user->department_id)))
             : (array) $user->department_id;
 
-        // 🔥 CORRECT ROLE CHECK (same as json)
+        // =========================================
+        // ROLE CHECK
+        // =========================================
+
         $isGA = $user->hasRole('GAACCESS');
 
-        // 🔹 Base query
+        // =========================================
+        // BASE QUERY
+        // =========================================
+
         $q = TrBookingCar::query();
 
-        // 🔥 APPLY FILTER ONLY IF NOT GA
-        if (!$isGA) {
-            if (!empty($cpnyIds)) {
-                $q->whereIn(DB::raw('TRIM(cpny_id)'), $cpnyIds);
-            }
+        // =========================================
+        // ROLE FILTER
+        // =========================================
 
-            if (!empty($deptIds)) {
-                $q->whereIn(DB::raw('TRIM(department_id)'), $deptIds);
-            }
+        if (!$isGA) {
+            $q->where(function ($sub) use ($user, $cpnyIds, $deptIds) {
+                // OWN DOCUMENT
+
+                $sub->whereRaw(
+                    'LOWER(TRIM(created_by)) = ?',
+                    [strtolower(trim($user->username))]
+                );
+
+                // SAME COMPANY + SAME DEPARTMENT
+
+                $sub->orWhere(function ($x) use ($cpnyIds, $deptIds) {
+                    if (!empty($cpnyIds)) {
+                        $x->whereIn(
+                            DB::raw('TRIM(cpny_id)'),
+                            $cpnyIds
+                        );
+                    }
+
+                    if (!empty($deptIds)) {
+                        $x->whereIn(
+                            DB::raw('TRIM(department_id)'),
+                            $deptIds
+                        );
+                    }
+                });
+            });
         }
 
-        // 🔹 Counts
-        $all        = (clone $q)->count();
-        $onProgress = (clone $q)->where('status', 'P')->count();
-        $reject     = (clone $q)->where('status', 'R')->count();
-        $revise     = (clone $q)->where('status', 'D')->count();
-        $completed  = (clone $q)->where('status', 'C')->count();
+        // =========================================
+        // ONLY ACTIVE STATUS
+        // =========================================
 
-        // 🔹 Other data (unchanged)
-        $usercpny = Usercpny::where('username', $user->username)->get();
-        $usercpny2 = Usercpny::where('username', $user->username)->first();
+        $q->whereIn('status', ['P', 'C', 'D', 'R']);
 
-        $userdept = Userdept::where('username', $user->username)->get();
-        $userdept2 = Userdept::where('username', $user->username)->first();
+        // =========================================
+        // COUNTS
+        // =========================================
+
+        $all = (clone $q)->count();
+
+        $onProgress = (clone $q)
+            ->where('status', 'P')
+            ->count();
+
+        $reject = (clone $q)
+            ->where('status', 'R')
+            ->count();
+
+        $revise = (clone $q)
+            ->where('status', 'D')
+            ->count();
+
+        $completed = (clone $q)
+            ->where('status', 'C')
+            ->count();
+
+        // =========================================
+        // USER COMPANY
+        // =========================================
+
+        $usercpny = Usercpny::where(
+            'username',
+            $user->username
+        )->get();
+
+        $usercpny2 = Usercpny::where(
+            'username',
+            $user->username
+        )->first();
+
+        // =========================================
+        // USER DEPARTMENT
+        // =========================================
+
+        $userdept = Userdept::where(
+            'username',
+            $user->username
+        )->get();
+
+        $userdept2 = Userdept::where(
+            'username',
+            $user->username
+        )->first();
+
+        // =========================================
+        // COMPANY
+        // =========================================
 
         $company = MsCompany::where('status', 'A')
-            ->select('cpny_id', 'cpny_name')
+            ->select(
+                'cpny_id',
+                'cpny_name'
+            )
+            ->orderBy('cpny_name')
             ->get();
+
+        // =========================================
+        // REQUESTERS
+        // =========================================
 
         $requesters = User::query()
             ->whereNotNull('username')
             ->where('status', 'A')
-            ->select('username', 'name', 'department_id')
+            ->select(
+                'username',
+                'name',
+                'department_id'
+            )
             ->orderBy('name')
             ->get();
 
-        return view('pages.bookingcar.bookingcar', compact(
-            'all',
-            'onProgress',
-            'reject',
-            'revise',
-            'completed',
-            'usercpny',
-            'usercpny2',
-            'userdept',
-            'userdept2',
-            'requesters',
-            'company'
-        ));
+        // =========================================
+        // DRIVER
+        // =========================================
+
+        $drivers = DB::connection('pgsql5')
+            ->table('ms_driver_opr')
+            ->where('status', 'A')
+            ->orderBy('drivername')
+            ->get();
+
+        // =========================================
+        // VEHICLE
+        // =========================================
+
+        $kendaraan = DB::connection('pgsql5')
+            ->table('ms_kendaraan_opr')
+            ->where('status', 'A')
+            ->orderBy('nopol_kendaraan')
+            ->get();
+
+        // =========================================
+        // VIEW
+        // =========================================
+
+        return view(
+            'pages.bookingcar.bookingcar',
+            compact(
+                'all',
+                'onProgress',
+                'reject',
+                'revise',
+                'completed',
+                'usercpny',
+                'usercpny2',
+                'userdept',
+                'userdept2',
+                'requesters',
+                'company',
+                'drivers',
+                'kendaraan'
+            )
+        );
     }
 
     public function json(Request $request)
@@ -117,7 +218,7 @@ class BookingCarController extends Controller
 
         if (!$user) {
             return response()->json([
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
@@ -143,8 +244,8 @@ class BookingCarController extends Controller
         // DATATABLE PARAMS
         // =========================================
 
-        $draw   = (int) $request->input('draw', 1);
-        $start  = (int) $request->input('start', 0);
+        $draw = (int) $request->input('draw', 1);
+        $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
 
         $search = trim((string) $request->input('search.value', ''));
@@ -156,16 +257,19 @@ class BookingCarController extends Controller
         // =========================================
 
         $columns = [
-            0 => 'vt.docid',
-            1 => 'vt.voucher_date',
-            2 => 'vt.date_used',
-            3 => 'vt.cpny_id',
-            4 => 'vt.department_id',
-            5 => 'vt.user_peminta',
-            6 => 'vt.origin',
-            7 => 'vt.destination',
-            8 => 'vt.purpose',
-            9 => 'vt.status',
+            0 => 'bc.docid',
+            1 => 'bc.booking_date',
+            2 => 'bc.start_time',
+            3 => 'bc.end_time',
+            4 => 'bc.cpny_id',
+            5 => 'bc.department_id',
+            6 => 'bc.user_peminta',
+            7 => 'bc.location_from',
+            8 => 'bc.destination',
+            9 => 'bc.purpose_descr',
+            10 => 'bc.driver',
+            11 => 'bc.no_polisi',
+            12 => 'bc.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
@@ -174,57 +278,46 @@ class BookingCarController extends Controller
             ? 'asc'
             : 'desc';
 
-        $orderCol = $columns[$orderIdx] ?? 'vt.docid';
+        $orderCol = $columns[$orderIdx] ?? 'bc.docid';
 
         // =========================================
         // BASE QUERY
         // =========================================
 
-        $base = TrBookingCar::from('tr_voucher_taxi as vt');
+        $base = TrBookingCar::from('tr_booking_car as bc');
 
         // =========================================
         // STATUS FILTER
-        // ONLY SHOW ACTIVE STATUS
         // =========================================
 
-        $base->whereIn('vt.status', ['P', 'C', 'D', 'R']);
+        $base->whereIn('bc.status', ['P', 'C', 'D', 'R', 'X']);
 
         // =========================================
         // ROLE FILTER
         // =========================================
 
-        // 👨‍💼 GAACCESS
-        // can see everything
-
         if (!$isGA) {
-
             $base->where(function ($q) use ($user, $cpnyIds, $deptIds) {
-
-                // =====================================
-                // OWN VOUCHER
-                // =====================================
+                // OWN DOCUMENT
 
                 $q->whereRaw(
-                    'LOWER(TRIM(vt.created_by)) = ?',
+                    'LOWER(TRIM(bc.created_by)) = ?',
                     [strtolower(trim($user->username))]
                 );
 
-                // =====================================
                 // SAME COMPANY + SAME DEPARTMENT
-                // =====================================
 
                 $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
-
                     if (!empty($cpnyIds)) {
                         $sub->whereIn(
-                            DB::raw('TRIM(vt.cpny_id)'),
+                            DB::raw('TRIM(bc.cpny_id)'),
                             $cpnyIds
                         );
                     }
 
                     if (!empty($deptIds)) {
                         $sub->whereIn(
-                            DB::raw('TRIM(vt.department_id)'),
+                            DB::raw('TRIM(bc.department_id)'),
                             $deptIds
                         );
                     }
@@ -233,11 +326,11 @@ class BookingCarController extends Controller
         }
 
         // =========================================
-        // EXTRA STATUS FILTER FROM REQUEST
+        // EXTRA STATUS FILTER
         // =========================================
 
         if ($status !== '') {
-            $base->where('vt.status', $status);
+            $base->where('bc.status', $status);
         }
 
         // =========================================
@@ -251,20 +344,21 @@ class BookingCarController extends Controller
         // =========================================
 
         if ($search !== '') {
-
             $base->where(function ($q) use ($search) {
-
-                $q->where('vt.docid', 'like', "%{$search}%")
-                    ->orWhere('vt.voucher_date', 'like', "%{$search}%")
-                    ->orWhere('vt.date_used', 'like', "%{$search}%")
-                    ->orWhere('vt.cpny_id', 'like', "%{$search}%")
-                    ->orWhere('vt.department_id', 'like', "%{$search}%")
-                    ->orWhere('vt.user_peminta', 'like', "%{$search}%")
-                    ->orWhere('vt.origin', 'like', "%{$search}%")
-                    ->orWhere('vt.destination', 'like', "%{$search}%")
-                    ->orWhere('vt.purpose', 'like', "%{$search}%")
-                    ->orWhere('vt.status', 'like', "%{$search}%")
-                    ->orWhere('vt.created_by', 'like', "%{$search}%");
+                $q->where('bc.docid', 'like', "%{$search}%")
+                    ->orWhere('bc.booking_date', 'like', "%{$search}%")
+                    ->orWhere('bc.start_time', 'like', "%{$search}%")
+                    ->orWhere('bc.end_time', 'like', "%{$search}%")
+                    ->orWhere('bc.cpny_id', 'like', "%{$search}%")
+                    ->orWhere('bc.department_id', 'like', "%{$search}%")
+                    ->orWhere('bc.user_peminta', 'like', "%{$search}%")
+                    ->orWhere('bc.location_from', 'like', "%{$search}%")
+                    ->orWhere('bc.destination', 'like', "%{$search}%")
+                    ->orWhere('bc.purpose_descr', 'like', "%{$search}%")
+                    ->orWhere('bc.driver', 'like', "%{$search}%")
+                    ->orWhere('bc.no_polisi', 'like', "%{$search}%")
+                    ->orWhere('bc.status', 'like', "%{$search}%")
+                    ->orWhere('bc.created_by', 'like', "%{$search}%");
             });
         }
 
@@ -280,26 +374,32 @@ class BookingCarController extends Controller
 
         $data = $base
             ->select([
-                'vt.id',
-                'vt.docid',
-                'vt.voucher_date',
-                'vt.date_used',
-                'vt.cpny_id',
-                'vt.department_id',
-                'vt.user_peminta',
-                'vt.origin',
-                'vt.destination',
-                'vt.purpose',
-                'vt.type_trip',
-                'vt.cpny_id_expense',
-                'vt.user_topup',
-                'vt.status',
-                'vt.created_by',
-                'vt.actual_budget',
-                'vt.max_budget',
+                'bc.id',
+                'bc.docid',
+                'bc.booking_date',
+                'bc.cpny_id',
+                'bc.department_id',
+                'bc.location_id',
+                'bc.user_peminta',
+                'bc.site_id',
+                'bc.cpny_id_site',
+                'bc.purpose_id',
+                'bc.purpose_descr',
+                'bc.start_time',
+                'bc.end_time',
+                'bc.location_from',
+                'bc.destination',
+                'bc.user_request',
+                'bc.driver',
+                'bc.handphone',
+                'bc.no_polisi',
+                'bc.passenger',
+                'bc.status',
+                'bc.created_by',
+                'bc.created_at',
             ])
             ->orderBy($orderCol, $orderDir)
-            ->orderBy('vt.docid', 'desc')
+            ->orderBy('bc.docid', 'desc')
             ->skip($start)
             ->take($length)
             ->get();
@@ -309,11 +409,10 @@ class BookingCarController extends Controller
         // =========================================
 
         $data->transform(function ($row) {
-
             $row->eid = Hashids::encode($row->id);
 
             $row->extendedProps = [
-                'eid' => $row->eid
+                'eid' => $row->eid,
             ];
 
             unset($row->id);
@@ -326,95 +425,193 @@ class BookingCarController extends Controller
         // =========================================
 
         return response()->json([
-            'draw'            => $draw,
-            'recordsTotal'    => $recordsTotal,
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data'            => $data,
+            'data' => $data,
         ]);
     }
 
-    public function storeVoucher(Request $request)
+    public function storeBookingCar(Request $request)
     {
         $user = Auth::user();
 
         if (!$user) {
             return response()->json([
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
-        $validated = $request->validate([
-            'cpny_id'          => ['required'],
-            'department_id'    => ['required'],
-            'user_peminta'     => ['required'],
-            'date_used'        => ['required', 'date'],
-            'type_trip'        => ['required'],
-            // 'to'               => ['required'],
-            'purpose'          => ['required'],
-            'cpny_id_expense'  => ['required'],
-            'user_topup'       => ['required'],
+        // =========================================
+        // VALIDATION
+        // =========================================
 
-            // ✅ ADD THIS
-            'origin'           => ['required'],
-            'destination'      => ['required'],
+        $validated = $request->validate([
+            'cpny_id' => ['required'],
+            'department_id' => ['required'],
+
+            'user_peminta' => ['required'],
+
+            'cpny_id_site' => ['required'],
+
+            'purpose_id' => ['required'],
+
+            'purpose_descr' => [
+                'nullable',
+                'required_if:purpose_id,OTHER',
+            ],
+
+            'booking_date' => ['required', 'date'],
+
+            'start_time' => ['required'],
+            'end_time' => ['required'],
+
+            'location_from' => ['required'],
+            'destination' => ['required'],
+
+            'user_request' => ['nullable'],
+
+            'driver' => ['nullable'],
+            'handphone' => ['nullable'],
+            'no_polisi' => ['nullable'],
+            'passenger' => ['nullable'],
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $dt       = now();
-            $year     = (int) $dt->year;
-            $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-            $doctype  = 'BCR';
+            // =========================================
+            // BASIC SETUP
+            // =========================================
+
+            $dt = now();
+
+            $year = (int) $dt->year;
+
+            $month = str_pad(
+                $dt->month,
+                2,
+                '0',
+                STR_PAD_LEFT
+            );
+
+            $doctype = 'BCR';
+
             $username = $user->username;
 
-            $cpny_id       = $validated['cpny_id_expense'];
+            // =========================================
+            // APPROVAL COMPANY
+            // FOLLOW SITE COMPANY
+            // =========================================
+
+            $cpny_id = $validated['cpny_id_site'];
+
             $department_id = $validated['department_id'];
 
-            $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+            // =========================================
+            // APPROVAL CONTROLLER
+            // =========================================
 
-            // validasi setup approval exist
-            $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
+            $approvalCtl = app(
+                ApprovalController::class
+            );
 
-            // autonbr
+            // =========================================
+            // VALIDATE APPROVAL SETUP
+            // =========================================
+
+            $approvalCtl->loadLines(
+                $doctype,
+                $cpny_id,
+                $department_id
+            );
+
+            // =========================================
+            // AUTO NUMBER
+            // =========================================
+
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
                 $month,
                 $username,
-                'Voucher Taxi'
+                'Booking Car'
             );
 
             $urutan = (int) $auto['next'];
-            $tglbln = substr((string) $year, 2) . $month;
-            $docid  = $doctype . $tglbln . sprintf('%03d', $urutan);
 
-            $voucher = TrBookingCar::create([
-                'docid'           => $docid,
-                'voucher_date'    => $dt->toDateString(),
-                'cpny_id'         => $validated['cpny_id'],
-                'department_id'   => $validated['department_id'],
-                'user_peminta'    => $validated['user_peminta'],
+            $tglbln = substr(
+                (string) $year,
+                2
+            ).$month;
 
-                // ✅ ADD HERE
-                'origin'          => $validated['origin'],
-                'destination'     => $validated['destination'],
+            $docid = $doctype.
+                $tglbln.
+                sprintf('%03d', $urutan);
 
-                // 'to'              => $validated['to'],
-                'purpose'         => $validated['purpose'],
-                'date_used'       => $validated['date_used'],
-                'cpny_id_expense' => $validated['cpny_id_expense'],
-                'type_trip'       => $validated['type_trip'],
-                'user_topup'      => $validated['user_topup'],
-                'status'          => 'P',
-                'created_by'      => $username,
-                'created_at'      => now(),
-                'updated_by'      => $username,
-                'updated_at'      => now(),
+            // =========================================
+            // CREATE DOCUMENT
+            // =========================================
+
+            $booking = TrBookingCar::create([
+                'docid' => $docid,
+
+                'booking_date' => $validated['booking_date'],
+
+                'cpny_id' => $validated['cpny_id'],
+
+                'department_id' => $validated['department_id'],
+
+                'location_id' => null,
+
+                'user_peminta' => $validated['user_peminta'],
+
+                'site_id' => null,
+
+                'cpny_id_site' => $validated['cpny_id_site'],
+
+                'purpose_id' => $validated['purpose_id'],
+
+                'purpose_descr' => $validated['purpose_descr'] ?? null,
+
+                'start_time' => $validated['booking_date'].' '.$validated['start_time'],
+                'end_time' => $validated['booking_date'].' '.$validated['end_time'],
+
+                'location_from' => $validated['location_from'],
+
+                'destination' => $validated['destination'],
+
+                'user_request' => $validated['user_request'] ?? null,
+
+                'driver' => $validated['driver'] ?? null,
+
+                'handphone' => $validated['handphone'] ?? null,
+
+                'no_polisi' => $validated['no_polisi'] ?? null,
+
+                'passenger' => $validated['passenger'] ?? null,
+
+                'status' => 'P',
+
+                'created_by' => $username,
+                'created_at' => now(),
+
+                'updated_by' => $username,
+                'updated_at' => now(),
             ]);
-            $ctx = ['ignore_nominal' => true];
 
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+            // =========================================
+            // GENERATE APPROVAL
+            // =========================================
+
+            $ctx = [
+                'ignore_nominal' => true,
+            ];
+
+            [
+                $firstApprovalUsernames,
+                $linesCount
+            ] = $approvalCtl->generateForDocument(
                 $docid,
                 $doctype,
                 $cpny_id,
@@ -424,37 +621,46 @@ class BookingCarController extends Controller
                 $dt
             );
 
-            $eid = Hashids::encode($voucher->id);
+            // =========================================
+            // HASH ID
+            // =========================================
+
+            $eid = Hashids::encode($booking->id);
+
+            // =========================================
+            // NOTIFY FIRST APPROVER
+            // =========================================
 
             $approvalCtl->notifyFirstApprover(
                 $docid,
                 $doctype,
-                $voucher->status,
-                'Voucher Taxi',
-              url('/showbookingcar/' . $eid),
+                $booking->status,
+                'Booking Car',
+                url('/showbookingcar/'.$eid),
                 [
-                    'info'      => $voucher->purpose,
-                    'createdby' => $voucher->created_by,
-                    'date'      => $dt->toDateTimeString(),
+                    'info' => $booking->purpose_descr,
+
+                    'createdby' => $booking->created_by,
+
+                    'date' => $dt->toDateTimeString(),
                 ]
             );
 
-            DB::connection('pgsql5')->commit();
+            // =========================================
+            // COMMIT
+            // =========================================
 
-            // return response()->json([
-            //     'success' => true,
-            //     'message' => 'Voucher Taxi berhasil dibuat',
-            //     'redirect' => url('/showbookingcar/' . Hashids::encode($voucher->id))
-            // ]);
+            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Voucher Taxi berhasil dibuat',
-                'data' => [
-                    'docid' => $voucher->docid
-                ]
-            ]);
 
+                'message' => 'Booking Car berhasil dibuat',
+
+                'data' => [
+                    'docid' => $booking->docid,
+                ],
+            ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
@@ -465,84 +671,198 @@ class BookingCarController extends Controller
         }
     }
 
-   
-    public function updateBookingCar(Request $request, $docid)
-    {
+    public function updateBookingCar(
+        Request $request,
+        $docid
+    ) {
         $user = Auth::user();
 
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
+        // =========================================
+        // VALIDATION
+        // =========================================
+
         $validated = $request->validate([
-            'cpny_id'          => ['required'],
-            'department_id'    => ['required'],
-            'user_peminta'     => ['required'],
-            'date_used'        => ['required', 'date'],
-            'type_trip'        => ['required'],
-            // 'to'               => ['required'],
-            'purpose'          => ['required'],
-            'cpny_id_expense'  => ['required'],
-            'user_topup'       => ['required'],
-            'origin'      => ['required'],
+            'cpny_id' => ['required'],
+            'department_id' => ['required'],
+            'user_peminta' => ['required'],
+            'cpny_id_site' => ['required'],
+
+            'purpose_id' => ['required'],
+
+            'purpose_descr' => [
+                'nullable',
+                'required_if:purpose_id,OTHER',
+            ],
+
+            'booking_date' => ['required', 'date'],
+
+            'start_time' => ['required'],
+            'end_time' => ['required'],
+
+            'location_from' => ['required'],
             'destination' => ['required'],
+
+            'user_request' => ['nullable'],
+
+            'driver' => ['nullable'],
+            'handphone' => ['nullable'],
+            'no_polisi' => ['nullable'],
+            'passenger' => ['nullable'],
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $voucher = TrBookingCar::where('docid', $docid)->firstOrFail();
+            // =========================================
+            // FIND DOCUMENT
+            // =========================================
 
-            if ($voucher->status !== 'D') {
-                throw new \Exception('Voucher Taxi hanya bisa diedit saat status Revise / Draft.');
+            $booking = TrBookingCar::where(
+                'docid',
+                $docid
+            )->firstOrFail();
+
+            // =========================================
+            // ONLY REVISE CAN EDIT
+            // =========================================
+
+            if ($booking->status !== 'D') {
+                throw new \Exception('Booking Car hanya bisa diedit saat status Revise / Draft.');
             }
 
-            if ($voucher->created_by !== $user->username) {
-                throw new \Exception('Anda tidak berhak edit Voucher Taxi ini.');
+            // =========================================
+            // ONLY CREATOR CAN EDIT
+            // =========================================
+
+            if (
+                strtolower(trim($booking->created_by))
+                !== strtolower(trim($user->username))
+            ) {
+                throw new \Exception('Anda tidak berhak edit Booking Car ini.');
             }
 
-            $doctype       = 'BCR';
-            $dt            = now();
-            $username      = $user->username;
-            $cpny_id       = $validated['cpny_id_expense'];
-            $department_id = $validated['department_id'];
+            // =========================================
+            // BASIC SETUP
+            // =========================================
 
-            $approvalCtl = app(\App\Http\Controllers\ApprovalController::class);
+            $doctype = 'BCR';
 
-            // Validasi approval setup baru
-            $approvalCtl->loadLines($doctype, $cpny_id, $department_id);
+            $dt = now();
 
-            $voucher->cpny_id          = $validated['cpny_id'];
-            $voucher->department_id    = $validated['department_id'];
-            $voucher->user_peminta     = $validated['user_peminta'];
-            // $voucher->to               = $validated['to'];
-            $voucher->purpose          = $validated['purpose'];
-            $voucher->date_used        = $validated['date_used'];
-            $voucher->cpny_id_expense  = $validated['cpny_id_expense'];
-            $voucher->type_trip        = $validated['type_trip'];
-            $voucher->user_topup       = $validated['user_topup'];
-            $voucher->origin      = $validated['origin'];
-            $voucher->destination = $validated['destination'];
-            $voucher->status           = 'P';
-            // $voucher->completed_by     = null;
-            // $voucher->completed_at     = null;
-            $voucher->updated_by       = $username;
-            $voucher->updated_at       = $dt;
-            $voucher->save();
+            $username = $user->username;
 
-            // TrApproval::where('refnbr', $voucher->docid)
-            //     ->where('doctype', $doctype)
-            //     ->delete();
+            // =========================================
+            // APPROVAL COMPANY
+            // FOLLOW SITE COMPANY
+            // =========================================
+
+            $cpny_id = $validated['cpny_id_site'];
+
+            $department_id =
+                $validated['department_id'];
+
+            // =========================================
+            // APPROVAL CONTROLLER
+            // =========================================
+
+            $approvalCtl = app(
+                ApprovalController::class
+            );
+
+            // =========================================
+            // VALIDATE APPROVAL SETUP
+            // =========================================
+
+            $approvalCtl->loadLines(
+                $doctype,
+                $cpny_id,
+                $department_id
+            );
+
+            // =========================================
+            // UPDATE HEADER
+            // =========================================
+
+            $booking->cpny_id =
+                $validated['cpny_id'];
+
+            $booking->department_id =
+                $validated['department_id'];
+
+            $booking->location_id = null;
+
+            $booking->user_peminta =
+                $validated['user_peminta'];
+
+            $booking->site_id = null;
+
+            $booking->cpny_id_site =
+                $validated['cpny_id_site'];
+
+            $booking->purpose_id =
+                $validated['purpose_id'];
+
+            $booking->purpose_descr =
+                $validated['purpose_descr'] ?? null;
+
+            $booking->booking_date =
+                $validated['booking_date'];
+
+            $booking->start_time =
+                $validated['booking_date'].' '.$validated['start_time'];
+
+            $booking->end_time =
+                $validated['booking_date'].' '.$validated['end_time'];
+
+            $booking->location_from =
+                $validated['location_from'];
+
+            $booking->destination =
+                $validated['destination'];
+
+            $booking->user_request =
+                $validated['user_request'] ?? null;
+
+            $booking->driver =
+                $validated['driver'] ?? null;
+
+            $booking->handphone =
+                $validated['handphone'] ?? null;
+
+            $booking->no_polisi =
+                $validated['no_polisi'] ?? null;
+
+            $booking->passenger =
+                $validated['passenger'] ?? null;
+
+            $booking->status = 'P';
+
+            $booking->updated_by = $username;
+
+            $booking->updated_at = $dt;
+
+            $booking->save();
+
+            // =========================================
+            // GENERATE APPROVAL AGAIN
+            // =========================================
 
             $ctx = [
-                'ignore_nominal' => true
+                'ignore_nominal' => true,
             ];
 
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $voucher->docid,
+            [
+                $firstApprovalUsernames,
+                $linesCount
+            ] = $approvalCtl->generateForDocument(
+                $booking->docid,
                 $doctype,
                 $cpny_id,
                 $department_id,
@@ -551,103 +871,158 @@ class BookingCarController extends Controller
                 $dt
             );
 
+            // =========================================
+            // UPDATE COMPLETED BY
+            // =========================================
+
             if ($firstApprovalUsernames) {
-                $voucher->completed_by = is_array($firstApprovalUsernames)
-                    ? implode(',', $firstApprovalUsernames)
+                $booking->completed_by =
+                    is_array($firstApprovalUsernames)
+                    ? implode(
+                        ',',
+                        $firstApprovalUsernames
+                    )
                     : $firstApprovalUsernames;
 
-                $voucher->completed_at = $dt;
-                $voucher->save();
+                $booking->completed_at = $dt;
+
+                $booking->save();
             }
 
-            $eid = Hashids::encode($voucher->id);
+            // =========================================
+            // HASH ID
+            // =========================================
+
+            $eid = Hashids::encode($booking->id);
+
+            // =========================================
+            // NOTIFY FIRST APPROVER
+            // =========================================
 
             $approvalCtl->notifyFirstApprover(
                 $docid,
                 $doctype,
-                $voucher->status,
-                'Voucher Taxi',
-              url('/showbookingcar/' . $eid),
+                $booking->status,
+                'Booking Car',
+                url('/showbookingcar/'.$eid),
                 [
-                    'info'      => $voucher->purpose,
-                    'createdby' => $voucher->created_by,
-                    'date'      => $dt->toDateTimeString(),
+                    'info' => $booking->purpose_descr,
+
+                    'createdby' => $booking->created_by,
+
+                    'date' => $dt->toDateTimeString(),
                 ]
             );
 
+            // =========================================
+            // COMMIT
+            // =========================================
 
             DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Voucher Taxi berhasil diupdate dan dikirim ulang approval.',
+
+                'message' => 'Booking Car berhasil diupdate dan dikirim ulang approval.',
+
                 'data' => [
-                        'docid' => $voucher->docid
-                    ]
+                    'docid' => $booking->docid,
+                ],
             ]);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
 
-    public function cancel(Request $request, $docid)
-    {
+    public function cancel(
+        Request $request,
+        $docid
+    ) {
         $user = $request->user();
 
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
         DB::beginTransaction();
 
         try {
+            // =========================================
+            // FIND DOCUMENT
+            // =========================================
 
-            $voucher = TrBookingCar::where('docid', $docid)
-                ->firstOrFail();
+            $booking = TrBookingCar::where(
+                'docid',
+                $docid
+            )->firstOrFail();
 
-            // 🔥 only creator
+            // =========================================
+            // ONLY CREATOR
+            // =========================================
+
             if (
-                strtolower(trim($voucher->created_by)) !==
-                strtolower(trim($user->username))
+                strtolower(trim($booking->created_by))
+                !== strtolower(trim($user->username))
             ) {
-
                 return response()->json([
                     'success' => false,
-                    'message' => 'You cannot cancel this request'
+
+                    'message' => 'You cannot cancel this request',
                 ], 403);
             }
 
-            // 🔥 only revise
-            if ($voucher->status !== 'D') {
+            // =========================================
+            // ONLY REVISE DOCUMENT
+            // =========================================
 
+            if ($booking->status !== 'D') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Only revise document can be cancelled'
+
+                    'message' => 'Only revise document can be cancelled',
                 ], 400);
             }
 
-            // 🔥 cancel header
-            $voucher->status       = 'X';
-            $voucher->updated_by   = $user->username;
-            $voucher->updated_at   = now();
-            $voucher->completed_by = $user->username;
-            $voucher->completed_at = now();
-            $voucher->save();
+            // =========================================
+            // CANCEL HEADER
+            // =========================================
 
-            // 🔥 cancel remaining approvals
-            TrApproval::where('refnbr', $voucher->docid)
+            $booking->status = 'X';
+
+            $booking->updated_by =
+                $user->username;
+
+            $booking->updated_at = now();
+
+            $booking->completed_by =
+                $user->username;
+
+            $booking->completed_at = now();
+
+            $booking->save();
+
+            // =========================================
+            // CANCEL REMAINING APPROVALS
+            // =========================================
+
+            TrApproval::where(
+                'refnbr',
+                $booking->docid
+            )
                 ->where('status', 'P')
                 ->update([
                     'status' => 'X',
+
                     'updated_by' => $user->username,
+
                     'updated_at' => now(),
                 ]);
 
@@ -655,16 +1030,15 @@ class BookingCarController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Voucher request cancelled successfully'
+
+                'message' => 'Booking Car request cancelled successfully',
             ]);
-
         } catch (\Throwable $e) {
-
             DB::rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -673,281 +1047,487 @@ class BookingCarController extends Controller
     {
         $id = Hashids::decode($eid)[0] ?? null;
 
+        // =========================================
+        // INVALID HASH
+        // =========================================
+
         if (!$id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid voucher ID'
+                'message' => 'Invalid Booking Car ID',
             ], 404);
         }
 
-        $voucher = TrBookingCar::find($id);
+        // =========================================
+        // FIND DOCUMENT
+        // =========================================
 
-        if (!$voucher) {
+        $booking = TrBookingCar::find($id);
 
+        if (!$booking) {
             return response()->json([
                 'success' => false,
-                'message' => 'Voucher not found'
+                'message' => 'Booking Car not found',
             ], 404);
         }
+
+        // =========================================
+        // RESPONSE
+        // =========================================
 
         return response()->json([
             'success' => true,
-            'data' => [
 
-                'docid' => $voucher->docid,
+            'data' => [
+                'docid' => $booking->docid,
+
                 'eid' => $eid,
 
-                'status' => $voucher->status,
+                'status' => $booking->status,
 
-                'user_peminta' => $voucher->user_peminta,
-                'created_by' => $voucher->created_by,
+                // =====================================
+                // REQUESTER
+                // =====================================
 
-                'date_used' => $voucher->date_used,
+                'user_peminta' => $booking->user_peminta,
 
-                'origin' => $voucher->origin,
-                'destination' => $voucher->destination,
+                'created_by' => $booking->created_by,
 
-                'purpose' => $voucher->purpose,
+                // =====================================
+                // COMPANY / DEPARTMENT
+                // =====================================
 
-                'type_trip' => $voucher->type_trip,
+                'cpny_id' => $booking->cpny_id,
 
-                'cpny_id' => $voucher->cpny_id,
-                'department_id' => $voucher->department_id,
+                'department_id' => $booking->department_id,
 
-                'cpny_id_expense' => $voucher->cpny_id_expense,
-                'user_topup' => $voucher->user_topup,
+                // =====================================
+                // LOCATION
+                // =====================================
 
-                'actual_budget' => $voucher->actual_budget,
-                'max_budget' => $voucher->max_budget,
+                'location_id' => $booking->location_id,
 
-                'revise_reason' => $voucher->revise_reason,
-            ]
+                'site_id' => $booking->site_id,
+
+                'cpny_id_site' => $booking->cpny_id_site,
+
+                // =====================================
+                // PURPOSE
+                // =====================================
+
+                'purpose_id' => $booking->purpose_id,
+
+                'purpose_descr' => $booking->purpose_descr,
+
+                // =====================================
+                // DATE & TIME
+                // =====================================
+
+                'booking_date' => $booking->booking_date,
+
+                'start_time' => $booking->start_time,
+
+                'end_time' => $booking->end_time,
+
+                // =====================================
+                // ROUTE
+                // =====================================
+
+                'location_from' => $booking->location_from,
+
+                'destination' => $booking->destination,
+
+                // =====================================
+                // REQUEST DETAIL
+                // =====================================
+
+                'user_request' => $booking->user_request,
+
+                // =====================================
+                // DRIVER INFO
+                // =====================================
+
+                'driver' => $booking->driver,
+
+                'handphone' => $booking->handphone,
+
+                'no_polisi' => $booking->no_polisi,
+
+                'passenger' => $booking->passenger,
+
+                // =====================================
+                // APPROVAL INFO
+                // =====================================
+
+                'checked_by' => $booking->checked_by,
+
+                'checked_at' => $booking->checked_at,
+
+                'completed_by' => $booking->completed_by,
+
+                'completed_at' => $booking->completed_at,
+
+                // =====================================
+                // REVISE
+                // =====================================
+
+                'revise_reason' => $booking->revise_reason,
+            ],
         ]);
     }
-    
+
     public function updateGaAdvice(Request $request, $docid)
     {
-        $request->merge([
-            'actual_budget' => str_replace('.', '', $request->actual_budget)
-        ]);
         $user = auth()->user();
 
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
-        // 🔥 ONLY GA
-        if (!$user->hasRole('GAACCESS')) {
+        // =========================================
+        // ONLY GA
+        // =========================================
 
+        if (!$user->hasRole('GAACCESS')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Forbidden'
+                'message' => 'Forbidden',
             ], 403);
         }
 
+        // =========================================
+        // VALIDATION
+        // =========================================
+
         $validated = $request->validate([
-            'actual_budget' => ['required', 'numeric', 'min:0'],
+            'driver' => ['required'],
+            'handphone' => ['nullable'],
+            'no_polisi' => ['nullable'],
         ]);
 
         DB::beginTransaction();
 
         try {
+            // =========================================
+            // FIND DOCUMENT
+            // =========================================
 
-            $voucher = TrBookingCar::where('docid', $docid)
-                ->firstOrFail();
+            $booking = TrBookingCar::where(
+                'docid',
+                $docid
+            )->firstOrFail();
 
-            // 🔥 MUST BE COMPLETED FIRST
-            if ($voucher->status !== 'C') {
+            // =========================================
+            // MUST BE COMPLETED FIRST
+            // =========================================
 
+            if ($booking->status !== 'C') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Voucher not completed yet'
+                    'message' => 'Booking Car not completed yet',
                 ], 400);
             }
 
-            $voucher->update([
-                'actual_budget' => $validated['actual_budget'],
-                'checked_by'    => $user->username,
-                'checked_at'    => now(),
-                'updated_by'    => $user->username,
-                'updated_at'    => now(),
+            // =========================================
+            // UPDATE DRIVER INFO
+            // =========================================
+
+            $booking->update([
+                'driver' => $validated['driver'],
+
+                'handphone' => $validated['handphone'] ?? null,
+
+                'no_polisi' => $validated['no_polisi'] ?? null,
+
+                'checked_by' => $user->username,
+                'checked_at' => now(),
+
+                'updated_by' => $user->username,
+                'updated_at' => now(),
             ]);
+
+            // =========================================
+            // COMMIT
+            // =========================================
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Actual budget saved',
+                'message' => 'Driver information saved successfully',
             ]);
-
         } catch (\Throwable $e) {
-
             DB::rollBack();
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
 
     public function approveBookingCar(Request $request, $docid)
     {
-        $user    = $request->user();
+        $user = $request->user();
+
         $doctype = 'BCR';
 
-        $voucher = TrBookingCar::with('creator')
+        $booking = TrBookingCar::with('creator')
             ->where('docid', $docid)
             ->first();
 
-        if (!$voucher) {
+        if (!$booking) {
             return response()->json([
                 'success' => false,
-                'message' => 'Voucher Taxi not found'
+                'message' => 'Booking Car not found',
             ], 404);
         }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl = url('/showbookingcar/' . $eid);
-        $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
+        $eid = Hashids::encode($booking->id);
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
-            $voucher->docid,
+        $docUrl = url('/showbookingcar/'.$eid);
+
+        $fullname = data_get(
+            $booking,
+            'creator.name'
+        ) ?: $booking->created_by;
+
+        $result = app(ApprovalController::class)->approveStep(
+            $booking->docid,
+
             $doctype,
+
             $user->username,
+
             $user->name,
 
-            // complete: update header + email creator complete
-            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
-                $voucher->status       = 'C';
-                $voucher->completed_by = $voucher->completed_by ?: auth()->user()->username;
-                $voucher->completed_at = $now;
-                $voucher->updated_by   = auth()->user()->username;
-                $voucher->updated_at   = $now;
-                $voucher->save();
+            // =====================================
+            // COMPLETE
+            // =====================================
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $voucher->docid,
-                    'Voucher Taxi',
-                    'C',
-                    $voucher->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'    => $voucher->cpny_id ?? '',
-                        'deptname'  => $voucher->department_id ?? '',
-                        'date'      => $voucher->voucher_date,
-                        'info'      => $voucher->purpose,
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                    ]
-                );
+            function (
+                string $refnbr,
+                \Carbon\Carbon $now
+            ) use (
+                $booking,
+                $fullname,
+                $docUrl
+            ) {
+                $booking->status = 'C';
+
+                $booking->completed_by =
+                    $booking->completed_by
+                    ?: auth()->user()->username;
+
+                $booking->completed_at = $now;
+
+                $booking->updated_by =
+                    auth()->user()->username;
+
+                $booking->updated_at = $now;
+
+                $booking->save();
+
+                app(ApprovalController::class)
+                    ->notifyRequesterOnStatus(
+                        $booking->docid,
+                        'Booking Car',
+                        'C',
+                        $booking->created_by,
+                        $docUrl,
+                        [
+                            // APPROVAL COMPANY
+                            'cpnyid' => $booking->cpny_id_site ?? '',
+
+                            'deptname' => $booking->department_id ?? '',
+
+                            'date' => $booking->booking_date,
+
+                            'info' => $booking->purpose_descr,
+
+                            'fullname' => $fullname,
+
+                            'name' => $fullname,
+
+                            'createdby' => $fullname,
+                        ]
+                    );
             },
 
-            // notify next approver
-            function ($next, \Carbon\Carbon $now) use ($voucher, $docUrl) {
-                app(\App\Http\Controllers\ApprovalController::class)->notifyFirstApprover(
-                    $voucher->docid,
-                    'BCR',
-                    'P',
-                    'Voucher Taxi',
-                    $docUrl,
-                    [
-                        'info'      => $voucher->purpose,
-                        'createdby' => $voucher->created_by,
-                        'date'      => $now->toDateTimeString(),
-                    ]
-                );
+            // =====================================
+            // NEXT APPROVER
+            // =====================================
 
-                // jejak terakhir diproses
-                $voucher->completed_by = auth()->user()->username;
-                $voucher->completed_at = $now;
-                $voucher->updated_by   = auth()->user()->username;
-                $voucher->updated_at   = $now;
-                $voucher->save();
+            function (
+                $next,
+                \Carbon\Carbon $now
+            ) use (
+                $booking,
+                $docUrl
+            ) {
+                app(ApprovalController::class)
+                    ->notifyFirstApprover(
+                        $booking->docid,
+                        'BCR',
+                        'P',
+                        'Booking Car',
+                        $docUrl,
+                        [
+                            'info' => $booking->purpose_descr,
+
+                            'createdby' => $booking->created_by,
+
+                            'date' => $now->toDateTimeString(),
+                        ]
+                    );
+
+                // TRACK LAST PROCESS
+
+                $booking->completed_by =
+                    auth()->user()->username;
+
+                $booking->completed_at = $now;
+
+                $booking->updated_by =
+                    auth()->user()->username;
+
+                $booking->updated_at = $now;
+
+                $booking->save();
             }
         );
 
         if (!$result['ok']) {
             return response()->json([
                 'success' => false,
-                'message' => $result['message'] ?? 'Approve failed'
+                'message' => $result['message']
+                    ?? 'Approve failed',
             ], 403);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher Taxi approved successfully'
+            'message' => 'Booking Car approved successfully',
         ]);
     }
 
     public function rejectBookingCar(Request $request, $docid)
     {
-
         $request->validate([
-            'comment' => ['required', 'string']
+            'comment' => ['required', 'string'],
         ]);
 
-        $user    = $request->user();
+        $user = $request->user();
+
         $doctype = 'BCR';
 
-        $voucher = TrBookingCar::with('creator')
+        $booking = TrBookingCar::with('creator')
             ->where('docid', $docid)
             ->first();
 
-        if (!$voucher) {
+        if (!$booking) {
             return response()->json([
                 'success' => false,
-                'message' => 'Voucher Taxi not found'
+                'message' => 'Booking Car not found',
             ], 404);
         }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-        $docUrl = url('/showbookingcar/' . $eid);
-        $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
+        $eid = Hashids::encode($booking->id);
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
-            $voucher->docid,
+        $docUrl = url('/showbookingcar/'.$eid);
+
+        $fullname = data_get(
+            $booking,
+            'creator.name'
+        ) ?: $booking->created_by;
+
+        $result = app(ApprovalController::class)->rejectStep(
+            $booking->docid,
+
             $doctype,
+
             $user->username,
+
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
-                $voucher->status       = 'R';
-                $voucher->completed_by = auth()->user()->username;
-                $voucher->completed_at = $now;
-                $voucher->updated_by   = auth()->user()->username;
-                $voucher->updated_at   = $now;
-                $voucher->save();
+            function (
+                string $refnbr,
+                \Carbon\Carbon $now
+            ) use (
+                $booking,
+                $fullname,
+                $docUrl
+            ) {
+                // =================================
+                // UPDATE HEADER
+                // =================================
 
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $voucher->docid,
-                    'Voucher Taxi',
-                    'R',
-                    $voucher->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'    => $voucher->cpny_id ?? '',
-                        'deptname'  => $voucher->department_id ?? '',
-                        'date'      => $now->toDateString(),
-                        'info'      => $voucher->purpose ?? '',
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                    ]
-                );
+                $booking->status = 'R';
+
+                $booking->completed_by =
+                    auth()->user()->username;
+
+                $booking->completed_at = $now;
+
+                $booking->updated_by =
+                    auth()->user()->username;
+
+                $booking->updated_at = $now;
+
+                $booking->save();
+
+                // =================================
+                // NOTIFY REQUESTER
+                // =================================
+
+                app(ApprovalController::class)
+                    ->notifyRequesterOnStatus(
+                        $booking->docid,
+                        'Booking Car',
+                        'R',
+                        $booking->created_by,
+                        $docUrl,
+                        [
+                            // APPROVAL COMPANY
+                            'cpnyid' => $booking->cpny_id_site ?? '',
+
+                            'deptname' => $booking->department_id ?? '',
+
+                            'date' => $now->toDateString(),
+
+                            'info' => $booking->purpose_descr ?? '',
+
+                            'fullname' => $fullname,
+
+                            'name' => $fullname,
+
+                            'createdby' => $fullname,
+                        ]
+                    );
+
+                // =================================
+                // SAVE COMMENT
+                // =================================
 
                 try {
-                    app(\App\Http\Controllers\SendCommentController::class)
-                        ->sendmsg($voucher->id, 'BCR', request());
+                    app(SendCommentController::class)
+                        ->sendmsg(
+                            $booking->id,
+                            'BCR',
+                            request()
+                        );
                 } catch (\Throwable $e) {
-                    \Log::warning('Send reject comment Voucher Taxi failed', [
-                        'docid' => $voucher->docid,
-                        'error' => $e->getMessage(),
-                    ]);
+                    \Log::warning(
+                        'Send reject comment Booking Car failed',
+                        [
+                            'docid' => $booking->docid,
+
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
         );
@@ -955,84 +1535,131 @@ class BookingCarController extends Controller
         if (!$result['ok']) {
             return response()->json([
                 'success' => false,
-                'message' => $result['message'] ?? 'Reject failed'
+                'message' => $result['message']
+                    ?? 'Reject failed',
             ], 403);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher Taxi rejected successfully'
+            'message' => 'Booking Car rejected successfully',
         ]);
     }
 
     public function reviseBookingCar(Request $request, $docid)
     {
-
         $request->validate([
-            'comment' => ['required', 'string']
+            'comment' => ['required', 'string'],
         ]);
 
-        $user    = $request->user();
+        $user = $request->user();
+
         $doctype = 'BCR';
 
-        $voucher = TrBookingCar::with('creator')
+        $booking = TrBookingCar::with('creator')
             ->where('docid', $docid)
             ->first();
 
-        if (!$voucher) {
+        if (!$booking) {
             return response()->json([
                 'success' => false,
-                'message' => 'Voucher Taxi not found'
+                'message' => 'Booking Car not found',
             ], 404);
         }
 
-        $eid      = \Vinkla\Hashids\Facades\Hashids::encode($voucher->id);
-       $docUrl = url('/showbookingcar/' . $eid);
-        $fullname = data_get($voucher, 'creator.name') ?: $voucher->created_by;
+        $eid = Hashids::encode($booking->id);
 
-        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
-            $voucher->docid,          // refnbr
+        $docUrl = url('/showbookingcar/'.$eid);
+
+        $fullname = data_get(
+            $booking,
+            'creator.name'
+        ) ?: $booking->created_by;
+
+        $result = app(ApprovalController::class)->reviseStep(
+            $booking->docid,
+
             $doctype,
+
             $user->username,
+
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
+            function (
+                string $refnbr,
+                \Carbon\Carbon $now
+            ) use (
+                $booking,
+                $fullname,
+                $docUrl
+            ) {
+                // =================================
+                // UPDATE HEADER
+                // =================================
 
-                // === HEADER -> D (Revise) ===
-                $voucher->status       = 'D';
-                $voucher->completed_by = auth()->user()->username;
-                $voucher->completed_at = $now;
-                $voucher->updated_by   = auth()->user()->username;
-                $voucher->updated_at   = $now;
-                $voucher->save();
+                $booking->status = 'D';
 
-                // === Email ke requester ===
-                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
-                    $voucher->docid,
-                    'Voucher Taxi',
-                    'D',
-                    $voucher->created_by,
-                    $docUrl,
-                    [
-                        'cpnyid'    => $voucher->cpny_id ?? '',
-                        'deptname'  => $voucher->department_id ?? '',
-                        'date'      => $now->toDateString(),
-                        'info'      => $voucher->purpose ?? '',
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                    ]
-                );
+                $booking->completed_by =
+                    auth()->user()->username;
 
-                // === Simpan komentar ===
+                $booking->completed_at = $now;
+
+                $booking->updated_by =
+                    auth()->user()->username;
+
+                $booking->updated_at = $now;
+
+                $booking->save();
+
+                // =================================
+                // NOTIFY REQUESTER
+                // =================================
+
+                app(ApprovalController::class)
+                    ->notifyRequesterOnStatus(
+                        $booking->docid,
+                        'Booking Car',
+                        'D',
+                        $booking->created_by,
+                        $docUrl,
+                        [
+                            // APPROVAL COMPANY
+                            'cpnyid' => $booking->cpny_id_site ?? '',
+
+                            'deptname' => $booking->department_id ?? '',
+
+                            'date' => $now->toDateString(),
+
+                            'info' => $booking->purpose_descr ?? '',
+
+                            'fullname' => $fullname,
+
+                            'name' => $fullname,
+
+                            'createdby' => $fullname,
+                        ]
+                    );
+
+                // =================================
+                // SAVE COMMENT
+                // =================================
+
                 try {
-                    app(\App\Http\Controllers\SendCommentController::class)
-                        ->sendmsg($voucher->id, 'BCR', request());
+                    app(SendCommentController::class)
+                        ->sendmsg(
+                            $booking->id,
+                            'BCR',
+                            request()
+                        );
                 } catch (\Throwable $e) {
-                    \Log::warning('Send revise comment Voucher Taxi failed', [
-                        'docid' => $voucher->docid,
-                        'error' => $e->getMessage(),
-                    ]);
+                    \Log::warning(
+                        'Send revise comment Booking Car failed',
+                        [
+                            'docid' => $booking->docid,
+
+                            'error' => $e->getMessage(),
+                        ]
+                    );
                 }
             }
         );
@@ -1040,13 +1667,14 @@ class BookingCarController extends Controller
         if (!$result['ok']) {
             return response()->json([
                 'success' => false,
-                'message' => $result['message'] ?? 'Revise failed'
+                'message' => $result['message']
+                    ?? 'Revise failed',
             ], 403);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Voucher Taxi revised successfully'
+            'message' => 'Booking Car revised successfully',
         ]);
     }
 
@@ -1056,94 +1684,174 @@ class BookingCarController extends Controller
 
         abort_if(!$id, 404);
 
-        $voucher = TrBookingCar::findOrFail($id);
+        $booking = TrBookingCar::findOrFail($id);
 
-        return response()->json($voucher);
+        return response()->json($booking);
     }
 
     public function tracking($hash)
     {
         try {
+            // =========================================
+            // DECODE HASH
+            // =========================================
 
             $id = Hashids::decode($hash)[0] ?? null;
 
             abort_if(!$id, 404);
 
-            $voucher = TrBookingCar::findOrFail($id);
+            // =========================================
+            // FIND DOCUMENT
+            // =========================================
+
+            $booking = TrBookingCar::findOrFail($id);
+
+            // =========================================
+            // GET USER NAME
+            // =========================================
 
             $getName = function (?string $username) {
-
                 if (!$username) {
                     return null;
                 }
 
-                return \App\Models\User::where('username', $username)
-                    ->value('name') ?? $username;
+                return User::where(
+                    'username', $username
+                )->value('name') ?? $username;
             };
+
+            // =========================================
+            // STEPS
+            // =========================================
 
             $steps = [];
 
-            // =========================
+            // =========================================
             // SUBMITTED
-            // =========================
+            // =========================================
 
             $steps[] = [
-                'key'          => 'submitted',
-                'title'        => 'Voucher Taxi',
-                'status'       => 'C',
+                'key' => 'submitted',
+
+                'title' => 'Booking Car',
+
+                'status' => 'C',
+
                 'status_label' => 'Submitted',
-                'by'           => $getName($voucher->created_by),
-                'at'           => optional($voucher->created_at)
-                    ->format('Y-m-d H:i'),
+
+                'by' => $getName(
+                    $booking->created_by
+                ),
+
+                'at' => optional(
+                    $booking->created_at
+                )->format('Y-m-d H:i'),
             ];
 
-            // =========================
+            // =========================================
             // APPROVALS
-            // =========================
+            // =========================================
 
             $approvals = TrApproval::query()
-                ->where('refnbr', $voucher->docid)
-                ->where('status', '<>', 'X')
-                ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
+                ->where(
+                    'refnbr',
+                    $booking->docid
+                )
+                ->where(
+                    'status',
+                    '<>',
+                    'X'
+                )
+                ->orderByRaw(
+                    'CAST(aprv_leveling AS INTEGER)'
+                )
                 ->get();
 
-                              $comment = null;
+            // =========================================
+            // OPTIONAL COMMENT TABLE
+            // =========================================
 
-                    try {
+            $comment = null;
 
-                        $comment = DB::table('tr_comment')
-                            ->where('refid', $voucher->id)
-                            ->where('doctype', 'BCR')
-                            ->latest('created_at')
-                            ->value('comment');
+            try {
+                $comment = DB::table('tr_comment')
+                    ->where(
+                        'refid',
+                        $booking->id
+                    )
+                    ->where(
+                        'doctype',
+                        'BCR'
+                    )
+                    ->latest('created_at')
+                    ->value('comment');
+            } catch (\Throwable $e) {
+                // ignore if table not exists
+            }
 
-                    } catch (\Throwable $e) {
+            // =========================================
+            // MESSAGE COMMENTS
+            // =========================================
 
-                        // ignore if table not exists
-                    }
-
-            $comments = TrMessage::where('doctype', 'BCR')
-                ->where('refnbr', $voucher->docid)
-                ->orderByDesc('message_date')
+            $comments = TrMessage::where(
+                'doctype',
+                'BCR'
+            )
+                ->where(
+                    'refnbr',
+                    $booking->docid
+                )
+                ->orderByDesc(
+                    'message_date'
+                )
                 ->get([
                     'username',
                     'name',
                     'message',
-                    'message_date'
+                    'message_date',
                 ]);
 
+            // =========================================
+            // APPROVAL STEPS
+            // =========================================
+
             foreach ($approvals as $aprv) {
+                // =====================================
+                // FIND COMMENT FOR THIS APPROVER
+                // =====================================
+
+                $stepComment = $comments->first(
+                    function ($msg) use ($aprv) {
+                        return strtolower(
+                            trim($msg->username)
+                        ) === strtolower(
+                            trim(
+                                $aprv->updated_by
+                                ?: $aprv->aprv_username
+                            )
+                        );
+                    }
+                );
+
+                // =====================================
+                // STEP
+                // =====================================
 
                 $steps[] = [
-
-                    'key' => 'approval_' . $aprv->aprv_leveling,
+                    'key' => 'approval_'.
+                        $aprv->aprv_leveling,
 
                     'title' => $aprv->aprv_name
-                        ?: ('Approval Level ' . $aprv->aprv_leveling),
+                        ?: (
+                            'Approval Level '.
+                            $aprv->aprv_leveling
+                        ),
 
                     'status' => $aprv->status,
 
-                    'status_label' => match ($aprv->status) {
+                    'status_label' => match (
+                        $aprv->status
+                    ) {
                         'P' => 'Waiting approval',
                         'A' => 'Approved',
                         'R' => 'Rejected',
@@ -1151,72 +1859,105 @@ class BookingCarController extends Controller
                         default => '-',
                     },
 
-                    // approver username
+                    // APPROVER USERNAME
+
                     'aprv_username' => $aprv->aprv_username,
 
-                    // display processed by
+                    // DISPLAY USER
+
                     'by' => $aprv->status === 'P'
                         ? null
                         : $getName(
-                            $aprv->updated_by ?: $aprv->aprv_username
+                            $aprv->updated_by
+                            ?: $aprv->aprv_username
                         ),
 
-                    // approval datetime
+                    // APPROVAL DATE
+
                     'at' => $aprv->aprv_dateafter
-                        ? \Carbon\Carbon::parse($aprv->aprv_dateafter)
-                            ->format('Y-m-d H:i')
+                        ? \Carbon\Carbon::parse(
+                            $aprv->aprv_dateafter
+                        )->format('Y-m-d H:i')
                         : null,
 
+                    // COMMENT
 
-                    'comment' => $comments->first()?->message,
+                    'comment' => $stepComment?->message,
                 ];
             }
 
+            // =========================================
+            // LATEST COMMENT
+            // =========================================
 
-           $latestComment = TrMessage::where('doctype', 'BCR')
-            ->where('refnbr', $voucher->docid)
-            ->latest('message_date')
-            ->first();
+            $latestComment = TrMessage::where(
+                'doctype',
+                'BCR'
+            )
+                ->where(
+                    'refnbr',
+                    $booking->docid
+                )
+                ->latest('message_date')
+                ->first();
+
+            // =========================================
+            // RESPONSE
+            // =========================================
 
             return response()->json([
                 'success' => true,
 
-                'doc' => $voucher->docid,
+                'doc' => $booking->docid,
 
                 'steps' => $steps,
 
-                'status' => $voucher->status,
+                'status' => $booking->status,
 
-                'status_label' => match ($voucher->status) {
+                'status_label' => match (
+                    $booking->status
+                ) {
                     'P' => 'Pending',
                     'C' => 'Completed',
                     'R' => 'Rejected',
                     'D' => 'Revise',
+                    'X' => 'Cancelled',
                     default => '-',
                 },
 
                 'revise_reason' => $latestComment?->message,
-                'comments'      => $comments,
-            ]);
 
+                'comments' => $comments,
+            ]);
         } catch (\Throwable $e) {
-
-            \Log::error('TRACKING ERROR', [
-                'error' => $e->getMessage()
-            ]);
+            \Log::error(
+                'BOOKING CAR TRACKING ERROR',
+                [
+                    'error' => $e->getMessage(),
+                ]
+            );
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+
+                'message' => $e->getMessage(),
             ], 500);
         }
-    }    
+    }
 
     public function printBookingCar($hash)
     {
+        // =========================================
+        // DECODE HASH
+        // =========================================
+
         $id = Hashids::decode($hash)[0] ?? null;
 
         abort_if(!$id, 404);
+
+        // =========================================
+        // AUTH
+        // =========================================
 
         $user = Auth::user();
 
@@ -1224,20 +1965,40 @@ class BookingCarController extends Controller
             return redirect()->route('login');
         }
 
-        $voucher = TrBookingCar::with([
+        // =========================================
+        // FIND DOCUMENT
+        // =========================================
+
+        $booking = TrBookingCar::with([
             'creator:username,name',
         ])->findOrFail($id);
 
+        // =========================================
+        // APPROVALS
+        // =========================================
+
         $approvals = TrApproval::query()
-            ->where('refnbr', $voucher->docid)
+            ->where('refnbr', $booking->docid)
             ->where('status', '<>', 'X')
-            ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
+            ->orderByRaw(
+                'CAST(aprv_leveling AS INTEGER)'
+            )
             ->get();
 
-        $company = MsCompany::where('cpny_id', $voucher->cpny_id)
-            ->first();
+        // =========================================
+        // COMPANY
+        // =========================================
 
-        $status_doc = match ($voucher->status) {
+        $company = MsCompany::where(
+            'cpny_id',
+            $booking->cpny_id
+        )->first();
+
+        // =========================================
+        // STATUS LABEL
+        // =========================================
+
+        $status_doc = match ($booking->status) {
             'P' => 'On Progress',
             'C' => 'Completed',
             'R' => 'Rejected',
@@ -1246,21 +2007,33 @@ class BookingCarController extends Controller
             default => '-',
         };
 
-        $pdf = PDF::loadView(
+        // =========================================
+        // PDF
+        // =========================================
+
+        $pdf = \PDF::loadView(
             'pages.bookingcar.pdf_bookingcar',
             [
-                'voucher'      => $voucher,
-                'approvals'    => $approvals,
-                'company'      => $company,
-                'status_doc'   => $status_doc,
+                'booking' => $booking,
+
+                'approvals' => $approvals,
+
+                'company' => $company,
+
+                'status_doc' => $status_doc,
             ]
         );
 
         $pdf->setPaper('A4', 'portrait');
 
+        // =========================================
+        // STREAM
+        // =========================================
+
         return $pdf->stream(
-            'voucher_taxi_' . $voucher->docid . '.pdf'
+            'booking_car_'.
+            $booking->docid.
+            '.pdf'
         );
     }
-
 }
