@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Voucher Taxi</title>
+    <title>Booking Car</title>
 
     <style>
         body {
@@ -93,6 +93,32 @@
 
         .meta-value {
             color: #222;
+        }
+
+        /* =========================
+           ROUTE TABLE
+        ========================= */
+
+        .route-table {
+            margin-top: 10px;
+            margin-bottom: 22px;
+        }
+
+        .route-table th {
+            border: 1px solid #d9d9d9;
+            background: #f7f7f7;
+            padding: 8px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .route-table td {
+            border: 1px solid #d9d9d9;
+            padding: 8px;
+            vertical-align: top;
+            font-size: 11px;
         }
 
         /* =========================
@@ -187,7 +213,7 @@
                 <td>
 
                     <div class="title">
-                        VOUCHER TAXI
+                        BOOKING CAR
                     </div>
 
                     <div class="company">
@@ -199,11 +225,11 @@
                 <td style="text-align:right;">
 
                     <div class="doc-number">
-                        {{ $voucher->docid }}
+                        {{ $booking->docid }}
                     </div>
 
                     <div class="doc-date">
-                        {{ \Carbon\Carbon::parse($voucher->voucher_date)->format('d F Y') }}
+                        {{ \Carbon\Carbon::parse($booking->booking_date)->format('d F Y') }}
                     </div>
 
                 </td>
@@ -222,64 +248,168 @@
                 <tr>
                     <td class="meta-label">Requester</td>
                     <td class="meta-value">
-                        {{ $voucher->user_peminta }}
+                        {{ $booking->user_peminta }}
                     </td>
 
                     <td class="meta-label">Department</td>
                     <td class="meta-value">
-                        {{ $voucher->department_id }}
+                        {{ $booking->department_id }}
                     </td>
                 </tr>
 
                 <tr>
-                    <td class="meta-label">Origin</td>
+                    <td class="meta-label">Booking Date</td>
                     <td class="meta-value">
-                        {{ $voucher->origin }}
+                        {{ \Carbon\Carbon::parse($booking->booking_date)->format('d-m-Y') }}
                     </td>
 
-                    <td class="meta-label">Destination</td>
+                    <td class="meta-label">Company Site</td>
                     <td class="meta-value">
-                        {{ $voucher->destination }}
+                        {{ $booking->cpny_id_site }}
                     </td>
                 </tr>
 
                 <tr>
-                    <td class="meta-label">Date Used</td>
+                    <td class="meta-label">Start Time</td>
                     <td class="meta-value">
-                        {{ \Carbon\Carbon::parse($voucher->date_used)->format('d-m-Y') }}
+                        {{ \Carbon\Carbon::parse($booking->start_time)->format('d M Y H:i') }}
                     </td>
 
-                    <td class="meta-label">Type Trip</td>
+                    <td class="meta-label">End Time</td>
                     <td class="meta-value">
-                        {{ $voucher->type_trip }}
+                        {{ \Carbon\Carbon::parse($booking->end_time)->format('d M Y H:i') }}
                     </td>
                 </tr>
 
                 <tr>
                     <td class="meta-label">Purpose</td>
                     <td class="meta-value" colspan="3">
-                        {{ $voucher->purpose }}
+
+                        @if ($booking->purpose_id === 'OTHER')
+
+                            {{ $booking->purpose_descr }}
+                        @else
+                            {{ $booking->purpose_id }}
+
+                            @if ($booking->purpose_descr)
+                                - {{ $booking->purpose_descr }}
+                            @endif
+
+                        @endif
+
                     </td>
                 </tr>
 
                 <tr>
-                    <td class="meta-label">Topup</td>
+                    <td class="meta-label">Passenger</td>
                     <td class="meta-value">
-                        {{ $voucher->user_topup }}
+                        {{ $booking->passenger ?? '-' }}
                     </td>
 
-                    <td class="meta-label">Company Expense</td>
+                    <td class="meta-label">Requested By</td>
                     <td class="meta-value">
-                        {{ $voucher->cpny_id_expense }}
+                        {{ $booking->created_by }}
                     </td>
                 </tr>
 
                 <tr>
-                    <td class="meta-label">Actual Expense</td>
+                    <td class="meta-label">Driver</td>
+                    <td class="meta-value">
+                        {{ $booking->driver ?? '-' }}
+                    </td>
+
+                    <td class="meta-label">Vehicle</td>
+                    <td class="meta-value">
+                        {{ $booking->no_polisi ?? '-' }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="meta-label">Handphone</td>
+                    <td class="meta-value">
+                        {{ $booking->handphone ?? '-' }}
+                    </td>
+
+                    <td class="meta-label">Status</td>
+                    <td class="meta-value">
+                        {{ $status_doc }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="meta-label">User Request</td>
                     <td class="meta-value" colspan="3">
-                        Rp {{ number_format($voucher->actual_budget ?? 0, 0, ',', '.') }}
+                        {{ $booking->user_request ?? '-' }}
                     </td>
                 </tr>
+
+            </tbody>
+
+        </table>
+
+        {{-- ROUTE --}}
+        <div class="section-title">
+            Route Information
+        </div>
+
+        <table class="route-table">
+
+            <thead>
+
+                <tr>
+                    <th style="width:50px;">No</th>
+                    <th>Location From</th>
+                    <th>Destination</th>
+                </tr>
+
+            </thead>
+
+            @php
+
+                $routesFrom = is_array($booking->location_from)
+                    ? $booking->location_from
+                    : json_decode($booking->location_from ?: '[]', true);
+
+                $routesTo = is_array($booking->destination)
+                    ? $booking->destination
+                    : json_decode($booking->destination ?: '[]', true);
+
+                $routesFrom = is_array($routesFrom) ? $routesFrom : [];
+                $routesTo = is_array($routesTo) ? $routesTo : [];
+
+            @endphp
+
+            <tbody>
+
+                @forelse($routesFrom as $index => $from)
+
+                    <tr>
+
+                        <td>
+                            {{ $index + 1 }}
+                        </td>
+
+                        <td>
+                            {{ $from }}
+                        </td>
+
+                        <td>
+                            {{ $routesTo[$index] ?? '-' }}
+                        </td>
+
+                    </tr>
+
+                @empty
+
+                    <tr>
+
+                        <td colspan="3" style="text-align:center;">
+                            No route information
+                        </td>
+
+                    </tr>
+
+                @endforelse
 
             </tbody>
 
@@ -296,8 +426,6 @@
 
             $chunks = $approvals->values()->chunk($colsPerRow);
 
-            $totalCols = 1 + $colsPerRow;
-
         @endphp
 
         <table class="approval-table">
@@ -310,12 +438,10 @@
                         Request By
                     </th>
 
-                    @for($i = 1; $i <= $colsPerRow; $i++)
-
+                    @for ($i = 1; $i <= $colsPerRow; $i++)
                         <th>
                             Approval
                         </th>
-
                     @endfor
 
                 </tr>
@@ -329,12 +455,11 @@
                     <tr>
 
                         {{-- REQUESTER --}}
-                        @if($rowIndex === 0)
-
+                        @if ($rowIndex === 0)
                             <td rowspan="{{ $chunks->count() }}">
 
                                 <div class="approval-name">
-                                    {{ strtoupper($voucher->user_peminta) }}
+                                    {{ strtoupper($booking->user_peminta) }}
                                 </div>
 
                                 <div class="approval-status status-approved">
@@ -342,30 +467,30 @@
                                 </div>
 
                                 <div class="approval-date">
-                                    {{ optional($voucher->created_at)->format('d M Y H:i') }}
+                                    {{ optional($booking->created_at)->format('d M Y H:i') }}
                                 </div>
 
                             </td>
-
                         @endif
 
                         {{-- APPROVALS --}}
-                        @foreach($chunk as $aprv)
-
+                        @foreach ($chunk as $aprv)
                             @php
 
                                 $label = match ($aprv->status) {
                                     'A' => 'Approved',
                                     'R' => 'Rejected',
                                     'P' => 'Waiting',
-                                    default => 'Revised',
+                                    'D' => 'Revised',
+                                    default => '-',
                                 };
 
                                 $statusClass = match ($aprv->status) {
                                     'A' => 'status-approved',
                                     'R' => 'status-rejected',
                                     'P' => 'status-waiting',
-                                    default => 'status-rejected',
+                                    'D' => 'status-rejected',
+                                    default => 'status-waiting',
                                 };
 
                             @endphp
@@ -382,27 +507,20 @@
 
                                 <div class="approval-date">
 
-                                    @if($aprv->aprv_dateafter)
-
+                                    @if ($aprv->aprv_dateafter)
                                         {{ \Carbon\Carbon::parse($aprv->aprv_dateafter)->format('d M Y H:i') }}
-
                                     @else
-
                                         -
-
                                     @endif
 
                                 </div>
 
                             </td>
-
                         @endforeach
 
                         {{-- EMPTY --}}
-                        @for($i = $chunk->count(); $i < $colsPerRow; $i++)
-
+                        @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
                             <td>&nbsp;</td>
-
                         @endfor
 
                     </tr>
@@ -414,7 +532,7 @@
                         <td>
 
                             <div class="approval-name">
-                                {{ strtoupper($voucher->user_peminta) }}
+                                {{ strtoupper($booking->user_peminta) }}
                             </div>
 
                             <div class="approval-status status-approved">
@@ -422,7 +540,7 @@
                             </div>
 
                             <div class="approval-date">
-                                {{ optional($voucher->created_at)->format('d M Y H:i') }}
+                                {{ optional($booking->created_at)->format('d M Y H:i') }}
                             </div>
 
                         </td>

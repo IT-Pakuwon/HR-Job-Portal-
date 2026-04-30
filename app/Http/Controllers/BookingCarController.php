@@ -466,8 +466,11 @@ class BookingCarController extends Controller
             'start_time' => ['required'],
             'end_time' => ['required'],
 
-            'location_from' => ['required'],
-            'destination' => ['required'],
+            'location_from' => ['required', 'array', 'min:1'],
+            'location_from.*' => ['required', 'string'],
+
+            'destination' => ['required', 'array', 'min:1'],
+            'destination.*' => ['required', 'string'],
 
             'user_request' => ['nullable'],
 
@@ -706,9 +709,11 @@ class BookingCarController extends Controller
             'start_time' => ['required'],
             'end_time' => ['required'],
 
-            'location_from' => ['required'],
-            'destination' => ['required'],
+            'location_from' => ['required', 'array', 'min:1'],
+            'location_from.*' => ['required', 'string'],
 
+            'destination' => ['required', 'array', 'min:1'],
+            'destination.*' => ['required', 'string'],
             'user_request' => ['nullable'],
 
             'driver' => ['nullable'],
@@ -858,6 +863,13 @@ class BookingCarController extends Controller
                 'ignore_nominal' => true,
             ];
 
+            TrApproval::where(
+                'refnbr',
+                $booking->docid
+            )
+            ->whereIn('status', ['P', 'D'])
+            ->delete();
+
             [
                 $firstApprovalUsernames,
                 $linesCount
@@ -952,7 +964,7 @@ class BookingCarController extends Controller
             ], 401);
         }
 
-        DB::beginTransaction();
+        DB::connection('pgsql5')->beginTransaction();
 
         try {
             // =========================================
@@ -1026,7 +1038,7 @@ class BookingCarController extends Controller
                     'updated_at' => now(),
                 ]);
 
-            DB::commit();
+            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
@@ -1034,7 +1046,7 @@ class BookingCarController extends Controller
                 'message' => 'Booking Car request cancelled successfully',
             ]);
         } catch (\Throwable $e) {
-            DB::rollBack();
+            DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
@@ -1133,9 +1145,14 @@ class BookingCarController extends Controller
                 // ROUTE
                 // =====================================
 
-                'location_from' => $booking->location_from,
+                'routes' => collect($booking->location_from)
+                    ->map(function ($from, $i) use ($booking) {
+                        return [
+                            'location_from' => $from,
+                            'destination' => $booking->destination[$i] ?? '',
+                        ];
+                    })->values(),
 
-                'destination' => $booking->destination,
 
                 // =====================================
                 // REQUEST DETAIL
@@ -1208,7 +1225,7 @@ class BookingCarController extends Controller
             'no_polisi' => ['nullable'],
         ]);
 
-        DB::beginTransaction();
+        DB::connection('pgsql5')->beginTransaction();
 
         try {
             // =========================================
@@ -1253,14 +1270,14 @@ class BookingCarController extends Controller
             // COMMIT
             // =========================================
 
-            DB::commit();
+            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Driver information saved successfully',
             ]);
         } catch (\Throwable $e) {
-            DB::rollBack();
+            DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,

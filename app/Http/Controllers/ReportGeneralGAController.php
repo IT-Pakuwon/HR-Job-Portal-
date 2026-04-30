@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\MeetingOnlineExport;
+use App\Exports\MeetingRoomExport;
+use App\Exports\VoucherTaxiExport;
+use App\Exports\BookingCarExport;
 use App\Models\MsMeetingRoom;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Yajra\DataTables\Facades\DataTables;
-use App\Exports\MeetingRoomExport;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\MeetingOnlineExport;
-use App\Models\SysUserRole;
+use Yajra\DataTables\Facades\DataTables;
+
 class ReportGeneralGAController extends Controller
 {
     /*
@@ -30,14 +32,36 @@ class ReportGeneralGAController extends Controller
             ->orderBy('name')
             ->get();
 
+        $drivers = DB::connection('pgsql5')
+            ->table('ms_driver_opr')
+            ->select('drivername')
+            ->whereNotNull('drivername')
+            ->orderBy('drivername')
+            ->get();
+
+        $kendaraan = DB::connection('pgsql5')
+            ->table('ms_kendaraan_opr')
+            ->select('nopol_kendaraan')
+            ->whereNotNull('nopol_kendaraan')
+            ->orderBy('nopol_kendaraan')
+            ->get();
+
         $user = auth()->user();
 
         return view('pages.report-ga.index', [
+
             'rooms' => $rooms,
+
             'users' => $users,
 
+            'drivers' => $drivers,
+
+            'kendaraan' => $kendaraan,
+
             'hasCSACCESS' => $user->hasRole('CSACCESS'),
+
             'hasADMIN' => strtolower($user->user_role) === 'admin',
+
             'hasGAACCESS' => $user->hasRole('GAACCESS'),
         ]);
     }
@@ -115,14 +139,18 @@ class ReportGeneralGAController extends Controller
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
 
-            ->leftJoin('ms_meeting_room as r', 'r.room_id', '=', 'm.room_id')
+            ->leftJoin('ms_meeting_room as r', function ($join) {
+                $join->on(
+                    DB::raw('r.room_id::text'),
+                    '=',
+                    DB::raw('m.room_id')
+                );
+            })
 
             ->leftJoin('ms_meeting_accessories as a', function ($join) {
                 $join->on(DB::raw('a.acc_id::text'), '=', DB::raw("ANY(string_to_array(m.acc_id, ','))"));
             })
             ->whereIn('m.cpny_id', $companyIds)
-
-
 
             // ->leftJoin('ms_department as d', 'd.department_id', '=', 'm.department_id')
             ->select([
@@ -183,8 +211,7 @@ class ReportGeneralGAController extends Controller
         }
 
         if ($request->status === 'A') {
-            // Active = everything except cancelled
-            $query->where('m.status', '!=', 'X');
+            $query->whereNotIn('m.status', ['X']);
         }
 
         if ($request->status === 'X') {
@@ -288,11 +315,17 @@ class ReportGeneralGAController extends Controller
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
 
-            ->leftJoin('ms_meeting_room as r', 'r.room_id', '=', 'm.room_id')
+            ->leftJoin('ms_meeting_room as r', function ($join) {
+                $join->on(
+                    DB::raw('r.room_id::text'),
+                    '=',
+                    DB::raw('m.room_id')
+                );
+            })
 
             ->leftJoin('ms_meeting_accessories as a', function ($join) {
                 $join->on(
-                    DB::raw("a.acc_id::text"),
+                    DB::raw('a.acc_id::text'),
                     '=',
                     DB::raw("ANY(COALESCE(string_to_array(m.acc_id, ','), ARRAY[]::text[]))")
                 );
@@ -339,7 +372,6 @@ class ReportGeneralGAController extends Controller
         |--------------------------------------------------------------------------
         */
         $query->where(function ($q) {
-
             $q->where('r.room_name', 'ilike', '%Teams Only%')
             ->orWhere('r.room_name', 'ilike', '%Zoom Only%');
         });
@@ -376,53 +408,51 @@ class ReportGeneralGAController extends Controller
 
             ->addColumn('accessories', fn ($row) => $row->accessories ?: '-')
 
-            ->editColumn('meeting_date', fn ($row) =>
-                $row->meeting_date
+            ->editColumn('meeting_date', fn ($row) => $row->meeting_date
                     ? Carbon::parse($row->meeting_date)->format('d-M-Y')
                     : ''
             )
 
-            ->addColumn('start_time', fn ($row) =>
-                $row->start_meeting_time
+            ->addColumn('start_time', fn ($row) => $row->start_meeting_time
                     ? Carbon::parse($row->start_meeting_time)->format('H:i')
                     : '-'
             )
 
-            ->addColumn('end_time', fn ($row) =>
-                $row->end_meeting_time
+            ->addColumn('end_time', fn ($row) => $row->end_meeting_time
                     ? Carbon::parse($row->end_meeting_time)->format('H:i')
                     : '-'
             )
 
-            ->addColumn('department', fn ($row) =>
-                $departments[$row->department_id] ?? '-'
+            ->addColumn('department', fn ($row) => $departments[$row->department_id] ?? '-'
             )
 
-            ->addColumn('requester', fn ($row) =>
-                $users[$row->user_peminta] ?? $row->user_peminta
+            ->addColumn('requester', fn ($row) => $users[$row->user_peminta] ?? $row->user_peminta
             )
 
-            ->addColumn('type', fn ($row) =>
-                $row->external_participant ? 'External' : 'Internal'
+            ->addColumn('type', fn ($row) => $row->external_participant ? 'External' : 'Internal'
             )
 
             ->addColumn('platform', function ($row) {
-
                 $room = strtolower($row->room_name ?? '');
 
-                if (str_contains($room, 'teams')) return 'Teams';
-                if (str_contains($room, 'zoom')) return 'Zoom';
+                if (str_contains($room, 'teams')) {
+                    return 'Teams';
+                }
+                if (str_contains($room, 'zoom')) {
+                    return 'Zoom';
+                }
 
                 return '-';
             })
             ->addColumn('duration_label', function ($row) {
-
-                if (!$row->start_meeting_time || !$row->end_meeting_time) return '-';
+                if (!$row->start_meeting_time || !$row->end_meeting_time) {
+                    return '-';
+                }
 
                 $minutes = Carbon::parse($row->start_meeting_time)
                     ->diffInMinutes(Carbon::parse($row->end_meeting_time));
 
-                return round($minutes / 60, 1) . ' hrs';
+                return round($minutes / 60, 1).' hrs';
             })
 
             ->addColumn('status_label', fn ($row) => match ($row->status) {
@@ -431,20 +461,491 @@ class ReportGeneralGAController extends Controller
             })
 
             ->make(true);
-
-
     }
 
     private function operationalCarJson(Request $request)
     {
-        // TODO
-        return response()->json([]);
+        $departments = \App\Models\MsDepartment::pluck(
+            'department_name',
+            'department_id'
+        );
+
+        $users = User::pluck('name', 'username');
+
+        $user = auth()->user();
+
+        $companyIds = collect(
+            explode(',', (string) $user->cpny_id)
+        )
+        ->map(fn ($x) => trim($x))
+        ->filter()
+        ->values()
+        ->toArray();
+
+        $query = DB::connection('pgsql5')
+            ->table('tr_booking_car as bc')
+
+            ->whereIn('bc.cpny_id', $companyIds)
+
+            ->select([
+                'bc.docid',
+
+                'bc.booking_date',
+
+                'bc.cpny_id',
+
+                'bc.department_id',
+
+                'bc.user_peminta',
+
+                'bc.cpny_id_site',
+
+                'bc.purpose_id',
+
+                'bc.purpose_descr',
+
+                'bc.start_time',
+
+                'bc.end_time',
+
+                'bc.location_from',
+
+                'bc.destination',
+
+                'bc.user_request',
+
+                'bc.driver',
+
+                'bc.handphone',
+
+                'bc.no_polisi',
+
+                'bc.passenger',
+
+                'bc.checked_by',
+
+                'bc.checked_at',
+
+                'bc.status',
+
+                'bc.created_by',
+
+                'bc.created_at',
+            ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->date_from) {
+
+            $query->whereDate(
+                'bc.booking_date',
+                '>=',
+                $request->date_from
+            );
+        }
+
+        if ($request->date_to) {
+
+            $query->whereDate(
+                'bc.booking_date',
+                '<=',
+                $request->date_to
+            );
+        }
+
+        if ($request->requester) {
+
+            $query->where(
+                'bc.user_peminta',
+                'ilike',
+                "%{$request->requester}%"
+            );
+        }
+
+        if ($request->status) {
+
+            $query->where(
+                'bc.status',
+                $request->status
+            );
+        }
+
+        if ($request->driver) {
+
+            $query->where(
+                'bc.driver',
+                $request->driver
+            );
+        }
+
+        if ($request->vehicle) {
+
+            $query->where(
+                'bc.no_polisi',
+                $request->vehicle
+            );
+        }
+        /*
+        |--------------------------------------------------------------------------
+        | DATATABLE
+        |--------------------------------------------------------------------------
+        */
+
+        return DataTables::of($query)
+
+            ->editColumn('booking_date', function ($row) {
+                return $row->booking_date
+                    ? Carbon::parse($row->booking_date)
+                        ->format('d-M-Y')
+                    : '-';
+            })
+
+            ->editColumn('start_time', function ($row) {
+                return $row->start_time
+                    ? Carbon::parse($row->start_time)
+                        ->format('H:i')
+                    : '-';
+            })
+
+            ->editColumn('end_time', function ($row) {
+                return $row->end_time
+                    ? Carbon::parse($row->end_time)
+                        ->format('H:i')
+                    : '-';
+            })
+
+            ->editColumn('driver', function ($row) {
+                return $row->driver ?: '-';
+            })
+
+            ->editColumn('no_polisi', function ($row) {
+                return $row->no_polisi ?: '-';
+            })
+
+            ->addColumn('requester', function ($row) use ($users) {
+                return $users[$row->user_peminta]
+                    ?? $row->user_peminta;
+            })
+
+            ->addColumn('department', function ($row) use ($departments) {
+                return $departments[$row->department_id]
+                    ?? '-';
+            })
+
+            ->addColumn('route', function ($row) {
+
+                $origins = [];
+
+                if (is_array($row->location_from)) {
+                    $origins = $row->location_from;
+                } elseif (!empty($row->location_from)) {
+
+                    $decoded = json_decode(
+                        $row->location_from,
+                        true
+                    );
+
+                    $origins = is_array($decoded)
+                        ? $decoded
+                        : [$row->location_from];
+                }
+
+                $destinations = [];
+
+                if (is_array($row->destination)) {
+                    $destinations = $row->destination;
+                } elseif (!empty($row->destination)) {
+
+                    $decoded = json_decode(
+                        $row->destination,
+                        true
+                    );
+
+                    $destinations = is_array($decoded)
+                        ? $decoded
+                        : [$row->destination];
+                }
+
+                $routes = [];
+
+                foreach ($origins as $i => $from) {
+
+                    $to = $destinations[$i] ?? '-';
+
+                    $routes[] = $from.' → '.$to;
+                }
+
+                return count($routes)
+                    ? implode('<br>', $routes)
+                    : '-';
+            })
+
+            ->addColumn('duration_label', function ($row) {
+
+                if (!$row->start_time || !$row->end_time) {
+                    return '-';
+                }
+
+                $minutes = Carbon::parse($row->start_time)
+                    ->diffInMinutes(
+                        Carbon::parse($row->end_time)
+                    );
+
+                return round($minutes / 60, 1).' hrs';
+            })
+
+            ->addColumn('status_label', function ($row) {
+
+                return match ($row->status) {
+
+                    'P' => 'On Progress',
+
+                    'C' => 'Completed',
+
+                    'R' => 'Rejected',
+
+                    'D' => 'Revise',
+
+                    'X' => 'Cancelled',
+
+                    default => '-',
+                };
+            })
+
+            ->orderColumn(
+                'booking_date',
+                'bc.booking_date $1'
+            )
+
+            ->rawColumns([
+                'route',
+            ])
+
+            ->make(true);
     }
 
     private function voucherTaxiJson(Request $request)
     {
-        // TODO
-        return response()->json([]);
+        $departments = \App\Models\MsDepartment::pluck(
+            'department_name',
+            'department_id'
+        );
+
+        $users = User::pluck('name', 'username');
+
+        $user = auth()->user();
+
+        $companyIds = collect(
+            explode(',', (string) $user->cpny_id)
+        )
+        ->map(fn ($x) => trim($x))
+        ->filter()
+        ->values()
+        ->toArray();
+
+        $query = DB::connection('pgsql5')
+            ->table('tr_voucher_taxi as vt')
+
+            ->whereIn('vt.cpny_id', $companyIds)
+
+            ->select([
+                'vt.docid',
+
+                'vt.voucher_date',
+
+                'vt.cpny_id',
+
+                'vt.department_id',
+
+                'vt.origin',
+
+                'vt.destination',
+
+                'vt.user_peminta',
+
+                'vt.site_id',
+
+                'vt.cpny_id_site',
+
+                'vt.purpose',
+
+                'vt.date_used',
+
+                'vt.type_trip',
+
+                'vt.max_trip',
+
+                'vt.status_trip',
+
+                'vt.max_budget',
+
+                'vt.actual_budget',
+
+                'vt.checked_by',
+
+                'vt.checked_at',
+
+                'vt.status',
+
+                'vt.created_by',
+
+                'vt.created_at',
+            ]);
+
+        if ($request->date_from) {
+            $query->whereDate(
+                'vt.voucher_date',
+                '>=',
+                $request->date_from
+            );
+        }
+
+        if ($request->date_to) {
+            $query->whereDate(
+                'vt.voucher_date',
+                '<=',
+                $request->date_to
+            );
+        }
+
+        if ($request->requester) {
+            $query->where(
+                'vt.user_peminta',
+                'ilike',
+                "%{$request->requester}%"
+            );
+        }
+
+        if ($request->status) {
+
+            $query->where(
+                'vt.status',
+                $request->status
+            );
+        }
+        if ($request->type_trip) {
+            $query->where(
+                'vt.type_trip',
+                $request->type_trip
+            );
+        }
+
+        return DataTables::of($query)
+
+            ->editColumn('voucher_date', function ($row) {
+                return $row->voucher_date
+                    ? Carbon::parse($row->voucher_date)
+                        ->format('d-M-Y')
+                    : '-';
+            })
+
+            ->editColumn('date_used', function ($row) {
+                return $row->date_used
+                    ? Carbon::parse($row->date_used)
+                        ->format('d-M-Y')
+                    : '-';
+            })
+
+            ->addColumn('requester', function ($row) use ($users) {
+                return $users[$row->user_peminta]
+                    ?? $row->user_peminta;
+            })
+
+            ->addColumn('department', function ($row) use ($departments) {
+                return $departments[$row->department_id]
+                    ?? '-';
+            })
+
+            ->addColumn('route', function ($row) {
+                $origins = [];
+
+                if (is_array($row->origin)) {
+                    $origins = $row->origin;
+                } elseif (!empty($row->origin)) {
+                    $decoded = json_decode(
+                        $row->origin,
+                        true
+                    );
+
+                    $origins = is_array($decoded)
+                        ? $decoded
+                        : [$row->origin];
+                }
+
+                $destinations = [];
+
+                if (is_array($row->destination)) {
+                    $destinations = $row->destination;
+                } elseif (!empty($row->destination)) {
+                    $decoded = json_decode(
+                        $row->destination,
+                        true
+                    );
+
+                    $destinations = is_array($decoded)
+                        ? $decoded
+                        : [$row->destination];
+                }
+
+                $routes = [];
+
+                foreach ($origins as $i => $from) {
+                    $to = $destinations[$i] ?? '-';
+
+                    $routes[] = $from.' → '.$to;
+                }
+
+                return count($routes)
+                    ? implode('<br>', $routes)
+                    : '-';
+            })
+
+            ->addColumn('trip_label', function ($row) {
+                return match ($row->type_trip) {
+                    'ONEWAY' => 'One Way',
+
+                    'ROUNDTRIP' => 'Round Trip',
+
+                    default => $row->type_trip ?? '-',
+                };
+            })
+
+            ->editColumn('actual_budget', function ($row) {
+
+                return $row->actual_budget
+                    ? 'Rp ' . number_format($row->actual_budget)
+                    : '-';
+            })
+
+            ->addColumn('status_label', function ($row) {
+                return match ($row->status) {
+                    'P' => 'On Progress',
+
+                    'C' => 'Completed',
+
+                    'R' => 'Rejected',
+
+                    'D' => 'Revise',
+
+                    'X' => 'Cancelled',
+
+                    default => '-',
+                };
+            })
+
+            ->orderColumn(
+                'voucher_date',
+                'vt.voucher_date $1'
+            )
+            ->rawColumns([
+                'route',
+            ])
+
+            ->make(true);
     }
 
     /*
@@ -471,11 +972,17 @@ class ReportGeneralGAController extends Controller
 
     private function exportOperationalCar(Request $request)
     {
-        // TODO
+        return Excel::download(
+            new BookingCarExport($request),
+            'booking-car-report.xlsx'
+        );
     }
 
     private function exportVoucherTaxi(Request $request)
     {
-        // TODO
+        return Excel::download(
+            new VoucherTaxiExport($request),
+            'voucher-taxi-report.xlsx'
+        );
     }
 }

@@ -32,6 +32,7 @@
 
                 </button>
                 @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+
                     <a href="{{ route('bookingcar.setup.index') }}"
                         class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100">
 
@@ -42,6 +43,7 @@
                         </span>
 
                     </a>
+
                 @endif
 
                 <button type="button" id="openCreateBookingModal"
@@ -381,60 +383,26 @@
                                 Trip Information
                             </div>
 
-                            <div class="space-y-4">
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        From *
+                                    </label>
 
-                                <div class="flex items-center justify-between">
-
-                                    <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
-                                        Route Information
-                                    </div>
-
-                                    <button type="button" id="createAddRouteBtn"
-                                        class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-
-                                        + Add Route
-
-                                    </button>
-
+                                    <input type="text" name="location_from" placeholder="Pickup location"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
                                 </div>
 
-                                <div class="overflow-hidden rounded-2xl border border-gray-200">
+                                <div>
+                                    <label class="text-xs text-gray-500">
+                                        Destination *
+                                    </label>
 
-                                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-
-                                        <thead class="bg-gray-50">
-
-                                            <tr>
-
-                                                <th
-                                                    class="w-16 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                    No
-                                                </th>
-
-                                                <th
-                                                    class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                    Pickup Location
-                                                </th>
-
-                                                <th
-                                                    class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                    Destination
-                                                </th>
-
-                                                <th class="w-20 px-4 py-3">
-                                                </th>
-
-                                            </tr>
-
-                                        </thead>
-
-                                        <tbody id="createRouteTableBody">
-                                        </tbody>
-
-                                    </table>
-
+                                    <input type="text" name="destination" placeholder="Destination"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none dark:border-white/10 dark:bg-transparent"
+                                        required>
                                 </div>
-
                             </div>
                         </div>
 
@@ -678,57 +646,49 @@
                         <!-- ROUTE -->
                         <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
 
-                            <div class="flex items-center justify-between">
+                            <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
+                                Route Information
+                            </div>
 
-                                <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
-                                    Route Information
+                            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                                <div>
+
+                                    <div class="text-xs text-gray-400">
+                                        Pickup Location
+                                    </div>
+
+                                    <div id="view_booking_from" class="mt-1 text-sm font-medium text-gray-900">
+                                    </div>
+
                                 </div>
 
-                                <div id="view_total_route"
-                                    class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+                                <div>
 
-                                    0 Route
+                                    <div class="text-xs text-gray-400">
+                                        Destination
+                                    </div>
+
+                                    <div id="view_booking_destination" class="mt-1 text-sm font-medium text-gray-900">
+                                    </div>
 
                                 </div>
 
                             </div>
 
-                            <div class="mt-5 overflow-hidden rounded-xl border border-gray-200">
+                            <div class="mt-5 rounded-xl bg-indigo-50 px-5 py-4">
 
-                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <div class="text-[11px] uppercase tracking-[0.15em] text-indigo-500">
+                                    Route
+                                </div>
 
-                                    <thead class="bg-gray-50">
-
-                                        <tr>
-
-                                            <th
-                                                class="w-16 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                No
-                                            </th>
-
-                                            <th
-                                                class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                Pickup
-                                            </th>
-
-                                            <th
-                                                class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                Destination
-                                            </th>
-
-                                        </tr>
-
-                                    </thead>
-
-                                    <tbody id="view_booking_route_table" class="divide-y divide-gray-100 bg-white">
-
-                                    </tbody>
-
-                                </table>
+                                <div id="view_booking_route" class="mt-2 text-sm font-medium text-indigo-900">
+                                </div>
 
                             </div>
 
                         </div>
+
                         <!-- PURPOSE -->
                         <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
 
@@ -1100,54 +1060,33 @@
                         <!-- ROUTE -->
                         <div class="space-y-4">
 
-                            <div class="flex items-center justify-between">
-
-                                <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
-                                    Route Information
-                                </div>
-
-                                <button type="button" id="editAddRouteBtnEdit"
-                                    class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
-
-                                    + Add Route
-
-                                </button>
-
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                Route Information
                             </div>
 
-                            <div class="overflow-hidden rounded-2xl border border-gray-200">
+                            <div class="grid gap-4 md:grid-cols-2">
 
-                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <div>
 
-                                    <thead class="bg-gray-50">
+                                    <label class="text-xs text-gray-500">
+                                        Pickup Location
+                                    </label>
 
-                                        <tr>
+                                    <input type="text" name="location_from" id="edit_location_from"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
 
-                                            <th
-                                                class="w-16 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                No
-                                            </th>
+                                </div>
 
-                                            <th
-                                                class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                Pickup Location
-                                            </th>
+                                <div>
 
-                                            <th
-                                                class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                Destination
-                                            </th>
+                                    <label class="text-xs text-gray-500">
+                                        Destination
+                                    </label>
 
-                                            <th class="w-20 px-4 py-3"></th>
+                                    <input type="text" name="destination" id="edit_destination"
+                                        class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-black focus:outline-none">
 
-                                        </tr>
-
-                                    </thead>
-
-                                    <tbody id="editRouteTableBody">
-                                    </tbody>
-
-                                </table>
+                                </div>
 
                             </div>
 
@@ -1628,155 +1567,9 @@
                 'editPurposeDescrWrapper'
             );
 
-        const toggleListBtn = document.getElementById('toggleList');
-        const bookingListPanel = document.getElementById('bookingListPanel');
-        const calendarWrapper = document.getElementById('calendarWrapper');
-
-        let listHidden = false;
-
-        toggleListBtn?.addEventListener('click', function() {
-
-            listHidden = !listHidden;
-
-            if (listHidden) {
-
-                bookingListPanel.classList.add('hidden');
-
-                calendarWrapper.classList.remove('lg:col-span-8');
-                calendarWrapper.classList.add('lg:col-span-12');
-
-                this.innerHTML = `
-                    <span>📋</span>
-                    <span>Show Listing</span>
-                `;
-
-            } else {
-
-                bookingListPanel.classList.remove('hidden');
-
-                calendarWrapper.classList.remove('lg:col-span-12');
-                calendarWrapper.classList.add('lg:col-span-8');
-
-                this.innerHTML = `
-                    <span>📋</span>
-                    <span>Listing</span>
-                `;
-            }
-
-            setTimeout(() => {
-                bookingCalendar?.updateSize();
-            }, 200);
-        });
-
-        function createRouteRow(index, from = '', destination = '') {
-
-            return `
-                <tr>
-
-                    <td class="px-4 py-3 text-sm font-medium text-gray-500">
-                        ${index}
-                    </td>
-
-                    <td class="px-4 py-3">
-
-                        <input type="text"
-                            name="location_from[]"
-                            value="${escapeHtml(from)}"
-                            placeholder="Pickup location"
-                            class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                            required>
-
-                    </td>
-
-                    <td class="px-4 py-3">
-
-                        <input type="text"
-                            name="destination[]"
-                            value="${escapeHtml(destination)}"
-                            placeholder="Destination"
-                            class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                            required>
-
-                    </td>
-
-                    <td class="px-4 py-3 text-right">
-
-                        <button type="button"
-                            onclick="removeRouteRow(this)"
-                            class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100">
-
-                            Remove
-
-                        </button>
-
-                    </td>
-
-                </tr>
-            `;
-        }
-
-        function refreshEditRouteNumber() {
-
-            document.querySelectorAll('#editRouteTableBody tr')
-                .forEach((tr, index) => {
-
-                    tr.querySelector('td').innerText = index + 1;
-                });
-        }
-
-        function removeRouteRow(btn) {
-
-            const tbody =
-                document.getElementById('createRouteTableBody');
-
-            if (tbody.querySelectorAll('tr').length <= 1) {
-
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Minimum 1 Route',
-                    text: 'At least one route is required'
-                });
-
-                return;
-            }
-
-            btn.closest('tr').remove();
-
-            refreshRouteNumber();
-        }
-        function refreshRouteNumber() {
-
-            document.querySelectorAll('#createRouteTableBody tr').forEach((tr, index) => {
-                tr.querySelector('td').innerText = index + 1;
-            });
-
-            // document.querySelectorAll('#editRouteTableBody tr').forEach((tr, index) => {
-            //     tr.querySelector('td').innerText = index + 1;
-            // });
-        }
-
-
-        document.getElementById('createAddRouteBtn')?.addEventListener('click', function() {
-
-            const tbody = document.getElementById('createRouteTableBody');
-
-            const index = tbody.querySelectorAll('tr').length + 1;
-
-            tbody.insertAdjacentHTML(
-                'beforeend',
-                createRouteRow(index)
-            );
-        });
-
         function openBookingModal() {
             createBookingModal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
-            const tbody = document.getElementById('createRouteTableBody');
-
-            if (!tbody.querySelector('tr')) {
-
-                tbody.innerHTML = createRouteRow(1);
-            }
         }
 
         function closeBookingModal() {
@@ -1785,7 +1578,6 @@
             bookingCarForm.reset();
             purposeDescrWrapper.classList.add('hidden');
             purposeDescr.required = false;
-            document.getElementById('createRouteTableBody').innerHTML = '';
         }
 
         function closeBookingDetailModal() {
@@ -2044,24 +1836,24 @@
                                             !row.no_polisi
                                         )
                                         ? `
-                                                <button
-                                                    type="button"
-                                                    onclick="event.stopPropagation(); openGaProcessModal('${row.eid}')  "
-                                                    class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
-                                                    Process
-                                                </button>
-                                            `
+                                            <button
+                                                type="button"
+                                                onclick="event.stopPropagation(); openGaProcessModal('${row.eid}')  "
+                                                class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
+                                                Process
+                                            </button>
+                                        `
                                         : `
-                                                ${
-                                                    row.status === 'C'
-                                                    ? `
+                                            ${
+                                                row.status === 'C'
+                                                ? `
                                                     <div class="rounded-lg bg-emerald-100 px-3 py-1.5 text-[11px] font-semibold text-emerald-700">
                                                         Processed
                                                     </div>
                                                 `
-                                                    : ''
-                                                }
-                                            `
+                                                : ''
+                                            }
+                                        `
                                     }
                                 @endif
 
@@ -2296,51 +2088,15 @@
                 // ROUTE
                 // =========================================================
 
-                const routeTable =
-                    document.getElementById('view_booking_route_table');
+                document.getElementById('view_booking_from').innerText =
+                    d.location_from || '-';
 
-                routeTable.innerHTML = '';
+                document.getElementById('view_booking_destination').innerText =
+                    d.destination || '-';
 
-                if (d.routes && d.routes.length) {
+                document.getElementById('view_booking_route').innerText =
+                    `${d.location_from || '-'} → ${d.destination || '-'}`;
 
-                    document.getElementById('view_total_route').innerText =
-                        `${d.routes.length} Route`;
-
-                    d.routes.forEach((route, index) => {
-
-                        routeTable.innerHTML += `
-                            <tr>
-
-                                <td class="px-4 py-3 text-sm text-gray-500">
-                                    ${index + 1}
-                                </td>
-
-                                <td class="px-4 py-3 text-sm font-medium text-gray-700">
-                                    ${escapeHtml(route.location_from || '-')}
-                                </td>
-
-                                <td class="px-4 py-3 text-sm font-medium text-gray-700">
-                                    ${escapeHtml(route.destination || '-')}
-                                </td>
-
-                            </tr>
-                        `;
-                    });
-
-                } else {
-
-                    routeTable.innerHTML = `
-                        <tr>
-                            <td colspan="3"
-                                class="px-4 py-6 text-center text-sm text-gray-400">
-                                No route data
-                            </td>
-                        </tr>
-                    `;
-
-                    document.getElementById('view_total_route').innerText =
-                        '0 Route';
-                }
                 // =========================================================
                 // PURPOSE
                 // =========================================================
@@ -2437,96 +2193,7 @@
 
                         editBtn.classList.remove('hidden');
 
-                        editBtn.onclick = async function() {
-
-                            const eid = d.eid;
-
-                            const response = await fetch(`/bookingcar/detail/${eid}`);
-
-                            const result = await response.json();
-
-                            if (!result.success) return;
-
-                            const dEdit = result.data;
-
-                            viewBookingModal.classList.add('hidden');
-
-                            editBookingModal.classList.remove('hidden');
-
-                            document.body.classList.add('overflow-hidden');
-
-                            document.getElementById('edit_booking_docid').value =
-                                dEdit.docid;
-
-                            document.getElementById('edit_booking_eid').value =
-                                dEdit.eid;
-
-                            document.getElementById('edit_cpny_id').value =
-                                dEdit.cpny_id || '';
-
-                            document.getElementById('edit_department_id').value =
-                                dEdit.department_id || '';
-
-                            document.getElementById('edit_user_peminta').value =
-                                dEdit.user_peminta || '';
-
-                            filterEditUserRequest();
-
-                            document.getElementById('edit_user_request').value =
-                                dEdit.user_request || '';
-
-                            document.getElementById('edit_passenger').value =
-                                dEdit.passenger || '';
-
-                            document.getElementById('edit_booking_date').value =
-                                dEdit.booking_date || '';
-
-                            document.getElementById('edit_start_time').value =
-                                dEdit.start_time ?
-                                dEdit.start_time.substring(11, 16) :
-                                '';
-
-                            document.getElementById('edit_end_time').value =
-                                dEdit.end_time ?
-                                dEdit.end_time.substring(11, 16) :
-                                '';
-
-                            const editRouteBody =
-                                document.getElementById('editRouteTableBody');
-
-                            editRouteBody.innerHTML = '';
-
-                            if (dEdit.routes && dEdit.routes.length) {
-
-                                dEdit.routes.forEach((route, index) => {
-
-                                    editRouteBody.insertAdjacentHTML(
-                                        'beforeend',
-                                        createEditRouteRow(
-                                            index + 1,
-                                            route.location_from || '',
-                                            route.destination || ''
-                                        )
-                                    );
-                                });
-
-                            } else {
-
-                                editRouteBody.innerHTML =
-                                    createEditRouteRow(1);
-                            }
-
-                            document.getElementById('edit_cpny_id_site').value =
-                                dEdit.cpny_id_site || '';
-
-                            document.getElementById('edit_purpose_id').value =
-                                dEdit.purpose_id || '';
-
-                            document.getElementById('edit_purpose_descr').value =
-                                dEdit.purpose_descr || '';
-
-                            toggleEditPurposeDescription();
-                        };
+                        editBtn.dataset.eid = d.eid;
                     }
 
                     if (
@@ -2735,7 +2402,7 @@
 
                             approveBtn.innerHTML = 'Process';
 
-                            approveBtn.onclick = function() {
+                            approveBtn.onclick = function () {
                                 openGaProcessModal(d.eid);
                             };
 
@@ -2883,8 +2550,8 @@
                             ${
                                 !step.is_last
                                 ? `
-                                            <div class="absolute left-[8px] top-0 h-full w-[2px] ${lineColor}"></div>
-                                        `
+                                        <div class="absolute left-[8px] top-0 h-full w-[2px] ${lineColor}"></div>
+                                    `
                                 : ''
                             }
 
@@ -2909,20 +2576,20 @@
                                         ${
                                             step.by
                                             ? `
-                                                        <div class="mt-1 text-xs text-gray-400">
-                                                            ${escapeHtml(step.by)}
-                                                            ${
-                                                                step.at
-                                                                ? `• ${escapeHtml(step.at)}`
-                                                                : ''
-                                                            }
-                                                        </div>
-                                                    `
+                                                    <div class="mt-1 text-xs text-gray-400">
+                                                        ${escapeHtml(step.by)}
+                                                        ${
+                                                            step.at
+                                                            ? `• ${escapeHtml(step.at)}`
+                                                            : ''
+                                                        }
+                                                    </div>
+                                                `
                                             : `
-                                                        <div class="mt-1 text-xs italic text-gray-400">
-                                                            Waiting for action
-                                                        </div>
-                                                    `
+                                                    <div class="mt-1 text-xs italic text-gray-400">
+                                                        Waiting for action
+                                                    </div>
+                                                `
                                         }
 
                                     </div>
@@ -2936,18 +2603,18 @@
                                 ${
                                     step.comment
                                     ? `
-                                                <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
+                                            <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
 
-                                                    <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
-                                                        Comment
-                                                    </div>
-
-                                                    <div class="mt-1 text-xs leading-relaxed text-yellow-900">
-                                                        ${escapeHtml(step.comment)}
-                                                    </div>
-
+                                                <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
+                                                    Comment
                                                 </div>
-                                            `
+
+                                                <div class="mt-1 text-xs leading-relaxed text-yellow-900">
+                                                    ${escapeHtml(step.comment)}
+                                                </div>
+
+                                            </div>
+                                        `
                                     : ''
                                 }
 
@@ -3038,75 +2705,6 @@
             currentReasonAction = null;
             currentBookingDocid = null;
         }
-
-        function createEditRouteRow(index, from = '', destination = '') {
-
-            return `
-                <tr>
-
-                    <td class="px-4 py-3 text-sm font-medium text-gray-500">
-                        ${index}
-                    </td>
-
-                    <td class="px-4 py-3">
-
-                        <input type="text"
-                            name="location_from[]"
-                            value="${escapeHtml(from)}"
-                            placeholder="Pickup location"
-                            class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                            required>
-
-                    </td>
-
-                    <td class="px-4 py-3">
-
-                        <input type="text"
-                            name="destination[]"
-                            value="${escapeHtml(destination)}"
-                            placeholder="Destination"
-                            class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                            required>
-
-                    </td>
-
-                    <td class="px-4 py-3 text-right">
-
-                        <button type="button"
-                            onclick="removeEditRouteRow(this)"
-                            class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100">
-
-                            Remove
-
-                        </button>
-
-                    </td>
-
-                </tr>
-            `;
-        }
-
-        function removeEditRouteRow(btn) {
-
-            btn.closest('tr').remove();
-
-            refreshEditRouteNumber();
-        }
-
-        document.getElementById('editAddRouteBtnEdit')
-            ?.addEventListener('click', function() {
-
-                const tbody =
-                    document.getElementById('editRouteTableBody');
-
-                const index =
-                    tbody.querySelectorAll('tr').length + 1;
-
-                tbody.insertAdjacentHTML(
-                    'beforeend',
-                    createEditRouteRow(index)
-                );
-            });
 
         function filterEditUserRequest() {
 
@@ -3285,168 +2883,150 @@
             }
         );
 
-        // document.getElementById('editBookingBtn')?.addEventListener(
-        //     'click',
-        //     async function() {
+        document.getElementById('editBookingBtn')?.addEventListener(
+            'click',
+            async function() {
 
-        //         const eid = this.dataset.eid;
+                const eid = this.dataset.eid;
 
-        //         const response = await fetch(
-        //             `/bookingcar/detail/${eid}`
-        //         );
+                const response = await fetch(
+                    `/bookingcar/detail/${eid}`
+                );
 
-        //         const result = await response.json();
+                const result = await response.json();
 
-        //         if (!result.success) return;
+                if (!result.success) return;
 
-        //         const d = result.data;
+                const d = result.data;
 
-        //         // const tracking =
-        //         //     result.tracking || [];
+                // const tracking =
+                //     result.tracking || [];
 
-        //         viewBookingModal.classList.add('hidden');
+                viewBookingModal.classList.add('hidden');
 
-        //         editBookingModal.classList.remove('hidden');
-        //         document.body.classList.add('overflow-hidden');
+                editBookingModal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
 
-        //         document.getElementById('edit_booking_docid').value =
-        //             d.docid;
+                document.getElementById('edit_booking_docid').value =
+                    d.docid;
 
-        //         document.getElementById('edit_booking_eid').value =
-        //             d.eid;
+                document.getElementById('edit_booking_eid').value =
+                    d.eid;
 
-        //         document.getElementById('edit_cpny_id').value =
-        //             d.cpny_id || '';
+                document.getElementById('edit_cpny_id').value =
+                    d.cpny_id || '';
 
-        //         document.getElementById('edit_department_id').value =
-        //             d.department_id || '';
+                document.getElementById('edit_department_id').value =
+                    d.department_id || '';
 
-        //         document.getElementById('edit_user_peminta').value =
-        //             d.user_peminta || '';
+                document.getElementById('edit_user_peminta').value =
+                    d.user_peminta || '';
 
-        //         filterEditUserRequest();
+                filterEditUserRequest();
 
-        //         document.getElementById('edit_user_request').value =
-        //             d.user_request || '';
+                document.getElementById('edit_user_request').value =
+                    d.user_request || '';
 
 
-        //         document.getElementById('edit_passenger').value =
-        //             d.passenger || '';
+                document.getElementById('edit_passenger').value =
+                    d.passenger || '';
 
-        //         document.getElementById('edit_booking_date').value =
-        //             d.booking_date || '';
+                document.getElementById('edit_booking_date').value =
+                    d.booking_date || '';
 
-        //         document.getElementById('edit_start_time').value =
-        //             d.start_time ? d.start_time.substring(11, 16) : '';
+                document.getElementById('edit_start_time').value =
+                    d.start_time ? d.start_time.substring(11, 16) : '';
 
-        //         document.getElementById('edit_end_time').value =
-        //             d.end_time ? d.end_time.substring(11, 16) : '';
+                document.getElementById('edit_end_time').value =
+                    d.end_time ? d.end_time.substring(11, 16) : '';
 
-        //         const editRouteBody = document.getElementById('editRouteTableBody');
+                document.getElementById('edit_location_from').value =
+                    d.location_from || '';
 
-        //         editRouteBody.innerHTML = '';
+                document.getElementById('edit_destination').value =
+                    d.destination || '';
 
-        //         if (d.routes && d.routes.length) {
+                document.getElementById('edit_cpny_id_site').value =
+                    d.cpny_id_site || '';
 
-        //             d.routes.forEach((route, index) => {
+                document.getElementById('edit_purpose_id').value =
+                    d.purpose_id || '';
 
-        //                 editRouteBody.insertAdjacentHTML(
-        //                     'beforeend',
-        //                     createEditRouteRow(
-        //                         index + 1,
-        //                         route.location_from || '',
-        //                         route.destination || ''
-        //                     )
-        //                 );
-        //             });
+                document.getElementById('edit_purpose_descr').value =
+                    d.purpose_descr || '';
 
-        //         } else {
+                toggleEditPurposeDescription();
 
-        //             editRouteBody.innerHTML =
-        //                 createEditRouteRow(1);
-        //         }
+                document.getElementById('editBookingReviseWrapper')
+                    .classList.add('hidden');
 
-        //         document.getElementById('edit_cpny_id_site').value =
-        //             d.cpny_id_site || '';
+                document.getElementById('edit_booking_revise_reason')
+                    .innerHTML = '';
 
-        //         document.getElementById('edit_purpose_id').value =
-        //             d.purpose_id || '';
+                try {
 
-        //         document.getElementById('edit_purpose_descr').value =
-        //             d.purpose_descr || '';
+                    const trackingResponse = await fetch(
+                        `/bookingcar/tracking/${d.eid}`
+                    );
 
-        //         toggleEditPurposeDescription();
+                    const trackingResult =
+                        await trackingResponse.json();
 
-        //         document.getElementById('editBookingReviseWrapper')
-        //             .classList.add('hidden');
+                    const reviseSteps =
+                        (trackingResult.steps || []).filter(
+                            step => ['D', 'R'].includes(step.status) &&
+                            step.comment
+                        );
 
-        //         document.getElementById('edit_booking_revise_reason')
-        //             .innerHTML = '';
+                    if (reviseSteps.length) {
 
-        //         try {
+                        document.getElementById('editBookingReviseWrapper')
+                            .classList.remove('hidden');
 
-        //             const trackingResponse = await fetch(
-        //                 `/bookingcar/tracking/${d.eid}`
-        //             );
+                        document.getElementById('edit_booking_revise_reason')
+                            .innerHTML = reviseSteps.map(step => `
+                                <div class="mb-3 rounded-xl border border-yellow-200 bg-white px-4 py-3">
 
-        //             const trackingResult =
-        //                 await trackingResponse.json();
+                                    <div class="flex items-center justify-between gap-3">
 
-        //             const reviseSteps =
-        //                 (trackingResult.steps || []).filter(
-        //                     step => ['D', 'R'].includes(step.status) &&
-        //                     step.comment
-        //                 );
+                                        <div class="text-xs font-semibold text-yellow-700">
+                                            ${
+                                                step.status === 'D'
+                                                ? 'REVISION'
+                                                : 'REJECTION'
+                                            }
+                                        </div>
 
-        //             if (reviseSteps.length) {
+                                        <div class="text-[11px] text-gray-400">
+                                            ${step.by || '-'}
+                                        </div>
 
-        //                 document.getElementById('editBookingReviseWrapper')
-        //                     .classList.remove('hidden');
+                                    </div>
 
-        //                 document.getElementById('edit_booking_revise_reason')
-        //                     .innerHTML = reviseSteps.map(step => `
-    //                         <div class="mb-3 rounded-xl border border-yellow-200 bg-white px-4 py-3">
+                                    ${
+                                        step.at
+                                        ? `
+                                                        <div class="mt-1 text-[11px] text-gray-400">
+                                                            ${step.at}
+                                                        </div>
+                                                    `
+                                        : ''
+                                    }
 
-    //                             <div class="flex items-center justify-between gap-3">
+                                    <div class="mt-3 text-sm leading-relaxed text-gray-700">
+                                        ${escapeHtml(step.comment)}
+                                    </div>
 
-    //                                 <div class="text-xs font-semibold text-yellow-700">
-    //                                     ${
-    //                                         step.status === 'D'
-    //                                         ? 'REVISION'
-    //                                         : 'REJECTION'
-    //                                     }
-    //                                 </div>
+                                </div>
+                            `).join('');
+                    }
 
-    //                                 <div class="text-[11px] text-gray-400">
-    //                                     ${step.by || '-'}
-    //                                 </div>
+                } catch (err) {
 
-    //                             </div>
-
-    //                             ${
-    //                                 step.at
-    //                                 ? `
-        //                                                 <div class="mt-1 text-[11px] text-gray-400">
-        //                                                     ${step.at}
-        //                                                 </div>
-        //                                             `
-    //                                 : ''
-    //                             }
-
-    //                             <div class="mt-3 text-sm leading-relaxed text-gray-700">
-    //                                 ${escapeHtml(step.comment)}
-    //                             </div>
-
-    //                         </div>
-    //                     `).join('');
-        //             }
-
-        //         } catch (err) {
-
-        //             console.error(err);
-        //         }
-        //     }
-        // );
+                    console.error(err);
+                }
+            }
+        );
 
         bookingCarForm?.addEventListener(
             'submit',

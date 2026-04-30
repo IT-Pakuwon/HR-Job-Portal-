@@ -2486,16 +2486,37 @@
                         </div>
 
                         <!-- STATUS -->
-                        <span class="
-                            shrink-0
-                            rounded-full
-                            px-2.5 py-1
-                            text-[10px]
-                            font-semibold
-                            ${status.color}
-                        ">
-                            ${escapeHtml(status.label)}
-                        </span>
+                        <div class="flex flex-col items-end gap-2 shrink-0">
+
+                            <!-- MAIN STATUS -->
+                            <span class="
+                                rounded-full
+                                px-2.5 py-1
+                                text-[10px]
+                                font-semibold
+                                ${status.color}
+                            ">
+                                ${escapeHtml(status.label)}
+                            </span>
+
+                            ${
+                                item.status === 'C' && item.actual_budget
+                                ? `
+                                    <span class="
+                                        rounded-full
+                                        bg-emerald-100
+                                        px-2.5 py-1
+                                        text-[10px]
+                                        font-semibold
+                                        text-emerald-700
+                                    ">
+                                        Processed
+                                    </span>
+                                `
+                                : ''
+                            }
+
+                        </div>
 
                     </div>
 
