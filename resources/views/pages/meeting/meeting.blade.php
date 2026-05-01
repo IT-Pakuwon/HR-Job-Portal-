@@ -1890,7 +1890,7 @@
             });
 
             document.getElementById('internal_pic').value =
-                internalList.length ? internalList[0].name : "{{ auth()->user()->name }}";
+                props.internal_pic || "{{ auth()->user()->name }}";
         }
 
 

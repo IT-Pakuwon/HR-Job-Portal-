@@ -604,38 +604,39 @@
         </div>
     </div>
 
-    <div id="viewVoucherModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50">
+    <div id="viewVoucherModal"
+        class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
 
         <!-- CENTER -->
         <div class="flex min-h-screen items-center justify-center p-4">
 
             <!-- MODAL -->
-            <div class="w-full max-w-6xl overflow-hidden rounded-lg border border-gray-200 bg-[#fcfcfd] shadow-2xl">
+            <div
+                class="w-full max-w-6xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
 
                 <!-- HEADER -->
-                <div class="flex items-start justify-between border-b border-gray-200 px-8 py-6">
+                <div
+                    class="flex items-start justify-between border-b border-gray-200 px-8 py-6 dark:border-white/10">
 
                     <div>
-                        <h2 class="text-xl font-semibold tracking-tight text-gray-900">
+                        <h2 class="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
                             Voucher Detail
                         </h2>
 
-                        <p class="mt-1 text-sm text-gray-400">
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             Booking information & approval workflow
                         </p>
                     </div>
 
                     <div class="flex items-center gap-2">
 
-                        {{-- PRINT --}}
                         <a id="printVoucherBtn" href="#" target="_blank"
-                            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
+                            class="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600">
                             🖨 Print PDF
                         </a>
 
-                        {{-- CLOSE --}}
                         <button onclick="closeViewModal()"
-                            class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black">
+                            class="rounded-xl p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black dark:hover:bg-white/10 dark:hover:text-white">
                             ✕
                         </button>
 
@@ -646,26 +647,32 @@
                 <!-- BODY -->
                 <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[1.1fr_.9fr]">
 
-                    <!-- ================= LEFT ================= -->
-                    <div class="space-y-2">
+                    <!-- LEFT -->
+                    <div class="space-y-4">
 
                         <!-- MAIN INFO -->
-                        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <div
+                            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
 
                             <!-- TOP -->
-                            <div class="flex items-start justify-between border-b border-gray-100 pb-5">
+                            <div
+                                class="flex items-start justify-between border-b border-gray-100 pb-5 dark:border-white/10">
 
                                 <div>
-                                    <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
+
+                                    <div
+                                        class="text-[11px] uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
                                         Requester
                                     </div>
 
-                                    <div id="view_user" class="mt-2 text-base font-medium text-gray-900">
+                                    <div id="view_user"
+                                        class="mt-2 text-base font-semibold text-gray-900 dark:text-white">
                                     </div>
+
                                 </div>
 
                                 <div id="view_status_badge"
-                                    class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                                    class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-200">
                                     Pending
                                 </div>
 
@@ -675,51 +682,58 @@
                             <div class="mt-6 grid grid-cols-2 gap-x-8 gap-y-6">
 
                                 <div>
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs text-gray-400 dark:text-gray-500">
                                         Date
                                     </div>
 
-                                    <div id="view_date" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_date"
+                                        class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs text-gray-400 dark:text-gray-500">
                                         Trip Type
                                     </div>
 
-                                    <div id="view_type_trip" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_type_trip"
+                                        class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs text-gray-400 dark:text-gray-500">
                                         Origin
                                     </div>
 
-                                    <div id="view_origin" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_origin"
+                                        class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs text-gray-400 dark:text-gray-500">
                                         Destination
                                     </div>
 
-                                    <div id="view_destination" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_destination"
+                                        class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                                     </div>
                                 </div>
 
                                 <!-- ROUTE -->
                                 <div class="col-span-2">
 
-                                    <div class="rounded-lg bg-indigo-50 px-5 py-4">
+                                    <div
+                                        class="rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
 
-                                        <div class="text-[11px] uppercase tracking-[0.15em] text-indigo-500">
+                                        <div
+                                            class="text-[11px] uppercase tracking-[0.15em] text-indigo-500 dark:text-indigo-300">
                                             Route
                                         </div>
 
-                                        <div id="view_route" class="mt-2 text-sm font-medium text-indigo-900">
+                                        <div id="view_route"
+                                            class="mt-2 text-sm font-semibold text-indigo-900 dark:text-indigo-200">
                                         </div>
 
                                     </div>
@@ -727,20 +741,22 @@
                                 </div>
 
                                 <div>
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs text-gray-400 dark:text-gray-500">
                                         Company
                                     </div>
 
-                                    <div id="view_cpny" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_cpny"
+                                        class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs text-gray-400 dark:text-gray-500">
                                         Department
                                     </div>
 
-                                    <div id="view_dept" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_dept"
+                                        class="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                                     </div>
                                 </div>
 
@@ -749,41 +765,42 @@
                         </div>
 
                         <!-- PURPOSE -->
-                        <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <div
+                            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
 
-                            <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
+                            <div
+                                class="text-[11px] uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
                                 Purpose
                             </div>
 
-                            <div id="view_purpose" class="mt-3 text-sm font-medium leading-relaxed text-gray-900">
+                            <div id="view_purpose"
+                                class="mt-3 text-sm font-medium leading-relaxed text-gray-900 dark:text-gray-100">
                             </div>
 
                         </div>
 
                         <!-- ACTUAL EXPENSE -->
                         <div id="actualExpenseWrapper"
-                            class="hidden rounded-lg border border-emerald-100 bg-emerald-50 p-4 shadow-sm">
+                            class="hidden rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm dark:border-emerald-500/20 dark:bg-emerald-500/10">
 
                             <div class="flex items-center justify-between">
 
                                 <div>
 
-                                    <div class="text-[11px] uppercase tracking-[0.18em] text-emerald-600">
+                                    <div
+                                        class="text-[11px] uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-300">
                                         Actual Expense
                                     </div>
 
-                                    <div class="mt-3 text-[11px] font-medium tracking-tight text-emerald-900">
-
-                                        <span id="view_actual_budget">
-                                            Rp 0
-                                        </span>
-
+                                    <div id="view_actual_budget"
+                                        class="mt-3 text-lg font-semibold text-emerald-800 dark:text-emerald-200">
+                                        Rp 0
                                     </div>
 
                                 </div>
 
                                 <div
-                                    class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+                                    class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
                                     Processed
                                 </div>
 
@@ -793,48 +810,50 @@
 
                         <!-- REVISE -->
                         <div id="reviseReasonWrapper"
-                            class="hidden rounded-lg border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
+                            class="hidden rounded-2xl border border-yellow-200 bg-yellow-50 p-5 shadow-sm dark:border-yellow-500/20 dark:bg-yellow-500/10">
 
-                            <div class="text-[11px] uppercase tracking-[0.18em] text-yellow-700">
+                            <div
+                                class="text-[11px] uppercase tracking-[0.18em] text-yellow-700 dark:text-yellow-300">
                                 Revision Reason
                             </div>
 
-                            <div id="view_revise_reason" class="mt-3 text-sm leading-relaxed text-yellow-900">
+                            <div id="view_revise_reason"
+                                class="mt-3 text-sm leading-relaxed text-yellow-900 dark:text-yellow-100">
                             </div>
 
                         </div>
 
                     </div>
 
-                    <!-- ================= RIGHT ================= -->
+                    <!-- RIGHT -->
                     <div class="space-y-4">
 
                         <!-- HEADER -->
                         <div class="flex items-center justify-between">
 
                             <div>
-                                <h3 class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+                                <h3
+                                    class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
                                     Approval Workflow
                                 </h3>
                             </div>
 
-                            <!-- ACTIONS -->
                             <div class="flex items-center gap-2">
 
-                                <div id="approvalActions" class="flex hidden items-center gap-2">
+                                <div id="approvalActions" class="hidden items-center gap-2">
 
                                     <button id="approveBtn"
-                                        class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-400">
+                                        class="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-400">
                                         ✓ Approve
                                     </button>
 
                                     <button id="reviseBtn"
-                                        class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-medium text-black transition hover:bg-amber-300">
+                                        class="rounded-xl bg-yellow-400 px-4 py-2 text-xs font-medium text-black transition hover:bg-yellow-300">
                                         ✎ Revise
                                     </button>
 
                                     <button id="rejectBtn"
-                                        class="rounded-lg bg-red-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-red-400">
+                                        class="rounded-xl bg-red-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-red-400">
                                         ✕ Reject
                                     </button>
 
@@ -848,9 +867,9 @@
                         </div>
 
                         <!-- APPROVAL CARD -->
-                        <div class="min-h-auto rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <div
+                            class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
 
-                            <!-- TIMELINE -->
                             <div id="approvalFlow" class="relative space-y-6">
                             </div>
 
@@ -861,21 +880,23 @@
                 </div>
 
                 <!-- FOOTER -->
-                <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
+                <div
+                    class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.03]">
 
-                    <button onclick="closeViewModal()" class="text-sm text-gray-500 transition hover:text-black">
+                    <button onclick="closeViewModal()"
+                        class="text-sm text-gray-500 transition hover:text-black dark:text-gray-400 dark:hover:text-white">
                         Close
                     </button>
 
                     <div class="flex items-center gap-3">
 
                         <button id="cancelVoucherBtn"
-                            class="hidden rounded-lg border border-red-200 bg-red-500 px-5 py-2 text-sm font-medium text-white transition hover:bg-red-600">
+                            class="hidden rounded-xl border border-red-200 bg-red-500 px-5 py-2 text-sm font-medium text-white transition hover:bg-red-600 dark:border-red-500/20">
                             ✕ Cancel Request
                         </button>
 
                         <button id="openEditFromViewBtn"
-                            class="hidden rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
+                            class="hidden rounded-xl bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
                             ✏️ Edit Booking
                         </button>
 
@@ -1815,32 +1836,242 @@
             );
         }
 
+        // function loadApproval(eid) {
+
+        //     const el = document.getElementById('approvalFlow');
+        //     const actionBox = document.getElementById('approvalActions');
+
+        //     actionBox.classList.add('hidden'); // always reset
+
+        //     if (!eid) {
+        //         el.innerHTML = `<div class="text-xs text-red-500">Invalid approval reference</div>`;
+        //         return;
+        //     }
+
+        //     el.innerHTML = `<div class="text-xs text-gray-400">Loading approval...</div>`;
+
+        //     fetch(`/vouchertaxi/tracking/${eid}`, {
+        //             headers: {
+        //                 'Accept': 'application/json'
+        //             }
+        //         })
+        //         .then(async (res) => {
+
+        //             const text = await res.text();
+
+        //             // // console.log('TRACKING RAW:', text);
+
+        //             try {
+        //                 return JSON.parse(text);
+
+        //             } catch (e) {
+
+        //                 console.error('Tracking invalid JSON');
+        //                 console.error(text);
+
+        //                 throw new Error('Tracking endpoint returned HTML');
+        //             }
+        //         })
+        //         .then(res => {
+
+        //             el.innerHTML = '';
+
+        //             if (!res.steps || res.steps.length === 0) {
+
+        //                 el.innerHTML = `
+        //                 <div class="text-xs text-gray-400">
+        //                     No approval data
+        //                 </div>
+        //             `;
+
+        //                 return;
+        //             }
+
+        //             let currentStep = null;
+
+        //             res.steps.forEach(step => {
+
+        //                 if (step.status === 'P' && !currentStep) {
+        //                     currentStep = step;
+        //                 }
+
+        //                 const isActive = step.status === 'P';
+        //                 const isDone = step.status === 'A';
+
+        //                 const dotColor = isDone ?
+        //                     'bg-green-500' :
+        //                     isActive ?
+        //                     'bg-blue-500 ring-4 ring-blue-100' :
+        //                     'bg-gray-300';
+
+        //                 const lineColor = isDone ?
+        //                     'bg-green-400' :
+        //                     'bg-gray-200';
+
+        //                 el.innerHTML += `
+        //                 <div class="relative pl-6">
+
+        //                     <div class="absolute left-[7px] top-0 h-full w-[2px] ${lineColor}"></div>
+
+        //                     <div class="absolute left-0 top-1 w-4 h-4 rounded-full ${dotColor}"></div>
+
+        //                     <div class="pb-6">
+
+        //                         <div class="flex justify-between items-center">
+
+        //                             <div class="text-sm font-semibold text-gray-900">
+        //                                 ${escapeHtml(step.title)}
+        //                             </div>
+
+        //                             <div class="text-xs px-2 py-0.5 rounded-full
+        //                                 ${
+        //                                     isDone
+        //                                     ? 'bg-green-100 text-green-600'
+        //                                     : isActive
+        //                                     ? 'bg-blue-100 text-blue-600'
+        //                                     : 'bg-gray-100 text-gray-500'
+        //                                 }">
+
+        //                                 ${escapeHtml(step.status_label)}
+        //                             </div>
+
+        //                         </div>
+
+        //                         ${
+        //                             step.by
+        //                             ? `
+        //                                     <div class="text-xs text-gray-400 mt-1">
+        //                                         ${escapeHtml(step.by)}
+        //                                         •
+        //                                         ${escapeHtml(step.at || '')}
+        //                                     </div>
+        //                                 `
+        //                             : `
+        //                                     <div class="text-xs text-gray-400 mt-1 italic">
+        //                                         Waiting for action
+        //                                     </div>
+        //                                 `
+        //                         }
+
+        //                         ${
+        //                             step.comment
+        //                             ? `
+        //                                     <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
+
+        //                                         <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
+        //                                             Reason
+        //                                         </div>
+
+        //                                         <div class="mt-1 text-xs text-yellow-900">
+        //                                             ${escapeHtml(step.comment)}
+        //                                         </div>
+
+        //                                     </div>
+        //                                 `
+        //                             : ''
+        //                         }
+
+        //                     </div>
+
+        //                 </div>
+        //             `;
+        //             });
+
+        //             if (currentStep) {
+        //                 checkApprovalAccess(currentStep);
+        //             }
+
+        //             const actionDiv = document.getElementById('viewActions');
+
+        //             if (actionDiv) {
+
+        //                 actionDiv.innerHTML = '';
+
+        //                 const currentUser = String(window.currentUsername || '')
+        //                     .trim()
+        //                     .toLowerCase();
+
+        //                 const approvers = String(currentStep?.aprv_username || '')
+        //                     .split(',')
+        //                     .map(v => v.trim().toLowerCase());
+
+        //                 const isCurrentApprover = approvers.includes(currentUser);
+
+        //                 const isGA = window.isGA === true;
+
+        //                 // 🔥 ONLY ACTIVE GA APPROVER CAN PROCESS
+        //                 if (
+        //                     isGA &&
+        //                     isCurrentApprover &&
+        //                     window.currentVoucherData?.status === 'C' &&
+        //                     !window.currentVoucherData?.actual_budget
+        //                 ) {
+
+        //                     actionDiv.innerHTML = `
+        //                     <button id="openProcessBtn"
+        //                         class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
+        //                         Process
+        //                     </button>
+        //                 `;
+
+        //                     document.getElementById('openProcessBtn')
+        //                         ?.addEventListener('click', () => {
+
+        //                             processVoucher(window.currentVoucherData);
+        //                         });
+        //                 }
+        //             }
+
+
+        //         })
+        //         .catch(err => {
+
+        //             console.error(err);
+
+        //             el.innerHTML = `
+        //             <div class="text-xs text-red-500">
+        //                 Failed to load approval
+        //             </div>
+        //         `;
+        //         });
+        // }
+
         function loadApproval(eid) {
 
             const el = document.getElementById('approvalFlow');
             const actionBox = document.getElementById('approvalActions');
 
-            actionBox.classList.add('hidden'); // always reset
+            actionBox.classList.add('hidden');
 
             if (!eid) {
-                el.innerHTML = `<div class="text-xs text-red-500">Invalid approval reference</div>`;
+
+                el.innerHTML = `
+                    <div class="text-xs text-red-500 dark:text-red-400">
+                        Invalid approval reference
+                    </div>
+                `;
+
                 return;
             }
 
-            el.innerHTML = `<div class="text-xs text-gray-400">Loading approval...</div>`;
+            el.innerHTML = `
+                <div class="text-xs text-gray-400 dark:text-gray-500">
+                    Loading approval...
+                </div>
+            `;
 
             fetch(`/vouchertaxi/tracking/${eid}`, {
                     headers: {
                         'Accept': 'application/json'
                     }
                 })
-                .then(async (res) => {
+
+                .then(async(res) => {
 
                     const text = await res.text();
 
-                    // // console.log('TRACKING RAW:', text);
-
                     try {
+
                         return JSON.parse(text);
 
                     } catch (e) {
@@ -1851,6 +2082,7 @@
                         throw new Error('Tracking endpoint returned HTML');
                     }
                 })
+
                 .then(res => {
 
                     el.innerHTML = '';
@@ -1858,17 +2090,17 @@
                     if (!res.steps || res.steps.length === 0) {
 
                         el.innerHTML = `
-                        <div class="text-xs text-gray-400">
-                            No approval data
-                        </div>
-                    `;
+                            <div class="text-xs text-gray-400 dark:text-gray-500">
+                                No approval data
+                            </div>
+                        `;
 
                         return;
                     }
 
                     let currentStep = null;
 
-                    res.steps.forEach(step => {
+                    res.steps.forEach((step, index) => {
 
                         if (step.status === 'P' && !currentStep) {
                             currentStep = step;
@@ -1876,84 +2108,175 @@
 
                         const isActive = step.status === 'P';
                         const isDone = step.status === 'A';
+                        const isRejected = step.status === 'R';
+                        const isRevise = step.status === 'D';
 
-                        const dotColor = isDone ?
-                            'bg-green-500' :
+                        // DOT
+                        const dotColor =
+                            isDone ?
+                            'bg-emerald-500 shadow-lg shadow-emerald-500/20' :
                             isActive ?
-                            'bg-blue-500 ring-4 ring-blue-100' :
-                            'bg-gray-300';
+                            'bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-500/20' :
+                            isRejected ?
+                            'bg-red-500' :
+                            isRevise ?
+                            'bg-yellow-400' :
+                            'bg-gray-300 dark:bg-gray-600';
 
-                        const lineColor = isDone ?
-                            'bg-green-400' :
-                            'bg-gray-200';
+                        // LINE
+                        const lineColor =
+                            isDone ?
+                            'bg-emerald-400 dark:bg-emerald-500' :
+                            'bg-gray-200 dark:bg-white/10';
+
+                        // STATUS BADGE
+                        const statusBadge =
+                            isDone ?
+                            'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' :
+                            isActive ?
+                            'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' :
+                            isRejected ?
+                            'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' :
+                            isRevise ?
+                            'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300' :
+                            'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300';
 
                         el.innerHTML += `
-                        <div class="relative pl-6">
 
-                            <div class="absolute left-[7px] top-0 h-full w-[2px] ${lineColor}"></div>
-
-                            <div class="absolute left-0 top-1 w-4 h-4 rounded-full ${dotColor}"></div>
-
-                            <div class="pb-6">
-
-                                <div class="flex justify-between items-center">
-
-                                    <div class="text-sm font-semibold text-gray-900">
-                                        ${escapeHtml(step.title)}
-                                    </div>
-
-                                    <div class="text-xs px-2 py-0.5 rounded-full
-                                        ${
-                                            isDone
-                                            ? 'bg-green-100 text-green-600'
-                                            : isActive
-                                            ? 'bg-blue-100 text-blue-600'
-                                            : 'bg-gray-100 text-gray-500'
-                                        }">
-
-                                        ${escapeHtml(step.status_label)}
-                                    </div>
-
-                                </div>
+                            <div class="relative pl-7">
 
                                 ${
-                                    step.by
+                                    index !== res.steps.length - 1
                                     ? `
-                                            <div class="text-xs text-gray-400 mt-1">
-                                                ${escapeHtml(step.by)}
-                                                •
-                                                ${escapeHtml(step.at || '')}
-                                            </div>
-                                        `
-                                    : `
-                                            <div class="text-xs text-gray-400 mt-1 italic">
-                                                Waiting for action
-                                            </div>
-                                        `
+                                        <div class="
+                                            absolute
+                                            left-[7px]
+                                            top-4
+                                            h-full
+                                            w-[2px]
+                                            ${lineColor}
+                                        "></div>
+                                    `
+                                    : ''
                                 }
 
-                                ${
-                                    step.comment
-                                    ? `
-                                            <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
+                                <!-- DOT -->
+                                <div class="
+                                    absolute
+                                    left-0
+                                    top-1
+                                    h-4
+                                    w-4
+                                    rounded-full
+                                    ${dotColor}
+                                "></div>
 
-                                                <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
+                                <!-- CONTENT -->
+                                <div class="pb-7">
+
+                                    <!-- HEADER -->
+                                    <div class="flex items-start justify-between gap-3">
+
+                                        <div class="min-w-0 flex-1">
+
+                                            <div class="
+                                                text-sm
+                                                font-semibold
+                                                text-gray-900
+                                                dark:text-white
+                                            ">
+                                                ${escapeHtml(step.title)}
+                                            </div>
+
+                                            ${
+                                                step.by
+                                                ? `
+                                                    <div class="
+                                                        mt-1
+                                                        text-xs
+                                                        text-gray-400
+                                                        dark:text-gray-500
+                                                    ">
+                                                        ${escapeHtml(step.by)}
+                                                        •
+                                                        ${escapeHtml(step.at || '')}
+                                                    </div>
+                                                `
+                                                : `
+                                                    <div class="
+                                                        mt-1
+                                                        text-xs
+                                                        italic
+                                                        text-gray-400
+                                                        dark:text-gray-500
+                                                    ">
+                                                        Waiting for action
+                                                    </div>
+                                                `
+                                            }
+
+                                        </div>
+
+                                        <!-- STATUS -->
+                                        <div class="
+                                            shrink-0
+                                            rounded-full
+                                            px-2.5
+                                            py-1
+                                            text-[10px]
+                                            font-semibold
+                                            ${statusBadge}
+                                        ">
+                                            ${escapeHtml(step.status_label)}
+                                        </div>
+
+                                    </div>
+
+                                    ${
+                                        step.comment
+                                        ? `
+                                            <div class="
+                                                mt-3
+                                                rounded-xl
+                                                border
+                                                border-yellow-200
+                                                bg-yellow-50
+                                                px-4
+                                                py-3
+                                                dark:border-yellow-500/20
+                                                dark:bg-yellow-500/10
+                                            ">
+
+                                                <div class="
+                                                    text-[10px]
+                                                    font-semibold
+                                                    uppercase
+                                                    tracking-[0.15em]
+                                                    text-yellow-700
+                                                    dark:text-yellow-300
+                                                ">
                                                     Reason
                                                 </div>
 
-                                                <div class="mt-1 text-xs text-yellow-900">
+                                                <div class="
+                                                    mt-2
+                                                    text-xs
+                                                    leading-relaxed
+                                                    text-yellow-900
+                                                    dark:text-yellow-100
+                                                ">
                                                     ${escapeHtml(step.comment)}
                                                 </div>
 
                                             </div>
                                         `
-                                    : ''
-                                }
+                                        : ''
+                                    }
+
+                                </div>
 
                             </div>
-
-                        </div>
-                    `;
+                        `;
                     });
 
                     if (currentStep) {
@@ -1978,7 +2301,7 @@
 
                         const isGA = window.isGA === true;
 
-                        // 🔥 ONLY ACTIVE GA APPROVER CAN PROCESS
+                        // ONLY ACTIVE GA APPROVER CAN PROCESS
                         if (
                             isGA &&
                             isCurrentApprover &&
@@ -1987,11 +2310,24 @@
                         ) {
 
                             actionDiv.innerHTML = `
-                            <button id="openProcessBtn"
-                                class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
-                                Process
-                            </button>
-                        `;
+                                <button id="openProcessBtn"
+                                    class="
+                                        rounded-xl
+                                        bg-black
+                                        px-4
+                                        py-2
+                                        text-xs
+                                        font-semibold
+                                        text-white
+                                        transition
+                                        hover:bg-gray-800
+                                        dark:bg-white
+                                        dark:text-black
+                                        dark:hover:bg-gray-200
+                                    ">
+                                    Process
+                                </button>
+                            `;
 
                             document.getElementById('openProcessBtn')
                                 ?.addEventListener('click', () => {
@@ -2001,17 +2337,17 @@
                         }
                     }
 
-
                 })
+
                 .catch(err => {
 
                     console.error(err);
 
                     el.innerHTML = `
-                    <div class="text-xs text-red-500">
-                        Failed to load approval
-                    </div>
-                `;
+                        <div class="text-xs text-red-500 dark:text-red-400">
+                            Failed to load approval
+                        </div>
+                    `;
                 });
         }
 

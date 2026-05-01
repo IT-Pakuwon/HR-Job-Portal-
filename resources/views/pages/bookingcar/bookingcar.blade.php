@@ -1,64 +1,109 @@
 <x-app-layout>
-    <div class="mb-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-            <div class="flex items-center gap-3">
-                <div
-                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
-                    🚘
-                </div>
+<div
+    class="mb-4 overflow-hidden rounded-3xl border border-gray-200 bg-white/90 shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#0f172a]/80">
 
-                <div>
-                    <h1 class="text-lg font-semibold tracking-tight text-gray-900">
-                        Booking Car
-                    </h1>
+    <div
+        class="flex flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
 
-                    <p class="mt-0.5 text-sm text-gray-500">
-                        Manage booking requests and car schedules
-                    </p>
-                </div>
+        <!-- ================================================= -->
+        <!-- LEFT -->
+        <!-- ================================================= -->
+
+        <div class="flex items-center gap-4">
+
+            <!-- ICON -->
+            <div
+                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-700 via-slate-800 to-black text-2xl text-white shadow-lg shadow-slate-900/20">
+
+                🚘
+
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
+            <!-- TITLE -->
+            <div>
 
-                <button type="button" id="toggleList"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                <div
+                    class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
 
-                    <span>📋</span>
+                    Transportation Module
 
-                    <span>
-                        Listing
-                    </span>
+                </div>
 
-                </button>
-                @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
-                    <a href="{{ route('bookingcar.setup.index') }}"
-                        class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100">
+                <h1
+                    class="mt-3 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
 
-                        <span>⚙️</span>
+                    Booking Car
 
-                        <span>
-                            Booking Car Setup
-                        </span>
+                </h1>
 
-                    </a>
-                @endif
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 
-                <button type="button" id="openCreateBookingModal"
-                    class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-black">
+                    Manage booking requests, schedules & approval workflows
 
-                    <span>➕</span>
-
-                    <span>
-                        New Booking
-                    </span>
-
-                </button>
+                </p>
 
             </div>
 
         </div>
+
+        <!-- ================================================= -->
+        <!-- RIGHT -->
+        <!-- ================================================= -->
+
+        <div class="flex flex-wrap items-center gap-3">
+
+            <!-- LIST TOGGLE -->
+            <button type="button"
+                id="toggleList"
+                class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10">
+
+                <span class="text-base">
+                    📋
+                </span>
+
+                <span>
+                    Listing
+                </span>
+
+            </button>
+
+            <!-- SETUP -->
+            @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+                <a href="{{ route('bookingcar.setup.index') }}"
+                    class="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20">
+
+                    <span class="text-base">
+                        ⚙️
+                    </span>
+
+                    <span>
+                        Booking Car Setup
+                    </span>
+
+                </a>
+            @endif
+
+            <!-- CREATE -->
+            <button type="button"
+                id="openCreateBookingModal"
+                class="inline-flex items-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+
+                <span class="text-base">
+                    ➕
+                </span>
+
+                <span>
+                    New Booking
+                </span>
+
+            </button>
+
+        </div>
+
     </div>
+
+</div>
 
     <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-12">
 
@@ -536,137 +581,194 @@
     </div>
 
     <!-- VIEW BOOKING MODAL -->
-    <div id="viewBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50">
+    <!-- VIEW BOOKING MODAL -->
+    <div id="viewBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
 
-        <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="flex min-h-screen items-center justify-center p-4 lg:p-6">
 
-            <div class="w-full max-w-6xl overflow-hidden rounded-2xl border border-gray-200 bg-[#fcfcfd] shadow-2xl">
+            <div
+                class="relative w-full max-w-7xl overflow-hidden rounded-[28px] border border-gray-200/80 bg-[#f8fafc] shadow-[0_25px_80px_rgba(0,0,0,0.18)] dark:border-white/10 dark:bg-[#0f172a]">
 
+                <!-- ===================================================== -->
                 <!-- HEADER -->
-                <div class="flex items-start justify-between border-b border-gray-200 px-8 py-6">
+                <!-- ===================================================== -->
 
-                    <div>
+                <div
+                    class="flex flex-col gap-5 border-b border-gray-200 bg-white/80 px-8 py-6 backdrop-blur dark:border-white/10 dark:bg-white/5 lg:flex-row lg:items-start lg:justify-between">
 
-                        <h2 class="text-xl font-semibold tracking-tight text-gray-900">
-                            Booking Car Detail
-                        </h2>
+                    <div class="flex items-start gap-4">
 
-                        <p class="mt-1 text-sm text-gray-400">
-                            Booking information & approval workflow
-                        </p>
+                        <div
+                            class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 text-2xl text-white shadow-lg shadow-slate-900/20">
+
+                            🚘
+
+                        </div>
+
+                        <div>
+
+                            <div
+                                class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+
+                                Booking Detail
+
+                            </div>
+
+                            <h2 class="mt-3 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+
+                                Booking Car Information
+
+                            </h2>
+
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+
+                                Booking information, route detail & approval workflow
+
+                            </p>
+
+                        </div>
 
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-3">
 
                         <a id="printBookingBtn" href="#" target="_blank"
-                            class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
-                            🖨 Print PDF
+                            class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700">
+
+                            <span>🖨</span>
+
+                            <span>Print PDF</span>
+
                         </a>
 
                         <button type="button" onclick="closeBookingDetailModal()"
-                            class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-black">
+                            class="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:bg-gray-100 hover:text-black dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
+
                             ✕
+
                         </button>
 
                     </div>
 
                 </div>
 
+                <!-- ===================================================== -->
                 <!-- BODY -->
-                <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[1.1fr_.9fr]">
+                <!-- ===================================================== -->
 
-                    <!-- LEFT -->
-                    <div class="space-y-4">
+                <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-[1.1fr_.9fr]">
 
-                        <!-- MAIN -->
-                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <!-- ================================================= -->
+                    <!-- LEFT SIDE -->
+                    <!-- ================================================= -->
 
-                            <div class="flex items-start justify-between border-b border-gray-100 pb-5">
+                    <div class="space-y-5">
 
-                                <div>
+                        <!-- MAIN INFO -->
+                        <div
+                            class="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
-                                    <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
-                                        Requester
+                            <div
+                                class="border-b border-gray-100 bg-gradient-to-r from-white to-slate-50 px-6 py-5 dark:border-white/10 dark:from-white/5 dark:to-white/[0.03]">
+
+                                <div class="flex items-start justify-between gap-4">
+
+                                    <div>
+
+                                        <div
+                                            class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+
+                                            Requester
+
+                                        </div>
+
+                                        <div id="view_booking_user"
+                                            class="mt-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                                        </div>
+
+                                        <div id="view_booking_docid"
+                                            class="mt-1 text-xs font-medium text-gray-400 dark:text-gray-500">
+                                        </div>
+
                                     </div>
 
-                                    <div id="view_booking_user" class="mt-2 text-base font-semibold text-gray-900">
+                                    <div id="view_booking_status_badge">
                                     </div>
 
-                                    <div id="view_booking_docid" class="mt-1 text-xs text-gray-400">
-                                    </div>
-
-                                </div>
-
-                                <div id="view_booking_status_badge">
                                 </div>
 
                             </div>
 
-                            <div class="mt-6 grid grid-cols-2 gap-x-8 gap-y-6">
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-7 px-6 py-6">
 
                                 <div>
 
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs font-medium text-gray-400 dark:text-gray-500">
                                         Booking Date
                                     </div>
 
-                                    <div id="view_booking_date" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_booking_date"
+                                        class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">
                                     </div>
 
                                 </div>
 
                                 <div>
 
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs font-medium text-gray-400 dark:text-gray-500">
                                         Passenger
                                     </div>
 
-                                    <div id="view_booking_passenger" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_booking_passenger"
+                                        class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">
                                     </div>
 
                                 </div>
 
                                 <div>
 
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs font-medium text-gray-400 dark:text-gray-500">
                                         Start Time
                                     </div>
 
-                                    <div id="view_booking_start" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_booking_start"
+                                        class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">
                                     </div>
 
                                 </div>
 
                                 <div>
 
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs font-medium text-gray-400 dark:text-gray-500">
                                         End Time
                                     </div>
 
-                                    <div id="view_booking_end" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_booking_end"
+                                        class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">
                                     </div>
 
                                 </div>
 
                                 <div>
 
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs font-medium text-gray-400 dark:text-gray-500">
                                         Company
                                     </div>
 
-                                    <div id="view_booking_cpny" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_booking_cpny"
+                                        class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">
                                     </div>
 
                                 </div>
 
                                 <div>
 
-                                    <div class="text-xs text-gray-400">
+                                    <div class="text-xs font-medium text-gray-400 dark:text-gray-500">
                                         Department
                                     </div>
 
-                                    <div id="view_booking_dept" class="mt-1 text-sm font-medium text-gray-900">
+                                    <div id="view_booking_dept"
+                                        class="mt-1.5 text-sm font-semibold text-gray-900 dark:text-white">
                                     </div>
 
                                 </div>
@@ -676,16 +778,29 @@
                         </div>
 
                         <!-- ROUTE -->
-                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <div
+                            class="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
 
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between px-6 py-5">
 
-                                <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
-                                    Route Information
+                                <div>
+
+                                    <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+
+                                        Route Information
+
+                                    </div>
+
+                                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+
+                                        Pickup & destination detail
+
+                                    </div>
+
                                 </div>
 
                                 <div id="view_total_route"
-                                    class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+                                    class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
 
                                     0 Route
 
@@ -693,108 +808,130 @@
 
                             </div>
 
-                            <div class="mt-5 overflow-hidden rounded-xl border border-gray-200">
+                            <div class="px-6 pb-6">
 
-                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10">
 
-                                    <thead class="bg-gray-50">
+                                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-white/10">
 
-                                        <tr>
+                                        <thead class="bg-gray-50 dark:bg-white/[0.03]">
 
-                                            <th
-                                                class="w-16 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                No
-                                            </th>
+                                            <tr>
 
-                                            <th
-                                                class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                Pickup
-                                            </th>
+                                                <th
+                                                    class="w-16 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                    No
+                                                </th>
 
-                                            <th
-                                                class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                                Destination
-                                            </th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                    Pickup
+                                                </th>
 
-                                        </tr>
+                                                <th
+                                                    class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                                    Destination
+                                                </th>
 
-                                    </thead>
+                                            </tr>
 
-                                    <tbody id="view_booking_route_table" class="divide-y divide-gray-100 bg-white">
+                                        </thead>
 
-                                    </tbody>
+                                        <tbody id="view_booking_route_table"
+                                            class="divide-y divide-gray-100 bg-white dark:divide-white/10 dark:bg-transparent">
 
-                                </table>
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
 
                             </div>
 
                         </div>
-                        <!-- PURPOSE -->
-                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
 
-                            <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400">
+                        <!-- PURPOSE -->
+                        <div
+                            class="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+
                                 Purpose
+
                             </div>
 
                             <div id="view_booking_purpose"
-                                class="mt-3 text-sm font-medium leading-relaxed text-gray-900">
+                                class="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-200">
                             </div>
 
                         </div>
 
                         <!-- DRIVER -->
                         <div id="driverInfoWrapper"
-                            class="hidden rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+                            class="hidden rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm dark:border-emerald-500/20 dark:from-emerald-500/10 dark:to-transparent">
 
                             <div class="flex items-center justify-between">
 
                                 <div>
 
-                                    <div class="text-[11px] uppercase tracking-[0.18em] text-emerald-600">
+                                    <div
+                                        class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+
                                         Driver Information
+
+                                    </div>
+
+                                    <div class="mt-1 text-sm text-emerald-600 dark:text-emerald-400">
+
+                                        Vehicle assignment completed
+
                                     </div>
 
                                 </div>
 
                                 <div
-                                    class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+                                    class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+
                                     Assigned
+
                                 </div>
 
                             </div>
 
-                            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div class="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
 
                                 <div>
 
-                                    <div class="text-xs text-emerald-700">
+                                    <div class="text-xs text-emerald-700 dark:text-emerald-400">
                                         Driver
                                     </div>
 
-                                    <div id="view_booking_driver" class="mt-1 text-sm font-semibold text-emerald-900">
+                                    <div id="view_booking_driver"
+                                        class="mt-1.5 text-sm font-bold text-emerald-900 dark:text-emerald-100">
                                     </div>
 
                                 </div>
 
                                 <div>
 
-                                    <div class="text-xs text-emerald-700">
+                                    <div class="text-xs text-emerald-700 dark:text-emerald-400">
                                         Handphone
                                     </div>
 
                                     <div id="view_booking_handphone"
-                                        class="mt-1 text-sm font-semibold text-emerald-900">
+                                        class="mt-1.5 text-sm font-bold text-emerald-900 dark:text-emerald-100">
                                     </div>
 
                                 </div>
 
                                 <div>
 
-                                    <div class="text-xs text-emerald-700">
+                                    <div class="text-xs text-emerald-700 dark:text-emerald-400">
                                         No Polisi
                                     </div>
 
-                                    <div id="view_booking_nopol" class="mt-1 text-sm font-semibold text-emerald-900">
+                                    <div id="view_booking_nopol"
+                                        class="mt-1.5 text-sm font-bold text-emerald-900 dark:text-emerald-100">
                                     </div>
 
                                 </div>
@@ -805,58 +942,78 @@
 
                         <!-- REVISE -->
                         <div id="bookingReviseWrapper"
-                            class="hidden rounded-2xl border border-yellow-200 bg-yellow-50 p-5 shadow-sm">
+                            class="hidden rounded-3xl border border-yellow-200 bg-yellow-50 p-6 shadow-sm dark:border-yellow-500/20 dark:bg-yellow-500/10">
 
-                            <div class="text-[11px] uppercase tracking-[0.18em] text-yellow-700">
+                            <div
+                                class="text-[11px] font-semibold uppercase tracking-[0.18em] text-yellow-700 dark:text-yellow-300">
+
                                 Revision Reason
+
                             </div>
 
-                            <div id="view_booking_revise_reason" class="mt-3 text-sm leading-relaxed text-yellow-900">
+                            <div id="view_booking_revise_reason"
+                                class="mt-4 text-sm leading-relaxed text-yellow-900 dark:text-yellow-100">
                             </div>
 
                         </div>
 
                     </div>
 
-                    <!-- RIGHT -->
-                    <div class="space-y-4">
+                    <!-- ================================================= -->
+                    <!-- RIGHT SIDE -->
+                    <!-- ================================================= -->
 
-                        <div class="flex items-center justify-between">
+                    <div class="space-y-5">
+
+                        <!-- ACTION HEADER -->
+                        <div class="flex items-center justify-between gap-3">
 
                             <div>
 
-                                <h3 class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+                                <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+
                                     Approval Workflow
-                                </h3>
 
-                            </div>
+                                </div>
 
-                            <div class="flex items-center gap-2">
+                                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
 
-                                <div id="bookingApprovalActions" class="flex hidden items-center gap-2">
-
-                                    <button type="button" id="approveBookingBtn"
-                                        class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-400">
-                                        ✓ Approve
-                                    </button>
-
-                                    <button type="button" id="reviseBookingBtn"
-                                        class="rounded-lg bg-amber-400 px-4 py-2 text-xs font-medium text-black transition hover:bg-amber-300">
-                                        ✎ Revise
-                                    </button>
-
-                                    <button type="button" id="rejectBookingBtn"
-                                        class="rounded-lg bg-red-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-red-400">
-                                        ✕ Reject
-                                    </button>
+                                    Approval status & process history
 
                                 </div>
 
                             </div>
 
+                            <div id="bookingApprovalActions" class="hidden flex-wrap items-center gap-2">
+
+                                <button type="button" id="approveBookingBtn"
+                                    class="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-400">
+
+                                    ✓ Approve
+
+                                </button>
+
+                                <button type="button" id="reviseBookingBtn"
+                                    class="rounded-xl bg-amber-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-amber-300">
+
+                                    ✎ Revise
+
+                                </button>
+
+                                <button type="button" id="rejectBookingBtn"
+                                    class="rounded-xl bg-red-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
+
+                                    ✕ Reject
+
+                                </button>
+
+                            </div>
+
                         </div>
 
-                        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <!-- APPROVAL FLOW -->
+                        <div
+                            class="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
 
                             <div id="bookingApprovalFlow" class="relative space-y-6">
                             </div>
@@ -867,24 +1024,34 @@
 
                 </div>
 
+                <!-- ===================================================== -->
                 <!-- FOOTER -->
-                <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
+                <!-- ===================================================== -->
+
+                <div
+                    class="flex flex-col gap-4 border-t border-gray-200 bg-gray-50 px-6 py-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
 
                     <button type="button" onclick="closeBookingDetailModal()"
-                        class="text-sm text-gray-500 transition hover:text-black">
+                        class="text-sm font-medium text-gray-500 transition hover:text-black dark:text-gray-400 dark:hover:text-white">
+
                         Close
+
                     </button>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
 
                         <button type="button" id="cancelBookingBtn"
-                            class="hidden rounded-lg border border-red-200 bg-red-500 px-5 py-2 text-sm font-medium text-white transition hover:bg-red-600">
+                            class="hidden rounded-xl border border-red-200 bg-red-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600 dark:border-red-500/20">
+
                             ✕ Cancel Request
+
                         </button>
 
                         <button id="editBookingBtn"
-                            class="hidden rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
+                            class="hidden rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+
                             ✏️ Edit Booking
+
                         </button>
 
                     </div>
@@ -896,7 +1063,6 @@
         </div>
 
     </div>
-
     <div id="editBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/50">
 
         <div class="flex min-h-screen items-center justify-center p-4">
@@ -1744,6 +1910,7 @@
 
             refreshRouteNumber();
         }
+
         function refreshRouteNumber() {
 
             document.querySelectorAll('#createRouteTableBody tr').forEach((tr, index) => {
@@ -2044,24 +2211,24 @@
                                             !row.no_polisi
                                         )
                                         ? `
-                                                <button
-                                                    type="button"
-                                                    onclick="event.stopPropagation(); openGaProcessModal('${row.eid}')  "
-                                                    class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
-                                                    Process
-                                                </button>
-                                            `
+                                                    <button
+                                                        type="button"
+                                                        onclick="event.stopPropagation(); openGaProcessModal('${row.eid}')  "
+                                                        class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
+                                                        Process
+                                                    </button>
+                                                `
                                         : `
-                                                ${
-                                                    row.status === 'C'
-                                                    ? `
+                                                    ${
+                                                        row.status === 'C'
+                                                        ? `
                                                     <div class="rounded-lg bg-emerald-100 px-3 py-1.5 text-[11px] font-semibold text-emerald-700">
                                                         Processed
                                                     </div>
                                                 `
-                                                    : ''
-                                                }
-                                            `
+                                                        : ''
+                                                    }
+                                                `
                                     }
                                 @endif
 
@@ -2764,6 +2931,213 @@
             }
         }
 
+        // async function loadBookingTracking(eid) {
+
+        //     try {
+
+        //         const response = await fetch(
+        //             `/bookingcar/tracking/${eid}`
+        //         );
+
+        //         const result = await response.json();
+
+        //         const wrapper =
+        //             document.getElementById(
+        //                 'bookingApprovalFlow'
+        //             );
+
+        //         wrapper.innerHTML = '';
+
+        //         if (!result.steps?.length) {
+
+        //             wrapper.innerHTML = `
+    //                 <div class="text-sm text-gray-400">
+    //                     No approval data
+    //                 </div>
+    //             `;
+
+        //             return;
+        //         }
+
+        //         let currentStep = null;
+
+        //         const totalSteps =
+        //             result.steps.length;
+
+        //         result.steps.forEach((step, index) => {
+
+        //             step.is_last =
+        //                 index === totalSteps - 1;
+
+        //             if (
+        //                 step.status === 'P' &&
+        //                 !currentStep
+        //             ) {
+        //                 currentStep = step;
+        //             }
+
+        //             const isActive =
+        //                 step.status === 'P';
+
+        //             const isDone =
+        //                 step.status === 'A' ||
+        //                 step.status === 'C';
+
+        //             const isRejected =
+        //                 step.status === 'R';
+
+        //             const isRevise =
+        //                 step.status === 'D';
+
+        //             let dotColor =
+        //                 'bg-gray-300';
+
+        //             let lineColor =
+        //                 'bg-gray-200';
+
+        //             let badgeClass =
+        //                 'bg-gray-100 text-gray-500';
+
+        //             if (isDone) {
+
+        //                 dotColor =
+        //                     'bg-emerald-500';
+
+        //                 lineColor =
+        //                     'bg-emerald-400';
+
+        //                 badgeClass =
+        //                     'bg-emerald-100 text-emerald-700';
+        //             }
+
+        //             if (isActive) {
+
+        //                 dotColor =
+        //                     'bg-blue-500 ring-4 ring-blue-100';
+
+        //                 badgeClass =
+        //                     'bg-blue-100 text-blue-700';
+        //             }
+
+        //             if (isRejected) {
+
+        //                 dotColor =
+        //                     'bg-red-500';
+
+        //                 lineColor =
+        //                     'bg-red-200';
+
+        //                 badgeClass =
+        //                     'bg-red-100 text-red-700';
+        //             }
+
+        //             if (isRevise) {
+
+        //                 dotColor =
+        //                     'bg-yellow-400';
+
+        //                 lineColor =
+        //                     'bg-yellow-200';
+
+        //                 badgeClass =
+        //                     'bg-yellow-100 text-yellow-700';
+        //             }
+
+        //             wrapper.innerHTML += `
+
+    //                 <div class="relative pl-7">
+
+    //                     ${
+    //                         !step.is_last
+    //                         ? `
+        //                                     <div class="absolute left-[8px] top-0 h-full w-[2px] ${lineColor}"></div>
+        //                                 `
+    //                         : ''
+    //                     }
+
+    //                     <!-- DOT -->
+    //                     <div class="absolute left-0 top-1">
+
+    //                         <div class="h-4 w-4 rounded-full ${dotColor}"></div>
+
+    //                     </div>
+
+    //                     <!-- CONTENT -->
+    //                     <div class="pb-6">
+
+    //                         <div class="flex items-start justify-between gap-3">
+
+    //                             <div class="min-w-0">
+
+    //                                 <div class="text-sm font-semibold text-gray-900">
+    //                                     ${escapeHtml(step.title || '-')}
+    //                                 </div>
+
+    //                                 ${
+    //                                     step.by
+    //                                     ? `
+        //                                                 <div class="mt-1 text-xs text-gray-400">
+        //                                                     ${escapeHtml(step.by)}
+        //                                                     ${
+        //                                                         step.at
+        //                                                         ? `• ${escapeHtml(step.at)}`
+        //                                                         : ''
+        //                                                     }
+        //                                                 </div>
+        //                                             `
+    //                                     : `
+        //                                                 <div class="mt-1 text-xs italic text-gray-400">
+        //                                                     Waiting for action
+        //                                                 </div>
+        //                                             `
+    //                                 }
+
+    //                             </div>
+
+    //                             <div class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${badgeClass}">
+    //                                 ${escapeHtml(step.status_label || '-')}
+    //                             </div>
+
+    //                         </div>
+
+    //                         ${
+    //                             step.comment
+    //                             ? `
+        //                                         <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
+
+        //                                             <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
+        //                                                 Comment
+        //                                             </div>
+
+        //                                             <div class="mt-1 text-xs leading-relaxed text-yellow-900">
+        //                                                 ${escapeHtml(step.comment)}
+        //                                             </div>
+
+        //                                         </div>
+        //                                     `
+    //                             : ''
+    //                         }
+
+    //                     </div>
+
+    //                 </div>
+    //             `;
+        //         });
+
+        //     } catch (err) {
+
+        //         console.error(err);
+
+        //         document.getElementById(
+        //             'bookingApprovalFlow'
+        //         ).innerHTML = `
+    //             <div class="text-sm text-red-500">
+    //                 Failed to load approval
+    //             </div>
+    //         `;
+        //     }
+        // }
+
         async function loadBookingTracking(eid) {
 
             try {
@@ -2784,7 +3158,7 @@
                 if (!result.steps?.length) {
 
                     wrapper.innerHTML = `
-                        <div class="text-sm text-gray-400">
+                        <div class="text-sm text-gray-400 dark:text-gray-500">
                             No approval data
                         </div>
                     `;
@@ -2822,59 +3196,44 @@
                     const isRevise =
                         step.status === 'D';
 
-                    let dotColor =
-                        'bg-gray-300';
+                    // =====================================================
+                    // DOT COLOR
+                    // =====================================================
 
-                    let lineColor =
-                        'bg-gray-200';
+                    const dotColor =
+                        isDone ?
+                        'bg-emerald-500 shadow-lg shadow-emerald-500/20' :
+                        isActive ?
+                        'bg-blue-500 ring-4 ring-blue-100 dark:ring-blue-500/20' :
+                        isRejected ?
+                        'bg-red-500' :
+                        isRevise ?
+                        'bg-yellow-400' :
+                        'bg-gray-300 dark:bg-gray-600';
 
-                    let badgeClass =
-                        'bg-gray-100 text-gray-500';
+                    // =====================================================
+                    // LINE COLOR
+                    // =====================================================
 
-                    if (isDone) {
+                    const lineColor =
+                        isDone ?
+                        'bg-emerald-400 dark:bg-emerald-500' :
+                        'bg-gray-200 dark:bg-white/10';
 
-                        dotColor =
-                            'bg-emerald-500';
+                    // =====================================================
+                    // BADGE COLOR
+                    // =====================================================
 
-                        lineColor =
-                            'bg-emerald-400';
-
-                        badgeClass =
-                            'bg-emerald-100 text-emerald-700';
-                    }
-
-                    if (isActive) {
-
-                        dotColor =
-                            'bg-blue-500 ring-4 ring-blue-100';
-
-                        badgeClass =
-                            'bg-blue-100 text-blue-700';
-                    }
-
-                    if (isRejected) {
-
-                        dotColor =
-                            'bg-red-500';
-
-                        lineColor =
-                            'bg-red-200';
-
-                        badgeClass =
-                            'bg-red-100 text-red-700';
-                    }
-
-                    if (isRevise) {
-
-                        dotColor =
-                            'bg-yellow-400';
-
-                        lineColor =
-                            'bg-yellow-200';
-
-                        badgeClass =
-                            'bg-yellow-100 text-yellow-700';
-                    }
+                    const badgeClass =
+                        isDone ?
+                        'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' :
+                        isActive ?
+                        'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' :
+                        isRejected ?
+                        'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' :
+                        isRevise ?
+                        'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300' :
+                        'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300';
 
                     wrapper.innerHTML += `
 
@@ -2883,51 +3242,89 @@
                             ${
                                 !step.is_last
                                 ? `
-                                            <div class="absolute left-[8px] top-0 h-full w-[2px] ${lineColor}"></div>
-                                        `
+                                        <div class="
+                                            absolute
+                                            left-[7px]
+                                            top-4
+                                            h-full
+                                            w-[2px]
+                                            ${lineColor}
+                                        "></div>
+                                    `
                                 : ''
                             }
 
                             <!-- DOT -->
-                            <div class="absolute left-0 top-1">
-
-                                <div class="h-4 w-4 rounded-full ${dotColor}"></div>
-
-                            </div>
+                            <div class="
+                                absolute
+                                left-0
+                                top-1
+                                h-4
+                                w-4
+                                rounded-full
+                                ${dotColor}
+                            "></div>
 
                             <!-- CONTENT -->
-                            <div class="pb-6">
+                            <div class="pb-7">
 
+                                <!-- HEADER -->
                                 <div class="flex items-start justify-between gap-3">
 
-                                    <div class="min-w-0">
+                                    <div class="min-w-0 flex-1">
 
-                                        <div class="text-sm font-semibold text-gray-900">
+                                        <div class="
+                                            text-sm
+                                            font-semibold
+                                            text-gray-900
+                                            dark:text-white
+                                        ">
                                             ${escapeHtml(step.title || '-')}
                                         </div>
 
                                         ${
                                             step.by
                                             ? `
-                                                        <div class="mt-1 text-xs text-gray-400">
-                                                            ${escapeHtml(step.by)}
-                                                            ${
-                                                                step.at
-                                                                ? `• ${escapeHtml(step.at)}`
-                                                                : ''
-                                                            }
-                                                        </div>
-                                                    `
+                                                    <div class="
+                                                        mt-1
+                                                        text-xs
+                                                        text-gray-400
+                                                        dark:text-gray-500
+                                                    ">
+                                                        ${escapeHtml(step.by)}
+
+                                                        ${
+                                                            step.at
+                                                            ? ` • ${escapeHtml(step.at)}`
+                                                            : ''
+                                                        }
+                                                    </div>
+                                                `
                                             : `
-                                                        <div class="mt-1 text-xs italic text-gray-400">
-                                                            Waiting for action
-                                                        </div>
-                                                    `
+                                                    <div class="
+                                                        mt-1
+                                                        text-xs
+                                                        italic
+                                                        text-gray-400
+                                                        dark:text-gray-500
+                                                    ">
+                                                        Waiting for action
+                                                    </div>
+                                                `
                                         }
 
                                     </div>
 
-                                    <div class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${badgeClass}">
+                                    <!-- STATUS -->
+                                    <div class="
+                                        shrink-0
+                                        rounded-full
+                                        px-2.5
+                                        py-1
+                                        text-[10px]
+                                        font-semibold
+                                        ${badgeClass}
+                                    ">
                                         ${escapeHtml(step.status_label || '-')}
                                     </div>
 
@@ -2936,18 +3333,41 @@
                                 ${
                                     step.comment
                                     ? `
-                                                <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
+                                            <div class="
+                                                mt-3
+                                                rounded-xl
+                                                border
+                                                border-yellow-200
+                                                bg-yellow-50
+                                                px-4
+                                                py-3
+                                                dark:border-yellow-500/20
+                                                dark:bg-yellow-500/10
+                                            ">
 
-                                                    <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
-                                                        Comment
-                                                    </div>
-
-                                                    <div class="mt-1 text-xs leading-relaxed text-yellow-900">
-                                                        ${escapeHtml(step.comment)}
-                                                    </div>
-
+                                                <div class="
+                                                    text-[10px]
+                                                    font-semibold
+                                                    uppercase
+                                                    tracking-[0.15em]
+                                                    text-yellow-700
+                                                    dark:text-yellow-300
+                                                ">
+                                                    Comment
                                                 </div>
-                                            `
+
+                                                <div class="
+                                                    mt-2
+                                                    text-xs
+                                                    leading-relaxed
+                                                    text-yellow-900
+                                                    dark:text-yellow-100
+                                                ">
+                                                    ${escapeHtml(step.comment)}
+                                                </div>
+
+                                            </div>
+                                        `
                                     : ''
                                 }
 
@@ -2964,7 +3384,7 @@
                 document.getElementById(
                     'bookingApprovalFlow'
                 ).innerHTML = `
-                    <div class="text-sm text-red-500">
+                    <div class="text-sm text-red-500 dark:text-red-400">
                         Failed to load approval
                     </div>
                 `;
