@@ -23,6 +23,7 @@ class SendEmailApproval extends Command
         $approvals = TrApproval::query()
             // ->where('aprv_doctype', 'WO')
             // ->where('aprv_cpnyid', 'PSA')
+            // ->where('refnbr', 'WO26041200')
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
             ->get();

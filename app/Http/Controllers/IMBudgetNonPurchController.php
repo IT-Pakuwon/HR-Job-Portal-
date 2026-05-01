@@ -54,55 +54,36 @@ class IMBudgetNonPurchController extends Controller
             return redirect()->route('login');
         }
 
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
 
-        // department_id juga bisa multi, tapi di debug sudah "IT"
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $deptIds = is_string($user->department_id)
+            ? array_filter(array_map('trim', explode(',', $user->department_id)))
+            : (array) $user->department_id;
 
-        $all = TrImbudgetNonPurch::whereIn('cpny_id', $cpnyIds)
-                    ->whereIn('department_id', $deptIds)
-                    ->count();
+        $base = TrImbudgetNonPurch::query()
+            ->whereIn('cpny_id', $cpnyIds)
+            ->whereIn('department_id', $deptIds);
 
-        $onProgress = TrImbudgetNonPurch::where('status', 'P')
-                    ->whereIn('cpny_id', $cpnyIds)
-                    ->whereIn('department_id', $deptIds)
-                    ->count();
+        $all = (clone $base)->count();
+        $onProgress = (clone $base)->where('status', 'P')->count();
+        $reject = (clone $base)->where('status', 'R')->count();
+        $revise = (clone $base)->where('status', 'D')->count();
+        $completed = (clone $base)->where('status', 'C')->count();
 
-        $reject = TrImbudgetNonPurch::where('status', 'R')
-                    ->whereIn('cpny_id', $cpnyIds)
-                    ->whereIn('department_id', $deptIds)
-                    ->count();
-
-        $revise = TrImbudgetNonPurch::where('status', 'D')
-                    ->whereIn('cpny_id', $cpnyIds)
-                    ->whereIn('department_id', $deptIds)
-                    ->count();
-
-        $completed = TrImbudgetNonPurch::where('status', 'C')
-                    ->whereIn('cpny_id', $cpnyIds)
-                    ->whereIn('department_id', $deptIds)
-                    ->count();
-        // SPPB All List Count (P & C, all departments)
-        $allListCount = TrImbudgetNonPurch::whereIn('cpny_id', $cpnyIds)
-            // ->whereIn('status', ['P', 'C'])
+        $allListCount = TrImbudgetNonPurch::query()
+            ->whereIn('cpny_id', $cpnyIds)
             ->count();
 
-        // WO → SPPB Count
-        $woIMBudgetNonPurchCount = TrImbudgetNonPurch::whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds)
-            ->whereNotNull('woid')
-            ->where('woid', '!=', '')
-            ->count();
-
-        return view('pages.imbudgetnonpurch.imbudgetnonpurch', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount', 'woIMBudgetNonPurchCount'));
+        return view('pages.imbudgetnonpurch.imbudgetnonpurch', compact(
+            'all',
+            'onProgress',
+            'reject',
+            'revise',
+            'completed',
+            'allListCount'
+        ));
     }
 
     public function json(Request $request)
@@ -113,27 +94,14 @@ class IMBudgetNonPurchController extends Controller
             return response()->json([], 401);
         }
 
-        // ==============================
-        // USER COMPANY
-        // ==============================
-        if (is_string($user->cpny_id)) {
-            $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
-        } else {
-            $cpnyIds = (array) $user->cpny_id;
-        }
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
 
-        // ==============================
-        // USER DEPARTMENT (NORMAL MODE ONLY)
-        // ==============================
-        if (is_string($user->department_id)) {
-            $deptIds = array_map('trim', explode(',', $user->department_id));
-        } else {
-            $deptIds = (array) $user->department_id;
-        }
+        $deptIds = is_string($user->department_id)
+            ? array_filter(array_map('trim', explode(',', $user->department_id)))
+            : (array) $user->department_id;
 
-        // ==============================
-        // DATATABLE PARAMETERS
-        // ==============================
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -146,158 +114,110 @@ class IMBudgetNonPurchController extends Controller
         $baseTable = (new TrImbudgetNonPurch())->getTable();
 
         $columns = [
-            1 => 'sppb.sppbid',
-            2 => 'wo.woid',
-            3 => 'sppb.sppbdate',
-            4 => 'sppb.cpny_id',
-            5 => 'sppb.department_id',
-            6 => 'rt.requesttype_name',
-            7 => 'sppb.keperluan',
-            8 => 'sppb.status',
+            1 => 'im.imnonpurchaseid',
+            2 => 'im.imnonpurchasedate',
+            3 => 'im.cpny_id',
+            4 => 'im.department_id',
+            5 => 'im.user_peminta',
+            6 => 'im.imnonpurchasetype',
+            7 => 'im.imbudgetkeperluan',
+            8 => 'im.budget_from',
+            9 => 'im.budget_to',
+            10 => 'im.expenditure_type',
+            11 => 'im.request_budget',
+            12 => 'im.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'asc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'sppb.sppbid';
+        $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $columns[$orderIdx] ?? 'im.imnonpurchaseid';
 
-        // ==============================
-        // BASE QUERY
-        // ==============================
-        $base = TrImbudgetNonPurch::from($baseTable.' as sppb')
-            ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid');
-            })
-            ->leftJoin('tr_wo as wo', function ($join) {
-                $join->on('wo.woid', '=', 'sppb.woid');
-            })
-            ->whereIn('sppb.cpny_id', $cpnyIds);
+        $base = TrImbudgetNonPurch::from($baseTable . ' as im')
+            ->whereIn('im.cpny_id', $cpnyIds);
 
-        // ==============================
-        // MODE LOGIC
-        // ==============================
         if ($mode === 'normal') {
-            // restrict by user department
-            $base->whereIn('sppb.department_id', $deptIds);
+            $base->whereIn('im.department_id', $deptIds);
 
             if ($status !== '') {
-                $base->where('sppb.status', $status);
+                $base->where('im.status', $status);
             }
         }
 
         if ($mode === 'all') {
-            // only P & C
-            // $base->whereIn('sppb.status', ['P', 'C']);
-
-            // department filter (dropdown)
-            if (!empty($deptExtra)) {
-                $base->where('sppb.department_id', $deptExtra);
+            if ($deptExtra !== '') {
+                $base->where('im.department_id', $deptExtra);
             }
 
-            // status dropdown override
             if ($status !== '') {
-                $base->where('sppb.status', $status);
+                $base->where('im.status', $status);
             }
         }
 
-        if ($mode === 'wo') {
-            // Only SPPB that comes from WO
-            $base->whereNotNull('sppb.woid')
-                 ->where('sppb.woid', '!=', '');
-
-            // Optional: restrict by user department
-            $base->whereIn('sppb.department_id', $deptIds);
-
-            // Optional status filter
-            if ($status !== '') {
-                $base->where('sppb.status', $status);
-            }
-        }
-
-        // ==============================
-        // TOTAL BEFORE SEARCH
-        // ==============================
         $recordsTotal = (clone $base)
-            ->distinct('sppb.sppbid')
-            ->count('sppb.sppbid');
+            ->distinct('im.imnonpurchaseid')
+            ->count('im.imnonpurchaseid');
 
-        // ==============================
-        // SEARCH FILTER
-        // ==============================
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
-                $q->where('sppb.sppbid', 'ilike', "%{$search}%")
-                ->orWhere('wo.woid', 'ilike', "%{$search}%")
-                ->orWhere('sppb.cpny_id', 'ilike', "%{$search}%")
-                ->orWhere('sppb.department_id', 'ilike', "%{$search}%")
-                ->orWhere('rt.requesttype_name', 'ilike', "%{$search}%")
-                ->orWhere('sppb.keperluan', 'ilike', "%{$search}%")
-                ->orWhere('sppb.status', 'ilike', "%{$search}%");
+                $q->where('im.imnonpurchaseid', 'ilike', "%{$search}%")
+                    ->orWhere('im.imnonpurchasedate', 'ilike', "%{$search}%")
+                    ->orWhere('im.cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('im.department_id', 'ilike', "%{$search}%")
+                    ->orWhere('im.user_peminta', 'ilike', "%{$search}%")
+                    ->orWhere('im.imnonpurchasetype', 'ilike', "%{$search}%")
+                    ->orWhere('im.imbudgetkeperluan', 'ilike', "%{$search}%")
+                    ->orWhere('im.budget_from', 'ilike', "%{$search}%")
+                    ->orWhere('im.budget_to', 'ilike', "%{$search}%")
+                    ->orWhere('im.expenditure_type', 'ilike', "%{$search}%")
+                    ->orWhere('im.status', 'ilike', "%{$search}%");
             });
         }
 
-        // ==============================
-        // TOTAL AFTER SEARCH
-        // ==============================
         $recordsFiltered = (clone $base)
-            ->distinct('sppb.sppbid')
-            ->count('sppb.sppbid');
+            ->distinct('im.imnonpurchaseid')
+            ->count('im.imnonpurchaseid');
 
-        // ==============================
-        // DATA FETCH
-        // ==============================
         $data = $base->select(
-            'sppb.id',
-            'sppb.sppbid',
-            'wo.woid as wo_number',
-            'sppb.sppbdate',
-            'sppb.cpny_id',
-            'sppb.department_id',
-            'sppb.requesttypeid',
-            'rt.requesttype_name',
-            'sppb.keperluan',
-            'sppb.status',
-            'sppb.created_by',
-            'wo.id as wo_real_id',
-            // 'wo.woid as wo_number'
-        )
-                ->orderBy($orderCol, $orderDir)
-                ->orderBy('sppb.sppbid', 'desc')
-                ->skip($start)
-                ->take($length)
-                ->get();
+                'im.id',
+                'im.imnonpurchaseid',
+                'im.imnonpurchasedate',
+                'im.cpny_id',
+                'im.department_id',
+                'im.user_peminta',
+                'im.imnonpurchasetype',
+                'im.imbudgetkeperluan',
+                'im.budget_from',
+                'im.budget_to',
+                'im.expenditure_type',
+                'im.existing_budget',
+                'im.request_budget',
+                'im.over_budget',
+                'im.status',
+                'im.created_by'
+            )
+            ->orderBy($orderCol, $orderDir)
+            ->orderBy('im.imnonpurchaseid', 'desc')
+            ->skip($start)
+            ->take($length)
+            ->get();
 
-        // Encrypt ID
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
-
-            if ($row->wo_real_id) {
-                $row->wo_hash = Hashids::encode($row->wo_real_id);
-            } else {
-                $row->wo_hash = null;
-            }
-
             unset($row->id);
-            unset($row->wo_real_id);
-
             return $row;
         });
 
-        // ==============================
-        // DEPARTMENT LIST (ONLY FOR ALL MODE)
-        // ==============================
         $departments = [];
 
         if ($mode === 'all') {
-
-            $deptQuery = TrImbudgetNonPurch::query()
-                ->whereIn('cpny_id', $cpnyIds);
-
-            $departments = $deptQuery
+            $departments = TrImbudgetNonPurch::query()
+                ->whereIn('cpny_id', $cpnyIds)
                 ->select('department_id')
                 ->distinct()
                 ->orderBy('department_id')
                 ->pluck('department_id');
         }
+
         return response()->json([
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
@@ -334,96 +254,52 @@ class IMBudgetNonPurchController extends Controller
 
     public function storeIMBudgetNonPurch(Request $request)
     {
-        // dd($request->all()); // Debugging: check request data
-        // kumpulkan array dari form
-        $inventoryIds = $request->input('inventoryid', $request->input('inventory_id', []));
-        $productNames = $request->input('product_name', []);
-        $qtys = $request->input('qty', []);
-        $uoms = $request->input('stock_unit', $request->input('uom', [])); // <- penting
-        $notes = $request->input('note', []);
-        $locations = $request->input('location', []);
-        $locationIds = $request->input('location_id', $request->input('locationid', [])); // <- kalau perlu simpan
-        $subLocIds = $request->input('sub_location_id', $request->input('sublocationid', []));
-        $subLocations = $request->input('sub_location', []);
-        $activityIds = $request->input('activity_id', []);
-        $busUnitIds = $request->input('business_unit_id', []);
-        $deptFinIds = $request->input('department_fin_id', []);
-        $actDescrs = $request->input('activity_descr', []);
-        $coaIds = $request->input('coa_id', []); // account_id
-        $item_types = $request->input('item_type', []);
-        // $item_categories = $request->input('item_category', []);
-        $siteids = $request->input('siteid', []);
-
-        $purchaseUnits = $request->input('purchase_unit', []);     // dari hidden purchase_unit[]
-        $uomMultDivs = $request->input('uom_unitmultdiv', []);   // 'M' atau 'D'
-        $uomRates = $request->input('uom_unitrate', []);      // bisa "12", "12,5", "12.000",
-
-        $inventoryCategories = $request->input('item_category', []);      // baris pertama untuk Komputer
-        $inventorySubTypes = $request->input('item_sub_type', []); // untuk Fixed Asset subtype
-
-        $doctype = 'PB';
         $user = $request->user();
         $username = $user->username ?? 'system';
-        $fullname = $user->name ?? 'system';
 
-        $dt = Carbon::now();
-        // $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        // $datestamp = $dt->toDateTimeString();
-        $year = (int) (int) $dt->year;
-        $month = str_pad((string) $dt->month, 2, '0', STR_PAD_LEFT);
+        $dt = now();
+        $year = $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $doctype = 'IMR';
 
-        // helper untuk normalisasi angka lokal (ID format)
-        $toFloat = function ($v): ?float {
+        // helper number
+        $toFloat = function ($v): float {
             if ($v === null || $v === '') {
-                return null;
+                return 0;
             }
-            $s = preg_replace('/\s+/', '', (string) $v);
 
-            $hasComma = strpos($s, ',') !== false;
-            $hasDot = strpos($s, '.') !== false;
+            $s = trim((string) $v);
+            $s = preg_replace('/\s+/', '', $s);
+
+            $hasComma = str_contains($s, ',');
+            $hasDot = str_contains($s, '.');
 
             if ($hasComma && $hasDot) {
-                // Decimal = separator yang muncul paling akhir
                 $lastComma = strrpos($s, ',');
                 $lastDot = strrpos($s, '.');
+
                 if ($lastComma > $lastDot) {
-                    // koma = decimal, titik = ribuan
+                    // 19.000.000,00
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
                 } else {
-                    // titik = decimal, koma = ribuan
+                    // 19,000,000.00
                     $s = str_replace(',', '', $s);
                 }
             } elseif ($hasComma) {
-                // hanya koma → koma = decimal
+                // 19000000,00
                 $s = str_replace(',', '.', $s);
             } elseif ($hasDot) {
-                // hanya titik → asumsikan titik = decimal
-                // kalau ada >1 titik, anggap titik = ribuan → hapus semua titik
+                // 19000000.00 atau 19.000.000
                 if (substr_count($s, '.') > 1) {
                     $s = str_replace('.', '', $s);
                 }
-                // kalau 1 titik, biarkan sebagai decimal
             }
 
-            return is_numeric($s) ? (float) $s : null;
+            return is_numeric($s) ? (float) $s : 0;
         };
 
-        // pastikan line approval ada
-        // $approvalCount = M_approval::where([
-        //     ['status', '=', 'A'],
-        //     ['aprvcpnyid', '=', $request->cpnyid],
-        //     ['aprvdeptid', '=', $request->departementid],
-        //     ['aprvdoctype', '=', $doctype],
-        // ])->count();
-
-        // if ($approvalCount === 0) {
-        //     return response()->json([
-        //         'message' => 'Approval line belum di-setup, Please contact IT!',
-        //     ], 422);
-        // }
-
-        // ===== generate TrApproval dari MsApproval sesuai context =====
+        // $totalRequestBudget = 0;
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
@@ -431,235 +307,123 @@ class IMBudgetNonPurchController extends Controller
 
         DB::beginTransaction();
         try {
-            // === generate autonbr & docid (lock) ===
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->first();
 
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year'    => $year,
-            //         'month'   => $month,
-            //         'status'  => 'A',
-            //         'number'  => 1,
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = $autonbr->number + 1;
-            //     $autonbr->update(['number' => $urutan]);
-            // }
+            // ===== GENERATE DOC ID =====
+            $auto = $this->nextAutonbr('IMR', $year, $month, $username, 'IMBudget Non Purchase');
+            $docid = 'IMR' . substr($year, 2) . $month . sprintf('%03d', $auto['next']);
 
-            // $tglbln = substr($year, 2) . $month;               // YYMM
-            // $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-            // $sppbNo = $docid;                                   // atau 'SPPB-'.$docid
-            $auto = $this->nextAutonbr(
-                $doctype,
-                $year,
-                $month,
-                $username,
-                'SPPB'
-            );
-            $urutan = (int) $auto['next'];
-
-            $tglbln = substr((string) $year, 2).$month;   // YYMM
-            $docid = $doctype.$tglbln.sprintf('%04d', $urutan);
-            $sppbNo = $docid;
-
-            // === 1) header dulu (totalqty sementara 0) ===
+            // ============================
+            // HEADER (MODEL BARU)
+            // ============================
             $header = new TrImbudgetNonPurch();
-            $header->sppbid = $docid;                // PK string
-            $header->sppbdate = $dt->toDateString();
-            $header->cpny_id = $request->input('cpnyid');
-            $header->department_id = $request->input('departementid');
-            $header->requesttypeid = $request->input('requesttypeid');
-            $header->keperluan = $request->input('keperluan');
-            $header->budget_perpost = $request->input('perpost');
-            $header->woid = $request->input('woid');
-            $header->is_urgent = $request->input('is_urgent');
-            $header->spbid = null;
-            $header->totalopenordered = 0;
-            $header->totalqty = 0;
-            $header->totalordered = 0;
-            $header->totalrejectordered = 0;
-            $header->totalcompleteordered = 0;
-            $header->assignby = null;
-            $header->assigndate = null;
-            $header->assignpurchasing = null;
-            $header->csjobs = null;
-            $header->cs = null;
+            $header->imnonpurchaseid = $docid;
+            $header->imnonpurchasedate = $dt->toDateString();
+            $header->cpny_id = $request->cpnyid;
+            $header->department_id = $request->departementid;
+            $header->user_peminta = $username;
+
+            // ===== Budget Info =====
+            $header->imnonpurchasetype = $request->imnonpurchasetype;
+            $header->imbudgetkeperluan = $request->keperluan;
+
+            $header->budget_from = $toFloat($request->budget_from);
+            $header->budget_to = $toFloat($request->budget_to);
+            $header->expenditure_type = $request->expenditure_type;
+            $header->existing_budget = $toFloat($request->existing_budget);
+            $header->request_budget = $toFloat($request->request_budget);
+            $header->over_budget = $toFloat($request->over_budget);
+
             $header->status = 'P';
             $header->created_by = $username;
             $header->save();
 
-            // === 2) detail ===
-            $totalQty = 0;
-            $totalOpenOrdered = 0;
-            $rowCount = max(count($inventoryIds), count($qtys));
+            // ============================
+            // DETAIL
+            // ============================
+            $descs = $request->imnonpurchase_descr ?? [];
+            $qtys = $request->qty ?? [];
+            $uoms = $request->uom ?? [];
+            $notes = $request->note ?? [];
+            $prices = $request->price ?? [];
+            $totals = $request->total_price ?? [];
 
-            // ===== default site fallback (ambil sekali per header cpny) =====
-            $defaultSiteId = null;
-            try {
-                $defaultSiteId = MsSite::query()
-                    ->where('cpny_id', $request->cpnyid)
-                    ->where(function ($q) {
-                        $q->where('site_default', true)
-                        ->orWhere('site_default', 'true')
-                        ->orWhere('site_default', 1)
-                        ->orWhere('site_default', '1');
-                    })
-                    ->value('siteid'); // langsung ambil siteid saja
-            } catch (\Throwable $e) {
-                // optional: log saja, jangan hentikan proses
-                \Log::warning('Failed to get default site', [
-                    'cpnyid' => $request->cpnyid,
-                    'err' => $e->getMessage(),
+            $coaIds = $request->coa_id ?? [];
+            $activityIds = $request->activity_id ?? [];
+            $busUnitIds = $request->business_unit_id_detail ?? [];
+            $deptFinIds = $request->department_fin_id ?? [];
+            $actDescrs = $request->activity_descr ?? [];
+
+            $rowCount = count($descs);
+
+            for ($i = 0; $i < $rowCount; $i++) {
+
+                $qty = $toFloat($qtys[$i] ?? 0);
+                $price = $toFloat($prices[$i] ?? 0);
+                $total = $qty * $price;
+
+                // skip empty row
+                if (!$descs[$i] || $qty <= 0) continue;
+
+                TrImbudgetNonPurchDetail::create([
+                    'imnonpurchaseid' => $docid,
+                    'imnonpurchase_descr' => $descs[$i],
+                    'imnonpurchase_note' => $notes[$i] ?? null,
+                    'qty' => $qty,
+                    'uom' => $uoms[$i] ?? null,
+                    'price' => $price,
+                    'total_price' => $total,
+
+                    'budget_perpost' => $year,
+                    'budget_cpny_id' => $request->cpnyid,
+                    'budget_business_unit_id' => $busUnitIds[$i] ?? null,
+                    'budget_department_fin_id' => $deptFinIds[$i] ?? null,
+                    'budget_account_id' => $coaIds[$i] ?? null,
+                    'budget_activity_id' => $activityIds[$i] ?? null,
+                    'budget_activity_descr' => $actDescrs[$i] ?? null,
+
+                    'status' => 'P',
+                    'created_by' => $username,
                 ]);
             }
 
-            for ($i = 0; $i < $rowCount; ++$i) {
-                $invId = $inventoryIds[$i] ?? null;
-                $productName = $productNames[$i] ?? null;
-                // qty: sudah kamu konversi koma->titik di JS; tetap jaga-jaga:
-                $qty = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
-                $uom = $uoms[$i] ?? null;
 
-                if (empty($invId) || $qty <= 0) {
-                    continue;
-                }
+            // ============================
+            // APPROVAL (TETAP)
+            // ============================
+            $approvalCtl = app(ApprovalController::class);
 
-                // ==== perhitungan base_* ====
-                $baseUom = $purchaseUnits[$i] ?? null;                   // WAJIB: purchase_unit
-                $typeMultiplier = strtoupper(trim((string) ($uomMultDivs[$i] ?? ''))); // 'M' / 'D' / ''
-                $rateRaw = $uomRates[$i] ?? null;
-                $rate = $toFloat($rateRaw) ?? 1.0;                     // default 1 kalau kosong/tidak valid
-                if ($rate <= 0) {                                                // guard divide-by-zero & negatif
-                    $rate = 1.0;
-                    $typeMultiplier = '';                                        // anggap tidak ada konversi
-                }
+            $approvalCtl->loadLines(
+                'IMR',
+                $request->cpnyid,
+                $request->departementid
+            );
 
-                // base_qty logic
-                $baseQty = $qty;
-                if ($typeMultiplier === 'M') {
-                    $baseQty = $qty * $rate;
-                } elseif ($typeMultiplier === 'D') {
-                    $baseQty = $qty / $rate;
-                }
-
-                $siteFromForm = trim((string) ($siteids[$i] ?? ''));
-                $finalSiteId = $siteFromForm !== '' ? $siteFromForm : $defaultSiteId;
-
-                // optional: kalau wajib
-                if (empty($finalSiteId)) {
-                    throw new \Exception("SiteID kosong dan default site tidak ditemukan untuk Company {$request->cpnyid}.");
-                }
-
-                $detail = new TrImbudgetNonPurchdetail();
-                $detail->sppbid = $docid;
-                $detail->sppb_no = $i + 1;   // nomor urut detail
-                $detail->inventoryid = $invId;
-                $detail->inventory_descr = $productName;
-                // $detail->siteid                   = $siteids[$i] ?? null;
-                $detail->siteid = $finalSiteId;
-                $detail->qty = $qty;
-                $detail->uom = $uom;
-                $detail->note = $notes[$i] ?? null;
-                $detail->inventory_type = $item_types[$i] ?? null;
-                $detail->inventory_sub_type = $inventorySubTypes[$i] ?? null;
-                $detail->inventory_category = $inventoryCategories[$i] ?? null;
-                $detail->base_uom = $baseUom;            // = purchase_unit
-                $detail->base_multiplier = $rate;               // = uom_unitrate (float)
-                $detail->type_multiplier = $typeMultiplier ?: null; // = 'M' / 'D' / null
-                $detail->base_qty = $baseQty;            // hitungan M/D
-                $detail->budget_cpny_id = $request->cpnyid;
-                $detail->budget_business_unit_id = $busUnitIds[$i] ?? null;
-                $detail->budget_department_fin_id = $deptFinIds[$i] ?? null;
-                $detail->budget_account_id = $coaIds[$i] ?? null;
-                $detail->budget_activity_id = $activityIds[$i] ?? null;
-                $detail->budget_activity_descr = $actDescrs[$i] ?? null;
-                $detail->location_id = $locationIds[$i] ?? null;
-                $detail->sub_location_id = $subLocIds[$i] ?? null;
-                $detail->budget_perpost = $request->perpost;
-                $detail->assignby = null;
-                $detail->assigndate = null;
-                $detail->assignpurchasing = null;
-                $detail->openordered = $qty;
-                $detail->ordered = 0;
-                $detail->rejectordered = 0;
-                $detail->completeordered = 0;
-                $detail->status = 'P';
-                $detail->created_by = $username;
-                $detail->save();
-
-                $totalQty += $qty;
-            }
-
-            // update totalqty di header
-            $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
-            $header->save();
-
-            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
-            $isUrgent = (bool) $request->input('is_urgent', false);
-
-            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
-            $firstCategory = null;
-            if (!empty($inventoryCategories)) {
-                foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) {
-                        $firstCategory = $c;
-                        break;
-                    }
-                }
-            }
-
-            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
-            $hasFixedAssetSubtype = false;
-            foreach ((array) $inventorySubTypes as $sub) {
-                $s = mb_strtolower((string) $sub);
-                if ($s === 'fixed asset' || $s === 'fa') {
-                    $hasFixedAssetSubtype = true;
-                    break;
-                }
-            }
-
-            // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPB diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPB
-            ];
-
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+            [$firstApprovalUsernames] = $approvalCtl->generateForDocument(
                 $docid,
-                $doctype,
+                'IMR',
                 $request->cpnyid,
                 $request->departementid,
                 $username,
-                $ctx,
+                [
+                    'ignore_nominal' => true
+                ],
                 $dt
             );
 
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
                 $header->completed_by = $firstApprovalUsernames;
                 $header->completed_at = $dt;
                 $header->save();
             }
 
-            if ($request->hasFile('attachments')) {
+            if ($request->hasFile('attachments')) {                
                 $meta = [
                     'refnbr' => $docid,
                     'doctype' => $doctype,
                     'cpnyid' => $request->input('cpnyid'),
                     'departementid' => $request->input('departementid'),
                     'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by' => $user->username,
+                    'created_by' => $username,
                 ];
 
                 $files = (array) $request->file('attachments');
@@ -672,7 +436,7 @@ class IMBudgetNonPurchController extends Controller
                     \DB::rollBack();
 
                     return response()->json([
-                        'message' => 'Failed to create PB',
+                        'message' => 'Failed to create IMR',
                         'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
                 }
@@ -686,10 +450,10 @@ class IMBudgetNonPurchController extends Controller
                 $docid,
                 $doctype,
                 $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPB',
+                'IM Budget Non Purchase',   // nama dokumen untuk ditampilkan di email
                 url('/showimbudgetnonpurch/'.$eid),
                 [
-                    'info' => $request->keperluan,
+                    'info' => $request->imbudgetkeperluan,
                     'createdby' => $header->created_by,
                     'date' => $dt->toDateTimeString(),
                 ]
@@ -698,18 +462,16 @@ class IMBudgetNonPurchController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'SPPB created successfully',
-                'sppbid' => $docid,
-                'sppb_no' => $sppbNo,
-                'totalqty' => $totalQty,
-                'attachments' => $uploadResult,
+                'message' => 'IM Budget Non Purchase created successfully',
+                'docid' => $docid
             ]);
+
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
             return response()->json([
-                'message' => 'Failed to create SPPB',
+                'message' => 'Failed to create IM Budget Non Purchase',
                 'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
@@ -726,24 +488,18 @@ class IMBudgetNonPurchController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $sppb = TrImbudgetNonPurch::findOrFail($id);
+        $imnonpurchase = TrImbudgetNonPurch::findOrFail($id);
 
-        // Ambil detail + eager load relasi lokasi & sublokasi
-        $sppbdetail = TrImbudgetNonPurchdetail::with([
-            'location:location_id,location_name',
-            'subLocation:sub_location_id,sub_location_name',
-        ])
-            ->where('sppbid', $sppb->sppbid)
-            ->get()
-            ->map(function ($d) {
-                // Sematkan nama ke attribute agar Blade lama tetap jalan
-                $d->location_name = optional($d->location)->location_name;
-                $d->sub_location_name = optional($d->subLocation)->sub_location_name;
+        // =========================
+        // DETAIL
+        // =========================
+        $imnonpurchasedetail = TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)
+            ->get(); // ❗ FIX: kurang ;
 
-                return $d;
-            });
-
-        $detailBuIds = $sppbdetail
+        // =========================
+        // BUSINESS UNIT (ambil dari detail)
+        // =========================
+        $detailBuIds = $imnonpurchasedetail
             ->pluck('budget_business_unit_id')
             ->filter(fn ($v) => !blank($v))
             ->unique()
@@ -753,62 +509,60 @@ class IMBudgetNonPurchController extends Controller
 
         $selectedBuName = null;
         if ($selectedBuId) {
-            $bu = BusinessUnit::query()
-                ->where('business_unit_id', $selectedBuId)
-                ->first();
-
+            $bu = BusinessUnit::where('business_unit_id', $selectedBuId)->first();
             $selectedBuName = $bu->business_unit_name ?? null;
         }
 
-        // Inject ke object $sppb supaya Blade existing tetap jalan
-        $sppb->business_unit_id = $selectedBuId;
-        $sppb->business_unit_name = $selectedBuName;
+        // inject ke header
+        $imnonpurchase->business_unit_id = $selectedBuId;
+        $imnonpurchase->business_unit_name = $selectedBuName;
 
-        // Optional: log kalau ternyata 1 SPPB punya lebih dari 1 BU di detail
-        if ($detailBuIds->count() > 1) {
-            \Log::warning('SPPB memiliki lebih dari satu budget_business_unit_id pada detail', [
-                'sppbid' => $sppb->sppbid,
-                'budget_business_unit_ids' => $detailBuIds->toArray(),
-            ]);
-        }
-
-        $user = request()->user();
+        // =========================
+        // USER DATA
+        // =========================
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
         $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        // $attachment = Attachment::where('docid', $sppb->sppbid)
-        //     ->where('status', 'A')
-        //     ->get();
-
-        $rows = TrAttachment::where('refnbr', $sppb->sppbid)
+        // =========================
+        // ATTACHMENT (GCS SIGNED URL)
+        // =========================
+        $rows = TrAttachment::where('refnbr', $imnonpurchase->imnonpurchaseid)
             ->where('status', 'A')
             ->orderBy('created_at', 'desc')
             ->get();
 
         $config = config('filesystems.disks.gcs');
         $keyFilePath = $config['key_file'];
+
         if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
             $keyFilePath = base_path($keyFilePath);
         }
+
         $storage = new StorageClient([
             'projectId' => $config['project_id'],
             'keyFilePath' => $keyFilePath,
         ]);
+
         $bucket = $storage->bucket($config['bucket']);
 
         $attachments = $rows->map(function ($r) use ($bucket) {
-            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $objectPath = rtrim($r->folder, '/') . '/' . $r->filename;
             $object = $bucket->object($objectPath);
+
             $signedUrl = null;
+
             try {
                 $signedUrl = $object->signedUrl(
                     new \DateTimeImmutable('+10 minutes'),
                     ['version' => 'v4']
                 );
             } catch (\Throwable $e) {
-                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+                \Log::warning('Signed URL gagal', [
+                    'path' => $objectPath,
+                    'error' => $e->getMessage()
+                ]);
             }
 
             return (object) [
@@ -829,293 +583,263 @@ class IMBudgetNonPurchController extends Controller
             ->first();
 
         return view('pages.imbudgetnonpurch.editimbudgetnonpurch', compact(
-            'sppb', 'sppbdetail', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'attachments', 'hash', 'akses_stock'
+            'imnonpurchase',
+            'imnonpurchasedetail',
+            'usercpny',
+            'usercpny2',
+            'userdept',
+            'userdept2',
+            'attachments',
+            'hash',
+            'akses_stock'
         ));
     }
 
     public function updateIMBudgetNonPurch(Request $request, $hash)
     {
-        // dd($request->all()); // matikan agar eksekusi lanjut
-
         $id = Hashids::decode($hash)[0] ?? null;
-        abort_if(!$id, 404, 'PB tidak ditemukan.');
+        abort_if(!$id, 404, 'IMR tidak ditemukan.');
 
         $user = $request->user();
         $dt = Carbon::now();
-        $year = (int) $dt->year;
-        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();
-        $doctype = 'PB';
+
+        $doctype = 'IMR';
         $username = $user->username ?? 'system';
-        $fullname = $user->name ?? 'system';
 
-        // ===== generate TrApproval dari MsApproval sesuai context =====
-        $approvalCtl = app(ApprovalController::class);
-
-        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
-
-        // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
-        $toFloat = function ($v): ?float {
+        $toFloat = function ($v): float {
             if ($v === null || $v === '') {
-                return null;
+                return 0;
             }
-            $s = preg_replace('/\s+/', '', (string) $v);
-            $hasComma = strpos($s, ',') !== false;
-            $hasDot = strpos($s, '.') !== false;
+
+            $s = preg_replace('/\s+/', '', trim((string) $v));
+
+            $hasComma = str_contains($s, ',');
+            $hasDot = str_contains($s, '.');
 
             if ($hasComma && $hasDot) {
                 $lastComma = strrpos($s, ',');
                 $lastDot = strrpos($s, '.');
+
                 if ($lastComma > $lastDot) {
-                    // koma = decimal, titik = ribuan
                     $s = str_replace('.', '', $s);
                     $s = str_replace(',', '.', $s);
                 } else {
-                    // titik = decimal, koma = ribuan
                     $s = str_replace(',', '', $s);
                 }
             } elseif ($hasComma) {
                 $s = str_replace(',', '.', $s);
-            } elseif ($hasDot) {
-                if (substr_count($s, '.') > 1) {
-                    $s = str_replace('.', '', $s);
-                }
+            } elseif ($hasDot && substr_count($s, '.') > 1) {
+                $s = str_replace('.', '', $s);
             }
 
-            return is_numeric($s) ? (float) $s : null;
+            return is_numeric($s) ? (float) $s : 0;
         };
 
-        $header = TrImbudgetNonPurch::findOrFail($id);
-        // update header
-        $header->cpny_id = $request->cpnyid;
-        $header->department_id = $request->departementid;
-        $header->requesttypeid = $request->requesttypeid;
-        $header->keperluan = $request->keperluan;
-        $header->budget_perpost = $request->perpost;
-        $header->woid = $request->woid;
-        $header->is_urgent = $request->is_urgent;
-        $header->status = 'P';
-        $header->updated_by = $username;
-        $header->save();
-
-        // arrays utama
-        $detailIds = array_values($request->input('detail_id', []));
-        $inventoryIds = array_values($request->input('inventoryid', []));
-        $productNames = array_values($request->input('product_name', []));
-        $qtys = array_values($request->input('qty', []));
-        $uoms = array_values($request->input('stock_unit', []));
-        $notes = array_values($request->input('note', []));
-        $locIds = array_values($request->input('location_id', []));
-        $subLocIds = array_values($request->input('sub_location_id', []));
-        $actIds = array_values($request->input('activity_id', []));
-        $buIds = array_values($request->input('business_unit_id', []));
-        $deptFinIds = array_values($request->input('department_fin_id', []));
-        $actDescrs = array_values($request->input('activity_descr', []));
-        $coaIds = array_values($request->input('coa_id', []));
-        $itemTypes = array_values($request->input('item_type', []));
-        $itemCats = array_values($request->input('item_category', []));
-        $siteids = array_values($request->input('siteid', []));
-
-        $inventorySubTypes = $request->input('item_sub_type', []);
-
-        // arrays UoM tambahan
-        $purchaseUnits = array_values($request->input('purchase_unit', []));      // hidden dari UI
-        $uomMultDivs = array_values($request->input('uom_unitmultdiv', []));    // 'M'/'D'
-        $uomRates = array_values($request->input('uom_unitrate', []));       // bisa "12.000"
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
 
         DB::beginTransaction();
 
         try {
-            // hapus baris yang di-mark delete
-            if ($request->filled('deleted_detail_ids')) {
-                $idsToDelete = array_filter(array_map('trim', explode(',', $request->deleted_detail_ids)));
-                if ($idsToDelete) {
-                    TrImbudgetNonPurchdetail::whereIn('id', $idsToDelete)->delete();
-                }
+            $header = TrImbudgetNonPurch::findOrFail($id);
+
+            // =========================
+            // HEADER
+            // =========================
+            $header->cpny_id = $request->input('cpnyid');
+            $header->department_id = $request->input('departementid');
+            $header->user_peminta = $header->user_peminta ?: $username;
+            $header->imnonpurchasetype = $request->input('imnonpurchasetype');
+            $header->imbudgetkeperluan = $request->input('keperluan');
+
+            $header->budget_from = $toFloat($request->input('budget_from'));
+            $header->budget_to = $toFloat($request->input('budget_to'));
+            $header->expenditure_type = $request->input('expenditure_type');
+            $header->existing_budget = $toFloat($request->input('existing_budget'));
+            $header->request_budget = $toFloat($request->input('request_budget'));
+            $header->over_budget = $toFloat($request->input('over_budget'));
+
+            $header->status = 'P';
+            $header->updated_by = $username;
+            $header->save();
+
+            // =========================
+            // DETAIL ARRAYS
+            // =========================
+            $detailIds = array_values($request->input('detail_id', []));
+            $descriptions = array_values($request->input('imnonpurchase_descr', []));
+            $qtys = array_values($request->input('qty', []));
+            $uoms = array_values($request->input('uom', []));
+            $notes = array_values($request->input('note', []));
+            $prices = array_values($request->input('price', []));
+            $totalPrices = array_values($request->input('total_price', []));
+
+            $activityIds = array_values($request->input('activity_id', []));
+            $businessUnitIds = array_values($request->input('business_unit_id_detail', []));
+            $deptFinIds = array_values($request->input('department_fin_id', []));
+            $activityDescrs = array_values($request->input('activity_descr', []));
+            $coaIds = array_values($request->input('coa_id', []));
+
+            // =========================
+            // DELETE DETAIL REMOVED FROM FORM
+            // =========================
+            $existingDetailIds = TrImbudgetNonPurchDetail::where('imnonpurchaseid', $header->imnonpurchaseid)
+                ->pluck('id')
+                ->map(fn ($v) => (string) $v)
+                ->toArray();
+
+            $submittedDetailIds = collect($detailIds)
+                ->filter(fn ($v) => !blank($v))
+                ->map(fn ($v) => (string) $v)
+                ->toArray();
+
+            $deleteIds = array_diff($existingDetailIds, $submittedDetailIds);
+
+            if (!empty($deleteIds)) {
+                TrImbudgetNonPurchDetail::where('imnonpurchaseid', $header->imnonpurchaseid)
+                    ->whereIn('id', $deleteIds)
+                    ->delete();
             }
 
-            $rowCount = max(count($inventoryIds), count($qtys));
-            $savedDetails = [];
+            // =========================
+            // UPSERT DETAIL
+            // =========================
+            $rowCount = max(
+                count($descriptions),
+                count($qtys),
+                count($prices),
+                count($coaIds)
+            );
 
             for ($i = 0; $i < $rowCount; ++$i) {
-                $invId = $inventoryIds[$i] ?? null;
-                $qty = (float) str_replace(',', '.', (string) ($qtys[$i] ?? 0));
-                if (empty($invId) || $qty <= 0) {
+                $descr = trim((string) ($descriptions[$i] ?? ''));
+                $qty = $toFloat($qtys[$i] ?? 0);
+                $price = $toFloat($prices[$i] ?? 0);
+                $totalPrice = $toFloat($totalPrices[$i] ?? 0);
+                $coaId = $coaIds[$i] ?? null;
+
+                if ($descr === '' && $qty <= 0 && $price <= 0 && blank($coaId)) {
                     continue;
                 }
 
-                // === konversi base_* seperti di store ===
-                $displayUom = $uoms[$i] ?? null;
-                $baseUom = $purchaseUnits[$i] ?? null;                        // purchase_unit
-                $typeMultiplier = strtoupper(trim((string) ($uomMultDivs[$i] ?? ''))); // 'M'/'D'
-                $rate = $toFloat($uomRates[$i] ?? null) ?? 1.0;             // 12.000 -> 12.0
-                if ($rate <= 0) {
-                    $rate = 1.0;
-                    $typeMultiplier = '';
-                }
-
-                $baseQty = $qty;
-                if ($typeMultiplier === 'M') {
-                    $baseQty = $qty * $rate;
-                } elseif ($typeMultiplier === 'D') {
-                    $baseQty = $qty / $rate;
+                if ($totalPrice <= 0) {
+                    $totalPrice = $qty * $price;
                 }
 
                 $data = [
-                    'inventoryid' => $invId,
-                    'inventory_descr' => $productNames[$i] ?? null,
-                    'siteid' => $siteids[$i] ?? null,
+                    'imnonpurchaseid' => $header->imnonpurchaseid,
+                    'imnonpurchase_descr' => $descr,
+                    'imnonpurchase_note' => $notes[$i] ?? null,
                     'qty' => $qty,
-                    'uom' => $displayUom,
-                    'note' => $notes[$i] ?? null,
-                    'inventory_type' => $itemTypes[$i] ?? null,
-                    'inventory_sub_type' => $inventorySubTypes[$i] ?? null,
-                    'inventory_category' => $itemCats[$i] ?? null,
+                    'uom' => $uoms[$i] ?? null,
+                    'price' => $price,
+                    'total_price' => $totalPrice,
 
-                    // >>> ini yang ditambahkan <<<
-                    'base_uom' => $baseUom,                       // purchase_unit
-                    'base_multiplier' => $rate,                          // uom_unitrate (float)
-                    'type_multiplier' => $typeMultiplier ?: null,        // 'M'/'D'/null
-                    'base_qty' => $baseQty,                        // hasil M/D
-
-                    'budget_cpny_id' => $request->cpnyid,
-                    'budget_business_unit_id' => $buIds[$i] ?? null,
+                    'budget_perpost' => $dt->year,
+                    'budget_cpny_id' => $request->input('cpnyid'),
+                    'budget_business_unit_id' => $businessUnitIds[$i] ?? null,
                     'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                    'budget_activity_descr' => $actDescrs[$i] ?? null,
-                    'budget_account_id' => $coaIds[$i] ?? null,
-                    'budget_activity_id' => $actIds[$i] ?? null,
-                    'openordered' => $qty,
-                    'ordered' => 0,
-                    'rejectordered' => 0,
-                    'completeordered' => 0,
-                    'location_id' => $locIds[$i] ?? null,
-                    'sub_location_id' => $subLocIds[$i] ?? null,
-                    'budget_perpost' => $request->perpost,
+                    'budget_account_id' => $coaId,
+                    'budget_activity_id' => $activityIds[$i] ?? null,
+                    'budget_activity_descr' => $activityDescrs[$i] ?? null,
+
                     'status' => 'P',
                     'updated_by' => $username,
                 ];
 
-                $idDetail = $detailIds[$i] ?? null;
+                $detailId = $detailIds[$i] ?? null;
 
-                if ($idDetail) {
-                    $detail = TrImbudgetNonPurchdetail::where('id', $idDetail)
-                        ->where('sppbid', $header->sppbid)
+                if ($detailId) {
+                    $detail = TrImbudgetNonPurchDetail::where('id', $detailId)
+                        ->where('imnonpurchaseid', $header->imnonpurchaseid)
                         ->first();
+
                     if ($detail) {
-                        $detail->fill($data)->save();
-                    } else {
-                        $detail = new TrImbudgetNonPurchdetail($data);
-                        $detail->sppbid = $header->sppbid;
+                        $detail->fill($data);
                         $detail->save();
+                    } else {
+                        $data['created_by'] = $username;
+                        TrImbudgetNonPurchDetail::create($data);
                     }
                 } else {
-                    $detail = new TrImbudgetNonPurchdetail($data);
-                    $detail->sppbid = $header->sppbid;
-                    $detail->save();
+                    $data['created_by'] = $username;
+                    TrImbudgetNonPurchDetail::create($data);
                 }
-
-                $savedDetails[] = $detail->id;
             }
 
-            // Renumber sppb_no 1..N
-            $n = 1;
-            foreach ($savedDetails as $did) {
-                TrImbudgetNonPurchdetail::where('id', $did)->update(['sppb_no' => $n++]);
+            // =========================
+            // SYNC REQUEST BUDGET FROM DETAIL
+            // =========================
+            $grandTotal = TrImbudgetNonPurchDetail::where('imnonpurchaseid', $header->imnonpurchaseid)
+                ->sum('total_price');
+
+            $header->request_budget = $grandTotal;
+
+            if ($header->imnonpurchasetype === 'Over Budget') {
+                $header->over_budget = $grandTotal - (float) ($header->existing_budget ?? 0);
+            } else {
+                $header->over_budget = 0;
             }
 
-            // Hitung total qty (kalau mau pakai base_qty, ganti ke sum('base_qty'))
-            $totalQty = TrImbudgetNonPurchdetail::where('sppbid', $header->sppbid)->sum('qty');
-            $header->totalqty = $totalQty;
-            $header->totalopenordered = $totalQty;
             $header->save();
 
-            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
-            $isUrgent = (bool) $request->input('is_urgent', false);
-
-            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
-            $firstCategory = null;
-            if (!empty($inventoryCategories)) {
-                foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) {
-                        $firstCategory = $c;
-                        break;
-                    }
-                }
-            }
-
-            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
-            $hasFixedAssetSubtype = false;
-            foreach ((array) $inventorySubTypes as $sub) {
-                $s = mb_strtolower((string) $sub);
-                if ($s === 'fixed asset' || $s === 'fa') {
-                    $hasFixedAssetSubtype = true;
-                    break;
-                }
-            }
-
-            // 4) Build context untuk ApprovalController
+            // =========================
+            // RE-GENERATE APPROVAL
+            // =========================
             $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPB diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPB
+                'is_urgent' => false,
+                'first_inventory_category' => null,
+                'has_fixed_asset_subtype' => false,
+                'ignore_nominal' => true,
             ];
 
-            // Generate TrApproval
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $header->sppbid,
+                $header->imnonpurchaseid,
                 $doctype,
-                $request->cpnyid,
-                $request->departementid,
+                $request->input('cpnyid'),
+                $request->input('departementid'),
                 $username,
                 $ctx,
                 $dt
             );
 
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
             if ($firstApprovalUsernames) {
                 $header->completed_by = $firstApprovalUsernames;
                 $header->completed_at = $dt;
                 $header->save();
             }
 
+            // =========================
+            // UPLOAD NEW ATTACHMENTS
+            // =========================
             $uploadResult = null;
+
             if ($request->hasFile('attachments')) {
                 $meta = [
-                    'refnbr' => $header->sppbid,
+                    'refnbr' => $header->imnonpurchaseid,
                     'doctype' => $doctype,
-                    'cpnyid' => $request->cpnyid,
-                    'departementid' => $request->departementid,
-                    'base_folder' => 'att-purchasing-app/'.strtolower($doctype),
-                    'created_by' => $user->username,
+                    'cpnyid' => $request->input('cpnyid'),
+                    'departementid' => $request->input('departementid'),
+                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'created_by' => $username,
                 ];
+
                 $files = (array) $request->file('attachments');
 
-                try {
-                    $uploader = app(TrAttachmentController::class);
-                    $uploadResult = $uploader->uploadInternal($meta, $files);
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-
-                    return response()->json([
-                        'message' => 'Failed to update PB',
-                        'error' => 'Gagal upload attachment: '.$e->getMessage(),
-                    ], 500);
-                }
+                $uploader = app(TrAttachmentController::class);
+                $uploadResult = $uploader->uploadInternal($meta, $files);
             }
 
             $eid = Hashids::encode($header->id);
 
             $approvalCtl->notifyFirstApprover(
-                $header->sppbid,
+                $header->imnonpurchaseid,
                 $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPB',
-                url('/showimbudgetnonpurch/'.$eid),
+                $header->status,
+                'IMBudgetNonPurch',
+                url('/showimbudgetnonpurch/' . $eid),
                 [
-                    'info' => $request->keperluan,
+                    'info' => $header->imbudgetkeperluan,
                     'createdby' => $header->created_by,
                     'date' => $dt->toDateTimeString(),
                 ]
@@ -1123,12 +847,22 @@ class IMBudgetNonPurchController extends Controller
 
             DB::commit();
 
-            return response()->json(['message' => 'SPPB updated successfully']);
+            return response()->json([
+                'success' => true,
+                'message' => 'IMBudgetNonPurch updated successfully',
+                'imnonpurchaseid' => $header->imnonpurchaseid,
+                'grand_total' => $grandTotal,
+                'attachments' => $uploadResult,
+            ]);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
-            return response()->json(['message' => 'Update failed', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Update failed',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
     }
 
@@ -1155,33 +889,16 @@ class IMBudgetNonPurchController extends Controller
             return redirect()->route('login');
         }
 
-        // $sppb = TrImbudgetNonPurch::findOrFail($id);
-        $sppb = TrImbudgetNonPurch::with([
-            'requestType:requesttypeid,requesttype_name',
+        
+        $header = TrImbudgetNonPurch::with([          
             'creator:username,name',
         ])
         ->findOrFail($id);
 
-        // $spbNos = TrSPBdetail::where('sppbid', $sppb->sppbid)
-        // ->pluck('spbid')
-        // ->unique()
-        // ->values();
-        $spbData = TrSPB::query()
-            ->select('id', 'spbid', 'sppbid')
-            ->where('spbid', $sppb->spbid)
-            ->first();
-
-        if ($spbData) {
-            $spbData->hash = Hashids::encode($spbData->id);
-        }
-
-        $sppbdetail = TrImbudgetNonPurchdetail::with([
-            'location:location_id,location_name',
-            'subLocation:sub_location_id,sub_location_name',
-        ])
-        ->where('sppbid', $sppb->sppbid)
-        ->orderby('sppb_no', 'ASC')
-        ->get();
+     
+        $details = TrImbudgetNonPurchDetail::where('imnonpurchaseid', $header->imnonpurchaseid)
+            ->orderBy('id', 'desc')
+            ->get();
 
         $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
             $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
@@ -1219,7 +936,7 @@ class IMBudgetNonPurchController extends Controller
             $budgetMap[$key] = $b;
         }
 
-        foreach ($sppbdetail as $item) {
+        foreach ($details as $item) {
             $key = implode('|', [
                 $item->budget_cpny_id,
                 $item->budget_business_unit_id,
@@ -1249,15 +966,10 @@ class IMBudgetNonPurchController extends Controller
             }
         }
 
-        $attachmentPB = $this->mapAttachmentsToSignedUrl($sppb->sppbid);
-
-        $attachmentWO = collect();
-        if (!empty($sppb->woid)) {
-            $attachmentWO = $this->mapAttachmentsToSignedUrl($sppb->woid);
-        }
+        $attachment = $this->mapAttachmentsToSignedUrl($header->imnonpurchaseid);        
 
         $loginUsername = $user->username ?? $user->name ?? null;
-        $canUpload = $sppb->created_by === $loginUsername;
+        $canUpload = $header->created_by === $loginUsername;
         $akses_cc = SysUserRole::where('username', $user->username)
             ->where('role_id', 'COSTCTRLACCESS')
             ->first();
@@ -1284,33 +996,20 @@ class IMBudgetNonPurchController extends Controller
             ->orderBy('department_fin_id')
             ->get();
 
-        $woData = null;
-        $woHash = null;
 
-        if (!empty($sppb->woid)) {
-            $woData = TrWO::select('id', 'woid', 'keperluan')
-                ->where('woid', $sppb->woid)
-                ->first();
-
-            if ($woData) {
-                $woHash = Hashids::encode($woData->id);
-            }
-        }
-
-        return view('pages.imbudgetnonpurch.showimbudgetnonpurch', compact('sppb', 'spbData', 'sppbdetail', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'attachmentPB', 'attachmentWO', 'woData', 'woHash'
-        ));
+        return view('pages.imbudgetnonpurch.showimbudgetnonpurch', compact('header', 'details', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'attachment'  ));
     }
 
     public function exportDetail($id)
     {
-        $sppb = TrImbudgetNonPurch::findOrFail($id);
+        $imnonpurchase = TrImbudgetNonPurch::findOrFail($id);
 
-        $sppbdetail = TrImbudgetNonPurchdetail::with([
+        $imnonpurchasedetail = TrImbudgetNonPurchdetail::with([
             'location',
             'subLocation',
         ])
-        ->where('sppbid', $sppb->sppbid)
-        ->orderBy('sppb_no', 'ASC')
+        ->where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)
+        ->orderBy('imnonpurchase_no', 'ASC')
         ->get();
 
         $budgets = BudgetDetail::select(
@@ -1325,7 +1024,7 @@ class IMBudgetNonPurchController extends Controller
             'total_used'
         )->get();
 
-        foreach ($sppbdetail as $item) {
+        foreach ($imnonpurchasedetail as $item) {
             $budget = $budgets->first(function ($b) use ($item) {
                 return $b->cpny_id == $item->budget_cpny_id
                     && $b->business_unit_id == $item->budget_business_unit_id
@@ -1339,8 +1038,8 @@ class IMBudgetNonPurchController extends Controller
         }
 
         return Excel::download(
-            new IMBudgetNonPurchDetailExport($sppbdetail),
-            'SPPB_Detail_'.$sppb->sppbid.'.xlsx'
+            new IMBudgetNonPurchDetailExport($imnonpurchasedetail),
+            'IMBudgetNonPurch_Detail_'.$imnonpurchase->imnonpurchaseid.'.xlsx'
         );
     }
 
@@ -1393,43 +1092,43 @@ class IMBudgetNonPurchController extends Controller
     public function approveIMBudgetNonPurch(Request $request, $docid)
     {
         $user = $request->user();
-        $doctype = 'PB';
+        $doctype = 'IMR';
 
-        $sppb = TrImbudgetNonPurch::with('creator')->where('sppbid', $docid)->first();
-        if (!$sppb) {
-            return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+        $imnonpurchase = TrImbudgetNonPurch::with('creator')->where('imnonpurchaseid', $docid)->first();
+        if (!$imnonpurchase) {
+            return response()->json(['success' => false, 'message' => 'IMBudgetNonPurch not found'], 404);
         }
 
-        $eid = Hashids::encode($sppb->id);
+        $eid = Hashids::encode($imnonpurchase->id);
         $docUrl = url('/showimbudgetnonpurch/'.$eid);
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($imnonpurchase, 'creator.name') ?: $imnonpurchase->created_by;
 
         $result = app(ApprovalController::class)->approveStep(
-            $sppb->sppbid,
+            $imnonpurchase->imnonpurchaseid,
             $doctype,
             $user->username,
             $user->name,
 
             // complete: update header/detail + email creator complete
-            function (string $refnbr, \Carbon\Carbon $now) use ($sppb, $fullname, $docUrl) {
-                $sppb->status = 'C';
-                $sppb->completed_by = $sppb->completed_by ?: auth()->user()->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+            function (string $refnbr, \Carbon\Carbon $now) use ($imnonpurchase, $fullname, $docUrl) {
+                $imnonpurchase->status = 'C';
+                $imnonpurchase->completed_by = $imnonpurchase->completed_by ?: auth()->user()->username;
+                $imnonpurchase->completed_at = $now;
+                $imnonpurchase->save();
 
-                TrImbudgetNonPurchdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'C']);
+                TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'C']);
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $sppb->sppbid,
-                    'SPPB',
+                    $imnonpurchase->imnonpurchaseid,
+                    'IMBudgetNonPurch',
                     'C',
-                    $sppb->created_by,
+                    $imnonpurchase->created_by,
                     $docUrl,
                     [
-                        'cpnyid' => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-                        'deptname' => $sppb->department_id ?? $sppb->departementid ?? '',
-                        'date' => $sppb->sppbdate,
-                        'info' => $sppb->keperluan,
+                        'cpnyid' => $imnonpurchase->cpny_id ?? $imnonpurchase->cpnyid ?? '',
+                        'deptname' => $imnonpurchase->department_id ?? $imnonpurchase->departementid ?? '',
+                        'date' => $imnonpurchase->imnonpurchasedate,
+                        'info' => $imnonpurchase->keperluan,
                         'fullname' => $fullname,
                         'name' => $fullname,
                         'createdby' => $fullname,
@@ -1438,24 +1137,24 @@ class IMBudgetNonPurchController extends Controller
             },
 
             // notify next approver
-            function ($next, \Carbon\Carbon $now) use ($sppb, $docUrl) {
+            function ($next, \Carbon\Carbon $now) use ($imnonpurchase, $docUrl) {
                 app(ApprovalController::class)->notifyFirstApprover(
-                    $sppb->sppbid,
-                    'PB',
+                    $imnonpurchase->imnonpurchaseid,
+                    'IMR',
                     'P',
-                    'SPPB',
+                    'IMBudgetNonPurch',
                     $docUrl,
                     [
-                        'info' => $sppb->keperluan,
-                        'createdby' => $sppb->created_by,
+                        'info' => $imnonpurchase->keperluan,
+                        'createdby' => $imnonpurchase->created_by,
                         'date' => $now->toDateTimeString(),
                     ]
                 );
 
                 // jejak terakhir diproses (optional)
-                $sppb->completed_by = auth()->user()->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+                $imnonpurchase->completed_by = auth()->user()->username;
+                $imnonpurchase->completed_at = $now;
+                $imnonpurchase->save();
             }
         );
 
@@ -1469,61 +1168,61 @@ class IMBudgetNonPurchController extends Controller
     public function rejectIMBudgetNonPurch(Request $request, $docid)
     {
         $user = $request->user();
-        $doctype = 'PB';
+        $doctype = 'IMR';
 
-        $sppb = TrImbudgetNonPurch::with('creator')->where('sppbid', $docid)->first();
-        if (!$sppb) {
-            return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+        $imnonpurchase = TrImbudgetNonPurch::with('creator')->where('imnonpurchaseid', $docid)->first();
+        if (!$imnonpurchase) {
+            return response()->json(['success' => false, 'message' => 'IMBudgetNonPurch not found'], 404);
         }
 
-        $eid = Hashids::encode($sppb->id);
+        $eid = Hashids::encode($imnonpurchase->id);
         $docUrl = url('/showimbudgetnonpurch/'.$eid);
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($imnonpurchase, 'creator.name') ?: $imnonpurchase->created_by;
 
         $result = app(ApprovalController::class)->rejectStep(
-            $sppb->sppbid,
+            $imnonpurchase->imnonpurchaseid,
             $doctype,
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($sppb, $fullname, $docUrl) {
-                $sppb->status = 'R';
-                $sppb->completed_by = auth()->user()->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+            function (string $refnbr, \Carbon\Carbon $now) use ($imnonpurchase, $fullname, $docUrl) {
+                $imnonpurchase->status = 'R';
+                $imnonpurchase->completed_by = auth()->user()->username;
+                $imnonpurchase->completed_at = $now;
+                $imnonpurchase->save();
 
                 // =========================
                 // 🔥 PANGGIL UPDATE SPB
                 // =========================
                 try {
-                    $spbId = $sppb->spbid;
+                    $spbId = $imnonpurchase->spbid;
 
                     if ($spbId) {
-                        $this->updateSPBQtySPPB(
+                        $this->updateSPBQtyIMBudgetNonPurch(
                             $spbId,
-                            $sppb->sppbid,
+                            $imnonpurchase->imnonpurchaseid,
                             auth()->user()->username
                         );
                     }
                 } catch (\Throwable $e) {
-                    \Log::error('Update SPB after reject SPPB failed', [
-                        'sppbid' => $sppb->sppbid,
-                        'spbid' => $sppb->spbid,
+                    \Log::error('Update SPB after reject IMBudgetNonPurch failed', [
+                        'imnonpurchaseid' => $imnonpurchase->imnonpurchaseid,
+                        'spbid' => $imnonpurchase->spbid,
                         'error' => $e->getMessage(),
                     ]);
                 }
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $sppb->sppbid,
-                    'SPPB',
+                    $imnonpurchase->imnonpurchaseid,
+                    'IMBudgetNonPurch',
                     'R',
-                    $sppb->created_by,
+                    $imnonpurchase->created_by,
                     $docUrl,
                     [
-                        'cpnyid' => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-                        'deptname' => $sppb->department_id ?? $sppb->departementid ?? '',
+                        'cpnyid' => $imnonpurchase->cpny_id ?? $imnonpurchase->cpnyid ?? '',
+                        'deptname' => $imnonpurchase->department_id ?? $imnonpurchase->departementid ?? '',
                         'date' => $now->toDateString(),
-                        'info' => $sppb->keperluan,
+                        'info' => $imnonpurchase->keperluan,
                         'fullname' => $fullname,
                         'name' => $fullname,
                         'createdby' => $fullname,
@@ -1532,7 +1231,7 @@ class IMBudgetNonPurchController extends Controller
 
                 // simpan komentar (jika ada)
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($sppb->id, 'PB', request());
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($imnonpurchase->id, 'IMR', request());
                 } catch (\Throwable $e) {
                 }
             }
@@ -1542,50 +1241,50 @@ class IMBudgetNonPurchController extends Controller
             return response()->json(['success' => false, 'message' => $result['message'] ?? 'Reject failed'], 403);
         }
 
-        return response()->json(['success' => true, 'message' => 'SPPB rejected successfully']);
+        return response()->json(['success' => true, 'message' => 'IMBudgetNonPurch rejected successfully']);
     }
 
     public function reviseIMBudgetNonPurch(Request $request, $docid)
     {
         $user = $request->user();
-        $doctype = 'PB';
+        $doctype = 'IMR';
 
-        $sppb = TrImbudgetNonPurch::with('creator')->where('sppbid', $docid)->first();
-        if (!$sppb) {
-            return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+        $imnonpurchase = TrImbudgetNonPurch::with('creator')->where('imnonpurchaseid', $docid)->first();
+        if (!$imnonpurchase) {
+            return response()->json(['success' => false, 'message' => 'IMBudgetNonPurch not found'], 404);
         }
 
-        $eid = Hashids::encode($sppb->id);
+        $eid = Hashids::encode($imnonpurchase->id);
         $docUrl = url('/showimbudgetnonpurch/'.$eid);
-        $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+        $fullname = data_get($imnonpurchase, 'creator.name') ?: $imnonpurchase->created_by;
 
         $result = app(ApprovalController::class)->reviseStep(
-            $sppb->sppbid,            // refnbr
+            $imnonpurchase->imnonpurchaseid,            // refnbr
             $doctype,                 // PT
             $user->username,          // actor
             $user->name,              // actor
-            function (string $refnbr, \Carbon\Carbon $now) use ($sppb, $fullname, $docUrl) {
-                // === HEADER SPPB -> D ===
-                $sppb->status = 'D';
-                $sppb->completed_by = auth()->user()->username;
-                $sppb->completed_at = $now;
-                $sppb->save();
+            function (string $refnbr, \Carbon\Carbon $now) use ($imnonpurchase, $fullname, $docUrl) {
+                // === HEADER IMBudgetNonPurch -> D ===
+                $imnonpurchase->status = 'D';
+                $imnonpurchase->completed_by = auth()->user()->username;
+                $imnonpurchase->completed_at = $now;
+                $imnonpurchase->save();
 
                 // (opsional) DETAIL -> D
-                // \App\Models\TrImbudgetNonPurchdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'D']);
+                // \App\Models\TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'D']);
 
                 // === Email ke requester ===
                 app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $sppb->sppbid,
-                    'SPPB',
+                    $imnonpurchase->imnonpurchaseid,
+                    'IMBudgetNonPurch',
                     'D',
-                    $sppb->created_by,
+                    $imnonpurchase->created_by,
                     $docUrl,
                     [
-                        'cpnyid' => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-                        'deptname' => $sppb->department_id ?? $sppb->departementid ?? '',
+                        'cpnyid' => $imnonpurchase->cpny_id ?? $imnonpurchase->cpnyid ?? '',
+                        'deptname' => $imnonpurchase->department_id ?? $imnonpurchase->departementid ?? '',
                         'date' => $now->toDateString(),
-                        'info' => $sppb->keperluan,
+                        'info' => $imnonpurchase->imbudgetkeperluan,
                         'fullname' => $fullname,
                         'name' => $fullname,
                         'createdby' => $fullname,   // <<< tambahkan ini
@@ -1594,7 +1293,7 @@ class IMBudgetNonPurchController extends Controller
 
                 // === Simpan komentar (jika ada) ===
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($sppb->id, 'PB', request());
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($imnonpurchase->id, 'IMR', request());
                 } catch (\Throwable $e) {
                 }
             }
@@ -1607,26 +1306,26 @@ class IMBudgetNonPurchController extends Controller
             ], 403);
         }
 
-        return response()->json(['success' => true, 'message' => 'SPPB revised successfully']);
+        return response()->json(['success' => true, 'message' => 'IMBudgetNonPurch revised successfully']);
     }
 
     // public function approveIMBudgetNonPurch(Request $request, $docid)
     // {
     //     $now  = Carbon::now();
     //     $user = $request->user();
-    //     $doctype = 'PB';
+    //     $doctype = 'IMR';
 
     //     // Ambil header + creator
-    //     $sppb = TrImbudgetNonPurch::with('creator')->where('sppbid', $docid)->first();
-    //     if (!$sppb) {
-    //         return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+    //     $imnonpurchase = TrImbudgetNonPurch::with('creator')->where('imnonpurchaseid', $docid)->first();
+    //     if (!$imnonpurchase) {
+    //         return response()->json(['success' => false, 'message' => 'IMBudgetNonPurch not found'], 404);
     //     }
-    //     $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+    //     $fullname = data_get($imnonpurchase, 'creator.name') ?: $imnonpurchase->created_by;
 
     //     // Cari row approval PENDING level terendah yang sudah "aktif" (aprv_datebefore != null)
     //     // Lalu pastikan user saat ini termasuk dalam daftar aprv_username (support ; atau ,)
     //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $sppb->sppbid)
+    //         ->where('refnbr', $imnonpurchase->imnonpurchaseid)
     //         ->where('aprv_doctype', $doctype)
     //         ->where('status', 'P')
     //         ->whereNotNull('aprv_datebefore')
@@ -1657,18 +1356,18 @@ class IMBudgetNonPurchController extends Controller
     //         $currentPending->save();
 
     //         // Update header informasi "terakhir diproses"
-    //         $sppb->completed_by = $user->username;
-    //         $sppb->completed_at = $now;
-    //         $sppb->save();
+    //         $imnonpurchase->completed_by = $user->username;
+    //         $imnonpurchase->completed_at = $now;
+    //         $imnonpurchase->save();
 
     //         // 2) Masih ada pending lain?
     //         $pendingCount = TrApproval::query()
-    //             ->where('refnbr', $sppb->sppbid)
+    //             ->where('refnbr', $imnonpurchase->imnonpurchaseid)
     //             ->where('aprv_doctype', $doctype)
     //             ->where('status', 'P')
     //             ->count();
 
-    //         $eid = Hashids::encode($sppb->id);
+    //         $eid = Hashids::encode($imnonpurchase->id);
     //         $subjectMap = [
     //             'P' => 'Waiting Approval',
     //             'R' => 'Rejected Approval',
@@ -1679,33 +1378,33 @@ class IMBudgetNonPurchController extends Controller
 
     //         if ($pendingCount === 0) {
     //             // 3) Tidak ada approver lagi -> dokumen complete
-    //             $sppb->status       = 'C';
-    //             $sppb->completed_by = $user->username;
-    //             $sppb->completed_at = $now;
-    //             $sppb->save();
+    //             $imnonpurchase->status       = 'C';
+    //             $imnonpurchase->completed_by = $user->username;
+    //             $imnonpurchase->completed_at = $now;
+    //             $imnonpurchase->save();
 
     //             // Close semua detail
-    //             TrImbudgetNonPurchdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'C']);
+    //             TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'C']);
 
     //             // Kirim email ke requester (creator)
     //             $status        = 'C';
     //             $subjectSuffix = $subjectMap[$status] ?? 'Notification';
 
     //             $data = [
-    //                 'docid'     => $sppb->sppbid,
-    //                 'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-    //                 'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
-    //                 'date'      => $sppb->sppbdate,
+    //                 'docid'     => $imnonpurchase->imnonpurchaseid,
+    //                 'cpnyid'    => $imnonpurchase->cpny_id ?? $imnonpurchase->cpnyid ?? '',
+    //                 'deptname'  => $imnonpurchase->department_id ?? $imnonpurchase->departementid ?? '',
+    //                 'date'      => $imnonpurchase->imnonpurchasedate,
     //                 'fullname'  => $fullname,
     //                 'name'      => $fullname,
     //                 'createdby' => $fullname,
-    //                 'docname'   => 'SPPB',
-    //                 'info'      => $sppb->keperluan,
+    //                 'docname'   => 'IMBudgetNonPurch',
+    //                 'info'      => $imnonpurchase->keperluan,
     //                 'status'    => $status,
     //                 'url'       => url('/showimbudgetnonpurch/' . $eid),
     //             ];
 
-    //             $recipients = User::where('username', $sppb->created_by)
+    //             $recipients = User::where('username', $imnonpurchase->created_by)
     //                 ->where('status', 'A')
     //                 ->get();
 
@@ -1714,18 +1413,18 @@ class IMBudgetNonPurchController extends Controller
     //                     $to = $rcp->notification_email ?? $rcp->email;
     //                     Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                         $message->to($to)
-    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+    //                             ->subject($data['docid'] . ' - ' . $subjectSuffix . ' IMBudgetNonPurch')
     //                             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //                     });
     //                 } catch (\Throwable $e) {
-    //                     Log::error('Failed sending SPPB completion email', ['error' => $e->getMessage()]);
+    //                     Log::error('Failed sending IMBudgetNonPurch completion email', ['error' => $e->getMessage()]);
     //                 }
     //             }
 
     //         } else {
     //             // 4) Masih ada approver berikutnya -> aktifkan step berikutnya (level terendah)
     //             $next = TrApproval::query()
-    //                 ->where('refnbr', $sppb->sppbid)
+    //                 ->where('refnbr', $imnonpurchase->imnonpurchaseid)
     //                 ->where('aprv_doctype', $doctype)
     //                 ->where('status', 'P')
     //                 ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
@@ -1740,14 +1439,14 @@ class IMBudgetNonPurchController extends Controller
 
     //                 // Kirim email ke approver level berikutnya via ApprovalController (reusable)
     //                 app(ApprovalController::class)->notifyFirstApprover(
-    //                     $sppb->sppbid,
+    //                     $imnonpurchase->imnonpurchaseid,
     //                     $doctype,
     //                     'P',
-    //                     'SPPB',
+    //                     'IMBudgetNonPurch',
     //                     url('/showimbudgetnonpurch/' . $eid),
     //                     [
-    //                         'info'      => $sppb->keperluan,
-    //                         'createdby' => $sppb->created_by,
+    //                         'info'      => $imnonpurchase->keperluan,
+    //                         'createdby' => $imnonpurchase->created_by,
     //                         'date'      => $now->toDateTimeString(),
     //                     ]
     //                 );
@@ -1759,7 +1458,7 @@ class IMBudgetNonPurchController extends Controller
 
     //     } catch (\Throwable $e) {
     //         DB::rollBack();
-    //         Log::error('Approve SPPB failed', ['error' => $e->getMessage()]);
+    //         Log::error('Approve IMBudgetNonPurch failed', ['error' => $e->getMessage()]);
     //         return response()->json(['success' => false, 'message' => 'Approve failed'], 500);
     //     }
     // }
@@ -1768,18 +1467,18 @@ class IMBudgetNonPurchController extends Controller
     // {
     //     $now     = Carbon::now();
     //     $user    = $request->user();
-    //     $doctype = 'PB';
+    //     $doctype = 'IMR';
 
     //     // Header + creator
-    //     $sppb = TrImbudgetNonPurch::with('creator')->where('sppbid', $docid)->first();
-    //     if (!$sppb) {
+    //     $imnonpurchase = TrImbudgetNonPurch::with('creator')->where('imnonpurchaseid', $docid)->first();
+    //     if (!$imnonpurchase) {
     //         return response()->json(['success' => false, 'message' => 'Task not found'], 404);
     //     }
-    //     $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+    //     $fullname = data_get($imnonpurchase, 'creator.name') ?: $imnonpurchase->created_by;
 
     //     // Row approval aktif (pending + sudah "dibuka" datebefore)
     //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $sppb->sppbid)
+    //         ->where('refnbr', $imnonpurchase->imnonpurchaseid)
     //         ->where('aprv_doctype', $doctype)
     //         ->where('status', 'P')
     //         ->whereNotNull('aprv_datebefore')
@@ -1809,15 +1508,15 @@ class IMBudgetNonPurchController extends Controller
     //         $currentPending->aprv_name      = $user->name;
     //         $currentPending->save();
 
-    //         // 2) Update header SPPB -> Rejected
-    //         $sppb->status       = 'R';
-    //         $sppb->completed_by = $user->username;
-    //         $sppb->completed_at = $now;
-    //         $sppb->save();
+    //         // 2) Update header IMBudgetNonPurch -> Rejected
+    //         $imnonpurchase->status       = 'R';
+    //         $imnonpurchase->completed_by = $user->username;
+    //         $imnonpurchase->completed_at = $now;
+    //         $imnonpurchase->save();
 
     //         // 3) Batalkan semua approval yang masih pending (status 'X')
     //         TrApproval::query()
-    //             ->where('refnbr', $sppb->sppbid)
+    //             ->where('refnbr', $imnonpurchase->imnonpurchaseid)
     //             ->where('aprv_doctype', $doctype)
     //             ->where('status', 'P')
     //             ->update(['status' => 'X']);
@@ -1825,7 +1524,7 @@ class IMBudgetNonPurchController extends Controller
     //         DB::commit();
     //     } catch (\Throwable $e) {
     //         DB::rollBack();
-    //         Log::error('Reject SPPB failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         Log::error('Reject IMBudgetNonPurch failed', ['docid' => $docid, 'error' => $e->getMessage()]);
     //         return response()->json(['success' => false, 'message' => 'Reject failed'], 500);
     //     }
 
@@ -1840,23 +1539,23 @@ class IMBudgetNonPurchController extends Controller
     //             'C' => 'Completed',
     //         ];
     //         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-    //         $eid           = Hashids::encode($sppb->id);
+    //         $eid           = Hashids::encode($imnonpurchase->id);
 
     //         $data = [
-    //             'docid'     => $sppb->sppbid,
-    //             'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-    //             'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
+    //             'docid'     => $imnonpurchase->imnonpurchaseid,
+    //             'cpnyid'    => $imnonpurchase->cpny_id ?? $imnonpurchase->cpnyid ?? '',
+    //             'deptname'  => $imnonpurchase->department_id ?? $imnonpurchase->departementid ?? '',
     //             'date'      => $now->toDateString(),
     //             'fullname'  => $fullname,
     //             'name'      => $fullname,
     //             'createdby' => $fullname,
-    //             'docname'   => 'SPPB',
-    //             'info'      => $sppb->keperluan,
+    //             'docname'   => 'IMBudgetNonPurch',
+    //             'info'      => $imnonpurchase->keperluan,
     //             'status'    => $status,
     //             'url'       => url('/showimbudgetnonpurch/' . $eid),
     //         ];
 
-    //         $recipients = User::where('username', $sppb->created_by)
+    //         $recipients = User::where('username', $imnonpurchase->created_by)
     //             ->where('status', 'A')
     //             ->get();
 
@@ -1866,46 +1565,46 @@ class IMBudgetNonPurchController extends Controller
 
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' IMBudgetNonPurch')
     //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //             });
     //         }
     //     } catch (\Throwable $e) {
-    //         Log::error('Failed sending SPPB rejected email', [
-    //             'docid' => $sppb->sppbid,
+    //         Log::error('Failed sending IMBudgetNonPurch rejected email', [
+    //             'docid' => $imnonpurchase->imnonpurchaseid,
     //             'error' => $e->getMessage()
     //         ]);
     //     }
 
     //     // 5) Simpan komentar penolakan (jika ada)
     //     try {
-    //         app('App\Http\Controllers\SendCommentController')->sendmsg($sppb->id, $doctype, $request);
+    //         app('App\Http\Controllers\SendCommentController')->sendmsg($imnonpurchase->id, $doctype, $request);
     //     } catch (\Throwable $e) {
     //         Log::warning('SendComment after reject failed', [
-    //             'docid' => $sppb->sppbid,
+    //             'docid' => $imnonpurchase->imnonpurchaseid,
     //             'error' => $e->getMessage()
     //         ]);
     //     }
 
-    //     return response()->json(['success' => true, 'message' => 'SPPB rejected successfully']);
+    //     return response()->json(['success' => true, 'message' => 'IMBudgetNonPurch rejected successfully']);
     // }
 
     // public function reviseIMBudgetNonPurch(Request $request, $docid)
     // {
     //     $now     = Carbon::now();
     //     $user    = $request->user();
-    //     $doctype = 'PB';
+    //     $doctype = 'IMR';
 
     //     // 1) Ambil header + creator
-    //     $sppb = TrImbudgetNonPurch::with('creator')->where('sppbid', $docid)->first();
-    //     if (!$sppb) {
-    //         return response()->json(['success' => false, 'message' => 'SPPB not found'], 404);
+    //     $imnonpurchase = TrImbudgetNonPurch::with('creator')->where('imnonpurchaseid', $docid)->first();
+    //     if (!$imnonpurchase) {
+    //         return response()->json(['success' => false, 'message' => 'IMBudgetNonPurch not found'], 404);
     //     }
-    //     $fullname = data_get($sppb, 'creator.name') ?: $sppb->created_by;
+    //     $fullname = data_get($imnonpurchase, 'creator.name') ?: $imnonpurchase->created_by;
 
     //     // 2) Validasi: user harus approver aktif (status P) pada step terendah yang sudah "dibuka" (aprv_datebefore != null)
     //     $currentPending = TrApproval::query()
-    //         ->where('refnbr', $sppb->sppbid)
+    //         ->where('refnbr', $imnonpurchase->imnonpurchaseid)
     //         ->where('aprv_doctype', $doctype)
     //         ->where('status', 'P')
     //         ->whereNotNull('aprv_datebefore')
@@ -1935,18 +1634,18 @@ class IMBudgetNonPurchController extends Controller
     //         $currentPending->aprv_name      = $user->name;
     //         $currentPending->save();
 
-    //         // 5) Update header SPPB -> D (Revise)
-    //         $sppb->status       = 'D';
-    //         $sppb->completed_by = $user->username;
-    //         $sppb->completed_at = $now;
-    //         $sppb->save();
+    //         // 5) Update header IMBudgetNonPurch -> D (Revise)
+    //         $imnonpurchase->status       = 'D';
+    //         $imnonpurchase->completed_by = $user->username;
+    //         $imnonpurchase->completed_at = $now;
+    //         $imnonpurchase->save();
 
     //         // (opsional) tandai detail sebagai D juga kalau mau:
-    //         // TrImbudgetNonPurchdetail::where('sppbid', $sppb->sppbid)->update(['status' => 'D']);
+    //         // TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'D']);
 
     //         // 6) Batalkan semua approval lain yang masih pending (status 'X')
     //         TrApproval::query()
-    //             ->where('refnbr', $sppb->sppbid)
+    //             ->where('refnbr', $imnonpurchase->imnonpurchaseid)
     //             ->where('aprv_doctype', $doctype)
     //             ->where('status', 'P')
     //             ->update(['status' => 'X']);
@@ -1954,7 +1653,7 @@ class IMBudgetNonPurchController extends Controller
     //         DB::commit();
     //     } catch (\Throwable $e) {
     //         DB::rollBack();
-    //         Log::error('Revise SPPB failed', ['docid' => $docid, 'error' => $e->getMessage()]);
+    //         Log::error('Revise IMBudgetNonPurch failed', ['docid' => $docid, 'error' => $e->getMessage()]);
     //         return response()->json(['success' => false, 'message' => 'Revise failed'], 500);
     //     }
 
@@ -1963,23 +1662,23 @@ class IMBudgetNonPurchController extends Controller
     //         $status        = 'D';
     //         $subjectMap    = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed'];
     //         $subjectSuffix = $subjectMap[$status] ?? 'Notification';
-    //         $eid           = Hashids::encode($sppb->id);
+    //         $eid           = Hashids::encode($imnonpurchase->id);
 
     //         $data = [
-    //             'docid'     => $sppb->sppbid,
-    //             'cpnyid'    => $sppb->cpny_id ?? $sppb->cpnyid ?? '',
-    //             'deptname'  => $sppb->department_id ?? $sppb->departementid ?? '',
+    //             'docid'     => $imnonpurchase->imnonpurchaseid,
+    //             'cpnyid'    => $imnonpurchase->cpny_id ?? $imnonpurchase->cpnyid ?? '',
+    //             'deptname'  => $imnonpurchase->department_id ?? $imnonpurchase->departementid ?? '',
     //             'date'      => $now->toDateString(), // atau pakai $currentPending->aprv_dateafter
     //             'fullname'  => $fullname,
     //             'name'      => $fullname,
     //             'createdby' => $fullname,
-    //             'docname'   => 'SPPB',
-    //             'info'      => $sppb->keperluan,
+    //             'docname'   => 'IMBudgetNonPurch',
+    //             'info'      => $imnonpurchase->keperluan,
     //             'status'    => $status,
     //             'url'       => url('/showimbudgetnonpurch/' . $eid),
     //         ];
 
-    //         $recipients = User::where('username', $sppb->created_by)
+    //         $recipients = User::where('username', $imnonpurchase->created_by)
     //             ->where('status', 'A')
     //             ->get();
 
@@ -1989,28 +1688,28 @@ class IMBudgetNonPurchController extends Controller
 
     //             Mail::send('emails.mailapprovenew', $data, function ($message) use ($data, $to, $subjectSuffix) {
     //                 $message->to($to)
-    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' SPPB')
+    //                     ->subject($data['docid'] . ' - ' . $subjectSuffix . ' IMBudgetNonPurch')
     //                     ->from('digitalserver@pakuwon.com', 'Pakuwon System');
     //             });
     //         }
     //     } catch (\Throwable $e) {
-    //         Log::error('Failed sending SPPB revise email', [
-    //             'docid' => $sppb->sppbid,
+    //         Log::error('Failed sending IMBudgetNonPurch revise email', [
+    //             'docid' => $imnonpurchase->imnonpurchaseid,
     //             'error' => $e->getMessage()
     //         ]);
     //     }
 
     //     // 8) Simpan komentar revisi (jika ada)
     //     try {
-    //         app('App\Http\Controllers\SendCommentController')->sendmsg($sppb->id, $doctype, $request);
+    //         app('App\Http\Controllers\SendCommentController')->sendmsg($imnonpurchase->id, $doctype, $request);
     //     } catch (\Throwable $e) {
     //         Log::warning('SendComment after revise failed', [
-    //             'docid' => $sppb->sppbid,
+    //             'docid' => $imnonpurchase->imnonpurchaseid,
     //             'error' => $e->getMessage()
     //         ]);
     //     }
 
-    //     return response()->json(['success' => true, 'message' => 'SPPB revised successfully']);
+    //     return response()->json(['success' => true, 'message' => 'IMBudgetNonPurch revised successfully']);
     // }
 
     public function trackingDetail($hash)
@@ -2018,22 +1717,22 @@ class IMBudgetNonPurchController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $sppb = TrImbudgetNonPurch::findOrFail($id);
-        $sppbNo = $sppb->sppbid;
+        $imnonpurchase = TrImbudgetNonPurch::findOrFail($id);
+        $imnonpurchaseNo = $imnonpurchase->imnonpurchaseid;
 
         $fmt = fn ($dt) => $dt ? Carbon::parse($dt)->format('Y-m-d H:i') : null;
         $approved = fn ($h) => $h ? (!empty($h->completed_by) || !empty($h->completed_at)) : false;
 
-        // ===== SPPB =====
-        $sppbDetails = TrImbudgetNonPurchdetail::query()
-            ->where('sppbid', $sppbNo)
+        // ===== IMBudgetNonPurch =====
+        $imnonpurchaseDetails = TrImbudgetNonPurchdetail::query()
+            ->where('imnonpurchaseid', $imnonpurchaseNo)
             ->whereNull('deleted_at')
             ->orderBy('id')
             ->get();
 
         // ===== LIST CS (ALL) =====
         $csList = TrCS::query()
-            ->where('sppbjktid', $sppbNo)
+            ->where('imnonpurchasejktid', $imnonpurchaseNo)
             ->whereNull('deleted_at')
             ->orderBy('csdate', 'desc')
             ->get(['csid', 'csdate', 'status', 'completed_by', 'completed_at']);
@@ -2044,8 +1743,8 @@ class IMBudgetNonPurchController extends Controller
         // ===== LIST PO (ALL) =====
         // Jika kamu mau PO mengikuti CS terpilih, nanti kita filter dengan csid
         $poList = TrPO::query()
-            ->where('sppbjktid', $sppbNo)
-            ->where('cpny_id', $sppb->cpny_id)
+            ->where('imnonpurchasejktid', $imnonpurchaseNo)
+            ->where('cpny_id', $imnonpurchase->cpny_id)
             ->whereNull('deleted_at')
             ->orderBy('podate', 'desc')
             ->get(['ponbr', 'podate', 'status', 'csid', 'completed_by', 'completed_at']);
@@ -2053,9 +1752,9 @@ class IMBudgetNonPurchController extends Controller
         $selPoNo = optional($poList->first())->ponbr;
 
         // ===== LIST RECEIPT (ALL) =====
-        // Default: receipt paling baru untuk SPPB ini
+        // Default: receipt paling baru untuk IMBudgetNonPurch ini
         $receiptList = TrReceipt::query()
-            ->where('sppbjktid', $sppbNo)
+            ->where('imnonpurchasejktid', $imnonpurchaseNo)
             ->whereNull('deleted_at')
             ->orderBy('receiptdate', 'desc')
             ->get(['receiptnbr', 'receiptdate', 'status', 'ponbr', 'csid', 'completed_by', 'completed_at']);
@@ -2141,22 +1840,22 @@ class IMBudgetNonPurchController extends Controller
         }
 
         $poHeader = $selPoNo ? TrPO::where('ponbr', $selPoNo)
-            ->where('cpny_id', $sppb->cpny_id)
+            ->where('cpny_id', $imnonpurchase->cpny_id)
             ->whereNull('deleted_at')
             ->first() : null;
         $poDetails = $selPoNo ? TrPOdetail::where('ponbr', $selPoNo)
-            ->where('budget_cpny_id', $sppb->cpny_id)
+            ->where('budget_cpny_id', $imnonpurchase->cpny_id)
             ->whereNull('deleted_at')->orderBy('id')->get() : collect();
 
         $receiptHeader = $selReceiptNo ? TrReceipt::where('receiptnbr', $selReceiptNo)->whereNull('deleted_at')->first() : null;
         $receiptDetails = $selReceiptNo ? TrReceiptdetail::where('receiptnbr', $selReceiptNo)->whereNull('deleted_at')->orderBy('id')->get() : collect();
 
-        $lastApprIMBudgetNonPurch = $this->getLastApprovalInfo($sppbNo);
+        $lastApprIMBudgetNonPurch = $this->getLastApprovalInfo($imnonpurchaseNo);
         $lastApprCs = $selCsNo ? $this->getLastApprovalInfo($selCsNo) : null;
         $lastApprReceipt = $selReceiptNo ? $this->getLastApprovalInfo($selReceiptNo) : null;
 
         return response()->json([
-            'doc' => $sppbNo,
+            'doc' => $imnonpurchaseNo,
 
             'lists' => [
                 'cs' => $csList->map(fn ($x) => [
@@ -2188,23 +1887,23 @@ class IMBudgetNonPurchController extends Controller
                 'receipt_no' => $selReceiptNo,
             ],
 
-            'sppb' => [
+            'imnonpurchase' => [
                 'header' => [
-                    'doc' => $sppb->sppbid,
-                    'date' => $fmt($sppb->sppbdate),
-                    'cpny_id' => $sppb->cpny_id,
-                    'department_id' => $sppb->department_id,
-                    'keperluan' => $sppb->keperluan,
-                    'status' => $sppb->status,
-                    'created_by' => $sppb->created_by,
-                    'created_at' => $fmt($sppb->created_at),
-                    'completed_by' => $sppb->completed_by,
-                    'completed_at' => $fmt($sppb->completed_at),
-                    'is_approved' => $approved($sppb),
+                    'doc' => $imnonpurchase->imnonpurchaseid,
+                    'date' => $fmt($imnonpurchase->imnonpurchasedate),
+                    'cpny_id' => $imnonpurchase->cpny_id,
+                    'department_id' => $imnonpurchase->department_id,
+                    'keperluan' => $imnonpurchase->keperluan,
+                    'status' => $imnonpurchase->status,
+                    'created_by' => $imnonpurchase->created_by,
+                    'created_at' => $fmt($imnonpurchase->created_at),
+                    'completed_by' => $imnonpurchase->completed_by,
+                    'completed_at' => $fmt($imnonpurchase->completed_at),
+                    'is_approved' => $approved($imnonpurchase),
                     'last_approval' => $lastApprIMBudgetNonPurch,
-                    'approval_list' => $this->getApprovalList($sppbNo),
+                    'approval_list' => $this->getApprovalList($imnonpurchaseNo),
                 ],
-                'details' => $sppbDetails,
+                'details' => $imnonpurchaseDetails,
             ],
 
             'cs' => [
@@ -2266,8 +1965,8 @@ class IMBudgetNonPurchController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $sppb = TrImbudgetNonPurch::findOrFail($id);
-        $sppbNo = $sppb->sppbid;
+        $imnonpurchase = TrImbudgetNonPurch::findOrFail($id);
+        $imnonpurchaseNo = $imnonpurchase->imnonpurchaseid;
 
         $type = request('type');  // cs|po|receipt
         $doc = request('doc');   // csid / ponbr / receiptnbr
@@ -2339,7 +2038,7 @@ class IMBudgetNonPurchController extends Controller
         };
         if ($type === 'cs') {
             $h = TrCS::where('csid', $doc)
-                ->where('sppbjktid', $sppbNo)
+                ->where('imnonpurchasejktid', $imnonpurchaseNo)
                 ->whereNull('deleted_at')
                 ->first();
 
@@ -2370,7 +2069,7 @@ class IMBudgetNonPurchController extends Controller
 
         if ($type === 'po') {
             $h = TrPO::where('ponbr', $doc)
-                ->where('sppbjktid', $sppbNo)
+                ->where('imnonpurchasejktid', $imnonpurchaseNo)
                 ->whereNull('deleted_at')
                 ->first();
 
@@ -2402,7 +2101,7 @@ class IMBudgetNonPurchController extends Controller
 
         // receipt
         $h = TrReceipt::where('receiptnbr', $doc)
-            ->where('sppbjktid', $sppbNo)
+            ->where('imnonpurchasejktid', $imnonpurchaseNo)
             ->whereNull('deleted_at')
             ->first();
 
@@ -2500,29 +2199,29 @@ class IMBudgetNonPurchController extends Controller
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $sppb = TrImbudgetNonPurch::findOrFail($id);
+        $imnonpurchase = TrImbudgetNonPurch::findOrFail($id);
 
-        // Ambil 1 row terbaru dari view untuk sppb ini
+        // Ambil 1 row terbaru dari view untuk imnonpurchase ini
         // Kalau view kamu menghasilkan banyak baris, ambil yang paling "akhir"
         $row = VTrackingIMBudgetNonPurchFlow::query()
-            ->where('sppb_no', $sppb->sppbid)
+            ->where('imnonpurchase_no', $imnonpurchase->imnonpurchaseid)
             ->orderByRaw('cs_date DESC NULLS LAST')
             ->orderByRaw('po_date DESC NULLS LAST')
             ->orderByRaw('receipt_date DESC NULLS LAST')
             ->first();
 
-        // Kalau tidak ketemu di view (harusnya minimal ada SPPB)
+        // Kalau tidak ketemu di view (harusnya minimal ada IMBudgetNonPurch)
         if (!$row) {
             return response()->json([
-                'doc' => $sppb->sppbid,
+                'doc' => $imnonpurchase->imnonpurchaseid,
                 'steps' => [[
-                    'key' => 'sppb',
-                    'title' => 'SPPB',
-                    'doc' => $sppb->sppbid,
+                    'key' => 'imnonpurchase',
+                    'title' => 'IMBudgetNonPurch',
+                    'doc' => $imnonpurchase->imnonpurchaseid,
                     'status' => 'C',
                     'status_label' => 'Submitted',
-                    'by' => $sppb->created_by,
-                    'at' => optional($sppb->created_at)->format('Y-m-d H:i'),
+                    'by' => $imnonpurchase->created_by,
+                    'at' => optional($imnonpurchase->created_at)->format('Y-m-d H:i'),
                 ]],
             ]);
         }
@@ -2544,17 +2243,17 @@ class IMBudgetNonPurchController extends Controller
         };
 
         // ====== BUILD STEPS ======
-        // SPPB selalu ada
-        [$sppbSt, $sppbLbl] = $stepStatus($row->sppb_no, $row->sppb_is_approved ?? false);
-        // Tapi SPPB "Submitted" lebih jelas sebagai baseline
+        // IMBudgetNonPurch selalu ada
+        [$imnonpurchaseSt, $imnonpurchaseLbl] = $stepStatus($row->imnonpurchase_no, $row->imnonpurchase_is_approved ?? false);
+        // Tapi IMBudgetNonPurch "Submitted" lebih jelas sebagai baseline
         $steps = [[
-            'key' => 'sppb',
-            'title' => 'SPPB',
-            'doc' => $row->sppb_no,
+            'key' => 'imnonpurchase',
+            'title' => 'IMBudgetNonPurch',
+            'doc' => $row->imnonpurchase_no,
             'status' => 'C',
             'status_label' => 'Submitted',
-            'by' => $row->sppb_created_by ?? null,
-            'at' => $fmt($row->sppb_created_at ?? null),
+            'by' => $row->imnonpurchase_created_by ?? null,
+            'at' => $fmt($row->imnonpurchase_created_at ?? null),
         ]];
 
         // CS
@@ -2594,7 +2293,7 @@ class IMBudgetNonPurchController extends Controller
         ];
 
         return response()->json([
-            'doc' => $row->sppb_no,
+            'doc' => $row->imnonpurchase_no,
             'steps' => $steps,
         ]);
     }
@@ -2609,23 +2308,23 @@ class IMBudgetNonPurchController extends Controller
             return redirect()->route('login');
         }
 
-        // Ambil SPPB + relasi yang dibutuhkan
-        $sppb = TrImbudgetNonPurch::with([
+        // Ambil IMBudgetNonPurch + relasi yang dibutuhkan
+        $imnonpurchase = TrImbudgetNonPurch::with([
             'requestType:requesttypeid,requesttype_name',
             'creator:username,name',
         ])
             ->findOrFail($id);
 
-        // Detail baris SPPB
-        $sppbdetail = TrImbudgetNonPurchdetail::with([
+        // Detail baris IMBudgetNonPurch
+        $imnonpurchasedetail = TrImbudgetNonPurchdetail::with([
             'location:location_id,location_name',
             'subLocation:sub_location_id,sub_location_name',
         ])
-            ->where('sppbid', $sppb->sppbid)
-            ->orderBy('sppb_no', 'ASC')
+            ->where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)
+            ->orderBy('imnonpurchase_no', 'ASC')
             ->get();
 
-        $refnbr = $sppb->sppbid;
+        $refnbr = $imnonpurchase->imnonpurchaseid;
         $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
@@ -2664,10 +2363,10 @@ class IMBudgetNonPurchController extends Controller
         $approve_count = $approval->count();
 
         // Company (handle null)
-        $company = MsCompany::where('cpny_id', $sppb->cpny_id)->first();
+        $company = MsCompany::where('cpny_id', $imnonpurchase->cpny_id)->first();
 
         // Mapping status dokumen
-        switch ($sppb->status) {
+        switch ($imnonpurchase->status) {
             case 'R':
                 $status_doc = 'Rejected';
                 break;
@@ -2687,29 +2386,29 @@ class IMBudgetNonPurchController extends Controller
 
         $data = [
             'title' => 'Surat Permintaan Pembelian Barang',
-            'doc_type' => 'SPPB',
-            'docid' => $sppb->sppbid,
-            'department_id' => $sppb->department_id,
+            'doc_type' => 'IMBudgetNonPurch',
+            'docid' => $imnonpurchase->imnonpurchaseid,
+            'department_id' => $imnonpurchase->department_id,
             'cpnyname' => optional($company)->cpny_name,
             'parent' => optional($company)->parent,
             'project' => optional($company)->project,
             // identitas & tanggal
-            'created_by_username' => $sppb->created_by,
-            'created_by_name' => ucwords(strtolower(optional($sppb->creator)->name)),
-            'created_at_fmt' => optional($sppb->created_at)->format('d F Y'),
-            'req_date_fmt' => optional($sppb->created_at)->format('d M Y H:i'),
-            'sppbdate' => \Carbon\Carbon::parse($sppb->sppbdate)->format('d F Y'),
+            'created_by_username' => $imnonpurchase->created_by,
+            'created_by_name' => ucwords(strtolower(optional($imnonpurchase->creator)->name)),
+            'created_at_fmt' => optional($imnonpurchase->created_at)->format('d F Y'),
+            'req_date_fmt' => optional($imnonpurchase->created_at)->format('d M Y H:i'),
+            'imnonpurchasedate' => \Carbon\Carbon::parse($imnonpurchase->imnonpurchasedate)->format('d F Y'),
             // konten
-            'keperluan' => $sppb->keperluan,
+            'keperluan' => $imnonpurchase->keperluan,
             'status_doc' => $status_doc,
-            'requesttype_name' => optional($sppb->requestType)->requesttype_name,
+            'requesttype_name' => optional($imnonpurchase->requestType)->requesttype_name,
         ];
 
         // Kirim ke view
         $pdf = \PDF::loadView(
             'pages.imbudgetnonpurch.pdf_imbudgetnonpurch',
             array_merge($data, [
-                'detail' => $sppbdetail,
+                'detail' => $imnonpurchasedetail,
                 'approval' => $approval,
                 'approve_count' => $approve_count,
             ])
@@ -2718,7 +2417,7 @@ class IMBudgetNonPurchController extends Controller
         // Portrait jika <= 5 approver, else landscape
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
-        return $pdf->stream("pdf_imbudgetnonpurch_{$sppb->sppbid}.pdf");
+        return $pdf->stream("pdf_imbudgetnonpurch_{$imnonpurchase->imnonpurchaseid}.pdf");
     }
 
     public function cancelIMBudgetNonPurch(Request $request, string $hash)
@@ -2730,15 +2429,15 @@ class IMBudgetNonPurchController extends Controller
         $id = $decoded[0];
 
         // ambil doc
-        $sppb = TrImbudgetNonPurch::query()->where('id', $id)->firstOrFail();
+        $imnonpurchase = TrImbudgetNonPurch::query()->where('id', $id)->firstOrFail();
 
         DB::beginTransaction();
         try {
             // update status header jadi X (Canceled)
-            $sppb->status = 'X';
-            $sppb->updated_by = Auth::user()->username ?? Auth::id(); // kalau kolom ada
-            $sppb->updated_at = now(); // kalau kolom ada
-            $sppb->save();
+            $imnonpurchase->status = 'X';
+            $imnonpurchase->updated_by = Auth::user()->username ?? Auth::id(); // kalau kolom ada
+            $imnonpurchase->updated_at = now(); // kalau kolom ada
+            $imnonpurchase->save();
 
             DB::commit();
 
@@ -2757,11 +2456,11 @@ class IMBudgetNonPurchController extends Controller
         }
     }
 
-    private function updateSPBQtySPPB(string $spbId, ?string $sppbId = null, ?string $username = null): void
+    private function updateSPBQtyIMBudgetNonPurch(string $spbId, ?string $imnonpurchaseId = null, ?string $username = null): void
     {
         $username = $username ?? auth()->user()->username ?? 'system';
 
-        DB::connection('pgsql')->transaction(function () use ($spbId, $sppbId, $username) {
+        DB::connection('pgsql')->transaction(function () use ($spbId, $imnonpurchaseId, $username) {
             $spb = TrSPB::where('spbid', $spbId)->lockForUpdate()->first();
 
             if (!$spb) {
@@ -2770,26 +2469,26 @@ class IMBudgetNonPurchController extends Controller
 
             $detailQuery = TrSPBdetail::where('spbid', $spbId)->lockForUpdate();
 
-            if (!empty($sppbId)) {
-                $detailQuery->where('sppbid', $sppbId);
+            if (!empty($imnonpurchaseId)) {
+                $detailQuery->where('imnonpurchaseid', $imnonpurchaseId);
             }
 
             $details = $detailQuery->get();
 
             foreach ($details as $detail) {
-                $detail->sppbid = null;
-                $detail->sppb_qty = 0;
-                $detail->base_sppb_qty = 0;
+                $detail->imnonpurchaseid = null;
+                $detail->imnonpurchase_qty = 0;
+                $detail->base_imnonpurchase_qty = 0;
                 $detail->updated_by = $username;
                 $detail->updated_at = now();
                 $detail->save();
             }
 
-            $totalIMBudgetNonPurchQty = TrSPBdetail::where('spbid', $spbId)->sum('sppb_qty');
+            $totalIMBudgetNonPurchQty = TrSPBdetail::where('spbid', $spbId)->sum('imnonpurchase_qty');
 
-            $spb->sppbid = null;
-            $spb->status_sppb = 'Open';
-            $spb->totalsppbqty = $totalIMBudgetNonPurchQty ?? 0;
+            $spb->imnonpurchaseid = null;
+            $spb->status_imnonpurchase = 'Open';
+            $spb->totalimnonpurchaseqty = $totalIMBudgetNonPurchQty ?? 0;
             $spb->updated_by = $username;
             $spb->updated_at = now();
             $spb->save();

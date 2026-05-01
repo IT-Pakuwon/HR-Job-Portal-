@@ -12,7 +12,7 @@ class TrImbudgetNonPurch extends Model
     protected $table = "tr_imbudget_nonpurchase";
 
     protected $fillable = [
-        'imnonpurchaseid', 'imnonpurchasedate', 'cpny_id', 'department_id', 'location_id', 'user_peminta', 'imnonpurchasetype', 'imbudgetkeperluan', 
+        'imnonpurchaseid', 'imnonpurchasedate', 'cpny_id', 'department_id', 'user_peminta', 'imnonpurchasetype', 'imbudgetkeperluan', 
         'budget_from', 'budget_to', 'expenditure_type', 'existing_budget', 'request_budget', 'over_budget', 'status', 
         'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at', 'completed_by', 'completed_at'
     ];
