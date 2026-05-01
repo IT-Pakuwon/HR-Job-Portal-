@@ -47,6 +47,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryUserController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\IssueListController;
+use App\Http\Controllers\ItAccessRequestController;
 use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\JobapplicantController;
 use App\Http\Controllers\JobpostingController;
@@ -1290,6 +1291,28 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
     });
 
+    Route::prefix('it-access')->controller(ItAccessRequestController::class)->group(function () {
+
+        Route::get('/', 'index')->name('accessrequest');
+        Route::get('/create', 'create')->name('it-access.create');
+        Route::get('/json/list', 'json')->name('it-access.json');
+        Route::get('/{id}', 'show')->name('it-access.show');
+
+        Route::post('/store', 'store')->name('it-access.store');
+        Route::post('/update/{id}', 'update')->name('it-access.update');
+
+        Route::post('/approve/{id}', 'approve')->name('it-access.approve');
+        Route::post('/reject/{id}', 'reject')->name('it-access.reject');
+        Route::post('/revise/{id}', 'revise')->name('it-access.revise');
+
+        Route::post('/process/{id}', 'process')->name('it-access.process');
+
+        Route::post('/cancel/{id}', 'cancel')->name('it-access.cancel');
+
+        Route::post('/message/{id}', 'sendMessage')->name('it-access.message');
+
+    });
+
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
     Route::get('/imbudgetnonpurch/json', [IMBudgetNonPurchController::class, 'json'])->name('imbudgetnonpurch.json');
     Route::get('/showimbudgetnonpurch/{hash}', [IMBudgetNonPurchController::class, 'showIMBudgetNonPurch']);
@@ -1796,6 +1819,7 @@ Route::middleware(['auth'])->group(function () {
             return view('pages.report.'.$type);
         });
     });
+
 
     // Route::middleware('access:REPORTCS,VIEW')->group(function () {
 
