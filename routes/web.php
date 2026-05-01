@@ -127,6 +127,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\IMBudgetNonPurchController;
+use App\Http\Controllers\ItRecommendationController;
 use App\Http\Controllers\RfpNonPurchController;
 
 
@@ -1316,6 +1317,33 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/message/{id}', 'sendMessage')->name('it-access.message');
 
     });
+
+    Route::prefix('it-recommendation')->controller(ItRecommendationController::class)->group(function () {
+
+        Route::get('/', 'index')->name('it-recommendation');
+        Route::get('/json', 'json')->name('it-recommendation.json');
+
+        Route::post('/store', 'store')->name('it-recommendation.store');
+        Route::post('/update/{hash}', 'update')->name('it-recommendation.update');
+
+        Route::get('/detail/{hash}', 'detail')->name('it-recommendation.detail');
+        Route::get('/tracking/{hash}', 'tracking')->name('it-recommendation.tracking');
+
+        Route::post('/approve/{docid}', 'approve')->name('it-recommendation.approve');
+        Route::post('/reject/{docid}', 'reject')->name('it-recommendation.reject');
+        Route::post('/revise/{docid}', 'revise')->name('it-recommendation.revise');
+
+        Route::post('/cancel/{hash}', 'cancel')->name('it-recommendation.cancel');
+
+        Route::post('/process/{hash}', 'process')->name('it-recommendation.process');
+
+        Route::get('/inventory-search', 'inventorySearch')->name('it-recommendation.inventory-search');
+
+        Route::get('/print/{hash}', 'print')->name('it-recommendation.print');
+
+    });
+
+    Route::get('/showitrecommendation/{eid}', [ItRecommendationController::class, 'index']);
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
     Route::get('/imbudgetnonpurch/json', [IMBudgetNonPurchController::class, 'json'])->name('imbudgetnonpurch.json');
