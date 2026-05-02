@@ -3508,11 +3508,24 @@
 
         function removeEditRouteRow(btn) {
 
+            const tbody =
+                document.getElementById('editRouteTableBody');
+
+            if (tbody.querySelectorAll('tr').length <= 1) {
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Minimum 1 Route',
+                    text: 'At least one route is required'
+                });
+
+                return;
+            }
+
             btn.closest('tr').remove();
 
             refreshEditRouteNumber();
         }
-
         document.getElementById('editAddRouteBtnEdit')
             ?.addEventListener('click', function() {
 

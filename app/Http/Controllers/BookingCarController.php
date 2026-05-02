@@ -10,11 +10,13 @@ use App\Models\TrMessage;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
+use App\Models\TrBookingCarDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Vinkla\Hashids\Facades\Hashids;
+
 
 class BookingCarController extends Controller
 {
@@ -264,12 +266,10 @@ class BookingCarController extends Controller
             4 => 'bc.cpny_id',
             5 => 'bc.department_id',
             6 => 'bc.user_peminta',
-            7 => 'bc.location_from',
-            8 => 'bc.destination',
-            9 => 'bc.purpose_descr',
-            10 => 'bc.driver',
-            11 => 'bc.no_polisi',
-            12 => 'bc.status',
+            7 => 'bc.purpose_descr',
+            8 => 'bc.driver',
+            9 => 'bc.no_polisi',
+            10 => 'bc.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 0);
@@ -352,8 +352,6 @@ class BookingCarController extends Controller
                     ->orWhere('bc.cpny_id', 'like', "%{$search}%")
                     ->orWhere('bc.department_id', 'like', "%{$search}%")
                     ->orWhere('bc.user_peminta', 'like', "%{$search}%")
-                    ->orWhere('bc.location_from', 'like', "%{$search}%")
-                    ->orWhere('bc.destination', 'like', "%{$search}%")
                     ->orWhere('bc.purpose_descr', 'like', "%{$search}%")
                     ->orWhere('bc.driver', 'like', "%{$search}%")
                     ->orWhere('bc.no_polisi', 'like', "%{$search}%")
@@ -387,8 +385,6 @@ class BookingCarController extends Controller
                 'bc.purpose_descr',
                 'bc.start_time',
                 'bc.end_time',
-                'bc.location_from',
-                'bc.destination',
                 'bc.user_request',
                 'bc.driver',
                 'bc.handphone',
@@ -414,6 +410,15 @@ class BookingCarController extends Controller
             $row->extendedProps = [
                 'eid' => $row->eid,
             ];
+
+            $route = TrBookingCarDetail::where(
+                'docid',
+                $row->docid
+            )->first();
+
+            $row->route_summary = $route
+                ? $route->origin.' → '.$route->destination
+                : '-';
 
             unset($row->id);
 
@@ -466,11 +471,10 @@ class BookingCarController extends Controller
             'start_time' => ['required'],
             'end_time' => ['required'],
 
-            'location_from' => ['required', 'array', 'min:1'],
-            'location_from.*' => ['required', 'string'],
+            'routes' => ['required', 'array', 'min:1'],
 
-            'destination' => ['required', 'array', 'min:1'],
-            'destination.*' => ['required', 'string'],
+            'routes.*.origin' => ['required', 'string'],
+            'routes.*.destination' => ['required', 'string'],
 
             'user_request' => ['nullable'],
 
@@ -580,10 +584,6 @@ class BookingCarController extends Controller
                 'start_time' => $validated['booking_date'].' '.$validated['start_time'],
                 'end_time' => $validated['booking_date'].' '.$validated['end_time'],
 
-                'location_from' => $validated['location_from'],
-
-                'destination' => $validated['destination'],
-
                 'user_request' => $validated['user_request'] ?? null,
 
                 'driver' => $validated['driver'] ?? null,
@@ -602,6 +602,27 @@ class BookingCarController extends Controller
                 'updated_by' => $username,
                 'updated_at' => now(),
             ]);
+
+            foreach ($validated['routes'] as $route) {
+
+            TrBookingCarDetail::create([
+                'docid' => $docid,
+
+                'cpny_id' => $validated['cpny_id'],
+
+                'origin' => $route['origin'],
+
+                'destination' => $route['destination'],
+
+                'status' => 'A',
+
+                'created_by' => $username,
+                'created_at' => now(),
+
+                'updated_by' => $username,
+                'updated_at' => now(),
+            ]);
+        }
 
             // =========================================
             // GENERATE APPROVAL
@@ -709,11 +730,10 @@ class BookingCarController extends Controller
             'start_time' => ['required'],
             'end_time' => ['required'],
 
-            'location_from' => ['required', 'array', 'min:1'],
-            'location_from.*' => ['required', 'string'],
+            'routes' => ['required', 'array', 'min:1'],
 
-            'destination' => ['required', 'array', 'min:1'],
-            'destination.*' => ['required', 'string'],
+            'routes.*.origin' => ['required', 'string'],
+            'routes.*.destination' => ['required', 'string'],
             'user_request' => ['nullable'],
 
             'driver' => ['nullable'],
@@ -826,12 +846,6 @@ class BookingCarController extends Controller
             $booking->end_time =
                 $validated['booking_date'].' '.$validated['end_time'];
 
-            $booking->location_from =
-                $validated['location_from'];
-
-            $booking->destination =
-                $validated['destination'];
-
             $booking->user_request =
                 $validated['user_request'] ?? null;
 
@@ -854,6 +868,32 @@ class BookingCarController extends Controller
             $booking->updated_at = $dt;
 
             $booking->save();
+
+            TrBookingCarDetail::where(
+                'docid',
+                $booking->docid
+            )->delete();
+
+            foreach ($validated['routes'] as $route) {
+
+                TrBookingCarDetail::create([
+                    'docid' => $booking->docid,
+
+                    'cpny_id' => $validated['cpny_id'],
+
+                    'origin' => $route['origin'],
+
+                    'destination' => $route['destination'],
+
+                    'status' => 'A',
+
+                    'created_by' => $booking->created_by,
+                    'created_at' => now(),
+
+                    'updated_by' => $username,
+                    'updated_at' => now(),
+                ]);
+            }
 
             // =========================================
             // GENERATE APPROVAL AGAIN
@@ -1074,7 +1114,8 @@ class BookingCarController extends Controller
         // FIND DOCUMENT
         // =========================================
 
-        $booking = TrBookingCar::find($id);
+        $booking = TrBookingCar::with('routes')
+            ->find($id);
 
         if (!$booking) {
             return response()->json([
@@ -1145,12 +1186,14 @@ class BookingCarController extends Controller
                 // ROUTE
                 // =====================================
 
-                'routes' => collect($booking->location_from)
-                    ->map(function ($from, $i) use ($booking) {
+                'routes' => $booking->routes
+                    ->map(function ($route) {
+
                         return [
-                            'location_from' => $from,
-                            'destination' => $booking->destination[$i] ?? '',
+                            'origin' => $route->origin,
+                            'destination' => $route->destination,
                         ];
+
                     })->values(),
 
 
@@ -1701,7 +1744,8 @@ class BookingCarController extends Controller
 
         abort_if(!$id, 404);
 
-        $booking = TrBookingCar::findOrFail($id);
+        $booking = TrBookingCar::with('routes')
+            ->findOrFail($id);
 
         return response()->json($booking);
     }
@@ -1721,7 +1765,8 @@ class BookingCarController extends Controller
             // FIND DOCUMENT
             // =========================================
 
-            $booking = TrBookingCar::findOrFail($id);
+            $booking = TrBookingCar::with('routes')
+                ->findOrFail($id);
 
             // =========================================
             // GET USER NAME
@@ -1988,8 +2033,8 @@ class BookingCarController extends Controller
 
         $booking = TrBookingCar::with([
             'creator:username,name',
+            'routes',
         ])->findOrFail($id);
-
         // =========================================
         // APPROVALS
         // =========================================
