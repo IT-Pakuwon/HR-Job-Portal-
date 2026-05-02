@@ -15,6 +15,7 @@ class TrBookingCarDetail extends Model
     protected $fillable = [
         'docid',
         'cpny_id',
+        'booking_order',
         'origin',
         'destination',
         'status',
@@ -26,11 +27,19 @@ class TrBookingCarDetail extends Model
 
     public function header()
     {
-        return $this->belongsTo(TrBookingCar::class, 'docid', 'docid');
+        return $this->belongsTo(
+            TrBookingCar::class,
+            'docid',
+            'docid'
+        );
     }
 
     public function company()
     {
-        return $this->belongsTo(MsCompany::class, 'cpny_id', 'company_code');
+        return $this->belongsTo(
+            MsCompany::class,
+            'cpny_id',
+            'company_code'
+        );
     }
 }

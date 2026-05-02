@@ -20,4 +20,13 @@ class TrBookingCar extends Model
     {
         return $this->belongsTo(User::class, 'created_by', 'username');
     }
+
+    public function routes()
+    {
+        return $this->hasMany(
+            TrBookingCarDetail::class,
+            'docid',
+            'docid'
+        )->orderBy('booking_order');
+    }
 }

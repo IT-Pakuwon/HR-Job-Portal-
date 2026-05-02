@@ -414,7 +414,9 @@ class BookingCarController extends Controller
             $route = TrBookingCarDetail::where(
                 'docid',
                 $row->docid
-            )->first();
+            )
+            ->orderBy('booking_order')
+            ->first();
 
             $row->route_summary = $route
                 ? $route->origin.' → '.$route->destination
@@ -603,12 +605,14 @@ class BookingCarController extends Controller
                 'updated_at' => now(),
             ]);
 
-            foreach ($validated['routes'] as $route) {
+            foreach ($validated['routes'] as $index => $route) {
 
             TrBookingCarDetail::create([
                 'docid' => $docid,
 
                 'cpny_id' => $validated['cpny_id'],
+
+                'booking_order' => $index + 1,
 
                 'origin' => $route['origin'],
 
@@ -874,12 +878,13 @@ class BookingCarController extends Controller
                 $booking->docid
             )->delete();
 
-            foreach ($validated['routes'] as $route) {
+            foreach ($validated['routes'] as $index => $route) {
 
                 TrBookingCarDetail::create([
                     'docid' => $booking->docid,
 
                     'cpny_id' => $validated['cpny_id'],
+                    'booking_order' => $index + 1,
 
                     'origin' => $route['origin'],
 
