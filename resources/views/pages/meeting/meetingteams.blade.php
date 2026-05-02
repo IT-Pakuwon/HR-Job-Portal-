@@ -28,6 +28,7 @@
                                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
                             </svg>
                         @endif
+
                     </div>
 
                     {{-- TITLE --}}
@@ -76,6 +77,27 @@
 
                         Teams / Zoom
                     </a>
+
+                    @if (auth()->check() && auth()->user()->user_role === 'admin')
+
+                        <a href="{{ route('meetingroom.setup.index') }}"
+                            class="{{ request()->is('meetingroom/setup*')
+                                ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
+                                : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M3 7h18M5 7v10a2 2 0 002 2h10a2 2 0 002-2V7M9 11h6M9 15h3" />
+
+                            </svg>
+
+                            Setup
+
+                        </a>
+
+                    @endif
 
                 </div>
 
