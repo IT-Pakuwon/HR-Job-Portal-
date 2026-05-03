@@ -405,22 +405,48 @@ class BookingCarController extends Controller
         // =========================================
 
         $data->transform(function ($row) {
+
             $row->eid = Hashids::encode($row->id);
 
-            $row->extendedProps = [
-                'eid' => $row->eid,
-            ];
+            // =====================================
+            // ROUTES
+            // =====================================
 
-            $route = TrBookingCarDetail::where(
+            $routes = TrBookingCarDetail::where(
                 'docid',
                 $row->docid
             )
             ->orderBy('booking_order')
-            ->first();
+            ->get([
+                'origin',
+                'destination',
+                'booking_order',
+            ]);
 
-            $row->route_summary = $route
-                ? $route->origin.' → '.$route->destination
+            // =====================================
+            // ROUTE SUMMARY
+            // =====================================
+
+            $firstRoute = $routes->first();
+
+            $row->route_summary = $firstRoute
+                ? $firstRoute->origin.' → '.$firstRoute->destination
                 : '-';
+
+            // =====================================
+            // FULL ROUTES
+            // =====================================
+
+            $row->routes = $routes;
+
+            // =====================================
+            // EXTENDED PROPS
+            // =====================================
+
+            $row->extendedProps = [
+                'eid' => $row->eid,
+                'status' => $row->status,
+            ];
 
             unset($row->id);
 
@@ -448,6 +474,18 @@ class BookingCarController extends Controller
                 'message' => 'Unauthorized',
             ], 401);
         }
+
+            $request->merge([
+        'routes' => collect($request->location_from)
+            ->map(function ($origin, $index) use ($request) {
+                return [
+                    'origin' => $origin,
+                    'destination' => $request->destination[$index] ?? null,
+                ];
+            })
+            ->toArray()
+    ]);
+
 
         // =========================================
         // VALIDATION
@@ -711,6 +749,18 @@ class BookingCarController extends Controller
                 'message' => 'Unauthorized',
             ], 401);
         }
+
+            $request->merge([
+        'routes' => collect($request->location_from)
+            ->map(function ($origin, $index) use ($request) {
+                return [
+                    'origin' => $origin,
+                    'destination' => $request->destination[$index] ?? null,
+                ];
+            })
+            ->toArray()
+    ]);
+
 
         // =========================================
         // VALIDATION

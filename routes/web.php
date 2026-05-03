@@ -1333,11 +1333,17 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cancel/{hash}', 'cancel')->name('it-recommendation.cancel');
         Route::get('/inventory-search', 'inventorySearch')->name('it-recommendation.inventory-search');
         Route::get('/print/{hash}', 'print')->name('it-recommendation.print');
+        Route::get(
+            '/comments/{docid}',
+            [ItRecommendationController::class, 'comments']
+        );
     });
 
     Route::get('/showitrecommendation/{eid}', [ItRecommendationController::class, 'index']);
     Route::get('/edititrecommendation/{eid}', [ItRecommendationController::class, 'index']);
     Route::get('/processitrecommendation/{eid}', [ItRecommendationController::class, 'index']);
+    Route::post('/it-recommendation/comment/{hash}', [ItRecommendationController::class, 'comment'])
+    ->name('it-recommendation.comment');
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
     Route::get('/imbudgetnonpurch/json', [IMBudgetNonPurchController::class, 'json'])->name('imbudgetnonpurch.json');

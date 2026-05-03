@@ -1,20 +1,17 @@
 <x-app-layout>
 
-<div
-    class="mb-4 overflow-hidden rounded-3xl border border-gray-200 bg-white/90 shadow-sm backdrop-blur dark:border-white/10 dark:bg-[#0f172a]/80">
+<div class="mb-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
 
-    <div
-        class="flex flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-
+     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <!-- ================================================= -->
         <!-- LEFT -->
         <!-- ================================================= -->
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
 
             <!-- ICON -->
             <div
-                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-700 via-slate-800 to-black text-2xl text-white shadow-lg shadow-slate-900/20">
+                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
 
                 🚘
 
@@ -23,21 +20,13 @@
             <!-- TITLE -->
             <div>
 
-                <div
-                    class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
-
-                    Transportation Module
-
-                </div>
-
-                <h1
-                    class="mt-3 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <h1 class="text-lg font-semibold tracking-tight text-gray-900">
 
                     Booking Car
 
                 </h1>
 
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                <p class="mt-0.5 text-sm text-gray-500">
 
                     Manage booking requests, schedules & approval workflows
 
@@ -51,7 +40,7 @@
         <!-- RIGHT -->
         <!-- ================================================= -->
 
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2">
 
             <!-- LIST TOGGLE -->
             <button type="button"
@@ -581,7 +570,6 @@
     </div>
 
     <!-- VIEW BOOKING MODAL -->
-    <!-- VIEW BOOKING MODAL -->
     <div id="viewBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
 
         <div class="flex min-h-screen items-center justify-center p-4 lg:p-6">
@@ -1047,7 +1035,7 @@
 
                         </button>
 
-                        <button id="editBookingBtn"
+                       <button type="button" id="editBookingBtn"
                             class="hidden rounded-xl bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200">
 
                             ✏️ Edit Booking
@@ -1980,11 +1968,11 @@
         openCreateBookingModal?.addEventListener('click', openBookingModal);
         closeCreateBookingModal?.addEventListener('click', closeBookingModal);
 
-        createBookingModal?.addEventListener('click', function(e) {
-            if (e.target === createBookingModal) {
-                closeBookingModal();
-            }
-        });
+        // createBookingModal?.addEventListener('click', function(e) {
+        //     if (e.target === createBookingModal) {
+        //         closeBookingModal();
+        //     }
+        // });
 
         document.getElementById('closeEditBookingModal')?.addEventListener(
             'click',
@@ -2166,7 +2154,18 @@
                 return;
             }
 
+
             rows.forEach(row => {
+
+                const routeHtml = row.routes?.length
+                    ? row.routes.map(route => `
+                        <div class="truncate">
+                            ${escapeHtml(route.origin || '-')}
+                            <span class="mx-1 opacity-50">→</span>
+                            ${escapeHtml(route.destination || '-')}
+                        </div>
+                    `).join('')
+                    : `<div>-</div>`;
 
                 bookingListBody.innerHTML += `
                     <div onclick="showBookingDetail('${row.eid}')"
@@ -2180,8 +2179,8 @@
                                     ${row.docid}
                                 </div>
 
-                                <div class="mt-1 truncate text-xs text-gray-500">
-                                    ${escapeHtml(row.location_from || '-')} → ${escapeHtml(row.destination || '-')}
+                                <div class="mt-1 space-y-1 text-sm text-gray-500">
+                                    ${routeHtml}
                                 </div>
 
                                 <div class="mt-3 flex items-center gap-2 text-xs text-gray-400">
@@ -2201,36 +2200,6 @@
                             <div class="flex flex-col items-end gap-2">
 
                                 ${bookingStatusBadge(row.status)}
-
-                                @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
-
-                                   ${
-                                        row.status === 'C' &&
-                                        (
-                                            !row.driver ||
-                                            !row.no_polisi
-                                        )
-                                        ? `
-                                                    <button
-                                                        type="button"
-                                                        onclick="event.stopPropagation(); openGaProcessModal('${row.eid}')  "
-                                                        class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
-                                                        Process
-                                                    </button>
-                                                `
-                                        : `
-                                                    ${
-                                                        row.status === 'C'
-                                                        ? `
-                                                    <div class="rounded-lg bg-emerald-100 px-3 py-1.5 text-[11px] font-semibold text-emerald-700">
-                                                        Processed
-                                                    </div>
-                                                `
-                                                        : ''
-                                                    }
-                                                `
-                                    }
-                                @endif
 
                             </div>
 
@@ -2314,7 +2283,7 @@
 
                     eventContent(arg) {
 
-                        const lines = arg.event.title.split('\n');
+                        const props = arg.event.extendedProps;
 
                         return {
                             html: `
@@ -2325,16 +2294,34 @@
                                     </div>
 
                                     <div class="mt-1 text-[11px] font-bold">
-                                        ${lines[0] || '-'}
+                                        ${arg.event.title || '-'}
                                     </div>
 
-                                    <div class="mt-1 text-[10px] opacity-90">
-                                        🚘 ${lines[1] || '-'}
-                                    </div>
+                                    ${
+                                        props.routes?.length
+                                            ? `
+                                                <div class="mt-1 space-y-0.5 text-[10px] opacity-90">
+                                                    ${props.routes.map(route => `
+                                                        <div>
+                                                            📌 ${escapeHtml(route.origin || '-')}
+                                                            →
+                                                            ${escapeHtml(route.destination || '-')}
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                            `
+                                            : ''
+                                    }
 
-                                    <div class="mt-1 text-[10px] opacity-90">
-                                        📌 ${lines[2] || '-'}
-                                    </div>
+                                    ${
+                                        props.purpose
+                                            ? `
+                                                <div class="mt-1 text-[10px] opacity-90">
+                                                    📋 ${escapeHtml(props.purpose)}
+                                                </div>
+                                            `
+                                            : ''
+                                    }
 
                                 </div>
                             `
@@ -2366,11 +2353,11 @@
                             if (row.status === 'R') color = '#ef4444';
 
                             return {
-                                title: [
-                                    `${escapeHtml(row.user_request || row.user_peminta || '-')}`,
-                                    `${escapeHtml(row.location_from || '-')} → ${escapeHtml(row.destination || '-')}`,
-                                    `${row.purpose_id || '-'} - ${row.purpose_descr || '-'} `
-                                ].join('\n'),
+                                title: escapeHtml(
+                                    row.user_request ||
+                                    row.user_peminta ||
+                                    '-'
+                                ),
 
                                 start: row.start_time,
                                 end: row.end_time,
@@ -2380,7 +2367,16 @@
                                 textColor: '#ffffff',
 
                                 extendedProps: {
-                                    eid: row.eid
+                                    eid: row.eid,
+
+                                    status: row.status,
+
+                                    purpose: [
+                                        row.purpose_id || '-',
+                                        row.purpose_descr || '-'
+                                    ].join(' - '),
+
+                                    routes: row.routes || []
                                 }
                             };
                         }),
@@ -2483,7 +2479,7 @@
                                 </td>
 
                                 <td class="px-4 py-3 text-sm font-medium text-gray-700">
-                                    ${escapeHtml(route.location_from || '-')}
+                                     ${escapeHtml(route.origin || '-')}
                                 </td>
 
                                 <td class="px-4 py-3 text-sm font-medium text-gray-700">
@@ -3610,15 +3606,15 @@
             closeReasonModal
         );
 
-        reasonModal?.addEventListener(
-            'click',
-            function(e) {
+        // reasonModal?.addEventListener(
+        //     'click',
+        //     function(e) {
 
-                if (e.target === reasonModal) {
-                    closeReasonModal();
-                }
-            }
-        );
+        //         if (e.target === reasonModal) {
+        //             closeReasonModal();
+        //         }
+        //     }
+        // );
 
         submitReasonBtn?.addEventListener(
             'click',
@@ -4140,10 +4136,12 @@
                     ).innerText =
                     d.user_request || d.user_peminta || '-';
 
-                document.getElementById(
-                        'ga_booking_route'
-                    ).innerText =
-                    `${d.location_from || '-'} → ${d.destination || '-'}`;
+                document.getElementById('ga_booking_route').innerText =
+                    d.routes?.length
+                        ? d.routes.map(r =>
+                            `${r.origin || '-'} → ${r.destination || '-'}`
+                        ).join(', ')
+                        : '-';
 
                 document.getElementById(
                         'ga_booking_date'
@@ -4242,15 +4240,15 @@
             closeGaProcessModal
         );
 
-        gaProcessModal?.addEventListener(
-            'click',
-            function(e) {
+        // gaProcessModal?.addEventListener(
+        //     'click',
+        //     function(e) {
 
-                if (e.target === gaProcessModal) {
-                    closeGaProcessModal();
-                }
-            }
-        );
+        //         if (e.target === gaProcessModal) {
+        //             closeGaProcessModal();
+        //         }
+        //     }
+        // );
 
         // =========================================================
         // SUBMIT PROCESS

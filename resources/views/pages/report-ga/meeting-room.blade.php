@@ -23,8 +23,10 @@
                 <label class="text-xs font-medium text-gray-500">Room</label>
                 <select id="room" class="form-input w-full">
                     <option value="">All Rooms</option>
-                    @foreach ($rooms as $id => $name)
-                        <option value="{{ $name }}">{{ $name }}</option>
+                    @foreach ($rooms as $room)
+                        <option value="{{ $room->room_name }}">
+                            {{ $room->room_name }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -58,9 +60,14 @@
                     Reset
                 </button>
 
-                <button id="exportBtn"
+                <button id="exportExcelBtn"
                     class="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition">
-                    Export
+                    Excel
+                </button>
+
+                <button id="exportPdfBtn"
+                    class="px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition">
+                    PDF
                 </button>
 
             </div>
@@ -94,6 +101,7 @@
                           <th>Department</th>
                           <th>Participants</th>
                           <th>Type</th>
+                          <th>External Company</th>
                           <th>Duration</th>
                           <th>Status</th>
                       </tr>
@@ -164,6 +172,10 @@
                   {
                       data: 'type'
                   },
+                    {
+                        data: 'external_company',
+                        defaultContent: '-'
+                    },
                   {
                       data: 'duration_label'
                   },
@@ -185,16 +197,34 @@
               table.ajax.reload();
           });
 
-          $('#exportBtn').click(() => {
-              let url = '/report-ga/export/' + type;
+            $('#exportExcelBtn').click(() => {
 
-              url += '?date_from=' + $('#date_from').val();
-              url += '&date_to=' + $('#date_to').val();
-              url += '&room=' + $('#room').val();
-              url += '&requester=' + $('#requester').val();
+                let url = '/report-ga/export/' + type;
 
-              window.location.href = url;
-          });
+                url += '?date_from=' + $('#date_from').val();
+                url += '&date_to=' + $('#date_to').val();
+                url += '&room=' + $('#room').val();
+                url += '&requester=' + $('#requester').val();
+                url += '&status=' + $('#status').val();
+
+                window.location.href = url;
+            });
+
+            $('#exportPdfBtn').click(() => {
+
+                let url = '/report-ga/export/' + type;
+
+                url += '?date_from=' + $('#date_from').val();
+                url += '&date_to=' + $('#date_to').val();
+                url += '&room=' + $('#room').val();
+                url += '&requester=' + $('#requester').val();
+                url += '&status=' + $('#status').val();
+
+                // 🔥 PDF
+                url += '&format=pdf';
+
+                window.location.href = url;
+            });
 
       });
   </script>

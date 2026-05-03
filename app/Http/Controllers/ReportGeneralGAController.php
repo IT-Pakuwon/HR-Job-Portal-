@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportGeneralGAController extends Controller
 {
@@ -24,6 +25,9 @@ class ReportGeneralGAController extends Controller
     public function index()
     {
         $rooms = MsMeetingRoom::select('room_id', 'room_name')
+            ->where('status', 'A')
+            ->where('room_name', 'not ilike', '%Teams Only%')
+            ->where('room_name', 'not ilike', '%Zoom Only%')
             ->orderBy('room_name')
             ->get();
 
@@ -105,6 +109,8 @@ class ReportGeneralGAController extends Controller
             case 'meeting-online':
                 return $this->exportMeetingOnline($request);
 
+
+
             case 'operational-car':
                 return $this->exportOperationalCar($request);
 
@@ -150,6 +156,9 @@ class ReportGeneralGAController extends Controller
             ->leftJoin('ms_meeting_accessories as a', function ($join) {
                 $join->on(DB::raw('a.acc_id::text'), '=', DB::raw("ANY(string_to_array(m.acc_id, ','))"));
             })
+            ->leftJoin('tr_meeting_participant as p', function ($join) {
+                $join->on('p.docid', '=', 'm.docid');
+            })
             ->whereIn('m.cpny_id', $companyIds)
 
             // ->leftJoin('ms_department as d', 'd.department_id', '=', 'm.department_id')
@@ -162,6 +171,17 @@ class ReportGeneralGAController extends Controller
                 'm.user_peminta',
                 'm.total_participant',
                 'm.external_participant',
+                DB::raw("
+                    STRING_AGG(
+                        DISTINCT CASE
+                            WHEN p.external_participant = true
+                            AND p.company_participant IS NOT NULL
+                            AND p.company_participant <> ''
+                            THEN p.company_participant
+                        END,
+                        ', '
+                    ) as external_company
+                "),
                 'm.status',
                 'm.department_id',
                 'r.room_name',
@@ -180,6 +200,7 @@ class ReportGeneralGAController extends Controller
                 'm.user_peminta',
                 'm.total_participant',
                 'm.external_participant',
+
                 'm.status',
                 'm.department_id',
                 'r.room_name',
@@ -486,6 +507,12 @@ class ReportGeneralGAController extends Controller
             ->table('tr_booking_car as bc')
 
             ->whereIn('bc.cpny_id', $companyIds)
+            ->leftJoin(
+                'tr_booking_car_detail as bcd',
+                'bcd.docid',
+                '=',
+                'bc.docid'
+            )
 
             ->select([
                 'bc.docid',
@@ -508,9 +535,9 @@ class ReportGeneralGAController extends Controller
 
                 'bc.end_time',
 
-                'bc.location_from',
+                // 'bc.location_from',
 
-                'bc.destination',
+                // 'bc.destination',
 
                 'bc.user_request',
 
@@ -531,6 +558,10 @@ class ReportGeneralGAController extends Controller
                 'bc.created_by',
 
                 'bc.created_at',
+
+                'bcd.booking_order',
+                'bcd.origin',
+                'bcd.destination',
             ]);
 
         /*
@@ -638,50 +669,11 @@ class ReportGeneralGAController extends Controller
 
             ->addColumn('route', function ($row) {
 
-                $origins = [];
+                $origin = $row->origin ?: '-';
 
-                if (is_array($row->location_from)) {
-                    $origins = $row->location_from;
-                } elseif (!empty($row->location_from)) {
+                $destination = $row->destination ?: '-';
 
-                    $decoded = json_decode(
-                        $row->location_from,
-                        true
-                    );
-
-                    $origins = is_array($decoded)
-                        ? $decoded
-                        : [$row->location_from];
-                }
-
-                $destinations = [];
-
-                if (is_array($row->destination)) {
-                    $destinations = $row->destination;
-                } elseif (!empty($row->destination)) {
-
-                    $decoded = json_decode(
-                        $row->destination,
-                        true
-                    );
-
-                    $destinations = is_array($decoded)
-                        ? $decoded
-                        : [$row->destination];
-                }
-
-                $routes = [];
-
-                foreach ($origins as $i => $from) {
-
-                    $to = $destinations[$i] ?? '-';
-
-                    $routes[] = $from.' → '.$to;
-                }
-
-                return count($routes)
-                    ? implode('<br>', $routes)
-                    : '-';
+                return $origin . ' → ' . $destination;
             })
 
             ->addColumn('duration_label', function ($row) {
@@ -956,10 +948,207 @@ class ReportGeneralGAController extends Controller
 
     private function exportMeetingRoom(Request $request)
     {
+        if ($request->format === 'pdf') {
+            return $this->exportMeetingRoomPdf($request);
+        }
+
         return Excel::download(
             new MeetingRoomExport($request),
             'meeting-room-report.xlsx'
         );
+    }
+
+    private function exportMeetingRoomPdf(Request $request)
+    {
+        $user = auth()->user();
+
+        $companyIds = collect(
+            explode(',', (string) $user->cpny_id)
+        )
+        ->map(fn ($x) => trim($x))
+        ->filter()
+        ->values()
+        ->toArray();
+
+        $data = DB::connection('pgsql5')
+            ->table('tr_meeting as m')
+
+            ->whereIn('m.cpny_id', $companyIds)
+
+            ->leftJoin('ms_meeting_room as r', function ($join) {
+                $join->on(
+                    DB::raw('r.room_id::text'),
+                    '=',
+                    DB::raw('m.room_id')
+                );
+            })
+
+            ->leftJoin('tr_meeting_participant as p', function ($join) {
+                $join->on('p.docid', '=', 'm.docid');
+            })
+
+            ->leftJoin('ms_meeting_accessories as a', function ($join) {
+                $join->on(
+                    DB::raw('a.acc_id::text'),
+                    '=',
+                    DB::raw("ANY(string_to_array(m.acc_id, ','))")
+                );
+            })
+
+            ->select([
+                'm.docid',
+                'm.meeting_date',
+                'm.start_meeting_time',
+                'm.end_meeting_time',
+                'm.meeting_title',
+                'm.user_peminta',
+                'm.total_participant',
+                'm.external_participant',
+                'm.department_id',
+                'm.status',
+                'r.room_name',
+
+                DB::raw("
+                    STRING_AGG(
+                        DISTINCT CASE
+                            WHEN p.external_participant = true
+                            AND p.company_participant IS NOT NULL
+                            AND p.company_participant <> ''
+                            THEN p.company_participant
+                        END,
+                        ', '
+                    ) as external_company
+                "),
+
+                DB::raw("
+                    STRING_AGG(
+                        DISTINCT a.acc_name,
+                        ', '
+                    ) as accessories
+                "),
+            ])
+
+            ->groupBy([
+                'm.docid',
+                'm.meeting_date',
+                'm.start_meeting_time',
+                'm.end_meeting_time',
+                'm.meeting_title',
+                'm.user_peminta',
+                'm.total_participant',
+                'm.external_participant',
+                'm.department_id',
+                'm.status',
+                'r.room_name',
+            ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXCLUDE ONLINE ONLY
+        |--------------------------------------------------------------------------
+        */
+        $data->where(function ($q) {
+            $q->whereNull('m.zoom_id')
+            ->whereNull('m.msteams_event_id')
+            ->where('r.room_name', 'not ilike', '%Teams%')
+            ->where('r.room_name', 'not ilike', '%Zoom%');
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTERS
+        |--------------------------------------------------------------------------
+        */
+        if ($request->date_from) {
+            $data->whereDate(
+                'm.meeting_date',
+                '>=',
+                $request->date_from
+            );
+        }
+
+        if ($request->date_to) {
+            $data->whereDate(
+                'm.meeting_date',
+                '<=',
+                $request->date_to
+            );
+        }
+
+        if ($request->room) {
+            $data->where(
+                'r.room_name',
+                $request->room
+            );
+        }
+
+        if ($request->requester) {
+            $data->where(
+                'm.user_peminta',
+                'ilike',
+                "%{$request->requester}%"
+            );
+        }
+
+        if ($request->status === 'A') {
+            $data->whereNotIn('m.status', ['X']);
+        }
+
+        if ($request->status === 'X') {
+            $data->where('m.status', 'X');
+        }
+
+        $data = $data
+            ->orderBy('m.meeting_date')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | DEPARTMENT MAPPING
+        |--------------------------------------------------------------------------
+        */
+        $departments = \App\Models\MsDepartment::pluck(
+            'department_name',
+            'department_id'
+        );
+
+        $users = User::pluck('name', 'username');
+
+        $data->transform(function ($row) use ($departments, $users) {
+
+            $row->department_name =
+                $departments[$row->department_id] ?? '-';
+
+            $row->requester =
+                $users[$row->user_peminta] ?? $row->user_peminta;
+
+            $row->duration_label = '-';
+
+            if ($row->start_meeting_time && $row->end_meeting_time) {
+
+                $minutes = Carbon::parse($row->start_meeting_time)
+                    ->diffInMinutes(
+                        Carbon::parse($row->end_meeting_time)
+                    );
+
+                $row->duration_label =
+                    round($minutes / 60, 1).' hrs';
+            }
+
+            $row->status_label =
+                $row->status === 'X'
+                    ? 'Cancelled'
+                    : 'Active';
+
+            return $row;
+        });
+
+        $pdf = Pdf::loadView(
+            'pages.report-ga.pdf-meetingroom',
+            compact('data')
+        )->setPaper('a4', 'landscape');
+
+        return $pdf->download('meeting-room-report.pdf');
     }
 
     private function exportMeetingOnline(Request $request)
@@ -985,4 +1174,5 @@ class ReportGeneralGAController extends Controller
             'voucher-taxi-report.xlsx'
         );
     }
+
 }

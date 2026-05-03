@@ -1326,12 +1326,12 @@
         document.getElementById('closeScheduleModal')?.addEventListener('click', closeModal);
         document.getElementById('cancelScheduleModal')?.addEventListener('click', closeModal);
 
-        // click outside modal = close
-        document.getElementById('schedule-show')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
+        // // click outside modal = close
+        // document.getElementById('schedule-show')?.addEventListener('click', function(e) {
+        //     if (e.target === this) {
+        //         closeModal();
+        //     }
+        // });
 
         document.getElementById('closeEventModal')?.addEventListener('click', closeEventModal);
         document.getElementById('closeEventModal2')?.addEventListener('click', closeEventModal);

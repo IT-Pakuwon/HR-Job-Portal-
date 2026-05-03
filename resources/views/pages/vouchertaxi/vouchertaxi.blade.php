@@ -2969,30 +2969,30 @@
                 document.getElementById('editVoucherTaxiForm').reset();
             });
 
-        window.addEventListener('click', function(e) {
+        // window.addEventListener('click', function(e) {
 
-            const createModal = document.getElementById('createVoucherModal');
-            const editModal = document.getElementById('editVoucherTaxiModal');
+        //     const createModal = document.getElementById('createVoucherModal');
+        //     const editModal = document.getElementById('editVoucherTaxiModal');
 
-            const viewModal = document.getElementById('viewVoucherModal');
+        //     const viewModal = document.getElementById('viewVoucherModal');
 
-            if (e.target === viewModal) {
-                closeViewModal();
-            }
+        //     if (e.target === viewModal) {
+        //         closeViewModal();
+        //     }
 
-            if (e.target === createModal) {
-                createModal.classList.add('hidden');
-                clearSelectedCell();
-            }
+        //     if (e.target === createModal) {
+        //         createModal.classList.add('hidden');
+        //         clearSelectedCell();
+        //     }
 
-            if (e.target === editModal) {
+        //     if (e.target === editModal) {
 
-                editModal.classList.add('hidden');
+        //         editModal.classList.add('hidden');
 
-                document.getElementById('editVoucherTaxiForm').reset();
-            }
+        //         document.getElementById('editVoucherTaxiForm').reset();
+        //     }
 
-        });
+        // });
 
         document.getElementById('openCreateVoucherModal')
             .addEventListener('click', () => {
@@ -3003,18 +3003,18 @@
                     .classList.remove('hidden');
             });
 
-        document.addEventListener('keydown', function(e) {
+        // document.addEventListener('keydown', function(e) {
 
-            if (e.key === 'Escape') {
+        //     if (e.key === 'Escape') {
 
-                document.getElementById('createVoucherModal').classList.add('hidden');
-                document.getElementById('editVoucherTaxiModal').classList.add('hidden');
+        //         document.getElementById('createVoucherModal').classList.add('hidden');
+        //         document.getElementById('editVoucherTaxiModal').classList.add('hidden');
 
-                closeViewModal();
-                clearSelectedCell();
-            }
+        //         closeViewModal();
+        //         clearSelectedCell();
+        //     }
 
-        });
+        // });
 
 
         const deptSelect = document.getElementById('department_id');
