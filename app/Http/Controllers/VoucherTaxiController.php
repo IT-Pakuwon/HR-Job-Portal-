@@ -903,8 +903,19 @@ class VoucherTaxiController extends Controller
                 );
 
                 try {
+
+                    request()->merge([
+                        'reason' => request('comment'),
+                        'docid' => $voucher->docid,
+                        'status' => 'R',
+                    ]);
+
                     app(SendCommentController::class)
-                        ->sendmsg($voucher->id, 'VCR', request());
+                        ->sendmsg(
+                            $voucher->docid,
+                            'VCR',
+                            request()
+                        );
                 } catch (\Throwable $e) {
                     \Log::warning('Send reject comment Voucher Taxi failed', [
                         'docid' => $voucher->docid,
@@ -985,9 +996,20 @@ class VoucherTaxiController extends Controller
                 );
 
                 // === Simpan komentar ===
-                try {
+               try {
+
+                    request()->merge([
+                        'reason' => request('comment'),
+                        'docid' => $voucher->docid,
+                        'status' => 'D',
+                    ]);
+
                     app(SendCommentController::class)
-                        ->sendmsg($voucher->id, 'VCR', request());
+                        ->sendmsg(
+                            $voucher->docid,
+                            'VCR',
+                            request()
+                        );
                 } catch (\Throwable $e) {
                     \Log::warning('Send revise comment Voucher Taxi failed', [
                         'docid' => $voucher->docid,

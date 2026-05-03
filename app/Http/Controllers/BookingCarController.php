@@ -1628,9 +1628,16 @@ class BookingCarController extends Controller
                 // =================================
 
                 try {
+
+                    request()->merge([
+                        'reason' => request('comment'),
+                        'docid' => $booking->docid,
+                        'status' => 'R',
+                    ]);
+
                     app(SendCommentController::class)
                         ->sendmsg(
-                            $booking->id,
+                            $booking->docid,
                             'BCR',
                             request()
                         );
@@ -1760,9 +1767,16 @@ class BookingCarController extends Controller
                 // =================================
 
                 try {
+
+                    request()->merge([
+                        'reason' => request('comment'),
+                        'docid' => $booking->docid,
+                        'status' => 'D',
+                    ]);
+
                     app(SendCommentController::class)
                         ->sendmsg(
-                            $booking->id,
+                            $booking->docid,
                             'BCR',
                             request()
                         );
