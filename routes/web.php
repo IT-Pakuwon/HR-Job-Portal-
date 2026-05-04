@@ -127,11 +127,8 @@ use App\Models\SysRoleMenu;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
-
 
 Route::get('/avatar/{filename}', function ($filename) {
     return response($filename, 200, [
@@ -1180,6 +1177,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cancel-meeting/{id}', 'cancelMeeting');
 
         Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
+        Route::post('/update-zoom/{id}','updateZoomLink');
     });
 
     Route::controller(MeetingRoomSetupController::class)
@@ -1322,24 +1320,34 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('ticket')->controller(TicketController::class)->group(function () {
         Route::get('/', 'index')->name('ticket');
         Route::get('/json', 'json')->name('ticket.json');
+
         Route::get('/create', 'create')->name('ticket.create');
         Route::post('/store', 'store')->name('ticket.store');
         Route::get('/detail/{hash}', 'detail')->name('ticket.detail');
         Route::post('/update/{hash}', 'update')->name('ticket.update');
         Route::post('/cancel/{hash}', 'cancel')->name('ticket.cancel');
+
         Route::post('/start-work/{hash}', 'startWork')->name('ticket.startWork');
         Route::post('/progress/{hash}', 'progress')->name('ticket.progress');
         Route::post('/reopen/{hash}', 'reopen')->name('ticket.reopen');
+
         Route::get('/tracking/{hash}', 'tracking')->name('ticket.tracking');
+
         Route::get('/category-by-type', 'categoryByType')->name('ticket.categoryByType');
         Route::get('/subcategory-by-category', 'subcategoryByCategory')->name('ticket.subcategoryByCategory');
         Route::get('/priority-by-category', 'priorityByCategory')->name('ticket.priorityByCategory');
         Route::get('/sub-location', 'subLocation')->name('ticket.subLocation');
-        Route::get('/showticket/{eid}', 'index')->name('ticket.show');
+
+        Route::get('pic-by-category', 'picByCategory');
     });
 
-    Route::prefix('ticket-setup')->controller(TicketSetupController::class)->group(function () {
+    // ✅ AUTO OPEN (KEEP THIS)
+    Route::get('/showticket/{eid}', [TicketController::class, 'index'])->name('ticket.show');
+    Route::get('/editticket/{eid}', [TicketController::class, 'index'])->name('ticket.edit');
+    Route::get('/processticket/{eid}', [TicketController::class, 'index'])->name('ticket.process');
+    Route::get('/ticket/create', [TicketController::class, 'index']); // 🔥 SAME METHOD
 
+    Route::prefix('ticket-setup')->controller(TicketSetupController::class)->group(function () {
         Route::get('/', 'index')->name('ticketsetup');
 
         Route::get('/type-json', 'typeJson')->name('ticketsetup.typeJson');
@@ -1371,7 +1379,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/category-by-type/{ticket_type}', 'categoryByType')->name('ticketsetup.categoryByType');
         Route::get('/subcategory-by-category/{ticket_categoryid}', 'subcategoryByCategory')->name('ticketsetup.subcategoryByCategory');
         Route::get('/priority-by-category/{ticket_categoryid}', 'priorityByCategory')->name('ticketsetup.priorityByCategory');
-
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');

@@ -940,6 +940,29 @@ class MeetingController extends Controller
         }
     }
 
+    public function updateZoomLink(Request $request, $id)
+    {
+        $decoded = Hashids::decode($id);
+        $id = $decoded[0] ?? null;
+
+        $meeting = TrMeeting::on('pgsql5')->find($id);
+        abort_if(!$meeting, 404);
+
+        $request->validate([
+            'meeting_link' => ['required', 'url']
+        ]);
+
+        $meeting->msteams_join_url = $request->meeting_link;
+        $meeting->updated_by = auth()->user()->username;
+        $meeting->updated_at = now();
+        $meeting->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Zoom link saved'
+        ]);
+    }
+
     protected function sendMeetingEmail($meeting, $type = 'create')
     {
         $participants = DB::connection('pgsql5')

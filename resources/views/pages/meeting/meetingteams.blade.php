@@ -610,78 +610,146 @@
             const action = document.getElementById('link_action_area');
 
             const isAdmin = !!action;
-            const canEditTeams =
-            props.username === '{{ auth()->user()->username }}';
+            const isTeams = props.isTeams;
+            const isZoom = !props.isTeams;
 
             // =========================
-            // ✅ HAS LINK
+            // 🟦 TEAMS (AUTO - NO PROCESS)
             // =========================
-            if (props.teams_url) {
+            if (isTeams) {
 
-                container.innerHTML = `
-                    <div class="flex items-center justify-between gap-3">
+                if (props.teams_url) {
 
+                    container.innerHTML = `
                         <a href="${props.teams_url}" target="_blank"
                             class="text-blue-600 font-medium hover:underline">
-                            Open Meeting
+                            Open Teams Meeting
                         </a>
+                    `;
 
-                        <div class="flex items-center gap-2">
+                    badge.innerHTML = `
+                        <span class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                            Teams Ready
+                        </span>
+                    `;
+
+                } else {
+
+                    container.innerHTML = `
+                        <div class="text-gray-400 text-sm">
+                            Auto generating Teams link...
+                        </div>
+                    `;
+
+                    badge.innerHTML = `
+                        <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
+                            Generating
+                        </span>
+                    `;
+                }
+
+                // ❌ NO PROCESS BUTTON
+                if (isAdmin) action.innerHTML = '';
+
+                return;
+            }
+
+            // =========================
+            // 🟣 ZOOM (MANUAL PROCESS)
+            // =========================
+            if (isZoom) {
+
+                if (props.teams_url) {
+
+                    container.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <a href="${props.teams_url}" target="_blank"
+                                class="text-purple-600 font-medium hover:underline">
+                                Open Zoom
+                            </a>
+
                             <button onclick="copyLink('${props.teams_url}')"
                                 class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
                                 Copy
                             </button>
-                            ${canEditTeams ? `
-                                <button onclick="enableEdit()"
-                                    class="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200">
-                                    Edit
-                                </button>
-                            ` : ''}
-
                         </div>
-
-                    </div>
-                `;
-
-                badge.innerHTML = `
-                    <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
-                        Ready
-                    </span>
-                `;
-
-                if (isAdmin) {
-                    action.innerHTML = ''; // no extra button needed
-                }
-
-            } else {
-
-                // =========================
-                // ❌ NO LINK
-                // =========================
-
-                container.innerHTML = `
-                    <div class="text-gray-400 text-sm">
-                        Waiting for meeting link
-                    </div>
-                `;
-
-                badge.innerHTML = `
-                    <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
-                        Pending
-                    </span>
-                `;
-
-                if (isAdmin) {
-                    action.innerHTML = `
-                        <button onclick="enableEdit('')"
-                            class="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded">
-                            Process
-                        </button>
                     `;
+
+                    badge.innerHTML = `
+                        <span class="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">
+                            Zoom Ready
+                        </span>
+                    `;
+
+                    if (isAdmin) {
+                        action.innerHTML = `
+                            <button onclick="enableEdit()"
+                                class="mt-2 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded">
+                                Edit
+                            </button>
+                        `;
+                    }
+
+                } else {
+
+                    container.innerHTML = `
+                        <div class="text-gray-400 text-sm">
+                            Waiting Zoom link
+                        </div>
+                    `;
+
+                    badge.innerHTML = `
+                        <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
+                            Pending
+                        </span>
+                    `;
+
+                    // ✅ ONLY ZOOM SHOW PROCESS
+                    if (isAdmin) {
+                        action.innerHTML = `
+                            <button onclick="enableZoomProcess()"
+                                class="mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded">
+                                Process Zoom
+                            </button>
+                        `;
+                    }
                 }
             }
         }
 
+        function enableZoomProcess() {
+
+            const action = document.getElementById('link_action_area');
+
+            action.innerHTML = `
+                <div class="space-y-3">
+
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">
+                            Zoom Meeting Link
+                        </label>
+
+                        <input type="text"
+                            id="edit_meeting_link"
+                            placeholder="https://zoom.us/j/xxxx"
+                            class="w-full rounded-lg border px-3 py-2 text-sm">
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button onclick="closeEditMode()"
+                            class="px-3 py-1 bg-gray-200 rounded text-sm">
+                            Cancel
+                        </button>
+
+                        <button onclick="saveMeetingLink()"
+                            class="px-3 py-1 bg-blue-600 text-white rounded text-sm">
+                            Save Link
+                        </button>
+                    </div>
+
+                </div>
+            `;
+        }
         function enableEdit() {
 
             const action = document.getElementById('link_action_area');
@@ -839,22 +907,18 @@
 
         function saveMeetingLink() {
 
-            const link =
-                document.getElementById('edit_meeting_link').value;
+            const link = document.getElementById('edit_meeting_link').value;
 
-            const title =
-                document.getElementById('edit_meeting_title').value;
-
-            const descr =
-                document.getElementById('edit_meeting_desc').value;
+            if (!link) {
+                Swal.fire('Warning', 'Please input meeting link', 'warning');
+                return;
+            }
 
             $.ajax({
-                url: '/updateteams/' + currentEventId,
-                type: 'PUT',
+                url: '/update-zoom/' + currentEventId, // ✅ GANTI DI SINI
+                type: 'POST',
                 data: {
                     meeting_link: link,
-                    title: title,
-                    descr: descr,
                     _token: $('input[name="_token"]').val()
                 },
 
@@ -863,65 +927,27 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'Updated',
-                        text: response.message || 'Meeting updated'
+                        text: response.message || 'Link saved'
                     });
-
-                    // =========================
-                    // UPDATE MODAL UI
-                    // =========================
-
-                    document.getElementById('view_title').innerText = title;
-                    document.getElementById('view_desc').innerText = descr;
 
                     renderLinkSection({
-                        teams_url: link
+                        teams_url: link,
+                        isTeams: false // ✅ IMPORTANT
                     });
-
-                    // =========================
-                    // UPDATE FULLCALENDAR LIVE
-                    // =========================
 
                     const event = calendarInstance.getEventById(currentEventId);
 
                     if (event) {
-
-                        event.setProp('title', title);
-
-                        event.setExtendedProp('description', descr);
-
                         event.setExtendedProp('teams_url', link);
-
-                        event.setExtendedProp('isTeams', !!link);
-
-                        // optional visual refresh
-                        event.setProp(
-                            'backgroundColor',
-                            link ? '#2563eb' : '#eab308'
-                        );
-
-                        event.setProp(
-                            'borderColor',
-                            link ? '#2563eb' : '#eab308'
-                        );
+                        event.setExtendedProp('isTeams', false);
                     }
 
-                    // optional sync
                     calendarInstance.refetchEvents();
                 },
 
                 error: function(xhr) {
-
-                    let message = 'Failed to update meeting';
-
-                    if (xhr.responseJSON?.message) {
-                        message = xhr.responseJSON.message;
-                    }
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: message
-                    });
+                    console.log(xhr);
+                    Swal.fire('Error', 'Failed to save link', 'error');
                 }
             });
         }

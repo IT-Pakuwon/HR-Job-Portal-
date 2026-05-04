@@ -1,4 +1,24 @@
 <x-app-layout>
+    <style>
+        .fc .fc-timeline-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+        }
+
+        /* optional: keep resource header aligned */
+        .fc .fc-timeline-header-row {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        /* dark mode support */
+        .dark .fc .fc-timeline-header {
+            background: #111827;
+        }
+    </style>
     <div class="max-w-9xl mx-auto w-full p-4">
 
         {{-- HEADER --}}
