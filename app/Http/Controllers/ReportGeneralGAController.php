@@ -209,10 +209,8 @@ class ReportGeneralGAController extends Controller
 
         // 🔥 EXCLUDE ONLINE ONLY
         $query->where(function ($q) {
-            $q->whereNull('m.zoom_id')
-            ->whereNull('m.msteams_event_id')
-            ->where('r.room_name', 'not ilike', '%Teams%')
-            ->where('r.room_name', 'not ilike', '%Zoom%');
+            $q->where('r.room_name', 'not ilike', '%Teams Only%')
+            ->where('r.room_name', 'not ilike', '%Zoom Only%');
         });
         // FILTER
         if ($request->date_from) {
@@ -1048,10 +1046,8 @@ class ReportGeneralGAController extends Controller
         |--------------------------------------------------------------------------
         */
         $data->where(function ($q) {
-            $q->whereNull('m.zoom_id')
-            ->whereNull('m.msteams_event_id')
-            ->where('r.room_name', 'not ilike', '%Teams%')
-            ->where('r.room_name', 'not ilike', '%Zoom%');
+            $q->where('r.room_name', 'not ilike', '%Teams Only%')
+            ->where('r.room_name', 'not ilike', '%Zoom Only%');
         });
 
         /*

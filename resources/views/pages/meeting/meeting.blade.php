@@ -106,7 +106,11 @@
         </div>
         {{-- CALENDAR --}}
         <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900">
-            <div id="calendar"></div>
+
+            <div class="overflow-x-auto">
+                <div id="calendar" class="min-w-[1400px]"></div>
+            </div>
+
         </div>
 
 
@@ -552,6 +556,8 @@
             selectLongPressDelay: 0,
 
             slotMinWidth: 30,
+            slotMinTime: '07:00:00',
+            slotMaxTime: '22:00:00',
 
             headerToolbar: {
                 left: 'today prev,next',
@@ -618,11 +624,11 @@
                         html: `
                         <div class="px-1 leading-tight">
 
-                            <div class="font-medium text-[11px] truncate">
+                            <div class="font-medium text-[11px] whitespace-normal break-words">
                                 ${title}
                             </div>
 
-                            <div class="text-[10px] opacity-80 truncate">
+                            <div class="text-[10px] opacity-80 whitespace-normal break-words">
                                 ${user || ''}
                             </div>
 
