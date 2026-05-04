@@ -202,7 +202,7 @@
                             </label>
 
                             <input type="text" name="acc_id"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="ACC-001" required>
 
                         </div>
@@ -240,7 +240,7 @@
                             </label>
 
                             <input type="text" name="acc_name"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="PROJECTOR">
 
                         </div>
@@ -355,7 +355,7 @@
                             </label>
 
                             <input type="text" name="room_id"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="RM-01" required>
 
                         </div>
@@ -368,7 +368,7 @@
                             </label>
 
                             <input type="text" name="room_name"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="MAIN MEETING ROOM" required>
 
                         </div>
@@ -386,7 +386,7 @@
                                     class="h-12 w-16 cursor-pointer rounded-xl border border-gray-300 bg-white p-1 dark:border-white/10 dark:bg-white/5">
 
                                 <input type="text" id="roomColorText" value="#3B82F6"
-                                    class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                    class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                             </div>
 
@@ -400,7 +400,7 @@
                             </label>
 
                             <input type="text" name="user_approval"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="USERNAME">
 
                         </div>
@@ -480,7 +480,7 @@
                         </label>
 
                         <input type="text" name="room_id" id="edit_room_code"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             required>
 
                     </div>
@@ -493,7 +493,7 @@
                         </label>
 
                         <input type="text" name="room_name" id="edit_room_name"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             required>
 
                     </div>
@@ -511,7 +511,7 @@
                                 class="h-12 w-16 cursor-pointer rounded-xl border border-gray-300 bg-white p-1 dark:border-white/10 dark:bg-white/5">
 
                             <input type="text" id="edit_eventcolor_text"
-                                class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                         </div>
 
@@ -525,7 +525,7 @@
                         </label>
 
                         <input type="text" name="user_approval" id="edit_user_approval"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                     </div>
 
@@ -602,7 +602,7 @@
                         </label>
 
                         <input type="text" name="acc_id" id="edit_acc_id"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                             required>
 
                     </div>
@@ -636,7 +636,7 @@
                         </label>
 
                         <input type="text" name="acc_name" id="edit_acc_name"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm uppercase shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                     </div>
 
@@ -1226,7 +1226,9 @@
                     $('#edit_accessories_id').val(data.id);
 
                     $('#edit_acc_id').val(data.acc_id);
-                    $('#edit_room_select').val(data.room_id);
+                    $('#edit_room_select')
+                        .val(data.room_id)
+                        .trigger('change');
 
                     $('#edit_acc_name').val(data.acc_name);
                     $('#edit_acc_qty').val(data.acc_qty);
@@ -1266,6 +1268,8 @@
         $('#editRoomForm').submit(function(e) {
 
             e.preventDefault();
+
+              $('#edit_eventcolor_picker').val($('#edit_eventcolor_text').val());
 
             let id = $('#edit_room_id').val();
 
@@ -1385,105 +1389,140 @@
 
         });
 
-        function updateRoomStatus(id, status) {
+        function updateRoomStatus(id, status, el = null) {
 
-            $.ajax({
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Change room status?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, update',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
 
-                url: `/meetingroom/setup/room/status/${id}`,
-                type: 'POST',
-
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    status: status
-                },
-
-                beforeSend: function () {
-
-                    Swal.fire({
-                        title: 'Updating...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                success: function (response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    roomTable.ajax.reload(null, false);
-
-                },
-
-                error: function (xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
+                // ❌ USER CANCEL → revert toggle
+                if (!result.isConfirmed) {
+                    if (el) el.checked = !el.checked;
+                    return;
                 }
+
+                $.ajax({
+                    url: `/meetingroom/setup/room/status/${id}`,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        status: status
+                    },
+
+                    beforeSend: function () {
+
+                        Swal.fire({
+                            title: 'Updating...',
+                            text: 'Please wait',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                    },
+
+                    success: function (response) {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        // 🔁 reload table without reset paging
+                        roomTable.ajax.reload(null, false);
+
+                    },
+
+                    error: function (xhr) {
+
+                        // ❌ revert toggle if failed
+                        if (el) el.checked = !el.checked;
+
+                        let message = 'Something went wrong';
+
+                        if (xhr.responseJSON?.message) {
+                            message = xhr.responseJSON.message;
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: message
+                        });
+
+                    }
+
+                });
 
             });
 
         }
+        function updateAccessoriesStatus(id, status, el = null) {
 
-        function updateAccessoriesStatus(id, status) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Change accessories status?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, update',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
 
-            $.ajax({
-
-                url: `/meetingroom/setup/accessories/status/${id}`,
-                type: 'POST',
-
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    status: status
-                },
-
-                beforeSend: function () {
-
-                    Swal.fire({
-                        title: 'Updating...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                success: function (response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    accessoriesTable.ajax.reload(null, false);
-
-                },
-
-                error: function (xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
+                if (!result.isConfirmed) {
+                    if (el) el.checked = !el.checked;
+                    return;
                 }
+
+                $.ajax({
+                    url: `/meetingroom/setup/accessories/status/${id}`,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        status: status
+                    },
+
+                    beforeSend: function () {
+                        Swal.fire({
+                            title: 'Updating...',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                    },
+
+                    success: function (response) {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: response.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        accessoriesTable.ajax.reload(null, false);
+                    },
+
+                    error: function (xhr) {
+
+                        if (el) el.checked = !el.checked;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: xhr.responseJSON?.message ?? 'Something went wrong'
+                        });
+                    }
+
+                });
 
             });
 

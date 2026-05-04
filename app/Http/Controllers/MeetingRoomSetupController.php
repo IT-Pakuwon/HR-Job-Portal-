@@ -19,38 +19,27 @@ class MeetingRoomSetupController extends Controller
 
         return view('pages.meeting.setup', compact('rooms'));
     }
+
     public function jsonRoom(Request $request)
     {
-        $query = MsMeetingRoom::query()
-            ->orderByDesc('id');
+        $query = MsMeetingRoom::query();
+
+        if (!$request->has('order')) {
+            $query->orderBy('room_id', 'asc');
+        }
 
         return DataTables::of($query)
-
             ->addIndexColumn()
 
             ->editColumn('status', function ($row) {
-
-                if ($row->status == 'A') {
-
-                    return '
-                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                            Active
-                        </span>
-                    ';
-                }
-
-                return '
-                    <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                        Inactive
-                    </span>
-                ';
+                return $row->status == 'A'
+                    ? '<span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Active</span>'
+                    : '<span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">Inactive</span>';
             })
 
             ->addColumn('action', function ($row) {
 
-                $checked = $row->status == 'A'
-                    ? 'checked'
-                    : '';
+                $checked = $row->status == 'A' ? 'checked' : '';
 
                 return '
                     <div class="flex items-center justify-end gap-3">
@@ -63,12 +52,11 @@ class MeetingRoomSetupController extends Controller
                         </button>
 
                         <label class="relative inline-flex cursor-pointer items-center">
-
                             <input
                                 type="checkbox"
                                 class="peer sr-only"
                                 ' . $checked . '
-                                onchange="updateRoomStatus(' . $row->id . ', this.checked ? \'A\' : \'X\')">
+                                onchange="updateRoomStatus(' . $row->id . ', this.checked ? \'A\' : \'X\', this)">
 
                             <div class="peer h-6 w-11 rounded-full bg-gray-300 transition
                                 after:absolute after:left-[2px] after:top-[2px]
@@ -78,18 +66,13 @@ class MeetingRoomSetupController extends Controller
                                 peer-checked:bg-emerald-500
                                 peer-checked:after:translate-x-full">
                             </div>
-
                         </label>
 
                     </div>
                 ';
             })
 
-            ->rawColumns([
-                'status',
-                'action'
-            ])
-
+            ->rawColumns(['status', 'action'])
             ->make(true);
     }
 
@@ -107,81 +90,62 @@ class MeetingRoomSetupController extends Controller
             ->select(
                 'ms_meeting_accessories.*',
                 'ms_meeting_room.room_name'
-            )
+            );
 
-            ->orderByDesc('ms_meeting_accessories.id');
+        // default order (only if user hasn't sorted)
+        if (!$request->has('order')) {
+            $query->orderBy('ms_meeting_accessories.acc_id', 'asc');
+        }
 
         return DataTables::of($query)
 
             ->addIndexColumn()
 
             ->editColumn('status', function ($row) {
-
-                if ($row->status == 'A') {
-
-                    return '
-                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                            Active
-                        </span>
-                    ';
-                }
-
-                return '
-                    <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                        Inactive
-                    </span>
-                ';
+                return $row->status == 'A'
+                    ? '<span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Active</span>'
+                    : '<span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">Inactive</span>';
             })
 
             ->addColumn('action', function ($row) {
 
-            $checked = $row->status == 'A'
-                ? 'checked'
-                : '';
+                $checked = $row->status == 'A' ? 'checked' : '';
 
-            return '
-                <div class="flex items-center justify-end gap-3">
+                return '
+                    <div class="flex items-center justify-end gap-3">
 
-                    <button
-                        type="button"
-                        onclick="editAccessories(' . $row->id . ')"
-                        class="rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-200">
+                        <button
+                            type="button"
+                            onclick="editAccessories(' . $row->id . ')"
+                            class="rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-200">
+                            Edit
+                        </button>
 
-                        Edit
+                        <label class="relative inline-flex cursor-pointer items-center">
+                            <input
+                                type="checkbox"
+                                class="peer sr-only"
+                                ' . $checked . '
+                                onchange="updateAccessoriesStatus(' . $row->id . ', this.checked ? \'A\' : \'X\', this)">
 
-                    </button>
+                            <div class="peer h-6 w-11 rounded-full bg-gray-300 transition
+                                after:absolute after:left-[2px]
+                                after:top-[2px]
+                                after:h-5 after:w-5
+                                after:rounded-full
+                                after:bg-white
+                                after:transition-all
+                                after:content-[\'\']
+                                peer-checked:bg-emerald-500
+                                peer-checked:after:translate-x-full">
+                            </div>
+                        </label>
 
-                    <label class="relative inline-flex cursor-pointer items-center">
+                    </div>
+                ';
+            })
 
-                        <input
-                            type="checkbox"
-                            class="peer sr-only"
-                            ' . $checked . '
-                            onchange="updateAccessoriesStatus(' . $row->id . ', this.checked ? \'A\' : \'X\')">
-
-                        <div class="peer h-6 w-11 rounded-full bg-gray-300 transition
-                            after:absolute after:left-[2px]
-                            after:top-[2px]
-                            after:h-5 after:w-5
-                            after:rounded-full
-                            after:bg-white
-                            after:transition-all
-                            after:content-[\'\']
-                            peer-checked:bg-emerald-500
-                            peer-checked:after:translate-x-full">
-                        </div>
-
-                    </label>
-
-                </div>
-            ';
-        })
-
-            ->rawColumns([
-                'status',
-                'action'
-            ])
-
+            ->rawColumns(['status', 'action'])
             ->make(true);
     }
 
@@ -218,8 +182,8 @@ class MeetingRoomSetupController extends Controller
         try {
 
             MsMeetingRoom::create([
-                'room_id'       => strtoupper($request->room_id),
-                'room_name'     => strtoupper($request->room_name),
+                'room_id'       => $request->room_id,
+                'room_name'     => $request->room_name,
                 'eventcolor'    => $request->eventcolor,
                 'user_approval' => $request->user_approval,
                 'status'        => 'A',
@@ -260,8 +224,8 @@ class MeetingRoomSetupController extends Controller
         try {
 
             $room->update([
-                'room_id'       => strtoupper($request->room_id),
-                'room_name'     => strtoupper($request->room_name),
+                'room_id'       => $request->room_id,
+                'room_name'     => $request->room_name,
                 'eventcolor'    => $request->eventcolor,
                 'user_approval' => $request->user_approval,
                 'updated_by'    => Auth::user()->username ?? Auth::user()->name,
@@ -336,9 +300,9 @@ class MeetingRoomSetupController extends Controller
         try {
 
             MsMeetingAccessories::create([
-                'acc_id'         => strtoupper($request->acc_id),
+                'acc_id'         => $request->acc_id,
                 'room_id'        => $request->room_id,
-                'acc_name'       => strtoupper($request->acc_name),
+                'acc_name'       => $request->acc_name,
                 'acc_qty'        => $request->acc_qty,
                 'userid_zoom'    => $request->userid_zoom,
                 'userid_msteams' => $request->userid_msteams,
@@ -383,9 +347,9 @@ class MeetingRoomSetupController extends Controller
         try {
 
             $accessories->update([
-                'acc_id'         => strtoupper($request->acc_id),
+                'acc_id'         => $request->acc_id,
                 'room_id'        => $request->room_id,
-                'acc_name'       => strtoupper($request->acc_name),
+                'acc_name'       => $request->acc_name,
                 'acc_qty'        => $request->acc_qty,
                 'userid_zoom'    => $request->userid_zoom,
                 'userid_msteams' => $request->userid_msteams,
