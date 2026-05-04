@@ -618,11 +618,11 @@
                         html: `
                         <div class="px-1 leading-tight">
 
-                            <div class="font-medium text-[11px] truncate">
+                            <div class="font-medium text-[11px] whitespace-normal break-words">
                                 ${title}
                             </div>
 
-                            <div class="text-[10px] opacity-80 truncate">
+                            <div class="text-[10px] opacity-80 whitespace-normal break-words">
                                 ${user || ''}
                             </div>
 
