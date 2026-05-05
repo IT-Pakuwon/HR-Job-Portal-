@@ -1,5 +1,14 @@
 <x-app-layout>
     <style>
+        /* =====================================
+   🔥 GLOBAL (NO PAGE SCROLL)
+===================================== */
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         .fc .fc-timeline-header {
             position: sticky;
             top: 0;
@@ -18,9 +27,20 @@
         .dark .fc .fc-timeline-header {
             background: #111827;
         }
-    </style>
-    <div class="max-w-9xl mx-auto w-full p-4">
 
+
+
+        /* 🔥 force horizontal scroll inside FullCalendar */
+        .fc .fc-scroller {
+            overflow-x: auto !important;
+        }
+
+        /* optional: smoother scroll */
+        .fc .fc-scroller {
+            scrollbar-width: thin;
+        }
+    </style>
+    <div class="max-w-9xl mx-auto flex h-screen w-full flex-col overflow-hidden p-2">
         {{-- HEADER --}}
         <div
             class="mb-4 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
@@ -98,15 +118,14 @@
                         Teams / Zoom
                     </a>
 
-                      @if (auth()->check() && auth()->user()->user_role === 'admin')
-
+                    @if (auth()->check() && auth()->user()->user_role === 'admin')
                         <a href="{{ route('meetingroom.setup.index') }}"
                             class="{{ request()->is('meetingroom/setup*')
                                 ? 'bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white'
                                 : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10' }} flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition">
 
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
 
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M3 7h18M5 7v10a2 2 0 002 2h10a2 2 0 002-2V7M9 11h6M9 15h3" />
@@ -116,7 +135,6 @@
                             Setup
 
                         </a>
-
                     @endif
 
 
@@ -125,10 +143,12 @@
             </div>
         </div>
         {{-- CALENDAR --}}
-        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900">
 
-            <div class="overflow-x-auto">
-                <div id="calendar" class="min-w-[1400px]"></div>
+        <div
+            class="dark:border-white/1 flex max-h-[80vh] flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 p-4 shadow-sm">
+
+            <div class="flex-1">
+                <div id="calendar" class="h-full w-full"></div>
             </div>
 
         </div>
@@ -242,8 +262,8 @@
                                     <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
                                         Participants
                                     </label>
-                                    <input type="number" id="participant" name="participant" min="1" required
-                                        placeholder="Number of participants"
+                                    <input type="number" id="participant" name="participant" min="1"
+                                        required placeholder="Number of participants"
                                         class="mt-1 w-full rounded-md border border-gray-200 bg-transparent px-3 py-2 text-sm dark:border-gray-700">
                                 </div>
 
@@ -561,9 +581,10 @@
                 return parseInt(a.id) - parseInt(b.id);
             },
 
-            height: isMobile ? 'auto' : '75vh',
-            contentHeight: 'auto',
-            expandRows: false, // 🔥 IMPORTANT
+            height: '100%',
+            contentHeight: '100%',
+            expandRows: true, // 🔥 penting
+
 
             selectable: true,
             selectMirror: true,
@@ -1296,9 +1317,9 @@
                     const resources = e.getResources();
 
                     const eventResourceId =
-                        resources && resources.length > 0 && resources[0]
-                            ? resources[0].id
-                            : null;
+                        resources && resources.length > 0 && resources[0] ?
+                        resources[0].id :
+                        null;
 
                     return (
                         eventResourceId === resourceId &&
