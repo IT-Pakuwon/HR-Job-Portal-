@@ -54,6 +54,12 @@
                                 Name
                             </th>
                             <th scope="col" class="w-32 px-4 py-3 text-left">
+                                Divisi
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                                Department
+                            </th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left">
                                 Education
                             </th>
                             <th scope="col" class="w-32 px-4 py-3 text-left">
@@ -160,7 +166,8 @@
             let currentStatus = '';
 
             // Filter input per kolom (index harus sesuai kolom DataTables)
-            const columnFilters = [{
+            const columnFilters = [
+                {
                     index: 1,
                     type: 'text',
                     placeholder: 'DocID'
@@ -178,32 +185,38 @@
                 {
                     index: 4,
                     type: 'text',
-                    placeholder: 'Education'
+                    placeholder: 'Division' // 🔥 NEW
                 },
                 {
                     index: 5,
                     type: 'text',
-                    placeholder: 'Religion'
+                    placeholder: 'Department' // 🔥 NEW
                 },
                 {
                     index: 6,
                     type: 'text',
-                    placeholder: 'Height'
+                    placeholder: 'Education'
                 },
                 {
                     index: 7,
                     type: 'text',
-                    placeholder: 'Weight'
+                    placeholder: 'Religion'
                 },
                 {
                     index: 8,
                     type: 'text',
-                    placeholder: 'Company'
+                    placeholder: 'Height'
                 },
                 {
-                    targets: 9,
-                    responsivePriority: 1
+                    index: 9,
+                    type: 'text',
+                    placeholder: 'Weight'
                 },
+                {
+                    index: 10,
+                    type: 'text',
+                    placeholder: 'Company'
+                }
             ];
 
             const $filters = $('#applicantsFilters');
@@ -327,7 +340,15 @@
                     {
                         data: 'fullname',
                         name: 'fullname'
-                    }, // 3
+                    },
+                    {
+                        data: 'division_name',
+                        name: 'division_name'
+                    },
+                    {
+                        data: 'department_name',
+                        name: 'department_name'
+                    },// 3
                     {
                         data: 'education_name',
                         name: 'education_name'
