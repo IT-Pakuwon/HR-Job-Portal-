@@ -21,6 +21,11 @@ class MeetingController extends Controller
 {
     public function index(Request $request)
     {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         $selectedDate = $request->get('date', now()->format('Y-m-d'));
 
         try {

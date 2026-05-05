@@ -581,7 +581,7 @@ class KontrakController extends Controller
 
         // $kontrak->kontraktype     = $request->kontraktype;
         $kontrak->kontrakcategory = $request->kontrakcategory;
-        $kontrak->kontrakdate     = $now;
+        // $kontrak->kontrakdate     = $now;
         $kontrak->startdate       = $request->startdate;
         $kontrak->enddate         = $request->enddate;
         $kontrak->nosk            = $request->nosk;

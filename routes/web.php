@@ -1399,18 +1399,20 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/imbudgetnonpurch/{id}/revise', [IMBudgetNonPurchController::class, 'reviseIMBudgetNonPurch']);
     Route::put('/imbudgetnonpurch/{hash}/cancel', [IMBudgetNonPurchController::class, 'cancelIMBudgetNonPurch'])->name('imbudgetnonpurch.cancel');
 
-    Route::get('/rfp', [RfpNonPurchController::class, 'index'])->name('rfp');
-    Route::get('/rfp/json', [RfpNonPurchController::class, 'json'])->name('rfp.json');
-    Route::get('/showrfp/{hash}', [RfpNonPurchController::class, 'showRfp']);
-    Route::post('/rfp/{hash}/received', [RfpNonPurchController::class, 'updateReceived'])->name('rfp.received');
-    Route::post('/rfp/{hash}/treasury', [RfpNonPurchController::class, 'updateTreasury'])->name('rfp.treasury');
-    Route::get('/rfp/{id}/tracking', [RfpNonPurchController::class, 'tracking'])->name('rfp.tracking');
-    // Route::get('/pdf_rfp/{hash}', [RfpNonPurchController::class, 'printRfp'])->name('rfp.print');
-    Route::get('/pdf_rfp/{hash}', [RfpNonPurchController::class, 'printPdfRfp'])->name('rfp.print.pdf');
+    Route::get('/rfpnonpurch', [RfpNonPurchController::class, 'index'])->name('rfpnonpurch');
+    Route::get('/rfpnonpurch/json', [RfpNonPurchController::class, 'json'])->name('rfpnonpurch.json');
+    Route::get('/showrfpnonpurch/{hash}', [RfpNonPurchController::class, 'showRfpNonPurch']);
+    Route::post('/rfpnonpurch/{hash}/received', [RfpNonPurchController::class, 'updateReceived'])->name('rfpnonpurch.received');
+    Route::post('/rfpnonpurch/{hash}/treasury', [RfpNonPurchController::class, 'updateTreasury'])->name('rfpnonpurch.treasury');
+    Route::get('/rfpnonpurch/{id}/tracking', [RfpNonPurchController::class, 'tracking'])->name('rfpnonpurch.tracking');
+    // Route::get('/pdf_rfpnonpurch/{hash}', [RfpNonPurchController::class, 'printRfp'])->name('rfpnonpurch.print');
+    Route::get('/pdf_rfpnonpurch/{hash}', [RfpNonPurchController::class, 'printPdfRfpNonPurch'])->name('rfpnonpurch.print.pdf');
 
-    Route::post('/rfp/{id}/approve', [RfpNonPurchController::class, 'approveRfp']);
-    Route::post('/rfp/{id}/reject', [RfpNonPurchController::class, 'rejectRfp']);
-    Route::post('/rfp/{id}/revise', [RfpNonPurchController::class, 'reviseRfp']);
+    Route::post('/rfpnonpurch/{id}/approve', [RfpNonPurchController::class, 'approveRfpNonPurch']);
+    Route::post('/rfpnonpurch/{id}/reject', [RfpNonPurchController::class, 'rejectRfpNonPurch']);
+    Route::post('/rfpnonpurch/{id}/revise', [RfpNonPurchController::class, 'reviseRfpNonPurch']);
+    Route::get('/createrfpnonpurch', [RfpNonPurchController::class, 'createRfpNonPurch']);
+    Route::post('/rfpnonpurch', [RfpNonPurchController::class, 'storeRfpNonPurch'])->name('rfpnonpurch.store');
 
     // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');

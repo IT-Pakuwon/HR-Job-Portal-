@@ -573,7 +573,17 @@
                 $('#btnText').text('Processing...');
                 showOverlay('Updating');
 
+                // const formData = new FormData(document.getElementById('imbudgetnonpurchForm'));
+
+                // $.ajax({
+                //     url: "{{ route('imbudgetnonpurch.update', $hash) }}",
+                //     type: "PUT",
+                //     data: formData,
+                //     processData: false,
+                //     contentType: false
+                // })
                 const formData = new FormData(document.getElementById('imbudgetnonpurchForm'));
+                formData.append('_method', 'PUT');
 
                 $.ajax({
                     url: "{{ route('imbudgetnonpurch.update', $hash) }}",
