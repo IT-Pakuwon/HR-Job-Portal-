@@ -771,8 +771,10 @@
                 document.getElementById('view_type').innerText =
                     props.type === 'external' ? 'External' : 'Internal';
 
+                const total = props.participant ?? 0;
+
                 document.getElementById('view_count').innerText =
-                    props.participant_count || participantsList.length || 0;
+                    `${total} ${total > 1 ? 'Participants' : 'Participant'}`;
 
                 document.getElementById('view_count_badge').innerText =
                     props.participant_count || participantsList.length || 0;
