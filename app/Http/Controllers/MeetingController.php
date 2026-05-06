@@ -935,7 +935,7 @@ class MeetingController extends Controller
         abort_if(!$meeting, 404);
 
         $request->validate([
-            'meeting_link' => ['required', 'url'],
+            'meeting_link' => ['required', 'string'],
         ]);
 
         $meeting->msteams_join_url = $request->meeting_link;

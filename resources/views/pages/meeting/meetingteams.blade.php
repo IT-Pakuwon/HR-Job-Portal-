@@ -683,13 +683,34 @@
             // =========================
             if (isTeams) {
 
+                const safeTeamsUrl =
+                    props.teams_url &&
+                    props.teams_url.startsWith('http')
+                        ? props.teams_url
+                        : '#';
+
                 if (props.teams_url) {
 
+                    const encodedTeamsLink =
+                        btoa(unescape(encodeURIComponent(props.teams_url)));
+
                     container.innerHTML = `
-                        <a href="${props.teams_url}" target="_blank"
-                            class="text-blue-600 font-medium hover:underline">
-                            Open Teams Meeting
-                        </a>
+                        <div class="flex items-center justify-between">
+
+                            <a href="${safeTeamsUrl}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-blue-600 font-medium hover:underline">
+                                Open Teams Meeting
+                            </a>
+
+                            <button
+                                onclick="copyLink('${encodedTeamsLink}', true)"
+                                class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
+                                Copy
+                            </button>
+
+                        </div>
                     `;
 
                     badge.innerHTML = `
@@ -726,17 +747,39 @@
 
                 if (props.teams_url) {
 
-                    container.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <a href="${props.teams_url}" target="_blank"
-                                class="text-purple-600 font-medium hover:underline">
-                                Open Zoom
-                            </a>
+                    const rawMeetingText = props.teams_url || '';
+                    const safeMeetingText = escapeHtml(rawMeetingText);
 
-                            <button onclick="copyLink('${props.teams_url}')"
-                                class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
-                                Copy
-                            </button>
+                    const extractedUrl =
+                        rawMeetingText.match(/https?:\/\/[^\s]+/)?.[0] || '#';
+
+                    const isLongText =
+                        rawMeetingText.includes('\n') ||
+                        rawMeetingText.length > 120;
+
+                    const encodedText = btoa(unescape(encodeURIComponent(rawMeetingText)));
+
+                    container.innerHTML = `
+                        <div class="space-y-3">
+
+                            <div class="flex items-center justify-between">
+
+                                <a href="${extractedUrl}" target="_blank"
+                                    class="text-purple-600 font-medium hover:underline">
+                                    Open Zoom
+                                </a>
+
+                                <button onclick="copyLink('${encodedText}', true)"
+                                    class="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300">
+                                    Copy
+                                </button>
+
+                            </div>
+
+                            ${isLongText ? `
+                                <pre class="whitespace-pre-wrap text-xs bg-white border rounded-lg p-3 overflow-auto max-h-64">${safeMeetingText}</pre>
+                            ` : ''}
+
                         </div>
                     `;
 
@@ -794,10 +837,11 @@
                             Zoom Meeting Link
                         </label>
 
-                        <input type="text"
+                        <textarea
                             id="edit_meeting_link"
-                            placeholder="https://zoom.us/j/xxxx"
-                            class="w-full rounded-lg border px-3 py-2 text-sm">
+                            rows="8"
+                            placeholder="Paste Zoom invitation here..."
+                            class="w-full rounded-lg border px-3 py-2 text-sm"></textarea>
                     </div>
 
                     <div class="flex justify-end gap-2">
@@ -814,6 +858,15 @@
 
                 </div>
             `;
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
         function enableEdit() {
 
@@ -1117,11 +1170,26 @@
         }
 
 
-        function copyLink(link) {
-            navigator.clipboard.writeText(link);
-            Swal.fire('Copied!', 'Link copied to clipboard', 'success');
-        }
+function copyLink(link, encoded = false) {
 
+    let finalText = link;
+
+    if (encoded) {
+        finalText = decodeURIComponent(
+            escape(
+                atob(link)
+            )
+        );
+    }
+
+    navigator.clipboard.writeText(finalText);
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Copied!',
+        text: 'Link copied to clipboard'
+    });
+}
         function openViewMeetingModal(event) {
 
             currentEventId = event.id;
