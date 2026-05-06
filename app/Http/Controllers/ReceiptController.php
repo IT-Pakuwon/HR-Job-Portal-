@@ -850,6 +850,20 @@ class ReceiptController extends Controller
 
                 $this->updateSPPBQtyReceipt($receipt, $user->username, $now);
 
+                $stagingRes = app(\App\Http\Controllers\Integration\AcumVmsReceiptSubmitController::class)
+                    ->runByReceipt(
+                        $receipt->receiptnbr,
+                        $receipt->cpny_id,
+                        $user->username ?? 'SYSTEM'
+                    );
+
+                \Log::info('[ACUMVMS STAGING RECEIPT RESULT]', [
+                    'receiptnbr' => $receipt->receiptnbr,
+                    'cpny_id'    => $receipt->cpny_id,
+                    'run_by'     => $user->username ?? 'SYSTEM',
+                    'result'     => $stagingRes,
+                ]);
+
                 TrReceiptdetail::where('receiptnbr', $receipt->receiptnbr)->update([
                     'status'     => 'C',
                     'updated_by' => $user->username,

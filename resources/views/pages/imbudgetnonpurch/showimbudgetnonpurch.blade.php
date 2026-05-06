@@ -126,56 +126,134 @@
                                     </span>
                                 </div>
                             </div>
-
+                           
                             {{-- Budget Info --}}
+                            @php
+                                $type = $header->imnonpurchasetype;
+
+                                $money = function ($value) {
+                                    return number_format((float) $value, 2, ',', '.');
+                                };
+                            @endphp
+
                             <div class="col-span-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="mb-2 font-semibold text-gray-700 dark:text-gray-200">
-                                    Budget Info
+                                <div class="mb-3 flex items-center justify-between">
+                                    <div class="font-semibold text-gray-700 dark:text-gray-200">
+                                        Budget Info
+                                    </div>
+
+                                    <span class="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                        {{ $type ?? '-' }}
+                                    </span>
                                 </div>
 
-                                <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
-                                    <div>
-                                        <span class="text-gray-500">Budget From</span>
-                                        <div class="font-semibold">
-                                            {{ number_format((float) $header->budget_from, 2, ',', '.') }}
+                                @if ($type === 'Budget Reallocation')
+                                    <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Request Budget</span>
+                                            <div class="mt-1 font-semibold text-indigo-600">
+                                                {{ $money($header->request_budget) }}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div>
-                                        <span class="text-gray-500">Budget To</span>
-                                        <div class="font-semibold">
-                                            {{ number_format((float) $header->budget_to, 2, ',', '.') }}
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Budget From</span>
+                                            <div class="mt-1 font-semibold text-gray-900 dark:text-gray-200">
+                                                {{ $money($header->budget_from) }}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div>
-                                        <span class="text-gray-500">Expenditure</span>
-                                        <div class="font-semibold">
-                                            {{ $header->expenditure_type ?? '-' }}
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Budget To</span>
+                                            <div class="mt-1 font-semibold text-green-600">
+                                                {{ $money($header->budget_to) }}
+                                            </div>
                                         </div>
                                     </div>
+                                @elseif ($type === 'Unbudgeted')
+                                    <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Request Budget</span>
+                                            <div class="mt-1 font-semibold text-indigo-600">
+                                                {{ $money($header->request_budget) }}
+                                            </div>
+                                        </div>
 
-                                    <div>
-                                        <span class="text-gray-500">Existing Budget</span>
-                                        <div class="font-semibold">
-                                            {{ number_format((float) $header->existing_budget, 2, ',', '.') }}
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Expenditure</span>
+                                            <div class="mt-1 font-semibold text-gray-900 dark:text-gray-200">
+                                                {{ $header->expenditure_type ?? '-' }}
+                                            </div>
                                         </div>
                                     </div>
+                                @elseif ($type === 'Over Budget')
+                                    <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Request Budget</span>
+                                            <div class="mt-1 font-semibold text-indigo-600">
+                                                {{ $money($header->request_budget) }}
+                                            </div>
+                                        </div>
 
-                                    <div>
-                                        <span class="text-gray-500">Request Budget</span>
-                                        <div class="font-semibold text-indigo-600">
-                                            {{ number_format((float) $header->request_budget, 2, ',', '.') }}
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Existing Budget</span>
+                                            <div class="mt-1 font-semibold text-gray-900 dark:text-gray-200">
+                                                {{ $money($header->existing_budget) }}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div>
-                                        <span class="text-gray-500">Over Budget</span>
-                                        <div class="font-semibold text-red-600">
-                                            {{ number_format((float) $header->over_budget, 2, ',', '.') }}
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Over Budget</span>
+                                            <div class="mt-1 font-semibold {{ (float) $header->over_budget < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                                {{ $money($header->over_budget) }}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                @else
+                                    <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Request Budget</span>
+                                            <div class="mt-1 font-semibold text-indigo-600">
+                                                {{ $money($header->request_budget) }}
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Budget From</span>
+                                            <div class="mt-1 font-semibold">
+                                                {{ $money($header->budget_from) }}
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Budget To</span>
+                                            <div class="mt-1 font-semibold">
+                                                {{ $money($header->budget_to) }}
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Expenditure</span>
+                                            <div class="mt-1 font-semibold">
+                                                {{ $header->expenditure_type ?? '-' }}
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Existing Budget</span>
+                                            <div class="mt-1 font-semibold">
+                                                {{ $money($header->existing_budget) }}
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+                                            <span class="text-gray-500">Over Budget</span>
+                                            <div class="mt-1 font-semibold text-red-600">
+                                                {{ $money($header->over_budget) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
 
                         </div>

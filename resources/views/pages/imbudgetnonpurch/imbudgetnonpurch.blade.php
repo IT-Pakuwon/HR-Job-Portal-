@@ -149,13 +149,8 @@
                             <th scope="col" class="w-40 px-6 py-2 font-medium">Department</th>
                             <th scope="col" class="w-40 px-6 py-2 font-medium">Requester</th>
                             <th scope="col" class="w-40 px-6 py-2 font-medium">Type</th>
-                            <th scope="col" class="w-56 px-6 py-2 font-medium">Description</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Budget From</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Budget To</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Expenditure</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Existing Budget</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Request Budget</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Over Budget</th>
+                            <th scope="col" class="w-72 px-6 py-2 font-medium">Description</th>
+                            <th scope="col" class="w-80 px-6 py-2 font-medium">Budget</th>
                             <th scope="col" class="w-32 px-6 py-2 font-medium">Status</th>
                         </tr>
                     </thead>
@@ -178,6 +173,64 @@
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
+        }
+
+        function formatBudgetNumber(val) {
+            if (val === null || val === undefined || val === '') return '0';
+
+            const num = Number(val);
+            if (isNaN(num)) return '0';
+
+            return num.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+
+        function renderBudget(row) {
+            const type = row.imnonpurchasetype || '';
+
+            const requestBudget = formatBudgetNumber(row.request_budget);
+            const budgetFrom = formatBudgetNumber(row.budget_from);
+            const budgetTo = formatBudgetNumber(row.budget_to);
+            const expenditure = row.expenditure_type || '-';
+            const existingBudget = formatBudgetNumber(row.existing_budget);
+            const overBudget = formatBudgetNumber(row.over_budget);
+
+            if (type === 'Budget Reallocation') {
+                return `
+                    <div class="whitespace-normal leading-relaxed">
+                        Request budget : ${requestBudget}<br>
+                        Budget From : ${budgetFrom}<br>
+                        Budget To : ${budgetTo}
+                    </div>
+                `;
+            }
+
+            if (type === 'Unbudgeted') {
+                return `
+                    <div class="whitespace-normal leading-relaxed">
+                        Request budget : ${requestBudget}<br>
+                        Expenditure : ${expenditure}
+                    </div>
+                `;
+            }
+
+            if (type === 'Over Budget') {
+                return `
+                    <div class="whitespace-normal leading-relaxed">
+                        Request budget : ${requestBudget}<br>
+                        Existing Budget : ${existingBudget}<br>
+                        Over Budget : ${overBudget}
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="whitespace-normal leading-relaxed">
+                    Request budget : ${requestBudget}
+                </div>
+            `;
         }
 
         $(document).ready(function() {
@@ -341,39 +394,10 @@
                         className: 'text-left'
                     },
                     {
-                        data: 'budget_from',
-                        defaultContent: '-',
-                        className: 'text-left whitespace-nowrap'
-                    },
-                    {
-                        data: 'budget_to',
-                        defaultContent: '-',
-                        className: 'text-left whitespace-nowrap'
-                    },
-                    {
-                        data: 'expenditure_type',
-                        defaultContent: '-',
-                        className: 'text-left whitespace-nowrap'
-                    },
-                    {
-                        data: 'existing_budget',
-                        className: 'text-right whitespace-nowrap',
-                        render: function(data) {
-                            return formatNumber(data);
-                        }
-                    },
-                    {
-                        data: 'request_budget',
-                        className: 'text-right whitespace-nowrap',
-                        render: function(data) {
-                            return formatNumber(data);
-                        }
-                    },
-                    {
-                        data: 'over_budget',
-                        className: 'text-right whitespace-nowrap',
-                        render: function(data) {
-                            return formatNumber(data);
+                        data: null,
+                        className: 'text-left whitespace-normal break-words',
+                        render: function(data, type, row) {
+                            return renderBudget(row);
                         }
                     },
                     {

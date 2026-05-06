@@ -309,8 +309,8 @@ class IMBudgetNonPurchController extends Controller
         try {
 
             // ===== GENERATE DOC ID =====
-            $auto = $this->nextAutonbr('IMR', $year, $month, $username, 'IMBudget Non Purchase');
-            $docid = 'IMR' . substr($year, 2) . $month . sprintf('%03d', $auto['next']);
+            $auto = $this->nextAutonbr($doctype, $year, $month, $username, 'IMBudget Non Purchase');
+            $docid = $doctype . substr($year, 2) . $month . sprintf('%03d', $auto['next']);
 
             // ============================
             // HEADER (MODEL BARU)
@@ -393,22 +393,38 @@ class IMBudgetNonPurchController extends Controller
             $approvalCtl = app(ApprovalController::class);
 
             $approvalCtl->loadLines(
-                'IMR',
+                $doctype,
                 $request->cpnyid,
                 $request->departementid
             );
 
+            // [$firstApprovalUsernames] = $approvalCtl->generateForDocument(
+            //     $docid,
+            //     $doctype,
+            //     $request->cpnyid,
+            //     $request->departementid,
+            //     $username,
+            //     [
+            //         'ignore_nominal' => true
+            //     ],
+            //     $dt
+            // );
+
+            $ctx = [
+                'ignore_nominal' => false,
+                'grand_total' => (float) $header->request_budget,
+            ];
+            
             [$firstApprovalUsernames] = $approvalCtl->generateForDocument(
                 $docid,
-                'IMR',
+                $doctype,
                 $request->cpnyid,
                 $request->departementid,
                 $username,
-                [
-                    'ignore_nominal' => true
-                ],
+                $ctx,
                 $dt
             );
+
 
             if ($firstApprovalUsernames) {
                 $header->completed_by = $firstApprovalUsernames;
@@ -787,10 +803,8 @@ class IMBudgetNonPurchController extends Controller
             // RE-GENERATE APPROVAL
             // =========================
             $ctx = [
-                'is_urgent' => false,
-                'first_inventory_category' => null,
-                'has_fixed_asset_subtype' => false,
-                'ignore_nominal' => true,
+                'ignore_nominal' => false,
+                'grand_total' => (float) $header->request_budget,
             ];
 
             [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
