@@ -6,6 +6,9 @@
         html,
         body {
             height: 100%;
+        }
+
+        body {
             overflow: hidden;
         }
 
@@ -39,11 +42,24 @@
         .fc .fc-scroller {
             scrollbar-width: thin;
         }
+
+        .fc {
+            height: 100% !important;
+        }
+
+        .fc .fc-view-harness {
+            height: 100% !important;
+        }
+
+        .fc .fc-scroller {
+            overflow: auto !important;
+        }
+
     </style>
-    <div class="max-w-9xl mx-auto flex h-screen w-full flex-col overflow-hidden p-2">
+    <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
         {{-- HEADER --}}
         <div
-            class="mb-4 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
+            class="mb-4 shrink-0 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
 
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -142,13 +158,16 @@
 
             </div>
         </div>
-        {{-- CALENDAR --}}
-
+                {{-- CALENDAR --}}
         <div
-            class="dark:border-white/1 flex max-h-[80vh] flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 p-4 shadow-sm">
+            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0">
 
-            <div class="flex-1">
-                <div id="calendar" class="h-full w-full"></div>
+            <div class="relative flex-1 min-h-0 overflow-hidden">
+
+                <div class="h-[90%] overflow-auto rounded-xl">
+                    <div id="calendar" class="h-full w-full"></div>
+                </div>
+
             </div>
 
         </div>
@@ -505,7 +524,7 @@
 
                         <button id="cancelMeetingBtn"
                             class="hidden rounded-md bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600">
-                            Cancel
+                            Cancel Meeting
                         </button>
                     </div>
 
@@ -582,8 +601,8 @@
             },
 
             height: '100%',
-            contentHeight: '100%',
-            expandRows: true, // 🔥 penting
+            expandRows: true,
+            stickyHeaderDates: true,
 
 
             selectable: true,
@@ -766,17 +785,27 @@
                 const cancelBtn = document.getElementById('cancelMeetingBtn');
 
                 const currentUserId = window.currentUserId;
-                const creatorId = props.username; // ✅ FIXED FIELD
+                const creatorId = props.username;
 
-                // ✅ SAFETY CHECK (avoid null crash)
+                // ✅ SAFETY CHECK
                 if (!editBtn || !cancelBtn) return;
 
-                if (creatorId === currentUserId) {
+                const isCreator = creatorId === currentUserId;
+                const isCSACCESS = window.hasCSACCESS;
+
+                // RESET FIRST
+                editBtn.classList.add('hidden');
+                cancelBtn.classList.add('hidden');
+
+                // ✅ Creator → edit + cancel
+                if (isCreator) {
                     editBtn.classList.remove('hidden');
                     cancelBtn.classList.remove('hidden');
-                } else {
-                    editBtn.classList.add('hidden');
-                    cancelBtn.classList.add('hidden');
+                }
+
+                // ✅ CSACCESS → cancel only
+                else if (isCSACCESS) {
+                    cancelBtn.classList.remove('hidden');
                 }
                 // 🔥 BASIC INFO FILL
                 document.getElementById('view_title').innerText = e.title || '-';

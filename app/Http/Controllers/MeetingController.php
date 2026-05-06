@@ -2511,10 +2511,19 @@ class MeetingController extends Controller
         $meeting = TrMeeting::on('pgsql5')->find($id);
         abort_if(!$meeting, 404);
 
-        if ($meeting->user_peminta !== auth()->user()->username) {
+        $user = auth()->user();
+
+        $hasCSACCESS = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'CSACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        if (
+            $meeting->user_peminta !== $user->username
+            && !$hasCSACCESS
+        ) {
             abort(403);
         }
-
 
         $meeting->status = 'X';
         $meeting->updated_by = auth()->user()->username;
