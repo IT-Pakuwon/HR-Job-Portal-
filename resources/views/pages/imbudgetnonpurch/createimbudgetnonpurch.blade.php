@@ -8,7 +8,7 @@
 
                         <!-- Header -->
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create SPPB</h2>
+                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create IMBudget</h2>
                         </div>
 
                         <!-- Row 1 -->

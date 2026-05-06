@@ -603,18 +603,18 @@
                 clearMarks();
                 const errs = [];
 
-                if (!val('kontraktype')) errs.push({
-                    id: 'kontraktype',
-                    msg: 'Kontrak Type wajib dipilih.'
-                });
+                // if (!val('kontraktype')) errs.push({
+                //     id: 'kontraktype',
+                //     msg: 'Kontrak Type wajib dipilih.'
+                // });
                 if (!val('kontrakcategory')) errs.push({
                     id: 'kontrakcategory',
                     msg: 'Kontrak Category wajib dipilih.'
                 });
-                if (!val('kontrakdate')) errs.push({
-                    id: 'kontrakdate',
-                    msg: 'Kontrak Date wajib diisi.'
-                });
+                // if (!val('kontrakdate')) errs.push({
+                //     id: 'kontrakdate',
+                //     msg: 'Kontrak Date wajib diisi.'
+                // });
                 if (!val('startdate')) errs.push({
                     id: 'startdate',
                     msg: 'Start Date wajib diisi.'
