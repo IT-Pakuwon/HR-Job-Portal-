@@ -1954,7 +1954,7 @@
         //                         }
 
         //                         ${
-        //                             step.comment
+        //                             step.reason
         //                             ? `
         //                                     <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
 
@@ -1963,7 +1963,7 @@
         //                                         </div>
 
         //                                         <div class="mt-1 text-xs text-yellow-900">
-        //                                             ${escapeHtml(step.comment)}
+        //                                             ${escapeHtml(step.reason)}
         //                                         </div>
 
         //                                     </div>
@@ -2233,7 +2233,7 @@
                                     </div>
 
                                     ${
-                                        step.comment
+                                        step.reason
                                         ? `
                                             <div class="
                                                 mt-3
@@ -2265,7 +2265,7 @@
                                                     text-yellow-900
                                                     dark:text-yellow-100
                                                 ">
-                                                    ${escapeHtml(step.comment)}
+                                                    ${escapeHtml(step.reason)}
                                                 </div>
 
                                             </div>
@@ -3266,7 +3266,7 @@
             };
         }
 
-        function submitApproval(type, comment = '') {
+        function submitApproval(type, reason = '') {
 
             const docid = window.currentDocid;
 
@@ -3290,7 +3290,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        comment: comment
+                        reason: reason
                     })
                 })
                 .then(res => res.json())
