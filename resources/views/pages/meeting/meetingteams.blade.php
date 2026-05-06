@@ -1,5 +1,62 @@
 <x-app-layout>
-    <div class="max-w-9xl mx-auto w-full p-4">
+        <style>
+        /* =====================================
+   🔥 GLOBAL (NO PAGE SCROLL)
+===================================== */
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        .fc .fc-timeline-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+        }
+
+        /* optional: keep resource header aligned */
+        .fc .fc-timeline-header-row {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        /* dark mode support */
+        .dark .fc .fc-timeline-header {
+            background: #111827;
+        }
+
+
+
+        /* 🔥 force horizontal scroll inside FullCalendar */
+        .fc .fc-scroller {
+            overflow-x: auto !important;
+        }
+
+        /* optional: smoother scroll */
+        .fc .fc-scroller {
+            scrollbar-width: thin;
+        }
+
+        .fc {
+            height: 100% !important;
+        }
+
+        .fc .fc-view-harness {
+            height: 100% !important;
+        }
+
+        .fc .fc-scroller {
+            overflow: auto !important;
+        }
+
+    </style>
+    <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
 
         {{-- HEADER --}}
         <div class="mb-4 rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
@@ -108,9 +165,17 @@
             </div>
         </div>
 
-        {{-- CALENDAR --}}
-        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-gray-900">
-            <div id="calendar"></div>
+        <div
+            class="dark:border-white/1 flex h-full flex-1 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm min-h-0">
+
+            <div class="relative flex-1 min-h-0 overflow-hidden">
+
+                <div class="h-[90%] overflow-auto rounded-xl">
+                    <div id="calendar" class="h-full w-full"></div>
+                </div>
+
+            </div>
+
         </div>
 
         {{-- Modal --}}
