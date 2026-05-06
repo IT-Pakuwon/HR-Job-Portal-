@@ -21,11 +21,6 @@ class MeetingController extends Controller
 {
     public function index(Request $request)
     {
-        $user = Auth::user();
-        if (!$user) {
-            return redirect()->route('login');
-        }
-        
         $selectedDate = $request->get('date', now()->format('Y-m-d'));
 
         try {
@@ -123,7 +118,6 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-
             $maxBookingDate = now()
                 ->addDays((int) $bookingSetting->setting_value_string)
                 ->endOfDay();
@@ -241,13 +235,11 @@ class MeetingController extends Controller
 
         $accMap = MsMeetingAccessories::pluck('acc_name', 'acc_id');
 
-
         return response()->json(
             TrMeeting::where('status', '!=', 'X')
                 ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
                 ->get()
                 ->map(function ($m) use ($roomMap, $roomColors, $users, $accMap) {
-
                     $participants = DB::connection('pgsql5')
                         ->table('tr_meeting_participant')
                         ->where('docid', $m->docid)
@@ -263,16 +255,16 @@ class MeetingController extends Controller
 
                     // ✅ FIX ACCESSORIES HERE
                     $ids = collect(explode(',', (string) $m->acc_id))
-                        ->map(fn($x) => trim($x))
+                        ->map(fn ($x) => trim($x))
                         ->filter()
                         ->values();
 
                     $accessories = $ids
-                        ->map(fn($id) => [
+                        ->map(fn ($id) => [
                             'id' => $id,
-                            'name' => $accMap[$id] ?? null
+                            'name' => $accMap[$id] ?? null,
                         ])
-                        ->filter(fn($a) => $a['name'])
+                        ->filter(fn ($a) => $a['name'])
                         ->values();
 
                     return [
@@ -394,7 +386,6 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-
             // example: "+15 days"
             $maxBookingDate = now()
                 ->addDays((int) $bookingSetting->setting_value_string)
@@ -409,7 +400,6 @@ class MeetingController extends Controller
 
         // validate minimum
         if ($meetingDate->lt($minBookingDate)) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Booking for past dates is not allowed.',
@@ -418,11 +408,10 @@ class MeetingController extends Controller
 
         // validate maximum
         if ($meetingDate->gt($maxBookingDate)) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Booking cannot exceed '
-                    . $maxBookingDate->format('d M Y'),
+                    .$maxBookingDate->format('d M Y'),
             ], 422);
         }
 
@@ -446,15 +435,14 @@ class MeetingController extends Controller
         $restrictedRooms = [
             'Meeting Room 33-1',
             'Meeting Room 33-5',
-            'Meeting Room 1 P6 - Mall Gandaria'
-
+            'Meeting Room 1 P6 - Mall Gandaria',
         ];
 
         // 🔒 BLOCK BASED ON NAME
-         if (in_array($roomName, $restrictedRooms) && !$hasCSACCESS) {
+        if (in_array($roomName, $restrictedRooms) && !$hasCSACCESS) {
             return response()->json([
                 'success' => false,
-                'message' => 'We\'re sorry, this room is restricted'
+                'message' => 'We\'re sorry, this room is restricted',
             ], 403);
         }
 
@@ -586,7 +574,6 @@ class MeetingController extends Controller
             $companies = $request->external_company ?? [];
 
             foreach ($emails as $i => $email) {
-
                 DB::connection('pgsql5')->table('tr_meeting_participant')->insert([
                     'docid' => $docid,
                     'external_participant' => true,
@@ -626,11 +613,9 @@ class MeetingController extends Controller
                 $meeting->save(); // ✅ THIS saves msteams_owner too
             }
 
-
             $this->sendMeetingEmail($meeting, 'create');
 
             // kalau acc_id ada -> coba create Teams meeting
-
 
             // // CC email dari requester
             // $ccEmail = User::query()
@@ -826,11 +811,10 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-
             // example: "+15 days"
-        $maxBookingDate = now()
-            ->addDays((int) $bookingSetting->setting_value_string)
-            ->endOfDay();
+            $maxBookingDate = now()
+                ->addDays((int) $bookingSetting->setting_value_string)
+                ->endOfDay();
         }
 
         // ❌ cannot book today
@@ -841,7 +825,6 @@ class MeetingController extends Controller
 
         // validate minimum
         if ($meetingDate->lt($minBookingDate)) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Booking for past dates is not allowed.',
@@ -850,11 +833,10 @@ class MeetingController extends Controller
 
         // validate maximum
         if ($meetingDate->gt($maxBookingDate)) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Booking cannot exceed '
-                    . $maxBookingDate->format('d M Y'),
+                    .$maxBookingDate->format('d M Y'),
             ], 422);
         }
 
@@ -934,7 +916,6 @@ class MeetingController extends Controller
                     'docid' => $meeting->docid,
                 ],
             ]);
-
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
@@ -954,7 +935,7 @@ class MeetingController extends Controller
         abort_if(!$meeting, 404);
 
         $request->validate([
-            'meeting_link' => ['required', 'url']
+            'meeting_link' => ['required', 'url'],
         ]);
 
         $meeting->msteams_join_url = $request->meeting_link;
@@ -964,7 +945,7 @@ class MeetingController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Zoom link saved'
+            'message' => 'Zoom link saved',
         ]);
     }
 
@@ -977,7 +958,9 @@ class MeetingController extends Controller
             ->get();
 
         $toEmails = $participants->pluck('email_participant')->filter()->unique();
-        if ($toEmails->isEmpty()) return;
+        if ($toEmails->isEmpty()) {
+            return;
+        }
 
         $room = MsMeetingRoom::where('room_id', $meeting->room_id)->value('room_name');
 
@@ -988,13 +971,13 @@ class MeetingController extends Controller
         $subjectPrefix = match ($type) {
             'update' => '[UPDATED]',
             'cancel' => '[CANCELLED]',
-            default  => '[INVITATION]',
+            default => '[INVITATION]',
         };
 
         $statusText = match ($type) {
             'update' => 'has been updated',
             'cancel' => 'has been cancelled',
-            default  => 'has been scheduled',
+            default => 'has been scheduled',
         };
 
         // 🔥 INTERNAL / EXTERNAL SPLIT
@@ -1031,90 +1014,81 @@ class MeetingController extends Controller
 
         // 🔥 HTML EMAIL
         $htmlBody = "
-        <p>Dear Sir/Madam,</p>
+<p>Dear Sir/Madam,</p>
 
-        <p>
-            We would like to inform you that the following meeting <strong>{$statusText}</strong>:
-        </p>
+<p>
+    We would like to inform you that the following meeting <strong>{$statusText}</strong>:
+</p>
 
-        <table cellpadding='6' cellspacing='0' style='border-collapse: collapse;'>
-            <tr><td><strong>Title</strong></td><td>: {$meeting->meeting_title}</td></tr>
-            <tr><td><strong>Date</strong></td><td>: {$start->format('d F Y')}</td></tr>
-            <tr><td><strong>Time</strong></td><td>: {$start->format('H:i')} - {$end->format('H:i')}</td></tr>
-            <tr><td><strong>Room</strong></td><td>: {$room}</td></tr>
-            <tr>
-                <td><strong>Total Participants</strong></td>
-                <td>: {$meeting->total_participant}</td>
-            </tr>
-            <tr><td><strong>Description</strong></td><td>: {$meeting->meeting_descr}</td></tr>
+<table cellpadding='6' cellspacing='0' style='border-collapse: collapse;'>
+    <tr><td><strong>Title</strong></td><td>: {$meeting->meeting_title}</td></tr>
+    <tr><td><strong>Date</strong></td><td>: {$start->format('d F Y')}</td></tr>
+    <tr><td><strong>Time</strong></td><td>: {$start->format('H:i')} - {$end->format('H:i')}</td></tr>
+    <tr><td><strong>Room</strong></td><td>: {$room}</td></tr>
+    <tr>
+        <td><strong>Total Participants</strong></td>
+        <td>: {$meeting->total_participant}</td>
+    </tr>
+    <tr><td><strong>Description</strong></td><td>: {$meeting->meeting_descr}</td></tr>
+</table>
 
-        </table>
+<br>
 
-        <br>
+<p><strong>Internal PIC</strong></p>
 
-        <p><strong>Internal PIC</strong></p>
-        <table border='1' cellpadding='6' cellspacing='0' width='100%' style='border-collapse: collapse;'>
-            <tr>
-                <th align='left'>Name</th>
-                <th align='left'>Email</th>
-            </tr>
-            <tr>
-                <td>{$internalPICName}</td>
-                <td>{$internalPICEmail}</td>
-            </tr>
-        </table>
+<table border='1' cellpadding='6' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+    <tr>
+        <th align='left'>Name</th>
+        <th align='left'>Email</th>
+    </tr>
+    <tr>
+        <td>{$internalPICName}</td>
+        <td>{$internalPICEmail}</td>
+    </tr>
+</table>
 
-        <br>
+<br>
 
-        <p><strong>Internal Participants</strong></p>
-        <table border='1' cellpadding='6' cellspacing='0' width='100%' style='border-collapse: collapse;'>
-            <tr>
-                <th align='left'>Name</th>
-                <th align='left'>Email</th>
-            </tr>
-            {$internalHtml}
-        </table>
+<p><strong>Internal Participants</strong></p>
 
-        ".($externalParticipants->count() ? "
-        <br>
+<table border='1' cellpadding='6' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+    <tr>
+        <th align='left'>Name</th>
+        <th align='left'>Email</th>
+    </tr>
+    {$internalHtml}
+</table>
 
-        <p><strong>External Participants</strong></p>
-        <table border='1' cellpadding='6' cellspacing='0' width='100%' style='border-collapse: collapse;'>
-            <tr>
-                <th align='left'>Name</th>
-                <th align='left'>Email</th>
-                <th align='left'>Company</th>
-            </tr>
-            {$externalHtml}
-        </table>
-        " : "")."
+<br>
+";
 
-        <br>
+        if (!empty($meeting->msteams_join_url)) {
+            $htmlBody .= "
+    <p>
+        <strong>Microsoft Teams Meeting:</strong><br>
+        <a href='{$meeting->msteams_join_url}' target='_blank'
+        style='color:#2563eb; text-decoration:underline;'>
+            Join Meeting
+        </a>
+    </p>
 
-        ".(!empty($meeting->msteams_join_url) ? "
-        <p>
-            <strong>Microsoft Teams Meeting:</strong><br>
-            <a href='{$meeting->msteams_join_url}' target='_blank'
-            style='color:#2563eb; text-decoration:underline;'>
-                Join Meeting
-            </a>
-        </p>
-        " : "")."
+    <br>
+    ";
+        }
 
-        <br>
+        $htmlBody .= '
+<p>
+    Kindly ensure your availability and attendance.<br>
+    Should you have any questions, please do not hesitate to contact the organizer.
+</p>
 
-        <p>
-            Kindly ensure your availability and attendance.<br>
-            Should you have any questions, please do not hesitate to contact the organizer.
-        </p>
+<br>
 
-        <br>
-
-        <p>
-            Best regards,<br>
-            <strong>Pakuwon App System</strong>
-        </p>
-        ";
+<p>
+    Best regards,<br>
+    <strong>Pakuwon App System</strong>
+</p>
+';
 
         // 🔥 ICS ATTACHMENT
         $ics = $this->generateICS($meeting, $type);
@@ -1164,7 +1138,7 @@ class MeetingController extends Controller
             ->whereIn('username', $adminEmails)
             ->pluck('email')
             ->filter()
-            ->map(fn($e) => strtolower($e));
+            ->map(fn ($e) => strtolower($e));
 
         $toEmails = $toEmails
             ->merge($adminEmails)
@@ -1177,8 +1151,9 @@ class MeetingController extends Controller
         // ==========================
         if ($toEmails->isEmpty()) {
             \Log::warning('Teams email skipped: no recipients', [
-                'docid' => $meeting->docid
+                'docid' => $meeting->docid,
             ]);
+
             return;
         }
 
@@ -1194,7 +1169,7 @@ class MeetingController extends Controller
         $subjectPrefix = match ($type) {
             'update' => '[TEAMS UPDATED]',
             'cancel' => '[TEAMS CANCELLED]',
-            default  => '[TEAMS INVITATION]',
+            default => '[TEAMS INVITATION]',
         };
 
         // ==========================
@@ -1261,7 +1236,6 @@ class MeetingController extends Controller
                     ->subject("{$subjectPrefix} {$meeting->meeting_title}")
                     ->html($htmlBody);
             });
-
         } catch (\Throwable $e) {
             \Log::error('Teams email failed', [
                 'docid' => $meeting->docid,
@@ -1272,14 +1246,14 @@ class MeetingController extends Controller
 
     protected function generateICS($meeting, $type = 'create')
     {
-        $start = \Carbon\Carbon::parse($meeting->start_meeting_time)->utc();
-        $end   = \Carbon\Carbon::parse($meeting->end_meeting_time)->utc();
+        $start = Carbon::parse($meeting->start_meeting_time)->utc();
+        $end = Carbon::parse($meeting->end_meeting_time)->utc();
 
-        $uid = $meeting->docid . '@meeting-system';
+        $uid = $meeting->docid.'@meeting-system';
 
         $method = match ($type) {
             'cancel' => 'CANCEL',
-            default  => 'REQUEST',
+            default => 'REQUEST',
         };
 
         $status = $type === 'cancel' ? 'CANCELLED' : 'CONFIRMED';
@@ -1299,30 +1273,30 @@ class MeetingController extends Controller
 
         // 🔥 ESCAPE TEXT (VERY IMPORTANT)
         $title = addslashes($meeting->meeting_title);
-        $desc  = addslashes($meeting->meeting_descr);
+        $desc = addslashes($meeting->meeting_descr);
 
         if (!empty($meeting->msteams_join_url)) {
             $desc .= "\\nJoin Teams: {$meeting->msteams_join_url}";
         }
 
-        return "BEGIN:VCALENDAR\r\n" .
-            "VERSION:2.0\r\n" .
-            "PRODID:-//Your Company//Meeting System//EN\r\n" .
-            "CALSCALE:GREGORIAN\r\n" .
-            "METHOD:{$method}\r\n" .
-            "BEGIN:VEVENT\r\n" .
-            "UID:{$uid}\r\n" .
-            "DTSTAMP:" . now()->utc()->format('Ymd\THis\Z') . "\r\n" .
-            "DTSTART:" . $start->format('Ymd\THis\Z') . "\r\n" .
-            "DTEND:" . $end->format('Ymd\THis\Z') . "\r\n" .
-            "SUMMARY:{$title}\r\n" .
-            "DESCRIPTION:{$desc}\r\n" .
-            "STATUS:{$status}\r\n" .
-            "SEQUENCE:0\r\n" .
-            "ORGANIZER;CN=Meeting System:MAILTO:no-reply@yourcompany.com\r\n" .
-            $attendees .
-            "END:VEVENT\r\n" .
-            "END:VCALENDAR";
+        return "BEGIN:VCALENDAR\r\n".
+            "VERSION:2.0\r\n".
+            "PRODID:-//Your Company//Meeting System//EN\r\n".
+            "CALSCALE:GREGORIAN\r\n".
+            "METHOD:{$method}\r\n".
+            "BEGIN:VEVENT\r\n".
+            "UID:{$uid}\r\n".
+            'DTSTAMP:'.now()->utc()->format('Ymd\THis\Z')."\r\n".
+            'DTSTART:'.$start->format('Ymd\THis\Z')."\r\n".
+            'DTEND:'.$end->format('Ymd\THis\Z')."\r\n".
+            "SUMMARY:{$title}\r\n".
+            "DESCRIPTION:{$desc}\r\n".
+            "STATUS:{$status}\r\n".
+            "SEQUENCE:0\r\n".
+            "ORGANIZER;CN=Meeting System:MAILTO:no-reply@yourcompany.com\r\n".
+            $attendees.
+            "END:VEVENT\r\n".
+            'END:VCALENDAR';
     }
 
     public function MeetingList()
@@ -1348,7 +1322,7 @@ class MeetingController extends Controller
         $baseQuery = DB::connection('pgsql5')
             ->table('tr_meeting as tm')
             ->leftJoin('ms_meeting_room as mr', 'tm.room_id', '=', 'mr.room_id');
-            // ->leftJoin('ms_meeting_accessories as ma', 'tm.acc_id', '=', 'ma.acc_id');
+        // ->leftJoin('ms_meeting_accessories as ma', 'tm.acc_id', '=', 'ma.acc_id');
 
         $totalData = (clone $baseQuery)->count('tm.id');
         $totalFiltered = $totalData;
@@ -1359,8 +1333,6 @@ class MeetingController extends Controller
         $order = $columns[$orderIndex] ?? 'tm.start_meeting_time';
         $dir = $request->input('order.0.dir', 'desc');
         $search = $request->input('search.value');
-
-
 
         $query = (clone $baseQuery)
              ->where('tm.status', '!=', 'X') // ✅ ADD HERE
@@ -1388,7 +1360,7 @@ class MeetingController extends Controller
         if ($request->start_date && $request->end_date) {
             $query->whereBetween('tm.start_meeting_time', [
                 $request->start_date,
-                $request->end_date
+                $request->end_date,
             ]);
         }
 
@@ -1423,8 +1395,8 @@ class MeetingController extends Controller
         $no = $start + 1;
 
         foreach ($meetings as $row) {
-            $start = \Carbon\Carbon::parse($row->start_meeting_time);
-            $end   = \Carbon\Carbon::parse($row->end_meeting_time);
+            $start = Carbon::parse($row->start_meeting_time);
+            $end = Carbon::parse($row->end_meeting_time);
 
             $duration = $start->diffInMinutes($end) / 60;
 
@@ -1436,7 +1408,7 @@ class MeetingController extends Controller
                 ->count();
 
             $accNames = collect(explode(',', (string) $row->acc_id))
-                ->map(fn($id) => $accMap[trim($id)] ?? null)
+                ->map(fn ($id) => $accMap[trim($id)] ?? null)
                 ->filter()
                 ->implode(', ');
 
@@ -1454,7 +1426,7 @@ class MeetingController extends Controller
                     : '-',
 
                 // 🔥 NEW FIELDS
-                'duration' => round($duration, 2) . ' hrs',
+                'duration' => round($duration, 2).' hrs',
                 'participant_total' => $participantCount,
                 'type_label' => $row->external_participant
                     ? '<span class="text-blue-600 font-medium">External</span>'
@@ -1547,7 +1519,7 @@ class MeetingController extends Controller
                     ->orWhereRaw("LOWER(COALESCE(tm.meeting_title, '')) LIKE ?", ["%{$search}%"])
                     ->orWhereRaw("LOWER(COALESCE(tm.meeting_descr, '')) LIKE ?", ["%{$search}%"])
                     ->orWhereRaw("LOWER(COALESCE(mr.room_name, '')) LIKE ?", ["%{$search}%"]);
-                    // ->orWhereRaw("LOWER(COALESCE(ma.acc_name, '')) LIKE ?", ["%{$search}%"]);
+                // ->orWhereRaw("LOWER(COALESCE(ma.acc_name, '')) LIKE ?", ["%{$search}%"]);
             });
 
             $totalFiltered = (clone $query)->count('tm.id');
@@ -1565,9 +1537,8 @@ class MeetingController extends Controller
         $no = $start + 1;
 
         foreach ($meetings as $row) {
-
             $accNames = collect(explode(',', (string) $row->acc_id))
-                ->map(fn($id) => $accMap[trim($id)] ?? null)
+                ->map(fn ($id) => $accMap[trim($id)] ?? null)
                 ->filter()
                 ->implode(', ');
             $data[] = [
@@ -1719,7 +1690,7 @@ class MeetingController extends Controller
         $meeting = TrMeeting::on('pgsql5')->find($id);
         abort_if(!$meeting, 404);
 
-       $authUser = auth()->user();
+        $authUser = auth()->user();
 
         $hasCSACCESS = SysUserRole::where('username', $authUser->username)
             ->where('role_id', 'CSACCESS')
@@ -1737,10 +1708,10 @@ class MeetingController extends Controller
         ];
 
         // 🔒 BLOCK BASED ON NAME
-         if (in_array($roomName, $restrictedRooms) && !$hasCSACCESS) {
+        if (in_array($roomName, $restrictedRooms) && !$hasCSACCESS) {
             return response()->json([
                 'success' => false,
-                'message' => 'We\'re sorry, this room is restricted'
+                'message' => 'We\'re sorry, this room is restricted',
             ], 403);
         }
 
@@ -1748,8 +1719,6 @@ class MeetingController extends Controller
         $oldEnd = $meeting->end_meeting_time;
         $oldRoom = $meeting->room_id;
         $oldAccId = $meeting->acc_id;
-
-
 
         try {
             $request->validate([
@@ -1837,7 +1806,6 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-
             // example: "+15 days"
             $maxBookingDate = now()
                 ->addDays((int) $bookingSetting->setting_value_string)
@@ -1852,7 +1820,6 @@ class MeetingController extends Controller
 
         // validate minimum
         if ($meetingDate->lt($minBookingDate)) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Booking for past dates is not allowed.',
@@ -1861,11 +1828,10 @@ class MeetingController extends Controller
 
         // validate maximum
         if ($meetingDate->gt($maxBookingDate)) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Booking cannot exceed '
-                    . $maxBookingDate->format('d M Y'),
+                    .$maxBookingDate->format('d M Y'),
             ], 422);
         }
 
@@ -2043,7 +2009,7 @@ class MeetingController extends Controller
             $companies = $request->external_company ?? [];
 
             $newExternalEmails = collect($emails)
-                ->map(fn($e) => strtolower(trim($e)))
+                ->map(fn ($e) => strtolower(trim($e)))
                 ->filter()
                 ->values()
                 ->toArray();
@@ -2054,18 +2020,18 @@ class MeetingController extends Controller
                 ->where('docid', $meeting->docid)
                 ->where('external_participant', true)
                 ->get()
-                ->keyBy(fn($row) => strtolower(trim($row->email_participant)));
+                ->keyBy(fn ($row) => strtolower(trim($row->email_participant)));
 
             foreach ($emails as $i => $email) {
-
                 $email = strtolower(trim($email));
-                if (!$email) continue;
+                if (!$email) {
+                    continue;
+                }
 
                 $name = $names[$i] ?? null;
                 $company = $companies[$i] ?? null;
 
                 if (!$existingExternal->has($email)) {
-
                     // ➕ INSERT
                     DB::connection('pgsql5')->table('tr_meeting_participant')->insert([
                         'docid' => $meeting->docid,
@@ -2077,9 +2043,7 @@ class MeetingController extends Controller
                         'created_by' => $username,
                         'created_at' => now(),
                     ]);
-
                 } else {
-
                     // 🔄 UPDATE
                     DB::connection('pgsql5')
                         ->table('tr_meeting_participant')
@@ -2108,21 +2072,18 @@ class MeetingController extends Controller
                 }
             }
 
-
             $scheduleOrRoomChanged =
                 (string) $oldStart !== (string) $meeting->start_meeting_time
                 || (string) $oldEnd !== (string) $meeting->end_meeting_time
                 || (string) $oldRoom !== (string) $meeting->room_id;
 
-                if (
-                    ($scheduleOrRoomChanged || $accessoryChanged)
-                    && !empty($meeting->acc_id)
-                ) {
-
+            if (
+                ($scheduleOrRoomChanged || $accessoryChanged)
+                && !empty($meeting->acc_id)
+            ) {
                 $accessoryChanged = (string) $oldAccId !== (string) $meeting->acc_id;
 
                 if ($accessoryChanged && $meeting->msteams_event_id) {
-
                     // 🔥 DELETE OLD
                     $this->deleteMicrosoftTeamsMeeting($meeting);
 
@@ -2132,9 +2093,7 @@ class MeetingController extends Controller
 
                     // 🔥 CREATE NEW
                     $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
-
                 } else {
-
                     if ($meeting->msteams_event_id) {
                         // 🔥 NORMAL UPDATE
                         $teamsResult = $this->updateMicrosoftTeamsMeeting($meeting);
@@ -2150,7 +2109,7 @@ class MeetingController extends Controller
                     $meeting->save();
                 }
             }
-                        DB::connection('pgsql5')->commit();
+            DB::connection('pgsql5')->commit();
             $this->sendMeetingEmail($meeting, 'update');
 
             return response()->json([
@@ -2232,15 +2191,12 @@ class MeetingController extends Controller
         abort_if(!$meeting, 404);
 
         try {
-
             $request->validate([
                 'title' => ['required', 'string', 'max:255'],
                 'descr' => ['required', 'string'],
                 'datetimes' => ['required', 'string'],
             ]);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -2283,7 +2239,6 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-
             // example: "+15 days"
             $maxBookingDate = now()
                 ->addDays((int) $bookingSetting->setting_value_string)
@@ -2298,7 +2253,6 @@ class MeetingController extends Controller
 
         // validate minimum
         if ($meetingDate->lt($minBookingDate)) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Booking for past dates is not allowed.',
@@ -2307,11 +2261,10 @@ class MeetingController extends Controller
 
         // validate maximum
         if ($meetingDate->gt($maxBookingDate)) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Booking cannot exceed '
-                    . $maxBookingDate->format('d M Y'),
+                    .$maxBookingDate->format('d M Y'),
             ], 422);
         }
 
@@ -2325,7 +2278,6 @@ class MeetingController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             // =========================
             // UPDATE LOCAL DB
             // =========================
@@ -2352,18 +2304,15 @@ class MeetingController extends Controller
             // =========================
 
             if (!empty($meeting->msteams_event_id)) {
-
                 $teamsResult =
                     $this->updateMicrosoftTeamsMeeting($meeting);
 
                 if (empty($teamsResult['success'])) {
-
                     DB::connection('pgsql5')->rollBack();
 
                     return response()->json([
                         'success' => false,
-                        'message' =>
-                            $teamsResult['message']
+                        'message' => $teamsResult['message']
                             ?? 'Failed updating Teams meeting',
                     ], 500);
                 }
@@ -2381,9 +2330,7 @@ class MeetingController extends Controller
                 'success' => true,
                 'message' => 'Teams meeting updated successfully',
             ]);
-
         } catch (\Throwable $e) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
@@ -2392,7 +2339,6 @@ class MeetingController extends Controller
             ], 500);
         }
     }
-
 
     protected function updateMicrosoftTeamsMeeting($meeting): array
     {
@@ -2419,11 +2365,11 @@ class MeetingController extends Controller
                     'content' => $meeting->meeting_descr,
                 ],
                 'start' => [
-                    'dateTime' => \Carbon\Carbon::parse($meeting->start_meeting_time, $tz)->format('Y-m-d\TH:i:s'),
+                    'dateTime' => Carbon::parse($meeting->start_meeting_time, $tz)->format('Y-m-d\TH:i:s'),
                     'timeZone' => $tz,
                 ],
                 'end' => [
-                    'dateTime' => \Carbon\Carbon::parse($meeting->end_meeting_time, $tz)->format('Y-m-d\TH:i:s'),
+                    'dateTime' => Carbon::parse($meeting->end_meeting_time, $tz)->format('Y-m-d\TH:i:s'),
                     'timeZone' => $tz,
                 ],
             ];
@@ -2434,16 +2380,15 @@ class MeetingController extends Controller
             if (!$response->successful()) {
                 return [
                     'success' => false,
-                    'message' => $response->body()
+                    'message' => $response->body(),
                 ];
             }
 
             return ['success' => true];
-
         } catch (\Throwable $e) {
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
@@ -2470,16 +2415,15 @@ class MeetingController extends Controller
             if (!$response->successful()) {
                 return [
                     'success' => false,
-                    'message' => $response->body()
+                    'message' => $response->body(),
                 ];
             }
 
             return ['success' => true];
-
         } catch (\Throwable $e) {
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
@@ -2541,7 +2485,6 @@ class MeetingController extends Controller
 
         $this->sendMeetingEmail($meeting, 'cancel');
 
-
         return response()->json([
             'success' => true,
             'message' => 'Meeting cancelled',
@@ -2571,15 +2514,11 @@ class MeetingController extends Controller
         }
 
         if ($meetingDate->gt($maxBookingDate)) {
-            throw new \Exception(
-                'Booking cannot exceed '.$maxBookingDate->format('d M Y')
-            );
+            throw new \Exception('Booking cannot exceed '.$maxBookingDate->format('d M Y'));
         }
 
         if ($endMeeting->lessThanOrEqualTo($startMeeting)) {
-            throw new \Exception(
-                'End time harus lebih besar dari start time.'
-            );
+            throw new \Exception('End time harus lebih besar dari start time.');
         }
     }
 
@@ -2680,7 +2619,9 @@ class MeetingController extends Controller
             ->filter()
             ->values();
 
-        if ($accIds->isEmpty()) return null;
+        if ($accIds->isEmpty()) {
+            return null;
+        }
 
         $accessory = MsMeetingAccessories::on('pgsql5')
             ->whereIn('acc_id', $accIds)
@@ -2689,7 +2630,6 @@ class MeetingController extends Controller
 
         return $accessory->userid_msteams ?? null;
     }
-
 
     protected function createMicrosoftTeamsMeeting(
         string $userId,
