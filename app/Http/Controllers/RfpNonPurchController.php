@@ -13,6 +13,7 @@ use App\Models\TrRfpNonPurch;
 use App\Models\TrRfpNonPurchDetail;
 use App\Models\SysUserRole;
 use App\Models\MsGroupbiayaNonPurch;
+use App\Models\BusinessUnit;
 use App\Models\TrPO;
 use App\Models\TrCS;
 use App\Models\TrSPPB;
@@ -828,36 +829,47 @@ class RfpNonPurchController extends Controller
         $rfpnonpurch = TrRfpNonPurch::findOrFail($id);
 
         $updatedBy = $user->username ?? $user->name;
+        $now = now();
 
         // Jika sudah receive, maka rollback
-        if (!empty($rfpnonpurch->user_receive) && !empty($rfpnonpurch->receive_date)) {
-            $rfpnonpurch->user_receive   = null;
-            $rfpnonpurch->receive_date   = null;
-            $rfpnonpurch->status_receive = 'P';
-            $rfpnonpurch->updated_by     = $updatedBy;
-            $rfpnonpurch->updated_at     = now();
+        if (!empty($rfpnonpurch->userreceive) && !empty($rfpnonpurch->receivedate)) {
+            $rfpnonpurch->userreceive = null;
+            $rfpnonpurch->receivedate = null;
+            $rfpnonpurch->statusreceive = 'P';
+            $rfpnonpurch->updated_by = $updatedBy;
+            $rfpnonpurch->updated_at = $now;
             $rfpnonpurch->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Receive rollback successfully.',
+                'data' => [
+                    'userreceive' => null,
+                    'receivedate' => null,
+                    'statusreceive' => 'P',
+                ],
             ]);
         }
 
         // Jika belum receive, maka update receive
-        $rfpnonpurch->user_receive   = $updatedBy;
-        $rfpnonpurch->receive_date   = now();
-        $rfpnonpurch->status_receive = 'C';
-        $rfpnonpurch->updated_by     = $updatedBy;
-        $rfpnonpurch->updated_at     = now();
+        $rfpnonpurch->userreceive = $updatedBy;
+        $rfpnonpurch->receivedate = $now;
+        $rfpnonpurch->statusreceive = 'C';
+        $rfpnonpurch->updated_by = $updatedBy;
+        $rfpnonpurch->updated_at = $now;
         $rfpnonpurch->save();
 
         return response()->json([
             'success' => true,
             'message' => 'Receive updated successfully.',
+            'data' => [
+                'userreceive' => $rfpnonpurch->userreceive,
+                'receivedate' => optional($rfpnonpurch->receivedate)->toDateTimeString(),
+                'statusreceive' => $rfpnonpurch->statusreceive,
+            ],
         ]);
     }
-    
+
     public function updateTreasury($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -875,221 +887,440 @@ class RfpNonPurchController extends Controller
 
         $rfpnonpurch = TrRfpNonPurch::findOrFail($id);
 
-        if ($rfpnonpurch->status_receive !== 'C' && empty($rfpnonpurch->user_payment) && empty($rfpnonpurch->payment_date)) {
+        $updatedBy = $user->username ?? $user->name;
+        $now = now();
+
+        // Treasury hanya boleh kalau Finance Receive sudah complete,
+        // kecuali sedang rollback treasury yang sudah pernah payment.
+        $hasTreasuryPayment = !empty($rfpnonpurch->userpayment) && !empty($rfpnonpurch->paymentdate);
+
+        if ($rfpnonpurch->statusreceive !== 'C' && !$hasTreasuryPayment) {
             return response()->json([
                 'success' => false,
                 'message' => 'Finance receive belum completed.'
             ], 422);
         }
 
-        $updatedBy = $user->username ?? $user->name;
-
-        if (!empty($rfpnonpurch->user_payment) && !empty($rfpnonpurch->payment_date)) {
-            $rfpnonpurch->user_payment   = null;
-            $rfpnonpurch->payment_date   = null;
-            $rfpnonpurch->status_payment = 'P';
-            $rfpnonpurch->updated_by     = $updatedBy;
-            $rfpnonpurch->updated_at     = now();
+        // Jika sudah payment, maka rollback
+        if ($hasTreasuryPayment) {
+            $rfpnonpurch->userpayment = null;
+            $rfpnonpurch->paymentdate = null;
+            $rfpnonpurch->statuspayment = 'P';
+            $rfpnonpurch->updated_by = $updatedBy;
+            $rfpnonpurch->updated_at = $now;
             $rfpnonpurch->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Treasury rollback successfully.',
+                'data' => [
+                    'userpayment' => null,
+                    'paymentdate' => null,
+                    'statuspayment' => 'P',
+                ],
             ]);
         }
 
-        $rfpnonpurch->user_payment   = $updatedBy;
-        $rfpnonpurch->payment_date   = now();
-        $rfpnonpurch->status_payment = 'C';
-        $rfpnonpurch->updated_by     = $updatedBy;
-        $rfpnonpurch->updated_at     = now();
+        // Jika belum payment, maka update treasury
+        $rfpnonpurch->userpayment = $updatedBy;
+        $rfpnonpurch->paymentdate = $now;
+        $rfpnonpurch->statuspayment = 'C';
+        $rfpnonpurch->updated_by = $updatedBy;
+        $rfpnonpurch->updated_at = $now;
         $rfpnonpurch->save();
 
         return response()->json([
             'success' => true,
             'message' => 'Treasury updated successfully.',
+            'data' => [
+                'userpayment' => $rfpnonpurch->userpayment,
+                'paymentdate' => optional($rfpnonpurch->paymentdate)->toDateTimeString(),
+                'statuspayment' => $rfpnonpurch->statuspayment,
+            ],
         ]);
     }
     public function approveRfpNonPurch(Request $request, $docid)
     {
         $user = $request->user();
-        $doctype = 'RFP';
 
-        $rfpnonpurch = TrRfpNonPurch::with('creator')->where('rfpnonpurch_id', $docid)->first();
-        if (!$rfpnonpurch) {
-            return response()->json(['success' => false, 'message' => 'RFP not found'], 404);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated',
+            ], 401);
         }
 
+        $rfpnonpurch = TrRfpNonPurch::with('creator')
+            ->where('rfpnonpurchaseid', $docid)
+            ->first();
+
+        if (!$rfpnonpurch) {
+            return response()->json([
+                'success' => false,
+                'message' => 'RFP/RCA Non Purchase not found',
+            ], 404);
+        }
+
+        $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
+
+        if (!in_array($doctype, ['RFP', 'RCA'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid document type',
+            ], 422);
+        }
+
+        $docName = $doctype . ' Non Purchase';
+
         $eid = Hashids::encode($rfpnonpurch->id);
-        $docUrl = url('/showrfpnonpurch/'.$eid);
-        $fullname = data_get($rfpnonpurch, 'creator.name') ?: $rfpnonpurch->created_by;
+        $docUrl = url('/showrfpnonpurch/' . $eid);
+
+        $fullname = optional($rfpnonpurch->creator)->name
+            ?: $rfpnonpurch->created_by;
 
         $result = app(ApprovalController::class)->approveStep(
-            $rfpnonpurch->rfpnonpurch_id,
+            $rfpnonpurch->rfpnonpurchaseid,
             $doctype,
             $user->username,
             $user->name,
 
-            // complete: update header/detail + email creator complete
-            function (string $refnbr, \Carbon\Carbon $now) use ($rfpnonpurch, $fullname, $docUrl) {
-                $rfpnonpurch->status = 'C';               
-                $rfpnonpurch->completed_by = $rfpnonpurch->completed_by ?: auth()->user()->username;
+            // ====================================
+            // FINAL APPROVAL
+            // ====================================
+            function (string $refnbr, \Carbon\Carbon $now) use (
+                $rfpnonpurch,
+                $doctype,
+                $docName,
+                $fullname,
+                $docUrl,
+                $user
+            ) {
+                $rfpnonpurch->statusreceive = 'P';
+                $rfpnonpurch->statuspayment = 'P';
+                $rfpnonpurch->status = 'C';
+                $rfpnonpurch->completed_by = $rfpnonpurch->completed_by ?: $user->username;
                 $rfpnonpurch->completed_at = $now;
+                $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
+                // =========================
+                // EMAIL TO REQUESTER
+                // =========================
                 app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $rfpnonpurch->rfpnonpurch_id,
-                    'RFP',
+                    $rfpnonpurch->rfpnonpurchaseid,
+                    $doctype,
                     'C',
                     $rfpnonpurch->created_by,
                     $docUrl,
                     [
-                        'cpnyid' => $rfpnonpurch->cpny_id ?? $rfpnonpurch->cpnyid ?? '',
-                        'deptname' => $rfpnonpurch->department_id ?? $rfpnonpurch->departementid ?? '',
-                        'date' => $rfpnonpurch->rfpnonpurch_date,
-                        'info' => $rfpnonpurch->keperluan,
-                        'fullname' => $fullname,
-                        'name' => $fullname,
+                        'cpnyid'    => $rfpnonpurch->cpny_id ?? '',
+                        'deptname'  => $rfpnonpurch->department_id ?? '',
+                        'date'      => $now->toDateTimeString(),
+                        'info'      => $rfpnonpurch->keperluan ?? '',
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
                         'createdby' => $fullname,
+                        'docname'   => $docName,
                     ]
                 );
             },
 
-            // notify next approver
-            function ($next, \Carbon\Carbon $now) use ($rfpnonpurch, $docUrl) {
-                app(ApprovalController::class)->notifyFirstApprover(
-                    $rfpnonpurch->rfpnonpurch_id,
-                    'RFP',
-                    'P',
-                    'RFP',
-                    $docUrl,
-                    [
-                        'info' => $rfpnonpurch->keperluan,
-                        'createdby' => $rfpnonpurch->created_by,
-                        'date' => $now->toDateTimeString(),
-                    ]
+            // ====================================
+            // NEXT APPROVER
+            // ====================================
+            function ($next, \Carbon\Carbon $now) use (
+                $rfpnonpurch,
+                $doctype,
+                $docName,
+                $docUrl,
+                $user
+            ) {
+
+                // =========================
+                // APPROVER EMAIL
+                // =========================
+                $usernames = str_replace(';', ',', (string) $next->aprv_username);
+
+                $approvers = array_filter(
+                    array_map('trim', explode(',', $usernames))
                 );
 
-                // jejak terakhir diproses (optional)
-                $rfpnonpurch->completed_by = auth()->user()->username;
+                $approverEmails = User::query()
+                    ->whereIn('username', $approvers)
+                    ->where('status', 'A')
+                    ->pluck('notification_email')
+                    ->filter()
+                    ->toArray();
+
+                // =========================
+                // KEPADA
+                // =========================
+                $kepadaUsers = explode(',', (string) $rfpnonpurch->imnonpurchase_kepada);
+
+                $kepadaEmails = User::query()
+                    ->whereIn('username', $kepadaUsers)
+                    ->pluck('notification_email')
+                    ->filter()
+                    ->toArray();
+
+                // =========================
+                // TEMBUSAN
+                // =========================
+                $tembusanUsers = explode(',', (string) $rfpnonpurch->imnonpurchase_tembusan);
+
+                $ccEmails = User::query()
+                    ->whereIn('username', $tembusanUsers)
+                    ->pluck('notification_email')
+                    ->filter()
+                    ->toArray();
+
+                // =========================
+                // MERGE EMAIL
+                // =========================
+                $toEmails = array_unique(array_merge(
+                    $approverEmails,
+                    $kepadaEmails
+                ));
+
+                // =========================
+                // SEND EMAIL
+                // =========================
+                if (!empty($toEmails)) {
+
+                    $mailData = [
+                        'docid'     => $rfpnonpurch->rfpnonpurchaseid,
+                        'cpnyid'    => $rfpnonpurch->cpny_id,
+                        'deptname'  => $rfpnonpurch->department_id,
+                        'date'      => $now->toDateTimeString(),
+                        'name'      => $rfpnonpurch->created_by,
+                        'status'    => 'P',
+                        'docname'   => $docName,
+                        'url'       => $docUrl,
+                        'info'      => $rfpnonpurch->keperluan,
+                        'createdby' => $rfpnonpurch->created_by,
+                    ];
+
+                    Mail::send(
+                        'emails.mailapprovenew',
+                        $mailData,
+                        function ($message) use (
+                            $toEmails,
+                            $ccEmails,
+                            $rfpnonpurch,
+                            $docName
+                        ) {
+
+                            $message->to($toEmails);
+
+                            if (!empty($ccEmails)) {
+                                $message->cc($ccEmails);
+                            }
+
+                            $message->subject(
+                                $rfpnonpurch->rfpnonpurchaseid .
+                                ' - WaitingApproval ' .
+                                $docName
+                            )->from(
+                                config('mail.from.address'),
+                                config('app.name')
+                            );
+                        }
+                    );
+                }
+
+                // =========================
+                // TRACK LAST PROCESS
+                // =========================
+                $rfpnonpurch->completed_by = $user->username;
                 $rfpnonpurch->completed_at = $now;
+                $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
             }
         );
 
         if (!$result['ok']) {
-            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Approve failed'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Approve failed',
+            ], 403);
         }
 
-        return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+        return response()->json([
+            'success' => true,
+            'message' => $docName . ' approved successfully',
+        ]);
     }
 
     public function rejectRfpNonPurch(Request $request, $docid)
     {
         $user = $request->user();
-        $doctype = 'RFP';
 
-        $rfpnonpurch = TrRfpNonPurch::with('creator')->where('rfpnonpurch_id', $docid)->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated',
+            ], 401);
+        }
+
+        $rfpnonpurch = TrRfpNonPurch::with('creator')
+            ->where('rfpnonpurchaseid', $docid)
+            ->first();
+
         if (!$rfpnonpurch) {
-            return response()->json(['success' => false, 'message' => 'RFP not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'RFP/RCA Non Purchase not found',
+            ], 404);
+        }
+
+        $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
+
+        if (!in_array($doctype, ['RFP', 'RCA'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid document type',
+            ], 422);
         }
 
         $eid = Hashids::encode($rfpnonpurch->id);
-        $docUrl = url('/showrfpnonpurch/'.$eid);
-        $fullname = data_get($rfpnonpurch, 'creator.name') ?: $rfpnonpurch->created_by;
+        $docUrl = url('/showrfpnonpurch/' . $eid);
+
+        $fullname = optional($rfpnonpurch->creator)->name
+            ?: $rfpnonpurch->created_by;
 
         $result = app(ApprovalController::class)->rejectStep(
-            $rfpnonpurch->rfpnonpurch_id,
+            $rfpnonpurch->rfpnonpurchaseid,
             $doctype,
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($rfpnonpurch, $fullname, $docUrl) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($rfpnonpurch, $doctype, $fullname, $docUrl, $request, $user) {
                 $rfpnonpurch->status = 'R';
-                $rfpnonpurch->completed_by = auth()->user()->username;
+                $rfpnonpurch->completed_by = $user->username;
                 $rfpnonpurch->completed_at = $now;
+                $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $rfpnonpurch->rfpnonpurch_id,
-                    'RFP',
+                    $rfpnonpurch->rfpnonpurchaseid,
+                    $doctype,
                     'R',
                     $rfpnonpurch->created_by,
                     $docUrl,
                     [
-                        'cpnyid' => $rfpnonpurch->cpny_id ?? $rfpnonpurch->cpnyid ?? '',
-                        'deptname' => $rfpnonpurch->department_id ?? $rfpnonpurch->departementid ?? '',
-                        'date' => $now->toDateString(),
-                        'info' => $rfpnonpurch->keperluan,
-                        'fullname' => $fullname,
-                        'name' => $fullname,
+                        'cpnyid'    => $rfpnonpurch->cpny_id ?? '',
+                        'deptname'  => $rfpnonpurch->department_id ?? '',
+                        'date'      => $now->toDateTimeString(),
+                        'info'      => $rfpnonpurch->keperluan ?? '',
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
                         'createdby' => $fullname,
+                        'docname'   => $doctype . ' Non Purchase',
                     ]
                 );
 
-                // simpan komentar (jika ada)
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($rfpnonpurch->id, 'RFP', request());
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($rfpnonpurch->id, $doctype, $request);
                 } catch (\Throwable $e) {
+                    \Log::warning('Failed to save reject comment RFP Non Purchase', [
+                        'docid' => $rfpnonpurch->rfpnonpurchaseid,
+                        'doctype' => $doctype,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
         );
 
         if (!$result['ok']) {
-            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Reject failed'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Reject failed',
+            ], 403);
         }
 
-        return response()->json(['success' => true, 'message' => 'RFP rejected successfully']);
+        return response()->json([
+            'success' => true,
+            'message' => $doctype . ' Non Purchase rejected successfully',
+        ]);
     }
-
     public function reviseRfpNonPurch(Request $request, $docid)
     {
         $user = $request->user();
-        $doctype = 'RFP';
 
-        $rfpnonpurch = TrRfpNonPurch::with('creator')->where('rfpnonpurch_id', $docid)->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated',
+            ], 401);
+        }
+
+        $rfpnonpurch = TrRfpNonPurch::with('creator')
+            ->where('rfpnonpurchaseid', $docid)
+            ->first();
+
         if (!$rfpnonpurch) {
-            return response()->json(['success' => false, 'message' => 'RFP not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'RFP/RCA Non Purchase not found',
+            ], 404);
+        }
+
+        $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
+
+        if (!in_array($doctype, ['RFP', 'RCA'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid document type',
+            ], 422);
         }
 
         $eid = Hashids::encode($rfpnonpurch->id);
-        $docUrl = url('/showrfpnonpurch/'.$eid);
-        $fullname = data_get($rfpnonpurch, 'creator.name') ?: $rfpnonpurch->created_by;
+        $docUrl = url('/showrfpnonpurch/' . $eid);
+
+        $fullname = optional($rfpnonpurch->creator)->name
+            ?: $rfpnonpurch->created_by;
 
         $result = app(ApprovalController::class)->reviseStep(
-            $rfpnonpurch->rfpnonpurch_id,            // refnbr
-            $doctype,                 // PT
-            $user->username,          // actor
-            $user->name,              // actor
-            function (string $refnbr, \Carbon\Carbon $now) use ($rfpnonpurch, $fullname, $docUrl) {
-                // === HEADER RFP -> D ===
+            $rfpnonpurch->rfpnonpurchaseid,
+            $doctype,
+            $user->username,
+            $user->name,
+
+            function (string $refnbr, \Carbon\Carbon $now) use ($rfpnonpurch, $doctype, $fullname, $docUrl, $request, $user) {
                 $rfpnonpurch->status = 'D';
-                $rfpnonpurch->completed_by = auth()->user()->username;
+                $rfpnonpurch->completed_by = $user->username;
                 $rfpnonpurch->completed_at = $now;
+                $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
-                // === Email ke requester ===
                 app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $rfpnonpurch->rfpnonpurch_id,
-                    'RFP',
+                    $rfpnonpurch->rfpnonpurchaseid,
+                    $doctype,
                     'D',
                     $rfpnonpurch->created_by,
                     $docUrl,
                     [
-                        'cpnyid' => $rfpnonpurch->cpny_id ?? $rfpnonpurch->cpnyid ?? '',
-                        'deptname' => $rfpnonpurch->department_id ?? $rfpnonpurch->departementid ?? '',
-                        'date' => $now->toDateString(),
-                        'info' => $rfpnonpurch->keperluan,
-                        'fullname' => $fullname,
-                        'name' => $fullname,
-                        'createdby' => $fullname,   // <<< tambahkan ini
+                        'cpnyid'    => $rfpnonpurch->cpny_id ?? '',
+                        'deptname'  => $rfpnonpurch->department_id ?? '',
+                        'date'      => $now->toDateTimeString(),
+                        'info'      => $rfpnonpurch->keperluan ?? '',
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
+                        'createdby' => $fullname,
+                        'docname'   => $doctype . ' Non Purchase',
                     ]
                 );
 
-                // === Simpan komentar (jika ada) ===
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($rfpnonpurch->id, 'RFP', request());
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($rfpnonpurch->id, $doctype, $request);
                 } catch (\Throwable $e) {
+                    \Log::warning('Failed to save revise comment RFP Non Purchase', [
+                        'docid' => $rfpnonpurch->rfpnonpurchaseid,
+                        'doctype' => $doctype,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
         );
@@ -1101,9 +1332,550 @@ class RfpNonPurchController extends Controller
             ], 403);
         }
 
-        return response()->json(['success' => true, 'message' => 'RFP revised successfully']);
+        return response()->json([
+            'success' => true,
+            'message' => $doctype . ' Non Purchase revised successfully',
+        ]);
     }
-   
+
+    public function editRfpNonPurch($hash)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        // =========================
+        // HEADER
+        // =========================
+        $rfpnonpurch = TrRfpNonPurch::with([
+            'creator:username,name',
+            'groupbiaya:groupbiaya_id,groupbiayadescr'
+        ])->findOrFail($id);
+
+        // =========================
+        // DETAIL
+        // =========================
+        $rfpnonpurchasedetail = TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $rfpnonpurch->rfpnonpurchaseid)
+            ->orderBy('id')
+            ->get();
+
+        // =========================
+        // BUSINESS UNIT (ambil dari detail)
+        // =========================
+        $detailBuIds = $rfpnonpurchasedetail
+            ->pluck('budget_business_unit_id')
+            ->filter(fn($v) => filled($v))
+            ->unique()
+            ->values();
+
+        $selectedBuId = $detailBuIds->first();
+
+        $selectedBuName = null;
+
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $selectedBuName = $bu->business_unit_name ?? null;
+        }
+
+        // inject temporary property ke object header
+        $rfpnonpurch->business_unit_id = $selectedBuId;
+        $rfpnonpurch->business_unit_name = $selectedBuName;
+
+        // =========================
+        // USER DATA
+        // =========================
+        $usercpny = Usercpny::query()
+            ->where('username', $user->username)
+            ->orderBy('cpny_id')
+            ->get();
+
+        $usercpny2 = Usercpny::query()
+            ->where('username', $user->username)
+            ->first();
+
+        $userdept = Userdept::query()
+            ->where('username', $user->username)
+            ->orderBy('department_id')
+            ->get();
+
+        $userdept2 = Userdept::query()
+            ->where('username', $user->username)
+            ->first();
+
+        // =========================
+        // GROUP BIAYA
+        // =========================
+        $groupbiaya = MsGroupbiayaNonPurch::query()
+            ->where('status', 'A')
+            ->orderBy('groupbiayadescr')
+            ->get();
+
+        // =========================
+        // USER KEPADA / TEMBUSAN
+        // =========================
+        $kepada = User::query()
+            ->where('status', 'A')
+            ->orderBy('name')
+            ->get();
+
+        $tembusan = User::query()
+            ->where('status', 'A')
+            ->orderBy('name')
+            ->get();
+
+        // =========================
+        // ATTACHMENT (GCS SIGNED URL)
+        // =========================
+        $rows = TrAttachment::query()
+            ->where('refnbr', $rfpnonpurch->rfpnonpurchaseid)
+            ->where('status', 'A')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $config = config('filesystems.disks.gcs');
+
+        $keyFilePath = $config['key_file'];
+
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId' => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+
+            $objectPath = rtrim($r->folder, '/') . '/' . $r->filename;
+
+            $object = $bucket->object($objectPath);
+
+            $signedUrl = null;
+
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+
+                \Log::warning('Signed URL gagal', [
+                    'path'  => $objectPath,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            return (object) [
+                'id'           => $r->id,
+                'display_name' => $r->attachment_name ?: $r->filename,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        return view('pages.rfpnonpurch.editrfpnonpurch', compact(
+            'rfpnonpurch',
+            'rfpnonpurchasedetail',
+            'usercpny',
+            'usercpny2',
+            'userdept',
+            'userdept2',
+            'groupbiaya',
+            'kepada',
+            'tembusan',
+            'attachments',
+            'hash'
+        ));
+    }
+
+    public function updateRfpNonPurch(Request $request, $hash)
+    {
+        $user = $request->user();
+        $username = $user->username ?? 'system';
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $header = TrRfpNonPurch::findOrFail($id);
+
+        $dt = now();
+        $year = $dt->year;
+
+        $doctype = strtoupper($request->rfpnonpurchase_type ?? '');
+
+        if (!in_array($doctype, ['RFP', 'RCA'])) {
+            return response()->json([
+                'message' => 'Type Payment tidak valid. Pilih RFP atau RCA.',
+            ], 422);
+        }
+
+        $docName = $doctype === 'RCA'
+            ? 'RCA Non Purchase'
+            : 'RFP Non Purchase';
+
+        $toFloat = function ($v): float {
+            if ($v === null || $v === '') return 0;
+
+            $s = trim((string) $v);
+            $s = preg_replace('/\s+/', '', $s);
+
+            $hasComma = str_contains($s, ',');
+            $hasDot = str_contains($s, '.');
+
+            if ($hasComma && $hasDot) {
+                $lastComma = strrpos($s, ',');
+                $lastDot = strrpos($s, '.');
+
+                if ($lastComma > $lastDot) {
+                    $s = str_replace('.', '', $s);
+                    $s = str_replace(',', '.', $s);
+                } else {
+                    $s = str_replace(',', '', $s);
+                }
+            } elseif ($hasComma) {
+                $s = str_replace(',', '.', $s);
+            } elseif ($hasDot && substr_count($s, '.') > 1) {
+                $s = str_replace('.', '', $s);
+            }
+
+            return is_numeric($s) ? (float) $s : 0;
+        };
+
+        $approvalCtl = app(ApprovalController::class);
+
+        DB::beginTransaction();
+
+        try {
+            $docid = $header->rfpnonpurchaseid;
+
+            // =========================
+            // UPDATE HEADER
+            // =========================
+            $header->cpny_id = $request->cpnyid;
+            $header->department_id = $request->departementid;
+            $header->rfpnonpurchase_type = $doctype;
+            $header->groupbiaya_id = $request->groupbiaya_id;
+            $header->datediperlukan = $request->datediperlukan;
+            $header->datepenyelesaian = $doctype === 'RCA'
+                ? $request->datepenyelesaian
+                : null;
+
+            $header->pleasepayto = $request->pleasepayto;
+            $header->keperluan = $request->keperluan;
+
+            $kepada = $request->input('rfpnonpurchase_kepada', []);
+            $tembusan = $request->input('rfpnonpurchase_tembusan', []);
+
+            $header->imnonpurchase_kepada = is_array($kepada)
+                ? implode(',', array_filter($kepada))
+                : $kepada;
+
+            $header->imnonpurchase_tembusan = is_array($tembusan)
+                ? implode(',', array_filter($tembusan))
+                : $tembusan;
+
+            $header->amountrequestpayment = $doctype === 'RCA'
+                ? $toFloat($request->amountrequestpayment)
+                : 0;
+
+            // setelah revise/draft submit ulang jadi P
+            $header->status = 'P';
+            $header->completed_by = null;
+            $header->completed_at = null;
+            $header->updated_by = $username;
+            $header->updated_at = $dt;
+            $header->save();
+
+            // =========================
+            // DELETE DETAIL LAMA
+            // =========================
+            TrRfpNonPurchDetail::query()
+                ->where('rfpnonpurchaseid', $docid)
+                ->delete();
+
+            // =========================
+            // INSERT DETAIL BARU ONLY RFP
+            // =========================
+            $totalAmountRequest = 0;
+
+            if ($doctype === 'RFP') {
+                $descs = $request->rfpnonpurchase_descr ?? [];
+                $prices = $request->price ?? [];
+
+                $coaIds = $request->coa_id ?? [];
+                $activityIds = $request->activity_id ?? [];
+                $busUnitIds = $request->business_unit_id_detail ?? [];
+                $deptFinIds = $request->department_fin_id ?? [];
+                $actDescrs = $request->activity_descr ?? [];
+
+                $rowCount = count($descs);
+
+                for ($i = 0; $i < $rowCount; $i++) {
+                    $desc = trim($descs[$i] ?? '');
+                    $amount = $toFloat($prices[$i] ?? 0);
+
+                    if (!$desc || $amount <= 0) {
+                        continue;
+                    }
+
+                    $totalAmountRequest += $amount;
+
+                    TrRfpNonPurchDetail::create([
+                        'rfpnonpurchaseid' => $docid,
+                        'keperluan_detail' => $desc,
+                        'amount_request' => $amount,
+
+                        'budget_perpost' => $year,
+                        'budget_cpny_id' => $request->cpnyid,
+                        'budget_business_unit_id' => $busUnitIds[$i] ?? null,
+                        'budget_department_fin_id' => $deptFinIds[$i] ?? null,
+                        'budget_account_id' => $coaIds[$i] ?? null,
+                        'budget_activity_id' => $activityIds[$i] ?? null,
+                        'budget_activity_descr' => $actDescrs[$i] ?? null,
+
+                        'status' => 'P',
+                        'created_by' => $username,
+                    ]);
+                }
+
+                $header->amountrequestpayment = $totalAmountRequest;
+                $header->save();
+            }
+
+            if ($doctype === 'RCA') {
+                $header->amountrequestpayment = $toFloat($request->amountrequestpayment);
+                $header->save();
+            }
+
+            // =========================
+            // RESET APPROVAL LAMA
+            // =========================
+            // TrApproval::query()
+            //     ->where('refnbr', $docid)
+            //     ->delete();
+
+            // =========================
+            // APPROVAL BARU
+            // =========================
+            $approvalCtl->loadLines(
+                $doctype,
+                $request->cpnyid,
+                $request->departementid
+            );
+
+            $ctx = [
+                'ignore_nominal' => false,
+                'grand_total' => (float) $header->amountrequestpayment,
+            ];
+
+            [$firstApprovalUsernames] = $approvalCtl->generateForDocument(
+                $docid,
+                $doctype,
+                $request->cpnyid,
+                $request->departementid,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            // =========================
+            // APPROVAL GROUP BIAYA
+            // ADD / DEL approval berdasarkan groupbiaya_id
+            // =========================
+            $groupApprovalRules = MsApprovalGroupBiaya::query()
+                ->where('aprv_doctype', $doctype)
+                ->where('aprv_cpnyid', $request->cpnyid)
+                ->where('aprv_departementid', $request->departementid)
+                ->where('aprv_groupbiaya', $request->groupbiaya_id)
+                ->where('status', 'A')
+                ->get();
+
+            foreach ($groupApprovalRules as $rule) {
+                $condition = strtoupper(trim($rule->aprv_typecondition ?? ''));
+
+                if ($condition === 'DEL') {
+                    TrApproval::query()
+                        ->where('refnbr', $docid)
+                        ->where('aprv_doctype', $doctype)
+                        ->where('aprv_cpnyid', $request->cpnyid)
+                        ->where('aprv_departementid', $request->departementid)
+                        ->where('aprv_leveling', $rule->aprv_leveling)
+                        ->where('status', 'P')
+                        ->delete();
+                }
+
+                if ($condition === 'ADD') {
+                    $exists = TrApproval::query()
+                        ->where('refnbr', $docid)
+                        ->where('aprv_doctype', $doctype)
+                        ->where('aprv_cpnyid', $request->cpnyid)
+                        ->where('aprv_departementid', $request->departementid)
+                        ->where('aprv_leveling', $rule->aprv_leveling)
+                        ->exists();
+
+                    if (!$exists) {
+                        TrApproval::create([
+                            'refnbr' => $docid,
+                            'aprv_leveling' => $rule->aprv_leveling,
+                            'aprv_doctype' => $doctype,
+                            'aprv_cpnyid' => $request->cpnyid,
+                            'aprv_departementid' => $request->departementid,
+                            'aprv_username' => $rule->aprv_username,
+                            'aprv_name' => $rule->aprv_name,
+                            'aprv_datebefore' => $dt,
+                            'aprv_type' => 'Normal',
+                            'status' => 'P',
+                            'created_by' => $username,
+                        ]);
+                    }
+                }
+            }
+
+            // =========================
+            // UPDATE FIRST PENDING KE HEADER
+            // =========================
+            $firstPendingAfterGroup = TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->orderByRaw('CAST(aprv_leveling AS DECIMAL(10,2)) ASC')
+                ->first();
+
+            if ($firstPendingAfterGroup) {
+                $header->completed_by = $firstPendingAfterGroup->aprv_username;
+                $header->completed_at = $dt;
+                $header->save();
+            }
+
+            // =========================
+            // ATTACHMENT
+            // =========================
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr' => $docid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $request->cpnyid,
+                    'departementid' => $request->departementid,
+                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'created_by' => $username,
+                ];
+
+                try {
+                    app(TrAttachmentController::class)
+                        ->uploadInternal($meta, (array) $request->file('attachments'));
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => 'Failed upload attachment',
+                        'error' => $e->getMessage(),
+                    ], 500);
+                }
+            }
+
+            // =========================
+            // EMAIL NOTIFICATION CUSTOM
+            // =========================
+            $firstPending = TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->orderByRaw('CAST(aprv_leveling AS DECIMAL(10,2)) ASC')
+                ->first();
+
+            if ($firstPending) {
+                $usernames = str_replace(';', ',', (string) $firstPending->aprv_username);
+                $approvers = array_filter(array_map('trim', explode(',', $usernames)));
+
+                $approverEmails = User::query()
+                    ->whereIn('username', $approvers)
+                    ->where('status', 'A')
+                    ->pluck('notification_email')
+                    ->filter()
+                    ->toArray();
+
+                $kepadaUsers = array_filter(array_map('trim', explode(',', (string) $header->imnonpurchase_kepada)));
+
+                $kepadaEmails = User::query()
+                    ->whereIn('username', $kepadaUsers)
+                    ->pluck('notification_email')
+                    ->filter()
+                    ->toArray();
+
+                $tembusanUsers = array_filter(array_map('trim', explode(',', (string) $header->imnonpurchase_tembusan)));
+
+                $ccEmails = User::query()
+                    ->whereIn('username', $tembusanUsers)
+                    ->pluck('notification_email')
+                    ->filter()
+                    ->toArray();
+
+                $toEmails = array_unique(array_merge($approverEmails, $kepadaEmails));
+
+                $eid = Hashids::encode($header->id);
+
+                $mailData = [
+                    'docid' => $docid,
+                    'cpnyid' => $header->cpny_id,
+                    'deptname' => $header->department_id,
+                    'date' => $dt->toDateTimeString(),
+                    'name' => $username,
+                    'status' => $header->status,
+                    'docname' => $docName,
+                    'url' => url('/showrfpnonpurch/' . $eid),
+                    'info' => $header->keperluan,
+                    'createdby' => $username,
+                ];
+
+                if (!empty($toEmails)) {
+                    Mail::send('emails.mailapprovenew', $mailData, function ($message) use ($toEmails, $ccEmails, $docid, $docName) {
+                        $message->to($toEmails);
+
+                        if (!empty($ccEmails)) {
+                            $message->cc($ccEmails);
+                        }
+
+                        $message->subject($docid . ' - WaitingApproval ' . $docName)
+                            ->from(config('mail.from.address'), config('app.name'));
+                    });
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $docName . ' updated and resubmitted successfully',
+                'docid' => $docid,
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'message' => 'Failed to update ' . $docName,
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+    
    
     public function printPdfRfpNonPurch($hash)
     {
@@ -1119,7 +1891,7 @@ class RfpNonPurchController extends Controller
         // =========================
         // APPROVAL
         // =========================
-        $approval = TrApproval::where('refnbr', $rfpnonpurch->rfpnonpurch_id)
+        $approval = TrApproval::where('refnbr', $rfpnonpurch->rfpnonpurchaseid)
             ->where('status', '<>', 'X')
             ->orderBy('aprv_leveling')
             ->get();
@@ -1177,7 +1949,7 @@ class RfpNonPurchController extends Controller
 
         $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->stream("RFP_{$rfpnonpurch->rfpnonpurch_id}.pdf");
+        return $pdf->stream("RFP_{$rfpnonpurch->rfpnonpurchaseid}.pdf");
     }
 
     private function terbilang($angka)

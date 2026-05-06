@@ -1413,6 +1413,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/rfpnonpurch/{id}/revise', [RfpNonPurchController::class, 'reviseRfpNonPurch']);
     Route::get('/createrfpnonpurch', [RfpNonPurchController::class, 'createRfpNonPurch']);
     Route::post('/rfpnonpurch', [RfpNonPurchController::class, 'storeRfpNonPurch'])->name('rfpnonpurch.store');
+    Route::get('/editrfpnonpurch/{hash}', [RfpNonPurchController::class, 'editRfpNonPurch']);
+    Route::put('/updaterfpnonpurch/{hash}', [RfpNonPurchController::class, 'updateRfpNonPurch'])->name('rfpnonpurch.update');
 
     // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');

@@ -119,9 +119,9 @@
                                 $fields[] = ['label' => 'Payment Type', 'value' => $rfpnonpurch->paymenttype];
                             }
 
-                            if (!empty($rfpnonpurch->amountpayment)) {
-                                $fields[] = ['label' => 'Amount Payment', 'value' => $amountPayment];
-                            }
+                            // if (!empty($rfpnonpurch->amountpayment)) {
+                            //     $fields[] = ['label' => 'Amount Payment', 'value' => $amountPayment];
+                            // }
                         @endphp
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">

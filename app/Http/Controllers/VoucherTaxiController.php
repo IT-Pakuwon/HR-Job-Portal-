@@ -850,7 +850,7 @@ class VoucherTaxiController extends Controller
     public function rejectVoucherTaxi(Request $request, $docid)
     {
         $request->validate([
-            'comment' => ['required', 'string'],
+            'reason' => ['required', 'string'],
         ]);
 
         $user = $request->user();
@@ -877,7 +877,7 @@ class VoucherTaxiController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl,$doctype, $request) {
                 $voucher->status = 'R';
                 $voucher->completed_by = auth()->user()->username;
                 $voucher->completed_at = $now;
@@ -902,26 +902,17 @@ class VoucherTaxiController extends Controller
                     ]
                 );
 
+                // === Simpan reason ===
                 try {
-
-                    request()->merge([
-                        'reason' => request('comment'),
-                        'docid' => $voucher->docid,
-                        'status' => 'R',
-                    ]);
-
-                    app(SendCommentController::class)
-                        ->sendmsg(
-                            $voucher->docid,
-                            'VCR',
-                            request()
-                        );
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($voucher->id, $doctype, $request);
                 } catch (\Throwable $e) {
-                    \Log::warning('Send reject comment Voucher Taxi failed', [
+                    \Log::warning('Failed to save reject reason Voucher Taxi', [
                         'docid' => $voucher->docid,
+                        'doctype' => $doctype,
                         'error' => $e->getMessage(),
                     ]);
-                }
+                }          
             }
         );
 
@@ -941,7 +932,7 @@ class VoucherTaxiController extends Controller
     public function reviseVoucherTaxi(Request $request, $docid)
     {
         $request->validate([
-            'comment' => ['required', 'string'],
+            'reason' => ['required', 'string'],
         ]);
 
         $user = $request->user();
@@ -968,7 +959,7 @@ class VoucherTaxiController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($voucher, $fullname, $docUrl,$doctype, $request) {
                 // === HEADER -> D (Revise) ===
                 $voucher->status = 'D';
                 $voucher->completed_by = auth()->user()->username;
@@ -995,27 +986,17 @@ class VoucherTaxiController extends Controller
                     ]
                 );
 
-                // === Simpan komentar ===
-               try {
-
-                    request()->merge([
-                        'reason' => request('comment'),
-                        'docid' => $voucher->docid,
-                        'status' => 'D',
-                    ]);
-
-                    app(SendCommentController::class)
-                        ->sendmsg(
-                            $voucher->docid,
-                            'VCR',
-                            request()
-                        );
+                // === Simpan reason ===
+                try {
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($voucher->id, $doctype, $request);
                 } catch (\Throwable $e) {
-                    \Log::warning('Send revise comment Voucher Taxi failed', [
+                    \Log::warning('Failed to save revise reason Voucher Taxi', [
                         'docid' => $voucher->docid,
+                        'doctype' => $doctype,
                         'error' => $e->getMessage(),
                     ]);
-                }
+                }              
             }
         );
 
@@ -1087,19 +1068,19 @@ class VoucherTaxiController extends Controller
                 ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
                 ->get();
 
-            $comment = null;
+            $reason = null;
 
             try {
-                $comment = DB::table('tr_comment')
+                $reason = DB::table('tr_reason')
                     ->where('refid', $voucher->id)
                     ->where('doctype', 'VCR')
                     ->latest('created_at')
-                    ->value('comment');
+                    ->value('reason');
             } catch (\Throwable $e) {
                 // ignore if table not exists
             }
 
-            $comments = TrMessage::where('doctype', 'VCR')
+            $reasons = TrMessage::where('doctype', 'VCR')
                 ->where('refnbr', $voucher->docid)
                 ->orderByDesc('message_date')
                 ->get([
@@ -1142,7 +1123,7 @@ class VoucherTaxiController extends Controller
                             ->format('Y-m-d H:i')
                         : null,
 
-                    'comment' => $comments->first()?->message,
+                    'reason' => $reasons->first()?->message,
                 ];
             }
 
@@ -1169,7 +1150,7 @@ class VoucherTaxiController extends Controller
                 },
 
                 'revise_reason' => $latestComment?->message,
-                'comments' => $comments,
+                'reasons' => $reasons,
             ]);
         } catch (\Throwable $e) {
             \Log::error('TRACKING ERROR', [

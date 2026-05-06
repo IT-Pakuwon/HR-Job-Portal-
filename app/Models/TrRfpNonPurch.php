@@ -23,14 +23,6 @@ class TrRfpNonPurch extends Model
         return $this->belongsTo(User::class, 'created_by', 'username');
     }
 
-    public function groupbiaya()
-    {
-        return $this->belongsTo(
-            \App\Models\MsGroupbiayaNonPurch::class,
-            'groupbiaya_id',
-            'groupbiaya_id'
-        );
-    }
-
+  
    
 }
