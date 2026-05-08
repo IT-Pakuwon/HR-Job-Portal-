@@ -81,7 +81,7 @@ class ReportBastController extends Controller
     {
         $user = auth()->user();
 
-        $isCostCtrl = $user->hasRole('COSTCTRLACCESS');
+        $isCostCtrl = $user->hasRole('COSTCTRLACCESS', 'FINACCESS');
 
         // Company scope
         $companyIds = \App\Models\Usercpny::where('username', $user->username)
@@ -109,6 +109,8 @@ class ReportBastController extends Controller
         $query = $this->applyUserScope(
             $this->query()
         );
+
+        $query = $this->applyFilters($query, $request);
 
         $users = User::select('username', 'name')
             ->pluck('name', 'username');
