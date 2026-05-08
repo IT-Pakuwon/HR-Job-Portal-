@@ -98,6 +98,7 @@ class ReportWarehouseController extends Controller
                 'h.issuedate',
                 'h.issueid',
                 'h.issuetype',
+                'h.woid',
 
                 'h.created_by as issue_created_by',
                 'h.department_id as issue_department',
@@ -300,6 +301,9 @@ class ReportWarehouseController extends Controller
 
             if ($request->inventoryid)
                 $query->where('d.inventoryid','ilike',"%{$request->inventoryid}%");
+
+            if ($request->woid)
+                $query->where('h.woid','ilike',"%{$request->woid}%");
         }
 
         elseif ($report === 'receipt') {
@@ -806,6 +810,8 @@ class ReportWarehouseController extends Controller
                 'Warehouse' => $row->siteid,
 
                 'SPB No' => $row->spbid ?? '',
+
+                'WO NO' => $row->woid??'',
 
                 'Request By' =>
                     $users[$row->spb_created_by] ?? $row->spb_created_by,

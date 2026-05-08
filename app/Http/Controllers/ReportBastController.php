@@ -7,7 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
-
+use Vinkla\Hashids\Facades\Hashids;
 class ReportBastController extends Controller
 {
     public function index()
@@ -21,6 +21,7 @@ class ReportBastController extends Controller
             ->table('tr_bast as b')
 
             ->select([
+            DB::raw('id'),
                 'b.bastid',
                 'b.bastdate',
                 'b.ponbr',
@@ -83,7 +84,7 @@ class ReportBastController extends Controller
 
         $isCostCtrl = collect([
             'COSTCTRLACCESS',
-            'FINACCESS'
+            'FINACCESS',
         ])->contains(fn ($role) => $user->hasRole($role));
         // Company scope
         $companyIds = \App\Models\Usercpny::where('username', $user->username)
@@ -137,6 +138,10 @@ class ReportBastController extends Controller
 
             ->addColumn('date', fn ($row) => $row->bastdate ? Carbon::parse($row->bastdate)->format('d-M-Y') : ''
             )
+
+          ->addColumn('bastid_eid', function ($row) {
+                return Hashids::encode($row->id);
+            })
 
             ->addColumn('department_name', function ($row) use ($departments) {
                 return isset($departments[$row->department_id])

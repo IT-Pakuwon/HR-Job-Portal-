@@ -309,7 +309,19 @@
                     {
                         data: 'grandtotalamt',
                         className: 'text-right',
-                        render: (v) => fmtNumber(v)
+                        render: function(data, type) {
+
+                            // EXPORT / SORT = raw numeric
+                            if (type === 'export' || type === 'sort') {
+                                return parseFloat(data ?? 0);
+                            }
+
+                            // DISPLAY
+                            return new Intl.NumberFormat('id-ID', {
+                                minimumFractionDigits: 3,
+                                maximumFractionDigits: 3
+                            }).format(parseFloat(data ?? 0));
+                        }
                     },
                     {
                         data: 'created_by',

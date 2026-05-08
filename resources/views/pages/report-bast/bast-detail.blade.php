@@ -135,7 +135,22 @@
                     data: 'bqid'
                 },
                 {
-                    data: 'bastid'
+                    data: 'bastid',
+                    render: function(data, type, row) {
+
+                        const hash = row.bastid_eid;
+
+                        if (!hash) {
+                            return `<span class="text-gray-400">${data ?? '-'}</span>`;
+                        }
+
+                        return `
+                         <a href="/showbast/${encodeURIComponent(hash)}"
+                            class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">
+                                ${data}
+                            </a>
+                        `;
+                    }
                 },
                 {
                     data: 'terms_name'

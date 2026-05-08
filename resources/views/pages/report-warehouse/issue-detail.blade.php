@@ -32,6 +32,15 @@
                     class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
             </div>
 
+            <div>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                    WO ID
+                </label>
+
+                <input type="text" id="woid" placeholder="WO Number"
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm transition focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            </div>
+
             <!-- Inventory -->
             <div>
                 <label class="mb-1 block text-[11px] font-medium text-gray-500">
@@ -103,6 +112,7 @@
                         <th class="px-3 py-3 text-left">Company</th>
 
                         <th class="px-3 py-3 text-left">SPB ID</th>
+                        <th class="px-3 py-3 text-left">WO ID</th>
                         <th class="px-3 py-3 text-left">SPB Created By</th>
                         <th class="px-3 py-3 text-left">SPB Department</th>
 
@@ -151,6 +161,7 @@
                     d.date_to = $('#issue_date_to').val();
                     d.issueid = $('#issueid').val();
                     d.inventoryid = $('#issue_inventoryid').val();
+                    d.woid = $('#woid').val();
 
                 }
             },
@@ -193,6 +204,12 @@
                     data: 'spbid'
                 },
                 {
+                    data: 'woid',
+                    render: function(data) {
+                        return data ? data : '-';
+                    }
+                },
+                {
                     data: 'spb_created_by'
                 },
                 {
@@ -225,6 +242,7 @@
             $('#issue_date_to').val('');
             $('#issueid').val('');
             $('#issue_inventoryid').val('');
+            $('#woid').val('');
 
             issueTable.ajax.reload();
 
@@ -240,7 +258,10 @@
                 date_from: $('#issue_date_from').val(),
                 date_to: $('#issue_date_to').val(),
                 issueid: $('#issueid').val(),
-                inventoryid: $('#issue_inventoryid').val()
+                inventoryid: $('#issue_inventoryid').val(),
+                woid: $('#woid').val()
+
+
 
             });
 
