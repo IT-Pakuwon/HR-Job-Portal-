@@ -81,8 +81,10 @@ class ReportBastController extends Controller
     {
         $user = auth()->user();
 
-        $isCostCtrl = $user->hasRole('COSTCTRLACCESS', 'FINACCESS');
-
+        $isCostCtrl = collect([
+            'COSTCTRLACCESS',
+            'FINACCESS'
+        ])->contains(fn ($role) => $user->hasRole($role));
         // Company scope
         $companyIds = \App\Models\Usercpny::where('username', $user->username)
             ->pluck('cpny_id');
