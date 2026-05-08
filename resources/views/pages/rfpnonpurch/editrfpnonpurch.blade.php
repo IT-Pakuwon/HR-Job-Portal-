@@ -27,14 +27,14 @@
                                 </select>
                             </div>
 
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
                                     required>
                                     <option value="" disabled selected>Loading...</option>
                                 </select>
-                            </div>
+                            </div> --}}
 
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
@@ -60,7 +60,7 @@
                                 </select>
                             </div>
 
-                            <div class="flex flex-col gap-2">
+                            {{-- <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Group Biaya</label>
                                 <select name="groupbiaya_id" id="groupbiaya_id"
                                     class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
@@ -72,7 +72,111 @@
                                         </option>
                                     @endforeach
                                 </select>
+                            </div> --}}
+                            {{-- Group Biaya --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Group Biaya</label>
+                                <select name="groupbiaya_id" id="groupbiaya_id"
+                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    required>
+                                    <option value="">Select Group</option>
+                                    @foreach ($groupbiaya as $g)
+                                        <option value="{{ $g->groupbiaya_id }}"
+                                            data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}"
+                                            data-is-budget="{{ ($g->is_budget === true || $g->is_budget === 't' || $g->is_budget == 1) ? '1' : '0' }}"
+                                            {{ $g->groupbiaya_id == $rfpnonpurch->groupbiaya_id ? 'selected' : '' }}>
+                                            {{ $g->groupbiayadescr }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
+
+                            {{-- Business Unit --}}
+                            <div class="hidden flex flex-col gap-2" id="businessUnitBox">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <select name="business_unit_id" id="business_unit_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- Deposit Information --}}
+                        <div id="depositFieldsBox"
+                            class="hidden mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+                            {{-- Customer Name --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Customer Name
+                                </label>
+                                <input type="text"
+                                    name="customername"
+                                    id="customername"
+                                    value="{{ $rfpnonpurch->customername }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
+                            {{-- Store Name --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Store Name
+                                </label>
+                                <input type="text"
+                                    name="storename"
+                                    id="storename"
+                                    value="{{ $rfpnonpurch->storename }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
+                            {{-- Unit ID --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Unit ID
+                                </label>
+                                <input type="text"
+                                    name="unitid"
+                                    id="unitid"
+                                    value="{{ $rfpnonpurch->unitid }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
+                            {{-- Transfer To --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Transfer To
+                                </label>
+                                <input type="text"
+                                    name="transferto"
+                                    id="transferto"
+                                    value="{{ $rfpnonpurch->transferto }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
+                            {{-- Bank Name --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Bank Name
+                                </label>
+                                <input type="text"
+                                    name="bankname"
+                                    id="bankname"
+                                    value="{{ $rfpnonpurch->bankname }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
+                            {{-- Bank Account --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Bank Account
+                                </label>
+                                <input type="text"
+                                    name="bankacct"
+                                    id="bankacct"
+                                    value="{{ $rfpnonpurch->bankacct }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
                         </div>
 
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -161,9 +265,9 @@
                                         <table class="mb-4 mt-3 w-full table-fixed">
                                             <colgroup>
                                                 <col class="w-[60px]">
-                                                <col class="w-[50%]">
+                                                <col id="descCol" class="w-[65%]">
                                                 <col class="w-[180px]">
-                                                <col class="w-[260px]">
+                                                <col class="budget-col w-[260px]">
                                                 <col class="w-[70px]">
                                             </colgroup>
 
@@ -172,7 +276,7 @@
                                                     <th class="border p-3 text-center">No</th>
                                                     <th class="req border p-3 text-left">Description</th>
                                                     <th class="req border p-3 text-right">Price</th>
-                                                    <th class="req border p-3 text-left">Budget</th>
+                                                    <th class="req border p-3 text-left budget-col">Budget</th>
                                                     <th class="border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
@@ -195,7 +299,7 @@
                                                                 placeholder="0,00">
                                                         </td>
 
-                                                        <td class="border p-3">
+                                                        <td class="border p-3 budget-col">
                                                             <div class="flex items-center gap-2">
                                                                 <input type="hidden" name="activity_id[]" value="{{ $d->budget_activity_id }}" class="activityIdField">
                                                                 <input type="hidden" name="business_unit_id_detail[]" value="{{ $d->budget_business_unit_id }}" class="businessUnitIdField">
@@ -502,34 +606,42 @@
             return `
                 <tr class="rfpnonpurch-row">
                     <td class="border p-3 text-center align-middle">${no}</td>
+
                     <td class="border p-3">
                         <textarea name="rfpnonpurchase_descr[]" rows="2"
                             class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
                             placeholder="Input description..."></textarea>
                     </td>
+
                     <td class="border p-3">
                         <input type="text" name="price[]"
                             class="priceField w-full border-none bg-transparent p-2 text-right focus:outline-none focus:ring-0"
                             placeholder="0,00">
                     </td>
-                    <td class="border p-3">
+
+                    <td class="border p-3 budget-col">
                         <div class="flex items-center gap-2">
                             <input type="hidden" name="activity_id[]" class="activityIdField">
                             <input type="hidden" name="business_unit_id_detail[]" class="businessUnitIdField">
                             <input type="hidden" name="department_fin_id[]" class="departmentFinIdField">
                             <input type="hidden" name="activity_descr[]" class="actDescrField">
                             <input type="hidden" name="coa_id[]" class="coaIdField">
+
                             <input type="text" name="coa[]"
                                 class="coaNameField w-full border-none bg-gray-100 p-2 focus:outline-none focus:ring-0"
                                 placeholder="Select Budget..." readonly>
+
                             <button type="button"
                                 class="openCoaModal shrink-0 rounded border border-gray-500 px-2 py-2 hover:bg-gray-100"
                                 title="Lookup">🔎</button>
                         </div>
                     </td>
+
                     <td class="border p-3 text-center align-middle">
                         <button type="button"
-                            class="removeImBudgetNonPurch rounded border border-red-500 px-3 py-2 text-red-500 hover:bg-red-50">🗑️</button>
+                            class="removeImBudgetNonPurch rounded border border-red-500 px-3 py-2 text-red-500 hover:bg-red-50">
+                            🗑️
+                        </button>
                     </td>
                 </tr>
             `;
@@ -569,7 +681,10 @@
                     rowErr = true;
                 }
 
-                if (!coaId) {
+                const type = $('#rfpnonpurchase_type').val();
+                const isBudget = String($('#groupbiaya_id option:selected').data('is-budget')) === '1';
+
+                if (type === 'RFP' && isBudget && !coaId) {
                     addError($coa, 'Budget wajib dipilih.');
                     rowErr = true;
                 }
@@ -631,6 +746,68 @@
                 width: '100%'
             });
 
+            // function toggleDepositFields() {
+
+            //     const selected = $('#groupbiaya_id option:selected');
+
+            //     const isDeposit = (
+            //         selected.data('is-deposit') == 1 ||
+            //         selected.data('is-deposit') === '1' ||
+            //         selected.data('is-deposit') === true ||
+            //         selected.data('is-deposit') === 't'
+            //     );
+
+            //     if (isDeposit) {
+
+            //         $('#depositFieldsBox').removeClass('hidden');
+
+            //         $('#depositFieldsBox')
+            //             .find('input')
+            //             .prop('required', true);
+
+            //     } else {
+
+            //         $('#depositFieldsBox').addClass('hidden');
+
+            //         $('#depositFieldsBox')
+            //             .find('input')
+            //             .prop('required', false);
+            //     }
+            // }
+
+            function toggleDepositFields() {
+
+                const selected = $('#groupbiaya_id option:selected');
+
+                const isDeposit = (
+                    selected.data('is-deposit') == 1 ||
+                    selected.data('is-deposit') === '1' ||
+                    selected.data('is-deposit') === true ||
+                    selected.data('is-deposit') === 't'
+                );
+
+                if (isDeposit) {
+
+                    $('#depositFieldsBox').removeClass('hidden');
+
+                    $('#depositFieldsBox')
+                        .find('input')
+                        .prop('required', true);
+
+                } else {
+
+                    $('#depositFieldsBox').addClass('hidden');
+
+                    // JANGAN .val('')
+                    $('#depositFieldsBox')
+                        .find('input')
+                        .prop('required', false);
+                }
+            }
+
+            
+
+
             $('.user-select2').select2({
                 placeholder: 'Search user...',
                 allowClear: true,
@@ -642,13 +819,13 @@
                 $(this).next('.error-feedback').remove();
             });
 
-            $('#addImBudgetNonPurch').on('click', function () {
-                const nextNo = $('#rfpnonpurchTable tr.rfpnonpurch-row').length + 1;
-                $('#rfpnonpurchTable').append(newRowTemplate(nextNo));
-                updateRowNumbers();
-                updateRemoveButtons();
-                calculateGrandTotal();
-            });
+            // $('#addImBudgetNonPurch').on('click', function () {
+            //     const nextNo = $('#rfpnonpurchTable tr.rfpnonpurch-row').length + 1;
+            //     $('#rfpnonpurchTable').append(newRowTemplate(nextNo));
+            //     updateRowNumbers();
+            //     updateRemoveButtons();
+            //     calculateGrandTotal();
+            // });
 
             $(document).on('click', '.removeImBudgetNonPurch', function () {
                 $(this).closest('.rfpnonpurch-row').remove();
@@ -918,8 +1095,91 @@
                 }
             }
 
-            $('#rfpnonpurchase_type').on('change', toggleRfpRcaMode);
+            function toggleBudgetMode() {
+                const type = $('#rfpnonpurchase_type').val();
+                const isBudget = String($('#groupbiaya_id option:selected').data('is-budget')) === '1';
+
+                if (type === 'RFP' && isBudget) {
+                    $('#businessUnitBox').removeClass('hidden');
+                    $('#business_unit_id').prop('required', true);
+
+                    $('.budget-col').removeClass('hidden');
+                    $('#descCol').removeClass('w-[75%]').addClass('w-[65%]');
+
+                    $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
+                        .prop('disabled', false);
+                } else {
+                    $('#businessUnitBox').addClass('hidden');
+                    $('#business_unit_id').prop('required', false).val('');
+
+                    $('.budget-col').addClass('hidden');
+                    $('#descCol').removeClass('w-[65%]').addClass('w-[75%]');
+
+                    $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
+                        .val('')
+                        .prop('disabled', true);
+                }
+
+                if (type === 'RFP') {
+                    $('#detailSection').removeClass('hidden');
+                    $('#rfpnonpurchTable')
+                        .find('.rfpnonpurchaseDescrField, .priceField, .removeImBudgetNonPurch')
+                        .prop('disabled', false);
+                }
+
+                if (type === 'RCA') {
+                    $('#detailSection').addClass('hidden');
+                    $('#rfpnonpurchTable')
+                        .find('textarea, input, select, button')
+                        .prop('disabled', true);
+
+                    $('#grandTotalDisplay').text('0,00');
+                    $('#grandTotalInput').val('0');
+                }
+            }
+
+            // function toggleDepositFields() {
+            //     const isDeposit = String($('#groupbiaya_id option:selected').data('is-deposit')) === '1';
+
+            //     if (isDeposit) {
+            //         $('#depositFieldsBox').removeClass('hidden');
+            //         $('#depositFieldsBox').find('input').prop('required', true);
+            //     } else {
+            //         $('#depositFieldsBox').addClass('hidden');
+            //         $('#depositFieldsBox').find('input').prop('required', false).val('');
+            //     }
+            // }
+
+            // $('#rfpnonpurchase_type').on('change', toggleRfpRcaMode);
+            // toggleRfpRcaMode();
+
+            $('#rfpnonpurchase_type').on('change', function () {
+                toggleRfpRcaMode();
+                toggleBudgetMode();
+            });
+
+            $('#groupbiaya_id').on('change select2:select', function () {
+                toggleDepositFields();
+                toggleBudgetMode();
+            });
+
+            $('#addImBudgetNonPurch').on('click', function () {
+                const nextNo = $('#rfpnonpurchTable tr.rfpnonpurch-row').length + 1;
+
+                $('#rfpnonpurchTable').append(newRowTemplate(nextNo));
+
+                updateRowNumbers();
+                updateRemoveButtons();
+                calculateGrandTotal();
+
+                // IMPORTANT
+                toggleBudgetMode();
+            });
+
+            // FIRST LOAD
             toggleRfpRcaMode();
+            toggleDepositFields();
+            toggleBudgetMode();
 
             function toggleDeleteAttachmentButton() {
                 if ($('.attachment-row').length > 1) {
@@ -953,7 +1213,7 @@
                 e.preventDefault();
 
                 if (!validateDetails()) return;
-                if (!validateAttachments()) return;
+                // if (!validateAttachments()) return;
 
                 $('#submitBtn').prop('disabled', true);
                 $('#btnText').text('Processing...');

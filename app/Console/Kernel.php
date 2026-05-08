@@ -51,10 +51,10 @@ class Kernel extends ConsoleKernel
         //     ->appendOutputTo(storage_path('logs/postgres-check-connections.log'));
 
         // Staging ACUMVMS setiap hari jam 19:00
-        $schedule->command('staging:acumvms')
-            ->dailyAt('19:00')
-            ->withoutOverlapping()
-            ->appendOutputTo(storage_path('logs/staging.log'));
+        // $schedule->command('staging:acumvms')
+        //     ->dailyAt('19:00')
+        //     ->withoutOverlapping()
+        //     ->appendOutputTo(storage_path('logs/staging.log'));
 
         // $schedule->command('staging:vms-rfp')
         //     ->dailyAt('11:00')

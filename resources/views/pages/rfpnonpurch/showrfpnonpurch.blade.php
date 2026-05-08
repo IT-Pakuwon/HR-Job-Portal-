@@ -144,6 +144,51 @@
                             </span>
                         </div>
 
+                        @if ($deposit)
+                            <div class="col-span-2 mt-4 rounded-md bg-blue-50 p-3 dark:bg-gray-700">
+                                <div class="mb-3">
+                                    <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
+                                        Deposit Information
+                                    </h3>
+                                </div>
+
+                                @php
+                                    $depositFields = [
+                                        ['label' => 'Customer Name', 'value' => $deposit->customername ?: '-'],
+                                        ['label' => 'Store Name', 'value' => $deposit->storename ?: '-'],
+                                        ['label' => 'Unit ID', 'value' => $deposit->unitid ?: '-'],
+                                        ['label' => 'Transfer To', 'value' => $deposit->transferto ?: '-'],
+                                        ['label' => 'Bank Name', 'value' => $deposit->bankname ?: '-'],
+                                        ['label' => 'Bank Account', 'value' => $deposit->bankacct ?: '-'],
+                                    ];
+                                @endphp
+
+                                <div class="grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+                                    @foreach ($depositFields as $f)
+                                        <div class="{{ $row }}">
+                                            <div class="{{ $label }}">
+                                                <span>{{ $f['label'] }}</span>
+                                            </div>
+
+                                            <span class="{{ $value }}">
+                                                {{ $f['value'] }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @php
+                            $showAccountColumn = $details->contains(function ($d) {
+                                return !empty($d->budget_account_id);
+                            });
+
+                            $showActivityColumn = $details->contains(function ($d) {
+                                return !empty($d->budget_activity_id) || !empty($d->budget_activity_descr);
+                            });
+                        @endphp
+
                         @if ($rfpnonpurch->rfpnonpurchase_type === 'RFP')
                             <div class="col-span-2 mt-4 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                 <div class="mb-3 flex items-center justify-between">
@@ -167,8 +212,15 @@
                                                 <th class="p-2 text-center">No</th>
                                                 <th class="p-2 text-left">Description</th>
                                                 <th class="p-2 text-right">Amount Request</th>
-                                                <th class="p-2 text-left">Account</th>
-                                                <th class="p-2 text-left">Activity</th>
+                                                {{-- <th class="p-2 text-left">Account</th>
+                                                <th class="p-2 text-left">Activity</th> --}}
+                                                @if ($showAccountColumn)
+                                                    <th class="p-2 text-left">Account</th>
+                                                @endif
+
+                                                @if ($showActivityColumn)
+                                                    <th class="p-2 text-left">Activity</th>
+                                                @endif
                                             </tr>
                                         </thead>
 
@@ -180,14 +232,25 @@
                                                     <td class="p-2 text-right">
                                                         Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}
                                                     </td>
-                                                    <td class="p-2">{{ $d->budget_account_id ?: '-' }}</td>
+                                                    {{-- <td class="p-2">{{ $d->budget_account_id ?: '-' }}</td>
                                                     <td class="p-2">
                                                         {{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}
-                                                    </td>
+                                                    </td> --}}
+                                                    @if ($showAccountColumn)
+                                                        <td class="p-2">
+                                                            {{ $d->budget_account_id ?: '-' }}
+                                                        </td>
+                                                    @endif
+
+                                                    @if ($showActivityColumn)
+                                                        <td class="p-2">
+                                                            {{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}
+                                                        </td>
+                                                    @endif
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="5" class="p-3 text-center italic text-gray-500">
+                                                    <td colspan="{{ 3 + ($showAccountColumn ? 1 : 0) + ($showActivityColumn ? 1 : 0) }}" class="p-3 text-center italic text-gray-500">
                                                         No detail found.
                                                     </td>
                                                 </tr>

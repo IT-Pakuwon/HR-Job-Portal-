@@ -34,7 +34,7 @@
 <table>
     <tr>
         <td width="33%">
-            <strong>{{ $rfp->cpny_id }} - {{ $cpny_name }}</strong>
+            <strong>{{ $rfpnonpurch->cpny_id }} - {{ $cpny_name }}</strong>
         </td>
 
         <td width="34%" style="text-align:center;">
@@ -44,9 +44,9 @@
 
         <td width="33%">
             <table>
-                <tr><td>No</td><td>:</td><td>{{ $rfp->rfp_id }}</td></tr>
-                <tr><td>Date</td><td>:</td><td>{{ \Carbon\Carbon::parse($rfp->rfp_date)->format('d M Y') }}</td></tr>
-                {{-- <tr><td>Status</td><td>:</td><td>{{ $rfp->status }}</td></tr> --}}
+                <tr><td>No</td><td>:</td><td>{{ $rfpnonpurch->rfpnonpurchaseid }}</td></tr>
+                <tr><td>Date</td><td>:</td><td>{{ \Carbon\Carbon::parse($rfpnonpurch->rfpnonpurchasedate)->format('d M Y') }}</td></tr>
+                {{-- <tr><td>Status</td><td>:</td><td>{{ $rfpnonpurch->status }}</td></tr> --}}
             </table>
         </td>
     </tr>
@@ -58,18 +58,18 @@
 <table style="margin-top:8px;">
     <tr>
         <td width="15%">Vendor</td><td width="2%">:</td>
-        <td>{{ $rfp->vendor_name }}</td>
+        <td>{{ $rfpnonpurch->vendor_name }}</td>
 
         <td width="15%">Department</td><td width="2%">:</td>
-        <td>{{ $rfp->department_id }}</td>
+        <td>{{ $rfpnonpurch->department_id }}</td>
     </tr>
 
     <tr>
         <td>PO No</td><td>:</td>
-        <td>{{ $rfp->ponbr }}</td>
+        <td>{{ $rfpnonpurch->ponbr }}</td>
 
         <td>Contract</td><td>:</td>
-        <td>{{ $rfp->kontrak_id }}</td>
+        <td>{{ $rfpnonpurch->kontrak_id }}</td>
     </tr>
 </table>
 
@@ -79,17 +79,17 @@
 <table style="margin-top:8px;">
     <tr>
         <td width="20%">Amount</td><td width="2%">:</td>
-        <td>Rp {{ number_format($rfp->rfp_amount) }}</td>
+        <td>Rp {{ number_format($rfpnonpurch->amountrequestpayment) }}</td>
     </tr>
 
     <tr>
         <td>Terbilang</td><td>:</td>
-        <td>{{ $rfp->terbilang }}</td>
+        <td>{{ $rfpnonpurch->terbilang }}</td>
     </tr>
 
     <tr>
         <td>Purpose</td><td>:</td>
-        <td>{{ $rfp->keperluan }}</td>
+        <td>{{ $rfpnonpurch->keperluan }}</td>
     </tr>
 </table>
 
@@ -104,31 +104,31 @@
     <tr>
         <td width="20%">Finance</td>
         <td width="2%">:</td>
-        <td style="color:{{ $rfp->status_receive === 'C' ? 'blue' : 'orange' }}">
-            {{ $rfp->status_receive === 'C' ? 'Received' : 'Pending' }}
+        <td style="color:{{ $rfpnonpurch->status_receive === 'C' ? 'blue' : 'orange' }}">
+            {{ $rfpnonpurch->status_receive === 'C' ? 'Received' : 'Pending' }}
         </td>
 
         <td width="20%">Treasury</td>
         <td width="2%">:</td>
-        <td style="color:{{ $rfp->status_payment === 'C' ? 'blue' : 'orange' }}">
-            {{ $rfp->status_payment === 'C' ? 'Received' : 'Pending' }}
+        <td style="color:{{ $rfpnonpurch->status_payment === 'C' ? 'blue' : 'orange' }}">
+            {{ $rfpnonpurch->status_payment === 'C' ? 'Received' : 'Pending' }}
         </td>
     </tr>
 
     <tr>
         <td>User Finance</td><td>:</td>
-        <td>{{ $rfp->user_receive ?? '-' }}</td>
+        <td>{{ $rfpnonpurch->user_receive ?? '-' }}</td>
 
         <td>User Treasury</td><td>:</td>
-        <td>{{ $rfp->user_payment ?? '-' }}</td>
+        <td>{{ $rfpnonpurch->user_payment ?? '-' }}</td>
     </tr>
 
     <tr>
         <td>Date Finance</td><td>:</td>
-        <td>{{ $rfp->receive_date ?? '-' }}</td>
+        <td>{{ $rfpnonpurch->receive_date ?? '-' }}</td>
 
         <td>Date Treasury</td><td>:</td>
-        <td>{{ $rfp->payment_date ?? '-' }}</td>
+        <td>{{ $rfpnonpurch->payment_date ?? '-' }}</td>
     </tr>
 </table>
 

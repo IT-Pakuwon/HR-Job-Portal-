@@ -28,17 +28,7 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            <!-- Business Unit -->
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
-                                </select>
-                            </div>
-
+                            
                             <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
@@ -74,13 +64,118 @@
                                     class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
                                     required>
                                     <option value="">Select Group</option>
-                                    @foreach ($groupbiaya as $g)
+                                    {{-- @foreach ($groupbiaya as $g)
                                         <option value="{{ $g->groupbiaya_id }}">
+                                            {{ $g->groupbiayadescr }}
+                                        </option>
+                                    @endforeach --}}
+                                    {{-- @foreach ($groupbiaya as $g)
+                                        <option value="{{ $g->groupbiaya_id }}"
+                                            data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}">
+                                            {{ $g->groupbiayadescr }}
+                                        </option>
+                                    @endforeach --}}
+                                    @foreach ($groupbiaya as $g)
+                                        <option value="{{ $g->groupbiaya_id }}"
+                                            data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}"
+                                            data-is-budget="{{ ($g->is_budget === true || $g->is_budget === 't' || $g->is_budget == 1) ? '1' : '0' }}">
                                             {{ $g->groupbiayadescr }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
+                            <!-- Business Unit -->
+                            <div class="hidden flex flex-col gap-2" id="businessUnitBox">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <select name="business_unit_id" id="business_unit_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    required>
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+                        </div>
+                        {{-- Deposit Information --}}
+                        <div id="depositFieldsBox"
+                            class="hidden mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+                            {{-- Customer Name --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Customer Name
+                                </label>
+                                <input type="text"
+                                    name="customername"
+                                    id="customername"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                        focus:border-indigo-500 focus:ring-indigo-500
+                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                            {{-- Store Name --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Store Name
+                                </label>
+                                <input type="text"
+                                    name="storename"
+                                    id="storename"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                        focus:border-indigo-500 focus:ring-indigo-500
+                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                            {{-- Unit ID --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Unit ID
+                                </label>
+                                <input type="text"
+                                    name="unitid"
+                                    id="unitid"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                        focus:border-indigo-500 focus:ring-indigo-500
+                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                            {{-- Transfer To --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Transfer To
+                                </label>
+                                <input type="text"
+                                    name="transferto"
+                                    id="transferto"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                        focus:border-indigo-500 focus:ring-indigo-500
+                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                            {{-- Bank Name --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Bank Name
+                                </label>
+                                <input type="text"
+                                    name="bankname"
+                                    id="bankname"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                        focus:border-indigo-500 focus:ring-indigo-500
+                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                            {{-- Bank Account --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Bank Account
+                                </label>
+                                <input type="text"
+                                    name="bankacct"
+                                    id="bankacct"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm
+                                        focus:border-indigo-500 focus:ring-indigo-500
+                                        dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
                         </div>
                         {{-- Row Tanggal & Dibayarkan Kepada --}}
                         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -188,9 +283,9 @@
                                         <table class="mb-4 mt-3 w-full table-fixed">
                                             <colgroup>
                                                 <col class="w-[60px]">
-                                                <col class="w-[50%]">
+                                                <col id="descCol" class="w-[65%]">
                                                 <col class="w-[180px]">
-                                                <col class="w-[260px]">
+                                                <col class="budget-col w-[260px]">
                                                 <col class="w-[70px]">
                                             </colgroup>
 
@@ -199,7 +294,7 @@
                                                     <th class="border p-3 text-center">No</th>
                                                     <th class="req border p-3 text-left">Description</th>
                                                     <th class="req border p-3 text-right">Price</th>
-                                                    <th class="req border p-3 text-left">Budget</th>
+                                                    <th class="req border p-3 text-left budget-col">Budget</th>
                                                     <th class="border p-3 text-center"></th>
                                                 </tr>
                                             </thead>
@@ -220,7 +315,7 @@
                                                             placeholder="0,00">
                                                     </td>
 
-                                                    <td class="border p-3">
+                                                    <td class="border p-3 budget-col">
                                                         <div class="flex items-center gap-2">
                                                             <input type="hidden" name="activity_id[]" class="activityIdField">
                                                             <input type="hidden" name="business_unit_id_detail[]" class="businessUnitIdField">
@@ -422,6 +517,39 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        window.isBudgetSelected = function () {
+            const val = $('#groupbiaya_id option:selected').attr('data-is-budget');
+            return val === '1' || val === 't' || val === 'true';
+        };
+
+        window.applyBudgetColumnVisibility = function () {
+            const type = $('#rfpnonpurchase_type').val();
+            const isBudget = window.isBudgetSelected();
+
+            if (type === 'RFP' && isBudget) {
+                $('#businessUnitBox').removeClass('hidden');
+                $('#business_unit_id').prop('required', true);
+
+                $('.budget-col').removeClass('hidden');
+                $('#descCol').removeClass('w-[75%]').addClass('w-[65%]');
+
+                $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
+                    .prop('disabled', false);
+            } else {
+                $('#businessUnitBox').addClass('hidden');
+                $('#business_unit_id').prop('required', false).val('');
+
+                $('.budget-col').addClass('hidden');
+                $('#descCol').removeClass('w-[65%]').addClass('w-[75%]');
+
+                $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
+                    .val('')
+                    .prop('disabled', true);
+            }
+        };
+    </script>
+
+    <script>
         function showOverlay(text = 'Processing') {
             const $ov = $('#loadingSpinnerContainer');
             $ov.find('.loading-text').html(
@@ -515,7 +643,7 @@
                             placeholder="0,00">
                     </td>
 
-                    <td class="border p-3">
+                    <td class="border p-3 budget-col">
                         <div class="flex items-center gap-2">
                             <input type="hidden" name="activity_id[]" class="activityIdField">
                             <input type="hidden" name="business_unit_id_detail[]" class="businessUnitIdField">
@@ -548,7 +676,18 @@
 
             let validRows = 0;
 
-            if ($('#rfpnonpurchase_type').val() === 'RCA') {
+            const type = $('#rfpnonpurchase_type').val();
+
+            if (type === 'RCA') {
+
+                const amount = parseNumber($('#amountrequestpayment').val());
+
+                if (!amount || amount <= 0) {
+                    addError($('#amountrequestpayment'), 'Amount Request Payment wajib diisi.');
+                    toastr.error('Amount Request Payment wajib diisi.');
+                    return false;
+                }
+
                 return true;
             }
 
@@ -562,8 +701,9 @@
                 const desc = ($desc.val() || '').trim();
                 const price = parseNumber($price.val());
                 const coaId = ($row.find('.coaIdField').val() || '').trim();
-
+                const isBudget = window.isBudgetSelected();                
                 const isEmptyRow = !desc && !price && !coaId;
+
                 if (isEmptyRow) return;
 
                 let rowErr = false;
@@ -578,7 +718,7 @@
                     rowErr = true;
                 }
 
-                if (!coaId) {
+                if (isBudget && !coaId) {
                     addError($coa, 'Budget wajib dipilih.');
                     rowErr = true;
                 }
@@ -676,6 +816,7 @@
                 updateRowNumbers();
                 updateRemoveButtons();
                 calculateGrandTotal();
+                window.applyBudgetColumnVisibility();
             });
 
             $(document).on('click', '.removeImBudgetNonPurch', function () {
@@ -1224,7 +1365,7 @@
             });
         });
     </script>
-    <script>
+    {{-- <script>
         $(function () {
             function parseNumber(value) {
                 value = String(value || '').trim();
@@ -1307,6 +1448,343 @@
             });
 
             toggleRfpRcaMode();
+
+
+            // =========================
+            // Deposit Fields
+            // =========================
+            function toggleDepositFields() {
+                const isDeposit = $('#groupbiaya_id option:selected').data('is-deposit');
+
+                if (String(isDeposit) === '1') {
+                    $('#depositFieldsBox').removeClass('hidden');
+                    $('#depositFieldsBox').find('input').prop('required', true);
+                } else {
+                    $('#depositFieldsBox').addClass('hidden');
+                    $('#depositFieldsBox').find('input').prop('required', false).val('');
+                }
+            }
+
+            $('#groupbiaya_id').on('change select2:select', toggleDepositFields);
+
+            toggleDepositFields();
+          
+        });
+    </script>  --}}
+
+    <script>
+        $(function () {
+
+            function parseNumber(value) {
+                value = String(value || '').trim();
+                if (!value) return 0;
+
+                value = value.replace(/\./g, '').replace(',', '.');
+
+                const num = parseFloat(value);
+                return isNaN(num) ? 0 : num;
+            }
+
+            function formatNumber(value) {
+                return Number(value || 0).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            // =====================================================
+            // RFP / RCA MODE
+            // =====================================================
+            function toggleRfpRcaMode() {
+
+                const type = $('#rfpnonpurchase_type').val();
+
+                if (type === 'RFP') {
+
+                    $('#detailSection').removeClass('hidden');
+                    $('#rfpnonpurchTable').find('textarea, input, select, button').prop('disabled', false);
+
+                    $('#tanggalRealisasiBox').addClass('hidden');
+                    $('#datepenyelesaian')
+                        .val('')
+                        .prop('required', false);
+
+                    $('#amountRequestPaymentBox').addClass('hidden');
+                    $('#amountrequestpayment')
+                        .val('')
+                        .prop('required', false);
+
+                } else if (type === 'RCA') {
+
+                    $('#detailSection').addClass('hidden');
+                    $('#rfpnonpurchTable').find('textarea, input, select, button').prop('disabled', true);
+
+                    $('#tanggalRealisasiBox').removeClass('hidden');
+                    $('#datepenyelesaian')
+                        .prop('required', true);
+
+                    $('#amountRequestPaymentBox').removeClass('hidden');
+                    $('#amountrequestpayment')
+                        .prop('required', true);
+
+                } else {
+
+                    $('#tanggalRealisasiBox').addClass('hidden');
+                    $('#datepenyelesaian')
+                        .val('')
+                        .prop('required', false);
+
+                    $('#amountRequestPaymentBox').addClass('hidden');
+                    $('#amountrequestpayment')
+                        .val('')
+                        .prop('required', false);
+                }
+
+                toggleBudgetMode();
+            }
+
+            // =====================================================
+            // BUDGET MODE
+            // =====================================================
+            function toggleBudgetMode() {
+
+                const type = $('#rfpnonpurchase_type').val();
+
+                const isBudget = window.isBudgetSelected();
+
+                // =====================================================
+                // BUSINESS UNIT
+                // =====================================================
+                if (type === 'RFP' && isBudget) {
+
+                    $('#businessUnitBox').removeClass('hidden');
+
+                    $('#business_unit_id')
+                        .prop('required', true);
+
+                } else {
+
+                    $('#businessUnitBox').addClass('hidden');
+
+                    $('#business_unit_id')
+                        .prop('required', false)
+                        .val('');
+                }
+
+                // =====================================================
+                // BUDGET COLUMN
+                // =====================================================
+                if (type === 'RFP' && isBudget) {
+
+                    $('.budget-col').removeClass('hidden');
+
+                    $('#descCol')
+                        .removeClass('w-[75%]')
+                        .addClass('w-[65%]');
+
+                    $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
+                        .prop('disabled', false);
+
+                } else {
+
+                    $('.budget-col').addClass('hidden');
+
+                    $('#descCol')
+                        .removeClass('w-[65%]')
+                        .addClass('w-[75%]');
+
+                    $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
+                        .val('')
+                        .prop('disabled', true);
+                }
+
+                // =====================================================
+                // RCA MODE
+                // =====================================================
+                if (type === 'RCA') {
+
+                    $('#detailSection').addClass('hidden');
+
+                    $('#rfpnonpurchTable')
+                        .find('textarea, input, select, button')
+                        .prop('disabled', true);
+
+                    $('#grandTotalDisplay').text('0,00');
+                    $('#grandTotalInput').val('0');
+
+                } else {
+
+                    $('#detailSection').removeClass('hidden');
+
+                    $('#rfpnonpurchTable')
+                        .find('.rfpnonpurchaseDescrField, .priceField, .removeImBudgetNonPurch')
+                        .prop('disabled', false);
+                }
+            }
+            // function toggleBudgetMode() {
+
+            //     const selected = $('#groupbiaya_id option:selected');
+
+            //     const isBudget = (
+            //         selected.data('is-budget') == 1 ||
+            //         selected.data('is-budget') === '1' ||
+            //         selected.data('is-budget') === true ||
+            //         selected.data('is-budget') === 't'
+            //     );
+
+            //     const type = $('#rfpnonpurchase_type').val();
+
+            //     // =========================
+            //     // BUSINESS UNIT
+            //     // =========================
+            //     // if (isBudget) {
+
+            //     //     $('#business_unit_id')
+            //     //         .closest('.flex.flex-col.gap-2')
+            //     //         .removeClass('hidden');
+
+            //     //     $('#business_unit_id')
+            //     //         .prop('required', true);
+
+            //     // } else {
+
+            //     //     $('#business_unit_id')
+            //     //         .closest('.flex.flex-col.gap-2')
+            //     //         .addClass('hidden');
+
+            //     //     $('#business_unit_id')
+            //     //         .prop('required', false)
+            //     //         .val('');
+
+            //     // }
+            //     if (isBudget) {
+
+            //         $('#businessUnitBox').removeClass('hidden');
+
+            //         $('#business_unit_id')
+            //             .prop('required', true);
+
+            //     } else {
+
+            //         $('#businessUnitBox').addClass('hidden');
+
+            //         $('#business_unit_id')
+            //             .prop('required', false)
+            //             .val('');
+            //     }
+
+            //     // =========================
+            //     // DETAIL SECTION
+            //     // =========================
+            //     if (type === 'RFP' && isBudget) {
+
+            //         $('#detailSection').removeClass('hidden');
+
+            //         $('#rfpnonpurchTable')
+            //             .find('textarea, input, select, button')
+            //             .prop('disabled', false);
+
+            //     } else {
+
+            //         $('#detailSection').addClass('hidden');
+
+            //         $('#rfpnonpurchTable')
+            //             .find('textarea, input, select, button')
+            //             .prop('disabled', true);
+
+            //         // reset budget fields
+            //         $('#rfpnonpurchTable')
+            //             .find('textarea').val('');
+
+            //         $('#rfpnonpurchTable')
+            //             .find('input[type=text], input[type=hidden]')
+            //             .val('');
+
+            //         $('#grandTotalDisplay').text('0,00');
+            //         $('#grandTotalInput').val('0');
+
+            //     }
+            // }
+
+            // =====================================================
+            // DEPOSIT MODE
+            // =====================================================
+            function toggleDepositFields() {
+
+                const selected = $('#groupbiaya_id option:selected');
+
+                const isDeposit = (
+                    selected.data('is-deposit') == 1 ||
+                    selected.data('is-deposit') === '1' ||
+                    selected.data('is-deposit') === true ||
+                    selected.data('is-deposit') === 't'
+                );
+
+                if (isDeposit) {
+
+                    $('#depositFieldsBox').removeClass('hidden');
+
+                    $('#depositFieldsBox')
+                        .find('input')
+                        .prop('required', true);
+
+                } else {
+
+                    $('#depositFieldsBox').addClass('hidden');
+
+                    $('#depositFieldsBox')
+                        .find('input')
+                        .prop('required', false)
+                        .val('');
+                }
+            }
+
+            // =====================================================
+            // EVENTS
+            // =====================================================
+            $('#rfpnonpurchase_type').on('change', function () {
+                toggleRfpRcaMode();
+                window.applyBudgetColumnVisibility();
+            });
+
+            $('#groupbiaya_id').on('change select2:select', function () {
+                toggleDepositFields();
+                toggleBudgetMode();
+                window.applyBudgetColumnVisibility();
+            });
+
+            // =====================================================
+            // FORMAT RCA AMOUNT
+            // =====================================================
+            $(document).on('input', '#amountrequestpayment', function () {
+
+                this.value = this.value
+                    .replace(/\./g, ',')
+                    .replace(/[^0-9,]/g, '');
+
+                const parts = this.value.split(',');
+
+                if (parts.length > 2) {
+                    this.value = parts[0] + ',' + parts.slice(1).join('');
+                }
+            });
+
+            $(document).on('blur', '#amountrequestpayment', function () {
+
+                const value = parseNumber($(this).val());
+
+                $(this).val(
+                    value ? formatNumber(value) : ''
+                );
+            });
+
+            // =====================================================
+            // FIRST LOAD
+            // =====================================================
+            toggleRfpRcaMode();
+            toggleDepositFields();
+            toggleBudgetMode();
+
         });
     </script>
 

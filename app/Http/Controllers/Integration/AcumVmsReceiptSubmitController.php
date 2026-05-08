@@ -21,8 +21,8 @@ class AcumVmsReceiptSubmitController extends Controller
 
         if (!$lock->get()) {
             return [
-                'ok' => false,
-                'message' => "Staging Receipt {$receiptnbr}/{$cpnyId} masih berjalan."
+                'ok'      => false,
+                'message' => "Staging Receipt {$receiptnbr}/{$cpnyId} masih berjalan.",
             ];
         }
 
@@ -37,6 +37,10 @@ class AcumVmsReceiptSubmitController extends Controller
 
             // =========================
             // 1) HEADER RECEIPT
+            // table: staging_receipt
+            // columns:
+            // id, receiptnbr, receiptdate, receipttype, cpny_id,
+            // ponbr, status, created_by, created_at
             // =========================
             $receipt = TrReceipt::query()
                 ->where('receiptnbr', $receiptnbr)
@@ -45,34 +49,20 @@ class AcumVmsReceiptSubmitController extends Controller
 
             if (!$receipt) {
                 return [
-                    'ok' => false,
-                    'message' => "Receipt {$receiptnbr} / {$cpnyId} tidak ditemukan."
+                    'ok'      => false,
+                    'message' => "Receipt {$receiptnbr} / {$cpnyId} tidak ditemukan.",
                 ];
             }
 
             $receiptPayload = [[
-                'receiptnbr'          => $receipt->receiptnbr,
-                'receiptdate'         => $receipt->receiptdate,
-                'receipttype'         => $receipt->receipttype,
-                'ponbr'               => $receipt->ponbr,
-                'ref_receiptnbr'      => $receipt->ref_receiptnbr,
-                'cpny_id'             => $receipt->cpny_id,
-                'csid'                => $receipt->csid,
-                'sppbjktid'           => $receipt->sppbjktid,
-                'department_id'       => $receipt->department_id,
-                'user_peminta'        => $receipt->user_peminta,
-                'receiptnote'         => $receipt->receiptnote,
-                'vendorid'            => $receipt->vendorid,
-                'vendorname'          => $receipt->vendorname,
-                'totalqty_received'   => $receipt->totalqty_received,
-                'totalqty_return'     => $receipt->totalqty_return,
-                'status'              => $receipt->status,
-                'created_by'          => $receipt->created_by,
-                'created_at'          => $receipt->created_at,
-                'updated_by'          => $receipt->updated_by,
-                'updated_at'          => $receipt->updated_at,
-                'completed_by'        => $receipt->completed_by,
-                'completed_at'        => $receipt->completed_at,
+                'receiptnbr'  => $receipt->receiptnbr,
+                'receiptdate' => $receipt->receiptdate,
+                'receipttype' => $receipt->receipttype,
+                'cpny_id'     => $receipt->cpny_id,
+                'ponbr'       => $receipt->ponbr,
+                'status'      => $receipt->status,
+                'created_by'  => $runBy ?: ($receipt->created_by ?? 'SYSTEM'),
+                'created_at'  => now(),
             ]];
 
             $this->upsertMysql7(
@@ -83,23 +73,9 @@ class AcumVmsReceiptSubmitController extends Controller
                     'receiptdate',
                     'receipttype',
                     'ponbr',
-                    'ref_receiptnbr',
-                    'csid',
-                    'sppbjktid',
-                    'department_id',
-                    'user_peminta',
-                    'receiptnote',
-                    'vendorid',
-                    'vendorname',
-                    'totalqty_received',
-                    'totalqty_return',
                     'status',
                     'created_by',
                     'created_at',
-                    'updated_by',
-                    'updated_at',
-                    'completed_by',
-                    'completed_at',
                 ]
             );
 
@@ -107,8 +83,11 @@ class AcumVmsReceiptSubmitController extends Controller
 
             // =========================
             // 2) DETAIL RECEIPT
-            // IMPORTANT:
-            // pakai budget_cpny_id agar detail sesuai company budget
+            // table: staging_receipt_detail
+            // columns:
+            // id, receiptnbr, cpny_id, ponbr, receiptlinenbr,
+            // polinenbr, inventoryid, inventory_descr, receiptqty,
+            // uom, status, created_by, created_at
             // =========================
             $details = TrReceiptdetail::query()
                 ->where('receiptnbr', $receiptnbr)
@@ -117,106 +96,32 @@ class AcumVmsReceiptSubmitController extends Controller
                 ->get([
                     'id',
                     'receiptnbr',
-                    'receipt_no',
                     'ponbr',
-                    'po_no',
-                    'csid',
-                    'cs_no',
-                    'sppbjktid',
-                    'sppbjktid_no',
-                    'inventory_type',
-                    'inventory_sub_type',
-                    'inventory_category',
                     'inventoryid',
                     'inventory_descr',
-                    'receiptnote_detail',
-                    'qtyordered',
-                    'uom',
-                    'siteid',
-                    'type_multiplier',
-                    'base_multiplier',
-                    'base_qty',
-                    'base_uom',
-                    'unitcost',
-                    'taxcodeid',
-                    'taxamt',
-                    'totalcost',
-                    'receipttype',
                     'qty_received',
-                    'base_qty_received',
-                    'qty_return',
-                    'base_qty_return',
-                    'ref_receiptnbr',
-                    'budget_perpost',
-                    'budget_cpny_id',
-                    'budget_business_unit_id',
-                    'budget_department_fin_id',
-                    'budget_account_id',
-                    'budget_activity_id',
-                    'budget_activity_descr',
+                    'uom',
                     'status',
                     'created_by',
                     'created_at',
-                    'updated_by',
-                    'updated_at',
                 ]);
 
             $detailPayload = [];
 
             foreach ($details as $d) {
                 $detailPayload[] = [
-                    'receiptnbr'               => $d->receiptnbr,
-                    'cpny_id'                  => $d->budget_cpny_id,
-                    'linenbr'                  => (int) $d->id,
-
-                    'receipt_no'               => $d->receipt_no,
-                    'ponbr'                    => $d->ponbr,
-                    'po_no'                    => $d->po_no,
-                    'csid'                     => $d->csid,
-                    'cs_no'                    => $d->cs_no,
-                    'sppbjktid'                => $d->sppbjktid,
-                    'sppbjktid_no'             => $d->sppbjktid_no,
-
-                    'inventory_type'           => $d->inventory_type,
-                    'inventory_sub_type'       => $d->inventory_sub_type,
-                    'inventory_category'       => $d->inventory_category,
-                    'inventoryid'              => $d->inventoryid,
-                    'inventory_descr'          => $d->inventory_descr,
-                    'receiptnote_detail'       => $d->receiptnote_detail,
-
-                    'qtyordered'               => $d->qtyordered,
-                    'uom'                      => $d->uom,
-                    'siteid'                   => $d->siteid,
-
-                    'type_multiplier'          => $d->type_multiplier,
-                    'base_multiplier'          => $d->base_multiplier,
-                    'base_qty'                 => $d->base_qty,
-                    'base_uom'                 => $d->base_uom,
-
-                    'unitcost'                 => $d->unitcost,
-                    'taxcodeid'                => $d->taxcodeid,
-                    'taxamt'                   => $d->taxamt,
-                    'totalcost'                => $d->totalcost,
-
-                    'receipttype'              => $d->receipttype,
-                    'qty_received'             => $d->qty_received,
-                    'base_qty_received'        => $d->base_qty_received,
-                    'qty_return'               => $d->qty_return,
-                    'base_qty_return'          => $d->base_qty_return,
-                    'ref_receiptnbr'           => $d->ref_receiptnbr,
-
-                    'budget_perpost'           => $d->budget_perpost,
-                    'budget_business_unit_id'  => $d->budget_business_unit_id,
-                    'budget_department_fin_id' => $d->budget_department_fin_id,
-                    'budget_account_id'        => $d->budget_account_id,
-                    'budget_activity_id'       => $d->budget_activity_id,
-                    'budget_activity_descr'    => $d->budget_activity_descr,
-
-                    'status'                   => $d->status,
-                    'created_by'               => $d->created_by,
-                    'created_at'               => $d->created_at,
-                    'updated_by'               => $d->updated_by,
-                    'updated_at'               => $d->updated_at,
+                    'receiptnbr'      => $d->receiptnbr,
+                    'cpny_id'         => $cpnyId,
+                    'ponbr'           => $d->ponbr,
+                    'receiptlinenbr'  => (int) $d->id,
+                    'polinenbr'       => (int) $d->id,
+                    'inventoryid'     => $d->inventoryid,
+                    'inventory_descr' => $d->inventory_descr,
+                    'receiptqty'      => $d->qty_received,
+                    'uom'             => $d->uom,
+                    'status'          => $d->status,
+                    'created_by'      => $runBy ?: ($d->created_by ?? 'SYSTEM'),
+                    'created_at'      => now(),
                 ];
             }
 
@@ -224,49 +129,17 @@ class AcumVmsReceiptSubmitController extends Controller
                 $this->upsertMysql7(
                     'staging_receipt_detail',
                     $detailPayload,
-                    ['receiptnbr', 'cpny_id', 'linenbr'],
+                    ['receiptnbr', 'cpny_id', 'receiptlinenbr'],
                     [
-                        'receipt_no',
                         'ponbr',
-                        'po_no',
-                        'csid',
-                        'cs_no',
-                        'sppbjktid',
-                        'sppbjktid_no',
-                        'inventory_type',
-                        'inventory_sub_type',
-                        'inventory_category',
+                        'polinenbr',
                         'inventoryid',
                         'inventory_descr',
-                        'receiptnote_detail',
-                        'qtyordered',
+                        'receiptqty',
                         'uom',
-                        'siteid',
-                        'type_multiplier',
-                        'base_multiplier',
-                        'base_qty',
-                        'base_uom',
-                        'unitcost',
-                        'taxcodeid',
-                        'taxamt',
-                        'totalcost',
-                        'receipttype',
-                        'qty_received',
-                        'base_qty_received',
-                        'qty_return',
-                        'base_qty_return',
-                        'ref_receiptnbr',
-                        'budget_perpost',
-                        'budget_business_unit_id',
-                        'budget_department_fin_id',
-                        'budget_account_id',
-                        'budget_activity_id',
-                        'budget_activity_descr',
                         'status',
                         'created_by',
                         'created_at',
-                        'updated_by',
-                        'updated_at',
                     ]
                 );
             }
@@ -282,6 +155,7 @@ class AcumVmsReceiptSubmitController extends Controller
             Log::error('[ACUMVMS STAGING RECEIPT SUBMIT] ' . $e->getMessage(), [
                 'receiptnbr' => $receiptnbr,
                 'cpny_id'    => $cpnyId,
+                'run_by'     => $runBy,
                 'trace'      => $e->getTraceAsString(),
             ]);
 

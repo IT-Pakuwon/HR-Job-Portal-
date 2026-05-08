@@ -75,20 +75,7 @@
                                 class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
-
-                            {{-- <a href="{{ url('/pdf_bast') }}/{{ $hash }}" target="_blank">
-                                <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1  text-sm  font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                    Print PDF
-                                </button>
-                            </a>
-
-                            <a href="{{ url('/pdf_bast_vendor') }}/{{ $hash }}" target="_blank">
-                                <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1  text-sm  font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                    Print PDF Vendor
-                                </button>
-                            </a> --}}
+              
                             {{-- Dropdown Print --}}
                             <div class="relative">
                                 <button id="printMenuBtn"
@@ -596,35 +583,6 @@
         </div>
     </div>
 
-    {{-- Rating Modal --}}
-    {{-- <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
-        <div class="w-full max-w-sm rounded-xl bg-white p-5 shadow-md dark:bg-gray-800">
-            <h3 class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
-            Give Vendor Rating
-            </h3>
-
-            <div id="ratingStars" class="mb-4 flex items-center gap-1">
-            @for ($i = 1; $i <= 5; $i++)
-                <button type="button" class="star-btn text-gray-300 dark:text-gray-600" data-value="{{ $i }}" aria-label="Rate {{ $i }}">               
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9.049.927L7.09 6.333H1.5l4.724 3.436L3.97 15.5l5.079-3.597L14.129 15.5l-2.255-5.731L16.5 6.333h-5.59L9.049.927z"/>
-                </svg>
-                </button>
-            @endfor
-            </div>
-
-            <div class="mt-2 flex items-center justify-end gap-2">
-            <button id="ratingCancelBtn"
-                    class="rounded-md border border-gray-300 bg-white px-4 py-2  text-sm  font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                Cancel
-            </button>
-            <button id="ratingOkBtn"
-                    class="rounded-md bg-indigo-600 px-4 py-2  text-sm  font-semibold text-white hover:bg-indigo-700">
-                OK
-            </button>
-            </div>
-        </div>
-    </div> --}}
 
     {{-- Rating Modal (TrBASTRating sliders) --}}
     <div id="ratingModal" class="fixed inset-0 z-[3000] hidden items-center justify-center bg-black/50">
@@ -1075,357 +1033,6 @@
     </script>
 
 
-
-
-    {{-- <script>
-        // util modal
-        function openRatingModal() {
-            $('#ratingModal').removeClass('hidden').addClass('flex');
-        }
-
-        function closeRatingModal() {
-            $('#ratingModal').addClass('hidden').removeClass('flex');
-        }
-
-        // state rating
-        let ratingRows = []; // [{id, rating_id, rating_no, rating_name, rating_score}, ...]
-        const $ratingTbody = $('#ratingTableBody');
-        const $ratingAvg = $('#ratingAvg');
-
-        function renderRatingTable() {
-            $ratingTbody.empty();
-
-            if (!ratingRows.length) {
-                $ratingTbody.append(`
-            <tr>
-                <td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">
-                    No rating rows found.
-                </td>
-            </tr>
-        `);
-                $ratingAvg.text('0');
-                return;
-            }
-
-            ratingRows.forEach((r, idx) => {
-                const val = Number.isFinite(+r.rating_score) ? +r.rating_score : 0;
-
-                const row = `
-        <tr data-index="${idx}">
-            <td class="px-4 py-3">
-                <div class="font-medium text-gray-800 dark:text-gray-100">
-                    ${r.rating_name || '-'}
-                </div>
-            </td>
-
-            <td class="px-4 py-3 text-center">
-                ${Array.from({ length: 5 }, (_, s) => ` <
-                    button
-                type = "button"
-                class = "star ${s < val ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400 transition"
-                data - score = "${s + 1}" > ★
-                    <
-                    /button>
-                `).join('')}
-
-            </td>
-
-            <td class="px-4 py-3 text-center">
-                <span class="inline-block min-w-[28px]" data-val="${idx}">
-                    ${val}
-                </span>
-            </td>
-        </tr>
-        `;
-                $ratingTbody.append(row);
-            });
-
-            recalcAverage();
-        }
-
-        function recalcAverage() {
-            if (!ratingRows.length) {
-                $ratingAvg.text('0');
-                return;
-            }
-            const sum = ratingRows.reduce((a, b) => a + (Number(b.rating_score) || 0), 0);
-            const avg = (sum / ratingRows.length);
-            $ratingAvg.text(avg.toFixed(1).replace(/\.0$/, ''));
-        }
-
-        // // handle slider change (delegation)
-        // $(document).on('input change', '#ratingTableBody input[type="range"]', function() {
-        //     const idx = +$(this).data('index') || 0;
-        //     const val = +$(this).val();
-        //     ratingRows[idx].rating_score = val;
-        //     $(`#ratingTableBody span[data-val="${idx}"]`).text(val);
-        //     recalcAverage();
-        // });
-
-        // handle star click (delegation)
-        $(document).on('click', '#ratingTableBody .rating-stars .star', function() {
-            const $star = $(this);
-            const score = +$star.data('score');
-            const idx = +$star.closest('.rating-stars').data('index');
-
-            // update data model
-            ratingRows[idx].rating_score = score;
-
-            // update number
-            $(`#ratingTableBody span[data-val="${idx}"]`).text(score);
-
-            // update star UI
-            const $stars = $star.closest('.rating-stars').find('.star');
-            $stars.each(function(i) {
-                $(this).toggleClass('text-yellow-400', i < score);
-                $(this).toggleClass('text-gray-300', i >= score);
-            });
-
-            recalcAverage();
-        });
-
-
-        // load rating rows dari server (TrBASTRating)
-        function loadRatings(bastid) {
-            // Endpoint asumsi: GET /bast/{bastid}/ratings
-            // Response contoh:
-            // { success: true, data: [{ id, rating_id, rating_no, rating_name, rating_descr, rating_score }, ...] }
-            return $.getJSON(`/bast/${encodeURIComponent(bastid)}/ratings`)
-                .then(res => {
-                    if (!res || !res.success) throw new Error(res?.message || 'Failed to load ratings');
-                    // pastikan score default 0 jika null
-                    ratingRows = (res.data || []).map(r => ({
-                        id: r.id ?? null,
-                        rating_id: r.rating_id ?? null,
-                        rating_no: r.rating_no ?? null,
-                        rating_name: r.rating_name ?? '',
-                        rating_descr: r.rating_descr ?? '',
-                        rating_score: Number.isFinite(+r.rating_score) ? +r.rating_score : 0
-                    }));
-                    renderRatingTable();
-                })
-                .catch(err => {
-                    console.error(err);
-                    $ratingTbody.html(
-                        `<tr><td colspan="3" class="px-4 py-4 text-center text-red-600">Failed to load ratings.</td></tr>`
-                    );
-                });
-        }
-
-        // Approve button -> cek authorize -> buka modal + load ratings
-        $(document).on("click", "#approveBtn", function() {
-            const bastid = "{{ $bast->bastid }}";
-            const $spinner = $("#loadingSpinnerContainer");
-            $spinner.fadeIn();
-
-            let authorized = false;
-
-            $.ajax({
-                    url: `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=BA`,
-                    type: "GET"
-                })
-                .done(function(resp) {
-                    authorized = !!(resp && resp.canPerformAction);
-                    if (!authorized) toastr.error("You are not authorized to approve this Bast.");
-                })
-                .fail(function() {
-                    toastr.error("Error checking approval status.");
-                })
-                .always(function() {
-                    // setelah spinner hilang, kalau authorized → buka modal & load ratings
-                    $spinner.fadeOut(150, async function() {
-                        if (authorized) {
-                            openRatingModal();
-                            // tampilkan skeleton sementara
-                            $ratingTbody.html(
-                                `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Loading ratings…</td></tr>`
-                            );
-                            try {
-                                await loadRatings(bastid);
-                            } catch (_) {
-                                /* error sudah ditangani di loadRatings */
-                            }
-                        }
-                    });
-                });
-        });
-
-        // Cancel modal
-        $(document).on('click', '#ratingCancelBtn', function() {
-            closeRatingModal();
-        });
-
-        // Submit rating → approve
-        $(document).on('click', '#ratingOkBtn', function() {
-            const bastid = "{{ $bast->bastid }}";
-
-            if (!ratingRows.length) {
-                toastr.warning('No rating rows to submit.');
-                return;
-            }
-
-            // validasi ringan: semua 1–10
-            const invalid = ratingRows.some(r => !(r.rating_score >= 1 && r.rating_score <= 10));
-            if (invalid) {
-                toastr.warning('Scores must be between 1 and 10.');
-                return;
-            }
-
-            // hitung average utk header.rating_vendor (opsional – backend boleh hitung sendiri)
-            const avg = ratingRows.reduce((a, b) => a + (+b.rating_score || 0), 0) / ratingRows.length;
-
-            const $spinner = $("#loadingSpinnerContainer");
-            $spinner.fadeIn();
-
-            // kirim ke approve: bawa ratings_json + optional rating_vendor
-            $.ajax({
-                    url: `/bast/${encodeURIComponent(bastid)}/approve`,
-                    type: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        bastid: bastid,
-                        rating_vendor: avg.toFixed(2), // opsional kalau backend pakai
-                        ratings_json: JSON.stringify(
-                            ratingRows) // backend: json_decode($request->ratings_json, true)
-                    }
-                })
-                .done(function(response) {
-                    if (response?.success) {
-                        toastr.success("Bast approved successfully!");
-                        window.location.href = "/bastlist";
-                    } else {
-                        toastr.error(response?.message || "Failed to approve Bast.");
-                    }
-                })
-                .fail(function(xhr) {
-                    if (xhr.status === 403) {
-                        toastr.error("You are not authorized to approve this bast.");
-                    } else {
-                        toastr.error(xhr.responseJSON?.message || "Error: Unable to approve bast.");
-                    }
-                })
-                .always(function() {
-                    $spinner.fadeOut();
-                    closeRatingModal();
-                });
-        });
-    </script> --}}
-
-
-    {{-- <script>
-        // helper: buka/tutup modal rating
-        function openRatingModal() {
-            $('#ratingModal').removeClass('hidden').addClass('flex');
-        }
-        function closeRatingModal() {
-            $('#ratingModal').addClass('hidden').removeClass('flex');
-        }
-
-        let selectedRating = 0;
-
-        // Interaksi bintang
-        $(document).on('mouseenter', '#ratingStars .star-btn', function(){
-            const val = parseInt($(this).data('value'), 10) || 0;
-            highlightStars(val);
-        });
-        $(document).on('mouseleave', '#ratingStars', function(){
-            // kembali ke state terpilih
-            highlightStars(selectedRating);
-        });
-        $(document).on('click', '#ratingStars .star-btn', function(){
-            selectedRating = parseInt($(this).data('value'), 10) || 0;
-            highlightStars(selectedRating);
-        });
-
-        function highlightStars(n){
-            $('#ratingStars .star-btn').each(function(_, el){
-            const v = parseInt($(el).data('value'), 10) || 0;
-            $(el).toggleClass('text-yellow-400', v <= n)
-                .toggleClass('text-gray-300 dark:text-gray-600', v > n);
-            });
-        }
-
-        // Cancel modal
-        $(document).on('click', '#ratingCancelBtn', function(){
-            selectedRating = 0;
-            highlightStars(0);
-            closeRatingModal();
-        });
-
-        // Klik Approve → cek akses → buka modal rating
-        $(document).on("click", "#approveBtn", function () {
-            const bastid  = "{{ $bast->bastid }}";
-            const $spinner = $("#loadingSpinnerContainer");
-            $spinner.fadeIn();
-
-            let authorized = false;
-
-            $.ajax({
-                url: `/approval/${bastid}/check/approve?doctype=BA`,
-                type: "GET"
-            })
-            .done(function(resp){
-                authorized = !!(resp && resp.canPerformAction);
-                if (!authorized) toastr.error("You are not authorized to approve this Bast.");
-            })
-            .fail(function(){
-                toastr.error("Error checking approval status.");
-            })
-            .always(function(){
-                // Pastikan spinner benar-benar hilang dulu, baru buka modal
-                $spinner.fadeOut(150, function () {
-                    if (authorized) {
-                        selectedRating = 0;
-                        highlightStars(0);
-                        openRatingModal();
-                    }
-                });
-            });
-        });
-
-
-        // OK pada modal rating → kirim approve dengan rating
-        $(document).on('click', '#ratingOkBtn', function(){
-            const bastid  = "{{ $bast->bastid }}";
-            if (!selectedRating || selectedRating < 1 || selectedRating > 5) {
-            toastr.warning('Please select a rating (1-5).');
-            return;
-            }
-
-            const $spinner = $("#loadingSpinnerContainer");
-            $spinner.fadeIn();
-
-            $.ajax({
-            url: `/bast/${bastid}/approve`,
-            type: "POST",
-            data: {
-                _token: "{{ csrf_token() }}",
-                bastid: bastid,
-                rating_vendor: selectedRating
-            }
-            }).done(function(response){
-            if (response?.success) {
-                toastr.success("Bast approved successfully!");
-                // optional update UI langsung:
-                // location reload/list
-                window.location.href = "/bastlist";
-            } else {
-                toastr.error(response?.message || "Failed to approve Bast.");
-            }
-            }).fail(function(xhr){
-            if (xhr.status === 403) {
-                toastr.error("You are not authorized to approve this bast.");
-            } else {
-                toastr.error(xhr.responseJSON?.message || "Error: Unable to approve bast.");
-            }
-            }).always(function(){
-            $spinner.fadeOut();
-            closeRatingModal();
-            });
-        });
-    </script> --}}
-
-
     <script>
         $(document).ready(function() {
             // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
@@ -1594,8 +1201,17 @@
 
     <script>
         $(function() {
-            const listUrl = @json(route('attachments.list', ['doctype' => 'BA', 'refnbr' => $bast->bastid]));
-            const uploadUrl = @json(route('attachments.upload', ['doctype' => 'BA', 'refnbr' => $bast->bastid]));
+            // const listUrl = @json(route('attachments.list', ['doctype' => 'BA', 'refnbr' => $bast->bastid]));
+            // const uploadUrl = @json(route('attachments.upload', ['doctype' => 'BA', 'refnbr' => $bast->bastid]));
+            const attachmentRefnbr = @json($bast->bastid ?? null);
+
+            const listUrl = attachmentRefnbr
+                ? `/attachments/BA/${encodeURIComponent(attachmentRefnbr)}`
+                : null;
+
+            const uploadUrl = attachmentRefnbr
+                ? `/attachments/BA/${encodeURIComponent(attachmentRefnbr)}`
+                : null;
 
             function $tbody() {
                 return $('#rcpAttachmentTbody');
@@ -1636,7 +1252,21 @@
                 });
             }
 
+            // function refreshSppbAttachments() {
+            //     $.get(listUrl)
+            //         .done(res => {
+            //             if (res.success) renderSppbAttachmentRows(res.attachments);
+            //             else toastr.error(res.message || 'Failed to load attachments.');
+            //         })
+            //         .fail(() => toastr.error('Failed to load attachments.'));
+            // }
+
             function refreshSppbAttachments() {
+                if (!listUrl) {
+                    renderSppbAttachmentRows([]);
+                    return;
+                }
+
                 $.get(listUrl)
                     .done(res => {
                         if (res.success) renderSppbAttachmentRows(res.attachments);
@@ -1767,6 +1397,116 @@
 
     <script>
         $(function() {
+            const beforeRefnbr = @json($bast->bqid ?? null);
+            const afterRefnbr = @json($bast->bastid ?? null);
+
+            const beforeUrl = beforeRefnbr
+                ? `/attachments/BQ/${encodeURIComponent(beforeRefnbr)}`
+                : null;
+
+            const afterUrl = afterRefnbr
+                ? `/attachments/BA/${encodeURIComponent(afterRefnbr)}`
+                : null;
+
+            const $before = $('#photoBeforeGrid');
+            const $after = $('#photoAfterGrid');
+
+            function cardTpl(at) {
+                const name = at.name || at.display_name || '(no name)';
+                const by = at.created_user ?? at.created_by ?? '-';
+                const dateStr = at.created_at ? dayjs(at.created_at).format("DD MMM 'YY") : '-';
+                const ext = (at.extention || '').toLowerCase();
+                const href = at.url || '#';
+                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif'].includes(ext);
+
+                const thumb = isImg && at.url ?
+                    `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">` :
+                    `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
+                        <span class="text-lg">${ ext === 'pdf' ? '📕' : '📄' }</span>
+                    </div>`;
+
+                return `
+                    <div class="group relative flex min-w-[120px] flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800">
+                        <a ${at.url ? `href="${href}" target="_blank"` : ''} class="relative block aspect-square overflow-hidden">
+                            ${thumb}
+                            <div class="absolute inset-0 bg-black/0 transition group-hover:bg-black/20"></div>
+                        </a>
+                        <div class="px-2 py-2">
+                            <div class="truncate text-sm font-medium text-gray-900 dark:text-gray-100" title="${name}">
+                                ${name}${ext ? `<span class="text-gray-400">.${ext}</span>` : ''}
+                            </div>
+                            <div class="mt-0.5 space-y-0.5">
+                                <div class="truncate text-[11px] text-gray-500 dark:text-gray-400" title="${by}">${by}</div>
+                                <div class="whitespace-nowrap text-[11px] text-gray-500 dark:text-gray-400">${dateStr}</div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            function renderGrid($el, rows) {
+                $el.empty();
+
+                if (!rows || !rows.length) {
+                    $el.append(`
+                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
+                            No attachments found.
+                        </p>
+                    `);
+                    return;
+                }
+
+                rows.forEach(at => $el.append(cardTpl(at)));
+            }
+
+            function renderEmpty($el, message = 'No attachments found.') {
+                $el.empty().append(`
+                    <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
+                        ${message}
+                    </p>
+                `);
+            }
+
+            function refreshBefore() {
+                if (!beforeUrl) {
+                    renderEmpty($before, 'No Photo Before reference found.');
+                    return;
+                }
+
+                $.get(beforeUrl)
+                    .done(res => {
+                        if (res?.success) {
+                            renderGrid($before, res.attachments);
+                        } else {
+                            renderEmpty($before, res?.message || 'No Photo Before found.');
+                        }
+                    })
+                    .fail(() => renderEmpty($before, 'Failed to load Photo Before.'));
+            }
+
+            function refreshAfter() {
+                if (!afterUrl) {
+                    renderEmpty($after, 'No Photo After reference found.');
+                    return;
+                }
+
+                $.get(afterUrl)
+                    .done(res => {
+                        if (res?.success) {
+                            renderGrid($after, res.attachments);
+                        } else {
+                            renderEmpty($after, res?.message || 'No Photo After found.');
+                        }
+                    })
+                    .fail(() => renderEmpty($after, 'Failed to load Photo After.'));
+            }
+
+            refreshBefore();
+            refreshAfter();
+        });
+    </script>
+
+    {{-- <script>
+        $(function() {
             // URL list
             const beforeUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bast->bqid]));
             const afterUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $bast->bastid]));
@@ -1837,7 +1577,7 @@
             refreshBefore();
             refreshAfter();
         });
-    </script>
+    </script> --}}
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {

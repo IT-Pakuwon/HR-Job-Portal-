@@ -14,6 +14,7 @@ use App\Models\TrRfpNonPurchDetail;
 use App\Models\SysUserRole;
 use App\Models\MsGroupbiayaNonPurch;
 use App\Models\BusinessUnit;
+use App\Models\TrRfpNonPurchDeposit;
 use App\Models\TrPO;
 use App\Models\TrCS;
 use App\Models\TrSPPB;
@@ -380,6 +381,38 @@ class RfpNonPurchController extends Controller
             $header->status = 'P';
             $header->created_by = $username;
             $header->save();
+
+            // =========================
+            // DEPOSIT
+            // =========================
+            $isDeposit = MsGroupbiayaNonPurch::query()
+                ->where('groupbiaya_id', $request->groupbiaya_id)
+                ->where('status', 'A')
+                ->where(function ($q) {
+                    $q->where('is_deposit', true)
+                    ->orWhere('is_deposit', 't')
+                    ->orWhere('is_deposit', 1);
+                })
+                ->exists();
+
+            if ($isDeposit) {
+
+                TrRfpNonPurchDeposit::create([
+                    'rfpnonpurchaseid' => $docid,
+                    'cpny_id'          => $request->cpnyid,
+
+                    'custid'           => $request->custid,
+                    'customername'     => $request->customername,
+                    'storename'        => $request->storename,
+                    'unitid'           => $request->unitid,
+                    'transferto'       => $request->transferto,
+                    'bankname'         => $request->bankname,
+                    'bankacct'         => $request->bankacct,
+
+                    'status'           => 'A',
+                    'created_by'       => $username,
+                ]);
+            }
 
             // =========================
             // DETAIL ONLY RFP
@@ -798,6 +831,13 @@ class RfpNonPurchController extends Controller
             'status' => $rfpnonpurch->statuspayment === 'C' ? 'Done' : 'Pending',
         ]);
 
+        // =========================
+        // DEPOSIT
+        // =========================
+        $deposit = TrRfpNonPurchDeposit::query()
+            ->where('rfpnonpurchaseid', $docid)
+            ->first();
+
         return view('pages.rfpnonpurch.showrfpnonpurch', compact(
             'rfpnonpurch',
             'details',
@@ -807,7 +847,8 @@ class RfpNonPurchController extends Controller
             'canUpload',
             'userdept',
             'userdept2',
-            'rfpnonpurchSteps'
+            'rfpnonpurchSteps',
+            'deposit'
         ));
     }
 
@@ -1490,6 +1531,22 @@ class RfpNonPurchController extends Controller
             ];
         });
 
+        // =========================
+        // DEPOSIT INFO
+        // =========================
+        $deposit = TrRfpNonPurchDeposit::query()
+            ->where('rfpnonpurchaseid', $rfpnonpurch->rfpnonpurchaseid)
+            ->where('status', 'A')
+            ->first();
+        
+        $rfpnonpurch->custid       = $deposit->custid ?? null;
+        $rfpnonpurch->customername = $deposit->customername ?? null;
+        $rfpnonpurch->storename    = $deposit->storename ?? null;
+        $rfpnonpurch->unitid       = $deposit->unitid ?? null;
+        $rfpnonpurch->transferto   = $deposit->transferto ?? null;
+        $rfpnonpurch->bankname     = $deposit->bankname ?? null;
+        $rfpnonpurch->bankacct     = $deposit->bankacct ?? null;
+  
         return view('pages.rfpnonpurch.editrfpnonpurch', compact(
             'rfpnonpurch',
             'rfpnonpurchasedetail',
@@ -1602,6 +1659,48 @@ class RfpNonPurchController extends Controller
             $header->updated_by = $username;
             $header->updated_at = $dt;
             $header->save();
+
+            // =========================
+            // UPDATE DEPOSIT
+            // =========================
+            $groupBiaya = MsGroupbiayaNonPurch::query()
+                ->where('groupbiaya_id', $request->groupbiaya_id)
+                ->first();
+
+            $isDeposit = (
+                ($groupBiaya->is_deposit ?? false) === true ||
+                ($groupBiaya->is_deposit ?? null) === 't' ||
+                ($groupBiaya->is_deposit ?? null) == 1
+            );
+
+            if ($isDeposit) {
+
+                TrRfpNonPurchDeposit::updateOrCreate(
+                    [
+                        'rfpnonpurchaseid' => $docid,
+                    ],
+                    [
+                        'cpny_id'      => $request->cpnyid,
+                        'custid'       => $request->custid,
+                        'customername' => $request->customername,
+                        'storename'    => $request->storename,
+                        'unitid'       => $request->unitid,
+                        'transferto'   => $request->transferto,
+                        'bankname'     => $request->bankname,
+                        'bankacct'     => $request->bankacct,
+                        'status'       => 'A',
+                        'updated_by'   => $username,
+                        'updated_at'   => $dt,
+                    ]
+                );
+
+            } else {
+
+                // kalau group biaya bukan deposit
+                TrRfpNonPurchDeposit::query()
+                    ->where('rfpnonpurchaseid', $docid)
+                    ->delete();
+            }
 
             // =========================
             // DELETE DETAIL LAMA
@@ -1899,14 +1998,14 @@ class RfpNonPurchController extends Controller
         // =========================
         // FORMAT DATE
         // =========================
-        $rfpnonpurch->rfpnonpurch_date_fmt = optional($rfpnonpurch->rfpnonpurch_date)->format('d M Y');
+        $rfpnonpurch->rfpnonpurch_date_fmt = optional($rfpnonpurch->rfpnonpurchasedate)->format('d M Y');
         $rfpnonpurch->receive_date_fmt = optional($rfpnonpurch->receive_date)->format('d M Y H:i');
         $rfpnonpurch->payment_date_fmt = optional($rfpnonpurch->payment_date)->format('d M Y H:i');
 
         // =========================
         // TERBILANG
         // =========================
-        $rfpnonpurch->terbilang = trim($this->terbilang((int)$rfpnonpurch->rfpnonpurch_amount)) . ' Rupiah';
+        $rfpnonpurch->terbilang = trim($this->terbilang((int)$rfpnonpurch->amountrequestpayment)) . ' Rupiah';
 
         // =========================
         // STATUS DOC (FOR COLOR)
@@ -1978,5 +2077,6 @@ class RfpNonPurchController extends Controller
         }
     }
 
+    
 
 }

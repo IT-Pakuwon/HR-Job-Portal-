@@ -526,14 +526,45 @@
                                     'inline-flex justify-center items-center w-[120px] px-3 py-1.5 text-sm leading-tight font-semibold text-white rounded text-center transition-colors duration-200 bg-yellow-500 hover:bg-yellow-700';
                             }
 
-                            return `
-                                    <div class="flex items-left gap-2 whitespace-nowrap">
-                                    <a href="${url}" class="${cls}">${text}</a>
-                                    <button type="button"
-                                        class="tracking-btn inline-flex items-left justify-center rounded-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        data-id="${encodeURIComponent(row.imbudgetid)}" data-doc="${text}" aria-label="Tracking" title="Tracking">
-                                        <i class="fa-solid fa-paper-plane"></i>
-                                    </button>
+                            // return `
+                            //         <div class="flex items-left gap-2 whitespace-nowrap">
+                            //         <a href="${url}" class="${cls}">${text}</a>
+                            //         <button type="button"
+                            //             class="tracking-btn inline-flex items-left justify-center rounded-full p-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            //             data-id="${encodeURIComponent(row.imbudgetid)}" data-doc="${text}" aria-label="Tracking" title="Tracking">
+                            //             <i class="fa-solid fa-paper-plane"></i>
+                            //         </button>
+                            //         </div>
+                            //     `;
+                            let eyeButton = '';
+
+                                if (row.status === 'D' && row.user_peminta === currentUser) {
+                                    const showBudgetUrl = `/showimbudgets/${encodeURIComponent(row.eid || row.imbudgetid)}`;
+
+                                    eyeButton = `
+                                        <a href="${showBudgetUrl}" target="_blank"
+                                            class="inline-flex items-center justify-center rounded-full p-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                            aria-label="View Budget"
+                                            title="View Budget">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    `;
+                                }
+
+                                return `
+                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                        <a href="${url}" class="${cls}">${text}</a>
+
+                                        ${eyeButton}
+
+                                        <button type="button"
+                                            class="tracking-btn inline-flex items-center justify-center rounded-full p-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                            data-id="${encodeURIComponent(row.imbudgetid)}"
+                                            data-doc="${text}"
+                                            aria-label="Tracking"
+                                            title="Tracking">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                        </button>
                                     </div>
                                 `;
                         }

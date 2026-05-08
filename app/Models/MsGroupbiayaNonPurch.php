@@ -12,7 +12,7 @@ class MsGroupbiayaNonPurch extends Model
     protected $table = "ms_groupbiaya_nonpurchase";
 
     protected $fillable = [
-        'groupbiaya_id', 'groupbiayadescr', 'is_budget', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at'
+        'groupbiaya_id', 'groupbiayadescr', 'is_budget','is_deposit', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at'
     ];
 
     public function creator()

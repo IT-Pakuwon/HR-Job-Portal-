@@ -124,6 +124,19 @@ class PersonnelController extends Controller
             return redirect()->route('login');
         }
 
+        // ==============================
+        // CHECK ACCESS RECACCESS
+        // ==============================
+        $hasAccess = SysUserRole::query()
+            ->where('username', $user->username)
+            ->where('role_id', 'RECACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'Anda tidak memiliki akses untuk membuka halaman ini.');
+        }
+
         // 🔽 dropdown department (buat filter HCBP)
         $departments = DepartmentHR::where('status', 'A')
             ->orderBy('department_name')
@@ -246,6 +259,20 @@ class PersonnelController extends Controller
     public function createPersonnel()
     {
         $user = request()->user();
+
+        // ==============================
+        // CHECK ACCESS RECACCESS
+        // ==============================
+        $hasAccess = SysUserRole::query()
+            ->where('username', $user->username)
+            ->where('role_id', 'RECACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$hasAccess) {
+            abort(403, 'Anda tidak memiliki akses untuk membuka halaman ini.');
+        }
+
         $usercpny = Usercpny::where('username', '=', $user->username)
             ->get();
         $usercpny2 = Usercpny::where('username', '=', $user->username)

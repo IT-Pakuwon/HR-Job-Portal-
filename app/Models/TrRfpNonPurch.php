@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\MsGroupbiayaNonPurch;
 
 class TrRfpNonPurch extends Model
 {
@@ -21,6 +22,15 @@ class TrRfpNonPurch extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by', 'username');
+    }
+
+    public function groupbiaya()
+    {
+        return $this->belongsTo(
+            MsGroupbiayaNonPurch::class,
+            'groupbiaya_id',
+            'groupbiaya_id'
+        );
     }
 
   
