@@ -892,8 +892,22 @@
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject</h2>
-            <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
-                placeholder="Enter rejection reason..."></textarea>
+
+            @if (!empty($showImBudgetCancelInfo))
+                <div class="mt-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300">
+                    <div class="flex items-start gap-2">
+                        <span class="mt-0.5">⚠️</span>
+                        <div>
+                            <p class="font-semibold">Informasi IM Budget</p>
+                            <p>Jika dokumen ini di-reject, IM Budget terkait akan di-cancel.</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <textarea id="rejectReason"
+                class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter rejection reason..."></textarea>            
 
             <div class="mt-4 flex justify-between">
                 <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
@@ -908,9 +922,24 @@
     <div id="reviseTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
-            <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
-                placeholder="Enter revise reason..."></textarea>
 
+             @if (!empty($showImBudgetCancelInfo))
+                <div class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                    <div class="flex items-start gap-2">
+                        <span class="mt-0.5">⚠️</span>
+                        <div>
+                            <p class="font-semibold">Informasi IM Budget</p>
+                            <p>Jika dokumen ini di-revise, IM Budget terkait akan di-cancel.</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+
+            <textarea id="reviseReason"
+                class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter revise reason..."></textarea>
+           
             <div class="mt-4 flex justify-between">
                 <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
                     Cancel
@@ -919,7 +948,6 @@
                     class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-100 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-gray-600/50">
                     Revise
                 </button>
-
             </div>
         </div>
     </div>

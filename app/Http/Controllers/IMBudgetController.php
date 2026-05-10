@@ -486,29 +486,7 @@ class IMBudgetController extends Controller
             $status     = $header->status;
             $subjectMap = ['P'=>'Waiting Approval','R'=>'Rejected Approval','D'=>'Revise Approval','A'=>'Approved','C'=>'Completed','H'=>'On Hold','X'=>'Cancelled'];
 
-            // $data = [
-            //     'docid'     => $docid,
-            //     'cpnyid'    => $header->cpny_id,
-            //     'deptname'  => $header->department_id,
-            //     'date'      => $header->imbudgetdate,
-            //     'name'      => $header->user_peminta,
-            //     'createdby' => 'system',
-            //     'info'      => 'Request IM Budget Department '.$header->department_id,
-            //     'status'    => $status,
-            //     'docname'   => 'IM Budget',
-            //     'url'       => url('/editimbudgets/' . $eid),
-            // ];
-
-            // $approvers = array_filter(array_map('trim', explode(',', (string)$header->user_peminta)));
-            // $emails    = User::whereIn('username', $approvers)->where('status', 'A')->pluck('notification_email');
-
-            // foreach ($emails as $email) {
-            //     \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
-            //         $message->to($email)
-            //             ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' IM Budget')
-            //             ->from('digitalserver@pakuwon.com', 'Pakuwon System');
-            //     });
-            // }
+           
 
             // === Tentukan penerima email ===
             $isFilled = fn($v) => trim((string)$v) !== '';
@@ -520,32 +498,135 @@ class IMBudgetController extends Controller
             $woid  = strtoupper(trim((string)($cs->woid ?? '')));
             $spbid = strtoupper(trim((string)($cs->spbid ?? '')));
 
-            if ($woid !== '') {
+            // if ($woid !== '') {
 
+            //     $wo = TrWO::query()
+            //         ->select('woid','created_by')
+            //         ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
+            //         ->first();
+
+            //     if ($wo && $isFilled($wo->created_by)) {
+            //         $recipientUsernames = [trim((string)$wo->created_by)];
+            //         $mailName = trim((string)$wo->created_by);
+            //         $mailInfo = "Request IM Budget untuk WO {$woid} - Dept {$header->department_id}";
+            //     }
+
+            // } elseif ($spbid !== '') {
+
+            //     $spb = TrSPB::query()
+            //         ->select('spbid','created_by')
+            //         ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
+            //         ->first();
+
+            //     if ($spb && $isFilled($spb->created_by)) {
+            //         $recipientUsernames = [trim((string)$spb->created_by)];
+            //         $mailName = trim((string)$spb->created_by);
+            //         $mailInfo = "Request IM Budget untuk SPB {$spbid} - Dept {$header->department_id}";
+            //     }
+
+            // }
+
+            // if ($woid !== '') {
+
+            //     $wo = TrWO::query()
+            //         ->select('woid', 'created_by','department_id')
+            //         ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
+            //         ->first();
+
+            //     if ($wo && $isFilled($wo->created_by)) {
+            //         $woCreatedBy = trim((string) $wo->created_by);
+            //         $woDepartmentId = trim((string) $wo->department_id);
+
+            //         // update user_peminta di header IMBudget
+            //         $header->user_peminta = $woCreatedBy;
+            //         $header->updated_by = $username;
+            //         $header->updated_at = now();
+            //         $header->save();
+
+            //         $recipientUsernames = [$woCreatedBy];
+            //         $mailName = $woCreatedBy;
+            //         $mailInfo = "Request IM Budget untuk WO {$woid} - Dept {$woDepartmentId}";
+            //     }
+
+            // } elseif ($spbid !== '') {
+
+            //     $spb = TrSPB::query()
+            //         ->select('spbid', 'created_by','department_id')
+            //         ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
+            //         ->first();
+
+            //     if ($spb && $isFilled($spb->created_by)) {
+            //         $spbCreatedBy = trim((string) $spb->created_by);
+            //         $spbDepartmentId = trim((string) $spb->department_id);
+
+            //         // update user_peminta di header IMBudget
+            //         $header->user_peminta = $spbCreatedBy;
+            //         $header->updated_by = $username;
+            //         $header->updated_at = now();
+            //         $header->save();
+
+            //         $recipientUsernames = [$spbCreatedBy];
+            //         $mailName = $spbCreatedBy;
+            //         $mailInfo = "Request IM Budget untuk SPB {$spbid} - Dept {$spbDepartmentId}";
+            //     }
+
+            // }
+
+            $wo = null;
+            $spb = null;
+
+            // ===============================
+            // PRIORITAS 1: BACA WO DULU
+            // ===============================
+            if ($woid !== '') {
                 $wo = TrWO::query()
-                    ->select('woid','created_by')
+                    ->select('woid', 'created_by', 'department_id')
                     ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
                     ->first();
+            }
 
-                if ($wo && $isFilled($wo->created_by)) {
-                    $recipientUsernames = [trim((string)$wo->created_by)];
-                    $mailName = trim((string)$wo->created_by);
-                    $mailInfo = "Request IM Budget untuk WO {$woid} - Dept {$header->department_id}";
+            if ($wo && $isFilled($wo->created_by)) {
+
+                $woCreatedBy = trim((string) $wo->created_by);
+                $woDepartmentId = trim((string) $wo->department_id);
+
+                // update user_peminta di header IMBudget
+                $header->user_peminta = $woCreatedBy;
+                $header->updated_by = $username;
+                $header->updated_at = now();
+                $header->save();
+
+                $recipientUsernames = [$woCreatedBy];
+                $mailName = $woCreatedBy;
+                $mailInfo = "Request IM Budget untuk WO {$woid} - Dept {$woDepartmentId}";
+
+            } else {
+
+                // ===============================
+                // PRIORITAS 2: JIKA WO TIDAK ADA / TIDAK VALID, BACA SPB
+                // ===============================
+                if ($spbid !== '') {
+                    $spb = TrSPB::query()
+                        ->select('spbid', 'created_by', 'department_id')
+                        ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
+                        ->first();
                 }
-
-            } elseif ($spbid !== '') {
-
-                $spb = TrSPB::query()
-                    ->select('spbid','created_by')
-                    ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
-                    ->first();
 
                 if ($spb && $isFilled($spb->created_by)) {
-                    $recipientUsernames = [trim((string)$spb->created_by)];
-                    $mailName = trim((string)$spb->created_by);
-                    $mailInfo = "Request IM Budget untuk SPB {$spbid} - Dept {$header->department_id}";
-                }
 
+                    $spbCreatedBy = trim((string) $spb->created_by);
+                    $spbDepartmentId = trim((string) $spb->department_id);
+
+                    // update user_peminta di header IMBudget
+                    $header->user_peminta = $spbCreatedBy;
+                    $header->updated_by = $username;
+                    $header->updated_at = now();
+                    $header->save();
+
+                    $recipientUsernames = [$spbCreatedBy];
+                    $mailName = $spbCreatedBy;
+                    $mailInfo = "Request IM Budget untuk SPB {$spbid} - Dept {$spbDepartmentId}";
+                }
             }
 
             // fallback kalau WO/SPB tidak ketemu / created_by kosong
@@ -583,7 +664,7 @@ class IMBudgetController extends Controller
 
             // kirim
             foreach ($emails as $email) {
-                \Mail::send('emails.mailapprovenew', $data, function ($message) use ($email, $data, $subjectMap, $status) {
+                \Mail::send('emails.mailapprovehold', $data, function ($message) use ($email, $data, $subjectMap, $status) {
                     $message->to($email)
                         ->subject($data['docid'].' - '.($subjectMap[$status] ?? 'Notification').' IM Budget')
                         ->from('digitalserver@pakuwon.com', 'Pakuwon System');

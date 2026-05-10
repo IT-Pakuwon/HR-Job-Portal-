@@ -6277,6 +6277,8 @@ class CanvassController extends Controller
 
         $canUpload = $isCreator || $isWaitingApprover;
 
+        $showImBudgetCancelInfo = !empty($cs->imbudgetid) && (bool) $cs->flag_imbudget === true;
+
         return view('pages.canvass.showcs', [
             'cs' => $cs,
             'attachmentCS' => $attachmentCS,
@@ -6292,6 +6294,7 @@ class CanvassController extends Controller
             'canUpload' => $canUpload,
             'eid_cs_prev' => $eid_cs_prev,
             'eid_imbudget' => $eid_imbudget,
+            'showImBudgetCancelInfo' => $showImBudgetCancelInfo,
         ]);
     }
 
@@ -6566,6 +6569,23 @@ class CanvassController extends Controller
                     if ($cs->bqtype !== 'Kontrak') {
                         // 1) Reserve budget via SP (Reject)
                         $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Reject', $username);
+
+                        if (!empty($cs->imbudgetid) && (bool) $cs->flag_imbudget === true) {
+                            // 1a) Jika terkait IMBudget, update status IMBudget jadi Cancel
+                            TrIMBudget::where('imbudgetid', $cs->imbudgetid)
+                                ->update([
+                                    'status' => 'X',
+                                    'updated_by' => $username,
+                                    'updated_at' => $now,
+                                ]);
+
+                            $this->cancelBudget('IM', $cs->imbudgetid, $cpnyId, 'Reject', $username);
+
+                            // 1b) Clear relasi IM Budget di CS
+                            $cs->flag_imbudget = false;
+                            $cs->imbudgetid = '';
+                            $cs->status_imbudget = '';
+                        }
                     }
 
                     // ✅ 2) Update rejectordered di dokumen sumber (SPPB/SPPJ/SPPK/SPPT)
@@ -6662,6 +6682,23 @@ class CanvassController extends Controller
                     if ($cs->bqtype !== 'Kontrak') {
                         // 1) Reserve budget via SP (Revise)
                         $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Revise', $username);
+
+                        if (!empty($cs->imbudgetid) && (bool) $cs->flag_imbudget === true) {
+                            // 1a) Jika terkait IMBudget, update status IMBudget jadi Cancel
+                            TrIMBudget::where('imbudgetid', $cs->imbudgetid)
+                                ->update([
+                                    'status' => 'X',
+                                    'updated_by' => $username,
+                                    'updated_at' => $now,
+                                ]);
+
+                            $this->cancelBudget('IM', $cs->imbudgetid, $cpnyId, 'Revise', $username);
+
+                            // 1b) Clear relasi IM Budget di CS
+                            $cs->flag_imbudget = false;
+                            $cs->imbudgetid = '';
+                            $cs->status_imbudget = '';
+                        }
                     }
 
                     // ✅ 2) rollback ordered/openordered ke dokumen sumber
@@ -7662,6 +7699,16 @@ class CanvassController extends Controller
 
     // Williem 251214 Reserve Budget
     private function reserveBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?,?)',
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
+        );
+    }
+
+    private function cancelBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
     {
         // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
         // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
