@@ -66,6 +66,12 @@
                             <span class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold">
                                 {{ $statusText }}
                             </span>
+                            <a href="{{ url('/pdf_imbudgetnonpurch') }}/{{ $hash }}" target="_blank">
+                                <button
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    Print PDF
+                                </button>
+                            </a>
                         </div>
                     </header>
 
@@ -104,12 +110,12 @@
                                 </span>
                             </div>
 
-                            <div class="{{ $row }}">
+                            {{-- <div class="{{ $row }}">
                                 <div class="{{ $label }}">
                                     <span>Requester</span>
                                 </div>
                                 <span class="{{ $value }}">{{ $header->user_peminta ?? '-' }}</span>
-                            </div>
+                            </div> --}}
 
                             <div class="{{ $row }}">
                                 <div class="{{ $label }}">

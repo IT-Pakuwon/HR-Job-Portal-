@@ -6361,7 +6361,14 @@ class CanvassController extends Controller
         $needGenerateNow = $flagIM && empty($existingIM) && ($currentLevel >= $threshold);
 
         // 1) flag=true & sudah punya IM tapi belum Complete → STOP approve
-        if ($flagIM && !empty($existingIM) && $statusIM !== 'C') {
+        // if ($flagIM && !empty($existingIM) && $statusIM !== 'C') {
+        //     return response()->json([
+        //         'success' => false,
+        //         'code' => 'IM_IN_PROGRESS',
+        //         'message' => 'Tidak bisa approve. Masih On Progress IM.',
+        //     ], 409);
+        // }
+        if ($flagIM && !empty($existingIM) && $statusIM !== 'C' && $currentLevel >= $threshold) {
             return response()->json([
                 'success' => false,
                 'code' => 'IM_IN_PROGRESS',

@@ -397,19 +397,7 @@ class IMBudgetNonPurchController extends Controller
                 $request->cpnyid,
                 $request->departementid
             );
-
-            // [$firstApprovalUsernames] = $approvalCtl->generateForDocument(
-            //     $docid,
-            //     $doctype,
-            //     $request->cpnyid,
-            //     $request->departementid,
-            //     $username,
-            //     [
-            //         'ignore_nominal' => true
-            //     ],
-            //     $dt
-            // );
-
+        
             $ctx = [
                 'ignore_nominal' => false,
                 'grand_total' => (float) $header->request_budget,
@@ -2322,24 +2310,16 @@ class IMBudgetNonPurchController extends Controller
             return redirect()->route('login');
         }
 
-        // Ambil IMBudgetNonPurch + relasi yang dibutuhkan
         $imnonpurchase = TrImbudgetNonPurch::with([
-            'requestType:requesttypeid,requesttype_name',
             'creator:username,name',
-        ])
-            ->findOrFail($id);
+        ])->findOrFail($id);
 
-        // Detail baris IMBudgetNonPurch
-        $imnonpurchasedetail = TrImbudgetNonPurchdetail::with([
-            'location:location_id,location_name',
-            'subLocation:sub_location_id,sub_location_name',
-        ])
+        $imnonpurchasedetail = TrImbudgetNonPurchDetail::query()
             ->where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)
-            ->orderBy('imnonpurchase_no', 'ASC')
+            ->orderBy('id', 'asc')
             ->get();
 
         $refnbr = $imnonpurchase->imnonpurchaseid;
-        $apprTable = (new TrApproval())->getTable(); // "tr_approval"
 
         $approval = TrApproval::query()
             ->where('refnbr', $refnbr)
@@ -2357,78 +2337,73 @@ class IMBudgetNonPurchController extends Controller
                 'aprv_type',
                 'aprv_condition',
             ]);
-        $approval = TrApproval::query()
-            ->where('refnbr', $refnbr)
-            ->where('status', '<>', 'X')
-            ->reorder()
-            ->orderBy('created_at', 'asc')
-            ->orderBy('aprv_leveling', 'asc')
-            ->orderBy('id', 'asc')
-            ->get([
-                'aprv_leveling',
-                'aprv_name',
-                'aprv_datebefore',
-                'aprv_dateafter',
-                'status',
-                'aprv_type',
-                'aprv_condition',
-            ]);
-        // dd($approval);
+
         $approve_count = $approval->count();
 
-        // Company (handle null)
         $company = MsCompany::where('cpny_id', $imnonpurchase->cpny_id)->first();
 
-        // Mapping status dokumen
-        switch ($imnonpurchase->status) {
-            case 'R':
-                $status_doc = 'Rejected';
-                break;
-            case 'C':
-                $status_doc = 'Completed';
-                break;
-            case 'D':
-                $status_doc = 'Hold';
-                break;
-            case 'X':
-                $status_doc = 'Cancel';
-                break;
-            default:
-                $status_doc = 'On Progress';
-                break;
-        }
+        $status_doc = match ($imnonpurchase->status) {
+            'R' => 'Rejected',
+            'C' => 'Completed',
+            'D' => 'Hold',
+            'X' => 'Cancel',
+            default => 'On Progress',
+        };
+
+        $createdByName = optional($imnonpurchase->creator)->name
+            ? ucwords(strtolower(optional($imnonpurchase->creator)->name))
+            : $imnonpurchase->created_by;
 
         $data = [
-            'title' => 'Surat Permintaan Pembelian Barang',
-            'doc_type' => 'IMBudgetNonPurch',
+            'title' => 'Internal Memo Budget Non Purchase',
+            'doc_type' => 'IM Budget Non Purchase',
             'docid' => $imnonpurchase->imnonpurchaseid,
-            'department_id' => $imnonpurchase->department_id,
+
+            'cpny_id' => $imnonpurchase->cpny_id,
             'cpnyname' => optional($company)->cpny_name,
             'parent' => optional($company)->parent,
             'project' => optional($company)->project,
-            // identitas & tanggal
+
+            'department_id' => $imnonpurchase->department_id,
+            'user_peminta' => $imnonpurchase->user_peminta,
+            'imnonpurchasetype' => $imnonpurchase->imnonpurchasetype,
+
             'created_by_username' => $imnonpurchase->created_by,
-            'created_by_name' => ucwords(strtolower(optional($imnonpurchase->creator)->name)),
-            'created_at_fmt' => optional($imnonpurchase->created_at)->format('d F Y'),
-            'req_date_fmt' => optional($imnonpurchase->created_at)->format('d M Y H:i'),
-            'imnonpurchasedate' => \Carbon\Carbon::parse($imnonpurchase->imnonpurchasedate)->format('d F Y'),
-            // konten
-            'keperluan' => $imnonpurchase->keperluan,
+            'created_by_name' => $createdByName,
+
+            'created_at_fmt' => $imnonpurchase->created_at
+                ? Carbon::parse($imnonpurchase->created_at)->format('d F Y')
+                : '-',
+
+            'req_date_fmt' => $imnonpurchase->created_at
+                ? Carbon::parse($imnonpurchase->created_at)->format('d M Y H:i')
+                : '-',
+
+            'imnonpurchasedate' => $imnonpurchase->imnonpurchasedate
+                ? Carbon::parse($imnonpurchase->imnonpurchasedate)->format('d F Y')
+                : '-',
+
+            'imbudgetkeperluan' => $imnonpurchase->imbudgetkeperluan,
+
+            'budget_from' => $imnonpurchase->budget_from,
+            'budget_to' => $imnonpurchase->budget_to,
+            'expenditure_type' => $imnonpurchase->expenditure_type,
+            'existing_budget' => $imnonpurchase->existing_budget,
+            'request_budget' => $imnonpurchase->request_budget,
+            'over_budget' => $imnonpurchase->over_budget,
+
             'status_doc' => $status_doc,
-            'requesttype_name' => optional($imnonpurchase->requestType)->requesttype_name,
+
+            'detail' => $imnonpurchasedetail,
+            'approval' => $approval,
+            'approve_count' => $approve_count,
         ];
 
-        // Kirim ke view
         $pdf = \PDF::loadView(
             'pages.imbudgetnonpurch.pdf_imbudgetnonpurch',
-            array_merge($data, [
-                'detail' => $imnonpurchasedetail,
-                'approval' => $approval,
-                'approve_count' => $approve_count,
-            ])
+            $data
         );
 
-        // Portrait jika <= 5 approver, else landscape
         $pdf->setPaper('A4', ($approve_count <= 5) ? 'portrait' : 'landscape');
 
         return $pdf->stream("pdf_imbudgetnonpurch_{$imnonpurchase->imnonpurchaseid}.pdf");

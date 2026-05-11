@@ -1047,6 +1047,128 @@ class BastController extends Controller
 
         $daysPenalty = 0;
         $penaltyDaily = 0.0;
+        $totalPenaltyRaw = 0.0;
+        $totalPenalty = 0.0;
+        $maxPenalty = 0.0;
+        $maxPercentAmount = 0.0;
+
+        if (!empty($bast->enddate)) {
+            $end = Carbon::parse($bast->enddate)->startOfDay();
+            $ho = $approveAt->copy()->startOfDay();
+
+            if ($ho->gt($end)) {
+                $lateStart = $end->copy()->addDay(); // mulai telat = enddate + 1
+                $lateEnd = $ho->copy();              // sampai tanggal approve / handover
+
+                // Ambil hari libur dari sys_calendar_exception / sys_calendar
+                $holidayDates = SysCalendar::query()
+                    ->where('status', 'A')
+                    ->whereBetween('date_calendar', [
+                        $lateStart->toDateString(),
+                        $lateEnd->toDateString()
+                    ])
+                    ->pluck('date_calendar')
+                    ->map(fn ($d) => Carbon::parse($d)->toDateString())
+                    ->all();
+
+                // jadikan set agar lookup cepat
+                $holidaySet = array_fill_keys($holidayDates, true);
+
+                // Hitung business day manual: exclude weekend + exclude holiday
+                $cursor = $lateStart->copy();
+
+                while ($cursor->lte($lateEnd)) {
+                    $isWeekend = $cursor->isSaturday() || $cursor->isSunday();
+                    $isHoliday = isset($holidaySet[$cursor->toDateString()]);
+
+                    if (!$isWeekend && !$isHoliday) {
+                        ++$daysPenalty;
+                    }
+
+                    $cursor->addDay();
+                }
+
+                // Nilai BAST / SPK
+                $amount = (float) ($bast->bast_amount ?? 0);
+
+                // Lookup penalty per hari dari MsPenalty sesuai bast_amount
+                $penRow = MsPenalty::query()
+                    ->where('status', 'A')
+                    ->where('min_amount', '<=', $amount)
+                    ->where('max_amount', '>=', $amount)
+                    ->orderBy('min_amount')
+                    ->first();
+
+                if ($penRow) {
+                    $penaltyDaily = (float) ($penRow->penalty ?? 0);
+
+                    // Ambil maksimal persen dari ms_penalty.max_percent_amount
+                    // Contoh isi max_percent_amount = 20, artinya 20%
+                    $maxPercentAmount = (float) ($penRow->max_percent_amount ?? 0);
+
+                    // Total penalti sebelum dibatasi maksimal
+                    $totalPenaltyRaw = $daysPenalty * $penaltyDaily;
+
+                    // Maksimal penalti = max_percent_amount % x nilai BAST / SPK
+                    $maxPenalty = $amount * ($maxPercentAmount / 100);
+
+                    // Total penalti final tidak boleh lebih dari batas maksimal
+                    if ($maxPenalty > 0) {
+                        $totalPenalty = min($totalPenaltyRaw, $maxPenalty);
+                    } else {
+                        // kalau max_percent_amount kosong / 0, tidak dibatasi
+                        $totalPenalty = $totalPenaltyRaw;
+                    }
+                }
+
+                \Log::info('[BAST][Penalty] calc', [
+                    'bastid' => $bast->bastid,
+                    'enddate' => $end->toDateString(),
+                    'approve' => $ho->toDateString(),
+                    'late_start' => $lateStart->toDateString(),
+                    'late_end' => $lateEnd->toDateString(),
+                    'holidays' => $holidayDates,
+                    'daysPenalty' => $daysPenalty,
+                    'amount' => $amount,
+                    'penaltyDaily' => $penaltyDaily,
+                    'maxPercentAmount' => $maxPercentAmount,
+                    'totalPenaltyRaw' => $totalPenaltyRaw,
+                    'maxPenalty' => $maxPenalty,
+                    'totalPenaltyFinal' => $totalPenalty,
+                    'isCapped' => $maxPenalty > 0 && $totalPenaltyRaw > $maxPenalty,
+                    'penalty_id' => $penRow->penalty_id ?? null,
+                ]);
+            }
+        }
+
+        $bast->days_penalty = $daysPenalty;
+        $bast->penalty = $penaltyDaily; // tarif/hari dari MsPenalty
+        $bast->total_penalty = $totalPenalty;
+
+        // Realisasi setelah dikurangi penalti final
+        $bastAmount = (float) ($bast->bast_amount ?? 0);
+        $bast->realize_amount = max(0, $bastAmount - $totalPenalty);
+
+        \Log::info('[BAST][Penalty] applied', [
+            'bastid' => $bast->bastid,
+            'handoverdate' => $bast->handoverdate,
+            'days_penalty' => $bast->days_penalty,
+            'penalty_daily' => $bast->penalty,
+            'max_percent_amount' => $maxPercentAmount,
+            'total_penalty_raw' => $totalPenaltyRaw,
+            'max_penalty' => $maxPenalty,
+            'total_penalty_final' => $bast->total_penalty,
+            'realize_amount' => $bast->realize_amount,
+        ]);
+    }
+
+    private function applyBastPenalty_old(TrBast $bast, Carbon $approveAt): void
+    {
+        // handoverdate = tanggal approve
+        $bast->handoverdate = $approveAt->toDateString();
+
+        $daysPenalty = 0;
+        $penaltyDaily = 0.0;
         $totalPenalty = 0.0;
 
         if (!empty($bast->enddate)) {

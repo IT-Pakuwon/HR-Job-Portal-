@@ -588,33 +588,7 @@ class ApprovalController extends Controller
         ]);
     }
 
-    public function getApprovalByDocument_xxx(string $refnbr, string $doctype)
-    {
-        $data = TrApproval::query()
-            ->where('refnbr', $refnbr)
-            ->where('aprv_doctype', $doctype)
-            ->where('status', '<>', 'X');
-
-        $ordered = $this->orderByLevel($data) ?? $data;
-        $ordered->orderBy('created_at', 'asc');
-
-        $rows = $ordered->get([
-            'aprv_leveling',
-            'aprv_name',
-            'aprv_datebefore',
-            'aprv_dateafter',
-            'status',
-            'aprv_type',
-            'aprv_condition',
-        ]);
-
-        return response()->json([
-            'refnbr'  => $refnbr,
-            'doctype' => $doctype,
-            'data'    => $rows,
-        ]);
-    }
-
+    
     public function checkApproval(Request $request, string $refnbr, string $action)
     {
         $user     = Auth::user();
