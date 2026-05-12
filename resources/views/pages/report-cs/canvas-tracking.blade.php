@@ -368,12 +368,40 @@ $(function(){
 
             {
                 data: 'assigndate',
-                render: d => d ? new Date(d).toLocaleDateString('id-ID') : ''
+                render: function(data, type){
+
+                    if (!data) return '';
+
+                    // raw value for sorting
+                    if (type === 'sort' || type === 'type') {
+                        return data;
+                    }
+
+                    return new Date(data).toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                }
             },
 
             {
                 data: 'submitdate',
-                render: d => d ? new Date(d).toLocaleDateString('id-ID') : ''
+                render: function(data, type){
+
+                    if (!data) return '';
+
+                    // raw value for sorting
+                    if (type === 'sort' || type === 'type') {
+                        return data;
+                    }
+
+                    return new Date(data).toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                }
             },
             {
                 data: 'days',
@@ -402,7 +430,7 @@ $(function(){
 
         ],
 
-        order: [[3,'desc']]
+        order: [[2,'desc']]
     });
 
                 // ✅ PINDAH KE SINI
