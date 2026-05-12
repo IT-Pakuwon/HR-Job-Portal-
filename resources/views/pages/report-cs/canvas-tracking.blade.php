@@ -3,13 +3,13 @@
     <!-- FILTER PANEL -->
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
 
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
             <div>
                 <label class="mb-1 block text-[11px] font-medium text-gray-500">
                     Date From
                 </label>
                 <input type="date" id="f_date_from"
-                      class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <div>
@@ -17,7 +17,7 @@
                     Date To
                 </label>
                 <input type="date" id="f_date_to"
-                      class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <div>
@@ -25,7 +25,7 @@
                     CS ID
                 </label>
                 <input type="text" id="f_csid" placeholder="CS-xxxx"
-                     class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <div>
@@ -33,15 +33,14 @@
                     SPPBJKT
                 </label>
                 <input type="text" id="f_sppbjkt" placeholder="PB-xxxx"
-                     class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <div>
                 <label class="mb-1 block text-[11px] font-medium text-gray-500">
                     Doc Type
                 </label>
-                <select id="f_doc_type"
-                     class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                <select id="f_doc_type" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
                     <option value="">All</option>
                     <option value="SPPB">SPPB</option>
                     <option value="SPPJ">SPPJ</option>
@@ -54,10 +53,9 @@
                 <label class="mb-1 block text-[11px] font-medium text-gray-500">
                     Department
                 </label>
-                <select id="f_department"
-                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                <select id="f_department" class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
                     <option value="">All</option>
-                    @foreach($departments as $id => $name)
+                    @foreach ($departments as $id => $name)
                         <option value="{{ $id }}">{{ $name }}</option>
                     @endforeach
                 </select>
@@ -67,8 +65,7 @@
                 <label class="mb-1 block text-[11px] font-medium text-gray-500">
                     Requester
                 </label>
-                <input type="text" id="f_requester"
-                    placeholder="username / name"
+                <input type="text" id="f_requester" placeholder="username / name"
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
             </div>
 
@@ -93,13 +90,11 @@
 
                 {{-- <input type="hidden" id="f_status"> --}}
 
-                <button id="btnFilter"
-                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm text-white">
+                <button id="btnFilter" class="rounded-lg bg-gray-900 px-4 py-2 text-sm text-white">
                     Apply
                 </button>
 
-                <button id="btnReset"
-                    class="rounded-lg border px-4 py-2 text-sm">
+                <button id="btnReset" class="rounded-lg border px-4 py-2 text-sm">
                     Reset
                 </button>
 
@@ -111,65 +106,65 @@
 
 
     <!-- STATUS PANEL -->
-    <div id="statusBar" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
+    <div id="statusBar" class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
 
         <!-- ALL -->
-        <div class="status-card group cursor-pointer bg-white border border-gray-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm transition hover:shadow-md"
             data-key="total">
-            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-gray-100 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-lg">
                 📄
             </div>
-            <div class="flex justify-between w-full">
+            <div class="flex w-full justify-between">
                 <div class="text-sm text-gray-500">All</div>
-                <div class="text-lg font-bold text-gray-800 count">0</div>
+                <div class="count text-lg font-bold text-gray-800">0</div>
             </div>
         </div>
 
         <!-- PROCESS -->
-        <div class="status-card group cursor-pointer bg-yellow-50 border border-yellow-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-yellow-200 bg-yellow-50 p-2 shadow-sm transition hover:shadow-md"
             data-key="process">
-            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-yellow-100 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100 text-lg">
                 ⏳
             </div>
-            <div class="flex justify-between w-full">
+            <div class="flex w-full justify-between">
                 <div class="text-sm text-yellow-700">On Progress</div>
-                <div class="text-lg font-bold text-yellow-800 count">0</div>
+                <div class="count text-lg font-bold text-yellow-800">0</div>
             </div>
         </div>
 
         <!-- REJECT -->
-        <div class="status-card group cursor-pointer bg-red-50 border border-red-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-2 shadow-sm transition hover:shadow-md"
             data-key="rejected">
-            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-red-100 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-lg">
                 ⛔
             </div>
-            <div class="flex justify-between w-full">
+            <div class="flex w-full justify-between">
                 <div class="text-sm text-red-600">Rejected</div>
-                <div class="text-lg font-bold text-red-700 count">0</div>
+                <div class="count text-lg font-bold text-red-700">0</div>
             </div>
         </div>
 
         <!-- REVISED -->
-        <div class="status-card group cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-2 shadow-sm transition hover:shadow-md"
             data-key="revised">
-            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-gray-200 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200 text-lg">
                 ✏️
             </div>
-            <div class="flex justify-between w-full">
+            <div class="flex w-full justify-between">
                 <div class="text-sm text-gray-600">Revised</div>
-                <div class="text-lg font-bold text-gray-800 count">0</div>
+                <div class="count text-lg font-bold text-gray-800">0</div>
             </div>
         </div>
 
         <!-- COMPLETED -->
-        <div class="status-card group cursor-pointer bg-green-50 border border-green-200 rounded-xl p-2 flex items-center gap-3 shadow-sm hover:shadow-md transition"
+        <div class="status-card group flex cursor-pointer items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-2 shadow-sm transition hover:shadow-md"
             data-key="completed">
-            <div class="h-10 w-10 flex items-center justify-center rounded-lg bg-green-100 text-lg">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-lg">
                 ✅
             </div>
-            <div class="flex justify-between w-full">
+            <div class="flex w-full justify-between">
                 <div class="text-sm text-green-600">Completed</div>
-                <div class="text-lg font-bold text-green-700 count">0</div>
+                <div class="count text-lg font-bold text-green-700">0</div>
             </div>
         </div>
 
@@ -241,53 +236,61 @@
 
 
 <script>
-$(function(){
+    $(function() {
 
-    let currentStatus = '';
-    let table = $('#trackingTable').DataTable({
+        let currentStatus = '';
+        let table = $('#trackingTable').DataTable({
 
-        processing: true,
-        serverSide: true,
-        responsive: true,
-        searching: false,
+            processing: true,
+            serverSide: true,
+            responsive: true,
+            searching: false,
 
-        ajax: {
-            url: "{{ route('report.cs.tracking.json') }}",
-            data: function(d){
+            pageLength: 10,
+            lengthMenu: [
+                [10, 25, 50, 100, 250, -1],
+                [10, 25, 50, 100, 250, 'All']
+            ],
 
-                // ❌ HAPUS INI
-                // d.status = currentStatus;
 
-                // ✅ pake 1 source saja
-                d.status = currentStatus;
 
-                d.date_from = $('#f_date_from').val();
-                d.date_to   = $('#f_date_to').val();
-                d.csid      = $('#f_csid').val();
-                d.sppbjkt   = $('#f_sppbjkt').val();
-                d.department  = $('#f_department').val();
-                d.requester   = $('#f_requester').val();
-                d.doc_type    = $('#f_doc_type').val();
+            ajax: {
+                url: "{{ route('report.cs.tracking.json') }}",
+                data: function(d) {
+
+                    // ❌ HAPUS INI
+                    // d.status = currentStatus;
+
+                    // ✅ pake 1 source saja
+                    d.status = currentStatus;
+
+                    d.date_from = $('#f_date_from').val();
+                    d.date_to = $('#f_date_to').val();
+                    d.csid = $('#f_csid').val();
+                    d.sppbjkt = $('#f_sppbjkt').val();
+                    d.department = $('#f_department').val();
+                    d.requester = $('#f_requester').val();
+                    d.doc_type = $('#f_doc_type').val();
+                },
+
+                dataSrc: function(json) {
+
+                    console.log(json); // 🔍 debug (optional)
+
+                    updateStatusCards(json.summary); // ✅ FIX
+
+                    return json.data;
+                }
             },
 
-            dataSrc: function(json){
+            columns: [
 
-                console.log(json); // 🔍 debug (optional)
+                // { data: null, className: 'dtr-control', orderable:false },
+                {
+                    data: 'csid',
+                    render: function(data, type, row) {
 
-                updateStatusCards(json.summary); // ✅ FIX
-
-                return json.data;
-            }
-        },
-
-        columns: [
-
-            // { data: null, className: 'dtr-control', orderable:false },
-            {
-                data: 'csid',
-                render: function(data, type, row){
-
-                    return `
+                        return `
                         <div class="flex items-center gap-2">
 
                             <!-- OPEN DOCUMENT -->
@@ -303,184 +306,192 @@ $(function(){
 
                         </div>
                     `;
-                }
-            },
-            {
-                data: 'sppbjktid',
-                render: function(data, type, row){
-
-                    if(!data) return '';
-
-                    // ❗ kalau hash tidak ada → jangan buat link
-                    if(!row.doc_hash){
-                        return data;
                     }
+                },
+                {
+                    data: 'sppbjktid',
+                    render: function(data, type, row) {
 
-                    let url = '';
+                        if (!data) return '';
 
-                    switch(row.doc_type){
-                        case 'SPPB':
-                            url = `/showsppbs/${row.doc_hash}`;
-                            break;
-                        case 'SPPJ':
-                            url = `/showsppjs/${row.doc_hash}`;
-                            break;
-                        case 'SPPK':
-                            url = `/showsppks/${row.doc_hash}`;
-                            break;
-                        case 'SPPT':
-                            url = `/showsppts/${row.doc_hash}`;
-                            break;
-                        default:
+                        // ❗ kalau hash tidak ada → jangan buat link
+                        if (!row.doc_hash) {
                             return data;
-                    }
+                        }
 
-                    return `<a href="${url}" target="_blank"
+                        let url = '';
+
+                        switch (row.doc_type) {
+                            case 'SPPB':
+                                url = `/showsppbs/${row.doc_hash}`;
+                                break;
+                            case 'SPPJ':
+                                url = `/showsppjs/${row.doc_hash}`;
+                                break;
+                            case 'SPPK':
+                                url = `/showsppks/${row.doc_hash}`;
+                                break;
+                            case 'SPPT':
+                                url = `/showsppts/${row.doc_hash}`;
+                                break;
+                            default:
+                                return data;
+                        }
+
+                        return `<a href="${url}" target="_blank"
                         class="px-2 py-1 bg-indigo-500 text-white rounded text-xs">
                         ${data}
                     </a>`;
-                }
-            },
-
-            {
-                data: 'csdate',
-                render: function(data, type){
-
-                    if (!data) return '';
-
-                    // sorting uses raw value
-                    if (type === 'sort' || type === 'type') {
-                        return data;
                     }
+                },
 
-                    // display format
-                    return new Date(data).toLocaleDateString('id-ID', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                    });
-                }
-            },
-            { data: 'cpny_id' },
-            { data: 'department_name' },
-            { data: 'created_by_name' },
-            { data: 'csnote', defaultContent: '-' },
+                {
+                    data: 'csdate',
+                    render: function(data, type) {
 
-            {
-                data: 'assigndate',
-                render: function(data, type){
+                        if (!data) return '';
 
-                    if (!data) return '';
+                        // sorting uses raw value
+                        if (type === 'sort' || type === 'type') {
+                            return data;
+                        }
 
-                    // raw value for sorting
-                    if (type === 'sort' || type === 'type') {
-                        return data;
+                        // display format
+                        return new Date(data).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        });
                     }
+                },
+                {
+                    data: 'cpny_id'
+                },
+                {
+                    data: 'department_name'
+                },
+                {
+                    data: 'created_by_name'
+                },
+                {
+                    data: 'csnote',
+                    defaultContent: '-'
+                },
 
-                    return new Date(data).toLocaleDateString('id-ID', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                    });
-                }
-            },
+                {
+                    data: 'assigndate',
+                    render: function(data, type) {
 
-            {
-                data: 'submitdate',
-                render: function(data, type){
+                        if (!data) return '';
 
-                    if (!data) return '';
+                        // raw value for sorting
+                        if (type === 'sort' || type === 'type') {
+                            return data;
+                        }
 
-                    // raw value for sorting
-                    if (type === 'sort' || type === 'type') {
-                        return data;
+                        return new Date(data).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        });
                     }
+                },
 
-                    return new Date(data).toLocaleDateString('id-ID', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                    });
-                }
-            },
-            {
-                data: 'days',
-                className: 'text-center',
-                render: function(v, t, row){
+                {
+                    data: 'submitdate',
+                    render: function(data, type) {
 
-                    if(!v) return '';
+                        if (!data) return '';
 
-                    // split "7 / 4"
-                    let parts = v.split('/');
-                    let current = parts[0];
-                    let total = parts[1];
+                        // raw value for sorting
+                        if (type === 'sort' || type === 'type') {
+                            return data;
+                        }
 
-                    return renderDays(current, total);
-                }
-            },
-            {
-                data: 'status',
-                className: 'text-center',
-                render: function(_, __, row){
-                    return `<span class="px-2 py-1 rounded text-xs font-semibold ${row.status_class}">
+                        return new Date(data).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        });
+                    }
+                },
+                {
+                    data: 'days',
+                    className: 'text-center',
+                    render: function(v, t, row) {
+
+                        if (!v) return '';
+
+                        // split "7 / 4"
+                        let parts = v.split('/');
+                        let current = parts[0];
+                        let total = parts[1];
+
+                        return renderDays(current, total);
+                    }
+                },
+                {
+                    data: 'status',
+                    className: 'text-center',
+                    render: function(_, __, row) {
+                        return `<span class="px-2 py-1 rounded text-xs font-semibold ${row.status_class}">
                         ${row.status_label}
                     </span>`;
+                    }
                 }
-            }
 
-        ],
+            ],
 
-        order: [[2,'desc']]
-    });
+            order: [
+                [2, 'desc']
+            ]
+        });
 
-                // ✅ PINDAH KE SINI
-    $(document).on('click', '.status-card', function(){
+        // ✅ PINDAH KE SINI
+        $(document).on('click', '.status-card', function() {
 
-        let key = $(this).data('key');
+            let key = $(this).data('key');
 
-        $('.status-card').removeClass('ring-2 ring-indigo-500');
-        $(this).addClass('ring-2 ring-indigo-500');
+            $('.status-card').removeClass('ring-2 ring-indigo-500');
+            $(this).addClass('ring-2 ring-indigo-500');
 
-        let map = {
-            total: '',
-            process: 'P',
-            rejected: 'R',
-            revised: 'D',
-            completed: 'C'
-        };
+            let map = {
+                total: '',
+                process: 'P',
+                rejected: 'R',
+                revised: 'D',
+                completed: 'C'
+            };
 
-        currentStatus = map[key] || '';
+            currentStatus = map[key] || '';
 
-        table.ajax.reload(); // 🔥 pake instance yang sama
-    });
+            table.ajax.reload(); // 🔥 pake instance yang sama
+        });
 
 
-    $('#btnFilter').click(()=> table.ajax.reload());
+        $('#btnFilter').click(() => table.ajax.reload());
 
-    $('#btnReset').click(()=>{
-        $('#f_date_from,#f_date_to,#f_csid,#f_sppbjkt').val('');
-        table.ajax.reload();
+        $('#btnReset').click(() => {
+            $('#f_date_from,#f_date_to,#f_csid,#f_sppbjkt').val('');
+            table.ajax.reload();
         });
     });
 
 
 
-    function updateStatusCards(summary){
+    function updateStatusCards(summary) {
 
-        $('#statusBar .status-card').each(function(){
+        $('#statusBar .status-card').each(function() {
             let key = $(this).data('key');
             $(this).find('.count').text(summary[key] ?? 0);
         });
     }
-
-
 </script>
 <script>
-
     function renderDays(current, total) {
 
         current = parseInt(current || 0);
-        total   = parseInt(total || 0);
+        total = parseInt(total || 0);
 
         const percent = total > 0 ? Math.min((current / total) * 100, 100) : 0;
 
@@ -499,16 +510,14 @@ $(function(){
                 bar: 'bg-red-500'
             };
             statusLabel = `<span class="text-[10px] text-red-500 font-semibold">Overdue</span>`;
-        }
-        else if (current === total) {
+        } else if (current === total) {
             color = {
                 text: 'text-yellow-700 dark:text-yellow-400',
                 bg: 'bg-yellow-50 dark:bg-yellow-900/20',
                 bar: 'bg-yellow-500'
             };
             statusLabel = `<span class="text-[10px] text-yellow-600">Due Today</span>`;
-        }
-        else if (current >= total * 0.7) {
+        } else if (current >= total * 0.7) {
             color = {
                 text: 'text-orange-600 dark:text-orange-400',
                 bg: 'bg-orange-50 dark:bg-orange-900/20',
@@ -540,14 +549,14 @@ $(function(){
         `;
     }
 
-    $(function(){
+    $(function() {
 
         /*
         |------------------------------------------
         | OPEN TRACKING
         |------------------------------------------
         */
-        $(document).on('click', '.btnTracking', function(){
+        $(document).on('click', '.btnTracking', function() {
 
             let id = $(this).data('id');
             let row = $(this).closest('tr');
@@ -570,17 +579,17 @@ $(function(){
                 </div>
             `);
 
-            $.get(`{{ url('report-cs/cs') }}/${id}/tracking`, function(res){
+            $.get(`{{ url('report-cs/cs') }}/${id}/tracking`, function(res) {
 
                 let html = '';
 
-                if(!res || !Array.isArray(res.steps) || res.steps.length === 0){
+                if (!res || !Array.isArray(res.steps) || res.steps.length === 0) {
                     html = `
                         <div class="text-sm text-gray-500 dark:text-gray-400">
                             No tracking data
                         </div>
                     `;
-                }else{
+                } else {
 
                     html = `
                         <div class="rounded-xl border border-gray-200 dark:border-gray-700
@@ -621,36 +630,39 @@ $(function(){
                         // }
 
                         let dot = 'bg-gray-400';
-                        let badgeClass = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300';
+                        let badgeClass =
+                            'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300';
 
                         if (st === 'C') {
                             dot = 'bg-green-500';
-                            badgeClass = 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400';
-                        }
-                        else if (st === 'A') {
+                            badgeClass =
+                                'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400';
+                        } else if (st === 'A') {
                             dot = 'bg-blue-500';
-                            badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400';
-                        }
-                        else if (st === 'S') {
+                            badgeClass =
+                                'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400';
+                        } else if (st === 'S') {
                             dot = 'bg-indigo-500';
-                            badgeClass = 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400';
-                        }
-                        else if (st === 'P') {
+                            badgeClass =
+                                'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400';
+                        } else if (st === 'P') {
                             dot = 'bg-yellow-500';
-                            badgeClass = 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400';
-                        }
-                        else if (st === 'R') {
+                            badgeClass =
+                                'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400';
+                        } else if (st === 'R') {
                             dot = 'bg-red-500';
-                            badgeClass = 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400';
+                            badgeClass =
+                                'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400';
                         }
 
                         /* 🔥 USE BACKEND LABEL */
                         const badge = step.status_label || 'Pending';
 
                         const name = step.by || '-';
-                        const initials = name !== '-'
-                            ? name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()
-                            : '?';
+                        const initials = name !== '-' ?
+                            name.split(' ').map(n => n[0]).join('').slice(0, 2)
+                            .toUpperCase() :
+                            '?';
 
                         html += `
                             <div class="flex items-start justify-between py-3">
@@ -715,12 +727,12 @@ $(function(){
         | CLOSE MODAL
         |------------------------------------------
         */
-        $('#closeTracking').click(function(){
+        $('#closeTracking').click(function() {
             $('#trackingModal').addClass('hidden').removeClass('flex');
         });
 
-        $('#trackingModal').click(function(e){
-            if(e.target.id === 'trackingModal'){
+        $('#trackingModal').click(function(e) {
+            if (e.target.id === 'trackingModal') {
                 $(this).addClass('hidden').removeClass('flex');
             }
         });
