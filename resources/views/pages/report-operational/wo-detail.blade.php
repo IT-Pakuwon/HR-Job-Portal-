@@ -131,7 +131,22 @@
                     data: 'date'
                 },
                 {
-                    data: 'woid'
+                    data: 'woid',
+                     render: function(data, type, row) {
+
+                        const hash = row.woid_eid;
+
+                        if (!hash) {
+                            return `<span class="text-gray-400">${data ?? '-'}</span>`;
+                        }
+
+                        return `
+                         <a href="/showwos/${encodeURIComponent(hash)}"
+                            class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-gray-800">
+                                ${data}
+                            </a>
+                        `;
+                    }
                 },
                 {
                     data: 'department_name'

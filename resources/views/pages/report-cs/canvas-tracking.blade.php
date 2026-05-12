@@ -344,9 +344,23 @@ $(function(){
 
             {
                 data: 'csdate',
-                render: d => d ? new Date(d).toLocaleDateString('id-ID') : ''
-            },
+                render: function(data, type){
 
+                    if (!data) return '';
+
+                    // sorting uses raw value
+                    if (type === 'sort' || type === 'type') {
+                        return data;
+                    }
+
+                    // display format
+                    return new Date(data).toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                }
+            },
             { data: 'cpny_id' },
             { data: 'department_name' },
             { data: 'created_by_name' },
