@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use Vinkla\Hashids\Facades\Hashids;
 
 class ReportOperationalController extends Controller
 {
@@ -36,6 +37,7 @@ class ReportOperationalController extends Controller
             ->where('w.status', 'C')
 
             ->select([
+            DB::raw('id'),
                 'w.woid',
                 'w.wodate',
                 'w.department_id',
@@ -204,6 +206,10 @@ class ReportOperationalController extends Controller
                     ? Carbon::parse($row->wodate)->format('d-M-Y')
                     : ''
             )
+
+            ->addColumn('woid_eid', function ($row) {
+                return Hashids::encode($row->id);
+            })
 
             ->addColumn('department_name', fn ($row) => $departments[$row->department_id] ?? $row->department_id
             )
