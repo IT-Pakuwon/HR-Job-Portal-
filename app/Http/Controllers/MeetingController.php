@@ -1687,29 +1687,23 @@ class MeetingController extends Controller
 
         $authUser = auth()->user();
 
-        $hasCSACCESS = SysUserRole::where('username', $authUser->username)
-            ->where('role_id', 'CSACCESS')
-            ->where('status', 'A')
+        $hasRoomAccess = MsMeetingRoomAccess::query()
+            ->where('room_id', $request->room_id)
+            ->where('username', $authUser->username)
             ->exists();
 
-        // 🔥 GET ROOM NAME
-        $roomName = MsMeetingRoom::where('room_id', $request->room_id)
-            ->value('room_name');
+        $roomHasRestriction = MsMeetingRoomAccess::query()
+            ->where('room_id', $request->room_id)
+            ->exists();
 
-        $restrictedRooms = [
-            'Meeting Room 33-1',
-            'Meeting Room 33-5',
-            'Meeting Room 1 P6 - Mall Gandaria',
-        ];
+        if ($roomHasRestriction && !$hasRoomAccess) {
 
-        // 🔒 BLOCK BASED ON NAME
-        if (in_array($roomName, $restrictedRooms) && !$hasCSACCESS) {
             return response()->json([
                 'success' => false,
                 'message' => 'We\'re sorry, this room is restricted',
             ], 403);
-        }
 
+        }
         $oldStart = $meeting->start_meeting_time;
         $oldEnd = $meeting->end_meeting_time;
         $oldRoom = $meeting->room_id;

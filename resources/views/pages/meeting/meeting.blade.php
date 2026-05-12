@@ -560,11 +560,7 @@
     window.isEditMode = false;
     window.currentUsername = @json(auth()->user()->name);
     document.addEventListener('DOMContentLoaded', function() {
-        const RESTRICTED_ROOMS = [
-            'Meeting Room 33-1',
-            'Meeting Room 33-5',
-            'Meeting Room 1 P6 - Mall Gandaria'
-        ];
+        window.allowedRoomIds = @json($allowedRoomIds);
 
         window.endPicker = flatpickr("#end_datetime", {
             enableTime: true,
@@ -1090,16 +1086,15 @@
                     null;
 
                 const roomName = event.getResources()?.[0]?.title || '';
-
-                if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) {
+                if (!window.allowedRoomIds.includes(String(resourceId))) {
 
                     Swal.fire({
                         icon: 'warning',
                         title: 'Restricted Room',
-                        text: "We're sorry, this room is managed by Receptionist. Please contact them for booking."
+                        text: "We're sorry, this room is restricted"
                     });
 
-                    info.revert(); // 🔥 VERY IMPORTANT
+                    info.revert();
                     return;
                 }
 
@@ -1118,15 +1113,15 @@
 
                 const roomName = event.getResources()?.[0]?.title || '';
 
-                if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) {
+                if (!window.allowedRoomIds.includes(String(resourceId))) {
 
                     Swal.fire({
                         icon: 'warning',
                         title: 'Restricted Room',
-                        text: "We're sorry, this room is managed by Receptionist. Please contact them for booking."
+                        text: "We're sorry, this room is restricted"
                     });
 
-                    info.revert(); // 🔥 IMPORTANT
+                    info.revert();
                     return;
                 }
 
@@ -1296,12 +1291,12 @@
 
                 const roomName = info.resource?.title || '';
 
-                if (RESTRICTED_ROOMS.includes(roomName) && !window.hasCSACCESS) {
+                if (!window.allowedRoomIds.includes(String(resourceId))) {
 
                     Swal.fire({
                         icon: 'warning',
                         title: 'Restricted Room',
-                        text: "We're sorry, this room is managed by Receptionist. Please contact them for booking."
+                        text: "We're sorry, this room is restricted"
                     });
 
                     window.calendar.unselect();
