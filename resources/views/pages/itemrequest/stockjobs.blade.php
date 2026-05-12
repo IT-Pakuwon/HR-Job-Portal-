@@ -841,7 +841,23 @@
                         },
                         {
                             data: 'stock',
-                            defaultContent: '-'
+                            render: function(v) {
+
+                                if (v === null || v === undefined || v === '') {
+                                    return '0';
+                                }
+
+                                const n = Number(v);
+
+                                if (Number.isNaN(n)) {
+                                    return v;
+                                }
+
+                                return n.toLocaleString('id-ID', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
+                            }
                         },
                         {
                             data: 'item_sub_type',

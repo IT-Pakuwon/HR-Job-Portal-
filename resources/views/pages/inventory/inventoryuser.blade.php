@@ -171,10 +171,21 @@
                     {
                         data: 'stock',
                         render: function(v) {
-                            if (v === null || v === undefined || v === '') return '-';
+
+                            if (v === null || v === undefined || v === '') {
+                                return '0';
+                            }
+
                             const n = Number(v);
-                            if (Number.isNaN(n)) return v;
-                            return n.toLocaleString('id-ID');
+
+                            if (Number.isNaN(n)) {
+                                return v;
+                            }
+
+                           return n.toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
                         }
                     },
 

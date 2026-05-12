@@ -151,7 +151,7 @@
                                                             {{ $d->note }}
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-2 text-center">{{ $d->stock_unit ?? '0' }}</td>
+                                                    <td class="px-4 py-2 text-center">{{ number_format((float) ($d->stock_unit ?? 0), 2, ',', '.') }}</td>
                                                     <td class="px-4 py-2 text-right">
                                                         {{ number_format((float) $d->qty_original, 2) }}
                                                     </td>

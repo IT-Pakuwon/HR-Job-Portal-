@@ -137,7 +137,7 @@
                                 Department</th>
                             <th
                                 class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
-                                Purchaser  </th>
+                                Purchaser </th>
                             <th
                                 class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
                                 Purpose</th>
@@ -246,15 +246,16 @@
                     }
                 },
                 columnDefs: [{
-                    targets: 0,
-                    width: '28px',
-                    className: 'dtr-control',
-                    orderable: false
-                },
-                {
-                targets: '_all',
-                className: 'text-left'
-            }],
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    },
+                    {
+                        targets: '_all',
+                        className: 'text-left'
+                    }
+                ],
                 order: [
                     [2, 'desc'],
                     [0, 'desc']
@@ -288,8 +289,22 @@
                     },
                     {
                         data: 'csdate',
-                        className: 'text-center',
-                        render: (v) => fmtDate(v)
+                        render: function(data, type) {
+
+                            if (!data) return '';
+
+                            // sorting uses raw value
+                            if (type === 'sort' || type === 'type') {
+                                return data;
+                            }
+
+                            // display format
+                            return new Date(data).toLocaleDateString('id-ID', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                            });
+                        }
                     },
                     {
                         data: 'cpny_id',
@@ -311,29 +326,30 @@
                     //         if (!data) return '-';
 
                     //         return `
-                    //             <div
-                    //                 title="${escapeHtml(data)}"
-                    //                 style="
-                    //                     max-width:220px;
-                    //                     white-space:nowrap;
-                    //                     overflow:hidden;
-                    //                     text-overflow:ellipsis;
-                    //                     cursor:help;
-                    //                     text-align:left;
-                    //                 "
-                    //             >
-                    //                 ${escapeHtml(data)}
-                    //             </div>
-                    //         `;
+                //             <div
+                //                 title="${escapeHtml(data)}"
+                //                 style="
+                //                     max-width:220px;
+                //                     white-space:nowrap;
+                //                     overflow:hidden;
+                //                     text-overflow:ellipsis;
+                //                     cursor:help;
+                //                     text-align:left;
+                //                 "
+                //             >
+                //                 ${escapeHtml(data)}
+                //             </div>
+                //         `;
                     //     }
                     // },
                     {
                         data: 'keperluan',
                         defaultContent: '-',
                         createdCell: function(td) {
-                            td.style.setProperty('text-align', 'left', 'important'); // 💥 strongest override
+                            td.style.setProperty('text-align', 'left',
+                            'important'); // 💥 strongest override
                         },
-                        render: function (data) {
+                        render: function(data) {
                             if (!data) return '-';
 
                             return `
@@ -401,7 +417,7 @@
             // change company
             $('#filterCpny').on('change', function() {
                 cpnyId = $(this).val() || '';
-                localStorage.setItem('csFilterCpny', cpnyId);              
+                localStorage.setItem('csFilterCpny', cpnyId);
                 table.ajax.reload(null, true);
             });
 
