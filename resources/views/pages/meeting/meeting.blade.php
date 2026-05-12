@@ -223,23 +223,23 @@
                                     </div>
 
                                     {{-- ROOM --}}
+                                    {{-- ROOM --}}
                                     <div>
                                         <label class="req text-xs font-medium text-gray-500 dark:text-gray-400">
                                             Room
                                         </label>
+
                                         <select id="room_id" name="room_id"
                                             class="mt-1 w-full rounded-md border px-3 py-2 text-sm" required>
 
-                                            @foreach ($rooms as $room)
+                                            @foreach ($rooms->whereIn('room_id', $allowedRoomIds) as $room)
                                                 <option value="{{ $room->room_id }}">
                                                     {{ $room->room_name }}
                                                 </option>
                                             @endforeach
 
                                         </select>
-
                                     </div>
-
                                 </div>
 
                                 {{-- TITLE --}}
@@ -559,8 +559,11 @@
     window.editMeetingId = null;
     window.isEditMode = false;
     window.currentUsername = @json(auth()->user()->name);
+
     document.addEventListener('DOMContentLoaded', function() {
+
         window.allowedRoomIds = @json($allowedRoomIds);
+        window.allowedRooms = (window.allowedRoomIds || []).map(String);
 
         window.endPicker = flatpickr("#end_datetime", {
             enableTime: true,
@@ -1074,59 +1077,49 @@
                 modal.classList.add('flex');
             },
 
-            eventDrop: function(info) {
+                eventDrop: function(info) {
 
-                const event = info.event;
-                const hasCSACCESS = window.hasCSACCESS;
+                    const event = info.event;
 
-                // get room_id safely
-                const resourceId =
-                    event.getResources()?.[0]?.id ||
-                    event.extendedProps.room_id ||
-                    null;
+                    const resourceId =
+                        event.getResources()?.[0]?.id ||
+                        event.extendedProps.room_id ||
+                        null;
 
-                const roomName = event.getResources()?.[0]?.title || '';
-                if (!window.allowedRoomIds.includes(String(resourceId))) {
+                    if (!window.allowedRooms.includes(String(resourceId))) {
 
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Restricted Room',
-                        text: "We're sorry, this room is restricted"
-                    });
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Restricted Room',
+                            text: "Sorry, you can't book this room because you don't have access permission. Please contact the receptionist in your area for assistance."
+                        });
 
-                    info.revert();
-                    return;
-                }
+                        info.revert();
+                        return;
+                    }
+                },
 
-                // ✅ continue your update logic here if you have one
-            },
+                eventResize: function(info) {
 
-            eventResize: function(info) {
+                    const event = info.event;
 
-                const event = info.event;
-                const hasCSACCESS = window.hasCSACCESS;
+                    const resourceId =
+                        event.getResources()?.[0]?.id ||
+                        event.extendedProps.room_id ||
+                        null;
 
-                const resourceId =
-                    event.getResources()?.[0]?.id ||
-                    event.extendedProps.room_id ||
-                    null;
+                    if (!window.allowedRooms.includes(String(resourceId))) {
 
-                const roomName = event.getResources()?.[0]?.title || '';
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Restricted Room',
+                            text: "Sorry, you can't book this room because you don't have access permission. Please contact the receptionist in your area for assistance."
+                        });
 
-                if (!window.allowedRoomIds.includes(String(resourceId))) {
-
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Restricted Room',
-                        text: "We're sorry, this room is restricted"
-                    });
-
-                    info.revert();
-                    return;
-                }
-
-                // ✅ continue update logic if any
-            },
+                        info.revert();
+                        return;
+                    }
+                },
 
             // select: function(info) {
             //     document.activeElement?.blur();
@@ -1261,7 +1254,6 @@
 
                 const selectedDate = moment(info.start).format('YYYY-MM-DD');
 
-                // ❌ past date
                 if (selectedDate < window.minBookingDate) {
 
                     Swal.fire({
@@ -1274,7 +1266,6 @@
                     return;
                 }
 
-                // ❌ exceed max booking
                 if (selectedDate > window.maxBookingDate) {
 
                     Swal.fire({
@@ -1288,20 +1279,6 @@
                 }
 
                 let resourceId = info.resource ? info.resource.id : null;
-
-                const roomName = info.resource?.title || '';
-
-                if (!window.allowedRoomIds.includes(String(resourceId))) {
-
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Restricted Room',
-                        text: "We're sorry, this room is restricted"
-                    });
-
-                    window.calendar.unselect();
-                    return;
-                }
 
                 if (!resourceId) {
 
@@ -1321,12 +1298,13 @@
                     resourceId = fallbackRoom;
                 }
 
-                if (!resourceId) {
+                // 🔥 ACCESS VALIDATION
+                if (!window.allowedRooms.includes(String(resourceId))) {
 
                     Swal.fire({
                         icon: 'warning',
-                        title: 'No Room Available',
-                        text: 'Cannot create meeting without a room'
+                        title: 'Restricted Room',
+                        text: "Sorry, you can't book this room because you don't have access permission. Please contact the receptionist in your area for assistance."
                     });
 
                     window.calendar.unselect();
@@ -1341,12 +1319,12 @@
                     const resources = e.getResources();
 
                     const eventResourceId =
-                        resources && resources.length > 0 && resources[0] ?
-                        resources[0].id :
-                        null;
+                        resources && resources.length > 0 && resources[0]
+                        ? resources[0].id
+                        : null;
 
                     return (
-                        eventResourceId === resourceId &&
+                        String(eventResourceId) === String(resourceId) &&
                         (
                             (start >= e.start && start < e.end) ||
                             (end > e.start && end <= e.end) ||
@@ -1371,7 +1349,6 @@
 
                 window.calendar.unselect();
             }
-
         });
 
 

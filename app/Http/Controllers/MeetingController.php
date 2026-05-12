@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Autonbr;
 use App\Models\MsDasSetting;
 use App\Models\MsMeetingAccessories;
+use App\Models\MsMeetingRoomAccess;
 use App\Models\MsMeetingRoom;
 use App\Models\SysUserRole;
 use App\Models\TrMeeting;
@@ -21,6 +22,13 @@ class MeetingController extends Controller
 {
     public function index(Request $request)
     {
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $selectedDate = $request->get('date', now()->format('Y-m-d'));
 
         try {
@@ -33,12 +41,48 @@ class MeetingController extends Controller
         $dayEnd = $date->copy()->endOfDay();
 
         $rooms = MsMeetingRoom::query()
-
             ->where('status', 'A')
-         ->orderByRaw('CAST(room_id AS INTEGER) ASC')
+            ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->get();
+
         $roomColors = MsMeetingRoom::pluck('eventcolor', 'room_id');
+
         $roomMap = MsMeetingRoom::pluck('room_name', 'room_id');
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROOM ACCESS FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $currentUsername = auth()->user()->username;
+
+        // room yang punya restriction
+        $restrictedRoomIds = MsMeetingRoomAccess::query()
+            ->pluck('room_id')
+            ->unique()
+            ->map(fn ($id) => (string) $id)
+            ->toArray();
+
+        // room yang user ini boleh akses
+        $userAllowedRoomIds = MsMeetingRoomAccess::query()
+            ->where('username', $currentUsername)
+            ->pluck('room_id')
+            ->map(fn ($id) => (string) $id)
+            ->toArray();
+
+        // room public (tidak ada restriction)
+        $publicRooms = MsMeetingRoom::query()
+            ->whereNotIn('room_id', $restrictedRoomIds)
+            ->pluck('room_id')
+            ->map(fn ($id) => (string) $id)
+            ->toArray();
+
+        // final allowed rooms
+        $allowedRoomIds = array_values(array_unique([
+            ...$publicRooms,
+            ...$userAllowedRoomIds,
+        ]));
 
         $accessories = MsMeetingAccessories::query()
             ->where('status', 'A')
@@ -46,62 +90,96 @@ class MeetingController extends Controller
             ->get();
 
         $meetings = TrMeeting::query()
-            ->where('status', '!=', 'X') // ✅ ADD HERE
-            ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
-          ->orderByRaw('CAST(room_id AS INTEGER) ASC')
+            ->where('status', '!=', 'X')
+            ->whereBetween('start_meeting_time', [
+                now()->subMonths(6),
+                now()->addMonths(6),
+            ])
+            ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->orderBy('start_meeting_time')
             ->get()
+
             ->map(function ($m) use ($roomMap) {
+
                 return [
                     'hash' => Hashids::encode($m->id),
+
                     'room_id' => $m->room_id,
+
                     'room_name' => $roomMap[$m->room_id] ?? null,
 
-                    'start' => Carbon::parse($m->start_meeting_time)->format('Y-m-d H:i:s'),
-                    'end' => Carbon::parse($m->end_meeting_time)->format('Y-m-d H:i:s'),
+                    'start' => Carbon::parse($m->start_meeting_time)
+                        ->format('Y-m-d H:i:s'),
 
-                    'title' => trim(($m->user_peminta ? $m->user_peminta.' - ' : '').$m->meeting_title),
+                    'end' => Carbon::parse($m->end_meeting_time)
+                        ->format('Y-m-d H:i:s'),
 
-                    'type' => $m->external_participant ? 'external' : 'internal',
+                    'title' => trim(
+                        ($m->user_peminta
+                            ? $m->user_peminta.' - '
+                            : '').
+                        $m->meeting_title
+                    ),
+
+                    'type' => $m->external_participant
+                        ? 'external'
+                        : 'internal',
+
                     'isTeams' => !empty($m->msteams_join_url),
                 ];
             });
 
         $calendarEvents = $meetings->map(function ($m) {
+
             return [
                 'id' => $m['hash'],
+
                 'resourceId' => $m['room_id'],
+
                 'start' => $m['start'],
+
                 'end' => $m['end'],
+
                 'title' => $m['title'],
+
                 'extendedProps' => [
-                    'user' => $m['title'], // already includes user
+                    'user' => $m['title'],
                     'room' => $m['room_name'] ?? '',
                     'type' => $m['type'] ?? 'internal',
                     'isTeams' => $m['isTeams'] ?? false,
                 ],
             ];
+
         })->values();
+
         $users = User::query()
             ->where('status', 'A')
             ->orderBy('name')
             ->get()
+
             ->map(function ($user) {
-                $user->meeting_email = $user->notification_email ?: $user->email;
+
+                $user->meeting_email =
+                    $user->notification_email ?: $user->email;
 
                 return $user;
+
             })
+
             ->filter(function ($user) {
                 return !empty($user->meeting_email);
             })
+
             ->values();
 
-        // $dateblock = now()->format('Y-m-d');
         $date_block = MsDasSetting::query()
             ->where('status', 'A')
             ->first();
 
-        $dateblock = date('Y-m-d', strtotime($date_block->setting_value_string));
+        $dateblock = date(
+            'Y-m-d',
+            strtotime($date_block->setting_value_string)
+        );
 
         $user = auth()->user();
 
@@ -115,25 +193,41 @@ class MeetingController extends Controller
             ->first();
 
         // default +15 days
-        $maxBookingDate = now()->addDays(15)->endOfDay();
+        $maxBookingDate = now()
+            ->addDays(15)
+            ->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
+
             $maxBookingDate = now()
                 ->addDays((int) $bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
         return view('pages.meeting.meeting', [
+
             'selectedDate' => $date,
+
             'rooms' => $rooms,
+
             'roomMap' => $roomMap,
+
             'meetings' => $meetings,
+
             'users' => $users,
+
             'dateblock' => $dateblock,
+
             'user' => $user,
+
             'hasCsAccess' => $roleIds->isNotEmpty(),
-            'accessories' => $accessories, // ✅ ADD THIS
-            'maxBookingDate' => $maxBookingDate, // 🔥 add this
+
+            'accessories' => $accessories,
+
+            'maxBookingDate' => $maxBookingDate,
+
+            'allowedRoomIds' => $allowedRoomIds,
+
             // 'calendarEvents' => $calendarEvents,
         ]);
     }
