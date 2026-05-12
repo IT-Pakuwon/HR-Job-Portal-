@@ -3,20 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\MsDepartment;
+use App\Models\MsSPPBJKTCounting;
 use App\Models\User;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;   // ← ADD THIS
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;   // ← ADD THIS
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
-use Vinkla\Hashids\Facades\Hashids;
-use Carbon\CarbonPeriod;
-use App\Models\MsSPPBJKTCounting;
+
 class ReportCanvassSheetController extends Controller
 {
     public function index()
     {
         $departments = MsDepartment::pluck('department_name', 'department_id');
+
         return view('pages.report-cs.index', compact('departments'));
     }
 
@@ -45,6 +46,7 @@ class ReportCanvassSheetController extends Controller
                 'h.cpny_id',
                 'h.user_peminta',
                 'h.created_by as cs_created_by',
+                'h.status',
 
                 'h.budget_perpost',
                 'd.budget_business_unit_id',
@@ -133,6 +135,10 @@ class ReportCanvassSheetController extends Controller
 
         if ($request->inventoryid) {
             $query->where('d.inventoryid', 'ilike', "%{$request->inventoryid}%");
+        }
+
+        if ($request->status) {
+            $query->where('h.status', $request->status);
         }
 
         return $query;
@@ -227,6 +233,19 @@ class ReportCanvassSheetController extends Controller
                 }
 
                 return 0;
+            })
+
+            ->addColumn('status_label', function ($row) {
+                return match ($row->status) {
+                    'D' => 'Revised',
+                    'A' => 'Assigned',
+                    'S' => 'Submitted',
+                    'X' => 'Cancelled',
+                    'P' => 'On Process',
+                    'C' => 'Completed',
+                    'R' => 'Rejected',
+                    default => $row->status ?? '-',
+                };
             })
 
             ->addColumn('request_user', function ($row) use ($users) {
@@ -326,9 +345,9 @@ class ReportCanvassSheetController extends Controller
                 DB::raw('h.sppbjktid as doc_eid'),
 
                 // ✅ REAL DOCUMENT ID (IMPORTANT)
-                DB::raw("
+                DB::raw('
                     COALESCE(b.id, j.id, k.id, t.id) as doc_id
-                "),
+                '),
 
                 'h.csdate',
                 'h.cpny_id',
@@ -347,10 +366,7 @@ class ReportCanvassSheetController extends Controller
                 //         DATE_PART('day', COALESCE(h.submitdate, NOW()) - h.assigndate)
                 //     ) as days
                 // ")
-
-
             ]);
-
 
         // $baseQuery = DB::connection('pgsql')
         // ->table('tr_cs as h')
@@ -360,14 +376,11 @@ class ReportCanvassSheetController extends Controller
         // ->leftJoin('tr_sppk as k', 'k.sppkid', '=', 'h.sppbjktid')
         // ->leftJoin('tr_sppt as t', 't.spptid', '=', 'h.sppbjktid');
 
-
-
         /*
         |------------------------------------------
         | FILTER
         |------------------------------------------
         */
-
 
         if ($request->date_from) {
             $query->whereDate('h.csdate', '>=', $request->date_from);
@@ -422,11 +435,11 @@ class ReportCanvassSheetController extends Controller
         $departments = MsDepartment::pluck('department_name', 'department_id');
 
         $summary = [
-            'total'     => (clone $query)->count(),
-            'process'   => (clone $query)->where('h.status', 'P')->count(),
+            'total' => (clone $query)->count(),
+            'process' => (clone $query)->where('h.status', 'P')->count(),
             'completed' => (clone $query)->where('h.status', 'C')->count(),
-            'rejected'  => (clone $query)->where('h.status', 'R')->count(),
-            'revised'   => (clone $query)->where('h.status', 'D')->count(),
+            'rejected' => (clone $query)->where('h.status', 'R')->count(),
+            'revised' => (clone $query)->where('h.status', 'D')->count(),
         ];
 
         $status = $request->status;
@@ -441,26 +454,30 @@ class ReportCanvassSheetController extends Controller
         $countingMap = MsSPPBJKTCounting::pluck('doctype_counting', 'doctype')->toArray();
 
         $countBusinessDays = function ($assignDate, $submitDate) {
+            if (!$assignDate || !$submitDate) {
+                return 0;
+            }
 
-            if (!$assignDate || !$submitDate) return 0;
+            $start = Carbon::parse($assignDate)->addDay();
+            $end = Carbon::parse($submitDate);
 
-            $start = \Carbon\Carbon::parse($assignDate)->addDay();
-            $end   = \Carbon\Carbon::parse($submitDate);
-
-            if ($end->lt($start)) return 0;
+            if ($end->lt($start)) {
+                return 0;
+            }
 
             $days = 0;
 
             foreach (CarbonPeriod::create($start, $end) as $d) {
-                if ($d->isSaturday() || $d->isSunday()) continue;
-                $days++;
+                if ($d->isSaturday() || $d->isSunday()) {
+                    continue;
+                }
+                ++$days;
             }
 
             return $days;
         };
 
         $rows->transform(function ($r) use ($countBusinessDays, $countingMap) {
-
             $assign = $r->assigndate;
             $submit = $r->submitdate ?? now();
 
@@ -469,7 +486,7 @@ class ReportCanvassSheetController extends Controller
             $doctype = strtoupper(substr($r->sppbjktid, 0, 2));
             $limit = $countingMap[$doctype] ?? 0;
 
-            $r->days = $days . ' / ' . $limit;
+            $r->days = $days.' / '.$limit;
             $r->is_overdue = $limit > 0 && $days > $limit;
 
             return $r;
@@ -477,32 +494,25 @@ class ReportCanvassSheetController extends Controller
 
         return DataTables::of($rows)
 
-        ->editColumn('csdate', fn ($row) =>
-            $row->csdate ? Carbon::parse($row->csdate)->format('d-M-Y') : ''
+        ->editColumn('csdate', fn ($row) => $row->csdate ? Carbon::parse($row->csdate)->format('d-M-Y') : ''
         )
 
-        ->editColumn('assigndate', fn ($row) =>
-            $row->assigndate ? Carbon::parse($row->assigndate)->format('d-M-Y') : ''
+        ->editColumn('assigndate', fn ($row) => $row->assigndate ? Carbon::parse($row->assigndate)->format('d-M-Y') : ''
         )
 
-        ->editColumn('submitdate', fn ($row) =>
-            $row->submitdate ? Carbon::parse($row->submitdate)->format('d-M-Y') : ''
+        ->editColumn('submitdate', fn ($row) => $row->submitdate ? Carbon::parse($row->submitdate)->format('d-M-Y') : ''
         )
 
-        ->addColumn('created_by_name', fn ($row) =>
-            $users[$row->created_by] ?? $row->created_by
+        ->addColumn('created_by_name', fn ($row) => $users[$row->created_by] ?? $row->created_by
         )
 
-        ->addColumn('department_name', fn ($row) =>
-            $departments[$row->department_id] ?? ''
+        ->addColumn('department_name', fn ($row) => $departments[$row->department_id] ?? ''
         )
 
-        ->addColumn('cs_hash', fn ($row) =>
-            \Hashids::encode($row->cs_pk)
+        ->addColumn('cs_hash', fn ($row) => \Hashids::encode($row->cs_pk)
         )
 
-        ->addColumn('doc_hash', fn ($row) =>
-            $row->doc_id ? \Hashids::encode($row->doc_id) : null
+        ->addColumn('doc_hash', fn ($row) => $row->doc_id ? \Hashids::encode($row->doc_id) : null
         )
 
         ->addColumn('status_label', function ($row) {
@@ -536,7 +546,6 @@ class ReportCanvassSheetController extends Controller
         ->make(true);
     }
 
-
     public function tracking($hash)
     {
         $id = \Hashids::decode($hash)[0] ?? null;
@@ -545,8 +554,11 @@ class ReportCanvassSheetController extends Controller
         $cs = \App\Models\TrCS::findOrFail($id);
 
         $getName = function (?string $username) {
-            if (!$username) return null;
-            $u = \App\Models\User::where('username', $username)->first();
+            if (!$username) {
+                return null;
+            }
+            $u = User::where('username', $username)->first();
+
             return $u->name ?? $username;
         };
 
@@ -578,7 +590,7 @@ class ReportCanvassSheetController extends Controller
                 'status' => 'A',
                 'status_label' => 'Assigned',
                 'by' => $getName($cs->created_by),
-                'at' => \Carbon\Carbon::parse($cs->assigndate)->format('Y-m-d H:i'),
+                'at' => Carbon::parse($cs->assigndate)->format('Y-m-d H:i'),
             ];
         }
 
@@ -594,7 +606,7 @@ class ReportCanvassSheetController extends Controller
                 'status' => 'S',
                 'status_label' => 'Submitted',
                 'by' => $getName($cs->created_by),
-                'at' => \Carbon\Carbon::parse($cs->submitdate)->format('Y-m-d H:i'),
+                'at' => Carbon::parse($cs->submitdate)->format('Y-m-d H:i'),
             ];
         }
 
@@ -604,7 +616,6 @@ class ReportCanvassSheetController extends Controller
         |------------------------------------------
         */
         if ($cs->sppbjktid) {
-
             // $approvals = \App\Models\TrApproval::where('refnbr', $cs->sppbjktid)
             //     ->where('status', '<>', 'X')
             //     ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
@@ -618,11 +629,10 @@ class ReportCanvassSheetController extends Controller
             ->get();
 
             foreach ($approvals as $a) {
-
                 // 🔥 IMPORTANT: DO NOT CHANGE STATUS (as you requested)
                 $steps[] = [
-                    'key' => 'approval_' . $a->id,
-                    'title' => 'Approval Lv ' . $a->aprv_leveling,
+                    'key' => 'approval_'.$a->id,
+                    'title' => 'Approval Lv '.$a->aprv_leveling,
                     'status' => $a->status, // 🔥 ORIGINAL
                     'status_label' => match ($a->status) {
                         'A' => 'Approved',
@@ -633,12 +643,14 @@ class ReportCanvassSheetController extends Controller
                     },
                     'by' => $getName($a->aprv_username),
                     'at' => $a->aprv_dateafter
-                        ? \Carbon\Carbon::parse($a->aprv_dateafter)->format('Y-m-d H:i')
+                        ? Carbon::parse($a->aprv_dateafter)->format('Y-m-d H:i')
                         : null,
                 ];
 
                 // stop if rejected
-                if ($a->status === 'R') break;
+                if ($a->status === 'R') {
+                    break;
+                }
             }
         }
 

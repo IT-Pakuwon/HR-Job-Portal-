@@ -27,6 +27,16 @@
 
             </button>
 
+            <button id="tabRoomAccess"
+                class="tab-button inline-flex items-center gap-2 rounded-xl border border-transparent bg-transparent px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
+
+                <span class="text-base">🔐</span>
+
+                <span>
+                    Meeting Room Access
+                </span>
+
+            </button>
         </div>
 
         {{-- ROOM PANEL --}}
@@ -159,6 +169,54 @@
 
         </div>
 
+        <div id="roomAccessPanel" class="hidden">
+
+            <div
+                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+
+                <div
+                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
+
+                    <div>
+
+                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
+                            Meeting Room Access
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Configure allowed booking users per room.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="overflow-x-auto p-5">
+
+                    <table id="roomAccessTable" class="display w-full border-collapse text-sm">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>No</th>
+                                <th>Room ID</th>
+                                <th>Room Name</th>
+                                <th>Allowed User</th>
+                                <th class="text-right">Action</th>
+
+                            </tr>
+
+                        </thead>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
         <div id="createAccessoriesModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
             <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
@@ -240,7 +298,7 @@
                             </label>
 
                             <input type="text" name="acc_name"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="PROJECTOR">
 
                         </div>
@@ -355,7 +413,7 @@
                             </label>
 
                             <input type="text" name="room_id"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="RM-01" required>
 
                         </div>
@@ -368,7 +426,7 @@
                             </label>
 
                             <input type="text" name="room_name"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="MAIN MEETING ROOM" required>
 
                         </div>
@@ -386,7 +444,7 @@
                                     class="h-12 w-16 cursor-pointer rounded-xl border border-gray-300 bg-white p-1 dark:border-white/10 dark:bg-white/5">
 
                                 <input type="text" id="roomColorText" value="#3B82F6"
-                                    class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                    class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                             </div>
 
@@ -400,7 +458,7 @@
                             </label>
 
                             <input type="text" name="user_approval"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="USERNAME">
 
                         </div>
@@ -433,276 +491,358 @@
 
         </div>
 
-    </div>
+        <div id="editRoomModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-    <div id="editRoomModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+            <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
-        <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+                {{-- HEADER --}}
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
-            {{-- HEADER --}}
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+                    <div>
 
-                <div>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Edit Meeting Room
+                        </h2>
 
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Edit Meeting Room
-                    </h2>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Update meeting room master data.
+                        </p>
 
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Update meeting room master data.
-                    </p>
+                    </div>
+
+                    <button type="button" onclick="closeEditRoomModal()"
+                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+
+                        ✕
+
+                    </button>
 
                 </div>
 
-                <button type="button" onclick="closeEditRoomModal()"
-                    class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+                {{-- BODY --}}
+                <form id="editRoomForm">
 
-                    ✕
+                    @csrf
 
-                </button>
+                    <input type="hidden" id="edit_room_id">
 
-            </div>
+                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
 
-            {{-- BODY --}}
-            <form id="editRoomForm">
+                        {{-- ROOM ID --}}
+                        <div>
 
-                @csrf
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Room ID
+                            </label>
 
-                <input type="hidden" id="edit_room_id">
+                            <input type="text" name="room_id" id="edit_room_code"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                required>
 
-                <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                        </div>
 
-                    {{-- ROOM ID --}}
-                    <div>
+                        {{-- ROOM NAME --}}
+                        <div>
 
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Room ID
-                        </label>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Room Name
+                            </label>
 
-                        <input type="text" name="room_id" id="edit_room_code"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                            required>
+                            <input type="text" name="room_name" id="edit_room_name"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                required>
 
-                    </div>
+                        </div>
 
-                    {{-- ROOM NAME --}}
-                    <div>
+                        {{-- EVENT COLOR --}}
+                        <div>
 
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Room Name
-                        </label>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Event Color
+                            </label>
 
-                        <input type="text" name="room_name" id="edit_room_name"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                            required>
+                            <div class="flex items-center gap-3">
 
-                    </div>
+                                <input type="color" name="eventcolor" id="edit_eventcolor_picker"
+                                    class="h-12 w-16 cursor-pointer rounded-xl border border-gray-300 bg-white p-1 dark:border-white/10 dark:bg-white/5">
 
-                    {{-- EVENT COLOR --}}
-                    <div>
+                                <input type="text" id="edit_eventcolor_text"
+                                    class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Event Color
-                        </label>
+                            </div>
 
-                        <div class="flex items-center gap-3">
+                        </div>
 
-                            <input type="color" name="eventcolor" id="edit_eventcolor_picker"
-                                class="h-12 w-16 cursor-pointer rounded-xl border border-gray-300 bg-white p-1 dark:border-white/10 dark:bg-white/5">
+                        {{-- USER APPROVAL --}}
+                        <div>
 
-                            <input type="text" id="edit_eventcolor_text"
-                                class="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                User Approval
+                            </label>
+
+                            <input type="text" name="user_approval" id="edit_user_approval"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                         </div>
 
                     </div>
 
-                    {{-- USER APPROVAL --}}
-                    <div>
+                    {{-- FOOTER --}}
+                    <div
+                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            User Approval
-                        </label>
+                        <button type="button" onclick="closeEditRoomModal()"
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
-                        <input type="text" name="user_approval" id="edit_user_approval"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            Cancel
+
+                        </button>
+
+                        <button type="submit"
+                            class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
+
+                            Update Room
+
+                        </button>
 
                     </div>
 
-                </div>
-
-                {{-- FOOTER --}}
-                <div
-                    class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
-
-                    <button type="button" onclick="closeEditRoomModal()"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
-
-                        Cancel
-
-                    </button>
-
-                    <button type="submit"
-                        class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
-
-                        Update Room
-
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </div>
-
-    <div id="editAccessoriesModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-
-        <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
-
-            {{-- HEADER --}}
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
-
-                <div>
-
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Edit Accessories
-                    </h2>
-
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        Update accessories master data.
-                    </p>
-
-                </div>
-
-                <button type="button" onclick="closeEditAccessoriesModal()"
-                    class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
-
-                    ✕
-
-                </button>
+                </form>
 
             </div>
 
-            {{-- BODY --}}
-            <form id="editAccessoriesForm">
+        </div>
 
-                @csrf
+        <div id="editAccessoriesModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
 
-                <input type="hidden" id="edit_accessories_id">
+            <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 
-                <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                {{-- HEADER --}}
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
 
-                    {{-- ACCESSORIES ID --}}
                     <div>
 
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Accessories ID
-                        </label>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Edit Accessories
+                        </h2>
 
-                        <input type="text" name="acc_id" id="edit_acc_id"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                            required>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Update accessories master data.
+                        </p>
 
                     </div>
 
-                    {{-- ROOM --}}
+                    <button type="button" onclick="closeEditAccessoriesModal()"
+                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+
+                        ✕
+
+                    </button>
+
+                </div>
+
+                {{-- BODY --}}
+                <form id="editAccessoriesForm">
+
+                    @csrf
+
+                    <input type="hidden" id="edit_accessories_id">
+
+                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+
+                        {{-- ACCESSORIES ID --}}
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Accessories ID
+                            </label>
+
+                            <input type="text" name="acc_id" id="edit_acc_id"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                required>
+
+                        </div>
+
+                        {{-- ROOM --}}
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Meeting Room
+                            </label>
+
+                            <select name="room_id" id="edit_room_select"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                required>
+
+                                @foreach ($rooms as $room)
+                                    <option value="{{ $room->room_id }}">
+                                        {{ $room->room_name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+
+                        </div>
+
+                        {{-- ACCESSORIES NAME --}}
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Accessories Name
+                            </label>
+
+                            <input type="text" name="acc_name" id="edit_acc_name"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                        </div>
+
+                        {{-- QTY --}}
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Quantity
+                            </label>
+
+                            <input type="number" min="0" name="acc_qty" id="edit_acc_qty"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                        </div>
+
+                        {{-- ZOOM --}}
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Zoom Account
+                            </label>
+
+                            <input type="text" name="userid_zoom" id="edit_userid_zoom"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                        </div>
+
+                        {{-- MS TEAMS --}}
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                MS Teams Account
+                            </label>
+
+                            <input type="text" name="userid_msteams" id="edit_userid_msteams"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                        </div>
+
+                    </div>
+
+                    {{-- FOOTER --}}
+                    <div
+                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+
+                        <button type="button" onclick="closeEditAccessoriesModal()"
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+
+                            Cancel
+
+                        </button>
+
+                        <button type="submit"
+                            class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
+
+                            Update Accessories
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        <div id="roomAccessModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+
+            <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+
                     <div>
 
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Manage Room Access
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Configure allowed booking users per room.
+                        </p>
+
+                    </div>
+
+                    <button type="button" onclick="closeRoomAccessModal()"
+                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+
+                        ✕
+
+                    </button>
+
+                </div>
+
+                <form id="roomAccessForm">
+
+                    @csrf
+
+                    <input type="hidden" id="access_room_id">
+
+                    <div class="p-6">
+
                         <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Meeting Room
+                            Allowed User
                         </label>
 
-                        <select name="room_id" id="edit_room_select"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                            required>
+                        <select id="room_access_user" name="username[]" multiple
+                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
 
-                            @foreach ($rooms as $room)
-                                <option value="{{ $room->room_id }}">
-                                    {{ $room->room_name }}
+                            @foreach ($users as $user)
+                                <option value="{{ $user->username }}">
+                                    {{ $user->name }} ({{ $user->username }})
                                 </option>
                             @endforeach
 
                         </select>
 
-                    </div>
-
-                    {{-- ACCESSORIES NAME --}}
-                    <div>
-
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Accessories Name
-                        </label>
-
-                        <input type="text" name="acc_name" id="edit_acc_name"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm  shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                        <p class="mt-2 text-xs text-gray-400">
+                            Leave empty if all users are allowed to book.
+                        </p>
 
                     </div>
 
-                    {{-- QTY --}}
-                    <div>
+                    <div
+                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Quantity
-                        </label>
+                        <button type="button" onclick="closeRoomAccessModal()"
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
-                        <input type="number" min="0" name="acc_qty" id="edit_acc_qty"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                            Cancel
 
-                    </div>
+                        </button>
 
-                    {{-- ZOOM --}}
-                    <div>
+                        <button type="submit"
+                            class="rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-700">
 
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Zoom Account
-                        </label>
+                            Save Access
 
-                        <input type="text" name="userid_zoom" id="edit_userid_zoom"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                        </button>
 
                     </div>
 
-                    {{-- MS TEAMS --}}
-                    <div>
+                </form>
 
-                        <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            MS Teams Account
-                        </label>
-
-                        <input type="text" name="userid_msteams" id="edit_userid_msteams"
-                            class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
-
-                    </div>
-
-                </div>
-
-                {{-- FOOTER --}}
-                <div
-                    class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
-
-                    <button type="button" onclick="closeEditAccessoriesModal()"
-                        class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
-
-                        Cancel
-
-                    </button>
-
-                    <button type="submit"
-                        class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700">
-
-                        Update Accessories
-
-                    </button>
-
-                </div>
-
-            </form>
+            </div>
 
         </div>
 
     </div>
+
 
 
 
@@ -715,52 +855,85 @@
 
         const tabRoom = document.getElementById('tabRoom');
         const tabAccessories = document.getElementById('tabAccessories');
+        const tabRoomAccess = document.getElementById('tabRoomAccess');
 
         const roomPanel = document.getElementById('roomPanel');
         const accessoriesPanel = document.getElementById('accessoriesPanel');
+        const roomAccessPanel = document.getElementById('roomAccessPanel');
 
-        function activateTab(activeBtn, inactiveBtn) {
+        function resetTab(btn) {
 
-            activeBtn.classList.add(
+            btn.classList.remove(
                 'border-blue-200',
                 'bg-blue-50',
                 'text-blue-700'
             );
 
-            activeBtn.classList.remove(
-                'border-transparent',
-                'bg-transparent',
-                'text-gray-600'
-            );
-
-            inactiveBtn.classList.remove(
-                'border-blue-200',
-                'bg-blue-50',
-                'text-blue-700'
-            );
-
-            inactiveBtn.classList.add(
+            btn.classList.add(
                 'border-transparent',
                 'bg-transparent',
                 'text-gray-600'
             );
         }
 
+        function activateCurrentTab(btn) {
+
+            btn.classList.add(
+                'border-blue-200',
+                'bg-blue-50',
+                'text-blue-700'
+            );
+
+            btn.classList.remove(
+                'border-transparent',
+                'bg-transparent',
+                'text-gray-600'
+            );
+        }
+
+        function hideAllPanels() {
+
+            roomPanel.classList.add('hidden');
+            accessoriesPanel.classList.add('hidden');
+            roomAccessPanel.classList.add('hidden');
+        }
+
         tabRoom.addEventListener('click', function() {
 
-            activateTab(tabRoom, tabAccessories);
+            resetTab(tabAccessories);
+            resetTab(tabRoomAccess);
+
+            activateCurrentTab(tabRoom);
+
+            hideAllPanels();
 
             roomPanel.classList.remove('hidden');
-            accessoriesPanel.classList.add('hidden');
 
         });
 
         tabAccessories.addEventListener('click', function() {
 
-            activateTab(tabAccessories, tabRoom);
+            resetTab(tabRoom);
+            resetTab(tabRoomAccess);
+
+            activateCurrentTab(tabAccessories);
+
+            hideAllPanels();
 
             accessoriesPanel.classList.remove('hidden');
-            roomPanel.classList.add('hidden');
+
+        });
+
+        tabRoomAccess.addEventListener('click', function() {
+
+            resetTab(tabRoom);
+            resetTab(tabAccessories);
+
+            activateCurrentTab(tabRoomAccess);
+
+            hideAllPanels();
+
+            roomAccessPanel.classList.remove('hidden');
 
         });
 
@@ -772,6 +945,7 @@
 
         let roomTable;
         let accessoriesTable;
+        let roomAccessTable;
 
         $(document).ready(function() {
 
@@ -945,6 +1119,66 @@
                 language: {
                     search: '',
                     searchPlaceholder: 'Search accessories...',
+                }
+
+            });
+
+            roomAccessTable = $('#roomAccessTable').DataTable({
+
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                autoWidth: false,
+
+               ajax: {
+                        url: "{{ route('meetingroom.setup.room.json') }}",
+                        data: function(d) {
+                            d.mode = 'access';
+                        }
+                    },
+
+                dom: '<"dt-toolbar"lBf>rtip',
+
+                columns: [{
+                        data: 'DT_RowIndex',
+                        width: '5%',
+                        orderable: false,
+                        searchable: false,
+                    },
+                    {
+                        data: 'room_id',
+                        name: 'room_id',
+                        width: '12%'
+                    },
+                    {
+                        data: 'room_name',
+                        name: 'room_name'
+                    },
+                    {
+                        data: 'restricted_user',
+                        name: 'restricted_user',
+                        orderable: false,
+                        searchable: false,
+                        width: '35%'
+                    },
+                    {
+                        data: 'action',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-right',
+                        width: '15%'
+                    }
+                ],
+
+                order: [
+                    [1, 'asc']
+                ],
+
+                pageLength: 10,
+
+                language: {
+                    search: '',
+                    searchPlaceholder: 'Search room access...',
                 }
 
             });
@@ -1269,7 +1503,7 @@
 
             e.preventDefault();
 
-              $('#edit_eventcolor_picker').val($('#edit_eventcolor_text').val());
+            $('#edit_eventcolor_picker').val($('#edit_eventcolor_text').val());
 
             let id = $('#edit_room_id').val();
 
@@ -1414,7 +1648,7 @@
                         status: status
                     },
 
-                    beforeSend: function () {
+                    beforeSend: function() {
 
                         Swal.fire({
                             title: 'Updating...',
@@ -1427,7 +1661,7 @@
 
                     },
 
-                    success: function (response) {
+                    success: function(response) {
 
                         Swal.fire({
                             icon: 'success',
@@ -1442,7 +1676,7 @@
 
                     },
 
-                    error: function (xhr) {
+                    error: function(xhr) {
 
                         // ❌ revert toggle if failed
                         if (el) el.checked = !el.checked;
@@ -1466,6 +1700,7 @@
             });
 
         }
+
         function updateAccessoriesStatus(id, status, el = null) {
 
             Swal.fire({
@@ -1490,7 +1725,7 @@
                         status: status
                     },
 
-                    beforeSend: function () {
+                    beforeSend: function() {
                         Swal.fire({
                             title: 'Updating...',
                             allowOutsideClick: false,
@@ -1498,7 +1733,7 @@
                         });
                     },
 
-                    success: function (response) {
+                    success: function(response) {
 
                         Swal.fire({
                             icon: 'success',
@@ -1511,7 +1746,7 @@
                         accessoriesTable.ajax.reload(null, false);
                     },
 
-                    error: function (xhr) {
+                    error: function(xhr) {
 
                         if (el) el.checked = !el.checked;
 
@@ -1527,5 +1762,128 @@
             });
 
         }
+
+        $('#room_access_user').select2({
+            dropdownParent: $('#roomAccessModal'),
+            width: '100%',
+            placeholder: 'Select allowed users'
+        });
+
+        function openRoomAccessModal() {
+
+            $('#roomAccessModal')
+                .removeClass('hidden')
+                .addClass('flex');
+        }
+
+        function closeRoomAccessModal() {
+
+            $('#roomAccessModal')
+                .removeClass('flex')
+                .addClass('hidden');
+
+            $('#roomAccessForm')[0].reset();
+
+            $('#room_access_user')
+                .val(null)
+                .trigger('change');
+        }
+
+        function manageRoomAccess(roomId) {
+
+            $('#access_room_id').val(roomId);
+
+            $.ajax({
+
+                url: `/meetingroom/setup/room/access/${roomId}`,
+                type: 'GET',
+
+                beforeSend: function() {
+
+                    Swal.fire({
+                        title: 'Loading...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                },
+
+                success: function(response) {
+
+                    Swal.close();
+
+                    $('#room_access_user')
+                        .val(response.data)
+                        .trigger('change');
+
+                    openRoomAccessModal();
+
+                },
+
+                error: function(xhr) {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message ?? 'Failed to load access data'
+                    });
+
+                }
+
+            });
+        }
+
+        $('#roomAccessForm').submit(function(e) {
+
+            e.preventDefault();
+
+            let roomId = $('#access_room_id').val();
+
+            $.ajax({
+
+                url: `/meetingroom/setup/room/access/${roomId}`,
+                type: 'POST',
+
+                data: $(this).serialize(),
+
+                beforeSend: function() {
+
+                    Swal.fire({
+                        title: 'Saving...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                },
+
+                success: function(response) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    closeRoomAccessModal();
+
+                    roomAccessTable.ajax.reload(null, false);
+
+                },
+
+                error: function(xhr) {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message ?? 'Failed to save access'
+                    });
+
+                }
+
+            });
+
+        });
     </script>
 </x-app-layout>

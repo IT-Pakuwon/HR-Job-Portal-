@@ -1195,28 +1195,34 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::controller(MeetingRoomSetupController::class)
-    ->prefix('meetingroom/setup')
-    ->name('meetingroom.setup.')
-    ->group(function () {
-        Route::get('/', 'index')->name('index');
+        ->prefix('meetingroom/setup')
+        ->name('meetingroom.setup.')
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
 
-        /* ROOM */
-        Route::get('/room/json', 'jsonRoom')->name('room.json');
-        Route::get('/room/find/{id}', 'findRoom')->name('room.find');
+            /* ROOM */
+            Route::get('/room/json', 'jsonRoom')->name('room.json');
+            Route::get('/room/find/{id}', 'findRoom')->name('room.find');
 
-        Route::post('/room/store', 'storeRoom')->name('room.store');
-        Route::post('/room/update/{id}', 'updateRoom')->name('room.update');
-        Route::post('/room/status/{id}', 'updateRoomStatus')->name('room.status');
+            Route::post('/room/store', 'storeRoom')->name('room.store');
+            Route::post('/room/update/{id}', 'updateRoom')->name('room.update');
+            Route::post('/room/status/{id}', 'updateRoomStatus')->name('room.status');
 
-        /* ACCESSORIES */
-        Route::get('/accessories/json', 'jsonAccessories')->name('accessories.json');
-        Route::get('/accessories/find/{id}', 'findAccessories')->name('accessories.find');
+            /* ROOM ACCESS */
+            Route::get('/room/access/{roomId}', 'getRoomAccess')
+                ->name('room.access');
 
-        Route::post('/accessories/store', 'storeAccessories')->name('accessories.store');
-        Route::post('/accessories/update/{id}', 'updateAccessories')->name('accessories.update');
-        Route::post('/accessories/status/{id}', 'updateAccessoriesStatus')->name('accessories.status');
-    });
+            Route::post('/room/access/{roomId}', 'saveRoomAccess')
+                ->name('room.access.save');
 
+            /* ACCESSORIES */
+            Route::get('/accessories/json', 'jsonAccessories')->name('accessories.json');
+            Route::get('/accessories/find/{id}', 'findAccessories')->name('accessories.find');
+
+            Route::post('/accessories/store', 'storeAccessories')->name('accessories.store');
+            Route::post('/accessories/update/{id}', 'updateAccessories')->name('accessories.update');
+            Route::post('/accessories/status/{id}', 'updateAccessoriesStatus')->name('accessories.status');
+        });
     Route::controller(VoucherTaxiController::class)->group(function () {
         Route::get('/vouchertaxi', 'index')->name('vouchertaxi');
 

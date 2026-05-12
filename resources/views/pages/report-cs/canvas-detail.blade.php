@@ -3,7 +3,7 @@
     <!-- FILTER PANEL -->
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-8">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-9">
 
             <!-- Date From -->
             <div>
@@ -55,6 +55,24 @@
                 </label>
                 <input type="text" id="inventoryid" placeholder="Item code"
                     class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+            </div>
+
+            <div>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">
+                    Status
+                </label>
+
+                <select id="status"
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+
+                    <option value="">All Status</option>
+                    <option value="P">On Process</option>
+                    <option value="C">Completed</option>
+                    <option value="R">Rejected</option>
+                    <option value="D">Revised</option>
+                    <option value="X">Cancelled</option>
+
+                </select>
             </div>
 
             <!-- ACTION BUTTONS -->
@@ -142,6 +160,7 @@
                         <th class="px-3 py-3 text-left">Vendor</th>
                         <th class="px-3 py-3 text-right">Unit Price</th>
                         <th class="px-3 py-3 text-right">Total Price</th>
+                        <th class="px-3 py-3 text-right">Status</th>
                     </tr>
 
                 </thead>
@@ -184,6 +203,7 @@
                     d.date_to = $('#date_to').val();
                     d.csid = $('#csid').val();
                     d.ponbr = $('#ponbr').val();
+                    d.status = $('#status').val();
 
                     d.sppbjktid = $('#sppbjktid').val();
                     d.inventoryid = $('#inventoryid').val();
@@ -310,6 +330,50 @@
                             maximumFractionDigits: 2
                         });
                     }
+                },
+                {
+                    data: 'status_label',
+                    className: 'text-left',
+                    render: function(data, type, row) {
+
+                        let cls = 'bg-gray-100 text-gray-700';
+
+                        switch (row.status) {
+                            case 'P':
+                                cls = 'bg-yellow-100 text-yellow-700';
+                                break;
+
+                            case 'C':
+                                cls = 'bg-green-100 text-green-700';
+                                break;
+
+                            case 'R':
+                                cls = 'bg-red-100 text-red-700';
+                                break;
+
+                            case 'D':
+                                cls = 'bg-gray-200 text-gray-700';
+                                break;
+
+                            case 'S':
+                                cls = 'bg-indigo-100 text-indigo-700';
+                                break;
+
+                            case 'A':
+                                cls = 'bg-blue-100 text-blue-700';
+                                break;
+
+                            case 'X':
+                                cls = 'bg-red-100 text-red-800';
+                                break;
+                        }
+
+                        return `
+            <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${cls}">
+                ${data ?? '-'}
+            </span>
+        `;
+                    }
                 }
 
 
@@ -332,6 +396,7 @@
             $('#ponbr').val('');
             $('#sppbjktid').val('');
             $('#inventoryid').val('');
+            $('#status').val('');
 
 
             table.ajax.reload();
@@ -347,6 +412,7 @@
             url += "&ponbr=" + $('#ponbr').val();
             url += "&sppbjktid=" + $('#sppbjktid').val();
             url += "&inventoryid=" + $('#inventoryid').val();
+            url += "&status=" + $('#status').val();
 
             window.location.href = url;
 
