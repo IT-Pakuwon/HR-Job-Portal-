@@ -11,6 +11,7 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
+use Google\Cloud\Storage\StorageClient;
 
 use App\Models\TrApproval;
 use App\Models\TrAttachment;
@@ -18,6 +19,7 @@ use App\Models\TrRfpNonPurch;
 use App\Models\TrCalrNonPurch;
 use App\Models\SysUserRole;
 use App\Models\TrRfpNonPurchDetail;
+
 
 class CalrNonPurchController extends Controller
 {
@@ -45,6 +47,14 @@ class CalrNonPurchController extends Controller
 
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
+            ->exists();
+
+        $hasApFinAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'APFINACCESS')
+            ->exists();
+
+        $hasApTreAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'APTREACCESS')
             ->exists();
 
         /*
@@ -117,13 +127,35 @@ class CalrNonPurchController extends Controller
             ->where($filterCreator)
             ->count();
 
+        /*
+        |--------------------------------------------------------------------------
+        | CALR Finance
+        |--------------------------------------------------------------------------
+        | Khusus FINACCESS.
+        | Filter hanya company user login, tanpa department dan tanpa created_by.
+        */
+        $calrFinance = 0;
+
+        if ($isFinanceAccess) {
+            $calrFinance = TrCalrNonPurch::query()
+                ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                    $q->whereIn('cpny_id', $cpnyList);
+                })
+                ->where('status', 'C')
+                ->count();
+        }
+
         return view('pages.calrnonpurch.calrnonpurch', compact(
             'calrjobs',
             'onProgress',
             'completed',
             'all',
             'rejected',
-            'revise'
+            'revise',
+            'calrFinance',
+            'isFinanceAccess',
+            'hasApFinAccess',
+            'hasApTreAccess'
         ));
     }
 
@@ -239,10 +271,13 @@ class CalrNonPurchController extends Controller
             $base = TrCalrNonPurch::query()
                 ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
-                })
-                ->when(!empty($deptList), function ($q) use ($deptList) {
+                });
+
+            if ($scope !== 'calrfinance') {
+                $base->when(!empty($deptList), function ($q) use ($deptList) {
                     $q->whereIn('department_id', $deptList);
                 });
+            }
 
             $filterCreator = function ($q) use ($isFinanceAccess, $u) {
                 if (!$isFinanceAccess) {
@@ -250,7 +285,21 @@ class CalrNonPurchController extends Controller
                 }
             };
 
-            if ($scope === 'onprogress') {
+            if ($scope === 'calrfinance') {
+                if (!$isFinanceAccess) {
+                    return response()->json([
+                        'draw' => $draw,
+                        'recordsTotal' => 0,
+                        'recordsFiltered' => 0,
+                        'data' => [],
+                    ]);
+                }
+
+                $base->where('status', 'C');
+
+                // khusus CALR Finance:
+                // hanya filter cpny_id, tanpa department, tanpa created_by, tanpa status
+            } elseif ($scope === 'onprogress') {
                 $base->where('status', 'P')->where($filterCreator);
             } elseif ($scope === 'completed') {
                 $base->where('status', 'C')->where($filterCreator);
@@ -259,28 +308,39 @@ class CalrNonPurchController extends Controller
             } elseif ($scope === 'revise') {
                 $base->where('status', 'D')->where($filterCreator);
             } else {
-                // all
                 $base->where($filterCreator);
             }
 
             $base->select([
-                'id',
-                'calrnonpurchaseid',
-                'rfpnonpurchaseid',
-                'calrnonpurchasedate',
-                'datebataspenyelesaian',
-                'cpny_id',
-                'department_id',
-                'location_id',
-                'user_peminta',
-                'keperluan',
-                'amountrfp',
-                'amountsettlement',
-                'amountdiff',
-                'status',
-                'created_by',
-                'created_at',
-            ]);
+            'id',
+            'calrnonpurchaseid',
+            'rfpnonpurchaseid',
+            'calrnonpurchasedate',
+            'datebataspenyelesaian',
+            'cpny_id',
+            'department_id',
+            'location_id',
+            'user_peminta',
+            'keperluan',
+            'amountrfp',
+            'amountsettlement',
+            'amountdiff',
+            'status',
+
+            // wajib untuk CALR Finance
+            'userreceive',
+            'receivedate',
+            'statusreceive',
+            'userpayment',
+            'paymentdate',
+            'paymenttype',
+            'amountpayment',
+            'amountpenyelesaian',
+            'statuspayment',
+
+            'created_by',
+            'created_at',
+        ]);
 
             $orderColumns = [
                 0 => 'calrnonpurchaseid',
@@ -356,10 +416,7 @@ class CalrNonPurchController extends Controller
                     ? Carbon::parse($r->datepenyelesaian)->format('Y-m-d')
                     : null;
 
-                $r->amountrequestpayment_fmt = number_format(
-                    (float) ($r->amountrequestpayment ?? 0),
-                    2
-                );
+                $r->amountrequestpayment_fmt = number_format((float) ($r->amountrequestpayment ?? 0), 2);
             } else {
                 $r->calrnonpurchase_eid = Hashids::encode((string) $r->id);
 
@@ -374,6 +431,20 @@ class CalrNonPurchController extends Controller
                 $r->amountrfp_fmt = number_format((float) ($r->amountrfp ?? 0), 2);
                 $r->amountsettlement_fmt = number_format((float) ($r->amountsettlement ?? 0), 2);
                 $r->amountdiff_fmt = number_format((float) ($r->amountdiff ?? 0), 2);
+
+                if (
+                    ($r->statuspayment === 'C') ||
+                    (!empty($r->userpayment) && !empty($r->paymentdate))
+                ) {
+                    $r->finance_flow_status_text = 'Treasury Received';
+                } elseif (
+                    ($r->statusreceive === 'C') ||
+                    (!empty($r->userreceive) && !empty($r->receivedate))
+                ) {
+                    $r->finance_flow_status_text = 'Finance Received';
+                } else {
+                    $r->finance_flow_status_text = 'Waiting User';
+                }
             }
 
             return $r;
@@ -827,5 +898,1031 @@ class CalrNonPurchController extends Controller
             'refnbr',
             'canUpload'
         ));
+    }
+
+    public function rejectCalrNonPurch(Request $request, $docid)
+    {
+        $user = $request->user();
+        $doctype = 'CAR';
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $calr = \App\Models\TrCalrNonPurch::with('creator')
+            ->where('calrnonpurchaseid', $docid)
+            ->first();
+
+        if (!$calr) {
+            return response()->json([
+                'success' => false,
+                'message' => 'CALR Non Purchase not found',
+            ], 404);
+        }
+
+        $eid = \Vinkla\Hashids\Facades\Hashids::encode($calr->id);
+        $docUrl = url('/showcalrnonpurch/' . $eid);
+
+        $fullname = data_get($calr, 'creator.name') ?: $calr->created_by;
+
+        $result = app(\App\Http\Controllers\ApprovalController::class)->rejectStep(
+            $calr->calrnonpurchaseid,
+            $doctype,
+            $user->username,
+            $user->name,
+
+            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl, $doctype) {
+
+                $calr->status = 'R';
+                $calr->completed_by = auth()->user()->username;
+                $calr->completed_at = $now;
+                $calr->save();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Optional: update detail settlement RCA
+                |--------------------------------------------------------------------------
+                | Karena detail CALR Non Purchase disimpan di TrRfpNonPurchDetail
+                | dengan refid = calrnonpurchaseid.
+                */
+                \App\Models\TrRfpNonPurchDetail::where('refid', $calr->calrnonpurchaseid)
+                    ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+                    ->update([
+                        'status' => 'R',
+                        'updated_by' => auth()->user()->username,
+                        'updated_at' => $now,
+                    ]);
+
+                \App\Models\TrRfpNonPurch::where('calrid', $calr->calrnonpurchaseid)                    
+                    ->update([
+                        'calrid' => '',
+                        'updated_by' => auth()->user()->username,
+                        'updated_at' => $now,
+                    ]);
+
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $calr->calrnonpurchaseid,
+                    'CALR Non Purchase',
+                    'R',
+                    $calr->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid' => $calr->cpny_id ?? '',
+                        'deptname' => $calr->department_id ?? '',
+                        'date' => $now->toDateString(),
+                        'info' => $calr->keperluan,
+                        'fullname' => $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
+                        'rfpnonpurchaseid' => $calr->rfpnonpurchaseid ?? '',
+                        'amountrfp' => $calr->amountrfp ?? 0,
+                        'amountsettlement' => $calr->amountsettlement ?? 0,
+                        'amountdiff' => $calr->amountdiff ?? 0,
+                    ]
+                );
+
+                try {
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($calr->id, $doctype, request());
+                } catch (\Throwable $e) {
+                    // sengaja diabaikan supaya proses reject tetap berhasil
+                }
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Reject failed',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'CALR Non Purchase rejected successfully',
+        ]);
+    }
+
+    public function reviseCalrNonPurch(Request $request, $docid)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated',
+            ], 401);
+        }
+
+        $doctype = 'CAR';
+
+        $calr = \App\Models\TrCalrNonPurch::with('creator')
+            ->where('calrnonpurchaseid', $docid)
+            ->first();
+
+        if (!$calr) {
+            return response()->json([
+                'success' => false,
+                'message' => 'CALR Non Purchase not found',
+            ], 404);
+        }
+
+        $eid = \Vinkla\Hashids\Facades\Hashids::encode($calr->id);
+        $docUrl = url('/showcalrnonpurch/' . $eid);
+
+        $fullname = optional($calr->creator)->name
+            ?: $calr->created_by;
+
+        $result = app(\App\Http\Controllers\ApprovalController::class)->reviseStep(
+            $calr->calrnonpurchaseid,
+            $doctype,
+            $user->username,
+            $user->name,
+
+            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $doctype, $fullname, $docUrl, $request, $user) {
+                /*
+                |--------------------------------------------------------------------------
+                | Update Header CALR Non Purchase
+                |--------------------------------------------------------------------------
+                */
+                $calr->status = 'D';
+                $calr->completed_by = $user->username;
+                $calr->completed_at = $now;
+                $calr->updated_by = $user->username;
+                $calr->updated_at = $now;
+                $calr->save();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Update Detail CALR Non Purchase
+                |--------------------------------------------------------------------------
+                | Detail settlement disimpan di TrRfpNonPurchDetail
+                | dengan refid = calrnonpurchaseid.
+                */
+                \App\Models\TrRfpNonPurchDetail::where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+                    ->where('refid', $calr->calrnonpurchaseid)
+                    ->update([
+                        'status' => 'D',
+                        'updated_by' => $user->username,
+                        'updated_at' => $now,
+                    ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Notify Requester
+                |--------------------------------------------------------------------------
+                */
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $calr->calrnonpurchaseid,
+                    'CALR Non Purchase',
+                    'D',
+                    $calr->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid' => $calr->cpny_id ?? '',
+                        'deptname' => $calr->department_id ?? '',
+                        'date' => $now->toDateTimeString(),
+                        'info' => $calr->keperluan ?? '',
+                        'fullname' => $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
+                        'docname' => 'CALR Non Purchase',
+                        'rfpnonpurchaseid' => $calr->rfpnonpurchaseid ?? '',
+                        'amountrfp' => $calr->amountrfp ?? 0,
+                        'amountsettlement' => $calr->amountsettlement ?? 0,
+                        'amountdiff' => $calr->amountdiff ?? 0,
+                    ]
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Save Comment
+                |--------------------------------------------------------------------------
+                */
+                try {
+                    app(\App\Http\Controllers\SendCommentController::class)
+                        ->sendmsg($calr->id, $doctype, $request);
+                } catch (\Throwable $e) {
+                    \Log::warning('Failed to save revise comment CALR Non Purchase', [
+                        'docid' => $calr->calrnonpurchaseid,
+                        'doctype' => $doctype,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Revise failed',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'CALR Non Purchase revised successfully',
+        ]);
+    }
+
+    public function approveCalrNonPurch(Request $request, $docid)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated',
+            ], 401);
+        }
+
+        $doctype = 'CAR';
+        $docName = 'CALR Non Purchase';
+
+        $calr = \App\Models\TrCalrNonPurch::with('creator')
+            ->where('calrnonpurchaseid', $docid)
+            ->first();
+
+        if (!$calr) {
+            return response()->json([
+                'success' => false,
+                'message' => 'CALR Non Purchase not found',
+            ], 404);
+        }
+
+        $rfpnonpurch = \App\Models\TrRfpNonPurch::with('creator')
+            ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+            ->first();
+
+        $eid = \Vinkla\Hashids\Facades\Hashids::encode($calr->id);
+        $docUrl = url('/showcalrnonpurch/' . $eid);
+
+        $fullname = optional($calr->creator)->name
+            ?: $calr->created_by;
+
+        $result = app(\App\Http\Controllers\ApprovalController::class)->approveStep(
+            $calr->calrnonpurchaseid,
+            $doctype,
+            $user->username,
+            $user->name,
+
+            /*
+            |--------------------------------------------------------------------------
+            | FINAL APPROVAL
+            |--------------------------------------------------------------------------
+            */
+            function (string $refnbr, \Carbon\Carbon $now) use (
+                $calr,
+                $rfpnonpurch,
+                $doctype,
+                $docName,
+                $fullname,
+                $docUrl,
+                $user
+            ) {
+                /*
+                |--------------------------------------------------------------------------
+                | Update Header CALR Non Purchase
+                |--------------------------------------------------------------------------
+                */
+                $calr->status = 'C';
+                $calr->statusreceive = 'P';
+                $calr->statuspayment = 'P';                
+                $calr->completed_by = $user->username;
+                $calr->completed_at = $now;
+                $calr->updated_by = $user->username;
+                $calr->updated_at = $now;
+                $calr->save();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Update Detail CALR Non Purchase
+                |--------------------------------------------------------------------------
+                | Detail settlement disimpan di TrRfpNonPurchDetail
+                | dengan refid = calrnonpurchaseid.
+                */
+                \App\Models\TrRfpNonPurchDetail::where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+                    ->where('refid', $calr->calrnonpurchaseid)
+                    ->update([
+                        'status' => 'C',
+                        'updated_by' => $user->username,
+                        'updated_at' => $now,
+                    ]);
+
+         
+                /*
+                |--------------------------------------------------------------------------
+                | Email to Requester
+                |--------------------------------------------------------------------------
+                */
+                app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
+                    $calr->calrnonpurchaseid,
+                    $doctype,
+                    'C',
+                    $calr->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid' => $calr->cpny_id ?? '',
+                        'deptname' => $calr->department_id ?? '',
+                        'date' => $now->toDateTimeString(),
+                        'info' => $calr->keperluan ?? '',
+                        'fullname' => $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
+                        'docname' => $docName,
+                        'rfpnonpurchaseid' => $calr->rfpnonpurchaseid ?? '',
+                        'amountrfp' => $calr->amountrfp ?? 0,
+                        'amountsettlement' => $calr->amountsettlement ?? 0,
+                        'amountdiff' => $calr->amountdiff ?? 0,
+                    ]
+                );
+            },
+
+            /*
+            |--------------------------------------------------------------------------
+            | NEXT APPROVER
+            |--------------------------------------------------------------------------
+            */
+            function ($next, \Carbon\Carbon $now) use (
+                $calr,
+                $rfpnonpurch,
+                $doctype,
+                $docName,
+                $docUrl,
+                $user
+            ) {
+                /*
+                |--------------------------------------------------------------------------
+                | Approver Email
+                |--------------------------------------------------------------------------
+                */
+                $usernames = str_replace(';', ',', (string) $next->aprv_username);
+
+                $approvers = array_filter(
+                    array_map('trim', explode(',', $usernames))
+                );
+
+                $approverEmails = \App\Models\User::query()
+                    ->whereIn('username', $approvers)
+                    ->where('status', 'A')
+                    ->pluck('notification_email')
+                    ->filter()
+                    ->toArray();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Kepada dari RCA asal
+                |--------------------------------------------------------------------------
+                */
+                $kepadaEmails = [];
+
+                if ($rfpnonpurch && !empty($rfpnonpurch->imnonpurchase_kepada)) {
+                    $kepadaUsers = array_filter(
+                        array_map('trim', explode(',', (string) $rfpnonpurch->imnonpurchase_kepada))
+                    );
+
+                    $kepadaEmails = \App\Models\User::query()
+                        ->whereIn('username', $kepadaUsers)
+                        ->where('status', 'A')
+                        ->pluck('notification_email')
+                        ->filter()
+                        ->toArray();
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Tembusan dari RCA asal
+                |--------------------------------------------------------------------------
+                */
+                $ccEmails = [];
+
+                if ($rfpnonpurch && !empty($rfpnonpurch->imnonpurchase_tembusan)) {
+                    $tembusanUsers = array_filter(
+                        array_map('trim', explode(',', (string) $rfpnonpurch->imnonpurchase_tembusan))
+                    );
+
+                    $ccEmails = \App\Models\User::query()
+                        ->whereIn('username', $tembusanUsers)
+                        ->where('status', 'A')
+                        ->pluck('notification_email')
+                        ->filter()
+                        ->toArray();
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Merge To Email
+                |--------------------------------------------------------------------------
+                */
+                $toEmails = array_unique(array_merge(
+                    $approverEmails,
+                    $kepadaEmails
+                ));
+
+                /*
+                |--------------------------------------------------------------------------
+                | Send Email to Next Approver
+                |--------------------------------------------------------------------------
+                */
+                if (!empty($toEmails)) {
+                    $mailData = [
+                        'docid' => $calr->calrnonpurchaseid,
+                        'cpnyid' => $calr->cpny_id,
+                        'deptname' => $calr->department_id,
+                        'date' => $now->toDateTimeString(),
+                        'name' => $calr->created_by,
+                        'status' => 'P',
+                        'docname' => $docName,
+                        'url' => $docUrl,
+                        'info' => $calr->keperluan,
+                        'createdby' => $calr->created_by,
+                        'rfpnonpurchaseid' => $calr->rfpnonpurchaseid,
+                        'amountrfp' => $calr->amountrfp,
+                        'amountsettlement' => $calr->amountsettlement,
+                        'amountdiff' => $calr->amountdiff,
+                    ];
+
+                    \Illuminate\Support\Facades\Mail::send(
+                        'emails.mailapprovenew',
+                        $mailData,
+                        function ($message) use (
+                            $toEmails,
+                            $ccEmails,
+                            $calr,
+                            $docName
+                        ) {
+                            $message->to($toEmails);
+
+                            if (!empty($ccEmails)) {
+                                $message->cc($ccEmails);
+                            }
+
+                            $message->subject(
+                                $calr->calrnonpurchaseid .
+                                ' - WaitingApproval ' .
+                                $docName
+                            )->from(
+                                config('mail.from.address'),
+                                config('app.name')
+                            );
+                        }
+                    );
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Track Last Process
+                |--------------------------------------------------------------------------
+                */
+                $calr->completed_by = $user->username;
+                $calr->completed_at = $now;
+                $calr->updated_by = $user->username;
+                $calr->updated_at = $now;
+                $calr->save();
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Approve failed',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $docName . ' approved successfully',
+        ]);
+    }
+
+    public function editCalrNonPurch($hash)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $calr = TrCalrNonPurch::query()
+            ->where('id', $id)
+            ->where('status', 'D')
+            ->firstOrFail();
+
+        $rows = TrAttachment::where('refnbr', $calr->calrnonpurchaseid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/','C:\\','D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/').'/'.$r->filename;
+            $object     = $bucket->object($objectPath);
+            $signedUrl  = null;
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                \Log::warning('Signed URL gagal', ['path' => $objectPath, 'error' => $e->getMessage()]);
+            }
+            return (object) [
+                'id'          => $r->id,
+                'display_name' => $r->attachment_name,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        if ($calr->created_by !== $user->username) {
+            abort(403, 'You are not allowed to edit this document.');
+        }
+
+        $header = TrRfpNonPurch::query()
+            ->with(['creator:username,name', 'groupbiaya'])
+            ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+            ->firstOrFail();
+
+        $details = TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+            ->where('refid', $calr->calrnonpurchaseid)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $calr_eid = Hashids::encode((string) $calr->id);
+
+        return view('pages.calrnonpurch.editcalrnonpurch', [
+            'calr' => $calr,
+            'header' => $header,
+            'details' => $details,
+            'calr_eid' => $calr_eid,
+            'hash' => $hash,
+            'attachments' => $attachments,
+        ]);
+    }
+
+    public function updateCalrNonPurch(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'message' => 'Invalid CALR Non Purchase ID.',
+            ], 404);
+        }
+
+        $username = $user->username ?? 'system';
+        $doctype = 'CAR';
+        $dt = now();
+
+        $toFloat = function ($v): float {
+            if ($v === null || $v === '') {
+                return 0;
+            }
+
+            $s = trim((string) $v);
+            $s = preg_replace('/\s+/', '', $s);
+
+            $hasComma = str_contains($s, ',');
+            $hasDot = str_contains($s, '.');
+
+            if ($hasComma && $hasDot) {
+                $lastComma = strrpos($s, ',');
+                $lastDot = strrpos($s, '.');
+
+                if ($lastComma > $lastDot) {
+                    $s = str_replace('.', '', $s);
+                    $s = str_replace(',', '.', $s);
+                } else {
+                    $s = str_replace(',', '', $s);
+                }
+            } elseif ($hasComma) {
+                $s = str_replace(',', '.', $s);
+            } elseif ($hasDot) {
+                if (substr_count($s, '.') > 1) {
+                    $s = str_replace('.', '', $s);
+                }
+            }
+
+            return is_numeric($s) ? (float) $s : 0;
+        };
+
+        $request->validate([
+            'description' => ['required', 'array', 'min:1'],
+            'description.*' => ['required', 'string'],
+            'price' => ['required', 'array', 'min:1'],
+            'price.*' => ['required'],
+        ]);
+
+        DB::connection('pgsql')->beginTransaction();
+
+        try {
+            $calr = TrCalrNonPurch::query()
+                ->where('id', $id)
+                ->where('status', 'D')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($calr->created_by !== $username) {
+                DB::connection('pgsql')->rollBack();
+
+                return response()->json([
+                    'message' => 'You are not allowed to update this document.',
+                ], 403);
+            }
+
+            $rfp = TrRfpNonPurch::query()
+                ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+                ->firstOrFail();
+
+            $docid = $calr->calrnonpurchaseid;
+
+            $descs = $request->description ?? [];
+            $prices = $request->price ?? [];
+
+            $amountSettlement = 0;
+            $validRows = 0;
+
+            foreach ($descs as $i => $desc) {
+                $desc = trim((string) ($desc ?? ''));
+                $priceRaw = $prices[$i] ?? null;
+
+                if ($desc === '' || $priceRaw === null || $priceRaw === '') {
+                    continue;
+                }
+
+                $price = $toFloat($priceRaw);
+
+                $amountSettlement += $price;
+                $validRows++;
+            }
+
+            if ($validRows <= 0) {
+                throw new \Exception('Minimal 1 detail harus diisi.');
+            }
+
+            $amountRfp = (float) ($calr->amountrfp ?? $rfp->amountrequestpayment ?? 0);
+            $amountDiff = $amountRfp - $amountSettlement;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Approval setup
+            |--------------------------------------------------------------------------
+            */
+            $approvalCtl = app(ApprovalController::class);
+
+            $approvalCtl->loadLines(
+                $doctype,
+                $calr->cpny_id,
+                $calr->department_id
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update Header
+            |--------------------------------------------------------------------------
+            */
+            $calr->amountsettlement = $amountSettlement;
+            $calr->amountdiff = $amountDiff;
+            $calr->status = 'P';
+            $calr->completed_by = null;
+            $calr->completed_at = null;
+            $calr->updated_by = $username;
+            $calr->updated_at = $dt;
+            $calr->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Re-create Detail
+            |--------------------------------------------------------------------------
+            */
+            TrRfpNonPurchDetail::query()
+                ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+                ->where('refid', $calr->calrnonpurchaseid)
+                ->delete();
+
+            foreach ($descs as $i => $desc) {
+                $desc = trim((string) ($desc ?? ''));
+                $priceRaw = $prices[$i] ?? null;
+
+                if ($desc === '' || $priceRaw === null || $priceRaw === '') {
+                    continue;
+                }
+
+                $price = $toFloat($priceRaw);
+
+                TrRfpNonPurchDetail::create([
+                    'rfpnonpurchaseid' => $calr->rfpnonpurchaseid,
+                    'keperluan_detail' => $desc,
+                    'amount_request' => 0,
+                    'amount_request_penyelesaian' => $price,
+
+                    'budget_perpost' => $dt->year,
+                    'budget_cpny_id' => $calr->cpny_id,
+                    'budget_business_unit_id' => null,
+                    'budget_department_fin_id' => null,
+                    'budget_account_id' => null,
+                    'budget_activity_id' => null,
+                    'budget_activity_descr' => null,
+
+                    'refid' => $calr->calrnonpurchaseid,
+                    'status' => 'P',
+                    'created_by' => $username,
+                    'created_at' => $dt,
+                    'updated_by' => $username,
+                    'updated_at' => $dt,
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Regenerate Approval
+            |--------------------------------------------------------------------------
+            | Karena dokumen sebelumnya status Revise, approval lama sebaiknya
+            | dibatalkan dulu agar alur approval baru bersih.
+            */
+            // TrApproval::query()
+            //     ->where('refnbr', $docid)
+            //     ->where('aprv_doctype', $doctype)
+            //     ->where('status', '<>', 'X')
+            //     ->update([
+            //         'status' => 'X',
+            //         'updated_by' => $username,
+            //         'updated_at' => $dt,
+            //     ]);
+
+            $ctx = [
+                'ignore_nominal' => false,
+                'grand_total' => abs((float) $amountSettlement),
+            ];
+
+            [$firstApprovalUsernames] = $approvalCtl->generateForDocument(
+                $docid,
+                $doctype,
+                $calr->cpny_id,
+                $calr->department_id,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            if ($firstApprovalUsernames) {
+                $calr->completed_by = $firstApprovalUsernames;
+                $calr->completed_at = $dt;
+                $calr->save();
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Upload Attachment Baru Jika Ada
+            |--------------------------------------------------------------------------
+            */
+            if ($request->hasFile('attachments')) {
+                $meta = [
+                    'refnbr' => $docid,
+                    'doctype' => $doctype,
+                    'cpnyid' => $calr->cpny_id,
+                    'departementid' => $calr->department_id,
+                    'base_folder' => 'att-purchasing-app/' . strtolower($doctype),
+                    'created_by' => $username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+                    $uploader = app(TrAttachmentController::class);
+                    $uploader->uploadInternal($meta, $files);
+                } catch (\Throwable $e) {
+                    DB::connection('pgsql')->rollBack();
+
+                    return response()->json([
+                        'message' => 'Failed to update CALR Non Purchase',
+                        'error' => 'Gagal upload attachment: ' . $e->getMessage(),
+                    ], 500);
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Notify First Approver
+            |--------------------------------------------------------------------------
+            */
+            $eid = Hashids::encode($calr->id);
+
+            $approvalCtl->notifyFirstApprover(
+                $docid,
+                $doctype,
+                $calr->status,
+                'CALR Non Purchase',
+                url('/showcalrnonpurch/' . $eid),
+                [
+                    'info' => $calr->keperluan,
+                    'createdby' => $calr->created_by,
+                    'date' => $dt->toDateTimeString(),
+                    'rfpnonpurchaseid' => $rfp->rfpnonpurchaseid,
+                    'amountrfp' => $amountRfp,
+                    'amountsettlement' => $amountSettlement,
+                    'amountdiff' => $amountDiff,
+                ]
+            );
+
+            DB::connection('pgsql')->commit();
+
+            return response()->json([
+                'message' => 'CALR Non Purchase updated successfully',
+                'docid' => $docid,
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql')->rollBack();
+
+            report($e);
+
+            return response()->json([
+                'message' => 'Failed to update CALR Non Purchase',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    public function receivedCalrNonPurch(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'APFINACCESS')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to update received finance.',
+            ], 403);
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid CALR Non Purchase ID.',
+            ], 404);
+        }
+
+        $actionType = $request->input('action_type', 'update');
+
+        $calr = TrCalrNonPurch::find($id);
+       
+
+        if (!$calr) {
+            return response()->json([
+                'success' => false,
+                'message' => 'CALR Non Purchase not found.',
+            ], 404);
+        }
+
+        if ($actionType === 'rollback') {
+            $calr->userreceive = null;
+            $calr->receivedate = null;
+            $calr->statusreceive = null;
+            $calr->updated_by = $user->username;
+            $calr->updated_at = now();
+            $calr->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Finance received rollback successfully.',
+            ]);
+        }
+
+        $calr->userreceive = $user->username;
+        $calr->receivedate = now();
+        $calr->statusreceive = 'C';
+        $calr->updated_by = $user->username;
+        $calr->updated_at = now();
+        $calr->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Finance received updated successfully.',
+        ]);
+    }
+
+    public function treasuryCalrNonPurch(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'APTREACCESS')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to update treasury.',
+            ], 403);
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid CALR Non Purchase ID.',
+            ], 404);
+        }
+
+        $actionType = $request->input('action_type', 'update');
+
+        $calr = TrCalrNonPurch::find($id);
+
+        if (!$calr) {
+            return response()->json([
+                'success' => false,
+                'message' => 'CALR Non Purchase not found.',
+            ], 404);
+        }
+
+        $isReceiveCompleted = $calr->statusreceive === 'C'
+            || (!empty($calr->userreceive) && !empty($calr->receivedate));
+
+        if (!$isReceiveCompleted) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Finance received must be completed before treasury update.',
+            ], 422);
+        }
+
+        if ($actionType === 'rollback') {
+            $calr->userpayment = null;
+            $calr->paymentdate = null;
+            $calr->statuspayment = null;
+            $calr->amountpayment = null;
+            $calr->amountpenyelesaian = null;
+            $calr->updated_by = $user->username;
+            $calr->updated_at = now();
+            $calr->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Treasury rollback successfully.',
+            ]);
+        }
+
+        $calr->userpayment = $user->username;
+        $calr->paymentdate = now();
+        $calr->statuspayment = 'C';
+        $calr->amountpayment = $calr->amountsettlement;
+        $calr->amountpenyelesaian = $calr->amountsettlement;
+        $calr->updated_by = $user->username;
+        $calr->updated_at = now();
+        $calr->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Treasury updated successfully.',
+        ]);
     }
 }

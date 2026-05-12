@@ -1162,15 +1162,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/calrnonpurch', [CalrNonPurchController::class, 'index'])->name('calrnonpurch');
     Route::get('/calrnonpurch/json', [CalrNonPurchController::class, 'json'])->name('calrnonpurch.json');
     Route::get('/showcalrnonpurch/{hash}', [CalrNonPurchController::class, 'showCalrNonPurch']);
-    Route::get('/pdf_calrnonpurch/{hash}', [CalrNonPurchController::class, 'printCalrNonPurch'])->name('calrnonpurchs.print');
-    Route::get('/pdf_calrnonpurch_vendor/{hash}', [CalrNonPurchController::class, 'printCalrVendor'])->name('calrnonpurchs.printvendor');
+    Route::get('/pdf_calrnonpurch/{hash}', [CalrNonPurchController::class, 'printCalrNonPurch'])->name('calrnonpurch.print');
+    Route::get('/pdf_calrnonpurch_vendor/{hash}', [CalrNonPurchController::class, 'printCalrVendor'])->name('calrnonpurch.printvendor');
     Route::get('/calrnonpurch/create', [CalrNonPurchController::class, 'createCalrNonPurch'])->name('calrnonpurch.create');
     Route::post('/calrnonpurch', [CalrNonPurchController::class, 'storeCalrNonPurch'])->name('calrnonpurch.store');
-    Route::get('/editcalrnonpurchs/{hash}', [CalrNonPurchController::class, 'editCalrNonPurch'])->name('calrnonpurch.edit');
-    Route::put('/editcalrnonpurchs/{hash}', [CalrNonPurchController::class, 'updateCalrNonPurch'])->name('calrnonpurch.update');
+    Route::get('/editcalrnonpurch/{hash}', [CalrNonPurchController::class, 'editCalrNonPurch'])->name('calrnonpurch.edit');
+    Route::put('/editcalrnonpurch/{hash}', [CalrNonPurchController::class, 'updateCalrNonPurch'])->name('calrnonpurch.update');
     Route::post('/calrnonpurch/{id}/approve', [CalrNonPurchController::class, 'approveCalrNonPurch']);
     Route::post('/calrnonpurch/{id}/reject', [CalrNonPurchController::class, 'rejectCalrNonPurch']);
     Route::post('/calrnonpurch/{id}/revise', [CalrNonPurchController::class, 'reviseCalrNonPurch']);
+    Route::post('/calrnonpurch/{hash}/received', [CalrNonPurchController::class, 'receivedCalrNonPurch'])->name('calrnonpurch.received');
+    Route::post('/calrnonpurch/{hash}/treasury', [CalrNonPurchController::class, 'treasuryCalrNonPurch'])->name('calrnonpurch.treasury');
 
     Route::controller(MeetingController::class)->group(function () {
         Route::get('/meeting', 'index')->name('meeting');

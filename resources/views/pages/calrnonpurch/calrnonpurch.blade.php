@@ -1,7 +1,10 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-
+        @if ($isFinanceAccess)
+            <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
+        @else
+            <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        @endif
             {{-- CALR Jobs --}}
             <button type="button" class="scope-filter group block h-full" data-scope="calrjobs">
                 <div
@@ -85,6 +88,22 @@
                     <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                 </div>
             </button>
+            @if ($isFinanceAccess)
+                {{-- CALR Finance --}}
+                <button type="button" class="scope-filter group block h-full" data-scope="calrfinance">
+                    <div
+                        class="scope-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col">
+                            <p class="break-words text-sm font-medium leading-tight">CALR Finance</p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-bold">{{ $calrFinance }}</p>
+                    </div>
+                </button>
+            @endif
         </div>
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -106,8 +125,40 @@
         </div>
     </div>
 
+    <div id="calrActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+        <div class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-800">
+            <h2 id="calrActionTitle" class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">
+                Action
+            </h2>
+
+            <div class="space-y-3 text-sm">
+                <div><strong>CALR ID:</strong> <span id="modalCalrId">-</span></div>
+                <div><strong>RFCA ID:</strong> <span id="modalRfcaId">-</span></div>
+                <div><strong>Keperluan:</strong> <span id="modalKeperluan">-</span></div>
+                <div><strong>Total Amount:</strong> <span id="modalAmount">-</span></div>
+                <div><strong id="modalUserLabel">User Receive:</strong> <span id="modalUserValue">-</span></div>
+                <div><strong id="modalDateLabel">Date Receive:</strong> <span id="modalDateValue">-</span></div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button type="button" id="closeCalrActionModal"
+                    class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                    Cancel
+                </button>
+
+                <button type="button" id="submitCalrActionBtn"
+                    class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                    Update
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const currentUser = @json(auth()->user()->username ?? '');
+        const hasApFinAccess = @json($hasApFinAccess ?? false);
+        const hasApTreAccess = @json($hasApTreAccess ?? false);
+        let scopeFilter = 'calrjobs';
 
         const dtControlColumn = {
             data: null,
@@ -129,6 +180,7 @@
                 rejected: 'CALR Non Purchase - Rejected',
                 revise: 'CALR Non Purchase - Revise',
                 all: 'CALR Non Purchase - All',
+                calrfinance: 'CALR Non Purchase - Finance',
             };
 
             function headerFor(sc) {
@@ -141,22 +193,23 @@
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Department</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Please Pay To</th>
-                        <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Amount RCA</th>
+                        <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Amount RFCA</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
                     `;
                 }
 
                 return `
                     <th></th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">CALR Non Purchase ID</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">CALR ID</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">CALR Date</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Document ID</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">RFCA ID</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Department</th>
-                    <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Amount RCA</th>
+                    <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Amount RFCA</th>
                     <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Settlement</th>
                     <th class="px-6 py-3 text-right text-sm font-semibold uppercase tracking-wider">Diff</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Status</th>
                 `;
             }
@@ -219,7 +272,7 @@
                     },
                     {
                         data: 'rfpnonpurchaseid',
-                        render: (_v, _t, row) => renderRfpNonPurchPlainLink(row),
+                        // render: (_v, _t, row) => renderRfpNonPurchPlainLink(row),
                         className: 'text-left'
                     },
                     {
@@ -250,10 +303,133 @@
                         className: 'text-left'
                     },
                     {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-left',
+                        render: function(data, type, row) {
+                            if (scopeFilter !== 'calrfinance') {
+                                return '';
+                            }
+
+                            const statusText = row.finance_flow_status_text || '';
+
+                            const isReceiveCompleted =
+                                row.statusreceive === 'C' ||
+                                statusText === 'Finance Received' ||
+                                statusText === 'Treasury Received';
+
+                            const isPaymentCompleted =
+                                row.statuspayment === 'C' ||
+                                (row.userpayment && row.paymentdate);
+
+                            if (hasApTreAccess && isReceiveCompleted) {
+                                const buttonText = isPaymentCompleted
+                                    ? 'Rollback Treasury'
+                                    : 'Update Treasury';
+
+                                const btnClass = isPaymentCompleted
+                                    ? 'bg-red-600 hover:bg-red-700'
+                                    : 'bg-indigo-600 hover:bg-indigo-700';
+
+                                return `
+                                    <button type="button"
+                                        class="btn-action-calr rounded ${btnClass} px-3 py-1 text-white"
+                                        data-mode="treasury"
+                                        data-action="${isPaymentCompleted ? 'rollback' : 'update'}"
+                                        data-hash="${row.calrnonpurchase_eid}"
+                                        data-calrnonpurchaseid="${escapeHtml(row.calrnonpurchaseid || '')}"
+                                        data-rfpnonpurchaseid="${escapeHtml(row.rfpnonpurchaseid || '')}"
+                                        data-keperluan="${escapeHtml(row.keperluan || '-')}"
+                                        data-amount="${row.amountsettlement || 0}"
+                                        data-user="${escapeHtml(row.userpayment || '')}"
+                                        data-date="${escapeHtml(row.paymentdate || '')}"
+                                        data-button-text="${buttonText}">
+                                        ${buttonText}
+                                    </button>
+                                `;
+                            }
+
+                            if (
+                                hasApFinAccess &&
+                                (statusText === 'Waiting User' || statusText === 'Finance Received')
+                            ) {
+                                const isReceived = row.statusreceive === 'C' || (row.userreceive && row.receivedate);
+
+                                const buttonText = isReceived
+                                    ? 'Rollback Received'
+                                    : 'Update Received';
+
+                                const btnClass = isReceived
+                                    ? 'bg-red-600 hover:bg-red-700'
+                                    : 'bg-green-600 hover:bg-green-700';
+
+                                return `
+                                    <button type="button"
+                                        class="btn-action-calr rounded ${btnClass} px-3 py-1 text-white"
+                                        data-mode="received"
+                                        data-action="${isReceived ? 'rollback' : 'update'}"
+                                        data-hash="${row.calrnonpurchase_eid}"
+                                        data-calrnonpurchaseid="${escapeHtml(row.calrnonpurchaseid || '')}"
+                                        data-rfpnonpurchaseid="${escapeHtml(row.rfpnonpurchaseid || '')}"
+                                        data-keperluan="${escapeHtml(row.keperluan || '-')}"
+                                        data-amount="${row.amountsettlement || 0}"
+                                        data-user="${escapeHtml(row.userreceive || '')}"
+                                        data-date="${escapeHtml(row.receivedate || '')}"
+                                        data-button-text="${buttonText}">
+                                        ${buttonText}
+                                    </button>
+                                `;
+                            }
+
+                            return `<span class="text-gray-400 italic">No Access</span>`;
+                        }
+                    },
+                    {
                         data: 'status',
                         className: 'text-left',
-                        render: renderStatusBadge
-                    },
+                        render: function(data, type, row) {
+                            if (scopeFilter === 'calrfinance') {
+                                let statusText = row.finance_flow_status_text || '';
+
+                                if (!statusText) {
+                                    if (
+                                        row.statuspayment === 'C' ||
+                                        (row.userpayment && row.paymentdate)
+                                    ) {
+                                        statusText = 'Treasury Received';
+                                    } else if (
+                                        row.statusreceive === 'C' ||
+                                        (row.userreceive && row.receivedate)
+                                    ) {
+                                        statusText = 'Finance Received';
+                                    } else {
+                                        statusText = 'Waiting User';
+                                    }
+                                }
+
+                                const map = {
+                                    'Waiting User': {
+                                        c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                    },
+                                    'Finance Received': {
+                                        c: 'bg-blue-200/60 text-blue-800 border border-blue-600/40'
+                                    },
+                                    'Treasury Received': {
+                                        c: 'bg-green-200/60 text-green-800 border border-green-600/40'
+                                    }
+                                };
+
+                                const it = map[statusText] || {
+                                    c: 'bg-gray-200/60 text-gray-700 border border-gray-500/40'
+                                };
+
+                                return `<span class="w-40 inline-block ${it.c} font-semibold px-3 py-1.5 text-sm text-center rounded">${statusText}</span>`;
+                            }
+
+                            return renderStatusBadge(data);
+                        }
+                    }
                 ];
             }
 
@@ -431,14 +607,23 @@
                 const isOwner = creator === (currentUser ?? '');
 
                 if (isRevise && isOwner) {
-                    const url = `/editcalrnonpurch/${encodeURIComponent(hash)}`;
+                    const editUrl = `/editcalrnonpurch/${encodeURIComponent(hash)}`;
+                    const showUrl = `/showcalrnonpurch/${encodeURIComponent(hash)}`;
 
                     return `
-                        <a href="${url}"
-                            class="inline-flex items-center justify-center rounded bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
-                            title="Edit Revise">
-                            ${escapeHtml(label)}
-                        </a>
+                        <div class="inline-flex items-center gap-2">
+                            <a href="${editUrl}"
+                                class="inline-flex items-center justify-center rounded bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
+                                title="Edit Revise">
+                                ${escapeHtml(label)}
+                            </a>
+
+                            <a href="${showUrl}" target="_blank"
+                                class="inline-flex items-center justify-center rounded bg-gray-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
+                                title="View Detail">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                        </div>
                     `;
                 }
 
@@ -513,6 +698,7 @@
                 e.preventDefault();
 
                 scope = $(this).data('scope') || 'calrjobs';
+                scopeFilter = scope;
 
                 updateTitle(scope);
                 rebuild(scope);
@@ -525,8 +711,21 @@
 
             const savedCalrScope = localStorage.getItem('activeCalrNonPurchScope');
 
-            if (savedCalrScope) {
+            // if (savedCalrScope) {
+            //     scope = savedCalrScope;
+            const allowedScopes = [
+                'calrjobs',
+                'calrfinance',
+                'onprogress',
+                'completed',
+                'rejected',
+                'revise',
+                'all'
+            ];
+
+            if (savedCalrScope && allowedScopes.includes(savedCalrScope)) {
                 scope = savedCalrScope;
+                scopeFilter = scope;
 
                 updateTitle(scope);
                 rebuild(scope);
@@ -534,8 +733,141 @@
                 $('.scope-filter').removeClass('active');
                 $(`.scope-filter[data-scope="${scope}"]`).addClass('active');
             } else {
+                scope = 'calrjobs';
+                scopeFilter = scope;
+
                 $(`.scope-filter[data-scope="calrjobs"]`).addClass('active');
             }
+
+            function formatRupiah(num) {
+                return parseFloat(num || 0).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            let selectedActionHash = null;
+            let selectedActionMode = null;
+            let selectedActionType = null;
+
+            $(document).on('click', '.btn-action-calr', function() {
+                selectedActionHash = $(this).data('hash');
+                selectedActionMode = $(this).data('mode');
+                selectedActionType = $(this).data('action');
+
+                if (selectedActionMode === 'received' && !hasApFinAccess) {
+                    toastr.error('You are not authorized to update or rollback receive.');
+                    return;
+                }
+
+                if (selectedActionMode === 'treasury' && !hasApTreAccess) {
+                    toastr.error('You are not authorized to update or rollback payment.');
+                    return;
+                }
+
+                const calrId = $(this).data('calrnonpurchaseid');
+                const rfpId = $(this).data('rfpnonpurchaseid');
+                const keperluan = $(this).data('keperluan');
+                const amount = $(this).data('amount');
+                const currentValueUser = $(this).data('user') || '';
+                const currentValueDate = $(this).data('date') || '';
+                const buttonText = $(this).data('button-text') || 'Update';
+
+                $('#modalCalrId').text(calrId || '-');
+                $('#modalRfcaId').text(rfpId || '-');
+                $('#modalKeperluan').text(keperluan || '-');
+                $('#modalAmount').text(formatRupiah(amount));
+
+                if (selectedActionMode === 'received') {
+                    $('#calrActionTitle').text(
+                        selectedActionType === 'rollback'
+                            ? 'Rollback Received Finance'
+                            : 'Received Finance'
+                    );
+                    $('#modalUserLabel').text('User Receive:');
+                    $('#modalDateLabel').text('Date Receive:');
+                } else {
+                    $('#calrActionTitle').text(
+                        selectedActionType === 'rollback'
+                            ? 'Rollback Treasury'
+                            : 'Received Treasury'
+                    );
+                    $('#modalUserLabel').text('User Payment:');
+                    $('#modalDateLabel').text('Date Payment:');
+                }
+
+                $('#modalUserValue').text(currentValueUser || '');
+                $('#modalDateValue').text(currentValueDate || '');
+
+                $('#submitCalrActionBtn')
+                    .text(buttonText)
+                    .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-green-600 hover:bg-green-700')
+                    .addClass(selectedActionType === 'rollback'
+                        ? 'bg-red-600 hover:bg-red-700'
+                        : 'bg-indigo-600 hover:bg-indigo-700'
+                    );
+
+                $('#calrActionModal').removeClass('hidden').addClass('flex');
+            });
+
+            $('#closeCalrActionModal').on('click', function() {
+                $('#calrActionModal').addClass('hidden').removeClass('flex');
+            });
+
+            $('#submitCalrActionBtn').on('click', function() {
+                if (!selectedActionHash || !selectedActionMode) {
+                    return;
+                }
+
+                if (selectedActionMode === 'received' && !hasApFinAccess) {
+                    toastr.error('You are not authorized to update or rollback receive.');
+                    return;
+                }
+
+                if (selectedActionMode === 'treasury' && !hasApTreAccess) {
+                    toastr.error('You are not authorized to update or rollback payment.');
+                    return;
+                }
+
+                let url = '';
+
+                if (selectedActionMode === 'received') {
+                    url = `/calrnonpurch/${selectedActionHash}/received`;
+                } else {
+                    url = `/calrnonpurch/${selectedActionHash}/treasury`;
+                }
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        action_type: selectedActionType
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            toastr.success(res.message || 'Updated successfully.');
+
+                            $('#calrActionModal').addClass('hidden').removeClass('flex');
+
+                            selectedActionHash = null;
+                            selectedActionMode = null;
+                            selectedActionType = null;
+
+                            $('#calrTable').DataTable().ajax.reload(null, false);
+                        } else {
+                            toastr.error(res.message || 'Update failed.');
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error(
+                            xhr.responseJSON?.error ||
+                            xhr.responseJSON?.message ||
+                            'Update failed.'
+                        );
+                    }
+                });
+            });
         });
     </script>
 </x-app-layout>

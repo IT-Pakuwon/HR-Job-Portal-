@@ -197,11 +197,11 @@
                                     'value' => $calr->department_id ?? '-',
                                 ],
                                 [
-                                    'label' => 'CALR Non Purchase Date',
+                                    'label' => 'CALR Date',
                                     'value' => $fmtDate($calr->calrnonpurchasedate),
                                 ],
                                 [
-                                    'label' => 'RCA ID',
+                                    'label' => 'RFCA ID',
                                     'value' => $rfpUrl
                                         ? '<a href="' . $rfpUrl . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($calr->rfpnonpurchaseid) . '</a>'
                                         : ($calr->rfpnonpurchaseid ?? '-'),
@@ -757,15 +757,24 @@
             }
 
             function refreshAttachments() {
-                $.get(listUrl)
-                    .done(res => {
+                $.ajax({
+                    url: listUrl,
+                    method: 'GET',
+                    data: {
+                        _t: new Date().getTime()
+                    },
+                    cache: false,
+                    success: function(res) {
                         if (res.success) {
-                            renderAttachmentRows(res.attachments);
+                            renderAttachmentRows(res.attachments || []);
                         } else {
                             toastr.error(res.message || 'Failed to load attachments.');
                         }
-                    })
-                    .fail(() => toastr.error('Failed to load attachments.'));
+                    },
+                    error: function() {
+                        toastr.error('Failed to load attachments.');
+                    }
+                });
             }
 
             refreshAttachments();
@@ -773,6 +782,7 @@
             $('#btnUploadAttachment').on('click', function() {
                 const form = $('#attachmentUploadForm')[0];
                 const files = $('#attachFiles')[0].files;
+                const $btn = $('#btnUploadAttachment');
 
                 if (!files || !files.length) {
                     toastr.warning('Please choose at least one file.');
@@ -781,6 +791,7 @@
 
                 const fd = new FormData(form);
 
+                $btn.prop('disabled', true).text('Uploading...');
                 showOverlay('Uploading');
 
                 $.ajax({
@@ -789,9 +800,8 @@
                     data: fd,
                     processData: false,
                     contentType: false,
+                    cache: false,
                     success: function(res) {
-                        hideOverlay();
-
                         if (!res || !res.success) {
                             toastr.error(res?.message || 'Upload failed.');
                             return;
@@ -799,11 +809,20 @@
 
                         toastr.success('Upload success.');
                         $('#attachFiles').val('');
-                        renderAttachmentRows(res.attachments || []);
+
+                        // Ambil ulang attachment terbaru dari database/storage
+                        refreshAttachments();
                     },
                     error: function(xhr) {
+                        toastr.error(
+                            xhr.responseJSON?.error ||
+                            xhr.responseJSON?.message ||
+                            'Upload failed.'
+                        );
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).text('Upload');
                         hideOverlay();
-                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
                     }
                 });
             });

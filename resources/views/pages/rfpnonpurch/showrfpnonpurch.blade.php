@@ -839,12 +839,24 @@
             }
 
             function refreshAttachments() {
-                $.get(listUrl)
-                    .done(res => {
-                        if (res.success) renderAttachmentRows(res.attachments);
-                        else toastr.error(res.message || 'Failed to load attachments.');
-                    })
-                    .fail(() => toastr.error('Failed to load attachments.'));
+                $.ajax({
+                    url: listUrl,
+                    method: 'GET',
+                    data: {
+                        _t: new Date().getTime()
+                    },
+                    cache: false,
+                    success: function(res) {
+                        if (res.success) {
+                            renderAttachmentRows(res.attachments || []);
+                        } else {
+                            toastr.error(res.message || 'Failed to load attachments.');
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Failed to load attachments.');
+                    }
+                });
             }
 
 
@@ -853,6 +865,7 @@
             $('#btnUploadRfpAttachment').on('click', function() {
                 const $form = $('#rfpAttachmentUploadForm')[0];
                 const files = $('#rfpAttachFiles')[0].files;
+                const $btn = $('#btnUploadRfpAttachment');
 
                 if (!files || !files.length) {
                     toastr.warning('Please choose at least one file.');
@@ -861,12 +874,19 @@
 
                 const fd = new FormData($form);
 
+                $btn.prop('disabled', true).text('Uploading...');
+
+                if (typeof showOverlay === 'function') {
+                    showOverlay('Uploading');
+                }
+
                 $.ajax({
                     url: uploadUrl,
                     method: 'POST',
                     data: fd,
                     processData: false,
                     contentType: false,
+                    cache: false,
                     success: function(res) {
                         if (!res || !res.success) {
                             toastr.error(res?.message || 'Upload failed.');
@@ -875,10 +895,23 @@
 
                         toastr.success('Upload success.');
                         $('#rfpAttachFiles').val('');
-                        renderAttachmentRows(res.attachments || []);
+
+                        // Ambil ulang attachment terbaru supaya langsung muncul tanpa refresh page
+                        refreshAttachments();
                     },
                     error: function(xhr) {
-                        toastr.error(xhr.responseJSON?.message || 'Upload failed.');
+                        toastr.error(
+                            xhr.responseJSON?.error ||
+                            xhr.responseJSON?.message ||
+                            'Upload failed.'
+                        );
+                    },
+                    complete: function() {
+                        $btn.prop('disabled', false).text('Upload');
+
+                        if (typeof hideOverlay === 'function') {
+                            hideOverlay();
+                        }
                     }
                 });
             });

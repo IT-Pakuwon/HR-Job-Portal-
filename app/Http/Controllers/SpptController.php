@@ -3046,7 +3046,10 @@ class SpptController extends Controller
         // 4) Final
         $canEdit = $canApproveEdit || $canCreatorEdit;
 
-        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
+        // $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->orderByRaw('bq_line_no::int ASC')
+            ->get();
 
         return view('pages.sppts.showbqsppts', compact('bq', 'bqdetail', 'canEdit', 'hash'));
     }
@@ -3780,7 +3783,10 @@ class SpptController extends Controller
         $bq = Bq::findOrFail($id);
 
         // Detail baris SPPJ
+        // $bqdetail = BqDetail::where('bqid', $bq->bqid)
+        //     ->get();
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->orderByRaw('bq_line_no::int ASC')
             ->get();
 
         $sppt = TrSPPT::where('spptid', $bq->sppjtid)

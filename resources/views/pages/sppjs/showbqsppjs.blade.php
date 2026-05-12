@@ -207,7 +207,7 @@
                             @foreach ($bqdetail as $item)
                                 <tr
                                     class="border-t border-gray-200 bg-white hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                                    <td class="px-4 py-2">{{ $item->bq_no }}</td>
+                                    <td class="px-4 py-2">{{ $item->bq_line_no }}</td>
                                     <td class="px-4 py-2">{{ $item->bq_descr }}</td>
                                     <td class="px-4 py-2 text-right">
                                         {{ is_null($item->qty) ? '' : number_format((float) $item->qty, 2) }}

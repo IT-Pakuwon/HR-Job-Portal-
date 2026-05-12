@@ -2477,7 +2477,10 @@ class SppjController extends Controller
         // 4) Final permission
         $canEdit = $canApproveEdit || $canCreatorEdit;
 
-        $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
+        // $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
+        $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->orderByRaw('bq_line_no::int ASC')
+            ->get();
 
         return view('pages.sppjs.showbqsppjs', compact('bq', 'bqdetail', 'canEdit', 'hash'));
     }
@@ -3216,7 +3219,10 @@ class SppjController extends Controller
         $bq = Bq::findOrFail($id);
 
         // Detail baris SPPJ
+        // $bqdetail = BqDetail::where('bqid', $bq->bqid)
+        //     ->get();
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
+            ->orderByRaw('bq_line_no::int ASC')
             ->get();
 
         $sppj = TrSPPJ::where('sppjid', $bq->sppjtid)
