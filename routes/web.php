@@ -1298,22 +1298,48 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('access-request')->controller(AccessRequestController::class)->group(function () {
+
         Route::get('/', 'index')->name('accessrequest');
+
         Route::get('/json', 'json')->name('access-request.json');
+
         Route::post('/store', 'store')->name('access-request.store');
+
         Route::post('/update/{hash}', 'update')->name('access-request.update');
+
         Route::post('/cancel/{hash}', 'cancel')->name('access-request.cancel');
+
+        Route::post('/upload-attachment', 'uploadAttachment')
+            ->name('access-request.upload-attachment');
+
         Route::get('/detail/{hash}', 'detail')->name('access-request.detail');
+
         Route::get('/tracking/{hash}', 'tracking')->name('access-request.tracking');
+
         Route::post('/approve/{docid}', 'approve')->name('access-request.approve');
+
         Route::post('/reject/{docid}', 'reject')->name('access-request.reject');
+
         Route::post('/revise/{docid}', 'revise')->name('access-request.revise');
-        Route::post('/process-hardware/{hash}', 'processHardware')->name('access-request.process-hardware');
-        Route::post('/process-software/{hash}', 'processSoftware')->name('access-request.process-software');
-        Route::get('/comments/{hash}', 'comments')->name('access-request.comments');
-        Route::post('/comment/{hash}', 'comment')->name('access-request.comment');
-        Route::get('/category-search', 'categorySearch')->name('access-request.category-search');
-        Route::get('/print/{hash}', 'print')->name('access-request.print');
+
+        Route::post('/process-hardware/{hash}', 'processHardware')
+            ->name('access-request.process-hardware');
+
+        Route::post('/process-software/{hash}', 'processSoftware')
+            ->name('access-request.process-software');
+
+        Route::get('/comments/{hash}', 'comments')
+            ->name('access-request.comments');
+
+        Route::post('/comment/{hash}', 'comment')
+            ->name('access-request.comment');
+
+        Route::get('/category-search', 'categorySearch')
+            ->name('access-request.category-search');
+
+        Route::get('/print/{hash}', 'print')
+            ->name('access-request.print');
+
     });
 
     Route::get('/showaccessrequest/{eid}', [AccessRequestController::class, 'index']);
