@@ -17,9 +17,9 @@ class MsCategory extends Model
         'groups',
         'username',
         'type',
-        'status',     
-        'created_by', 
-        'updated_by', 
-       
+        'status',
+        'created_by',
+        'updated_by',
+
     ];
 }

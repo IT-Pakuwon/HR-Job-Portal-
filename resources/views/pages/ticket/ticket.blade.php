@@ -20,10 +20,12 @@
             color: white !important;
         }
 
-        .select2-selection__rendered {
-            line-height: 50px !important;
-            padding-left: 0 !important;
-            color: inherit !important;
+        .select2-selection--single {
+            min-height: 52px !important;
+        }
+
+        .select2-container {
+            z-index: 9999 !important;
         }
 
         .select2-selection__arrow {
@@ -50,20 +52,92 @@
             box-shadow: none !important;
         }
 
+        .select2-container {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .select2-dropdown {
+            max-width: 100% !important;
+        }
+
+        .select2-results {
+            overflow-x: hidden !important;
+        }
+
         body.modal-open {
             overflow: hidden !important;
             height: 100vh !important;
         }
 
-        .modal-scroll {
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch;
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            letter-spacing: .05em
+        }
+
+        .readonly-select+.select2 .select2-selection--single {
+            background: #f8fafc !important;
+            color: #94a3b8 !important;
+            border-color: #e2e8f0 !important;
+            cursor: not-allowed !important;
+        }
+
+        .dark .readonly-select+.select2 .select2-selection--single {
+            background: #1e293b !important;
+            color: #64748b !important;
+            border-color: #334155 !important;
+        }
+
+        .readonly-select {
+            background: #f8fafc !important;
+            color: #94a3b8 !important;
+            border-color: #e2e8f0 !important;
+            cursor: not-allowed !important;
+        }
+
+        .dark .readonly-select {
+            background: #1e293b !important;
+            color: #64748b !important;
+            border-color: #334155 !important;
+        }
+
+        .label {
+            font-size: 11px;
+            color: #94a3b8
+        }
+
+        .input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 14px;
+            background: white
+        }
+
+        .upload-box {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            border: 1px dashed #cbd5f5;
+            border-radius: 12px;
+            cursor: pointer
+        }
+
+        .btn-primary {
+            background: #0f172a;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px
         }
     </style>
 
     <div class="max-w-9xl mx-auto w-full p-2">
 
+        {{-- STATUS FILTER --}}
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Ticket --}}
@@ -188,24 +262,7 @@
 
         </div>
 
-        {{-- Category Tabs --}}
-        <div class="mt-4 overflow-x-auto">
-
-            <div id="ticketCategoryTabs" class="flex min-w-max gap-2 pb-1">
-
-                <button type="button"
-                    class="ticket-category-tab active-category-tab inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:border-slate-700 dark:bg-slate-700"
-                    data-category="">
-
-                    <span>📂</span>
-                    <span>All Category</span>
-
-                </button>
-
-            </div>
-
-        </div>
-
+        {{-- LISTING TIKET --}}
         <div
             class="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
 
@@ -224,12 +281,13 @@
                         </p>
                     </div>
 
+
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 
                         {{-- Search --}}
                         <div class="relative">
                             <input type="text" id="ticketSearch" placeholder="Search ticket..."
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-500/20">
+                                class="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-blue-500/20">
 
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 class="absolute left-3 top-2.5 h-5 w-5 text-slate-400" fill="none"
@@ -242,7 +300,7 @@
 
                         @if (auth()->user()->user_role === 'admin')
                             <a href="{{ route('ticketsetup') }}"
-                                class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700">
+                                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700">
 
                                 <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -257,7 +315,7 @@
 
                         {{-- Create --}}
                         <button type="button" id="btnCreateTicket"
-                            class="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">
+                            class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">
 
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -275,558 +333,26 @@
 
             </div>
 
-            {{-- Listing --}}
-            <div id="ticketListWrapper" class="divide-y divide-slate-100 dark:divide-slate-800">
+            {{-- CATEGORY TABS FILTER --}}
+            <div class="mt-4 overflow-x-auto p-4">
 
-                {{-- Card Item --}}
-                {{-- LOOP HERE --}}
-                @foreach ($tickets ?? [] as $row)
-                    <div
-                        class="group flex flex-col gap-5 p-5 transition hover:bg-slate-50 dark:hover:bg-slate-800/50 lg:flex-row lg:items-center lg:justify-between">
+                <div id="ticketCategoryTabs" class="flex min-w-max gap-2 pb-1">
 
-                        {{-- Left --}}
-                        <div class="min-w-0 flex-1">
+                    <button type="button"
+                        class="ticket-category-tab active-category-tab inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 dark:border-slate-700 dark:bg-slate-700"
+                        data-category="">
 
-                            <div class="flex flex-wrap items-center gap-2">
+                        <span>📂</span>
+                        <span>All Category</span>
 
-                                <button type="button"
-                                    class="ticket-detail-btn inline-flex items-center rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200"
-                                    data-eid="{{ $row->eid }}">
+                    </button>
 
-                                    {{ $row->ticketid }}
-                                </button>
-
-                                {{-- Priority --}}
-                                @php
-                                    $priorityClass = match ($row->ticket_priority) {
-                                        'HIGH' => 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300',
-                                        'MEDIUM'
-                                            => 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
-                                        default
-                                            => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
-                                    };
-                                @endphp
-
-                                <span class="{{ $priorityClass }} rounded-xl px-2.5 py-1 text-xs font-semibold">
-                                    {{ $row->ticket_priority }}
-                                </span>
-
-                                @php
-                                    $statusClass = match ($row->status) {
-                                        'W' => 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
-                                        'P' => 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300',
-                                        'C'
-                                            => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
-                                        'R' => 'bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300',
-                                        'X' => 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
-                                        default => 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
-                                    };
-                                @endphp
-
-                                {{-- Status --}}
-                                @php
-                                    $statusLabel = match ($row->status) {
-                                        'W' => 'WAITING',
-                                        'P' => 'IN PROGRESS',
-                                        'C' => 'COMPLETED',
-                                        'R' => 'REOPENED',
-                                        'X' => 'CANCELLED',
-                                        default => $row->status,
-                                    };
-                                @endphp
-
-                                <span class="{{ $statusClass }} rounded-xl px-2.5 py-1 text-xs font-semibold">
-                                    {{ $statusLabel }}
-                                </span>
-
-                            </div>
-
-                            <div class="mt-3">
-
-                                <h3 class="text-base font-semibold text-slate-800 dark:text-white">
-                                    {{ $row->issue_summary ?? '-' }}
-                                </h3>
-
-                                <p
-                                    class="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                    {{ $row->issue_descr ?? '-' }}
-                                </p>
-
-                            </div>
-
-                            <div
-                                class="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-500 dark:text-slate-400 sm:grid-cols-2 xl:grid-cols-3">
-
-                                <div
-                                    class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-                                    <span>👤</span>
-                                    <span class="truncate">
-                                        {{ $row->created_by ?? '-' }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-                                    <span>🛠️</span>
-                                    <span class="truncate">
-                                        {{ $row->pic_ticket ?? 'Unassigned PIC' }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-                                    <span>📂</span>
-                                    <span class="truncate">
-                                        {{ $row->ticket_categoryid ?? '-' }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-                                    <span>🧩</span>
-                                    <span class="truncate">
-                                        {{ $row->ticket_subcategoryid ?? '-' }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-                                    <span>📍</span>
-                                    <span class="truncate">
-                                        {{ $row->location_id ?? '-' }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-                                    <span>🏢</span>
-                                    <span class="truncate">
-                                        {{ $row->sub_location_id ?? '-' }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-                                    <span>📅</span>
-                                    <span>
-                                        {{ \Carbon\Carbon::parse($row->ticketdate)->translatedFormat('d M Y') }}
-                                    </span>
-                                </div>
-
-                                <div
-                                    class="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-                                    <span>⚡</span>
-                                    <span>
-                                        SLA {{ $row->ticket_sla_days ?? 0 }} Day(s)
-                                    </span>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        {{-- Right --}}
-                        <div class="flex flex-wrap items-center gap-2">
-
-                            <button type="button"
-                                class="ticket-detail-btn rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                                data-eid="{{ $row->eid }}">
-
-                                Detail
-                            </button>
-
-                            @if ($row->status === 'W' || $row->status === 'R')
-                                <button type="button"
-                                    class="ticket-edit-btn rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300"
-                                    data-eid="{{ $row->eid }}">
-
-                                    Edit
-                                </button>
-                            @endif
-
-                            @if ($row->status === 'C')
-                                <button type="button"
-                                    class="ticket-reopen-btn rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300"
-                                    data-eid="{{ $row->eid }}">
-
-                                    Reopen
-                                </button>
-                            @endif
-
-                        </div>
-
-                    </div>
-                @endforeach
-
-                {{-- Empty State --}}
-                @if (empty($tickets) || count($tickets) === 0)
-                    <div class="flex flex-col items-center justify-center px-6 py-20 text-center">
-
-                        <div
-                            class="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-3xl dark:bg-slate-800">
-                            🎫
-                        </div>
-
-                        <h3 class="mt-5 text-lg font-semibold text-slate-700 dark:text-slate-200">
-                            No Ticket Found
-                        </h3>
-
-                        <p class="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                            There is no ticket available yet. Create your first ticket request.
-                        </p>
-
-                    </div>
-                @endif
+                </div>
 
             </div>
 
-        </div>
-
-        {{-- CREATE MODAL --}}
-        <div id="createTicketModal" class="modal-scroll fixed inset-0 z-[70] hidden overflow-y-auto bg-slate-900/50">
-
-            <div class="flex min-h-screen items-center justify-center px-4 py-10">
-
-                <div
-                    class="w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-
-                    {{-- Header --}}
-                    <div
-                        class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-
-                        <div>
-                            <h2 class="text-lg font-semibold text-slate-800 dark:text-white">
-                                Create Ticket
-                            </h2>
-
-                            <p class="text-sm text-slate-500 dark:text-slate-400">
-                                Submit new support ticket request.
-                            </p>
-                        </div>
-
-                        <button type="button" id="closeCreateTicketModal"
-                            class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white">
-
-                            ✕
-                        </button>
-
-                    </div>
-
-                    {{-- Body --}}
-                    <form id="formCreateTicket" enctype="multipart/form-data">
-
-                        @csrf
-
-                        <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
-
-                            @php
-                                $userCompanies = \App\Models\Usercpny::where(
-                                    'username',
-                                    auth()->user()->username,
-                                )->get();
-                                $userDepartments = \App\Models\Userdept::where(
-                                    'username',
-                                    auth()->user()->username,
-                                )->get();
-                            @endphp
-
-                            {{-- Company --}}
-                            <div>
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Company
-                                </label>
-
-                                @if ($userCompanies->count() === 1)
-
-                                    <input type="text" value="{{ $userCompanies->first()->cpny_id }}" readonly
-                                        class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-
-                                    <input type="hidden" name="cpny_id"
-                                        value="{{ $userCompanies->first()->cpny_id }}">
-                                @else
-                                    <select name="cpny_id" id="cpny_id" required
-                                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-
-                                        <option value="">
-                                            Select Company
-                                        </option>
-
-                                        @foreach ($userCompanies as $cpny)
-                                            <option value="{{ $cpny->cpny_id }}">
-                                                {{ $cpny->cpny_id }}
-                                            </option>
-                                        @endforeach
-
-                                    </select>
-
-                                @endif
-                            </div>
-
-                            {{-- Department --}}
-                            <div>
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Department
-                                </label>
-
-                                @if ($userDepartments->count() === 1)
-
-                                    <input type="text" value="{{ $userDepartments->first()->department_id }}"
-                                        readonly
-                                        class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-
-                                    <input type="hidden" name="department_id"
-                                        value="{{ $userDepartments->first()->department_id }}">
-                                @else
-                                    <select name="department_id" id="department_id" required
-                                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-
-                                        <option value="">
-                                            Select Department
-                                        </option>
-
-                                        @foreach ($userDepartments as $dept)
-                                            <option value="{{ $dept->department_id }}">
-                                                {{ $dept->department_id }}
-                                            </option>
-                                        @endforeach
-
-                                    </select>
-
-                                @endif
-                            </div>
-
-                            {{-- Type --}}
-                            <div>
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Ticket Type
-                                </label>
-
-                                <select name="ticket_type" id="ticket_type"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                    required>
-
-                                    <option value="">
-                                        Select Type
-                                    </option>
-
-                                    @foreach (\App\Models\MsTicketType::where('status', 'A')->orderBy('ticket_type_name')->get() as $row)
-                                        <option value="{{ $row->ticket_type }}">
-                                            {{ $row->ticket_type_name }}
-                                        </option>
-                                    @endforeach
-
-                                </select>
-                            </div>
-
-                            {{-- Category --}}
-                            <div>
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Category
-                                </label>
-
-                                <select name="ticket_categoryid" id="ticket_categoryid"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                    required>
-
-                                    <option value="">
-                                        Select Category
-                                    </option>
-
-                                </select>
-                            </div>
-
-                            {{-- Subcategory --}}
-                            <div>
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Subcategory
-                                </label>
-
-                                <select name="ticket_subcategoryid" id="ticket_subcategoryid"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                    required>
-
-                                    <option value="">
-                                        Select Subcategory
-                                    </option>
-
-                                </select>
-                            </div>
-
-                            {{-- Priority --}}
-                            <div>
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Priority
-                                </label>
-
-                                <select name="ticket_priority" id="ticket_priority"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                    required>
-
-                                    <option value="">
-                                        Select Priority
-                                    </option>
-
-                                </select>
-                            </div>
-
-                            {{-- Location --}}
-                            <div>
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Location
-                                </label>
-
-                                <select name="location_id" id="location_id"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                    required>
-
-                                    <option value="">
-                                        Select Location
-                                    </option>
-
-                                    @foreach (\App\Models\MsLocation::where('status', 'A')->orderBy('location_name')->get() as $row)
-                                        <option value="{{ $row->location_id }}">
-                                            {{ $row->location_name }}
-                                        </option>
-                                    @endforeach
-
-                                </select>
-                            </div>
-
-                            {{-- Sub Location --}}
-                            <div>
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Sub Location
-                                </label>
-
-                                <select name="sub_location_id" id="sub_location_id"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                    required>
-
-                                    <option value="">
-                                        Select Sub Location
-                                    </option>
-
-                                </select>
-                            </div>
-
-                            {{-- Assign PIC --}}
-                            <div class="md:col-span-2">
-
-                                <div class="flex items-center gap-3">
-
-                                    <input type="checkbox" id="assign_pic_checkbox"
-                                        class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-
-                                    <label for="assign_pic_checkbox"
-                                        class="text-sm font-medium text-slate-700 dark:text-slate-300">
-
-                                        Assign Specific PIC
-                                    </label>
-
-                                </div>
-
-                            </div>
-
-                            {{-- PIC Selection --}}
-                            <div id="picSelectionWrapper" class="hidden md:col-span-2">
-
-                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    PIC Ticket
-                                </label>
-
-                                <select name="pic_ticket" id="pic_ticket"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-
-                                    <option value="">
-                                        Select PIC
-                                    </option>
-
-                                    @foreach (\App\Models\User::query()->where('status', 'A')->orderBy('username')->get() as $user)
-                                        <option value="{{ $user->username }}">
-                                            {{ $user->username }} - {{ $user->name }}
-                                        </option>
-                                    @endforeach
-
-                                </select>
-
-                            </div>
-
-                            {{-- Summary --}}
-                            <div class="md:col-span-2">
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Issue Summary
-                                </label>
-
-                                <input type="text" name="issue_summary" maxlength="255"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                    required>
-                            </div>
-
-                            {{-- Description --}}
-                            <div class="md:col-span-2">
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Issue Description
-                                </label>
-
-                                <textarea name="issue_descr" rows="5"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                    required></textarea>
-                            </div>
-
-                            {{-- Attachment --}}
-                            <div class="md:col-span-2">
-
-                                <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Attachment
-                                </label>
-
-                                <label for="attachments"
-                                    class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center transition hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-500 dark:hover:bg-slate-700/50">
-
-                                    <div class="text-4xl">
-                                        📎
-                                    </div>
-
-                                    <p class="mt-3 text-sm font-medium text-slate-700 dark:text-slate-200">
-                                        Click to upload attachment
-                                    </p>
-
-                                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                        Multiple files allowed • Max 5MB per file
-                                    </p>
-
-                                    <input type="file" name="attachments[]" id="attachments" multiple required
-                                        class="hidden">
-                                </label>
-
-                                <div id="attachmentPreview" class="mt-4 space-y-2">
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        {{-- Footer --}}
-                        <div
-                            class="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-700">
-
-                            <button type="button" id="cancelCreateTicket"
-                                class="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
-
-                                Cancel
-                            </button>
-
-                            <button type="submit" id="submitCreateTicket"
-                                class="inline-flex items-center rounded-2xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
-
-                                Submit Ticket
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
+            {{-- Listing --}}
+            <div id="ticketListWrapper" class="divide-y divide-slate-100 dark:divide-slate-800">
 
             </div>
 
@@ -834,272 +360,214 @@
 
         {{-- DETAIL MODAL --}}
         <div id="detailTicketModal"
-            class="modal-scroll fixed inset-0 z-[80] hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm">
+            class="modal-scroll fixed inset-0 z-[80] hidden overflow-y-auto bg-black/30 backdrop-blur-sm">
 
-            <div class="flex min-h-screen items-start justify-center px-3 py-4 lg:px-6 lg:py-6">
+            <div class="flex min-h-screen items-start justify-center px-4 py-4">
 
                 <div
-                    class="max-w-9xl flex h-[96vh] w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+                    class="flex h-auto w-full max-w-8xl overflow-hidden rounded-2xl bg-white dark:bg-[#0f172a]">
 
                     {{-- LEFT --}}
                     <div class="flex min-w-0 flex-1 flex-col">
 
                         {{-- Header --}}
-                        <div
-                            class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-6 py-5 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
-
+                        <div class="sticky top-0 z-10 bg-white/80 px-6 py-4 backdrop-blur dark:bg-[#0f172a]/80">
                             <div class="flex items-start justify-between gap-4">
 
                                 <div class="min-w-0 flex-1">
-
                                     <div class="flex flex-wrap items-center gap-2">
-
                                         <h2 id="detail_ticketid"
-                                            class="truncate text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                            -
+                                            class="truncate text-lg font-semibold text-slate-900 dark:text-white">-
                                         </h2>
 
                                         <span id="detail_priority"
-                                            class="rounded-lg px-2 py-1 text-[11px] font-semibold">
+                                            class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium dark:bg-white/10">
                                             -
                                         </span>
 
                                         <span id="detail_status"
-                                            class="rounded-lg px-2 py-1 text-[11px] font-semibold">
+                                            class="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium dark:bg-white/10">
                                             -
                                         </span>
-
                                     </div>
 
-                                    <p id="detail_type"
-                                        class="mt-1 text-sm font-medium text-slate-800 dark:text-white">
-                                        -
+                                    <p id="detail_type" class="mt-0.5 text-sm text-slate-600 dark:text-slate-300">-
                                     </p>
-
                                 </div>
 
-                                <button type="button" id="closeDetailTicketModal"
-                                    class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white">
+                                <div class="flex items-center gap-2">
 
-                                    ✕
-                                </button>
+                                    <button id="primaryActionBtn"
+                                        class="inline-flex hidden items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 active:scale-95">
+                                        ⚡ Start Work
+                                    </button>
 
+                                    <div class="relative">
+                                        <button id="btnTicketActions"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-white/10 dark:bg-slate-800 dark:text-slate-300">
+                                            Actions
+                                        </button>
+
+                                        <div id="ticketActionDropdown"
+                                            class="absolute right-0 mt-2 hidden w-52 rounded-xl border border-slate-200 bg-white shadow-md dark:border-white/10 dark:bg-slate-900">
+                                            <div class="py-1.5" id="ticketActionList"></div>
+                                        </div>
+                                    </div>
+
+                                    <button id="closeDetailTicketModal"
+                                        class="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5">
+                                        Close
+                                    </button>
+
+                                </div>
                             </div>
-
                         </div>
 
                         {{-- Content --}}
                         <div class="min-h-0 flex-1 overflow-y-auto">
 
-                            <div class="grid grid-cols-1 gap-5 p-5 xl:grid-cols-[1.3fr_0.7fr]">
+                            <div
+                                class="grid grid-cols-1 gap-5 p-5 xl:grid-cols-[1.35fr_0.65fr] xl:divide-x xl:divide-slate-200 dark:xl:divide-white/10">
 
                                 {{-- MAIN --}}
-                                <div class="space-y-5">
+                                <div class="space-y-5 xl:pr-5">
 
                                     {{-- Description --}}
                                     <div
-                                        class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 dark:border-slate-700 dark:bg-slate-800/40">
+                                        class="rounded-xl border border-slate-200/70 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.04]">
 
-                                        <div class="mb-3 flex items-center gap-3">
-
-                                            <div
-                                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-200 text-sm dark:bg-slate-700">
-                                                📝
-                                            </div>
-
-                                            <div class="flex w-full items-center justify-between gap-4">
-
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs dark:bg-white/10">
+                                                    📝
+                                                </div>
                                                 <h3
-                                                    class="text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">
+                                                    class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                                     Description
                                                 </h3>
-
-                                                <p id="detail_date"
-                                                    class="shrink-0 text-xs font-medium text-slate-500 dark:text-slate-400">
-                                                    -
-                                                </p>
-
                                             </div>
 
+                                            <p id="detail_date" class="text-xs text-slate-400">-</p>
                                         </div>
+
+                                        <div class="my-3 border-b border-slate-100 dark:border-white/5"></div>
 
                                         <div id="detail_descr"
-                                            class="whitespace-pre-line text-sm leading-7 text-slate-600 dark:text-slate-300">
+                                            class="whitespace-pre-line text-sm leading-6 text-slate-700 dark:text-slate-300">
                                             -
                                         </div>
-
                                     </div>
-
-
-                                    {{-- Timeline --}}
-                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700">
-
-                                        <div class="border-b border-slate-200 px-5 py-4 dark:border-slate-700">
-                                            <div class="flex items-center justify-between gap-4">
-
-                                                <div class="flex items-center gap-2">
-
-                                                    <div
-                                                        class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-sm dark:bg-slate-800">
-                                                        🕒
-                                                    </div>
-
-                                                    <h3
-                                                        class="text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">
-                                                        Activity Timeline
-                                                    </h3>
-
-                                                </div>
-
-                                                <div class="flex items-center gap-2">
-
-                                                    <span class="text-[11px] uppercase tracking-wide text-slate-400">
-                                                        PIC
-                                                    </span>
-
-                                                    <span id="detail_pic"
-                                                        class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                                        -
-                                                    </span>
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-
-                                        <div id="detail_tracking" class="space-y-5 p-5">
-
-                                            <div class="text-sm text-slate-500 dark:text-slate-400">
-                                                No activity
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
 
                                     {{-- Information --}}
-                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700">
+                                    <div
+                                        class="rounded-xl border border-slate-200/70 bg-white/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
 
-                                        <div class="border-b border-slate-200 px-5 py-4 dark:border-slate-700">
-
-                                            <div class="flex items-center justify-between gap-4">
-
-                                                <div class="flex items-center gap-2">
-
-                                                    <div
-                                                        class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-sm dark:bg-slate-800">
-                                                        📌
-                                                    </div>
-
-                                                    <h3
-                                                        class="text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">
-                                                        Ticket Information
-                                                    </h3>
-
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs dark:bg-white/10">
+                                                    📌
                                                 </div>
-
-                                                <div class="flex items-center gap-1.5">
-
-                                                    <p class="text-[11px] uppercase tracking-wide text-slate-400">
-                                                        SLA :
-                                                    </p>
-
-                                                    <p id="detail_sla"
-                                                        class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                                        -
-                                                    </p>
-
-                                                </div>
-
+                                                <h3
+                                                    class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                                    Information
+                                                </h3>
                                             </div>
 
+                                            <div class="text-xs text-slate-400">
+                                                SLA
+                                                <span id="detail_sla"
+                                                    class="ml-1 font-medium text-slate-700 dark:text-slate-200">-</span>
+                                            </div>
                                         </div>
 
-                                        <div
-                                            class="grid grid-cols-1 gap-x-6 gap-y-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
+                                        <div class="my-3 border-b border-slate-100 dark:border-white/5"></div>
+
+                                        <div class="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
 
                                             <div>
-                                                <p class="text-[11px] uppercase tracking-wide text-slate-400">
-                                                    Created By
-                                                </p>
-
+                                                <p class="text-[11px] text-slate-400">Created By</p>
                                                 <p id="detail_created_by"
-                                                    class="mt-1 text-sm font-medium text-slate-800 dark:text-white">
-                                                    -
-                                                </p>
+                                                    class="text-sm text-slate-800 dark:text-white">-</p>
                                             </div>
 
                                             <div>
-                                                <p class="text-[11px] uppercase tracking-wide text-slate-400">
-                                                    Category
-                                                </p>
-
-                                                <p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">
+                                                <p class="text-[11px] text-slate-400">Category</p>
+                                                <p class="text-sm text-slate-800 dark:text-white">
                                                     <span id="detail_category">-</span>
-
-                                                    <span class="mx-1 text-slate-400">
-                                                        —
-                                                    </span>
-
+                                                    <span class="mx-1 text-slate-300">—</span>
                                                     <span id="detail_subcategory">-</span>
                                                 </p>
                                             </div>
+
                                             <div>
-                                                <p class="text-[11px] uppercase tracking-wide text-slate-400">
-                                                    Location
-                                                </p>
-
-                                                <p class="mt-1 text-sm font-medium text-slate-800 dark:text-white">
+                                                <p class="text-[11px] text-slate-400">Location</p>
+                                                <p class="text-sm text-slate-800 dark:text-white">
                                                     <span id="detail_location">-</span>
-
-                                                    <span class="mx-1 text-slate-400">
-                                                        —
-                                                    </span>
-
+                                                    <span class="mx-1 text-slate-300">—</span>
                                                     <span id="detail_sub_location">-</span>
                                                 </p>
                                             </div>
 
                                         </div>
-
                                     </div>
 
+                                    {{-- Timeline --}}
+                                    <div
+                                        class="rounded-xl border border-slate-200/70 bg-white/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
 
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <div
+                                                    class="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs dark:bg-white/10">
+                                                    🕒
+                                                </div>
+                                                <h3
+                                                    class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                                    Timeline
+                                                </h3>
+                                            </div>
+
+                                            <div class="text-xs text-slate-400">
+                                                PIC
+                                                <span id="detail_pic"
+                                                    class="ml-1 text-slate-700 dark:text-slate-200">-</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="my-3 border-b border-slate-100 dark:border-white/5"></div>
+
+                                        <div id="detail_tracking"
+                                            class="space-y-4 text-sm text-slate-600 dark:text-slate-300">
+                                            No activity
+                                        </div>
+                                    </div>
 
                                 </div>
 
                                 {{-- SIDEBAR --}}
-                                <div class="space-y-5">
+                                <div class="space-y-5 pl-5">
 
-                                    {{-- Attachment --}}
-                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700">
+                                    <div
+                                        class="rounded-xl border border-slate-200/70 bg-white/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
 
-                                        <div class="border-b border-slate-200 px-5 py-4 dark:border-slate-700">
-
-                                            <div class="flex items-center gap-2">
-
-                                                <div
-                                                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-sm dark:bg-slate-800">
-                                                    📎
-                                                </div>
-
-                                                <h3
-                                                    class="text-sm font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200">
-                                                    Attachments
-                                                </h3>
-
+                                        <div class="flex items-center gap-2">
+                                            <div
+                                                class="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs dark:bg-white/10">
+                                                📎
                                             </div>
-
+                                            <h3
+                                                class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                                Attachments
+                                            </h3>
                                         </div>
 
-                                        <div id="detail_attachments" class="space-y-3 p-5">
+                                        <div class="my-3 border-b border-slate-100 dark:border-white/5"></div>
 
-                                            <div class="text-sm text-slate-500 dark:text-slate-400">
-                                                No attachment
-                                            </div>
-
+                                        <div id="detail_attachments"
+                                            class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                                            No attachment
                                         </div>
 
                                     </div>
@@ -1118,673 +586,616 @@
 
         </div>
 
+        {{-- CREATE MODAL --}}
+        <div id="createTicketModal"
+            class="fixed inset-0 z-[70] hidden overflow-y-auto overflow-x-hidden bg-black/40 backdrop-blur-sm">
 
-        {{-- EDIT MODAL --}}
-        <div id="editTicketModal" class="modal-scroll fixed inset-0 z-[85] hidden overflow-y-auto bg-slate-900/60">
-
-            <div class="flex h-auto items-center justify-center px-4 py-10">
+            <div class="flex min-h-screen items-start justify-center p-3 md:items-center">
 
                 <div
-                    class="h-[95vh] w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+                    class="flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-[#0f172a] md:max-h-[92dvh]">
 
-                    {{-- Header --}}
+                    <!-- HEADER -->
                     <div
-                        class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-
+                        class="flex shrink-0 items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-white/10">
                         <div>
-
-                            <h2 class="text-lg font-semibold text-slate-800 dark:text-white">
-                                Edit Ticket
-                            </h2>
-
-                            <p class="text-sm text-slate-500 dark:text-slate-400">
-                                Update ticket request information.
-                            </p>
-
+                            <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Create Ticket</h2>
+                            <p class="text-sm text-slate-500">Submit new request</p>
                         </div>
-
-                        <button type="button" id="closeEditTicketModal"
-                            class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white">
-
-                            ✕
-                        </button>
-
+                        <button id="closeCreateTicketModal" class="text-slate-400 hover:text-red-500">✕</button>
                     </div>
 
-                    {{-- Body --}}
-                    <form id="formEditTicket" enctype="multipart/form-data">
-
+                    <form id="formCreateTicket" class="flex min-h-0 flex-1 flex-col">
                         @csrf
 
-                        <input type="hidden" id="edit_eid">
+                        <div class="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
 
-                        <div class="max-h-[82vh] overflow-y-auto">
+                            <!-- BASIC -->
+                            <div>
+                                <div class="section-title">BASIC</div>
+                                <div class="grid gap-4 md:grid-cols-2">
 
-                            <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+                                    {{-- COMPANY --}}
+                                    <div>
+                                        <label class="label req">Company</label>
+                                        <select id="company" name="cpny_id" class="input">
+                                            <option value="">Select Company</option>
+                                            @foreach ($usercpny as $c)
+                                                <option value="{{ $c->cpny_id }}">
+                                                    {{ $c->cpny_id }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
-                                {{-- Type --}}
-                                <div>
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Ticket Type
-                                    </label>
-
-                                    <input type="text" id="edit_ticket_type" readonly
-                                        class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-                                </div>
-
-                                {{-- Category --}}
-                                <div>
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Category
-                                    </label>
-
-                                    <input type="text" id="edit_ticket_category" readonly
-                                        class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-                                </div>
-
-                                {{-- Subcategory --}}
-                                <div>
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Subcategory
-                                    </label>
-
-                                    <input type="text" id="edit_ticket_subcategory" readonly
-                                        class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-                                </div>
-
-                                {{-- Priority --}}
-                                <div>
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Priority
-                                    </label>
-
-                                    <input type="text" id="edit_ticket_priority" readonly
-                                        class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-                                </div>
-
-
-                                {{-- Assigned PIC --}}
-                                <div>
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Assigned PIC
-                                    </label>
-
-                                    <input type="text" id="edit_pic_ticket" readonly
-                                        class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                                </div>
-
-
-                                {{-- Summary --}}
-                                <div class="md:col-span-2">
-
-                                    <label
-                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Issue Summary
-                                    </label>
-
-                                    <input type="text" name="issue_summary" id="edit_issue_summary"
-                                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                        required>
-
-                                </div>
-
-                                {{-- Description --}}
-                                <div class="md:col-span-2">
-
-                                    <label
-                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Issue Description
-                                    </label>
-
-                                    <textarea name="issue_descr" id="edit_issue_descr" rows="6"
-                                        class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                        required></textarea>
-
-                                </div>
-
-                                {{-- Existing Attachment --}}
-                                <div class="md:col-span-2">
-
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Existing Attachment
-                                    </label>
-
-                                    <div id="edit_existing_attachments" class="space-y-3">
+                                    {{-- DEPARTMENT --}}
+                                    <div>
+                                        <label class="label req">Department</label>
+                                        <select id="department" name="department_id" class="input">
+                                            <option value="">Select Department</option>
+                                            @foreach ($userdept as $d)
+                                                <option value="{{ $d->department_id }}">
+                                                    {{ $d->department_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
 
                                 </div>
+                            </div>
 
-                                {{-- Add Attachment --}}
-                                <div class="md:col-span-2">
+                            <!-- CLASSIFICATION -->
+                            <div>
+                                <div class="section-title">CLASSIFICATION</div>
+                                <div class="grid gap-4 md:grid-cols-2">
 
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Add New Attachment
-                                    </label>
+                                    <div>
+                                        <label class="label req">Type</label>
+                                        <select id="ticket_type" name="ticket_type" class="input">
+                                            <option value="">Select Type</option>
+                                            @foreach ($types as $t)
+                                                <option value="{{ $t->ticket_type }}">
+                                                    {{ $t->ticket_type_name ?? $t->ticket_type }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
-                                    <input type="file" id="edit_attachments" name="attachments[]" multiple
-                                        class="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                                    <div>
+                                        <label class="label req">Category</label>
+                                        <select id="category" name="ticket_categoryid" class="input"></select>
+                                    </div>
 
-                                    <div id="edit_attachment_preview" class="mt-4 space-y-2">
+                                    <div>
+                                        <label class="label req">Subcategory</label>
+                                        <select id="subcategory" name="ticket_subcategoryid" class="input"></select>
+                                    </div>
+
+
+
+                                    <div>
+                                        <label class="label req">Priority</label>
+
+                                        <div id="priority_badge"
+                                            class="flex h-[52px] w-full items-center rounded-lg border border-slate-200 bg-slate-50 px-[14px] text-[14px] leading-none tracking-[0.01em] text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                                            -
+                                        </div>
+
+                                        <input type="hidden" name="ticket_priority" id="ticket_priority_hidden">
                                     </div>
 
                                 </div>
 
                             </div>
 
-                        </div>
+                            <!-- LOCATION -->
+                            <div>
+                                <div class="section-title">LOCATION</div>
+                                <div class="grid gap-4 md:grid-cols-2">
 
-                        {{-- Footer --}}
-                        <div
-                            class="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-700">
+                                    <div>
+                                        <label class="label req">Location</label>
+                                        <select id="location" name="location_id" class="input">
+                                            <option value="">Select Location</option>
+                                            @foreach ($locations as $l)
+                                                <option value="{{ $l->location_id }}">{{ $l->location_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
-                            <button type="button" id="cancelEditTicket"
-                                class="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
-
-                                Cancel
-                            </button>
-
-                            <button type="submit" id="submitEditTicket"
-                                class="rounded-2xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
-
-                                Update Ticket
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        {{-- REOPEN MODAL --}}
-        <div id="reopenTicketModal" class="modal-scroll fixed inset-0 z-[90] hidden overflow-y-auto bg-slate-900/60">
-
-            <div class="flex min-h-screen items-center justify-center px-4 py-10">
-
-                <div
-                    class="w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-
-
-                    {{-- Header --}}
-                    <div
-                        class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-
-                        <div>
-
-                            <h2 class="text-lg font-semibold text-slate-800 dark:text-white">
-                                Reopen Ticket
-                            </h2>
-
-                            <p class="text-sm text-slate-500 dark:text-slate-400">
-                                Reopen completed ticket request.
-                            </p>
-
-                        </div>
-
-                        <button type="button" id="closeReopenTicketModal"
-                            class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white">
-
-                            ✕
-                        </button>
-
-                    </div>
-
-                    {{-- Body --}}
-                    <form id="formReopenTicket">
-
-                        @csrf
-
-                        <input type="hidden" id="reopen_eid">
-
-                        <div class="p-6">
-
-                            <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Reopen Reason
-                            </label>
-
-                            <textarea id="reopen_descr" name="reopen_descr" rows="5"
-                                class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                                required></textarea>
-
-                            <div class="mt-5">
-
-                                <div class="flex items-center gap-3">
-
-                                    <input type="checkbox" id="reassign_pic_checkbox"
-                                        class="h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500">
-
-                                    <label for="reassign_pic_checkbox"
-                                        class="text-sm font-medium text-slate-700 dark:text-slate-300">
-
-                                        Reassign PIC
-                                    </label>
+                                    <div>
+                                        <label class="label req">Sub Location</label>
+                                        <select id="sub_location" name="sub_location_id" class="input"></select>
+                                    </div>
 
                                 </div>
-
                             </div>
 
-                            <div id="reassignPicWrapper" class="mt-4 hidden">
+                            <!-- DETAILS -->
+                            <div>
+                                <div class="section-title req">DETAILS</div>
 
-                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    PIC Ticket
+                                <input type="text" name="issue_summary" placeholder="Issue Summary"
+                                    class="input req mb-3">
+
+                                <textarea name="issue_descr" rows="4" placeholder="Describe the issue..." class="input"></textarea>
+                            </div>
+
+                            <!-- ATTACHMENT -->
+                            <div>
+                                <div class="section-title">ATTACHMENT</div>
+
+                                <label for="attachments"
+                                    class="upload-box flex cursor-pointer items-center justify-center gap-2 text-sm text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/5">
+                                    📎 <span>Select files</span>
                                 </label>
 
-                                <select name="reassign_pic_ticket" id="reassign_pic_ticket"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                                <input type="file" id="attachments" name="attachments[]" multiple class="hidden">
 
-                                    <option value="">
-                                        Select PIC
-                                    </option>
-
-                                    @foreach (\App\Models\User::query()->where('status', 'A')->orderBy('username')->get() as $user)
-                                        <option value="{{ $user->username }}">
-                                            {{ $user->username }} - {{ $user->name }}
-                                        </option>
-                                    @endforeach
-
-                                </select>
-
+                                <div id="attachmentPreview" class="mt-2 space-y-1 text-xs text-slate-500"></div>
                             </div>
 
                         </div>
 
-                        {{-- Reassign PIC --}}
-
-
-                        {{-- Footer --}}
+                        <!-- FOOTER -->
                         <div
-                            class="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 dark:border-slate-700">
+                            class="flex items-center justify-end gap-2 border-t border-slate-200 px-6 py-4 dark:border-white/10">
 
-                            <button type="button" id="cancelReopenTicket"
-                                class="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
-
+                            <button type="button" id="cancelCreateTicket"
+                                class="inline-flex h-[38px] items-center rounded-lg border border-slate-300 px-4 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-white/5">
                                 Cancel
                             </button>
 
-                            <button type="submit" id="submitReopenTicket"
-                                class="rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-rose-500">
-
-                                Reopen Ticket
+                            <button type="submit"
+                                class="inline-flex h-[38px] items-center rounded-lg bg-slate-900 px-5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500">
+                                Submit Ticket
                             </button>
 
                         </div>
-
                     </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- IMAGE PREVIEW MODAL --}}
+        <div id="imagePreviewModal"
+            class="fixed inset-0 z-[100] flex hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+
+            <div class="relative w-full max-w-5xl px-4">
+
+                <button id="closeImagePreview" class="absolute -top-10 right-0 text-2xl text-white">
+                    ✕
+                </button>
+
+                <img id="previewImage" class="max-h-[85vh] w-full rounded-lg object-contain shadow-2xl" />
+
+            </div>
+
+        </div>
+
+        {{-- TRANSFER TYPE MODAL --}}
+        <div id="transferModal"
+            class="fixed inset-0 z-[90] flex hidden items-center justify-center bg-black/30 backdrop-blur-sm">
+
+            <div class="w-full max-w-lg rounded-2xl bg-white p-6 dark:bg-[#0f172a]">
+
+                <div class="mb-5">
+                    <h3 class="text-base font-semibold text-slate-800 dark:text-white">
+                        Transfer Ticket
+                    </h3>
+
+                    <p class="mt-1 text-xs text-slate-500">
+                        Move this ticket to another category & subcategory
+                    </p>
+                </div>
+
+                {{-- CURRENT --}}
+                <div class="mb-5 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+
+                    <div class="text-[11px] uppercase tracking-wide text-slate-400">
+                        Current
+                    </div>
+
+                    <div class="mt-2 text-sm text-slate-700 dark:text-slate-200">
+                        <span id="transfer_old_category">-</span>
+                        <span class="mx-2 text-slate-300">→</span>
+                        <span id="transfer_old_subcategory">-</span>
+                    </div>
+
+                </div>
+
+                {{-- NEW --}}
+                <div class="space-y-4">
+
+                    <div>
+                        <div class="mb-1 text-xs text-slate-400">
+                            New Category
+                        </div>
+
+                        <select id="transfer_category"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-slate-800">
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="mb-1 text-xs text-slate-400">
+                            New Subcategory
+                        </div>
+
+                        <select id="transfer_subcategory"
+                            class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-slate-800">
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="mt-6 flex items-center justify-end gap-2">
+
+                    <button id="cancelTransfer"
+                        class="px-3 py-1.5 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-white">
+                        Cancel
+                    </button>
+
+                    <button id="submitTransfer"
+                        class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">
+                        Transfer Ticket
+                    </button>
 
                 </div>
 
             </div>
+        </div>
 
+        {{-- ASSIGN PIC MODAL --}}
+        <div id="assignModal"
+            class="fixed inset-0 z-[90] flex hidden items-center justify-center bg-black/30 backdrop-blur-sm">
+
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-[#0f172a]">
+
+                <!-- Header -->
+                <div class="mb-5">
+                    <h3 class="text-base font-semibold text-slate-800 dark:text-white">
+                        Assign PIC
+                    </h3>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Update person in charge for this request
+                    </p>
+                </div>
+
+                <!-- Content -->
+                <div class="space-y-4">
+
+                    <!-- CURRENT -->
+                    <div>
+                        <div class="mb-1 text-xs text-slate-400">Current</div>
+
+                        <div id="current_pic_badge"
+                            class="flex items-center gap-2 rounded-lg px-2.5 py-2 transition hover:bg-slate-50 dark:hover:bg-white/5">
+
+                            <div class="h-6 w-6 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                            <span class="text-sm text-slate-700 dark:text-slate-200">-</span>
+                        </div>
+                    </div>
+
+                    <!-- CHANGE -->
+                    <div>
+                        <div class="mb-1 text-xs text-slate-400">Change to</div>
+
+                        <select id="assign_pic_dropdown"
+                            class="w-full rounded-lg border border-transparent bg-transparent px-2 py-2 text-sm transition hover:bg-slate-50 focus:border-slate-200 focus:bg-white focus:outline-none dark:hover:bg-white/5 dark:focus:border-white/10 dark:focus:bg-slate-800">
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- Footer -->
+                <div class="mt-6 flex items-center justify-end gap-2">
+
+                    <button id="cancelAssign"
+                        class="px-3 py-1.5 text-sm text-slate-500 transition hover:text-slate-700 dark:hover:text-white">
+                        Cancel
+                    </button>
+
+                    <button id="submitAssign"
+                        class="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+                        Save
+                    </button>
+
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
 
-    {{-- Listing Script --}}
     <script>
         let currentStatus = '';
+        let currentSearch = '';
         let currentCategory = '';
-        let allTicketRows = [];
-        let filteredTicketRows = [];
-        let currentPage = 1;
-        let perPage = 10;
+        let currentTicketEid = null;
+        let currentTicketData = null;
 
-        async function loadTickets(status = '') {
+        $(document).on('click', '.status-filter', function(e) {
+            e.preventDefault();
 
-            currentStatus = status;
+            $('.status-filter').removeClass('active');
+            $('.status-filter .status-card').removeClass('ring-2 ring-offset-2 ring-slate-900');
+
+            $(this).addClass('active');
+            $(this).find('.status-card').addClass('ring-2 ring-offset-2 ring-slate-900');
+
+            // get status
+            currentStatus = $(this).data('status') || '';
+
+            // reload data
+            loadTickets();
+        });
+    </script>
+
+    <script>
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+
+            const date = new Date(dateString);
+
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '-';
+
+            const d = new Date(dateString);
+
+            return d.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+
+    <script>
+        function loadTickets() {
 
             $('#ticketListWrapper').html(`
-                <div class="flex items-center justify-center px-6 py-16">
-                    <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-
-                        <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                        </svg>
-
-                        Loading ticket...
-
-                    </div>
+                <div class="p-6 text-center text-sm text-slate-400">
+                    Loading tickets...
                 </div>
             `);
 
-            try {
+            $.ajax({
+                url: "{{ route('ticket.json') }}",
+                method: "GET",
+                data: {
+                    status: currentStatus,
+                    search: currentSearch,
+                    category: currentCategory
+                },
+                success: function(res) {
 
-                const response = await $.ajax({
-                    url: `{{ route('ticket.json') }}`,
-                    type: 'GET',
-                    data: {
-                        status: status,
-                        category: currentCategory
+
+                    const rows = res.data || [];
+
+
+                    if (!rows.length) {
+                        $('#ticketListWrapper').html(`
+                            <div class="p-6 text-center text-sm text-slate-400">
+                                No tickets found
+                            </div>
+                        `);
+                        return;
                     }
-                });
 
-                allTicketRows = response.data || [];
-                filteredTicketRows = [...allTicketRows];
+                    let html = '';
 
-                renderCategoryTabs(allTicketRows);
+                    rows.forEach(row => {
 
-                currentPage = 1;
+                        html += `
+                        <div class="ticket-row group cursor-pointer px-5 py-4 transition hover:bg-slate-50 dark:hover:bg-white/5"
+                            data-eid="${row.eid}">
 
-                renderTicketList();
+                            <div class="flex items-start justify-between gap-4">
 
-            } catch (err) {
+                                <!-- LEFT -->
+                                <div class="min-w-0 flex-1">
 
-                console.error(err);
+                                    <!-- TOP -->
+                                    <div class="flex items-center gap-2 flex-wrap">
 
-                $('#ticketListWrapper').html(`
-                    <div class="flex flex-col items-center justify-center px-6 py-20 text-center">
+                                        <p class="text-sm font-semibold text-slate-800 dark:text-white">
+                                            ${row.ticketid}
+                                        </p>
 
-                        <div class="text-5xl">
-                            ⚠️
+                                        <span class="rounded px-2 py-0.5 text-[11px] font-medium ${getPriorityBadge(row.ticket_priority)}">
+                                            ${row.ticket_priority}
+                                        </span>
+
+                                        ${(() => {
+                                            const s = getStatusBadge(row.status);
+                                            return `<span class="rounded px-2 py-0.5 text-[11px] font-medium ${s.class}">
+                                                                                                                                                ${s.label}
+                                                                                                                                            </span>`;
+                                        })()}
+
+                                    </div>
+
+                                    <!-- SUMMARY -->
+                                    <p class="mt-1 text-sm text-slate-600 dark:text-slate-300 truncate">
+                                        ${row.issue_summary || '-'}
+                                    </p>
+
+                                    <!-- META -->
+                                    <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+
+                                        <span>📂 ${row.ticket_category_name || '-'}</span>
+                                        <span>📁 ${row.ticket_subcategory_name || '-'}</span>
+
+                                        <span>📍 ${row.location_name || '-'}</span>
+                                        <span>—</span>
+                                        <span>${row.sub_location_name || '-'}</span>
+
+                                        <span>👤 ${row.pic_ticket || 'Waiting for PIC'}</span>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- RIGHT -->
+                                <!-- RIGHT -->
+                                <div class="shrink-0 text-right flex flex-col items-end gap-2">
+
+                                    <span class="text-xs text-slate-400">
+                                        ${formatDate(row.ticketdate)}
+                                    </span>
+
+                                    ${
+                                        row.status === 'W' && row.is_creator
+                                        ? `
+                                            <button
+                                                class="btn-cancel-ticket inline-flex items-center rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-medium text-red-600 transition hover:bg-red-100"
+                                                data-eid="${row.eid}">
+                                                Cancel Ticket
+                                            </button>
+                                        `
+                                        : ''
+                                    }
+
+                                </div>
+
+                            </div>
+
                         </div>
+                        `;
+                    });
 
-                        <h3 class="mt-4 text-lg font-semibold text-slate-700 dark:text-slate-200">
-                            Failed Load Ticket
-                        </h3>
-
-                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                            Unable to retrieve ticket listing.
-                        </p>
-
-                    </div>
-                `);
-
-            }
-
-        }
-
-        function renderCategoryTabs(rows) {
-
-            const wrapper = $('#ticketCategoryTabs');
-
-            const categories = [...new Set(
-                rows
-                .map(x => x.ticket_categoryid)
-                .filter(Boolean)
-            )];
-
-            let html = `
-                <button
-                    type="button"
-                    class="ticket-category-tab ${currentCategory === '' ? 'active-category-tab bg-slate-900 text-white dark:bg-slate-700' : 'bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200'} inline-flex items-center gap-2 rounded-2xl border border-slate-300 px-4 py-2 text-sm font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-700"
-                    data-category="">
-
-                    <span>📂</span>
-                    <span>All Category</span>
-
-                </button>
-            `;
-
-            categories.forEach(category => {
-
-                const total = rows.filter(x => x.ticket_categoryid === category).length;
-
-                html += `
-                    <button
-                        type="button"
-                        class="ticket-category-tab ${currentCategory === category ? 'active-category-tab bg-blue-600 text-white dark:bg-blue-600' : 'bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200'} inline-flex items-center gap-2 rounded-2xl border border-slate-300 px-4 py-2 text-sm font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-700"
-                        data-category="${category}">
-
-                        <span>🧩</span>
-
-                        <span>${category}</span>
-
-                        <span class="rounded-xl bg-black/10 px-2 py-0.5 text-xs">
-                            ${total}
-                        </span>
-
-                    </button>
-                `;
-
+                    $('#ticketListWrapper').html(html);
+                },
+                error: function() {
+                    $('#ticketListWrapper').html(`
+                        <div class="p-6 text-center text-sm text-red-400">
+                            Failed to load tickets
+                        </div>
+                    `);
+                }
             });
+        }
+    </script>
 
-            wrapper.html(html);
+    <script>
+        function openDetailModal(eid) {
+            currentTicketEid = eid;
 
+
+            const url = "{{ route('ticket.detail', ':hash') }}".replace(':hash', eid);
+
+            // show modal
+            $('#detailTicketModal').removeClass('hidden');
+            $('body').addClass('modal-open');
+
+            // loading state
+            $('#detail_ticketid').text('Loading...');
+            $('#detail_descr').text('Loading...');
+            $('#detail_tracking').html('Loading...');
+            $('#detail_attachments').html('Loading...');
+
+            $.ajax({
+                url: url,
+                method: "GET",
+                success: function(res) {
+
+                    const t = res.ticket;
+                    currentTicketData = t;
+                    const activities = res.activities || [];
+                    const attachments = res.attachments || [];
+
+                    renderDetailHeader(t);
+                    renderDetailInfo(t);
+                    renderTimeline(activities, t);
+                    renderAttachments(attachments);
+                    renderActions(t);
+                    renderPrimaryButton(t);
+
+                },
+                error: function() {
+                    alert('Failed load detail');
+                }
+            });
+        }
+    </script>
+
+    <script>
+        function renderDetailHeader(t) {
+
+            $('#detail_ticketid').text(t.ticketid);
+
+            const p = getPriorityBadge(t.ticket_priority);
+            $('#detail_priority')
+                .attr('class', 'rounded-md px-2 py-0.5 text-[11px] font-medium ' + p)
+                .text(formatPriority(t.ticket_priority));
+
+            const s = getStatusBadge(t.status);
+            $('#detail_status')
+                .attr('class', 'rounded-md px-2 py-0.5 text-[11px] font-medium ' + s.class)
+                .text(s.label);
+
+            $('#detail_type').text(t.ticket_type || '-');
         }
 
-        function renderTicketList(filteredRows = null) {
+        function renderDetailInfo(t) {
 
-            if (filteredRows !== null) {
-                filteredTicketRows = filteredRows;
-            }
+            $('#detail_descr').text(t.issue_descr || '-');
 
-            const rows = filteredTicketRows;
+            $('#detail_date').text(formatDate(t.ticketdate));
 
-            if (!rows.length) {
+            $('#detail_sla').text(t.ticket_sla_days ? t.ticket_sla_days + ' days' : '-');
 
-                $('#ticketListWrapper').html(`
-                    <div class="flex flex-col items-center justify-center px-6 py-20 text-center">
+            $('#detail_created_by').text(t.created_by || '-');
 
-                        <div class="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-3xl dark:bg-slate-800">
-                            🎫
-                        </div>
+            $('#detail_category').text(t.ticket_category_name || '-');
+            $('#detail_subcategory').text(t.ticket_subcategory_name || '-');
 
-                        <h3 class="mt-5 text-lg font-semibold text-slate-700 dark:text-slate-200">
-                            No Ticket Found
-                        </h3>
+            $('#detail_location').text(t.location_name || '-');
+            $('#detail_sub_location').text(t.sub_location_name || '-');
+        }
 
-                        <p class="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                            There is no ticket available yet.
-                        </p>
+        function renderTimeline(activities, t) {
 
-                    </div>
-                `);
-
+            if (!activities.length) {
+                $('#detail_tracking').html('No activity');
                 return;
-
             }
-
-            const totalPages = Math.ceil(rows.length / perPage);
-
-            const start = (currentPage - 1) * perPage;
-            const end = start + perPage;
-
-            const paginatedRows = rows.slice(start, end);
 
             let html = '';
 
-            paginatedRows.forEach(row => {
-
-                let priorityClass = `
-                    bg-emerald-100 text-emerald-700
-                    dark:bg-emerald-500/10 dark:text-emerald-300
-                `;
-
-                if (row.ticket_priority === 'HIGH') {
-                    priorityClass = `
-                        bg-red-100 text-red-700
-                        dark:bg-red-500/10 dark:text-red-300
-                    `;
-                }
-
-                if (row.ticket_priority === 'MEDIUM') {
-                    priorityClass = `
-                        bg-amber-100 text-amber-700
-                        dark:bg-amber-500/10 dark:text-amber-300
-                    `;
-                }
-
-                let statusClass = `
-                    bg-slate-100 text-slate-700
-                    dark:bg-slate-700 dark:text-slate-300
-                `;
-
-                let statusLabel = row.status;
-
-                if (row.status === 'W') {
-                    statusClass = `
-                        bg-amber-100 text-amber-700
-                        dark:bg-amber-500/10 dark:text-amber-300
-                    `;
-                    statusLabel = 'WAITING';
-                }
-
-                if (row.status === 'P') {
-                    statusClass = `
-                        bg-blue-100 text-blue-700
-                        dark:bg-blue-500/10 dark:text-blue-300
-                    `;
-                    statusLabel = 'IN PROGRESS';
-                }
-
-                if (row.status === 'C') {
-                    statusClass = `
-                        bg-emerald-100 text-emerald-700
-                        dark:bg-emerald-500/10 dark:text-emerald-300
-                    `;
-                    statusLabel = 'COMPLETED';
-                }
-
-                if (row.status === 'R') {
-                    statusClass = `
-                        bg-rose-100 text-rose-700
-                        dark:bg-rose-500/10 dark:text-rose-300
-                    `;
-                    statusLabel = 'REOPENED';
-                }
-
-                if (row.status === 'X') {
-                    statusClass = `
-                        bg-slate-200 text-slate-700
-                        dark:bg-slate-700 dark:text-slate-300
-                    `;
-                    statusLabel = 'CANCELLED';
-                }
-
-                let buttons = `
-                    <button
-                        type="button"
-                        class="ticket-detail-btn rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                        data-eid="${row.eid}">
-                        Detail
-                    </button>
-                `;
-
-                if (row.status === 'W' || row.status === 'R') {
-
-                    buttons += `
-                        <button
-                            type="button"
-                            class="ticket-edit-btn rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300"
-                            data-eid="${row.eid}">
-                            Edit
-                        </button>
-                    `;
-                }
-
-                if (row.status === 'C') {
-
-                    buttons += `
-                        <button
-                            type="button"
-                            class="ticket-reopen-btn rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300"
-                            data-eid="${row.eid}">
-                            Reopen
-                        </button>
-                    `;
-                }
+            activities.forEach(a => {
 
                 html += `
-                <div class="group border-b border-slate-200/70 px-6 py-5 transition hover:bg-slate-50/70 dark:border-white/10 dark:hover:bg-white/[0.03]">
+                <div class="flex gap-3">
 
-                    <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div class="mt-1 h-2 w-2 rounded-full bg-slate-400"></div>
 
-                        <div class="min-w-0 flex-1">
+                    <div class="flex-1">
 
-                            <div class="flex flex-wrap items-center gap-2">
-
-                                <button
-                                    type="button"
-                                    class="ticket-detail-btn inline-flex items-center rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold tracking-wide text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200"
-                                    data-eid="${row.eid}">
-
-                                    ${row.ticketid}
-
-                                </button>
-
-                                <span class="rounded-lg px-2 py-1 text-[11px] font-semibold ${priorityClass}">
-                                    ${row.ticket_priority}
-                                </span>
-
-                                <span class="rounded-lg px-2 py-1 text-[11px] font-semibold ${statusClass}">
-                                    ${statusLabel}
-                                </span>
-
-                            </div>
-
-                            <div class="mt-3">
-
-                                <h3 class="truncate text-[15px] font-semibold tracking-tight text-slate-900 dark:text-white">
-                                    ${row.issue_summary ?? '-'}
-                                </h3>
-
-                                <p class="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                    ${row.issue_descr ?? '-'}
-                                </p>
-
-                            </div>
-
-                            <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-slate-500 dark:text-slate-400">
-
-                                <div class="flex items-center gap-1.5">
-                                    <span class="opacity-70">👤</span>
-                                    <span>${row.created_by ?? '-'}</span>
-                                </div>
-
-                                <div class="flex items-center gap-1.5">
-                                    <span class="opacity-70">🛠️</span>
-                                    <span>${row.pic_ticket ?? 'Unassigned PIC'}</span>
-                                </div>
-
-                                <div class="flex items-center gap-1.5">
-                                    <span class="opacity-70">📂</span>
-                                    <span>${row.ticket_category_name  ?? '-'}</span>
-                                </div>
-
-                                <div class="flex items-center gap-1.5">
-                                    <span class="opacity-70">🧩</span>
-                                    <span>${row.ticket_subcategory_name  ?? '-'}</span>
-                                </div>
-
-                                <div class="flex items-center gap-1.5">
-                                    <span class="opacity-70">📍</span>
-                                    <span>${row.location_name  ?? '-'}</span>
-                                </div>
-
-                                <div class="flex items-center gap-1.5">
-                                    <span class="opacity-70">🏢</span>
-                                    <span>${row.sub_location_name  ?? '-'}</span>
-                                </div>
-
-                                <div class="flex items-center gap-1.5">
-                                    <span class="opacity-70">📅</span>
-                                    <span>
-                                        ${new Date(row.ticketdate).toLocaleDateString('id-ID', {
-                                            day: '2-digit',
-                                            month: 'short',
-                                            year: 'numeric'
-                                        })}
-                                    </span>
-                                </div>
-
-                                <div class="flex items-center gap-1.5">
-                                    <span class="opacity-70">⚡</span>
-                                    <span>SLA ${row.ticket_sla_days ?? 0} Day(s)</span>
-                                </div>
-
-                            </div>
-
+                        <div class="flex justify-between text-xs text-slate-400">
+                            <span>${a.response_summary}</span>
+                            <span>${formatDateTime(a.response_date)}</span>
                         </div>
 
-                        <div class="flex items-center gap-2 xl:ml-6">
+                        <div class="text-sm text-slate-700 dark:text-slate-300">
+                            ${a.response_descr || '-'}
+                        </div>
 
-                            ${buttons}
-
+                        <div class="text-xs text-slate-400">
+                            👤 ${a.pic_ticket || '-'}
                         </div>
 
                     </div>
@@ -1793,1477 +1204,1192 @@
                 `;
             });
 
-            html += `
-                <div class="flex items-center justify-between border-t border-slate-200 px-5 py-4 dark:border-slate-700">
+            $('#detail_tracking').html(html);
 
-                    <div class="text-sm text-slate-500 dark:text-slate-400">
-                        Showing ${start + 1} - ${Math.min(end, rows.length)} of ${rows.length} tickets
-                    </div>
-
-                    <div class="flex items-center gap-2">
-
-                        <button
-                            type="button"
-                            id="btnPrevPage"
-                            ${currentPage === 1 ? 'disabled' : ''}
-                            class="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:opacity-40 dark:border-slate-700">
-
-                            Prev
-                        </button>
-
-                        <div class="px-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-                            ${currentPage} / ${totalPages}
-                        </div>
-
-                        <button
-                            type="button"
-                            id="btnNextPage"
-                            ${currentPage >= totalPages ? 'disabled' : ''}
-                            class="rounded-xl border border-slate-200 px-3 py-2 text-sm disabled:opacity-40 dark:border-slate-700">
-
-                            Next
-                        </button>
-
-                    </div>
-
-                </div>
-            `;
-
-            $('#ticketListWrapper').html(html);
-
+            $('#detail_pic').text(t.pic_ticket || '-');
         }
 
-        $('#activeCategoryLabel').text(
-            currentCategory || 'All Category'
-        );
-        $(document).on('click', '#btnPrevPage', function() {
+        function renderAttachments(files) {
 
-            if (currentPage > 1) {
-
-                currentPage--;
-
-                renderTicketList();
-
+            if (!files.length) {
+                $('#detail_attachments').html('No attachment');
+                return;
             }
 
+            let html = '';
+
+            files.forEach(f => {
+                html += `
+                <a href="${f.url}" target="_blank"
+                    class="flex items-center justify-between rounded-lg border px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/5">
+
+                    <div>
+                        <div class="text-sm text-slate-700 dark:text-slate-300">
+                            ${f.display_name}
+                        </div>
+                        <div class="text-xs text-slate-400">
+                            ${formatDateTime(f.created_at)}
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-blue-500">Open</div>
+                </a>
+                `;
+            });
+
+            $('#detail_attachments').html(html);
+        }
+
+        function formatPriority(p) {
+            if (!p) return '-';
+            return p.charAt(0) + p.slice(1).toLowerCase();
+        }
+
+        function buildActions(t) {
+
+            const actions = [];
+
+            // ===== STATUS BASED =====
+            if (t.status === 'W') {
+                actions.push({
+                    label: 'Start Work',
+                    action: 'start'
+                });
+                actions.push({
+                    label: 'Assign PIC',
+                    action: 'assign'
+                });
+                actions.push({
+                    label: 'Transfer',
+                    action: 'transfer'
+                });
+            }
+
+            if (t.status === 'P') {
+                actions.push({
+                    label: 'Update Progress',
+                    action: 'progress'
+                });
+                actions.push({
+                    label: 'Mark as Completed',
+                    action: 'complete'
+                });
+                actions.push({
+                    label: 'Transfer',
+                    action: 'transfer'
+                });
+            }
+
+            if (t.status === 'C') {
+                actions.push({
+                    label: 'Reopen Ticket',
+                    action: 'reopen'
+                });
+            }
+
+            if (t.status === 'R') {
+                actions.push({
+                    label: 'Start Work',
+                    action: 'start'
+                });
+            }
+
+            return actions;
+        }
+
+        function renderActions(t) {
+
+            const actions = buildActions(t);
+
+            if (!actions.length) {
+                $('#ticketActionList').html(`
+                    <div class="px-3 py-2 text-xs text-slate-400">
+                        No actions available
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+
+            actions.forEach(a => {
+                html += `
+                <button class="action-item w-full text-left px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/5"
+                    data-action="${a.action}">
+                    ${a.label}
+                </button>
+                `;
+            });
+
+            $('#ticketActionList').html(html);
+        }
+
+        function renderPrimaryButton(t) {
+
+            const btn = $('#primaryActionBtn');
+
+            btn.addClass('hidden');
+
+            if (t.status === 'W') {
+                btn.removeClass('hidden').text('⚡ Start Work').data('action', 'start');
+            }
+
+            if (t.status === 'P') {
+                btn.removeClass('hidden').text('⚡ Complete').data('action', 'complete');
+            }
+
+            if (t.status === 'R') {
+                btn.removeClass('hidden').text('⚡ Restart').data('action', 'start');
+            }
+        }
+
+        function loadAssignData(t) {
+
+            $('#assign_pic_dropdown').html('<option>Loading...</option>');
+
+            $.get("{{ route('ticket.picByCategory') }}", {
+                ticket_type: t.ticket_type,
+                ticket_categoryid: t.ticket_categoryid,
+                department_id: t.department_id
+            }, function(rows) {
+
+                let html = `<option value="">Select PIC</option>`;
+
+                rows.forEach(user => {
+                    html += `<option value="${user.username}">
+                                ${user.name || user.username}
+                            </option>`;
+                });
+
+                $('#assign_pic_dropdown').html(html);
+            });
+        }
+        $(document).on('click', '.action-item', function() {
+
+            const action = $(this).data('action');
+
+            $('#ticketActionDropdown').addClass('hidden');
+
+            switch (action) {
+
+                case 'start':
+                    startWork();
+                    break;
+
+                case 'progress':
+                    updateProgress();
+                    break;
+
+                case 'complete':
+                    completeTicket();
+                    break;
+
+                case 'reopen':
+                    reopenTicket();
+                    break;
+                case 'assign':
+                    loadAssignData(currentTicketData);
+                    $('#assignModal').removeClass('hidden');
+                    break;
+
+                case 'transfer':
+                    loadTransferCategories();
+                    $('#transferModal').removeClass('hidden');
+                    break;
+
+                case 'cancel':
+                    cancelTicket();
+                    break;
+            }
         });
 
+
+        function loadTransferCategories() {
+
+            $('#transfer_old_category')
+                .text(currentTicketData.ticket_category_name || '-');
+
+            $('#transfer_old_subcategory')
+                .text(currentTicketData.ticket_subcategory_name || '-');
+
+            $('#transfer_category')
+                .html('<option value="">Loading...</option>');
+
+            $('#transfer_subcategory')
+                .html('<option value="">Select Subcategory</option>');
+
+            $.get("{{ route('ticket.categoryByType') }}", {
+                ticket_type: currentTicketData.ticket_type
+            }, function(rows) {
+
+                let html = `<option value="">Select Category</option>`;
+
+                rows.forEach(cat => {
+
+                    html += `
+                        <option value="${cat.ticket_categoryid}">
+                            ${cat.ticket_category_name}
+                        </option>
+                    `;
+                });
+
+                $('#transfer_category').html(html);
+            });
+        }
+
+        $('#transfer_category').on('change', function() {
+
+            const category = $(this).val();
+
+            $('#transfer_subcategory')
+                .html('<option value="">Loading...</option>');
+
+            if (!category) return;
+
+            $.get("{{ route('ticket.subcategoryByCategory') }}", {
+                ticket_type: currentTicketData.ticket_type,
+                ticket_categoryid: category
+            }, function(rows) {
+
+                let html = `<option value="">Select Subcategory</option>`;
+
+                rows.forEach(sub => {
+
+                    html += `
+                        <option value="${sub.ticket_subcategoryid}">
+                            ${sub.ticket_subcategory_name}
+                        </option>
+                    `;
+                });
+
+                $('#transfer_subcategory').html(html);
+            });
+        });
+
+        $('#primaryActionBtn').on('click', function() {
+            const action = $(this).data('action');
+            $('.action-item[data-action="' + action + '"]').click();
+        });
+
+
+        $('#btnTicketActions').on('click', function() {
+
+            $('#ticketActionDropdown').toggleClass('hidden');
+
+            $('#actionArrow').toggleClass('rotate-180');
+        });
+
+
+
+        // close when click outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#btnTicketActions, #ticketActionDropdown').length) {
+                $('#ticketActionDropdown').addClass('hidden');
+                $('#actionArrow').removeClass('rotate-180');
+            }
+        });
+
+        $('#submitTransfer').on('click', function() {
+
+            const category = $('#transfer_category').val();
+            const subcategory = $('#transfer_subcategory').val();
+
+            if (!category) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Category Required',
+                    text: 'Please select category'
+                });
+                return;
+            }
+
+            if (!subcategory) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Subcategory Required',
+                    text: 'Please select subcategory'
+                });
+                return;
+            }
+
+            const oldText =
+                `${currentTicketData.ticket_category_name} → ${currentTicketData.ticket_subcategory_name}`;
+
+            const newText =
+                `${$('#transfer_category option:selected').text()} → ${$('#transfer_subcategory option:selected').text()}`;
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Transfer Ticket?',
+                html: `
+                    <div class="text-left text-sm">
+                        <div class="mb-3">
+                            <div class="text-slate-400">Current</div>
+                            <div class="font-medium">${oldText}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-slate-400">Transfer To</div>
+                            <div class="font-medium">${newText}</div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Transfer',
+                confirmButtonColor: '#0f172a'
+            }).then((result) => {
+
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: "{{ route('ticket.transfer', ':hash') }}"
+                        .replace(':hash', currentTicketEid),
+
+                    method: "POST",
+
+                    data: {
+                        ticket_categoryid: category,
+                        ticket_subcategoryid: subcategory,
+                        _token: "{{ csrf_token() }}"
+                    },
+
+                    success: function() {
+
+                        closeModal('#transferModal');
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Transferred',
+                            text: 'Ticket transferred successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        loadTickets();
+
+                        closeModal('#detailTicketModal');
+
+                        setTimeout(() => {
+                            openDetailModal(currentTicketEid);
+                        }, 300);
+                    },
+
+                    error: function(xhr) {
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Transfer Failed',
+                            text: xhr.responseJSON?.message || 'Failed transfer ticket'
+                        });
+                    }
+                });
+
+            });
+        });
+
+        $('#submitAssign').on('click', function() {
+
+            const pic = $('#assign_pic_dropdown').val();
+
+            if (!pic) {
+                alert('Select PIC first');
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('ticket.assign', ':eid') }}".replace(':eid', currentTicketEid),
+                method: "POST",
+                data: {
+                    pic_ticket: pic,
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function() {
+
+                    $('#assignModal').addClass('hidden');
+
+                    loadTickets();
+
+                    closeModal('#detailTicketModal');
+
+                    setTimeout(() => {
+                        openDetailModal(currentTicketEid);
+                    }, 300);
+                },
+                error: function() {
+                    alert('Failed to assign PIC');
+                }
+            });
+        });
+    </script>
+
+    <script>
+        function getStatusBadge(status) {
+
+            const map = {
+                W: {
+                    label: 'Waiting',
+                    class: 'bg-amber-100 text-amber-700'
+                },
+                P: {
+                    label: 'Progress',
+                    class: 'bg-blue-100 text-blue-700'
+                },
+                C: {
+                    label: 'Completed',
+                    class: 'bg-green-100 text-green-700'
+                },
+                R: {
+                    label: 'Reopen',
+                    class: 'bg-rose-100 text-rose-700'
+                },
+                X: {
+                    label: 'Cancelled',
+                    class: 'bg-red-200 text-red-600'
+                }
+            };
+
+            return map[status] || {
+                label: status,
+                class: 'bg-slate-100 text-slate-600'
+            };
+        }
+
+        function getPriorityBadge(priority) {
+            const map = {
+                HIGH: 'bg-red-100 text-red-700',
+                MEDIUM: 'bg-amber-100 text-amber-700',
+                LOW: 'bg-slate-100 text-slate-600'
+            };
+
+            return map[priority] || 'bg-slate-100 text-slate-600';
+        }
+    </script>
+
+    <script>
+        function loadCategoryTabs() {
+
+            $.ajax({
+                url: "{{ route('ticket.categories') }}",
+                method: "GET",
+                success: function(rows) {
+
+                    let html = `
+                        <button type="button"
+                            class="ticket-category-tab active-category-tab inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+                            data-category="">
+                            <span>📂</span>
+                            <span>All Category</span>
+                        </button>
+                    `;
+
+                    rows.forEach(cat => {
+                        html += `
+                            <button type="button"
+                                class="ticket-category-tab inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300"
+                                data-category="${cat.ticket_categoryid}">
+
+                                <span>📁</span>
+                                <span>${cat.ticket_category_name}</span>
+                            </button>
+                        `;
+                    });
+
+                    $('#ticketCategoryTabs').html(html);
+                }
+            });
+        }
+    </script>
+
+    <script>
         $(document).on('click', '.ticket-category-tab', function() {
 
             $('.ticket-category-tab')
-                .removeClass('active-category-tab bg-slate-900 text-white bg-blue-600 dark:bg-blue-600')
-                .addClass('bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200');
+                .removeClass('active-category-tab bg-slate-900 text-white')
+                .addClass('bg-white text-slate-600 dark:bg-slate-800 dark:text-slate-300');
 
             $(this)
-                .addClass('active-category-tab');
+                .addClass('active-category-tab bg-slate-900 text-white')
+                .removeClass('bg-white text-slate-600 dark:bg-slate-800 dark:text-slate-300');
 
-            currentCategory = $(this).data('category');
+            // set filter
+            currentCategory = $(this).data('category') || '';
 
-            const keyword = $('#ticketSearch').val().toLowerCase();
-
-            let filtered = allTicketRows;
-
-            if (currentCategory) {
-
-                filtered = filtered.filter(row =>
-                    row.ticket_categoryid === currentCategory
-                );
-
-            }
-
-            if (keyword) {
-
-                filtered = filtered.filter(row =>
-                    JSON.stringify(row)
-                    .toLowerCase()
-                    .includes(keyword)
-                );
-
-            }
-
-            currentPage = 1;
-
-            renderTicketList(filtered);
-
-        });
-
-        $(document).on('click', '#btnNextPage', function() {
-
-            const totalPages = Math.ceil(allTicketRows.length / perPage);
-
-            if (currentPage < totalPages) {
-
-                currentPage++;
-
-                renderTicketList();
-
-            }
-
-        });
-        $(document).ready(function() {
-            initTicketSelect2();
-
+            // reload tickets
             loadTickets();
-
-            $(document).on('click', '.status-filter', function(e) {
-
-                e.preventDefault();
-
-                $('.status-filter').removeClass('active');
-
-                $(this).addClass('active');
-
-                const status = $(this).data('status');
-
-                loadTickets(status);
-
-            });
-
-            $('#ticketSearch').on('keyup', function() {
-
-                const keyword = $(this).val().toLowerCase();
-
-                let filtered = allTicketRows;
-
-                if (currentCategory) {
-
-                    filtered = filtered.filter(row =>
-                        row.ticket_categoryid === currentCategory
-                    );
-
-                }
-
-                filtered = filtered.filter(row => {
-
-                    return JSON.stringify(row)
-                        .toLowerCase()
-                        .includes(keyword);
-
-                });
-
-                currentPage = 1;
-
-                renderTicketList(filtered);
-
-            });
-
-            $(document).on('click', '.ticket-detail-btn', async function() {
-
-                const eid = $(this).data('eid');
-
-                $('#detailTicketModal')
-                    .removeClass('hidden')
-                    .hide()
-                    .fadeIn(150);
-
-                try {
-
-                    const response = await $.ajax({
-                        url: `/ticket/detail/${eid}`,
-                        type: 'GET'
-                    });
-
-                    const row = response.ticket;
-                    const activities = response.activities || [];
-                    const attachments = response.attachments || [];
-
-                    editTicketFiles = new DataTransfer();
-
-                    $('#edit_attachments').val('');
-
-                    $('#edit_attachment_preview').html('');
-
-                    let priorityClass = `
-                        bg-emerald-100 text-emerald-700
-                        dark:bg-emerald-500/10 dark:text-emerald-300
-                    `;
-
-                    if (row.ticket_priority === 'HIGH') {
-                        priorityClass = `
-                            bg-red-100 text-red-700
-                            dark:bg-red-500/10 dark:text-red-300
-                        `;
-                    }
-
-                    if (row.ticket_priority === 'MEDIUM') {
-                        priorityClass = `
-                            bg-amber-100 text-amber-700
-                            dark:bg-amber-500/10 dark:text-amber-300
-                        `;
-                    }
-
-                    let statusClass = `
-                        bg-slate-100 text-slate-700
-                        dark:bg-slate-700 dark:text-slate-300
-                    `;
-
-                    let statusLabel = row.status;
-
-                    if (row.status === 'W') {
-                        statusClass = `
-                            bg-amber-100 text-amber-700
-                            dark:bg-amber-500/10 dark:text-amber-300
-                        `;
-                        statusLabel = 'WAITING';
-                    }
-
-                    if (row.status === 'P') {
-                        statusClass = `
-                            bg-blue-100 text-blue-700
-                            dark:bg-blue-500/10 dark:text-blue-300
-                        `;
-                        statusLabel = 'IN PROGRESS';
-                    }
-
-                    if (row.status === 'C') {
-                        statusClass = `
-                            bg-emerald-100 text-emerald-700
-                            dark:bg-emerald-500/10 dark:text-emerald-300
-                        `;
-                        statusLabel = 'COMPLETED';
-                    }
-
-                    if (row.status === 'R') {
-                        statusClass = `
-                            bg-rose-100 text-rose-700
-                            dark:bg-rose-500/10 dark:text-rose-300
-                        `;
-                        statusLabel = 'REOPENED';
-                    }
-
-                    if (row.status === 'X') {
-                        statusClass = `
-                            bg-slate-200 text-slate-700
-                            dark:bg-slate-700 dark:text-slate-300
-                        `;
-                        statusLabel = 'CANCELLED';
-                    }
-
-                    $('#detail_ticketid').text(row.ticketid ?? '-');
-
-                    $('#detail_priority')
-                        .attr('class', `rounded-xl px-2.5 py-1 text-xs font-semibold ${priorityClass}`)
-                        .text(row.ticket_priority ?? '-');
-
-                    $('#detail_status')
-                        .attr('class', `rounded-xl px-2.5 py-1 text-xs font-semibold ${statusClass}`)
-                        .text(statusLabel);
-
-                    $('#detail_summary').text(row.issue_summary ?? '-');
-
-                    $('#detail_descr').text(row.issue_descr ?? '-');
-
-                    $('#detail_created_by').text(row.created_by ?? '-');
-
-                    $('#detail_pic').text(row.pic_ticket ?? 'Unassigned PIC');
-
-                    $('#detail_type').text(row.ticket_type ?? '-');
-
-                    $('#detail_category').text(row.ticket_category_name ?? '-');
-
-                    $('#detail_subcategory').text(row.ticket_subcategory_name ?? '-');
-
-                    $('#detail_location').text(row.location_name ?? '-');
-
-                    $('#detail_sub_location').text(row.sub_location_name ?? '-');
-
-                    $('#detail_date').text(
-                        row.ticketdate ?
-                        new Date(row.ticketdate).toLocaleDateString('id-ID', {
-                            day: '2-digit',
-                            month: 'long',
-                            year: 'numeric'
-                        }) :
-                        '-'
-                    );
-
-                    $('#detail_sla').text(`${row.ticket_sla_days ?? 0} Day(s)`);
-
-                    // =========================
-                    // ATTACHMENTS
-                    // =========================
-                    let attachmentHtml = '';
-
-                    if (attachments.length) {
-
-                        attachmentHtml += `
-                            <div class="grid grid-cols-1 gap-3">
-                        `;
-
-                        attachments.forEach(file => {
-
-                            const ext = (file.extention || '').toLowerCase();
-
-                            const isImage = [
-                                'jpg',
-                                'jpeg',
-                                'png',
-                                'webp',
-                                'gif'
-                            ].includes(ext);
-
-                            if (isImage) {
-
-                                attachmentHtml += `
-                                    <a
-                                        href="${file.url}"
-                                        target="_blank"
-                                        class="group overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
-
-                                        <div class="aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900">
-
-                                            <img
-                                                src="${file.url}"
-                                                alt="${file.display_name}"
-                                                class="h-full w-full object-cover transition duration-300 group-hover:scale-105">
-
-                                        </div>
-
-                                        <div class="flex items-center justify-between p-3">
-
-                                            <div class="min-w-0">
-
-                                                <p class="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                                    ${file.display_name}
-                                                </p>
-
-                                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                                    ${ext.toUpperCase()}
-                                                </p>
-
-                                            </div>
-
-                                            <div class="text-xl">
-                                                🖼️
-                                            </div>
-
-                                        </div>
-
-                                    </a>
-                                `;
-
-                            } else {
-
-                                attachmentHtml += `
-                                    <a
-                                        href="${file.url}"
-                                        target="_blank"
-                                        class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700">
-
-                                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-xl shadow-sm dark:bg-slate-900">
-                                            📄
-                                        </div>
-
-                                        <div class="min-w-0 flex-1">
-
-                                            <p class="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
-                                                ${file.display_name}
-                                            </p>
-
-                                            <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                                                ${ext.toUpperCase()}
-                                            </p>
-
-                                        </div>
-
-                                        <div class="text-slate-400">
-                                            ↗
-                                        </div>
-
-                                    </a>
-                                `;
-                            }
-
-                        });
-
-                        attachmentHtml += `
-                            </div>
-                        `;
-
-                    } else {
-
-                        attachmentHtml = `
-                            <div class="rounded-2xl border border-dashed border-slate-300 px-6 py-10 text-center dark:border-slate-700">
-
-                                <div class="text-4xl">
-                                    📂
-                                </div>
-
-                                <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                                    No attachment available
-                                </p>
-
-                            </div>
-                        `;
-                    }
-
-                    $('#detail_attachments').html(attachmentHtml);
-
-                    // =========================
-                    // TIMELINE
-                    // =========================
-
-                    let trackingHtml = '';
-
-                    if (activities.length) {
-
-                        activities.forEach(item => {
-
-                            trackingHtml += `
-                            <div class="relative pl-6">
-
-                                <div class="absolute left-[5px] top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-700"></div>
-
-                                <div class="absolute left-0 top-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-blue-500 ring-4 ring-white dark:ring-slate-900"></div>
-
-                                <div class="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-
-                                    <div class="flex flex-wrap items-start justify-between gap-2">
-
-                                        <div>
-
-                                            <h4 class="text-sm font-semibold text-slate-800 dark:text-white">
-                                                ${item.response_summary ?? '-'}
-                                            </h4>
-
-                                            <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                                PIC : ${item.pic_ticket ?? '-'}
-                                            </div>
-
-                                        </div>
-
-                                        <div class="text-[11px] text-slate-400">
-                                            ${item.response_date ?? '-'}
-                                        </div>
-
-                                    </div>
-
-                                    <div class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                        ${item.response_descr ?? '-'}
-                                    </div>
-
-                                </div>
-
-                            </div>
-                        `;
-
-                        });
-
-                    } else {
-
-                        trackingHtml = `
-                            <div class="text-sm text-slate-500 dark:text-slate-400">
-                                No activity
-                            </div>
-                        `;
-
-                    }
-
-                    $('#detail_tracking').html(trackingHtml);
-
-                } catch (err) {
-
-                    console.error(err);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: err?.responseJSON?.message ?? 'Failed load detail ticket.'
-                    });
-
-                }
-
-            });
-
-            $(document).on('click', '#closeDetailTicketModal', function() {
-
-                $('#detailTicketModal').fadeOut(150);
-
-                setTimeout(() => {
-                    $('#detailTicketModal').addClass('hidden');
-                }, 150);
-
-            });
-
-            $(document).on('click', '#detailTicketModal', function(e) {
-
-                if (e.target.id === 'detailTicketModal') {
-
-                    $('#detailTicketModal').fadeOut(150);
-
-                    setTimeout(() => {
-                        $('#detailTicketModal').addClass('hidden');
-                    }, 150);
-
-                }
-
-            });
-
-            $(document).on('click', '.ticket-edit-btn', function() {
-
-                const eid = $(this).data('eid');
-
-                console.log('edit', eid);
-
-                // OPEN EDIT MODAL HERE
-
-            });
-
-            $(document).on('click', '.ticket-reopen-btn', function() {
-
-                const eid = $(this).data('eid');
-
-                console.log('reopen', eid);
-
-                // OPEN REOPEN MODAL HERE
-
-            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+
+            // ROUTE HANDLING FIRST (your existing logic)
+            const path = window.location.pathname;
+
+            if (path.startsWith('/showticket/')) {
+                const eid = path.split('/showticket/')[1];
+                window.history.replaceState({}, document.title, '/ticket');
+                setTimeout(() => openDetailModal(eid), 100);
+            }
+
+            if (path === '/ticket/create') {
+                window.history.replaceState({}, document.title, '/ticket');
+                setTimeout(() => openModal('#createTicketModal'), 100);
+            }
+
+            // 🔥 INIT FLOW
+            loadCategoryTabs();
+            loadTickets();
 
             $('#btnCreateTicket').on('click', function() {
 
-                console.log('create');
-
-                // OPEN CREATE MODAL HERE
-
-            });
-
-            let ticketFiles = new DataTransfer();
-
-            $('#attachments').on('change', function() {
-
-                const newFiles = Array.from(this.files);
-
-                newFiles.forEach(file => {
-                    ticketFiles.items.add(file);
-                });
-
-                this.files = ticketFiles.files;
-
-                renderAttachmentPreview();
-
-            });
-
-            function renderAttachmentPreview() {
-
-                const preview = $('#attachmentPreview');
-
-                preview.html('');
-
-                Array.from(ticketFiles.files).forEach((file, index) => {
-
-                    const size = (file.size / 1024 / 1024).toFixed(2);
-
-                    preview.append(`
-                        <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
-
-                            <div class="flex min-w-0 items-center gap-3">
-
-                                <div class="text-xl">
-                                    📄
-                                </div>
-
-                                <div class="min-w-0">
-
-                                    <p class="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
-                                        ${file.name}
-                                    </p>
-
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">
-                                        ${size} MB
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                            <button
-                                type="button"
-                                class="remove-attachment rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
-                                data-index="${index}">
-
-                                Remove
-                            </button>
-
-                        </div>
-                    `);
-
-                });
-
-            }
-
-            $(document).on('click', '.remove-attachment', function() {
-
-                const index = $(this).data('index');
-
-                let newFileList = new DataTransfer();
-
-                Array.from(ticketFiles.files).forEach((file, i) => {
-
-                    if (i !== index) {
-                        newFileList.items.add(file);
-                    }
-
-                });
-
-                ticketFiles = newFileList;
-
-                $('#attachments')[0].files = ticketFiles.files;
-
-                renderAttachmentPreview();
-
-            });
-
-        });
-    </script>
-
-    {{-- Create Modal --}}
-    <script>
-        function initTicketSelect2() {
-
-            $('#cpny_id').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select Company',
-                width: '100%'
-            });
-
-            $('#department_id').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select Department',
-                width: '100%'
-            });
-
-            $('#ticket_type').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select Type',
-                width: '100%'
-            });
-
-            $('#ticket_categoryid').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select Category',
-                width: '100%'
-            });
-
-            $('#ticket_subcategoryid').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select Subcategory',
-                width: '100%'
-            });
-
-            $('#pic_ticket').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select PIC',
-                width: '100%'
-            });
-
-            $('#ticket_priority').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select Priority',
-                width: '100%'
-            });
-
-            $('#location_id').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select Location',
-                width: '100%'
-            });
-
-            $('#sub_location_id').select2({
-                dropdownParent: $('#createTicketModal'),
-                placeholder: 'Select Sub Location',
-                width: '100%'
-            });
-
-        }
-
-        function openModal(modalId) {
-
-            $('body').addClass('modal-open');
-
-            $(modalId)
-                .removeClass('hidden')
-                .hide()
-                .fadeIn(150);
-
-        }
-
-        function closeModal(modalId) {
-
-            $(modalId).fadeOut(150);
-
-            setTimeout(() => {
-
-                $(modalId).addClass('hidden');
-
-                const visibleModal = $('.fixed.inset-0').filter(function() {
-                    return !$(this).hasClass('hidden');
-                });
-
-                if (!visibleModal.length) {
-                    $('body').removeClass('modal-open');
-                }
-
-            }, 150);
-
-        }
-
-        function openCreateTicketModal() {
-
-            $('#createTicketModal')
-                .removeClass('hidden')
-                .hide()
-                .fadeIn(150);
-
-        }
-
-
-        function closeCreateTicketModal() {
-
-            $('#createTicketModal').fadeOut(150);
-
-            setTimeout(() => {
-
-                $('#createTicketModal').addClass('hidden');
-
                 $('#formCreateTicket')[0].reset();
 
-                $('#ticket_categoryid').html('<option value="">Select Category</option>');
-                $('#ticket_subcategoryid').html('<option value="">Select Subcategory</option>');
-                $('#ticket_priority').html('<option value="">Select Priority</option>');
-                $('#sub_location_id').html('<option value="">Select Sub Location</option>');
+                resetSelect('#category');
+                resetSelect('#subcategory');
 
-            }, 150);
+                resetSelect('#sub_location');
 
-        }
+                openModal('#createTicketModal');
 
+                setTimeout(() => {
+                    $('#createTicketModal select').select2({
+                        width: '100%',
+                        dropdownParent: $('#createTicketModal')
+                    });
 
-
-        $(document).on('click', '#btnCreateTicket', function() {
-
-            openCreateTicketModal();
-
-        });
-
-        $(document).on('click', '#closeCreateTicketModal, #cancelCreateTicket', function() {
-
-            closeCreateTicketModal();
-
-        });
-
-
-
-        $(document).on('click', '#createTicketModal', function(e) {
-
-            if (e.target.id === 'createTicketModal') {
-
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Close Ticket Form?',
-                    text: 'Unsaved form data will be lost.',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Close',
-                    cancelButtonText: 'Stay'
-                }).then((result) => {
-
-                    if (result.isConfirmed) {
-
-                        closeCreateTicketModal();
-
-                    }
-
-                });
-
-            }
-
-        });
-
-        $(document).on('keydown', function(e) {
-
-            const modalVisible = !$('#createTicketModal').hasClass('hidden');
-
-            const select2Open = $('.select2-container--open').length > 0;
-
-            if (modalVisible && e.key === 'Escape' && !select2Open) {
-
-                e.preventDefault();
-
-                return false;
-
-            }
-
-        });
-
-        $('#ticket_type').on('change', async function() {
-
-            const ticketType = $(this).val();
-
-            $('#ticket_categoryid').html('<option value="">Loading...</option>');
-
-            try {
-
-                const response = await $.ajax({
-                    url: `{{ route('ticket.categoryByType') }}`,
-                    type: 'GET',
-                    data: {
-                        ticket_type: ticketType
-                    }
-                });
-
-                let html = '<option value="">Select Category</option>';
-
-                response.forEach(row => {
-
-                    html += `
-                    <option value="${row.ticket_categoryid}">
-                        ${row.ticket_category_name}
-                    </option>
-                `;
-
-                });
-
-                $('#ticket_categoryid')
-                    .html(html)
-                    .trigger('change.select2');
-
-            } catch (err) {
-
-                console.error(err);
-
-            }
-
-        });
-
-        $('#ticket_categoryid').on('change', async function() {
-
-            const ticketType = $('#ticket_type').val();
-            const category = $(this).val();
-
-            $('#ticket_subcategoryid').html('<option value="">Loading...</option>');
-            $('#ticket_priority').html('<option value="">Loading...</option>');
-
-            try {
-
-                const subcategory = await $.ajax({
-                    url: `{{ route('ticket.subcategoryByCategory') }}`,
-                    type: 'GET',
-                    data: {
-                        ticket_type: ticketType,
-                        ticket_categoryid: category
-                    }
-                });
-
-                let subHtml = '<option value="">Select Subcategory</option>';
-
-                subcategory.forEach(row => {
-
-                    subHtml += `
-                    <option value="${row.ticket_subcategoryid}">
-                        ${row.ticket_subcategory_name}
-                    </option>
-                `;
-
-                });
-
-                $('#ticket_subcategoryid').html(subHtml);
-
-                const priority = await $.ajax({
-                    url: `{{ route('ticket.priorityByCategory') }}`,
-                    type: 'GET',
-                    data: {
-                        ticket_type: ticketType,
-                        ticket_categoryid: category
-                    }
-                });
-
-                let priorityHtml = '<option value="">Select Priority</option>';
-
-                priority.forEach(row => {
-
-                    priorityHtml += `
-                    <option value="${row.ticket_priority}">
-                        ${row.ticket_priority_name}
-                    </option>
-                `;
-
-                });
-
-                $('#ticket_priority').html(priorityHtml);
-
-            } catch (err) {
-
-                console.error(err);
-
-            }
-
-        });
-
-        $('#location_id').on('change', async function() {
-
-            const locationId = $(this).val();
-
-            $('#sub_location_id').html('<option value="">Loading...</option>');
-
-            try {
-
-                const response = await $.ajax({
-                    url: `{{ route('ticket.subLocation') }}`,
-                    type: 'GET',
-                    data: {
-                        location_id: locationId
-                    }
-                });
-
-                let html = '<option value="">Select Sub Location</option>';
-
-                response.forEach(row => {
-
-                    html += `
-                    <option value="${row.sub_location_id}">
-                        ${row.sub_location_name}
-                    </option>
-                `;
-
-                });
-
-                $('#sub_location_id').html(html);
-
-            } catch (err) {
-
-                console.error(err);
-
-            }
-
-        });
-
-        $('#assign_pic_checkbox').on('change', function() {
-
-            if ($(this).is(':checked')) {
-
-                $('#picSelectionWrapper')
-                    .removeClass('hidden')
-                    .hide()
-                    .slideDown(150);
-
-                $('#pic_ticket').prop('required', true);
-
-            } else {
-
-                $('#picSelectionWrapper').slideUp(150, function() {
-
-                    $(this).addClass('hidden');
-
-                });
-
-                $('#pic_ticket')
-                    .val('')
-                    .trigger('change');
-
-                $('#pic_ticket').prop('required', false);
-
-            }
-
-
-        });
-
-        $('#reassign_pic_ticket').select2({
-            dropdownParent: $('#reopenTicketModal'),
-            placeholder: 'Select PIC',
-            width: '100%'
-        });
-
-        $('#reassign_pic_checkbox').on('change', function() {
-
-            if ($(this).is(':checked')) {
-
-                $('#reassignPicWrapper')
-                    .removeClass('hidden')
-                    .hide()
-                    .slideDown(150);
-
-                $('#reassign_pic_ticket').prop('required', true);
-
-            } else {
-
-                $('#reassignPicWrapper').slideUp(150, function() {
-
-                    $(this).addClass('hidden');
-
-                });
-
-                $('#reassign_pic_ticket')
-                    .val('')
-                    .trigger('change');
-
-                $('#reassign_pic_ticket').prop('required', false);
-
-            }
-
-        });
-
-        $('#formCreateTicket').on('submit', async function(e) {
-
-            e.preventDefault();
-
-            const form = this;
-            const requiredFields = [
-                '#ticket_type',
-                '#ticket_categoryid',
-                '#ticket_subcategoryid',
-                '#ticket_priority',
-                '#location_id',
-                '#sub_location_id',
-                'input[name="issue_summary"]',
-                'textarea[name="issue_descr"]',
-                '#attachments'
-            ];
-
-            let firstInvalid = null;
-
-            requiredFields.forEach(selector => {
-
-                const field = $(selector);
-
-                if (!field.val() || field.val().length === 0) {
-
-                    field.addClass('border-red-500');
-
-                    if (!firstInvalid) {
-                        firstInvalid = field;
-                    }
-
-                } else {
-
-                    field.removeClass('border-red-500');
-
-                }
-
+                    initCompanyDept(); // 🔥 THIS IS NEW
+                }, 100);
             });
 
-            if (firstInvalid) {
-
-                $('html, body, #createTicketModal').animate({
-                    scrollTop: firstInvalid.offset().top - 120
-                }, 300);
-
-                if (firstInvalid.hasClass('select2-hidden-accessible')) {
-
-                    firstInvalid.select2('open');
-
-                } else {
-
-                    firstInvalid.focus();
-
-                }
-
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Incomplete Form',
-                    text: 'Please complete all required fields.'
+            setTimeout(() => {
+                $('#createTicketModal select').select2({
+                    width: '100%',
+                    dropdownParent: $('#createTicketModal')
                 });
 
-                return;
-
-            }
-
-            const btn = $('#submitCreateTicket');
-
-            btn.prop('disabled', true);
-
-            btn.html(`
-                <svg class="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-
-                Submitting...
-            `);
-
-            try {
-
-                const formData = new FormData(form);
-
-                const response = await $.ajax({
-                    url: `{{ route('ticket.store') }}`,
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false
-                });
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: response.message,
-                    timer: 1800,
-                    showConfirmButton: false
-                });
-
-                closeCreateTicketModal();
-
-                loadTickets(currentStatus);
-
-            } catch (err) {
-
-                console.error(err);
-
-                let msg = 'Failed create ticket';
-
-                if (err.responseJSON?.message) {
-                    msg = err.responseJSON.message;
-                }
-
-                if (err.status === 422 && err.responseJSON?.errors) {
-
-                    msg = Object.values(err.responseJSON.errors)
-                        .flat()
-                        .join('<br>');
-
-                }
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    html: msg
-                });
-
-            } finally {
-
-                btn.prop('disabled', false);
-
-                btn.html(`Submit Ticket`);
-
-            }
-
+            }, 100);
         });
     </script>
 
     <script>
-        // ========================
-        // EDIT MODAL
-        // ========================
-
-        let editTicketFiles = new DataTransfer();
-
-        $(document).on('click', '.ticket-edit-btn', async function() {
-
+        $(document).on('click', '.ticket-row', function() {
             const eid = $(this).data('eid');
 
-            try {
-
-                const response = await $.ajax({
-                    url: `/ticket/detail/${eid}`,
-                    type: 'GET'
-                });
-
-                const row = response.ticket;
-                const attachments = response.attachments || [];
-
-                $('#edit_eid').val(eid);
-
-                $('#edit_ticket_type').val(row.ticket_type ?? '-');
-                $('#edit_ticket_category').val(row.ticket_category_name ?? '-');
-
-                $('#edit_ticket_subcategory').val(row.ticket_subcategory_name ?? '-');
-                $('#edit_ticket_priority').val(row.ticket_priority ?? '-');
-                $('#edit_pic_ticket').val(row.pic_ticket ?? 'Unassigned PIC');
-                $('#edit_issue_summary').val(row.issue_summary ?? '');
-                $('#edit_issue_descr').val(row.issue_descr ?? '');
-
-                let html = '';
-
-                if (attachments.length) {
-
-                    attachments.forEach(file => {
-
-                        html += `
-                    <a href="${file.url}"
-                        target="_blank"
-                        class="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
-
-                        <div class="min-w-0">
-
-                            <p class="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                ${file.display_name}
-                            </p>
-
-                            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                ${(file.extention || '').toUpperCase()}
-                            </p>
-
-                        </div>
-
-                        <div class="text-xl">
-                            📎
-                        </div>
-
-                    </a>
-                `;
-                    });
-
-                } else {
-
-                    html = `
-                <div class="rounded-2xl border border-dashed border-slate-300 px-6 py-8 text-center dark:border-slate-700">
-
-                    <div class="text-4xl">
-                        📂
-                    </div>
-
-                    <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                        No attachment available
-                    </p>
-
-                </div>
-            `;
-                }
-
-                $('#edit_existing_attachments').html(html);
-
-                $('#editTicketModal')
-                    .removeClass('hidden')
-                    .hide()
-                    .fadeIn(150);
-
-            } catch (err) {
-
-                console.error(err);
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: err?.responseJSON?.message ?? 'Failed load edit ticket.'
-                });
-
-            }
-
+            history.pushState({}, '', '/showticket/' + eid);
+            openDetailModal(eid);
         });
+    </script>
 
-        $(document).on('click',
-            '#closeEditTicketModal, #cancelEditTicket',
-            function() {
+    <script>
+        // ===============================
+        // GLOBAL MODAL HANDLER
+        // ===============================
 
-                $('#editTicketModal').fadeOut(150);
-
-                setTimeout(() => {
-                    $('#editTicketModal').addClass('hidden');
-                }, 150);
-
-            });
-
-        $('#edit_attachments').on('change', function() {
-
-            const files = Array.from(this.files);
-
-            files.forEach(file => {
-                editTicketFiles.items.add(file);
-            });
-
-            this.files = editTicketFiles.files;
-
-            renderEditAttachmentPreview();
-
-        });
-
-        function renderEditAttachmentPreview() {
-
-            let html = '';
-
-            Array.from(editTicketFiles.files).forEach((file, index) => {
-
-                html += `
-            <div class="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
-
-                <div>
-
-                    <p class="text-sm font-medium text-slate-700 dark:text-slate-200">
-                        ${file.name}
-                    </p>
-
-                </div>
-
-                <button
-                    type="button"
-                    class="remove-edit-attachment rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
-                    data-index="${index}">
-
-                    Remove
-                </button>
-
-            </div>
-        `;
-            });
-
-            $('#edit_attachment_preview').html(html);
-
+        function openModal(id) {
+            $(id).removeClass('hidden');
+            $('body').addClass('modal-open');
         }
 
-        $(document).on('click', '.remove-edit-attachment', function() {
+        function closeModal(id) {
+            $(id).addClass('hidden');
 
-            const index = $(this).data('index');
+            // only check modals
+            if ($('[id$="Modal"]:not(.hidden)').length === 0) {
+                $('body').removeClass('modal-open');
+            }
+        }
 
-            let files = new DataTransfer();
+        function closeAllModals() {
+            $('[id$="Modal"]').addClass('hidden');
+            $('body').removeClass('modal-open');
+        }
 
-            Array.from(editTicketFiles.files).forEach((file, i) => {
+        // ===============================
+        // BACKDROP CLICK (click outside)
+        // ===============================
+        $(document).on('click', '.fixed', function(e) {
+            if ($(e.target).is('.fixed')) {
+                $(this).addClass('hidden');
 
-                if (i !== index) {
-                    files.items.add(file);
+                if ($('[id$="Modal"]:not(.hidden)').length === 0) {
+                    $('body').removeClass('modal-open');
                 }
-
-            });
-
-            editTicketFiles = files;
-
-            $('#edit_attachments')[0].files = editTicketFiles.files;
-
-            renderEditAttachmentPreview();
-
+            }
         });
 
-        $('#formEditTicket').on('submit', async function(e) {
+        // ===============================
+        // ESC KEY CLOSE
+        // ===============================
+        $(document).on('keydown', function(e) {
+            if (e.key === "Escape") {
+                closeAllModals();
+            }
+        });
 
+        window.onpopstate = function() {
+            const path = window.location.pathname;
+
+            if (path.startsWith('/showticket/')) {
+                const eid = path.split('/showticket/')[1];
+                openDetailModal(eid);
+            } else {
+                closeModal('#detailTicketModal');
+            }
+        };
+
+        // ===============================
+        // CREATE MODAL
+        // ===============================
+
+        $('#closeCreateTicketModal, #cancelCreateTicket').on('click', function() {
+            resetCreateForm();
+            closeModal('#createTicketModal');
+        });
+
+
+
+        $('#formCreateTicket').on('submit', function(e) {
             e.preventDefault();
 
-            const eid = $('#edit_eid').val();
+            $('#company').prop('disabled', false);
+            $('#department').prop('disabled', false);
+
+            const requiredFields = [{
+                    field: '#company',
+                    label: 'Company'
+                },
+                {
+                    field: '#department',
+                    label: 'Department'
+                },
+                {
+                    field: '#ticket_type',
+                    label: 'Type'
+                },
+                {
+                    field: '#category',
+                    label: 'Category'
+                },
+                {
+                    field: '#subcategory',
+                    label: 'Subcategory'
+                },
+                {
+                    field: '#location',
+                    label: 'Location'
+                },
+                {
+                    field: '#sub_location',
+                    label: 'Sub Location'
+                },
+                {
+                    field: 'input[name="issue_summary"]',
+                    label: 'Issue Summary'
+                },
+                {
+                    field: 'textarea[name="issue_descr"]',
+                    label: 'Issue Description'
+                }
+            ];
+
+            for (const item of requiredFields) {
+
+                const value = $(item.field).val();
+
+                if (!String(value ?? '').trim()) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Required Field',
+                        text: item.label + ' is required',
+                        confirmButtonColor: '#0f172a'
+                    });
+
+                    $(item.field).focus();
+
+                    return false;
+                }
+            }
+
+            if (!$('#ticket_priority_hidden').val()) {
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Required Field',
+                    text: 'Priority is required',
+                    confirmButtonColor: '#0f172a'
+                });
+
+                return false;
+            }
 
             const formData = new FormData(this);
 
-            try {
+            $.ajax({
+                url: "{{ route('ticket.store') }}",
+                method: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
 
-                $('#submitEditTicket')
-                    .prop('disabled', true)
-                    .text('Updating...');
+                beforeSend: function() {
 
-                await $.ajax({
-                    url: `/ticket/update/${eid}`,
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false
-                });
+                    $('button[type="submit"]')
+                        .prop('disabled', true)
+                        .html(`
+                    <span class="animate-pulse">
+                        Submitting...
+                    </span>
+                `);
+                },
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'Ticket updated successfully.',
-                    timer: 1800,
-                    showConfirmButton: false
-                });
+                success: function(res) {
 
-                $('#editTicketModal').fadeOut(150);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Ticket created successfully',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
 
-                setTimeout(() => {
-                    $('#editTicketModal').addClass('hidden');
-                }, 150);
+                    resetCreateForm();
+                    closeModal('#createTicketModal');
 
-                loadTickets(currentStatus);
+                    $('#formCreateTicket')[0].reset();
 
-            } catch (err) {
+                    $('#attachmentPreview').html('');
 
-                console.error(err);
+                    loadTickets();
 
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: err?.responseJSON?.message ?? 'Failed update ticket.'
-                });
+                    if (res.eid) {
+                        history.pushState({}, '', '/showticket/' + res.eid);
 
-            } finally {
+                        setTimeout(() => {
+                            openDetailModal(res.eid);
+                        }, 300);
+                    }
+                },
 
-                $('#submitEditTicket')
-                    .prop('disabled', false)
-                    .text('Update Ticket');
+                error: function(xhr) {
 
+                    let message = 'Failed to create ticket';
+
+                    if (xhr.responseJSON?.message) {
+                        message = xhr.responseJSON.message;
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: message,
+                        confirmButtonColor: '#dc2626'
+                    });
+                },
+
+                complete: function() {
+
+                    $('button[type="submit"]')
+                        .prop('disabled', false)
+                        .html('Submit Ticket');
+                }
+            });
+        });
+
+        let searchTimer;
+
+        $('#ticketSearch').on('keyup', function() {
+
+            clearTimeout(searchTimer);
+
+            searchTimer = setTimeout(() => {
+
+                currentSearch = $(this).val();
+
+                loadTickets();
+
+            }, 400);
+        });
+                // reset form on close
+        function resetCreateForm() {
+
+            $('#formCreateTicket')[0].reset();
+
+            $('#attachmentPreview').html('');
+
+            selectedFiles = [];
+
+            resetSelect('#category');
+            resetSelect('#subcategory');
+            resetSelect('#sub_location');
+
+            $('#priority_badge').text('-');
+            $('#ticket_priority_hidden').val('');
+
+            if ($('#company').hasClass('select2-hidden-accessible')) {
+                $('#company').val('').trigger('change');
             }
 
+            if ($('#department').hasClass('select2-hidden-accessible')) {
+                $('#department').val('').trigger('change');
+            }
+
+            initCompanyDept();
+        }
+
+        // ===============================
+        // DETAIL MODAL
+        // ===============================
+        $('#closeDetailTicketModal').on('click', function() {
+            closeModal('#detailTicketModal');
+            history.pushState({}, '', '/ticket');
         });
 
-        // ========================
-        // REOPEN MODAL
-        // ========================
-
-        $(document).on('click', '.ticket-reopen-btn', function() {
-
-            const eid = $(this).data('eid');
-
-            $('#reopen_eid').val(eid);
-
-            $('#reopen_descr').val('');
-
-            $('#reopenTicketModal')
-                .removeClass('hidden')
-                .hide()
-                .fadeIn(150);
-
+        // ===============================
+        // ASSIGN MODAL
+        // ===============================
+        $('#cancelAssign').on('click', function() {
+            closeModal('#assignModal');
         });
 
-        $(document).on('click',
-            '#closeReopenTicketModal, #cancelReopenTicket',
-            function() {
+        // ===============================
+        // TRANSFER MODAL
+        // ===============================
+        $('#cancelTransfer').on('click', function() {
+            closeModal('#transferModal');
+        });
 
-                $('#reopenTicketModal').fadeOut(150);
+        // ===============================
+        // IMAGE PREVIEW
+        // ===============================
+        $('#closeImagePreview').on('click', function() {
+            closeModal('#imagePreviewModal');
+        });
 
-                setTimeout(() => {
-                    $('#reopenTicketModal').addClass('hidden');
-                }, 150);
+        // ===============================
+        // OPEN IMAGE PREVIEW
+        // ===============================
+        $(document).on('click', '.preview-image', function() {
+            const src = $(this).attr('src');
+            $('#previewImage').attr('src', src);
+            openModal('#imagePreviewModal');
+        });
 
+        // ===============================
+        // ASSIGN CHECKBOX TOGGLE
+        // ===============================
+        $('#assign_pic_checkbox').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#picSelectionWrapper').removeClass('hidden');
+            } else {
+                $('#picSelectionWrapper').addClass('hidden');
+                $('#pic_ticket').val('');
+            }
+        });
+    </script>
+    <script>
+        // ===============================
+        // RESET HELPER (KEEP ONLY ONE)
+        // ===============================
+        function resetSelect(id, placeholder = 'Select option') {
+            const el = $(id);
+
+            el.html(`<option value="">${placeholder}</option>`)
+                .val('')
+                .prop('disabled', true)
+                .trigger('change');
+
+            // 🔥 force Select2 refresh
+            if (el.hasClass('select2-hidden-accessible')) {
+                el.select2();
+            }
+        }
+
+        // ===============================
+        // TYPE → CATEGORY
+        // ===============================
+        $('#ticket_type').on('change', function() {
+            const type = $(this).val();
+
+            resetSelect('#category', 'Loading...');
+            resetSelect('#subcategory');
+
+
+            if (!type) return;
+
+            $.get("{{ route('ticket.categoryByType') }}", {
+                ticket_type: type
+            }, function(rows) {
+
+                let html = `<option value="">Select Category</option>`;
+
+                rows.forEach(r => {
+                    html += `<option value="${r.ticket_categoryid}">
+                        ${r.ticket_category_name}
+                    </option>`;
+                });
+
+                const el = $('#category');
+
+                el.html(html)
+                    .prop('disabled', false)
+                    .trigger('change');
+
+                // 🔥 IMPORTANT
+                el.select2();
+            });
+        });
+
+        // ===============================
+        // CATEGORY → SUB + PRIORITY
+        // ===============================
+
+        $('#category').on('change', function() {
+
+            const cat = $(this).val();
+            const type = $('#ticket_type').val();
+
+            resetSelect('#subcategory', 'Loading...');
+
+            $('#ticket_priority_hidden').val(''); // reset hidden
+
+            if (!cat) return;
+
+            // ===============================
+            // SUBCATEGORY
+            // ===============================
+            $.get("{{ route('ticket.subcategoryByCategory') }}", {
+                ticket_categoryid: cat,
+                ticket_type: type
+            }, function(rows) {
+
+                let html = `<option value="">Select Subcategory</option>`;
+
+                rows.forEach(r => {
+                    html += `<option value="${r.ticket_subcategoryid}">
+                        ${r.ticket_subcategory_name}
+                    </option>`;
+                });
+                const sub = $('#subcategory');
+                sub.html(html).prop('disabled', false).trigger('change');
+                sub.select2();
             });
 
-        $('#formReopenTicket').on('submit', async function(e) {
+            // ===============================
+            // PRIORITY (FIXED CORE)
+            // ===============================
+            $.get("{{ route('ticket.priorityByCategory') }}", {
+                ticket_categoryid: cat,
+                ticket_type: type
+            }, function(rows) {
 
-            e.preventDefault();
+                let html = `<option value="">Select Priority</option>`;
+                let defaultVal = null;
 
-            const eid = $('#reopen_eid').val();
+                // find MEDIUM first
+                rows.forEach(r => {
+                    html += `<option value="${r.ticket_priority}">
+                        ${r.ticket_priority_name}
+                    </option>`;
 
-            try {
-
-                $('#submitReopenTicket')
-                    .prop('disabled', true)
-                    .text('Submitting...');
-
-                await $.ajax({
-                    url: `/ticket/reopen/${eid}`,
-                    type: 'POST',
-                    data: {
-                        _token: `{{ csrf_token() }}`,
-                        reopen_descr: $('#reopen_descr').val(),
-                        reassign_pic_ticket: $('#reassign_pic_ticket').val()
+                    if (r.ticket_priority?.toUpperCase() === 'MEDIUM') {
+                        defaultVal = r.ticket_priority;
                     }
                 });
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'Ticket reopened successfully.',
-                    timer: 1800,
-                    showConfirmButton: false
+                // fallback AFTER loop (correct)
+                if (!defaultVal && rows.length) {
+                    defaultVal = rows[0].ticket_priority;
+                }
+
+                // 🔥 CRITICAL: sync hidden input
+                $('#priority_badge').text(formatPriority(defaultVal));
+                $('#ticket_priority_hidden').val(defaultVal);
+            });
+        });
+        // ===============================
+        // LOCATION → SUB LOCATION
+        // ===============================
+        $('#location').on('change', function() {
+
+            const loc = $(this).val();
+
+            resetSelect('#sub_location', 'Loading...');
+
+            if (!loc) return;
+
+            $.get("{{ route('ticket.subLocation') }}", {
+                location_id: loc
+            }, function(rows) {
+
+                let html = `<option value="">Select Sub Location</option>`;
+
+                rows.forEach(r => {
+                    html += `<option value="${r.sub_location_id}">
+                        ${r.sub_location_name}
+                    </option>`;
                 });
 
-                $('#reopenTicketModal').fadeOut(150);
+                const subLoc = $('#sub_location');
 
-                setTimeout(() => {
-                    $('#reopenTicketModal').addClass('hidden');
-                }, 150);
-
-                loadTickets(currentStatus);
-
-            } catch (err) {
-
-                console.error(err);
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: err?.responseJSON?.message ?? 'Failed reopen ticket.'
-                });
-
-            } finally {
-
-                $('#submitReopenTicket')
+                subLoc.html(html)
                     .prop('disabled', false)
-                    .text('Reopen Ticket');
+                    .trigger('change');
 
+                subLoc.select2();
+            });
+        });
+
+        $('#ticket_priority').on('change', function() {
+            $('#ticket_priority_hidden').val($(this).val());
+        });
+
+        let selectedFiles = [];
+
+        $('#attachments').on('change', function() {
+            selectedFiles = Array.from(this.files);
+            renderAttachmentPreview();
+        });
+
+        function renderAttachmentPreview() {
+            let html = '';
+
+            if (!selectedFiles.length) {
+                $('#attachmentPreview').html('');
+                return;
             }
 
+            selectedFiles.forEach((file, index) => {
+                html += `
+                <div class="flex items-center justify-between rounded bg-slate-50 px-3 py-2 dark:bg-white/5">
+                    <div class="min-w-0">
+                        <div class="truncate text-sm">${file.name}</div>
+                        <div class="text-[10px] text-slate-400">${(file.size / 1024).toFixed(1)} KB</div>
+                    </div>
+
+                    <button type="button"
+                        class="ml-3 text-xs text-red-500 hover:text-red-700"
+                        onclick="removeFile(${index})">
+                        ✕
+                    </button>
+                </div>
+                `;
+            });
+
+            $('#attachmentPreview').html(html);
+
+            syncFileInput();
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderAttachmentPreview();
+        }
+
+        function syncFileInput() {
+            const dt = new DataTransfer();
+
+            selectedFiles.forEach(file => {
+                dt.items.add(file);
+            });
+
+            document.getElementById('attachments').files = dt.files;
+        }
+
+        function initCompanyDept() {
+
+            const companyOptions = $('#company option').length - 1;
+
+            if (companyOptions === 1) {
+
+                const val = $('#company option:eq(1)').val();
+
+                $('#company')
+                    .val(val)
+                    .trigger('change.select2');
+
+                $('#company')
+                    .prop('disabled', true)
+                    .trigger('change.select2');
+            }
+
+            const deptOptions = $('#department option').length - 1;
+
+            if (deptOptions === 1) {
+
+                const val = $('#department option:eq(1)').val();
+
+                $('#department')
+                    .val(val)
+                    .trigger('change.select2');
+
+                $('#department')
+                    .prop('disabled', true)
+                    .trigger('change.select2');
+            }
+        }
+    </script>
+    <script>
+        $(document).on('click', '.btn-cancel-ticket', function(e) {
+
+            e.stopPropagation();
+
+            const eid = $(this).data('eid');
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cancel Ticket?',
+                text: 'This ticket will be cancelled',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Cancel',
+                cancelButtonText: 'No',
+                confirmButtonColor: '#dc2626'
+            }).then((result) => {
+
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    url: "{{ route('ticket.cancel', ':hash') }}".replace(':hash', eid),
+                    method: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}"
+                    },
+
+                    success: function() {
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Ticket cancelled successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        loadTickets();
+
+                        if (currentTicketEid === eid) {
+                            closeModal('#detailTicketModal');
+                        }
+                    },
+
+                    error: function(xhr) {
+
+                        let message = 'Failed to cancel ticket';
+
+                        if (xhr.responseJSON?.message) {
+                            message = xhr.responseJSON.message;
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: message,
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                });
+
+            });
         });
     </script>
 

@@ -8,19 +8,19 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\SysUserRole;
-
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasProfilePhoto, Notifiable, TwoFactorAuthenticatable;
-
-
+    use HasApiTokens;
+    use HasFactory;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
 
     // protected $connection = 'mysql2';
     // protected $table = "users";
     protected $connection = 'pgsql2';
-    protected $table = "ms_user";
+    protected $table = 'ms_user';
     public $incrementing = true;
 
     protected $keyType = 'int';
@@ -42,7 +42,6 @@ class User extends Authenticatable
         'status',
         'created_by',
         'updated_by',
-
     ];
 
     protected $hidden = [
@@ -57,15 +56,20 @@ class User extends Authenticatable
     ];
 
     public function roleIds()
-        {
-            return SysUserRole::where('username', $this->username)
-                ->where('status', 'A')
-                ->pluck('role_id');
-        }
-        public function hasRole($roleId)
-        {
-            return $this->roleIds()->contains($roleId);
-        }
+    {
+        return SysUserRole::where('username', $this->username)
+            ->where('status', 'A')
+            ->pluck('role_id');
+    }
 
+    public function hasRole($roleId)
+    {
+        return $this->roleIds()->contains($roleId);
+    }
 
+    public function isIT()
+    {
+        return $this->hasRole('ITHARDWARE')
+            || $this->hasRole('ITSOFTWARE');
+    }
 }

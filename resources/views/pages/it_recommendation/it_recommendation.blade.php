@@ -28,7 +28,7 @@
 
 
             {{-- Waiting IT --}}
-            <a href="#" class="status-filter group block h-full text-left" data-status="W">
+            <a href="#" class="status-filter group block h-full text-left" data-status="W, I">
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
 
@@ -252,6 +252,7 @@
 
                 </div>
 
+                  <div id="show_notes" class="space-y-2 mb-3"></div>
                 <form id="createForm" class="flex min-h-0 flex-1 flex-col overflow-hidden">
 
                     @csrf
@@ -267,7 +268,7 @@
 
                                 <select name="cpny_id" id="create_cpny_id" required
                                     {{ count($usercpny) === 1 ? 'disabled' : '' }}
-                                    class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+                                    class="select2 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
 
                                     <option value="">
                                         Select Company
@@ -290,7 +291,7 @@
 
                                 <select name="department_id" id="create_department_id" required
                                     {{ count($userdept) === 1 ? 'disabled' : '' }}
-                                    class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+                                    class="select2 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
 
                                     <option value="">
                                         Select Department
@@ -310,22 +311,13 @@
                                 <label class="req mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
                                     Ticket Number
                                 </label>
-
-                                <select name="ticketnbr" id="create_ticketnbr"
-                                    class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
-                                    required>
-
-                                    <option value="">
-                                        Select Ticket
-                                    </option>
-
-                                    @foreach ($ticketOptions as $ticket)
-                                        <option value="{{ $ticket }}">
-                                            {{ $ticket }}
-                                        </option>
-                                    @endforeach
-
+                                    <select name="ticketnbr" id="ticketnbr"
+                                    class="select2 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
+                                        required>
+                                    <option value="">Select Ticket</option>
                                 </select>
+
+
                             </div>
 
                             <div>
@@ -402,202 +394,68 @@
         </div>
 
         {{-- View Modal --}}
-<div id="showModal"
-class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
-
-            <div
-                class="relative flex max-h-[70vh] w-full max-w-7xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+            <div id="showModal"
+            class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
 
                 <div
-                    class="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-3 dark:border-white/10">
+                    class="relative flex max-h-[70vh] w-full max-w-7xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
 
-                    <div class="min-w-0">
+                    <div
+                        class="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-3 dark:border-white/10">
 
-                        <div class="flex flex-wrap items-center gap-2">
+                        <div class="min-w-0">
 
-                            <h2 id="show_docid"
-                                class="truncate text-lg font-semibold tracking-tight text-gray-800 dark:text-white">
-                                -
-                            </h2>
+                            <div class="flex flex-wrap items-center gap-2">
 
-                            <span id="show_status_badge"></span>
+                                <h2 id="show_docid"
+                                    class="truncate text-lg font-semibold tracking-tight text-gray-800 dark:text-white">
+                                    -
+                                </h2>
+
+                                <span id="show_status_badge"></span>
+
+                            </div>
+
+                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                IT Recommendation Detail
+                            </p>
 
                         </div>
 
-                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                            IT Recommendation Detail
-                        </p>
+                        <div class="flex items-center gap-2">
 
-                    </div>
+                            <div id="show_header_actions" class="flex items-center gap-2"></div>
 
-                    <div class="flex items-center gap-2">
+                            <button id="btnCloseShowModal" type="button"
+                                class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white">
 
-                        <div id="show_header_actions" class="flex items-center gap-2"></div>
+                                <i class="fa-solid fa-xmark text-sm"></i>
 
-                        <button id="btnCloseShowModal" type="button"
+                            </button>
+
+                        </div>
+
+
+
+                        {{-- <button id="btnCloseShowModal" type="button"
                             class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white">
 
                             <i class="fa-solid fa-xmark text-sm"></i>
 
-                        </button>
+                        </button> --}}
 
                     </div>
 
-                    {{-- <button id="btnCloseShowModal" type="button"
-                        class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white">
+                      <div id="show_notes" class="space-y-2 mb-3"></div>
 
-                        <i class="fa-solid fa-xmark text-sm"></i>
+                    <div class="flex-1 overflow-y-auto overflow-x-visible">
 
-                    </button> --}}
+                        <div class="grid gap-4 p-4 lg:grid-cols-[1.8fr_0.9fr]">
 
-                </div>
-
-                <div class="flex-1 overflow-y-auto overflow-x-visible">
-
-                    <div class="grid gap-4 p-4 lg:grid-cols-[1.8fr_0.9fr]">
-
-                        <div class="space-y-2">
-
-                            {{-- INFORMATION --}}
-                            <div
-                                class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
-
-                                <div
-                                    class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                    <h3
-                                        class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                        Request Information
-                                    </h3>
-
-                                </div>
-
-                                <div id="show_information"
-                                    class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-                                </div>
-
-                            </div>
-
-                            <div
-                                class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
-
-                                <div
-                                    class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                    <h3
-                                        class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                        IT Recommendation
-                                    </h3>
-
-                                </div>
-
-                                <div id="show_recommendation_info"
-                                    class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-                                </div>
-
-                            </div>
-
-                            {{-- RECOMMENDATION ITEMS --}}
-                            <div
-                                class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
-
-                                <div
-                                    class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                    <h3
-                                        class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                        Recommendation Items
-                                    </h3>
-
-                                </div>
-
-                                <div class="overflow-x-auto">
-
-                                    <table class="w-full text-sm">
-
-                                        <thead
-                                            class="border-b border-gray-100 text-[11px] uppercase tracking-[0.15em] text-gray-400 dark:border-white/5 dark:text-gray-500">
-
-                                            <tr>
-
-                                                <th class="w-56 px-3 py-2 text-left font-semibold">
-                                                    Description
-                                                </th>
-
-                                                <th class="px-3 py-2 text-left font-semibold">
-                                                    Qty
-                                                </th>
-
-                                                <th class="px-3 py-2 text-left font-semibold">
-                                                    UOM
-                                                </th>
-
-                                                <th class="px-3 py-2 text-left font-semibold">
-                                                    Category
-                                                </th>
-
-                                                <th class="px-3 py-2 text-left font-semibold">
-                                                    Note
-                                                </th>
-
-                                            </tr>
-
-                                        </thead>
-
-                                        <tbody id="show_detail_items"></tbody>
-
-                                    </table>
-
-                                </div>
-
-                            </div>
-
-                            {{-- ATTACHMENT --}}
-                            <div
-                                class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
-
-                                <div
-                                    class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                    <h3
-                                        class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                        Attachments
-                                    </h3>
-
-                                </div>
-
-                                <div id="show_attachments" class="flex flex-wrap gap-2">
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="space-y-2">
-
-                            {{-- TIMELINE --}}
-                            <div
-                                class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
-
-                                <div
-                                    class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                    <h3
-                                        class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                        Approval Timeline
-                                    </h3>
-
-                                </div>
-
-                                <div id="show_tracking" class="space-y-2">
-                                </div>
-
-                            </div>
-
-                            {{-- ACTION --}}
                             <div class="space-y-2">
 
-                                <div id="commentSection"
+                                {{-- INFORMATION --}}
+                                <div
                                     class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
 
                                     <div
@@ -605,26 +463,166 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
 
                                         <h3
                                             class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                            Comments
+                                            Request Information
                                         </h3>
 
                                     </div>
-                                    <div id="show_comments" class="max-h-[150px] space-y-2 overflow-y-auto pr-1">
-                                    </div>
-                                    <div class="mt-4">
 
-                                        <textarea id="comment_message" rows="1" placeholder="Write comment..."
-                                            class="w-full rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:bg-white/[0.03] dark:text-white"></textarea>
-
+                                    <div id="show_information"
+                                        class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
                                     </div>
 
-                                    <button type="button" id="btnSubmitComment"
-                                        class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">
+                                </div>
 
-                                        <i class="fa-solid fa-paper-plane text-xs"></i>
-                                        Submit Comment
+                                <div
+                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
 
-                                    </button>
+                                    <div
+                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+
+                                        <h3
+                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                                            IT Recommendation
+                                        </h3>
+
+                                    </div>
+
+                                    <div id="show_recommendation_info"
+                                        class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
+                                    </div>
+
+                                </div>
+
+                                {{-- RECOMMENDATION ITEMS --}}
+                                <div
+                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+
+                                    <div
+                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+
+                                        <h3
+                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                                            Recommendation Items
+                                        </h3>
+
+                                    </div>
+
+                                    <div class="overflow-x-auto">
+
+                                        <table class="w-full text-sm">
+
+                                            <thead
+                                                class="border-b border-gray-100 text-[11px] uppercase tracking-[0.15em] text-gray-400 dark:border-white/5 dark:text-gray-500">
+
+                                                <tr>
+
+                                                    <th class="w-56 px-3 py-2 text-left font-semibold">
+                                                        Description
+                                                    </th>
+
+                                                    <th class="px-3 py-2 text-left font-semibold">
+                                                        Qty
+                                                    </th>
+
+                                                    <th class="px-3 py-2 text-left font-semibold">
+                                                        UOM
+                                                    </th>
+
+                                                    <th class="px-3 py-2 text-left font-semibold">
+                                                        Category
+                                                    </th>
+
+                                                    <th class="px-3 py-2 text-left font-semibold">
+                                                        Note
+                                                    </th>
+
+                                                </tr>
+
+                                            </thead>
+
+                                            <tbody id="show_detail_items"></tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                                {{-- ATTACHMENT --}}
+                                <div
+                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+
+                                    <div
+                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+
+                                        <h3
+                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                                            Attachments
+                                        </h3>
+
+                                    </div>
+
+                                    <div id="show_attachments" class="flex flex-wrap gap-2">
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="space-y-2">
+
+                                {{-- TIMELINE --}}
+                                <div
+                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+
+                                    <div
+                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+
+                                        <h3
+                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                                            Approval Timeline
+                                        </h3>
+
+                                    </div>
+
+                                    <div id="show_tracking" class="space-y-2">
+                                    </div>
+
+                                </div>
+
+                                {{-- ACTION --}}
+                                <div class="space-y-2">
+
+                                    <div id="commentSection"
+                                        class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+
+                                        <div
+                                            class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+
+                                            <h3
+                                                class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                                                Comments
+                                            </h3>
+
+                                        </div>
+                                        <div id="show_comments" class="max-h-[150px] space-y-2 overflow-y-auto pr-1">
+                                        </div>
+                                        <div class="mt-4">
+
+                                            <textarea id="comment_message" rows="1" placeholder="Write comment..."
+                                                class="w-full rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:bg-white/[0.03] dark:text-white"></textarea>
+
+                                        </div>
+
+                                        <button type="button" id="btnSubmitComment"
+                                            class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">
+
+                                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                                            Submit Comment
+
+                                        </button>
+
+                                    </div>
 
                                 </div>
 
@@ -635,8 +633,6 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
                     </div>
 
                 </div>
-
-            </div>
 
         </div>
 
@@ -950,6 +946,8 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
 
                 </div>
 
+                <div id="show_notes" class="space-y-2 mb-3"></div>
+
                 <form id="editRecommendationForm" class="flex min-h-0 flex-1 flex-col overflow-visible">
 
                     @csrf
@@ -1146,6 +1144,8 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
         let editMode = false;
         let editHash = null;
 
+
+
         const currentUser = "{{ auth()->user()->username }}";
 
         const isITHardware = @json($isITHardware);
@@ -1217,6 +1217,8 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
                 order: [
                     [1, 'desc']
                 ],
+
+
 
                 columns: [
 
@@ -1434,7 +1436,7 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
 
                 searchDelay: 400,
                 stateSave: true,
-                responsive: true
+                // responsive: true
 
             });
 
@@ -1457,6 +1459,7 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
 
     {{-- Create Modal Script --}}
     <script>
+        let editStatus = null;
         $(document).ready(function() {
 
             $(document).on('click', 'a[href*="/createitrecommendation"]', function(e) {
@@ -1466,6 +1469,44 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
                 openCreateModal();
 
             });
+
+             $('#ticketnbr').on('select2:open', function () {
+                if (!$(this).data('loaded')) {
+                    $(this).data('loaded', true);
+                    $(this).select2('trigger', 'query', { term: '' });
+                }
+            });
+
+            $('.select2').select2({
+                width: '100%',
+                dropdownParent: $('#createModal'),
+                placeholder: 'Select option',
+                allowClear: true
+            });
+
+            $('#ticketnbr').select2({
+                dropdownParent: $('#createModal'),
+                placeholder: 'Search Ticket...',
+                allowClear: true,
+                minimumInputLength: 0,
+
+                ajax: {
+                    url: '/it-recommendation/ticket-search',
+                    dataType: 'json',
+                    delay: 300,
+                    data: params => ({
+                        q: params.term || ''
+                    }),
+                    processResults: data => ({
+                        results: data.map(item => ({
+                            id: item.ticketid,
+                            text: `${item.ticketid} - ${item.issue_summary}`
+                        }))
+                    })
+                }
+            });
+
+
 
             $(document).on('click', 'a[href*="/edititrecommendation/"]', function(e) {
 
@@ -1704,7 +1745,7 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
                 '<i class="fa-solid fa-floppy-disk mr-2"></i>Update Request' :
                 '<i class="fa-solid fa-paper-plane mr-2"></i>Submit Request'
             );
-            if (editMode && editStatus === 'D') {
+            if (editMode && ['D'].includes(editStatus)) {
                 $('#btnCancelRequest')
                     .removeClass('hidden')
                     .addClass('inline-flex');
@@ -1757,14 +1798,21 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
                 });
 
                 const h = res.header;
+                if (h.ticketnbr) {
+                    const option = new Option(h.ticketnbr, h.ticketnbr, true, true);
+                    $('#ticketnbr').append(option).trigger('change');
+                }
+
 
                 editMode = true;
                 editHash = hash;
                 editStatus = h.status;
 
-                $('#create_cpny_id').val(h.cpny_id);
+                $('#create_cpny_id')
+                    .val(h.cpny_id)
+                    .trigger('change');
                 $('#create_department_id').val(h.department_id);
-                $('#create_ticketnbr').val(h.ticketnbr);
+                $('#ticketnbr').val(h.ticketnbr).trigger('change');
                 $('#create_assetnbr').val(h.assetnbr);
                 $('#create_keperluan').val(h.keperluan);
 
@@ -1779,7 +1827,6 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
                 });
 
             }
-
         }
     </script>
 
@@ -2708,7 +2755,7 @@ class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
             }
 
             $('#show_docid').text('-');
-            $('#show_status_badge').html('');
+           $('#show_status_badge').html('');
             $('#show_information').html('');
             $('#show_detail_items').html('');
             $('#show_attachments').html('');

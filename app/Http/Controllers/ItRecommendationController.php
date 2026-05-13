@@ -10,6 +10,7 @@ use App\Models\TrAttachment;
 use App\Models\TrItrecommend;
 use App\Models\TrItrecommendDetail;
 use App\Models\TrMessage;
+use App\Models\TrTicket;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
@@ -56,12 +57,13 @@ class ItRecommendationController extends Controller
         $usercpny = Usercpny::where('username', $user->username)->get();
         $userdept = Userdept::where('username', $user->username)->get();
 
-        $ticketOptions = [
-            'HELPDESK-001',
-            'HELPDESK-002',
-            'HELPDESK-003',
-            'HELPDESK-004',
-        ];
+        $tickets = TrTicket::query()
+            ->whereIn('cpny_id', $cpnyIds)
+            ->whereIn('department_id', $deptIds)
+            ->whereIn('status', ['W', 'P']) // optional: only active tickets
+            ->orderByDesc('ticketdate')
+            ->limit(50)
+            ->get(['ticketid', 'issue_summary']);
 
         $isITHardware = SysUserRole::where('username', $user->username)
             ->where('role_id', 'ITHARDWARE')
@@ -76,7 +78,7 @@ class ItRecommendationController extends Controller
             'completed',
             'usercpny',
             'userdept',
-            'ticketOptions',
+            'tickets',
             'isITHardware'
         ));
     }
@@ -186,6 +188,35 @@ class ItRecommendationController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $data,
         ]);
+    }
+
+    public function ticketSearch(Request $request)
+    {
+        $q = trim($request->q ?? '');
+
+        $user = auth()->user();
+
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_map('trim', explode(',', $user->cpny_id))
+            : (array) $user->cpny_id;
+
+        $deptIds = is_string($user->department_id)
+            ? array_map('trim', explode(',', $user->department_id))
+            : (array) $user->department_id;
+
+        $data = TrTicket::query()
+            ->whereIn('cpny_id', $cpnyIds)
+            ->whereIn('department_id', $deptIds)
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('ticketid', 'ilike', "%{$q}%")
+                        ->orWhere('issue_summary', 'ilike', "%{$q}%");
+                });
+            })
+            ->limit(20)
+            ->get(['ticketid', 'issue_summary']);
+
+        return response()->json($data);
     }
 
     public function store(Request $request)
@@ -432,7 +463,6 @@ class ItRecommendationController extends Controller
             // }
 
             foreach ($request->details as $row) {
-
                 if (empty($row['recommend_descr'])) {
                     continue;
                 }
@@ -891,7 +921,6 @@ class ItRecommendationController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             $header = TrItrecommend::where('docid', $docid)
                 ->firstOrFail();
 
@@ -904,7 +933,6 @@ class ItRecommendationController extends Controller
                 auth()->user()->name,
 
                 function ($refnbr, $now) use ($header, $request) {
-
                     $header->status = 'R';
                     $header->updated_by = auth()->user()->username;
                     $header->completed_by = auth()->user()->username;
@@ -962,9 +990,7 @@ class ItRecommendationController extends Controller
                 'success' => true,
                 'message' => 'Document rejected',
             ]);
-
         } catch (\Throwable $e) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
@@ -995,7 +1021,6 @@ class ItRecommendationController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             $approvalCtl = app(ApprovalController::class);
 
             $result = $approvalCtl->reviseStep(
@@ -1005,7 +1030,6 @@ class ItRecommendationController extends Controller
                 auth()->user()->name,
 
                 function ($refnbr, $now) use ($header, $request) {
-
                     TrApproval::where('refnbr', $header->docid)
                         ->where('aprv_username', auth()->user()->username)
                         ->where('status', 'D')
@@ -1057,9 +1081,7 @@ class ItRecommendationController extends Controller
                 'success' => true,
                 'message' => 'Document revised',
             ]);
-
         } catch (\Throwable $e) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
@@ -1178,16 +1200,12 @@ class ItRecommendationController extends Controller
             ->get();
 
         $attachments->transform(function ($row) {
-
             try {
-
                 $filepath = trim($row->folder, '/').'/'.$row->filename;
 
                 $row->signed_url = app(TrAttachmentController::class)
                     ->getSignedUrl($filepath);
-
             } catch (\Throwable $e) {
-
                 Log::error('Attachment signed url failed', [
                     'docid' => $row->refnbr,
                     'error' => $e->getMessage(),
@@ -1204,6 +1222,39 @@ class ItRecommendationController extends Controller
             ->where('aprv_username', $user->username)
             ->where('status', 'P')
             ->exists();
+
+        $messages = TrMessage::query()
+            ->where('refnbr', $header->docid)
+            ->where('doctype', $this->doctype)
+            ->whereIn('status', ['I', 'R'])
+            ->get();
+
+        $approvalNotes = TrApproval::query()
+            ->where('refnbr', $header->docid)
+            ->whereIn('status', ['D', 'R'])
+            ->get();
+
+        $notes = collect();
+
+        foreach ($messages as $m) {
+            $notes->push([
+                'type' => $m->status === 'I' ? 'IT Revise' : 'IT Reject',
+                'user' => $m->username,
+                'note' => $m->message,
+                'date' => $m->message_date,
+            ]);
+        }
+
+        foreach ($approvalNotes as $a) {
+            $notes->push([
+                'type' => $a->status === 'D' ? 'Approval Revise' : 'Approval Reject',
+                'user' => $a->aprv_username,
+                'note' => $a->aprv_purpose,
+                'date' => $a->updated_at,
+            ]);
+        }
+
+        $notes = $notes->sortByDesc('date')->values();
 
         return response()->json([
             'header' => $header,
@@ -1228,6 +1279,8 @@ class ItRecommendationController extends Controller
                 ),
 
                 'can_approve' => $canApprove,
+
+                'notes' => $notes,
             ],
         ]);
     }
@@ -1270,7 +1323,6 @@ class ItRecommendationController extends Controller
         );
 
         if (!$canAccess) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized access',
@@ -1294,13 +1346,11 @@ class ItRecommendationController extends Controller
             $note = null,
             $sort = 0
         ) use (&$timeline) {
-
             if (!$date) {
                 return;
             }
 
             $timeline[] = [
-
                 'title' => $title,
 
                 'description' => $description ?? '-',
@@ -1350,7 +1400,6 @@ class ItRecommendationController extends Controller
             ->get();
 
         foreach ($itRevisions as $msg) {
-
             $push(
                 'IT Revision Requested',
                 $msg->username,
@@ -1379,7 +1428,6 @@ class ItRecommendationController extends Controller
         */
 
         if ($header->recommend_pic) {
-
             $processDate = TrApproval::query()
                 ->where('refnbr', $header->docid)
                 ->where('status', '!=', 'X')
@@ -1413,7 +1461,6 @@ class ItRecommendationController extends Controller
             ->get();
 
         foreach ($approvals as $row) {
-
             /*
             |--------------------------------------------------------------------------
             | WAITING APPROVAL
@@ -1421,7 +1468,6 @@ class ItRecommendationController extends Controller
             */
 
             if ($row->status === 'P') {
-
                 $push(
                     'Waiting Approval',
                     $row->aprv_username,
@@ -1442,7 +1488,6 @@ class ItRecommendationController extends Controller
             */
 
             if ($row->status === 'A') {
-
                 $push(
                     'Approved',
                     $row->aprv_username,
@@ -1463,7 +1508,6 @@ class ItRecommendationController extends Controller
             */
 
             if ($row->status === 'D') {
-
                 $push(
                     'Revision Requested',
                     $row->aprv_username,
@@ -1484,7 +1528,6 @@ class ItRecommendationController extends Controller
             */
 
             if ($row->status === 'R') {
-
                 $push(
                     'Rejected',
                     $row->aprv_username,
@@ -1506,7 +1549,6 @@ class ItRecommendationController extends Controller
         */
 
         if ($header->status === 'C') {
-
             $push(
                 'Completed',
                 $header->completed_by,
@@ -1532,7 +1574,6 @@ class ItRecommendationController extends Controller
             ->first();
 
         if ($rejectMsg) {
-
             $push(
                 'Rejected by IT',
                 $rejectMsg->username,
@@ -1551,7 +1592,6 @@ class ItRecommendationController extends Controller
         */
 
         if ($header->status === 'X') {
-
             $cancelNote = TrMessage::query()
                 ->where('refnbr', $header->docid)
                 ->where('doctype', $this->doctype)
@@ -1583,7 +1623,6 @@ class ItRecommendationController extends Controller
             ])
             ->values()
             ->map(function ($row) {
-
                 unset($row['raw_date']);
                 unset($row['sort_order']);
 
@@ -1593,7 +1632,6 @@ class ItRecommendationController extends Controller
 
         return response()->json($timeline);
     }
-
 
     public function comment(Request $request, $hash)
     {
@@ -1649,7 +1687,6 @@ class ItRecommendationController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             TrMessage::create([
                 'refnbr' => $header->docid,
                 'doctype' => $this->doctype,
@@ -1669,9 +1706,7 @@ class ItRecommendationController extends Controller
                 'success' => true,
                 'message' => 'Comment submitted',
             ]);
-
         } catch (\Throwable $e) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
