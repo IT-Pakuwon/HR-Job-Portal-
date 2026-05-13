@@ -1160,6 +1160,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/rfp/{id}/approve', [RfpController::class, 'approveRfp']);
     Route::post('/rfp/{id}/reject', [RfpController::class, 'rejectRfp']);
     Route::post('/rfp/{id}/revise', [RfpController::class, 'reviseRfp']);
+    Route::post('/rfp/{hash}/reminder', [RfpController::class, 'reminderRfp'])->name('rfp.reminder');
+    Route::post('/rfp/{hash}/finance-revise', [RfpController::class, 'financeReviseRfp'])->name('rfp.finance-revise');
+
 
     Route::get('/calrnonpurch', [CalrNonPurchController::class, 'index'])->name('calrnonpurch');
     Route::get('/calrnonpurch/json', [CalrNonPurchController::class, 'json'])->name('calrnonpurch.json');
@@ -1443,6 +1446,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/rfpnonpurch', [RfpNonPurchController::class, 'storeRfpNonPurch'])->name('rfpnonpurch.store');
     Route::get('/editrfpnonpurch/{hash}', [RfpNonPurchController::class, 'editRfpNonPurch']);
     Route::put('/updaterfpnonpurch/{hash}', [RfpNonPurchController::class, 'updateRfpNonPurch'])->name('rfpnonpurch.update');
+    Route::post('/rfpnonpurch/{hash}/reminder', [RfpNonPurchController::class, 'reminderRfpNonPurch'])->name('rfpnonpurch.reminder');
+    Route::post('/rfpnonpurch/{hash}/finance-revise', [RfpNonPurchController::class, 'financeReviseRfpNonPurch'])->name('rfpnonpurch.finance-revise');
 
     // Route::get('/canvasssheet', [BudgetController::class, 'CanvassSheet'])->name('canvasssheet');
     // Route::get ('/canvass/create', [CanvassxController::class, 'createCS'])->name('canvass.create');

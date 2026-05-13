@@ -967,5 +967,194 @@ class RfpController extends Controller
         }
     }
 
+    public function reminderRfp(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $request->validate([
+            'message' => ['required', 'string'],
+        ]);
+
+        $id = \Vinkla\Hashids\Facades\Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid RFP ID.',
+            ], 404);
+        }
+
+        $rfp = \App\Models\TrRfp::query()
+            ->where('id', $id)
+            ->first();
+
+        if (!$rfp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'RFP not found.',
+            ], 404);
+        }
+
+        $doctype = 'RP';
+
+        try {
+            $request->merge([
+                'docid' => $rfp->rfp_id,
+                'doc_no' => $rfp->rfp_id,
+                'comment' => $request->message,
+                'reason' => $request->message,
+            ]);
+
+            app(\App\Http\Controllers\SendCommentController::class)
+                ->sendmsg((int) $rfp->id, $doctype, $request);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reminder message sent successfully.',
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send reminder message.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    public function financeReviseRfp(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $request->validate([
+            'message' => ['required', 'string'],
+        ]);
+
+        $id = \Vinkla\Hashids\Facades\Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid RFP ID.',
+            ], 404);
+        }
+
+        \Illuminate\Support\Facades\DB::connection('pgsql')->beginTransaction();
+        \Illuminate\Support\Facades\DB::connection('pgsql2')->beginTransaction();
+
+        try {
+            $rfp = \App\Models\TrRfp::query()
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$rfp) {
+                \Illuminate\Support\Facades\DB::connection('pgsql')->rollBack();
+                \Illuminate\Support\Facades\DB::connection('pgsql2')->rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'RFP not found.',
+                ], 404);
+            }
+
+            $doctype = 'RP';
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update RFP status menjadi Revise
+            |--------------------------------------------------------------------------
+            */
+            $rfp->status = 'D';
+            $rfp->updated_by = $user->username;
+            $rfp->updated_at = now();
+            $rfp->completed_by = $user->username;
+            $rfp->completed_at = now();
+            $rfp->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Insert approval row sebagai log revise finance
+            |--------------------------------------------------------------------------
+            */
+            $lastApproval = \App\Models\TrApproval::query()
+                ->where('refnbr', $rfp->rfp_id)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', '<>', 'X')
+                ->orderByDesc('id')
+                ->first();
+
+            \App\Models\TrApproval::create([
+                'refnbr' => $rfp->rfp_id,
+                'aprv_leveling' => $lastApproval->aprv_leveling ?? 0,
+                'aprv_doctype' => $doctype,
+                'aprv_cpnyid' => $rfp->cpny_id,
+                'aprv_departementid' => $rfp->department_id,
+                'aprv_username' => $user->username,
+                'aprv_name' => $user->name ?? $user->username,
+                'aprv_datebefore' => now(),
+                'aprv_dateafter' => now(),
+                'aprv_type' => $lastApproval->aprv_type ?? null,
+                'aprv_condition' => $lastApproval->aprv_condition ?? null,
+                'aprv_start_nominal' => $lastApproval->aprv_start_nominal ?? null,
+                'aprv_end_nominal' => $lastApproval->aprv_end_nominal ?? null,
+                'aprv_duration' => $lastApproval->aprv_duration ?? null,
+                'aprv_purpose' => $request->message,
+                'status' => 'D',
+                'created_by' => $user->username,
+                'updated_by' => $user->username,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Save comment/message
+            |--------------------------------------------------------------------------
+            */
+            $request->merge([
+                'docid' => $rfp->rfp_id,
+                'doc_no' => $rfp->rfp_id,
+                'comment' => $request->message,
+                'reason' => $request->message,
+            ]);
+
+            app(\App\Http\Controllers\SendCommentController::class)
+                ->sendmsg((int) $rfp->id, $doctype, $request);
+
+            \Illuminate\Support\Facades\DB::connection('pgsql2')->commit();
+            \Illuminate\Support\Facades\DB::connection('pgsql')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'RFP revised successfully.',
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\DB::connection('pgsql')->rollBack();
+            \Illuminate\Support\Facades\DB::connection('pgsql2')->rollBack();
+
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to revise RFP.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
 
 }

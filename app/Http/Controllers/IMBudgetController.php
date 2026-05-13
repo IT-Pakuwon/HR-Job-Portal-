@@ -592,6 +592,7 @@ class IMBudgetController extends Controller
 
                 // update user_peminta di header IMBudget
                 $header->user_peminta = $woCreatedBy;
+                $header->department_id = $woDepartmentId;
                 $header->updated_by = $username;
                 $header->updated_at = now();
                 $header->save();
@@ -619,6 +620,7 @@ class IMBudgetController extends Controller
 
                     // update user_peminta di header IMBudget
                     $header->user_peminta = $spbCreatedBy;
+                    $header->department_id = $spbDepartmentId;
                     $header->updated_by = $username;
                     $header->updated_at = now();
                     $header->save();

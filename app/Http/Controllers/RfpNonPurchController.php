@@ -2077,6 +2077,209 @@ class RfpNonPurchController extends Controller
         }
     }
 
+    public function reminderRfpNonPurch(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $request->validate([
+            'message' => ['required', 'string'],
+        ]);
+
+        $id = \Vinkla\Hashids\Facades\Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid RFP Non Purchase ID.',
+            ], 404);
+        }
+
+        $rfpnonpurch = \App\Models\TrRfpNonPurch::query()
+            ->where('id', $id)
+            ->first();
+
+        if (!$rfpnonpurch) {
+            return response()->json([
+                'success' => false,
+                'message' => 'RFP/RCA Non Purchase not found.',
+            ], 404);
+        }
+
+        $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
+
+        if (!in_array($doctype, ['RFP', 'RCA'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid document type.',
+            ], 422);
+        }
+
+        try {
+            $request->merge([
+                'docid' => $rfpnonpurch->rfpnonpurchaseid,
+                'doc_no' => $rfpnonpurch->rfpnonpurchaseid,
+                'comment' => $request->message,
+                'reason' => $request->message,
+            ]);
+
+            app(\App\Http\Controllers\SendCommentController::class)
+                ->sendmsg((int) $rfpnonpurch->id, $doctype, $request);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reminder message sent successfully.',
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send reminder message.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    public function financeReviseRfpNonPurch(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $request->validate([
+            'message' => ['required', 'string'],
+        ]);
+
+        $id = \Vinkla\Hashids\Facades\Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid RFP Non Purchase ID.',
+            ], 404);
+        }
+
+        \Illuminate\Support\Facades\DB::connection('pgsql')->beginTransaction();
+
+        try {
+            $rfpnonpurch = \App\Models\TrRfpNonPurch::query()
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$rfpnonpurch) {
+                \Illuminate\Support\Facades\DB::connection('pgsql')->rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'RFP/RCA Non Purchase not found.',
+                ], 404);
+            }
+
+            $doctype = strtoupper(trim((string) $rfpnonpurch->rfpnonpurchase_type));
+
+            if (!in_array($doctype, ['RFP', 'RCA'])) {
+                \Illuminate\Support\Facades\DB::connection('pgsql')->rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid document type.',
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update RFP/RCA status menjadi Revise
+            |--------------------------------------------------------------------------
+            */
+            $rfpnonpurch->status = 'D';
+            $rfpnonpurch->statusreceive = null;
+            $rfpnonpurch->statuspayment = null;
+            $rfpnonpurch->updated_by = $user->username;
+            $rfpnonpurch->updated_at = now();
+            $rfpnonpurch->completed_by = $user->username;
+            $rfpnonpurch->completed_at = now();
+            $rfpnonpurch->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Insert row baru ke TrApproval sebagai log revise finance
+            |--------------------------------------------------------------------------
+            */
+            $lastApproval = \App\Models\TrApproval::query()
+                ->where('refnbr', $rfpnonpurch->rfpnonpurchaseid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', '<>', 'X')
+                ->orderByDesc('id')
+                ->first();
+
+            \App\Models\TrApproval::create([
+                'refnbr' => $rfpnonpurch->rfpnonpurchaseid,
+                'aprv_leveling' => $lastApproval->aprv_leveling ?? 0,
+                'aprv_doctype' => $doctype,
+                'aprv_cpnyid' => $rfpnonpurch->cpny_id,
+                'aprv_departementid' => $rfpnonpurch->department_id,
+                'aprv_username' => $user->username,
+                'aprv_name' => $user->name ?? $user->username,
+                'aprv_datebefore' => now(),
+                'aprv_dateafter' => now(),
+                'aprv_type' => $lastApproval->aprv_type ?? null,
+                'aprv_condition' => $lastApproval->aprv_condition ?? null,
+                'aprv_start_nominal' => $lastApproval->aprv_start_nominal ?? null,
+                'aprv_end_nominal' => $lastApproval->aprv_end_nominal ?? null,
+                'aprv_duration' => $lastApproval->aprv_duration ?? null,
+                'aprv_purpose' => $request->message,
+                'status' => 'D',
+                'created_by' => $user->username,
+                'updated_by' => $user->username,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Save message/comment
+            |--------------------------------------------------------------------------
+            */
+            $request->merge([
+                'docid' => $rfpnonpurch->rfpnonpurchaseid,
+                'doc_no' => $rfpnonpurch->rfpnonpurchaseid,
+                'comment' => $request->message,
+                'reason' => $request->message,
+            ]);
+
+            app(\App\Http\Controllers\SendCommentController::class)
+                ->sendmsg((int) $rfpnonpurch->id, $doctype, $request);
+
+            \Illuminate\Support\Facades\DB::connection('pgsql')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $doctype . ' Non Purchase revised successfully.',
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\DB::connection('pgsql')->rollBack();
+
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to revise RFP/RCA Non Purchase.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
     
 
 }
