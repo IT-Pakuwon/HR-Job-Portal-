@@ -49,7 +49,7 @@
                 </div>
 
                 <pre id="outputBox"
-                    class="mt-2 min-h-[140px] whitespace-pre-wrap rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">Klik "Run Sync" untuk menjalankan...</pre>
+                    class="mt-2 min-h-[140px] whitespace-normal rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">Klik "Run Sync" untuk menjalankan...</pre>
             </div>
         </div>
     </div>

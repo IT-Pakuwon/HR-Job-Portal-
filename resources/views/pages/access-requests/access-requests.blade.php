@@ -518,36 +518,17 @@
 
                     <div class="flex items-center gap-2">
 
-                        <button
-                            type="button"
-                            class="
-                                btn-print-access
-                                inline-flex h-10 w-10
-                                items-center justify-center
-                                rounded-xl border border-slate-200
-                                bg-white text-slate-600
-                                transition hover:bg-slate-100
-                            "
-                            id="btnPrintAccess"
-                            title="Print"
-                        >
+                        <button type="button"
+                            class="btn-print-access inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100"
+                            id="btnPrintAccess" title="Print">
 
                             <i class="fa-solid fa-print text-sm"></i>
 
                         </button>
 
-                        <button
-                            type="button"
-                            class="
-                                btn-close-modal
-                                inline-flex h-10 w-10
-                                items-center justify-center
-                                rounded-xl text-slate-400
-                                transition hover:bg-slate-100
-                                hover:text-slate-600
-                            "
-                            data-modal="#detailModal"
-                        >
+                        <button type="button"
+                            class="btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                            data-modal="#detailModal">
 
                             <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -556,7 +537,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-5 lg:grid-cols-3 p-4">
+                <div class="grid grid-cols-1 gap-5 p-4 lg:grid-cols-3">
 
                     <div class="space-y-5 lg:col-span-2">
 
@@ -575,6 +556,72 @@
                         <div id="detailActivityContainer"></div>
 
                     </div>
+                </div>
+
+                <div id="discussionFab" class="fixed bottom-6 right-6 z-[10001] hidden">
+
+                    <button type="button"
+                        class="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-2xl transition hover:scale-105 hover:bg-slate-800">
+
+                        <i class="fa-solid fa-comments text-lg"></i>
+
+                        <span id="discussionUnreadBadge"
+                            class="absolute -right-1 -top-1 hidden h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                            0
+                        </span>
+
+                    </button>
+
+                </div>
+
+                <div id="discussionPanel"
+                    class="fixed bottom-24 right-6 z-[10001] hidden w-[380px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+
+                    <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+
+                        <div>
+
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700">
+                                Discussion
+                            </h3>
+
+                            <p class="mt-1 text-xs text-slate-400">
+                                Internal discussion
+                            </p>
+
+                        </div>
+
+                        <button type="button" id="btnCloseDiscussion"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100">
+
+                            <i class="fa-solid fa-xmark"></i>
+
+                        </button>
+
+                    </div>
+
+                    <div id="discussionMessages" class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 dark:bg-gray-800 p-4">
+
+                    </div>
+
+                    <div class="border-t border-slate-200 bg-white p-3">
+
+                        <div class="flex items-end gap-2">
+
+                            <textarea id="discussionInput" rows="1" placeholder="Write message..."
+                                class="min-h-[46px] flex-1 resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 focus:border-slate-400 focus:ring-0"></textarea>
+
+                            <button type="button" id="btnSendDiscussion"
+                                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-800">
+
+                                <i class="fa-solid fa-paper-plane text-sm"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
             </div>

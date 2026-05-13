@@ -290,7 +290,6 @@ function renderProcessHardwareItems(access, details = []) {
                         ">
 
                             <i class="fa-solid fa-clock text-[11px]"></i>
-
                         </span>
                     `
                 }

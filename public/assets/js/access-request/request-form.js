@@ -1,83 +1,142 @@
- function resetRequestForm() {
-        $("#requestForm")[0].reset();
+function resetRequestForm() {
 
-        $("#requestForm .select2").each(function() {
-            $(this).val(null).trigger("change");
-        });
+    $("#requestForm")[0].reset();
 
-        $("#requestDetailContainer").html("");
+    $("#requestForm .select2").each(function () {
 
-        $("#existingAttachmentContainer").html("");
-        $("#newAttachmentContainer").html("");
+        $(this)
+            .val(null)
+            .trigger("change");
 
-        $("#requestAttachment").val("");
+    });
 
-        existingAttachments = [];
-        selectedFiles = [];
+    $("#requestDetailContainer").html("");
 
-        $("#requestMethod").val("POST");
+    $("#existingAttachmentContainer").html("");
 
-        $("#requestUrl").val("");
+    $("#newAttachmentContainer").html("");
 
-        $("#requestHash").val("");
+    $("#requestAttachment").val("");
 
-        $("#requestModalTitle").text("Create Access Request");
+    existingAttachments = [];
 
-        detailIndex = 0;
+    selectedFiles = [];
 
-        $(".select2-selection").removeClass("!border-red-500");
+    $("#requestMethod").val("POST");
 
-        $("#btnSubmitRequest").prop("disabled", false).html(`
+    $("#requestUrl").val("");
+
+    $("#requestHash").val("");
+
+    $("#requestModalTitle").text(
+        "Create Access Request"
+    );
+
+    detailIndex = 0;
+
+    $(".select2-selection")
+        .removeClass("!border-red-500");
+
+    $("#btnSubmitRequest")
+        .prop("disabled", false)
+        .removeClass(
+            "opacity-60 cursor-not-allowed"
+        )
+        .html(`
             <i class="fa-solid fa-paper-plane text-xs"></i>
             Submit Request
         `);
 
-        $("#access_date").val(new Date().toISOString().split("T")[0]);
+    $("#access_date").val(
+        new Date().toISOString().split("T")[0]
+    );
 
-        recalculateSummary();
-    }
+    recalculateSummary();
+}
 
-    function initRequestForm() {
-        $(".select2").select2({
-            width: "100%",
-            dropdownParent: $("#requestModal"),
-        });
+function initRequestForm() {
 
-        $("#btnSubmitRequest").on("click", function() {
+    $(".select2").select2({
+
+        width: "100%",
+
+        dropdownParent: $("#requestModal"),
+
+        minimumResultsForSearch: 0,
+    });
+
+    $("#btnSubmitRequest").on(
+        "click",
+        function () {
+
             submitRequestForm();
-        });
-    }
 
-    function initDetailHandlers() {
-        $("#btnAddDetail").on("click", function() {
+        }
+    );
+}
+
+function initDetailHandlers() {
+
+    $("#btnAddDetail").on(
+        "click",
+        function () {
+
             appendDetailRow();
-        });
 
-        $(document).on("click", ".btn-remove-detail", function() {
-            $(this).closest("tr").remove();
+        }
+    );
 
-            recalculateSummary();
-        });
-        $(document).on("change", ".detail-category", function() {
-            const selected = $(this).select2("data")[0];
+    $(document).on(
+        "click",
+        ".btn-remove-detail",
+        function () {
 
-            const row = $(this).closest("tr");
-
-            const group = selected?.group_category ?? "-";
-
-            row.find(".detail-group").text(group);
-
-            row.find(".detail-group-hidden").val(group);
+            $(this)
+                .closest("tr")
+                .remove();
 
             recalculateSummary();
-        });
-    }
 
-    function appendDetailRow(data = null) {
-        const index = detailIndex++;
+        }
+    );
 
-        const html = `
-        <tr class="detail-item-row border-b border-slate-100 dark:border-white/10">
+    $(document).on(
+        "change",
+        ".detail-category",
+        function () {
+
+            const selected =
+                $(this).select2("data")[0];
+
+            const row =
+                $(this).closest("tr");
+
+            const group =
+                selected?.group_category ?? "-";
+
+            row.find(".detail-group")
+                .text(group);
+
+            row.find(".detail-group-hidden")
+                .val(group);
+
+            recalculateSummary();
+
+        }
+    );
+}
+
+function appendDetailRow(data = null) {
+
+    const index = detailIndex++;
+
+    const html = `
+        <tr class="
+            detail-item-row
+            border-b border-white/[0.04]
+            transition
+            hover:bg-white/[0.015]
+        ">
 
             <td class="px-4 py-3 align-middle">
 
@@ -85,7 +144,9 @@
                     name="details[${index}][categoryid]"
                     class="detail-category select2 w-full">
 
-                    <option value="">Choose Category</option>
+                    <option value="">
+                        Choose Category
+                    </option>
 
                 </select>
 
@@ -93,11 +154,19 @@
 
             <td class="px-4 py-3 align-middle">
 
-                <div
-                    class="detail-group flex h-11 min-w-[140px] items-center rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
-
+                <div class="
+                    detail-group
+                    flex h-11 min-w-[150px]
+                    items-center
+                    rounded-xl
+                    border border-white/[0.06]
+                    bg-[#0b1525]
+                    px-4
+                    text-sm font-medium
+                    text-slate-200
+                    shadow-[inset_0_1px_0_rgba(255,255,255,.03)]
+                ">
                     -
-
                 </div>
 
                 <input
@@ -111,7 +180,18 @@
 
                 <button
                     type="button"
-                    class="btn-remove-detail inline-flex h-11 w-11 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20">
+                    class="
+                        btn-remove-detail
+                        inline-flex h-11 w-11
+                        items-center justify-center
+                        rounded-xl
+                        border border-red-500/20
+                        bg-red-500/10
+                        text-red-300
+                        transition
+                        hover:bg-red-500/20
+                        hover:scale-[1.03]
+                    ">
 
                     <i class="fa-solid fa-trash"></i>
 
@@ -120,304 +200,504 @@
             </td>
 
         </tr>
-        `;
+    `;
 
-        $("#requestDetailContainer").append(html);
+    $("#requestDetailContainer")
+        .append(html);
 
-        const row = $("#requestDetailContainer").find(".detail-item-row").last();
+    const row = $("#requestDetailContainer")
+        .find(".detail-item-row")
+        .last();
 
-        const select = row.find(".detail-category");
+    const select =
+        row.find(".detail-category");
 
-        select.select2({
-            width: "100%",
-            dropdownParent: $("#requestModal"),
-            placeholder: "Choose Category",
-            allowClear: true,
+    select.select2({
 
-            ajax: {
-                url: '/access-request/category-search',
-                dataType: 'json',
-                delay: 250,
+        width: "100%",
 
-                data: function(params) {
-                    return {
-                        q: params.term,
-                    };
-                },
+        dropdownParent: $("#requestModal"),
 
-                processResults: function(data) {
-                    return {
-                        results: data.results.map((item) => ({
-                            id: item.id,
-                            text: item.text,
-                            group_category: item.group_category,
-                            categoryid: item.categoryid,
-                            category_name: item.category_name,
-                        })),
-                    };
-                },
+        placeholder: "Choose Category",
 
-                cache: true,
+        allowClear: true,
+
+        ajax: {
+
+            url: "/access-request/category-search",
+
+            dataType: "json",
+
+            delay: 250,
+
+            data: function (params) {
+
+                return {
+                    q: params.term,
+                };
             },
-        });
 
-        if (data) {
-            const option = new Option(
-                data.category_name,
-                data.categoryid,
-                true,
-                true,
-            );
+            processResults: function (data) {
 
-            select.append(option).trigger("change");
+                return {
 
-            row.find(".detail-group").text(data.group_category ?? "-");
+                    results:
+                        data.results.map((item) => ({
 
-            row.find(".detail-group-hidden").val(data.group_category ?? "");
-        }
+                            id: item.id,
 
-        recalculateSummary();
-    }
+                            text: item.text,
 
-    function recalculateSummary() {
-        const rows = $(".detail-item-row");
+                            group_category:
+                                item.group_category,
 
-        let total = rows.length;
-        let hardware = 0;
-        let software = 0;
+                            categoryid:
+                                item.categoryid,
 
-        rows.each(function() {
-            const group = $(this).find(".detail-group-hidden").val();
+                            category_name:
+                                item.category_name,
 
-            if (group === "HARDWARE") {
-                hardware++;
-            }
+                        })),
+                };
+            },
 
-            if (group === "SOFTWARE") {
-                software++;
-            }
-        });
+            cache: true,
+        },
+    });
 
-        $("#summaryTotalItem").text(total);
-        $("#summaryHardware").text(hardware);
-        $("#summarySoftware").text(software);
-    }
+    if (data) {
 
-    function submitRequestForm() {
-        const accessDate = $("#access_date").val();
-        const accessType = $("#access_type").val();
-        const cpnyId = $("#cpny_id").val();
-        const departmentId = $("#department_id").val();
-        const keperluan = $("#keperluan").val().trim();
-
-        const detailRows = $(".detail-item-row");
-
-        if (!accessDate) {
-            showValidationMessage("Request date is required.");
-            return;
-        }
-
-        if (!accessType) {
-            showValidationMessage("Request type is required.");
-            return;
-        }
-
-        if (!cpnyId) {
-            showValidationMessage("Company is required.");
-            return;
-        }
-
-        if (!departmentId) {
-            showValidationMessage("Department is required.");
-            return;
-        }
-
-        if (!keperluan) {
-            showValidationMessage("Purpose / Notes is required.");
-            return;
-        }
-
-        if (detailRows.length === 0) {
-            showValidationMessage("Please add at least one request item.");
-            return;
-        }
-
-        let invalidDetail = false;
-
-        detailRows.each(function() {
-            const category = $(this).find(".detail-category").val();
-
-            if (!category) {
-                invalidDetail = true;
-
-                $(this).find(".select2-selection").addClass("!border-red-500");
-            } else {
-                $(this).find(".select2-selection").removeClass("!border-red-500");
-            }
-        });
-
-        if (invalidDetail) {
-            showValidationMessage("Please select category for all request items.");
-            return;
-        }
-
-        const form = $("#requestForm")[0];
-
-        const formData = new FormData(form);
-
-        formData.append(
-            "existing_attachments",
-            JSON.stringify(existingAttachments),
+        const option = new Option(
+            data.category_name,
+            data.categoryid,
+            true,
+            true
         );
 
-        selectedFiles.forEach((file) => {
-            formData.append("attachments[]", file);
-        });
+        select
+            .append(option)
+            .trigger("change");
 
-        $("#btnSubmitRequest").prop("disabled", true).html(`
-            <div class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"></div>
+        row.find(".detail-group")
+            .text(data.group_category ?? "-");
+
+        row.find(".detail-group-hidden")
+            .val(data.group_category ?? "");
+    }
+
+    recalculateSummary();
+}
+
+function recalculateSummary() {
+
+    const rows =
+        $(".detail-item-row");
+
+    let total = rows.length;
+
+    let hardware = 0;
+
+    let software = 0;
+
+    rows.each(function () {
+
+        const group = $(this)
+            .find(".detail-group-hidden")
+            .val();
+
+        if (group === "HARDWARE") {
+            hardware++;
+        }
+
+        if (group === "SOFTWARE") {
+            software++;
+        }
+    });
+
+    $("#summaryTotalItem")
+        .text(total);
+
+    $("#summaryHardware")
+        .text(hardware);
+
+    $("#summarySoftware")
+        .text(software);
+}
+
+function submitRequestForm() {
+
+    const accessDate =
+        $("#access_date").val();
+
+    const accessType =
+        $("#access_type").val();
+
+    const cpnyId =
+        $("#cpny_id").val();
+
+    const departmentId =
+        $("#department_id").val();
+
+    const keperluan =
+        $("#keperluan")
+            .val()
+            .trim();
+
+    const detailRows =
+        $(".detail-item-row");
+
+    if (!accessDate) {
+
+        showValidationMessage(
+            "Request date is required."
+        );
+
+        return;
+    }
+
+    if (!accessType) {
+
+        showValidationMessage(
+            "Request type is required."
+        );
+
+        return;
+    }
+
+    if (!cpnyId) {
+
+        showValidationMessage(
+            "Company is required."
+        );
+
+        return;
+    }
+
+    if (!departmentId) {
+
+        showValidationMessage(
+            "Department is required."
+        );
+
+        return;
+    }
+
+    if (!keperluan) {
+
+        showValidationMessage(
+            "Purpose / Notes is required."
+        );
+
+        return;
+    }
+
+    if (detailRows.length === 0) {
+
+        showValidationMessage(
+            "Please add at least one request item."
+        );
+
+        return;
+    }
+
+    let invalidDetail = false;
+
+    detailRows.each(function () {
+
+        const category =
+            $(this)
+                .find(".detail-category")
+                .val();
+
+        if (!category) {
+
+            invalidDetail = true;
+
+            $(this)
+                .find(".select2-selection")
+                .addClass("!border-red-500");
+
+        } else {
+
+            $(this)
+                .find(".select2-selection")
+                .removeClass("!border-red-500");
+        }
+    });
+
+    if (invalidDetail) {
+
+        showValidationMessage(
+            "Please select category for all request items."
+        );
+
+        return;
+    }
+
+    const form =
+        $("#requestForm")[0];
+
+    const formData =
+        new FormData(form);
+
+    formData.append(
+        "existing_attachments",
+        JSON.stringify(existingAttachments)
+    );
+
+    selectedFiles.forEach((file) => {
+
+        formData.append(
+            "attachments[]",
+            file
+        );
+
+    });
+
+    $("#btnSubmitRequest")
+        .prop("disabled", true)
+        .addClass(
+            "opacity-60 cursor-not-allowed"
+        )
+        .html(`
+            <div class="
+                h-4 w-4 animate-spin rounded-full
+                border-2 border-white/40 border-t-white
+            "></div>
+
             Submitting...
         `);
 
-        $.ajax({
-            url: $("#requestUrl").val() || "/access-request/store",
+    $.ajax({
 
-            type: $("#requestMethod").val() || "POST",
+        url:
+            $("#requestUrl").val() ||
+            "/access-request/store",
 
-            data: formData,
+        type:
+            $("#requestMethod").val() ||
+            "POST",
 
-            processData: false,
-            contentType: false,
+        data: formData,
 
-            success: function(res) {
+        processData: false,
 
-                swalSuccess(
-                    res.message ??
-                    "Request submitted successfully."
-                );
+        contentType: false,
 
-                closeAllModal();
+        success: function (res) {
 
-                resetRequestForm();
+            swalSuccess(
+                res.message ??
+                "Request submitted successfully."
+            );
 
-                table.ajax.reload(null, false);
+            selectedFiles = [];
 
-            },
+            existingAttachments = [];
 
-            error: function(xhr) {
+            closeAllModal();
 
-                if (xhr.status === 422) {
+            resetRequestForm();
 
-                    const errors = xhr.responseJSON.errors;
+            table.ajax.reload(
+                null,
+                false
+            );
+        },
 
-                    let firstError = null;
+        error: function (xhr) {
 
-                    Object.keys(errors).forEach((key) => {
+            if (xhr.status === 422) {
 
-                        if (!firstError) {
-                            firstError = errors[key][0];
-                        }
+                const errors =
+                    xhr.responseJSON.errors;
 
-                    });
+                let firstError = null;
 
-                    showValidationMessage(
-                        firstError ?? "Validation failed."
-                    );
+                Object.keys(errors).forEach((key) => {
 
-                } else {
+                    if (!firstError) {
 
-                    showValidationMessage(
-                        xhr.responseJSON?.message ??
-                        "Failed submit request."
-                    );
-
-                }
-
-            },
-
-            complete: function() {
-
-                $("#btnSubmitRequest")
-                    .prop("disabled", false)
-                    .html(`
-                        <i class="fa-solid fa-paper-plane text-xs"></i>
-                        Submit Request
-                    `);
-
-            },
-        });
-    }
-
-    function openEditModal(id) {
-        resetRequestForm();
-
-        $("#requestModalTitle").text("Edit Access Request");
-
-        $("#requestMethod").val("POST");
-
-        $("#requestUrl").val(`/access-request/update/${id}`);
-
-        $("#requestHash").val(id);
-
-        openModal("#requestModal");
-
-        $.ajax({
-            url: `/access-request/detail/${id}`,
-            type: "GET",
-
-            beforeSend: function() {
-                $("#btnSubmitRequest").prop("disabled", true);
-            },
-
-            success: function(res) {
-                console.log("edit response", res);
-
-                const access = res.access ?? {};
-                const details = res.details ?? [];
-
-                const attachments = (
-                        res.attachments ?? []
-                    ).filter(
-                        (file, index, self) =>
-                            index === self.findIndex(
-                                (f) => f.url === file.url
-                            )
-                    );
-
-                $("#access_date").val(
-                    access.access_date ? access.access_date.split(" ")[0] : "",
-                );
-
-                $("#access_type").val(access.access_type).trigger("change");
-
-                $("#cpny_id").val(access.cpny_id).trigger("change");
-
-                $("#department_id").val(access.department_id).trigger("change");
-
-                $("#keperluan").val(access.keperluan ?? "");
-
-                $("#requestDetailContainer").html("");
-
-                details.forEach((item) => {
-                    appendDetailRow({
-                        categoryid: item.access_id,
-                        category_name: item.access_descr,
-                        group_category: item.group_category,
-                    });
+                        firstError =
+                            errors[key][0];
+                    }
                 });
-                existingAttachments = attachments;
-                renderExistingAttachments(existingAttachments);
-                recalculateSummary();
-            },
 
-            error: function(xhr) {
-                swalError(xhr.responseJSON?.message ?? "Failed load edit data");
+                showValidationMessage(
+                    firstError ??
+                    "Validation failed."
+                );
 
-                closeAllModal();
-            },
+            } else {
 
-            complete: function() {
-                $("#btnSubmitRequest").prop("disabled", false);
-            },
-        });
-    }
+                showValidationMessage(
+                    xhr.responseJSON?.message ??
+                    "Failed submit request."
+                );
+            }
+        },
+
+        complete: function () {
+
+            $("#btnSubmitRequest")
+                .prop("disabled", false)
+                .removeClass(
+                    "opacity-60 cursor-not-allowed"
+                )
+                .html(`
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                    Submit Request
+                `);
+
+        },
+    });
+}
+
+function openEditModal(id) {
+
+    resetRequestForm();
+
+    $("#requestModalTitle").text(
+        "Edit Access Request"
+    );
+
+    $("#requestMethod").val("POST");
+
+    $("#requestUrl").val(
+        `/access-request/update/${id}`
+    );
+
+    $("#requestHash").val(id);
+
+    openModal("#requestModal");
+
+    $.ajax({
+
+        url:
+            `/access-request/detail/${id}`,
+
+        type: "GET",
+
+        beforeSend: function () {
+
+            $("#btnSubmitRequest")
+                .prop("disabled", true)
+                .addClass(
+                    "opacity-60 cursor-not-allowed"
+                )
+                .html(`
+                    <div class="
+                        h-4 w-4 animate-spin rounded-full
+                        border-2 border-white/40 border-t-white
+                    "></div>
+
+                    Loading...
+                `);
+
+        },
+
+        success: function (res) {
+
+            console.log(
+                "edit response",
+                res
+            );
+
+            const access =
+                res.access ?? {};
+
+            const details =
+                res.details ?? [];
+
+            const attachments =
+                (res.attachments ?? []).filter(
+                    (
+                        file,
+                        index,
+                        self
+                    ) =>
+                        index ===
+                        self.findIndex(
+                            (f) =>
+                                f.url ===
+                                file.url
+                        )
+                );
+
+            $("#access_date").val(
+                access.access_date
+                    ? access.access_date.split(" ")[0]
+                    : ""
+            );
+
+            $("#access_type")
+                .val(access.access_type)
+                .trigger("change");
+
+            $("#cpny_id")
+                .val(access.cpny_id)
+                .trigger("change");
+
+            $("#department_id")
+                .val(access.department_id)
+                .trigger("change");
+
+            $("#keperluan").val(
+                access.keperluan ?? ""
+            );
+
+            $("#requestDetailContainer")
+                .html("");
+
+            details.forEach((item) => {
+
+                appendDetailRow({
+
+                    categoryid:
+                        item.access_id,
+
+                    category_name:
+                        item.access_descr,
+
+                    group_category:
+                        item.group_category,
+
+                });
+
+            });
+
+            existingAttachments =
+                attachments;
+
+            renderExistingAttachments(
+                existingAttachments
+            );
+
+            recalculateSummary();
+        },
+
+        error: function (xhr) {
+
+            swalError(
+                xhr.responseJSON?.message ??
+                "Failed load edit data"
+            );
+
+            closeAllModal();
+        },
+
+        complete: function () {
+
+            $("#btnSubmitRequest")
+                .prop("disabled", false)
+                .removeClass(
+                    "opacity-60 cursor-not-allowed"
+                )
+                .html(`
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                    Submit Request
+                `);
+
+        },
+    });
+}

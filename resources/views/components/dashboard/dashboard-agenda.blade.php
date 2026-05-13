@@ -74,14 +74,14 @@
                 <template x-if="modalData.description">
                     <div>
                         <span class="font-semibold">📄 Description:</span>
-                        <p class="mt-1 whitespace-pre-wrap break-words" x-text="modalData.description"></p>
+                        <p class="mt-1 whitespace-normal break-words" x-text="modalData.description"></p>
                     </div>
                 </template>
 
                 <template x-if="modalData.participant">
                     <div>
                         <span class="font-semibold">👥 Participants:</span>
-                        <p class="mt-1 whitespace-pre-wrap break-words" x-text="modalData.participant"></p>
+                        <p class="mt-1 whitespace-normal break-words" x-text="modalData.participant"></p>
                     </div>
                 </template>
             </div>

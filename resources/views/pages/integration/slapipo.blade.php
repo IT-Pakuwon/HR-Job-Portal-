@@ -295,7 +295,7 @@
                     <td class="px-4 py-2 align-top">${escapeHtml(r.order_date || '')}</td>
                     <td class="px-4 py-2 align-top">${escapeHtml(r.department_id || '')}</td>
                     <td class="px-4 py-2 text-center align-top">${badge(stage)}</td>
-                    <td class="px-4 py-2 align-top whitespace-pre-wrap break-words max-w-[280px]">${escapeHtml(r.payload_response || '')}</td>
+                    <td class="px-4 py-2 align-top whitespace-normal break-words max-w-[280px]">${escapeHtml(r.payload_response || '')}</td>
                     <td class="px-4 py-2 align-top">${escapeHtml(r.last_update || '')}</td>
                 </tr>
             `;

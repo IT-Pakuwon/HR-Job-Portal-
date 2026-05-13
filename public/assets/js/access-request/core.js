@@ -14,6 +14,8 @@ $(document).ready(function () {
     initRequestForm();
     initDetailHandlers();
     initAttachmentHandlers();
+    initDiscussionUI();
+
 });
 
 $(document).ajaxError(function (event, xhr) {

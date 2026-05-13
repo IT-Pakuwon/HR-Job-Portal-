@@ -1934,20 +1934,32 @@ class AccessRequestController extends Controller
         abort_if(!$id, 404);
 
         $request->validate([
-            'comment' => ['required', 'string'],
+            'message' => ['required', 'string'],
         ]);
 
         $access = TrAccess::findOrFail($id);
 
         try {
+
+            $request->merge([
+                'reason' => $request->message,
+                'docid' => $access->docid,
+            ]);
+
             app(SendCommentController::class)
-                ->sendmsg($access->id, 'ACR', $request);
+                ->sendmsg(
+                    $access->id,
+                    'ACR',
+                    $request
+                );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Comment sent successfully',
             ]);
+
         } catch (\Throwable $e) {
+
             report($e);
 
             return response()->json([
@@ -1957,6 +1969,7 @@ class AccessRequestController extends Controller
                     ? $e->getMessage()
                     : null,
             ], 500);
+
         }
     }
 
