@@ -67,7 +67,9 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MeetingRoomSetupController;
 use App\Http\Controllers\MsApplicationController;
 use App\Http\Controllers\MsApprovalController;
+use App\Http\Controllers\MsApprovalGroupBiayaController;
 use App\Http\Controllers\MsCategoryController;
+use App\Http\Controllers\MsGroupbiayaNonPurchController;
 use App\Http\Controllers\MsGroupController;
 use App\Http\Controllers\MsScreenController;
 use App\Http\Controllers\NewsController;
@@ -1534,6 +1536,14 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/approvals/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus']);
     Route::get('/approvals/departments', [MsApprovalController::class, 'departmentHR'])->name('approvals.departments');
 
+    Route::get('/approvals-groupbiaya', [MsApprovalGroupBiayaController::class, 'index'])->name('approvalsgroupbiaya');
+    Route::get('/approvals-groupbiaya/json', [MsApprovalGroupBiayaController::class, 'json'])->name('approvalsgroupbiaya.json');
+    Route::post('/approvals-groupbiaya', [MsApprovalGroupBiayaController::class, 'store'])->name('approvalsgroupbiaya.store');
+    Route::get('/approvals-groupbiaya/{id}/edit', [MsApprovalGroupBiayaController::class, 'edit'])->name('approvalsgroupbiaya.edit');
+    Route::put('/approvals-groupbiaya/{id}', [MsApprovalGroupBiayaController::class, 'update'])->name('approvalsgroupbiaya.update');
+    Route::put('/approvals-groupbiaya/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya.toggle');
+    Route::get('/approvals-groupbiaya/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya.departments');
+
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
     Route::get('/companies/json', [CompanyController::class, 'json'])->name('companies.json');
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
@@ -1640,6 +1650,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/kendaraan/{id}/edit', [KendaraanController::class, 'edit'])->name('kendaraan.edit');
     Route::put('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
     Route::put('/kendaraan/{id}/toggle-status', [KendaraanController::class, 'toggleStatus'])->name('kendaraan.toggle-status');
+
+    Route::get('/groupbiaya-nonpurch', [MsGroupbiayaNonPurchController::class, 'index'])->name('groupbiayanonpurch');
+    Route::get('/groupbiaya-nonpurch/json', [MsGroupbiayaNonPurchController::class, 'json'])->name('groupbiayanonpurch.json');
+    Route::post('/groupbiaya-nonpurch/store', [MsGroupbiayaNonPurchController::class, 'store'])->name('groupbiayanonpurch.store');
+    Route::get('/groupbiaya-nonpurch/{id}/edit', [MsGroupbiayaNonPurchController::class, 'edit'])->name('groupbiayanonpurch.edit');
+    Route::put('/groupbiaya-nonpurch/{id}', [MsGroupbiayaNonPurchController::class, 'update'])->name('groupbiayanonpurch.update');
+    Route::put('/groupbiaya-nonpurch/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'toggleStatus'])->name('groupbiayanonpurch.toggle-status');
 
     Route::middleware(['auth'])->group(function () {
         // halaman setting + tombol run
