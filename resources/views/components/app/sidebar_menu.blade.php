@@ -456,11 +456,13 @@
                                 'tenants',
                                 'locations',
                                 'categories',
+                                'groupbiayanonpurch',
                                 'vendors',
                                 'inventories',
                                 'autonbrs',
                                 'tops',
                                 'approvals',
+                                'approvalsgroupbiaya',
                                 'budgetmonitor',
                                 'ifcaintegration',
                             ];
@@ -623,6 +625,9 @@
                                         <li><a href="{{ route('kendaraan') }}"
                                                 class="{{ Request::segment(1) === 'kendaraan' ? 'text-violet-600' : '' }} sidebar-link text-sm">Kendaraan</a>
                                         </li>
+                                         <li><a href="{{ route('groupbiayanonpurch') }}"
+                                                class="{{ Request::segment(1) === 'groupbiayanonpurch' ? 'text-violet-600' : '' }} sidebar-link text-sm">Group Biaya Non Purch</a>
+                                        </li>
                                     </ul>
                                 </li>
                                 <!-- ================================================= -->
@@ -647,6 +652,9 @@
                                     <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('approvals') }}"
                                                 class="{{ Request::segment(1) === 'approvals' ? 'text-violet-600' : '' }} sidebar-link text-sm">Approvals</a>
+                                        </li>
+                                        <li><a href="{{ route('approvalsgroupbiaya') }}"
+                                                class="{{ Request::segment(1) === 'approvalsgroupbiaya' ? 'text-violet-600' : '' }} sidebar-link text-sm">Approvals Group Biaya</a>
                                         </li>
                                         <li>
                                             <a href="{{ route('integration.ifcaintegration') }}"

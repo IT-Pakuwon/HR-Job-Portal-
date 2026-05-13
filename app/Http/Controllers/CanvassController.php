@@ -3890,6 +3890,7 @@ class CanvassController extends Controller
 
     public function updateCS(Request $request, $csid)
     {
+        // dd('updateCS', $csid, $request->all());
         $request->validate([
             'doc' => 'required|string',
             'src_id' => 'nullable',
@@ -4225,6 +4226,7 @@ class CanvassController extends Controller
                     $d['sppj_no'] ??
                     $d['sppk_no'] ??
                     $d['sppt_no'] ??
+                    $d['sppbjkt_no'] ??
                     null;
 
                 $inventoryid = $d['inventoryid'] ?? null;
@@ -7036,6 +7038,283 @@ class CanvassController extends Controller
     }
 
     private function generatePOFromCS(TrCS $cs, $user, $potype): void
+    {
+        // Idempotent: kalau sudah ada PO untuk CS ini, jangan bikin lagi
+        $already = TrPO::where('csid', $cs->csid)
+            ->where('created_by', '<>', 'IMPORT')
+            ->exists();
+
+        if ($already) {
+            return;
+        }
+
+        $details = TrCSdetail::where('csid', $cs->csid)->get();
+
+        if ($details->isEmpty()) {
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Kelompokkan baris berdasarkan VENDOR ID, bukan berdasarkan index vendor
+        |--------------------------------------------------------------------------
+        | Contoh:
+        | - vendor1selected = true, vendorid1 = V001
+        | - vendor2selected = true, vendorid2 = V001
+        |
+        | Maka keduanya masuk group V001 dan hanya membuat 1 PO / 1 ponbr.
+        */
+        $pickedByVendorId = collect();
+
+        foreach ($details as $row) {
+            for ($i = 1; $i <= 6; ++$i) {
+                $sel = (bool) ($row->{"vendor{$i}selected"} ?? false);
+                $vid = trim((string) ($row->{"vendorid{$i}"} ?? ''));
+
+                if ($sel && $vid !== '') {
+                    $vendorKey = strtoupper($vid);
+
+                    if (!$pickedByVendorId->has($vendorKey)) {
+                        $pickedByVendorId->put($vendorKey, collect());
+                    }
+
+                    /*
+                    Simpan juga vendor_idx karena harga, total harga, pajak,
+                    dan taxcode masih tergantung field vendor1/vendor2/vendor3/dst.
+                    */
+                    $pickedByVendorId[$vendorKey]->push([
+                        'row' => $row,
+                        'vendor_idx' => $i,
+                        'vendor_id' => $vid,
+                    ]);
+
+                    break; // satu baris hanya 1 vendor terpilih
+                }
+            }
+        }
+
+        $nonEmptyGroups = $pickedByVendorId->filter(fn ($g) => $g->isNotEmpty());
+
+        if ($nonEmptyGroups->isEmpty()) {
+            return;
+        }
+
+        $now = Carbon::now();
+
+        // Generator nomor 10 digit per company (tanpa prefix)
+        $mkPonbr = function () use ($cs) {
+            $company = strtoupper((string) $cs->cpny_id);
+            $digits = 10;
+            $base = ($company === 'GPS') ? 0 : 8000000000;
+
+            $autonbr = Autonbr::lockForUpdate()
+                ->where('doctype', $company)
+                ->first();
+
+            $current = $autonbr ? (int) $autonbr->number : (int) $base;
+            $next = $current + 1;
+
+            if (!$autonbr) {
+                $autonbr = Autonbr::create([
+                    'doctype' => $company,
+                    'status' => 'A',
+                    'number' => $next,
+                ]);
+            } else {
+                $autonbr->update(['number' => $next]);
+            }
+
+            $ponbr = str_pad((string) $next, $digits, '0', STR_PAD_LEFT);
+
+            return [$ponbr, $next];
+        };
+
+        DB::connection('pgsql')->beginTransaction();
+
+        try {
+            foreach ($nonEmptyGroups as $vendorKey => $items) {
+                /*
+                Ambil index vendor pertama dalam group.
+                Ini dipakai untuk header PO seperti vendor name, address, TOP, note, taxcode.
+                Kalau vendor1 dan vendor2 vendorid-nya sama, header akan ikut data yang pertama ditemukan.
+                */
+                $firstItem = $items->first();
+                $i = (int) $firstItem['vendor_idx'];
+
+                // Info vendor dari header CS
+                $vendorId = $cs->{"vendorid{$i}"} ?? $firstItem['vendor_id'];
+                $vendorName = $cs->{"vendorname{$i}"} ?? null;
+                $vendorAddr = $cs->{"vendoralamat{$i}"} ?? null;
+                $vendorTelp = $cs->{"vendortelp{$i}"} ?? null;
+                $vendorCP = $cs->{"vendorcp{$i}"} ?? null;
+                $vendorTOP = $cs->{"vendortop{$i}"} ?? null;
+                $vendornote = $cs->{"vendornote{$i}"} ?? null;
+
+                if (!$vendorId) {
+                    continue;
+                }
+
+                // Pajak & tax code header PO pakai index vendor pertama
+                $ppnPctHeader = (float) ($cs->{"ppnvendor{$i}"} ?? 0);
+                $pphPctHeader = (float) ($cs->{"pphvendor{$i}"} ?? 0);
+                $taxCodeIdHeader = $cs->{"taxcodevendor{$i}"} ?? null;
+
+                // Nomor PO: 1 vendor group = 1 ponbr
+                [$ponbr, $poautonbr] = $mkPonbr();
+
+                // ===== PO HEADER =====
+                $po = new TrPO();
+                $po->setConnection('pgsql');
+
+                $po->ponbr = $ponbr;
+                $po->poautonbr = $poautonbr;
+                $po->podate = $now->toDateString();
+                $po->potype = $potype;
+                $po->cpny_id = $cs->cpny_id;
+                $po->csid = $cs->csid;
+                $po->sppbjktid = $cs->sppbjktid;
+                $po->department_id = $cs->department_id;
+                $po->user_peminta = $cs->user_peminta;
+                $po->keperluan = $cs->keperluan;
+                $po->ponote = $cs->csnote;
+
+                $po->vendorid = $vendorId;
+                $po->vendorname = $vendorName;
+                $po->vendoralamat = $vendorAddr;
+                $po->vendortelp = $vendorTelp;
+                $po->vendorcp = $vendorCP;
+                $po->vendortop = $vendorTOP;
+                $po->vendornote = $vendornote;
+
+                $po->totalamt = 0;
+                $po->taxcodeid = $taxCodeIdHeader;
+                $po->taxamt = 0;
+                $po->grandtotalamt = 0;
+                $po->totalqty = 0;
+                $po->totalqtyreceived = 0;
+
+                $po->submitdate = $now;
+                $po->status = 'H';
+                $po->created_by = $cs->created_by ?? 'system';
+                $po->save();
+
+                // ===== PO DETAIL =====
+                $totalQty = 0.0;
+                $sumTotal = 0.0;
+                $sumTax = 0.0;
+                $lineNo = 0;
+
+                foreach ($items as $item) {
+                    ++$lineNo;
+
+                    /** @var TrCSdetail $row */
+                    $row = $item['row'];
+
+                    /*
+                    Penting:
+                    Detail tetap ambil harga dari index vendor yang benar.
+                    Jadi kalau row ini selected di vendor2, maka ambil vendorprice2,
+                    walaupun PO header-nya sudah digabung dengan vendor1.
+                    */
+                    $detailVendorIdx = (int) $item['vendor_idx'];
+
+                    $unitCost = (float) ($row->{"vendorprice{$detailVendorIdx}"} ?? 0);
+                    $totalCost = (float) ($row->{"vendortotalprice{$detailVendorIdx}"} ?? 0);
+
+                    $ppnPct = (float) ($cs->{"ppnvendor{$detailVendorIdx}"} ?? $ppnPctHeader);
+                    $pphPct = (float) ($cs->{"pphvendor{$detailVendorIdx}"} ?? $pphPctHeader);
+                    $taxCodeId = $cs->{"taxcodevendor{$detailVendorIdx}"} ?? $taxCodeIdHeader;
+
+                    $lineTax = $totalCost * (($ppnPct + $pphPct) / 100);
+
+                    $pd = new TrPOdetail();
+                    $pd->setConnection('pgsql');
+
+                    $pd->ponbr = $ponbr;
+                    $pd->po_no = $lineNo;
+
+                    $pd->csid = $cs->csid;
+                    $pd->cs_no = $row->cs_no ?? null;
+                    $pd->sppbjktid = $row->sppbjktid ?? $cs->sppbjktid;
+                    $pd->sppbjktid_no = $row->sppbjkt_no ?? null;
+
+                    $pd->inventory_type = $row->inventory_type ?? null;
+                    $pd->inventory_sub_type = $row->inventory_sub_type ?? null;
+                    $pd->inventory_category = $row->inventory_category ?? null;
+                    $pd->inventoryid = $row->inventoryid ?? null;
+                    $pd->inventory_descr = $row->inventory_descr ?? null;
+                    $pd->ponote_detail = $row->csnote_detail ?? null;
+
+                    $pd->qty = (float) $row->qty;
+                    $pd->uom = $row->uom;
+                    $pd->siteid = $row->siteid ?? null;
+
+                    $pd->type_multiplier = $row->type_multiplier ?? null;
+                    $pd->base_multiplier = $row->base_multiplier ?? null;
+                    $pd->base_qty = $row->base_qty ?? null;
+                    $pd->base_uom = $row->base_uom ?? null;
+
+                    $pd->unitcost = $unitCost;
+                    $pd->taxcodeid = $taxCodeId;
+                    $pd->taxamt = $lineTax;
+                    $pd->totalcost = $totalCost;
+
+                    $pd->qty_received = 0;
+                    $pd->base_qty_received = 0;
+                    $pd->qty_return = 0;
+                    $pd->base_qty_return = 0;
+                    $pd->qty_completed = 0;
+                    $pd->base_qty_completed = 0;
+
+                    $pd->received = false;
+                    $pd->completed = false;
+                    $pd->canceled = false;
+
+                    $pd->budget_cpny_id = $row->budget_cpny_id ?? null;
+                    $pd->budget_business_unit_id = $row->budget_business_unit_id ?? null;
+                    $pd->budget_department_fin_id = $row->budget_department_fin_id ?? null;
+                    $pd->budget_account_id = $row->budget_account_id ?? null;
+                    $pd->budget_activity_id = $row->budget_activity_id ?? null;
+                    $pd->budget_activity_descr = $row->budget_activity_descr ?? null;
+                    $pd->budget_perpost = $row->budget_perpost ?? null;
+
+                    $pd->status = 'H';
+                    $pd->created_by = $cs->created_by ?? 'system';
+                    $pd->save();
+
+                    // Update TrCSdetail: set ponbr yang sama untuk vendor yang sama
+                    $row->ponbr = $ponbr;
+                    $row->updated_by = $cs->created_by ?? 'system';
+                    $row->updated_at = now();
+                    $row->save();
+
+                    $totalQty += (float) $row->qty;
+                    $sumTotal += $totalCost;
+                    $sumTax += $lineTax;
+                }
+
+                // ===== Update totals header dari akumulasi semua detail vendor yang sama =====
+                $po->totalqty = $totalQty;
+                $po->totalamt = $sumTotal;
+                $po->taxamt = $sumTax;
+                $po->grandtotalamt = $sumTotal + $sumTax;
+                $po->save();
+            }
+
+            DB::connection('pgsql')->commit();
+        } catch (\Throwable $e) {
+            DB::connection('pgsql')->rollBack();
+
+            Log::error('Generate PO from CS failed', [
+                'csid' => $cs->csid,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    private function generatePOFromCS_zzz(TrCS $cs, $user, $potype): void
     {
         // Idempotent: kalau sudah ada PO untuk CS ini, jangan bikin lagi
         $already = TrPO::where('csid', $cs->csid)

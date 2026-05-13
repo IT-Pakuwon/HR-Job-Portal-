@@ -138,10 +138,16 @@
                                     </thead>
                                     <tbody id="cvBody">
                                         @foreach ($items as $row)
-                                            <tr data-inventoryid="{{ $row->inventoryid ?? '' }}"
+                                            <tr data-cs_no="{{ $row->cs_no ?? '' }}"
+                                                data-sppbjkt_no="{{ $row->sppbjkt_no ?? '' }}"
+                                                data-inventoryid="{{ $row->inventoryid ?? '' }}"
                                                 data-inventory_descr="{{ $row->inventory_descr }}"
                                                 data-uom="{{ $row->uom }}"
-                                                data-lastprice="{{ (float) ($row->last_unitcost ?? 0) }}"
+                                                data-inventory_type="{{ $row->inventory_type ?? '' }}"
+                                                data-inventory_sub_type="{{ $row->inventory_sub_type ?? '' }}"
+                                                data-inventory_category="{{ $row->inventory_category ?? '' }}"
+                                                data-siteid="{{ $row->siteid ?? '' }}"
+                                                data-lastprice="{{ (float) ($row->last_unitcost ?? $row->inventory_last_price ?? 0) }}"
                                                 data-original_qty="{{ (float) $row->qty }}"
                                                 data-note="{{ $row->csnote_detail ?? '' }}">
                                                 <td class="border px-3 py-2 align-top">
@@ -577,10 +583,44 @@
         let vendorMaster = [];
         let vendorInstanceSeq = 0;
 
-        function nextVendorColKey() {
-            vendorInstanceSeq++;
-            return 'vcol_' + vendorInstanceSeq;
+        function syncVendorInstanceSeq() {
+            let maxSeq = 0;
+
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                const colKey = String($(this).data('col-key') || '');
+                const m = colKey.match(/^vcol_(\d+)$/);
+
+                if (m) {
+                    maxSeq = Math.max(maxSeq, parseInt(m[1], 10));
+                }
+            });
+
+            vendorInstanceSeq = Math.max(vendorInstanceSeq, maxSeq);
         }
+
+        function nextVendorColKey() {
+            syncVendorInstanceSeq();
+
+            let colKey;
+
+            do {
+                vendorInstanceSeq++;
+                colKey = 'vcol_' + vendorInstanceSeq;
+            } while (
+                $(`#th-vendor-${colKey}`).length ||
+                $(`#td-sum-${colKey}`).length ||
+                $(`input.price-input[data-col-key="${colKey}"]`).length
+            );
+
+            return colKey;
+        }
+        // let vendorMaster = [];
+        // let vendorInstanceSeq = 0;
+
+        // function nextVendorColKey() {
+        //     vendorInstanceSeq++;
+        //     return 'vcol_' + vendorInstanceSeq;
+        // }
 
         function formatNum(n) {
             return (+n || 0).toLocaleString('id-ID', {
@@ -903,19 +943,41 @@
 
         function collectDetailsPayload() {
             const details = [];
+            const docType = String($('input[name="doc"]').val() || '').toUpperCase();
 
             $('#cvBody tr').each(function(rowIdx) {
                 const $tr = $(this);
+
                 const qty = parseQty($tr.find('.qty-input').val());
-                const uom = $tr.data('uom') || '';
-                const invId = $tr.data('inventoryid') || '';
-                const invDescr = $tr.data('inventory_descr') || '';
+                const uom = String($tr.data('uom') || '');
+                const invId = String($tr.data('inventoryid') || '');
+                const invDescr = String($tr.data('inventory_descr') || '');
                 const lastPrice = Number($tr.data('lastprice') || 0);
                 const csNote = String($tr.find('.note-input').val() || '');
 
+                const csNo = $tr.data('cs_no') || '';
+                const sppbjktNo = $tr.data('sppbjkt_no') || '';
+
                 const row = {
+                    row_index: rowIdx,
+
+                    // key CS lama
+                    cs_no: csNo,
+                    sppbjkt_no: sppbjktNo,
+
+                    // key source sesuai doc supaya backend tidak fallback ke inventoryid/uom/descr saja
+                    sppb_no: docType === 'SPPB' ? sppbjktNo : null,
+                    sppj_no: docType === 'SPPJ' ? sppbjktNo : null,
+                    sppk_no: docType === 'SPPK' ? sppbjktNo : null,
+                    sppt_no: docType === 'SPPT' ? sppbjktNo : null,
+
                     inventoryid: invId,
                     inventory_descr: invDescr,
+                    inventory_type: String($tr.data('inventory_type') || ''),
+                    inventory_sub_type: String($tr.data('inventory_sub_type') || ''),
+                    inventory_category: String($tr.data('inventory_category') || ''),
+                    siteid: String($tr.data('siteid') || ''),
+
                     qty: round2(qty),
                     uom: uom,
                     inventory_last_price: round2(lastPrice),
@@ -952,16 +1014,146 @@
 
             return details;
         }
+
+        // function collectDetailsPayload() {
+        //     const details = [];
+
+        //     $('#cvBody tr').each(function(rowIdx) {
+        //         const $tr = $(this);
+        //         const qty = parseQty($tr.find('.qty-input').val());
+        //         const uom = $tr.data('uom') || '';
+        //         const invId = $tr.data('inventoryid') || '';
+        //         const invDescr = $tr.data('inventory_descr') || '';
+        //         const lastPrice = Number($tr.data('lastprice') || 0);
+        //         const csNote = String($tr.find('.note-input').val() || '');
+
+        //         const row = {
+        //             inventoryid: invId,
+        //             inventory_descr: invDescr,
+        //             qty: round2(qty),
+        //             uom: uom,
+        //             inventory_last_price: round2(lastPrice),
+        //             csnote_detail: csNote,
+        //             vendor: []
+        //         };
+
+        //         const pickedColKey = String($tr.find('input.pick-vendor:checked').val() || '');
+
+        //         getVendorColumns().each(function(i) {
+        //             if (i >= 6) return;
+
+        //             const $th = $(this);
+        //             const colKey = String($th.data('col-key'));
+        //             const vendorPkId = String($th.data('vendor-pk-id'));
+        //             const vendorIdCode = String($th.data('vendor-code'));
+
+        //             const $priceInput = $tr.find(`input.price-input[data-col-key="${colKey}"]`);
+        //             const price = parsePrice($priceInput.val());
+        //             const total = qty * price;
+
+        //             row.vendor.push({
+        //                 col_key: colKey,
+        //                 id: vendorPkId,
+        //                 vendorid: vendorIdCode,
+        //                 price: round2(price),
+        //                 total: round2(total),
+        //                 selected: colKey === pickedColKey
+        //             });
+        //         });
+
+        //         details.push(row);
+        //     });
+
+        //     return details;
+        // }
     </script>
 
     <script>
+        // $(function() {
+        //     $('#vendorSelect').empty().append('<option></option>');
+
+        //     $.getJSON('/vendorscs', function(data) {
+        //         vendorMaster = data || [];
+        //         vendorMaster.forEach(v => $('#vendorSelect').append(new Option(v.vendor_name, v.id)));
+        //     });
+
+        //     $('#vendorSelect').select2({
+        //         width: '100%',
+        //         theme: 'default',
+        //         placeholder: 'Select',
+        //         allowClear: true
+        //     });
+
+        //     $('#vendorSelect').on('select2:select', function(e) {
+        //         const vendorPkId = String(e.params.data.id);
+        //         const v = vendorMaster.find(x => String(x.id) === vendorPkId);
+        //         if (!v) return;
+
+        //         if (getVendorColumns().length >= 6) {
+        //             toastr.warning('Maksimal 6 vendor.');
+        //             $(this).val(null).trigger('change');
+        //             return;
+        //         }
+
+        //         const colKey = nextVendorColKey();
+        //         addHeader(colKey, v);
+        //         addPriceCells(colKey);
+
+        //         $(this).val(null).trigger('change');
+        //         recalcSummaryVendor(colKey);
+        //     });
+
+        //     if (Array.isArray(VENDORS_USED) && VENDORS_USED.length) {
+        //         VENDORS_USED.forEach((v, idx) => {
+        //             const masterVendor = vendorMaster.find(x => String(x.vendor_id) === String(v.vendor_id));
+        //             const vendorObj = masterVendor || {
+        //                 id: v.id || v.vendor_pk_id || idx + 1,
+        //                 vendor_id: v.vendor_id,
+        //                 vendor_name: v.vendor_name,
+        //                 vendor_addr1: v.vendor_addr1,
+        //                 phone_number: v.phone_number,
+        //                 contact_person: v.contact_person
+        //             };
+
+        //             const colKey = v.col_key || nextVendorColKey();
+
+        //             addHeader(colKey, vendorObj, {
+        //                 duplicate_no: v.duplicate_no || (idx + 1),
+        //                 top: v.top || v.vendortop || '',
+        //                 vendornote: v.vendornote || '',
+        //                 ppn: v.ppn ?? 11,
+        //                 pph: v.pph ?? 0,
+        //                 ppn_id: v.ppn_id || '',
+        //                 pph_id: v.pph_id || '',
+        //                 taxcode: v.taxcode || ''
+        //             });
+
+        //             addPriceCells(colKey);
+        //         });
+
+        //         if (Array.isArray(DETAIL_MATRIX)) {
+        //             $('#cvBody tr').each(function(rowIdx) {
+        //                 const rowMap = DETAIL_MATRIX[rowIdx] || {};
+        //                 Object.keys(rowMap).forEach(colKey => {
+        //                     const cell = rowMap[colKey];
+        //                     const $price = $(`#cvBody tr:eq(${rowIdx}) input.price-input[data-col-key="${colKey}"]`);
+        //                     if (!$price.length) return;
+
+        //                     $price.val(formatPrice2(cell.price ?? 0));
+        //                     $price.closest('td').find('.total-label').text(formatNumID(cell.total ?? 0));
+
+        //                     if (cell.selected) {
+        //                         $price.closest('td').find('input.pick-vendor').prop('checked', true);
+        //                     }
+        //                 });
+        //             });
+        //         }
+
+        //         recalcAllVendors();
+        //     }
+        // });
         $(function() {
             $('#vendorSelect').empty().append('<option></option>');
-
-            $.getJSON('/vendorscs', function(data) {
-                vendorMaster = data || [];
-                vendorMaster.forEach(v => $('#vendorSelect').append(new Option(v.vendor_name, v.id)));
-            });
 
             $('#vendorSelect').select2({
                 width: '100%',
@@ -989,16 +1181,33 @@
                 recalcSummaryVendor(colKey);
             });
 
-            if (Array.isArray(VENDORS_USED) && VENDORS_USED.length) {
+            $.getJSON('/vendorscs', function(data) {
+                vendorMaster = data || [];
+                vendorMaster.forEach(v => {
+                    $('#vendorSelect').append(new Option(v.vendor_name, v.id));
+                });
+
+                preloadExistingVendors();
+            }).fail(function() {
+                vendorMaster = [];
+                preloadExistingVendors();
+            });
+
+            function preloadExistingVendors() {
+                if (!Array.isArray(VENDORS_USED) || !VENDORS_USED.length) return;
+
                 VENDORS_USED.forEach((v, idx) => {
-                    const masterVendor = vendorMaster.find(x => String(x.vendor_id) === String(v.vendor_id));
+                    const masterVendor = vendorMaster.find(x =>
+                        String(x.vendor_id) === String(v.vendor_id)
+                    );
+
                     const vendorObj = masterVendor || {
-                        id: v.id || v.vendor_pk_id || idx + 1,
+                        id: v.id || v.vendor_pk_id || v.vendor_id || idx + 1,
                         vendor_id: v.vendor_id,
                         vendor_name: v.vendor_name,
-                        vendor_addr1: v.vendor_addr1,
-                        phone_number: v.phone_number,
-                        contact_person: v.contact_person
+                        vendor_addr1: v.vendor_addr1 || v.vendoralamat || '',
+                        phone_number: v.phone_number || v.vendortelp || '',
+                        contact_person: v.contact_person || v.vendorcp || ''
                     };
 
                     const colKey = v.col_key || nextVendorColKey();
@@ -1017,12 +1226,16 @@
                     addPriceCells(colKey);
                 });
 
+                syncVendorInstanceSeq();
+
                 if (Array.isArray(DETAIL_MATRIX)) {
                     $('#cvBody tr').each(function(rowIdx) {
                         const rowMap = DETAIL_MATRIX[rowIdx] || {};
+
                         Object.keys(rowMap).forEach(colKey => {
                             const cell = rowMap[colKey];
                             const $price = $(`#cvBody tr:eq(${rowIdx}) input.price-input[data-col-key="${colKey}"]`);
+
                             if (!$price.length) return;
 
                             $price.val(formatPrice2(cell.price ?? 0));
@@ -1546,6 +1759,31 @@
     </script>
 
     <script>
+        function validateUniqueVendorColKeys() {
+            const used = {};
+            let duplicate = false;
+
+            getVendorColumns().each(function() {
+                const colKey = String($(this).data('col-key') || '');
+
+                if (!colKey) return;
+
+                if (used[colKey]) {
+                    duplicate = true;
+                    return false;
+                }
+
+                used[colKey] = true;
+            });
+
+            if (duplicate) {
+                toastr.error('Vendor column key duplicate. Silakan refresh halaman lalu input ulang vendor.');
+                return false;
+            }
+
+            return true;
+        }
+
         $('#saveBtn').on('click', function(e) {
             e.preventDefault();
 
@@ -1559,6 +1797,8 @@
                 toastr.error('Pilih minimal 1 vendor.');
                 return;
             }
+
+            if (!validateUniqueVendorColKeys()) return;
 
             if (!validatePaymentTerms()) return;
 

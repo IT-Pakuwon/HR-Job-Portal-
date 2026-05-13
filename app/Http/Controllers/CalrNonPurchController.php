@@ -863,6 +863,7 @@ class CalrNonPurchController extends Controller
         abort_if(!$id, 404);
 
         $user = Auth::user();
+
         if (!$user) {
             return redirect()->route('login');
         }
@@ -889,16 +890,63 @@ class CalrNonPurchController extends Controller
 
         $canUpload = in_array($calr->status, ['P', 'D']);
 
+        /*
+        |--------------------------------------------------------------------------
+        | CALR Progress Steps
+        |--------------------------------------------------------------------------
+        | Source dari TrCalrNonPurch.
+        */
+        $calrnonpurchSteps = [
+            [
+                'order' => 1,
+                'description' => 'CALR Created',
+                'user' => $calr->created_by ?? '-',
+                'date' => $calr->created_at,
+                'status' => 'Done',
+            ],
+            [
+                'order' => 2,
+                'description' => 'CALR Approval',
+                'user' => $calr->completed_by ?? '-',
+                'date' => $calr->completed_at,
+                'status' => match ($calr->status) {
+                    'C' => 'Done',
+                    'R' => 'Rejected',
+                    'D' => 'Revise',
+                    default => 'Pending',
+                },
+            ],
+            [
+                'order' => 3,
+                'description' => 'Finance Received',
+                'user' => $calr->userreceive ?? '-',
+                'date' => $calr->receivedate,
+                'status' => $calr->statusreceive === 'C'
+                    ? 'Done'
+                    : 'Pending',
+            ],
+            [
+                'order' => 4,
+                'description' => 'Treasury Payment',
+                'user' => $calr->userpayment ?? '-',
+                'date' => $calr->paymentdate,
+                'status' => $calr->statuspayment === 'C'
+                    ? 'Done'
+                    : 'Pending',
+            ],
+        ];
+
         return view('pages.calrnonpurch.showcalrnonpurch', compact(
             'calr',
             'rfp',
+            'calrnonpurchSteps',
             'details',
             'hash',
             'doctype',
             'refnbr',
             'canUpload'
         ));
-    }
+    }   
 
     public function rejectCalrNonPurch(Request $request, $docid)
     {

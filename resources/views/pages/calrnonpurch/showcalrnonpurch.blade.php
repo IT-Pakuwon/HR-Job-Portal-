@@ -400,56 +400,120 @@
                 </div>
             </div>
 
+            {{-- DETAIL + CALR PROGRESS --}}
+            <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
 
-            {{-- DETAIL --}}
-            <div class="mt-6 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
-                <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
-                    <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
-                        CALR Detail
-                    </h3>
-                </div>
+                {{-- LEFT: CALR DETAIL --}}
+                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">                    
+                    <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
+                            CALR Detail
+                        </h3>
+                    </div>
 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="w-16 px-3 py-2 text-center font-semibold">No</th>
-                                <th class="px-3 py-2 text-left font-semibold">Description</th>
-                                <th class="w-[220px] px-3 py-2 text-right font-semibold">Price</th>
-                            </tr>
-                        </thead>
-
-                        <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                            @forelse ($details as $i => $d)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-3 py-2 text-center">{{ $i + 1 }}</td>
-                                    <td class="px-3 py-2">{{ $d->keperluan_detail }}</td>
-                                    <td class="px-3 py-2 text-right">
-                                        Rp {{ $fmtMoney($d->amount_request_penyelesaian) }}
-                                    </td>
-                                </tr>
-                            @empty
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <td colspan="3" class="px-3 py-4 text-center text-gray-500">
-                                        No detail found.
-                                    </td>
+                                    <th class="w-16 px-3 py-2 text-center font-semibold">No</th>
+                                    <th class="px-3 py-2 text-left font-semibold">Description</th>
+                                    <th class="w-[220px] px-3 py-2 text-right font-semibold">Price</th>
                                 </tr>
-                            @endforelse
-                        </tbody>
+                            </thead>
 
-                        <tfoot class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th colspan="2" class="px-3 py-2 text-right font-semibold">
-                                    Total
-                                </th>
-                                <th class="px-3 py-2 text-right font-semibold">
-                                    Rp {{ $fmtMoney($details->sum('amount_request_penyelesaian')) }}
-                                </th>
-                            </tr>
-                        </tfoot>
-                    </table>
+                            <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                                @forelse ($details as $i => $d)
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        <td class="px-3 py-2 text-center">{{ $i + 1 }}</td>
+                                        <td class="px-3 py-2">{{ $d->keperluan_detail }}</td>
+                                        <td class="px-3 py-2 text-right">
+                                            Rp {{ $fmtMoney($d->amount_request_penyelesaian) }}
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="px-3 py-4 text-center text-gray-500">
+                                            No detail found.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+
+                            <tfoot class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th colspan="2" class="px-3 py-2 text-right font-semibold">
+                                        Total
+                                    </th>
+                                    <th class="px-3 py-2 text-right font-semibold">
+                                        Rp {{ $fmtMoney($details->sum('amount_request_penyelesaian')) }}
+                                    </th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>                    
                 </div>
-            </div>
+
+                {{-- RIGHT: CALR PROGRESS STEPS --}}         
+                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">            
+                    <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
+                            CALR Non Purchase Progress Steps
+                        </h3>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="border-b text-gray-600 dark:text-gray-300">
+                                <tr>
+                                    <th class="p-2 text-left">Order</th>
+                                    <th class="p-2 text-left">Description</th>
+                                    <th class="p-2 text-left">User</th>
+                                    <th class="p-2 text-left">Date</th>
+                                    <th class="p-2 text-left">Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="divide-y dark:divide-gray-700">
+                                @forelse ($calrnonpurchSteps as $step)
+                                    @php
+                                        $cls = match ($step['status']) {
+                                            'Done' => 'bg-green-100 text-green-700',
+                                            'Pending' => 'bg-yellow-100 text-yellow-700',
+                                            'Rejected' => 'bg-red-100 text-red-700',
+                                            'Revise' => 'bg-blue-100 text-blue-700',
+                                            default => 'bg-gray-100 text-gray-700',
+                                        };
+                                    @endphp
+
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                        <td class="p-2">{{ $step['order'] }}</td>
+                                        <td class="p-2">{{ $step['description'] }}</td>
+                                        <td class="p-2">{{ $step['user'] }}</td>
+
+                                        <td class="p-2">
+                                            {{ $step['date']
+                                                ? \Carbon\Carbon::parse($step['date'])->format('d M Y H:i')
+                                                : '-' }}
+                                        </td>
+
+                                        <td class="p-2">
+                                            <span class="{{ $cls }} rounded-full px-2 py-1 text-xs font-semibold">
+                                                {{ $step['status'] }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="p-3 text-center italic text-gray-500">
+                                            No progress yet
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>     
+            </div>           
         </div>
     </div>
 
