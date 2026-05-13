@@ -62,9 +62,16 @@ function renderDetailInfo(access) {
 
         <div class="
             rounded-2xl
-            border border-white/[0.06]
-            bg-[#111c2d]
-            shadow-[0_10px_40px_rgba(0,0,0,.25)]
+            border border-slate-200
+            dark:border-white/[0.06]
+
+            bg-white
+            dark:bg-[#111c2d]
+
+            shadow-sm
+            dark:shadow-[0_10px_40px_rgba(0,0,0,.25)]
+
+            overflow-hidden
         ">
 
             <div class="
@@ -80,16 +87,25 @@ function renderDetailInfo(access) {
                         min-w-[110px]
                         text-[11px] font-bold uppercase
                         tracking-[.16em]
+
                         text-slate-500
+                        dark:text-slate-500
                     ">
                         Company
                     </p>
 
-                    <span class="text-slate-600">:</span>
+                    <span class="
+                        text-slate-400
+                        dark:text-slate-600
+                    ">
+                        :
+                    </span>
 
                     <p class="
                         text-sm font-semibold
-                        text-slate-100
+
+                        text-slate-700
+                        dark:text-slate-100
                     ">
                         ${access.cpny_id ?? "-"}
                     </p>
@@ -102,15 +118,25 @@ function renderDetailInfo(access) {
                         min-w-[110px]
                         text-[11px] font-bold uppercase
                         tracking-[.16em]
+
                         text-slate-500
+                        dark:text-slate-500
                     ">
                         Date
                     </p>
 
-                    <span class="text-slate-600">:</span>
+                    <span class="
+                        text-slate-400
+                        dark:text-slate-600
+                    ">
+                        :
+                    </span>
 
                     <p class="
-                        text-sm text-slate-300
+                        text-sm
+
+                        text-slate-600
+                        dark:text-slate-300
                     ">
                         ${formatDate(access.created_at)}
                     </p>
@@ -123,16 +149,25 @@ function renderDetailInfo(access) {
                         min-w-[110px]
                         text-[11px] font-bold uppercase
                         tracking-[.16em]
+
                         text-slate-500
+                        dark:text-slate-500
                     ">
                         Requester
                     </p>
 
-                    <span class="text-slate-600">:</span>
+                    <span class="
+                        text-slate-400
+                        dark:text-slate-600
+                    ">
+                        :
+                    </span>
 
                     <p class="
                         text-sm font-semibold
-                        text-slate-100
+
+                        text-slate-700
+                        dark:text-slate-100
                     ">
                         ${access.user_peminta ?? "-"}
                     </p>
@@ -145,16 +180,25 @@ function renderDetailInfo(access) {
                         min-w-[110px]
                         text-[11px] font-bold uppercase
                         tracking-[.16em]
+
                         text-slate-500
+                        dark:text-slate-500
                     ">
                         Department
                     </p>
 
-                    <span class="text-slate-600">:</span>
+                    <span class="
+                        text-slate-400
+                        dark:text-slate-600
+                    ">
+                        :
+                    </span>
 
                     <p class="
                         text-sm font-semibold
-                        text-slate-100
+
+                        text-slate-700
+                        dark:text-slate-100
                     ">
                         ${access.department_id ?? "-"}
                     </p>
@@ -165,24 +209,34 @@ function renderDetailInfo(access) {
 
             <div class="
                 flex items-start justify-between gap-4
-                border-t border-white/[0.06]
+
+                border-t border-slate-200
+                dark:border-white/[0.06]
+
                 px-6 py-5
             ">
 
-                <div>
+                <div class="min-w-0 flex-1">
 
                     <p class="
                         text-[11px] font-bold uppercase
                         tracking-[.16em]
+
                         text-slate-500
+                        dark:text-slate-500
                     ">
                         Purpose / Notes
                     </p>
 
                     <p class="
-                        mt-2 whitespace-normal
+                        mt-2
+                        whitespace-normal
+                        break-words
+
                         text-sm leading-7
-                        text-slate-200
+
+                        text-slate-700
+                        dark:text-slate-200
                     ">
                         ${access.keperluan ?? "-"}
                     </p>
@@ -196,7 +250,9 @@ function renderDetailInfo(access) {
                         <span class="
                             text-[11px] font-bold uppercase
                             tracking-[.16em]
+
                             text-slate-500
+                            dark:text-slate-500
                         ">
                             Request Type :
                         </span>
@@ -213,7 +269,6 @@ function renderDetailInfo(access) {
 
     `);
 }
-
 function renderDetailItems(details = []) {
 
     const currentUsername =
@@ -232,14 +287,22 @@ function renderDetailItems(details = []) {
                 .includes(currentRole);
 
         rows += `
-            <tr class="border-b border-slate-100 align-top">
+
+            <tr class="
+                border-b border-slate-100
+                dark:border-white/[0.06]
+                align-top
+            ">
 
                 <td class="px-5 py-4 w-[26%]">
 
                     <div class="space-y-2">
 
                         <p class="
-                            text-sm font-semibold text-slate-700
+                            text-sm font-semibold
+
+                            text-slate-700
+                            dark:text-slate-100
                         ">
                             ${item.access_descr ?? "-"}
                         </p>
@@ -247,10 +310,17 @@ function renderDetailItems(details = []) {
                         <span class="
                             inline-flex rounded-lg px-2.5 py-1
                             text-[11px] font-semibold
+
                             ${
                                 item.group_category === "HARDWARE"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-emerald-100 text-emerald-700"
+                                    ? `
+                                        bg-blue-100 text-blue-700
+                                        dark:bg-blue-500/15 dark:text-blue-300
+                                    `
+                                    : `
+                                        bg-emerald-100 text-emerald-700
+                                        dark:bg-emerald-500/15 dark:text-emerald-300
+                                    `
                             }
                         ">
                             ${item.group_category ?? "-"}
@@ -270,13 +340,25 @@ function renderDetailItems(details = []) {
 
                     <div class="
                         min-h-[72px]
-                        rounded-xl border border-slate-200
-                        bg-slate-50 px-4 py-3
+                        rounded-xl
+
+                        border border-slate-200
+                        dark:border-white/[0.06]
+
+                        bg-slate-50
+                        dark:bg-white/[0.03]
+
+                        px-4 py-3
                     ">
 
                         <p class="
                             whitespace-normal
-                            text-sm text-slate-700
+                            break-words
+
+                            text-sm
+
+                            text-slate-700
+                            dark:text-slate-200
                         ">
                             ${item.access_response ?? "-"}
                         </p>
@@ -288,9 +370,21 @@ function renderDetailItems(details = []) {
                 <td class="px-5 py-4 w-[18%]">
 
                     <div class="
-                        rounded-xl border border-slate-200
-                        bg-slate-50 px-4 py-3
-                        text-sm text-slate-700
+                        rounded-xl
+
+                        border border-slate-200
+                        dark:border-white/[0.06]
+
+                        bg-slate-50
+                        dark:bg-white/[0.03]
+
+                        px-4 py-3
+
+                        text-sm
+
+                        text-slate-700
+                        dark:text-slate-200
+
                         break-all
                     ">
 
@@ -303,9 +397,21 @@ function renderDetailItems(details = []) {
                 <td class="px-5 py-4 w-[20%]">
 
                     <div class="
-                        rounded-xl border border-slate-200
-                        bg-slate-50 px-4 py-3
-                        text-sm text-slate-700
+                        rounded-xl
+
+                        border border-slate-200
+                        dark:border-white/[0.06]
+
+                        bg-slate-50
+                        dark:bg-white/[0.03]
+
+                        px-4 py-3
+
+                        text-sm
+
+                        text-slate-700
+                        dark:text-slate-200
+
                         break-all
                     ">
 
@@ -324,41 +430,67 @@ function renderDetailItems(details = []) {
                 </td>
 
             </tr>
+
         `;
     });
 
     if (!rows) {
 
         rows = `
+
             <tr>
-                <td colspan="5"
+
+                <td
+                    colspan="5"
                     class="
-                        px-4 py-10 text-center
-                        text-sm text-slate-500
-                    ">
+                        px-4 py-10
+                        text-center
+
+                        text-sm
+
+                        text-slate-500
+                        dark:text-slate-400
+                    "
+                >
 
                     No detail item available
 
                 </td>
+
             </tr>
+
         `;
     }
 
     $("#detailItemsContainer").html(`
 
         <div class="
-            overflow-hidden rounded-xl
-            border border-slate-200 bg-white
+            overflow-hidden
+            rounded-2xl
+
+            border border-slate-200
+            dark:border-white/[0.06]
+
+            bg-white
+            dark:bg-[#111c2d]
+
+            shadow-sm
+            dark:shadow-[0_10px_40px_rgba(0,0,0,.25)]
         ">
 
             <div class="
                 border-b border-slate-200
+                dark:border-white/[0.06]
+
                 px-5 py-4
             ">
 
                 <h3 class="
                     text-sm font-bold uppercase
-                    tracking-wider text-slate-700
+                    tracking-wider
+
+                    text-slate-700
+                    dark:text-slate-200
                 ">
                     Request Detail
                 </h3>
@@ -369,14 +501,20 @@ function renderDetailItems(details = []) {
 
                 <table class="min-w-full">
 
-                    <thead class="bg-slate-50">
+                    <thead class="
+                        bg-slate-50
+                        dark:bg-white/[0.02]
+                    ">
 
                         <tr>
 
                             <th class="
                                 px-5 py-3 text-left
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-500
                             ">
                                 Access Item
                             </th>
@@ -384,7 +522,10 @@ function renderDetailItems(details = []) {
                             <th class="
                                 px-5 py-3 text-left
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-500
                             ">
                                 Status
                             </th>
@@ -392,7 +533,10 @@ function renderDetailItems(details = []) {
                             <th class="
                                 px-5 py-3 text-left
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-500
                             ">
                                 Response
                             </th>
@@ -400,7 +544,10 @@ function renderDetailItems(details = []) {
                             <th class="
                                 px-5 py-3 text-left
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-500
                             ">
                                 Username
                             </th>
@@ -408,7 +555,10 @@ function renderDetailItems(details = []) {
                             <th class="
                                 px-5 py-3 text-left
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-500
                             ">
                                 Password
                             </th>
@@ -417,7 +567,7 @@ function renderDetailItems(details = []) {
 
                     </thead>
 
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody>
 
                         ${rows}
 
@@ -430,28 +580,41 @@ function renderDetailItems(details = []) {
         </div>
 
     `);
-
 }
+
 
 function renderDetailAttachments(files = []) {
 
     let html = `
+
         <div class="
             rounded-2xl
-            border border-white/[0.06]
-            bg-[#111c2d]
+
+            border border-slate-200
+            dark:border-white/[0.06]
+
+            bg-white
+            dark:bg-[#111c2d]
+
             overflow-hidden
+
+            shadow-sm
+            dark:shadow-[0_10px_40px_rgba(0,0,0,.25)]
         ">
 
             <div class="
-                border-b border-white/[0.06]
+                border-b border-slate-200
+                dark:border-white/[0.06]
+
                 px-5 py-4
             ">
 
                 <h3 class="
                     text-sm font-bold uppercase
                     tracking-[.16em]
-                    text-slate-300
+
+                    text-slate-700
+                    dark:text-slate-300
                 ">
                     Attachment
                 </h3>
@@ -459,20 +622,34 @@ function renderDetailAttachments(files = []) {
             </div>
 
             <div class="space-y-3 p-5">
+
     `;
 
     if (!files.length) {
 
         html += `
+
             <div class="
                 rounded-xl
-                border border-white/[0.06]
-                bg-white/[0.02]
+
+                border border-slate-200
+                dark:border-white/[0.06]
+
+                bg-slate-50
+                dark:bg-white/[0.02]
+
                 px-4 py-4
-                text-sm text-slate-400
+
+                text-sm
+
+                text-slate-500
+                dark:text-slate-400
             ">
+
                 No attachment available
+
             </div>
+
         `;
 
     } else {
@@ -480,39 +657,66 @@ function renderDetailAttachments(files = []) {
         files.forEach((file) => {
 
             html += `
+
                 <div class="
                     flex items-center justify-between
+                    gap-3
+
                     rounded-xl
-                    border border-white/[0.06]
-                    bg-white/[0.02]
+
+                    border border-slate-200
+                    dark:border-white/[0.06]
+
+                    bg-slate-50
+                    dark:bg-white/[0.02]
+
                     px-4 py-3
+
+                    transition
+                    hover:bg-slate-100
+                    dark:hover:bg-white/[0.04]
                 ">
 
                     <div class="
                         flex items-center gap-3
-                        min-w-0
+                        min-w-0 flex-1
                     ">
 
                         <div class="
-                            flex h-10 w-10
+                            flex h-10 w-10 shrink-0
                             items-center justify-center
+
                             rounded-xl
-                            border border-white/[0.06]
-                            bg-[#0b1525]
+
+                            border border-slate-200
+                            dark:border-white/[0.06]
+
+                            bg-white
+                            dark:bg-[#0b1525]
                         ">
+
                             <i class="
                                 fa-regular fa-file
-                                text-slate-300
+
+                                text-slate-500
+                                dark:text-slate-300
                             "></i>
+
                         </div>
 
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
 
                             <p class="
-                                truncate text-sm
-                                font-medium text-slate-200
+                                truncate
+
+                                text-sm font-medium
+
+                                text-slate-700
+                                dark:text-slate-200
                             ">
+
                                 ${file.display_name ?? file.filename ?? "-"}
+
                             </p>
 
                         </div>
@@ -523,27 +727,45 @@ function renderDetailAttachments(files = []) {
                         href="${file.url}"
                         target="_blank"
                         class="
-                            inline-flex h-9 w-9
+                            inline-flex h-9 w-9 shrink-0
                             items-center justify-center
+
                             rounded-xl
-                            border border-white/[0.06]
-                            bg-[#0b1525]
-                            text-slate-300
+
+                            border border-slate-200
+                            dark:border-white/[0.06]
+
+                            bg-white
+                            dark:bg-[#0b1525]
+
+                            text-slate-600
+                            dark:text-slate-300
+
                             transition
-                            hover:bg-white/[0.05]
+
+                            hover:bg-slate-100
+                            dark:hover:bg-white/[0.06]
                         "
                     >
-                        <i class="fa-solid fa-eye text-xs"></i>
+
+                        <i class="
+                            fa-solid fa-eye text-xs
+                        "></i>
+
                     </a>
 
                 </div>
+
             `;
         });
     }
 
     html += `
+
             </div>
+
         </div>
+
     `;
 
     $("#detailAttachmentContainer").html(html);
@@ -1258,7 +1480,7 @@ function renderDetailLoading() {
             flex items-center justify-center
             rounded-2xl
             border border-white/[0.06]
-            bg-[#111c2d]
+            dark:bg-[#111c2d] bg-white
             py-20
         ">
 
