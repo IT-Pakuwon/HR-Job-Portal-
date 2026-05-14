@@ -1049,17 +1049,7 @@
 <script>
     window.authUsername = @json(auth()->user()->username);
     window.authRole = @json(auth()->user()->role_id);
-    window.modalType = @json($modalType ?? null);
-    window.modalAccess = @json($eid ?? null);
 </script>
-<script>
-    window.ticketConfig = {
-        showModal: @json($showModal ?? false),
-        modalType: @json($modalType),
-        modalTicket: @json($modalTicket),
-    };
-</script>
-
 <script src="{{ asset('assets/js/access-request/core.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/helper.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/modal.js') }}"></script>

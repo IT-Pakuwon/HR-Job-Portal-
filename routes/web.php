@@ -1406,15 +1406,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/print/{hash}', 'print')->name('print');
     });
 
-    Route::get('/showticket/{eid}', [TicketController::class, 'index']);
-    Route::get('/editticket/{eid}', [TicketController::class, 'index']);
-    Route::get('/responseticket/{eid}', [TicketController::class, 'index']);
-    Route::get('/processticket/{eid}', [TicketController::class, 'index']);
-    Route::get('/pendingticket/{eid}', [TicketController::class, 'index']);
-    Route::get('/envisionticket/{eid}', [TicketController::class, 'index']);
-    Route::get('/transferticket/{eid}', [TicketController::class, 'index']);
-    Route::get('/completeticket/{eid}', [TicketController::class, 'index']);
-    Route::get('/reopenticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/showticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/editticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/responseticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/processticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/pendingticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/envisionticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/transferticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/completeticket/{eid}', [TicketController::class, 'index']);
+        Route::get('/reopenticket/{eid}', [TicketController::class, 'index']);
 
 
     Route::prefix('ticket-setup')->controller(TicketSetupController::class)->group(function () {
