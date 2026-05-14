@@ -81,6 +81,41 @@ class AccessRequestController extends Controller
             ->whereIn('department_id', $deptIds)
             ->count();
 
+        $modalType = null;
+        $modalAccess = null;
+
+        if (request()->is('processhardwareaccess/*')) {
+
+            $modalType = 'process-hardware';
+
+            $modalAccess = request()->route('eid');
+
+        }
+
+        if (request()->is('processsoftwareaccess/*')) {
+
+            $modalType = 'process-software';
+
+            $modalAccess = request()->route('eid');
+
+        }
+
+        if (request()->is('showaccessrequest/*')) {
+
+            $modalType = 'detail';
+
+            $modalAccess = request()->route('eid');
+
+        }
+
+        if (request()->is('editaccessrequest/*')) {
+
+            $modalType = 'edit';
+
+            $modalAccess = request()->route('eid');
+
+        }
+
         return view('pages.access-requests.access-requests', compact(
             'all',
             'pending',
@@ -88,7 +123,9 @@ class AccessRequestController extends Controller
             'reject',
             'revise',
             'companies',
-            'departments'
+            'departments',
+            'modalType',
+            'modalAccess'
         ));
     }
 

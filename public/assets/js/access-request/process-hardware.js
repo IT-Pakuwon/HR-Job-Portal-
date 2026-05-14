@@ -351,7 +351,7 @@ function renderProcessHardwareItems(access, details = []) {
                 align-top
             ">
 
-                <td class="px-5 py-5">
+                <td class="px-5 py-5 min-w-[280px]">
 
                     <div class="space-y-2">
 
@@ -1103,7 +1103,8 @@ async function submitHardwareItem(
             'Hardware access updated successfully'
         );
 
-        await openProcessHardwareModal(hash);
+        window.location.href =
+            `/processhardwareaccess/${hash}`;
 
         table.ajax.reload(null, false);
 
