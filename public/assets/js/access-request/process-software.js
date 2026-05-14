@@ -42,13 +42,28 @@ function renderProcessSoftwareLoading() {
     const loader = `
         <div class="
             flex items-center justify-center
-            rounded-xl border border-slate-200
-            bg-white py-20
+
+            rounded-lg
+
+            border border-slate-200
+            dark:border-white/[0.06]
+
+            bg-white
+            dark:bg-[#111c2d]
+
+            py-20
         ">
+
             <div class="
-                h-10 w-10 animate-spin rounded-full
-                border-4 border-slate-300 border-t-slate-700
+                h-10 w-10 animate-spin rounded-lg border-4
+
+                border-slate-300
+                border-t-slate-700
+
+                dark:border-slate-700
+                dark:border-t-slate-200
             "></div>
+
         </div>
     `;
 
@@ -57,7 +72,6 @@ function renderProcessSoftwareLoading() {
     $('#processSoftwareDetailContainer').html(loader);
 
     $('#processSoftwareActionContainer').html('');
-
 }
 
 function renderProcessSoftwareError(xhr) {
@@ -68,22 +82,48 @@ function renderProcessSoftwareError(xhr) {
 
     const html = `
         <div class="
-            rounded-xl border border-red-200
-            bg-red-50 px-6 py-10
+            rounded-lg
+
+            border border-red-200
+            dark:border-red-500/20
+
+            bg-red-50
+            dark:bg-red-500/10
+
+            px-6 py-10
+
             text-center
         ">
 
             <div class="
                 mx-auto flex h-14 w-14
                 items-center justify-center
-                rounded-full bg-red-100
+
+                rounded-lg
+
+                bg-red-100
+                dark:bg-red-500/20
+
                 text-red-500
+                dark:text-red-300
             ">
-                <i class="fa-solid fa-circle-exclamation text-lg"></i>
+
+                <i class="
+                    fa-solid fa-circle-exclamation
+                    text-lg
+                "></i>
+
             </div>
 
-            <p class="mt-4 text-sm font-semibold text-red-700">
+            <p class="
+                mt-4 text-sm font-semibold
+
+                text-red-700
+                dark:text-red-300
+            ">
+
                 ${message}
+
             </p>
 
         </div>
@@ -94,7 +134,6 @@ function renderProcessSoftwareError(xhr) {
     $('#processSoftwareDetailContainer').html('');
 
     $('#processSoftwareActionContainer').html('');
-
 }
 
 function renderProcessSoftwareInfo(access) {
@@ -102,26 +141,42 @@ function renderProcessSoftwareInfo(access) {
     $('#processSoftwareInfoContainer').html(`
 
         <div class="
-            rounded-xl border border-slate-200
+            rounded-lg
+
+            border border-slate-200
+            dark:border-white/[0.06]
+
             bg-white
+            dark:bg-[#111c2d]
+
+            overflow-hidden
         ">
 
             <div class="
                 border-b border-slate-200
+                dark:border-white/[0.06]
+
                 px-5 py-4
             ">
 
                 <h3 class="
                     text-sm font-bold uppercase
-                    tracking-wider text-slate-700
+                    tracking-wider
+
+                    text-slate-700
+                    dark:text-slate-200
                 ">
+
                     Request Information
+
                 </h3>
 
             </div>
 
             <div class="
-                grid grid-cols-1 gap-x-10 gap-y-4
+                grid grid-cols-1
+                gap-x-10 gap-y-4
+
                 p-5 sm:grid-cols-2
             ">
 
@@ -129,18 +184,34 @@ function renderProcessSoftwareInfo(access) {
 
                     <p class="
                         min-w-[110px]
+
                         text-xs font-semibold uppercase
-                        tracking-wider text-slate-400
+                        tracking-wider
+
+                        text-slate-400
+                        dark:text-slate-500
                     ">
+
                         Document
+
                     </p>
 
-                    <span class="text-slate-300">:</span>
+                    <span class="
+                        text-slate-300
+                        dark:text-slate-600
+                    ">
+                        :
+                    </span>
 
                     <p class="
-                        text-sm font-semibold text-slate-700
+                        text-sm font-semibold
+
+                        text-slate-700
+                        dark:text-slate-100
                     ">
+
                         ${access.docid ?? '-'}
+
                     </p>
 
                 </div>
@@ -149,18 +220,34 @@ function renderProcessSoftwareInfo(access) {
 
                     <p class="
                         min-w-[110px]
+
                         text-xs font-semibold uppercase
-                        tracking-wider text-slate-400
+                        tracking-wider
+
+                        text-slate-400
+                        dark:text-slate-500
                     ">
+
                         Requester
+
                     </p>
 
-                    <span class="text-slate-300">:</span>
+                    <span class="
+                        text-slate-300
+                        dark:text-slate-600
+                    ">
+                        :
+                    </span>
 
                     <p class="
-                        text-sm font-semibold text-slate-700
+                        text-sm font-semibold
+
+                        text-slate-700
+                        dark:text-slate-100
                     ">
+
                         ${access.user_peminta ?? '-'}
+
                     </p>
 
                 </div>
@@ -169,18 +256,34 @@ function renderProcessSoftwareInfo(access) {
 
                     <p class="
                         min-w-[110px]
+
                         text-xs font-semibold uppercase
-                        tracking-wider text-slate-400
+                        tracking-wider
+
+                        text-slate-400
+                        dark:text-slate-500
                     ">
+
                         Company
+
                     </p>
 
-                    <span class="text-slate-300">:</span>
+                    <span class="
+                        text-slate-300
+                        dark:text-slate-600
+                    ">
+                        :
+                    </span>
 
                     <p class="
-                        text-sm font-semibold text-slate-700
+                        text-sm font-semibold
+
+                        text-slate-700
+                        dark:text-slate-100
                     ">
+
                         ${access.cpny_id ?? '-'}
+
                     </p>
 
                 </div>
@@ -189,18 +292,34 @@ function renderProcessSoftwareInfo(access) {
 
                     <p class="
                         min-w-[110px]
+
                         text-xs font-semibold uppercase
-                        tracking-wider text-slate-400
+                        tracking-wider
+
+                        text-slate-400
+                        dark:text-slate-500
                     ">
+
                         Department
+
                     </p>
 
-                    <span class="text-slate-300">:</span>
+                    <span class="
+                        text-slate-300
+                        dark:text-slate-600
+                    ">
+                        :
+                    </span>
 
                     <p class="
-                        text-sm font-semibold text-slate-700
+                        text-sm font-semibold
+
+                        text-slate-700
+                        dark:text-slate-100
                     ">
+
                         ${access.department_id ?? '-'}
+
                     </p>
 
                 </div>
@@ -210,7 +329,6 @@ function renderProcessSoftwareInfo(access) {
         </div>
 
     `);
-
 }
 
 function renderProcessSoftwareItems(access, details = []) {
@@ -222,11 +340,16 @@ function renderProcessSoftwareItems(access, details = []) {
 
     details.forEach(item => {
 
-        const isCompleted = item.status === 'C';
+        const isCompleted =
+            item.status === 'C';
 
         rows += `
 
-            <tr class="border-b border-slate-100 align-top">
+            <tr class="
+                border-b border-slate-100
+                dark:border-white/[0.06]
+                align-top
+            ">
 
                 <td class="px-5 py-5">
 
@@ -234,9 +357,13 @@ function renderProcessSoftwareItems(access, details = []) {
 
                         <div class="
                             text-sm font-semibold
+
                             text-slate-700
+                            dark:text-slate-100
                         ">
+
                             ${item.access_descr ?? '-'}
+
                         </div>
 
                         ${
@@ -244,13 +371,26 @@ function renderProcessSoftwareItems(access, details = []) {
                             ? `
                                 <div class="
                                     inline-flex items-center gap-2
-                                    rounded-full bg-slate-100
+
+                                    rounded-lg
+
+                                    bg-slate-100
+                                    dark:bg-white/[0.06]
+
                                     px-3 py-1
+
                                     text-[11px] font-medium
+
                                     text-slate-600
+                                    dark:text-slate-300
                                 ">
-                                    <i class="fa-solid fa-user text-[10px]"></i>
+
+                                    <i class="
+                                        fa-solid fa-user text-[10px]
+                                    "></i>
+
                                     ${item.access_pic}
+
                                 </div>
                             `
                             : ''
@@ -262,39 +402,63 @@ function renderProcessSoftwareItems(access, details = []) {
 
                 <td class="px-5 py-5">
 
-                ${
-                    isCompleted
-                    ? `
-                        <span class="
-                            inline-flex items-center gap-1.5
-                            rounded-full
-                            bg-emerald-100
-                            px-3 py-1.5
-                            text-xs font-semibold
-                            text-emerald-700
-                            whitespace-nowrap
-                        ">
+                    ${
+                        isCompleted
+                        ? `
+                            <span class="
+                                inline-flex items-center gap-1.5
 
-                            <i class="fa-solid fa-circle-check text-[11px]"></i>
+                                rounded-lg
 
-                        </span>
-                    `
-                    : `
-                        <span class="
-                            inline-flex items-center gap-1.5
-                            rounded-full
-                            bg-blue-100
-                            px-3 py-1.5
-                            text-xs font-semibold
-                            text-blue-700
-                            whitespace-nowrap
-                        ">
+                                bg-emerald-100
+                                dark:bg-emerald-500/15
 
-                            <i class="fa-solid fa-clock text-[11px]"></i>
+                                px-3 py-1.5
 
-                        </span>
-                    `
-                }
+                                text-xs font-semibold
+
+                                text-emerald-700
+                                dark:text-emerald-300
+
+                                whitespace-nowrap
+                            ">
+
+                                <i class="
+                                    fa-solid fa-circle-check text-[11px]
+                                "></i>
+
+                                Completed
+
+                            </span>
+                        `
+                        : `
+                            <span class="
+                                inline-flex items-center gap-1.5
+
+                                rounded-lg
+
+                                bg-blue-100
+                                dark:bg-blue-500/15
+
+                                px-3 py-1.5
+
+                                text-xs font-semibold
+
+                                text-blue-700
+                                dark:text-blue-300
+
+                                whitespace-nowrap
+                            ">
+
+                                <i class="
+                                    fa-solid fa-clock text-[11px]
+                                "></i>
+
+                                Pending
+
+                            </span>
+                        `
+                    }
 
                 </td>
 
@@ -304,17 +468,28 @@ function renderProcessSoftwareItems(access, details = []) {
                         isCompleted
                         ? `
                             <div class="
-                                rounded-xl border border-slate-200
-                                bg-slate-50 px-4 py-3
+                                rounded-lg
+
+                                border border-slate-200
+                                dark:border-white/[0.06]
+
+                                bg-slate-50
+                                dark:bg-white/[0.03]
+
+                                px-4 py-3
                             ">
 
                                 <div class="
-                                    whitespace-normal
-                                    break-words
+                                    whitespace-normal break-words
+
                                     text-sm leading-relaxed
+
                                     text-slate-700
+                                    dark:text-slate-200
                                 ">
+
                                     ${item.access_response ?? '-'}
+
                                 </div>
 
                             </div>
@@ -324,12 +499,28 @@ function renderProcessSoftwareItems(access, details = []) {
                                 rows="3"
                                 class="
                                     software-response
-                                    w-full rounded-xl
+
+                                    w-full rounded-lg
+
                                     border border-slate-200
+                                    dark:border-white/[0.06]
+
                                     bg-white
-                                    px-4 py-3 text-sm
+                                    dark:bg-[#0b1525]
+
+                                    px-4 py-3
+
+                                    text-sm
+
                                     text-slate-700
-                                    focus:border-slate-400
+                                    dark:text-slate-100
+
+                                    placeholder:text-slate-400
+                                    dark:placeholder:text-slate-500
+
+                                    focus:border-blue-500/30
+                                    dark:focus:border-blue-500/30
+
                                     focus:ring-0
                                 "
                                 data-id="${item.id}"
@@ -346,15 +537,28 @@ function renderProcessSoftwareItems(access, details = []) {
                         isCompleted
                         ? `
                             <div class="
-                                rounded-xl border border-slate-200
-                                bg-slate-50 px-4 py-3
+                                rounded-lg
+
+                                border border-slate-200
+                                dark:border-white/[0.06]
+
+                                bg-slate-50
+                                dark:bg-white/[0.03]
+
+                                px-4 py-3
                             ">
 
                                 <div class="
-                                    break-all text-sm
+                                    break-all
+
+                                    text-sm
+
                                     text-slate-700
+                                    dark:text-slate-200
                                 ">
+
                                     ${item.access_username ?? '-'}
+
                                 </div>
 
                             </div>
@@ -364,12 +568,28 @@ function renderProcessSoftwareItems(access, details = []) {
                                 type="text"
                                 class="
                                     software-username
-                                    w-full rounded-xl
+
+                                    w-full rounded-lg
+
                                     border border-slate-200
+                                    dark:border-white/[0.06]
+
                                     bg-white
-                                    px-4 py-3 text-sm
+                                    dark:bg-[#0b1525]
+
+                                    px-4 py-3
+
+                                    text-sm
+
                                     text-slate-700
-                                    focus:border-slate-400
+                                    dark:text-slate-100
+
+                                    placeholder:text-slate-400
+                                    dark:placeholder:text-slate-500
+
+                                    focus:border-blue-500/30
+                                    dark:focus:border-blue-500/30
+
                                     focus:ring-0
                                 "
                                 data-id="${item.id}"
@@ -387,19 +607,32 @@ function renderProcessSoftwareItems(access, details = []) {
                         isCompleted
                         ? `
                             <div class="
-                                rounded-xl border border-slate-200
-                                bg-slate-50 px-4 py-3
+                                rounded-lg
+
+                                border border-slate-200
+                                dark:border-white/[0.06]
+
+                                bg-slate-50
+                                dark:bg-white/[0.03]
+
+                                px-4 py-3
                             ">
 
                                 <div class="
-                                    break-all text-sm
+                                    break-all
+
+                                    text-sm
+
                                     text-slate-700
+                                    dark:text-slate-200
                                 ">
+
                                     ${
                                         canViewPassword
                                         ? (item.access_password ?? '-')
                                         : '••••••••'
                                     }
+
                                 </div>
 
                             </div>
@@ -413,12 +646,28 @@ function renderProcessSoftwareItems(access, details = []) {
                                 }"
                                 class="
                                     software-password
-                                    w-full rounded-xl
+
+                                    w-full rounded-lg
+
                                     border border-slate-200
+                                    dark:border-white/[0.06]
+
                                     bg-white
-                                    px-4 py-3 text-sm
+                                    dark:bg-[#0b1525]
+
+                                    px-4 py-3
+
+                                    text-sm
+
                                     text-slate-700
-                                    focus:border-slate-400
+                                    dark:text-slate-100
+
+                                    placeholder:text-slate-400
+                                    dark:placeholder:text-slate-500
+
+                                    focus:border-blue-500/30
+                                    dark:focus:border-blue-500/30
+
                                     focus:ring-0
                                 "
                                 data-id="${item.id}"
@@ -437,12 +686,23 @@ function renderProcessSoftwareItems(access, details = []) {
                         ? `
                             <div class="
                                 inline-flex h-10 items-center
-                                justify-center rounded-xl
-                                bg-emerald-50 px-4
+                                justify-center
+
+                                rounded-lg
+
+                                bg-emerald-100
+                                dark:bg-emerald-500/15
+
+                                px-4
+
                                 text-xs font-semibold
+
                                 text-emerald-700
+                                dark:text-emerald-300
                             ">
+
                                 Completed
+
                             </div>
                         `
                         : `
@@ -454,15 +714,29 @@ function renderProcessSoftwareItems(access, details = []) {
                                     type="button"
                                     class="
                                         btn-save-software
+
                                         inline-flex h-10 w-full
                                         items-center justify-center
-                                        rounded-xl border
-                                        border-slate-200
-                                        bg-white px-4
+
+                                        rounded-lg
+
+                                        border border-slate-200
+                                        dark:border-white/[0.06]
+
+                                        bg-white
+                                        dark:bg-[#0b1525]
+
+                                        px-4
+
                                         text-xs font-semibold
+
                                         text-slate-700
+                                        dark:text-slate-200
+
                                         transition
+
                                         hover:bg-slate-100
+                                        dark:hover:bg-white/[0.06]
                                     "
                                     data-doc="${access.eid}"
                                     data-id="${item.id}"
@@ -482,13 +756,26 @@ function renderProcessSoftwareItems(access, details = []) {
                                     type="button"
                                     class="
                                         btn-complete-software
+
                                         inline-flex h-10 w-full
                                         items-center justify-center
-                                        rounded-xl bg-slate-900
-                                        px-4 text-xs
-                                        font-semibold text-white
+
+                                        rounded-lg
+
+                                        bg-slate-900
+                                        dark:bg-white
+
+                                        px-4
+
+                                        text-xs font-semibold
+
+                                        text-white
+                                        dark:text-slate-900
+
                                         transition
+
                                         hover:bg-slate-800
+                                        dark:hover:bg-slate-200
                                     "
                                     data-doc="${access.eid}"
                                     data-id="${item.id}"
@@ -513,7 +800,6 @@ function renderProcessSoftwareItems(access, details = []) {
             </tr>
 
         `;
-
     });
 
     if (!rows) {
@@ -521,11 +807,18 @@ function renderProcessSoftwareItems(access, details = []) {
         rows = `
             <tr>
 
-                <td colspan="6"
+                <td
+                    colspan="6"
                     class="
-                        px-5 py-12 text-center
-                        text-sm text-slate-500
-                    ">
+                        px-5 py-12
+                        text-center
+
+                        text-sm
+
+                        text-slate-500
+                        dark:text-slate-400
+                    "
+                >
 
                     No software request available
 
@@ -533,27 +826,37 @@ function renderProcessSoftwareItems(access, details = []) {
 
             </tr>
         `;
-
     }
 
     $('#processSoftwareDetailContainer').html(`
 
         <div class="
-            overflow-hidden rounded-xl
+            overflow-hidden rounded-lg
+
             border border-slate-200
+            dark:border-white/[0.06]
+
             bg-white
+            dark:bg-[#111c2d]
         ">
 
             <div class="
                 border-b border-slate-200
+                dark:border-white/[0.06]
+
                 px-5 py-4
             ">
 
                 <h3 class="
                     text-sm font-bold uppercase
-                    tracking-wider text-slate-700
+                    tracking-wider
+
+                    text-slate-700
+                    dark:text-slate-200
                 ">
+
                     Software Request Detail
+
                 </h3>
 
             </div>
@@ -562,54 +865,81 @@ function renderProcessSoftwareItems(access, details = []) {
 
                 <table class="min-w-full">
 
-                    <thead class="bg-slate-50">
+                    <thead class="
+                        bg-slate-50
+                        dark:bg-white/[0.03]
+                    ">
 
                         <tr>
 
                             <th class="
                                 px-5 py-3 text-left
+
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-400
                             ">
                                 Access Item
                             </th>
 
                             <th class="
                                 px-5 py-3 text-left
+
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-400
                             ">
                                 Status
                             </th>
 
                             <th class="
                                 px-5 py-3 text-left
+
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-400
                             ">
                                 Response
                             </th>
 
                             <th class="
                                 px-5 py-3 text-left
+
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-400
                             ">
                                 Username
                             </th>
 
                             <th class="
                                 px-5 py-3 text-left
+
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-400
                             ">
                                 Password
                             </th>
 
                             <th class="
                                 px-5 py-3 text-left
+
                                 text-xs font-semibold uppercase
-                                tracking-wider text-slate-500
+                                tracking-wider
+
+                                text-slate-500
+                                dark:text-slate-400
                             ">
                                 Action
                             </th>
@@ -618,7 +948,10 @@ function renderProcessSoftwareItems(access, details = []) {
 
                     </thead>
 
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="
+                        divide-y divide-slate-100
+                        dark:divide-white/[0.06]
+                    ">
 
                         ${rows}
 
@@ -631,7 +964,6 @@ function renderProcessSoftwareItems(access, details = []) {
         </div>
 
     `);
-
 }
 
 $(document).on('click', '.btn-save-software', async function () {

@@ -6,14 +6,19 @@ function openModal(selector) {
         .removeClass("hidden")
         .addClass("flex");
 
-    $("body").addClass("overflow-hidden");
+    $("body")
+        .addClass("overflow-hidden");
 
     requestAnimationFrame(() => {
 
         $(selector)
             .find(".modal-panel")
-            .removeClass("opacity-0 translate-y-4 scale-[0.98]")
-            .addClass("opacity-100 translate-y-0 scale-100");
+            .removeClass(
+                "opacity-0 translate-y-4 scale-[0.98]"
+            )
+            .addClass(
+                "opacity-100 translate-y-0 scale-100"
+            );
 
         $(selector)
             .find(".modal-backdrop")
@@ -28,8 +33,12 @@ function closeModal(selector) {
 
     modal
         .find(".modal-panel")
-        .removeClass("opacity-100 translate-y-0 scale-100")
-        .addClass("opacity-0 translate-y-4 scale-[0.98]");
+        .removeClass(
+            "opacity-100 translate-y-0 scale-100"
+        )
+        .addClass(
+            "opacity-0 translate-y-4 scale-[0.98]"
+        );
 
     modal
         .find(".modal-backdrop")
@@ -60,7 +69,8 @@ function closeAllModal() {
 
     });
 
-    $("body").removeClass("overflow-hidden");
+    $("body")
+        .removeClass("overflow-hidden");
 
     window.history.replaceState(
         {},
@@ -71,162 +81,262 @@ function closeAllModal() {
 
 function initAutoOpenModal() {
 
-    const path = window.location.pathname;
+    const path =
+        window.location.pathname;
 
-    if (path.includes("/showaccessrequest/")) {
+    if (
+        path.includes(
+            "/showaccessrequest/"
+        )
+    ) {
 
-        const eid = path.split("/showaccessrequest/")[1];
+        const eid =
+            path.split(
+                "/showaccessrequest/"
+            )[1];
 
         if (eid) {
+
             openDetailModal(eid);
         }
     }
 
-    if (path.includes("/editaccessrequest/")) {
+    if (
+        path.includes(
+            "/editaccessrequest/"
+        )
+    ) {
 
-        const eid = path.split("/editaccessrequest/")[1];
+        const eid =
+            path.split(
+                "/editaccessrequest/"
+            )[1];
 
         if (eid) {
+
             openEditModal(eid);
         }
     }
 
-    if (path.includes("/processhardwareaccess/")) {
+    if (
+        path.includes(
+            "/processhardwareaccess/"
+        )
+    ) {
 
-        const eid = path.split("/processhardwareaccess/")[1];
+        const eid =
+            path.split(
+                "/processhardwareaccess/"
+            )[1];
 
         if (eid) {
 
-            openProcessHardwareModal(eid);
+            openProcessHardwareModal(
+                eid
+            );
         }
     }
 
-    if (path.includes("/processsoftwareaccess/")) {
+    if (
+        path.includes(
+            "/processsoftwareaccess/"
+        )
+    ) {
 
-        const eid = path.split("/processsoftwareaccess/")[1];
+        const eid =
+            path.split(
+                "/processsoftwareaccess/"
+            )[1];
 
         if (eid) {
 
-            openProcessSoftwareModal(eid);
+            openProcessSoftwareModal(
+                eid
+            );
         }
     }
 }
 
 function initModalHandlers() {
 
-    $("#btnCreate").on("click", function () {
+    $("#btnCreate").on(
+        "click",
+        function () {
 
-        resetRequestForm();
+            resetRequestForm();
 
-        openModal("#requestModal");
+            openModal(
+                "#requestModal"
+            );
 
-    });
-
-    $(document).on("click", ".btn-close-modal", function () {
-
-        const modal = $(this).closest('[id$="Modal"]');
-
-        const modalId = modal.attr("id");
-
-        const isViewOnlyModal = [
-            "detailModal",
-            "processHardwareModal",
-            "processSoftwareModal",
-        ].includes(modalId);
-
-        if (isViewOnlyModal) {
-
-            closeAllModal();
-
-            return;
         }
+    );
 
-        Swal.fire({
+    $(document).on(
+        "click",
+        ".btn-close-modal",
+        function () {
 
-            title: "Close Form?",
+            const modal =
+                $(this).closest(
+                    '[id$="Modal"]'
+                );
 
-            text: "Unsaved changes will be lost.",
+            const modalId =
+                modal.attr("id");
 
-            icon: "warning",
+            const isViewOnlyModal = [
 
-            showCancelButton: true,
+                "detailModal",
 
-            confirmButtonText: "Yes, Close",
+                "processHardwareModal",
 
-            cancelButtonText: "Cancel",
+                "processSoftwareModal",
 
-            reverseButtons: true,
+            ].includes(modalId);
 
-            confirmButtonColor: "#dc2626",
-
-            cancelButtonColor: "#cbd5e1",
-
-            background: $("html").hasClass("dark")
-                ? "#0f172a"
-                : "#ffffff",
-
-            color: $("html").hasClass("dark")
-                ? "#ffffff"
-                : "#0f172a",
-
-            customClass: {
-
-                popup: "rounded-2xl",
-
-                confirmButton: `
-                    rounded-lg
-                    px-4 py-2
-                    font-medium
-                `,
-
-                cancelButton: `
-                    rounded-lg
-                    px-4 py-2
-                    font-medium
-                    text-slate-700
-                `,
-            },
-
-        }).then((result) => {
-
-            if (result.isConfirmed) {
-
-                resetRequestForm();
+            if (isViewOnlyModal) {
 
                 closeAllModal();
+
+                return;
             }
-        });
-    });
 
-    $(document).on("click", ".modal-backdrop", function () {
+            const isDark =
+                $("html")
+                    .hasClass("dark");
 
-        const modal = $(this).closest('[id$="Modal"]');
+            Swal.fire({
 
-        const modalId = modal.attr("id");
+                title: "Close Form?",
 
-        const isViewOnlyModal = [
-            "detailModal",
-            "processHardwareModal",
-            "processSoftwareModal",
-        ].includes(modalId);
+                text:
+                    "Unsaved changes will be lost.",
 
-        if (isViewOnlyModal) {
+                icon: "warning",
 
-            closeAllModal();
+                showCancelButton: true,
 
-            return;
+                confirmButtonText:
+                    "Yes, Close",
+
+                cancelButtonText:
+                    "Cancel",
+
+                reverseButtons: true,
+
+                confirmButtonColor:
+                    "#dc2626",
+
+                cancelButtonColor:
+                    isDark
+                        ? "#334155"
+                        : "#e2e8f0",
+
+                background:
+                    isDark
+                        ? "#111c2d"
+                        : "#ffffff",
+
+                color:
+                    isDark
+                        ? "#ffffff"
+                        : "#0f172a",
+
+                customClass: {
+
+                    popup: `
+                        rounded-2xl
+                        border border-white/[0.06]
+                        shadow-[0_25px_80px_rgba(0,0,0,.35)]
+                    `,
+
+                    title: `
+                        text-lg font-bold
+                    `,
+
+                    htmlContainer: `
+                        text-sm text-slate-500
+                    `,
+
+                    confirmButton: `
+                        rounded-xl
+                        px-5 py-3
+                        text-sm font-semibold
+                    `,
+
+                    cancelButton: `
+                        rounded-xl
+                        px-5 py-3
+                        text-sm font-semibold
+                    `,
+                },
+
+            }).then((result) => {
+
+                if (
+                    result.isConfirmed
+                ) {
+
+                    resetRequestForm();
+
+                    closeAllModal();
+                }
+            });
         }
+    );
 
-        $(".btn-close-modal").trigger("click");
-    });
+    $(document).on(
+        "click",
+        ".modal-backdrop",
+        function () {
 
-    $(document).on("keydown", function (e) {
+            const modal =
+                $(this).closest(
+                    '[id$="Modal"]'
+                );
 
-        if (e.key === "Escape" && currentModal) {
+            const modalId =
+                modal.attr("id");
 
-            $(currentModal)
+            const isViewOnlyModal = [
+
+                "detailModal",
+
+                "processHardwareModal",
+
+                "processSoftwareModal",
+
+            ].includes(modalId);
+
+            if (isViewOnlyModal) {
+
+                closeAllModal();
+
+                return;
+            }
+
+            $(modal)
                 .find(".btn-close-modal")
                 .trigger("click");
         }
-    });
+    );
+
+    $(document).on(
+        "keydown",
+        function (e) {
+
+            if (
+                e.key === "Escape" &&
+                currentModal
+            ) {
+
+                $(currentModal)
+                    .find(
+                        ".btn-close-modal"
+                    )
+                    .trigger("click");
+            }
+        }
+    );
 }

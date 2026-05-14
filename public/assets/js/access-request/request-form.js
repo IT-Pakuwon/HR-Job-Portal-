@@ -133,9 +133,11 @@ function appendDetailRow(data = null) {
     const html = `
         <tr class="
             detail-item-row
-            border-b border-white/[0.04]
+            border-b border-slate-100
+            dark:border-white/[0.06]
             transition
-            hover:bg-white/[0.015]
+            hover:bg-slate-50
+            dark:hover:bg-white/[0.02]
         ">
 
             <td class="px-4 py-3 align-middle">
@@ -158,13 +160,21 @@ function appendDetailRow(data = null) {
                     detail-group
                     flex h-11 min-w-[150px]
                     items-center
-                    rounded-xl
-                    border border-white/[0.06]
-                    bg-[#0b1525]
+
+                    rounded-lg
+
+                    border border-slate-200
+                    dark:border-white/[0.06]
+
+                    bg-slate-50
+                    dark:bg-[#0b1525]
+
                     px-4
+
                     text-sm font-medium
-                    text-slate-200
-                    shadow-[inset_0_1px_0_rgba(255,255,255,.03)]
+
+                    text-slate-700
+                    dark:text-slate-200
                 ">
                     -
                 </div>
@@ -182,14 +192,26 @@ function appendDetailRow(data = null) {
                     type="button"
                     class="
                         btn-remove-detail
+
                         inline-flex h-11 w-11
                         items-center justify-center
-                        rounded-xl
-                        border border-red-500/20
-                        bg-red-500/10
-                        text-red-300
+
+                        rounded-lg
+
+                        border border-red-200
+                        dark:border-red-500/20
+
+                        bg-red-50
+                        dark:bg-red-500/10
+
+                        text-red-600
+                        dark:text-red-300
+
                         transition
-                        hover:bg-red-500/20
+
+                        hover:bg-red-100
+                        dark:hover:bg-red-500/20
+
                         hover:scale-[1.03]
                     ">
 
@@ -461,7 +483,7 @@ function submitRequestForm() {
         )
         .html(`
             <div class="
-                h-4 w-4 animate-spin rounded-full
+                h-4 w-4 animate-spin rounded-lg
                 border-2 border-white/40 border-t-white
             "></div>
 
@@ -587,7 +609,7 @@ function openEditModal(id) {
                 )
                 .html(`
                     <div class="
-                        h-4 w-4 animate-spin rounded-full
+                        h-4 w-4 animate-spin rounded-lg
                         border-2 border-white/40 border-t-white
                     "></div>
 

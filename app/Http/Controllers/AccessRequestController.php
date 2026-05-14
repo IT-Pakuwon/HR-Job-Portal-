@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Vinkla\Hashids\Facades\Hashids;
-use PDF;
 
 class AccessRequestController extends Controller
 {
@@ -49,9 +48,18 @@ class AccessRequestController extends Controller
         $departments = is_string($user->department_id)
             ? array_map('trim', explode(',', $user->department_id))
             : (array) $user->department_id;
-        $all = TrAccess::whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds)
-            ->count();
+
+        $allQuery = TrAccess::where('status', '<>', 'X');
+
+        if (
+            !$user->hasRole('ITHARDWARE')
+            && !$user->hasRole('ITSOFTWARE')
+        ) {
+            $allQuery->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('department_id', $deptIds);
+        }
+
+        $all = $allQuery->count();
 
         $pending = TrAccess::where('status', 'P')
             ->whereIn('cpny_id', $cpnyIds)
@@ -130,8 +138,15 @@ class AccessRequestController extends Controller
         $orderCol = $columns[$orderIdx] ?? 'ta.docid';
 
         $base = TrAccess::from($baseTable.' as ta')
-            ->whereIn('ta.cpny_id', $cpnyIds)
-            ->whereIn('ta.department_id', $deptIds);
+            ->where('ta.status', '<>', 'X');
+
+        if (
+            !$user->hasRole('ITHARDWARE')
+            && !$user->hasRole('ITSOFTWARE')
+        ) {
+            $base->whereIn('ta.cpny_id', $cpnyIds)
+                ->whereIn('ta.department_id', $deptIds);
+        }
 
         if ($status !== '') {
             $base->where('ta.status', $status);
@@ -772,158 +787,6 @@ class AccessRequestController extends Controller
         }
     }
 
-    // public function detail($hash)
-    // {
-    //     $id = Hashids::decode($hash)[0] ?? null;
-
-    //     abort_if(!$id, 404);
-
-    //     $user = Auth::user();
-
-    //     if (!$user) {
-    //         return response()->json([
-    //             'message' => 'Unauthorized',
-    //         ], 401);
-    //     }
-
-    //     $access = TrAccess::with([
-    //         'creator:username,name',
-    //         'details',
-    //     ])->findOrFail($id);
-
-    //     $details = TrAccessDetail::where('docid', $access->docid)
-    //         ->orderBy('group_category')
-    //         ->orderBy('id')
-    //         ->get();
-
-    //     $approvals = TrApproval::where('refnbr', $access->docid)
-    //         ->where('aprv_doctype', 'ACR')
-    //         ->where('status', '<>', 'X')
-    //         ->orderBy('aprvid')
-    //         ->get();
-
-    //     $comments = TrMessage::where('trxdocid', $access->id)
-    //         ->where('trxdoctype', 'ACR')
-    //         ->orderBy('created_at')
-    //         ->get();
-
-    //     $rows = TrAttachment::where('refnbr', $access->docid)
-    //         ->where('status', 'A')
-    //         ->orderBy('created_at', 'desc')
-    //         ->get();
-
-    //     $attachments = $rows->map(function ($r) {
-
-    //         return [
-    //             'id' => $r->id,
-    //             'filename' => $r->filename,
-    //             'url' => $r->filepath ?? '#',
-    //             'created_at' => $r->created_at,
-    //         ];
-
-    //     });
-
-    //     $tracking = [];
-
-    //     $tracking[] = [
-    //         'title' => 'Document Created',
-    //         'status' => 'CREATED',
-    //         'datetime' => $access->created_at,
-    //         'user' => $access->created_by,
-    //         'description' => $access->keperluan,
-    //     ];
-
-    //     foreach ($approvals as $item) {
-
-    //         $tracking[] = [
-    //             'title' => 'Approval',
-    //             'status' => $item->status,
-    //             'datetime' => $item->updated_at,
-    //             'user' => $item->aprvusername,
-    //             'description' => $item->remark,
-    //         ];
-
-    //     }
-
-    //     foreach ($comments as $item) {
-
-    //         $tracking[] = [
-    //             'title' => 'Comment',
-    //             'status' => 'COMMENT',
-    //             'datetime' => $item->created_at,
-    //             'user' => $item->created_by,
-    //             'description' => $item->message,
-    //         ];
-
-    //     }
-
-    //     $hardwareDetails = $details
-    //         ->where('group_category', 'HARDWARE')
-    //         ->values();
-
-    //     $softwareDetails = $details
-    //         ->where('group_category', 'SOFTWARE')
-    //         ->values();
-
-    //     $canProcessHardware = false;
-    //     $canProcessSoftware = false;
-
-    //     if (
-    //         $access->status === 'C'
-    //         && ($user->role_id ?? null) === 'ITHARDWARE'
-    //     ) {
-
-    //         $canProcessHardware = $hardwareDetails
-    //             ->where('status', 'P')
-    //             ->count() > 0;
-
-    //     }
-
-    //     if (
-    //         $access->status === 'C'
-    //         && ($user->role_id ?? null) === 'ITSOFTWARE'
-    //     ) {
-
-    //         $canProcessSoftware = $softwareDetails
-    //             ->where('status', 'P')
-    //             ->count() > 0;
-
-    //     }
-
-    //     $canEdit = (
-    //         $access->status === 'D'
-    //         && $access->created_by === $user->username
-    //     );
-
-    //     $canCancel = (
-    //         $access->status === 'D'
-    //         && $access->created_by === $user->username
-    //     );
-
-    //     return response()->json([
-    //         'access' => $access,
-    //         'details' => $details,
-    //         'hardware_details' => $hardwareDetails,
-    //         'software_details' => $softwareDetails,
-    //         'approvals' => $approvals,
-    //         'attachments' => $attachments,
-    //         'tracking' => $tracking,
-
-    //         'summary' => [
-    //             'total_detail' => $details->count(),
-    //             'total_completed' => $details->where('status', 'C')->count(),
-    //             'total_pending' => $details->where('status', 'P')->count(),
-    //         ],
-
-    //         'permissions' => [
-    //             'can_edit' => $canEdit,
-    //             'can_cancel' => $canCancel,
-    //             'can_process_hardware' => $canProcessHardware,
-    //             'can_process_software' => $canProcessSoftware,
-    //         ],
-    //     ]);
-    // }
-
     public function detail($hash)
     {
         try {
@@ -1378,10 +1241,8 @@ class AccessRequestController extends Controller
                 );
 
                 try {
-
-                    app(\App\Http\Controllers\SendCommentController::class)
+                    app(SendCommentController::class)
                         ->sendmsg($access->id, $doctype, $request);
-
                 } catch (\Throwable $e) {
                     \Log::warning('Failed save reject reason', [
                         'docid' => $access->docid,
@@ -1467,10 +1328,8 @@ class AccessRequestController extends Controller
                 );
 
                 try {
-
-                    app(\App\Http\Controllers\SendCommentController::class)
+                    app(SendCommentController::class)
                         ->sendmsg($access->id, $doctype, $request);
-
                 } catch (\Throwable $e) {
                     \Log::warning('Failed save revise reason', [
                         'docid' => $access->docid,
@@ -1554,19 +1413,15 @@ class AccessRequestController extends Controller
                 ->findOrFail($id);
 
             if ($access->status === 'P') {
-
                 return response()->json([
                     'message' => 'Document not approved yet',
                 ], 403);
-
             }
 
             if (in_array($access->status, ['R', 'D', 'X'])) {
-
                 return response()->json([
                     'message' => 'Document cannot be processed',
                 ], 403);
-
             }
 
             foreach ($request->details as $row) {
@@ -1757,19 +1612,15 @@ class AccessRequestController extends Controller
                 ->findOrFail($id);
 
             if ($access->status === 'P') {
-
                 return response()->json([
                     'message' => 'Document not approved yet',
                 ], 403);
-
             }
 
             if (in_array($access->status, ['R', 'D', 'X'])) {
-
                 return response()->json([
                     'message' => 'Document cannot be processed',
                 ], 403);
-
             }
 
             foreach ($request->details as $row) {
@@ -1940,7 +1791,6 @@ class AccessRequestController extends Controller
         $access = TrAccess::findOrFail($id);
 
         try {
-
             $request->merge([
                 'reason' => $request->message,
                 'docid' => $access->docid,
@@ -1957,9 +1807,7 @@ class AccessRequestController extends Controller
                 'success' => true,
                 'message' => 'Comment sent successfully',
             ]);
-
         } catch (\Throwable $e) {
-
             report($e);
 
             return response()->json([
@@ -1969,7 +1817,6 @@ class AccessRequestController extends Controller
                     ? $e->getMessage()
                     : null,
             ], 500);
-
         }
     }
 
@@ -1982,15 +1829,11 @@ class AccessRequestController extends Controller
             ->where('status', 'A');
 
         if ($search !== '') {
-
             $query->where(function ($q) use ($search) {
-
                 $q->where('categoryid', 'ilike', "%{$search}%")
                     ->orWhere('category_name', 'ilike', "%{$search}%")
                     ->orWhere('groups', 'ilike', "%{$search}%");
-
             });
-
         }
 
         $rows = $query
@@ -2001,7 +1844,6 @@ class AccessRequestController extends Controller
 
         return response()->json([
             'results' => $rows->map(function ($row) {
-
                 return [
                     'id' => $row->categoryid,
                     'text' => $row->category_name,
@@ -2009,10 +1851,10 @@ class AccessRequestController extends Controller
                     'category_name' => $row->category_name,
                     'group_category' => strtoupper(trim($row->groups)),
                 ];
-
             }),
         ]);
     }
+
     public function print($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -2048,7 +1890,7 @@ class AccessRequestController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        $pdf = Pdf::loadView(
+        $pdf = \PDF::loadView(
             'pages.access-requests.pdf_accessrequest',
             [
                 'access' => $access,
@@ -2059,8 +1901,8 @@ class AccessRequestController extends Controller
         )->setPaper('a4', 'portrait');
 
         $filename =
-            'ACCESS-REQUEST-' .
-            $access->docid .
+            'ACCESS-REQUEST-'.
+            $access->docid.
             '.pdf';
 
         return $pdf->stream($filename);

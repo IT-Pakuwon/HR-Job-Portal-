@@ -48,7 +48,7 @@ function initDataTable() {
             processing: `
                 <div class="flex items-center justify-center py-10">
                     <div class="
-                        h-10 w-10 animate-spin rounded-full border-4
+                        h-10 w-10 animate-spin rounded-lg border-4
                         border-slate-300 border-t-slate-700
                         dark:border-slate-700 dark:border-t-slate-200
                     "></div>
@@ -60,9 +60,10 @@ function initDataTable() {
 
                     <div class="
                         mx-auto flex h-14 w-14 items-center justify-center
-                        rounded-full
-                        bg-slate-100 text-2xl
-                        dark:bg-white/10
+                        rounded-lg
+                        bg-slate-100
+                        dark:bg-white/[0.06]
+                        text-2xl
                     ">
                         📭
                     </div>
@@ -97,15 +98,22 @@ function initDataTable() {
                     let cls = `
                         inline-flex items-center justify-center
                         w-[150px]
+
                         rounded-lg
-                        bg-slate-700
-                        dark:bg-slate-200
-                        px-4 py-2
+
+                        bg-slate-800
+                        dark:bg-slate-100
+
+                        px-3 py-1.5
+
                         text-sm font-semibold
+
                         text-white
                         dark:text-slate-900
-                        transition
-                        hover:bg-slate-800
+
+                        transition-all duration-200
+
+                        hover:bg-slate-700
                         dark:hover:bg-white
                     `;
 
@@ -120,14 +128,21 @@ function initDataTable() {
                         cls = `
                             inline-flex items-center justify-center
                             w-[150px]
+
                             rounded-lg
+
                             bg-amber-500
                             dark:bg-amber-400
-                            px-4 py-2
+
+                            px-4 py-2.5
+
                             text-sm font-semibold
+
                             text-white
                             dark:text-slate-900
-                            transition
+
+                            transition-all duration-200
+
                             hover:bg-amber-600
                             dark:hover:bg-amber-300
                         `;
@@ -147,17 +162,25 @@ function initDataTable() {
                                             type="button"
                                             class="
                                                 btn-detail
-                                                inline-flex h-9 w-9 items-center justify-center
+
+                                                inline-flex h-9 w-9
+                                                items-center justify-center
+
                                                 rounded-lg
+
                                                 border border-slate-200
-                                                dark:border-white/10
+                                                dark:border-white/[0.06]
+
                                                 bg-white
-                                                dark:bg-white/5
+                                                dark:bg-white/[0.04]
+
                                                 text-slate-600
                                                 dark:text-slate-300
-                                                transition
+
+                                                transition-all duration-200
+
                                                 hover:bg-slate-100
-                                                dark:hover:bg-white/10
+                                                dark:hover:bg-white/[0.08]
                                             "
                                             data-id="${row.eid}"
                                             title="View Detail">
@@ -170,15 +193,23 @@ function initDataTable() {
                                             type="button"
                                             class="
                                                 btn-cancel-document
-                                                inline-flex h-9 w-9 items-center justify-center
+
+                                                inline-flex h-9 w-9
+                                                items-center justify-center
+
                                                 rounded-lg
+
                                                 border border-red-200
                                                 dark:border-red-500/20
+
                                                 bg-red-50
                                                 dark:bg-red-500/10
+
                                                 text-red-600
                                                 dark:text-red-300
-                                                transition
+
+                                                transition-all duration-200
+
                                                 hover:bg-red-100
                                                 dark:hover:bg-red-500/20
                                             "
@@ -244,22 +275,28 @@ function initDataTable() {
                 name: "cpny_id",
                 className: "text-center",
 
-                // render: function (data) {
+                render: function (data) {
 
-                //     return `
-                //         <span class="
-                //             inline-flex rounded-lg
-                //             bg-slate-100
-                //             dark:bg-white/10
-                //             px-3 py-1
-                //             text-xs font-medium
-                //             text-slate-700
-                //             dark:text-slate-200
-                //         ">
-                //             ${data ?? "-"}
-                //         </span>
-                //     `;
-                // },
+                    return `
+                        <span class="
+                            inline-flex items-center
+
+                            rounded-lg
+
+                            bg-slate-100
+                            dark:bg-white/[0.06]
+
+                            px-3 py-1
+
+                            text-xs font-medium
+
+                            text-slate-700
+                            dark:text-slate-200
+                        ">
+                            ${data ?? "-"}
+                        </span>
+                    `;
+                },
             },
 
             {
@@ -305,21 +342,28 @@ function initDataTable() {
                                 ? `
                                     bg-blue-100
                                     dark:bg-blue-500/15
+
                                     text-blue-700
                                     dark:text-blue-300
                                 `
                                 : `
                                     bg-emerald-100
                                     dark:bg-emerald-500/15
+
                                     text-emerald-700
                                     dark:text-emerald-300
                                 `;
 
                         html += `
                             <span class="
-                                inline-flex rounded-lg
+                                inline-flex items-center
+
+                                rounded-lg
+
                                 px-3 py-1
-                                text-xs font-medium
+
+                                text-xs font-semibold
+
                                 ${badgeClass}
                             ">
                                 ${item}
@@ -395,14 +439,23 @@ function initDataTable() {
                                 type="button"
                                 class="
                                     btn-process-hardware
-                                    inline-flex h-9 items-center justify-center
+
+                                    inline-flex h-9
+                                    items-center justify-center
+
                                     rounded-lg
+
                                     bg-blue-600
                                     dark:bg-blue-500
+
                                     px-3
+
                                     text-xs font-semibold
+
                                     text-white
-                                    transition
+
+                                    transition-all duration-200
+
                                     hover:bg-blue-700
                                     dark:hover:bg-blue-400
                                 "
@@ -420,14 +473,23 @@ function initDataTable() {
                                 type="button"
                                 class="
                                     btn-process-software
-                                    inline-flex h-9 items-center justify-center
+
+                                    inline-flex h-9
+                                    items-center justify-center
+
                                     rounded-lg
+
                                     bg-emerald-600
                                     dark:bg-emerald-500
+
                                     px-3
+
                                     text-xs font-semibold
+
                                     text-white
-                                    transition
+
+                                    transition-all duration-200
+
                                     hover:bg-emerald-700
                                     dark:hover:bg-emerald-400
                                 "
@@ -453,47 +515,76 @@ function initDataTable() {
         },
     });
 }
+
 function initFilters() {
-    $(document).on("click", ".status-filter", function (e) {
-        e.preventDefault();
 
-        $(".status-filter").removeClass("active");
+    $(document).on(
+        "click",
+        ".status-filter",
+        function (e) {
 
-        $(this).addClass("active");
+            e.preventDefault();
 
-        currentStatus = $(this).data("status");
+            $(".status-filter")
+                .removeClass("active");
 
-        table.ajax.reload();
-    });
+            $(this)
+                .addClass("active");
+
+            currentStatus =
+                $(this).data("status");
+
+            table.ajax.reload();
+
+        }
+    );
 }
 
 function initSearch() {
+
     let delayTimer;
 
-    $("#globalSearch").on("keyup", function () {
-        clearTimeout(delayTimer);
+    $("#globalSearch").on(
+        "keyup",
+        function () {
 
-        delayTimer = setTimeout(() => {
-            table.ajax.reload();
-        }, 500);
-    });
+            clearTimeout(delayTimer);
+
+            delayTimer = setTimeout(() => {
+
+                table.ajax.reload();
+
+            }, 500);
+
+        }
+    );
 }
 
 function bindTableActions() {
+
     $(".btn-detail")
         .off("click")
         .on("click", function () {
-            const id = $(this).data("id");
+
+            const id =
+                $(this).data("id");
 
             openDetailModal(id);
+
         });
 
     $(".btn-print")
         .off("click")
         .on("click", function () {
-            const id = $(this).data("id");
 
-            window.open(`/access-request/print/${id}`, "_blank");
+            const id =
+                $(this).data("id");
+
+            window.open(
+                `/access-request/print/${id}`,
+                "_blank"
+            );
+
         });
 }
 
@@ -503,7 +594,8 @@ function bindExtendedActions() {
         .off("click")
         .on("click", function () {
 
-            const id = $(this).data("id");
+            const id =
+                $(this).data("id");
 
             openEditModal(id);
 
@@ -513,7 +605,8 @@ function bindExtendedActions() {
         .off("click")
         .on("click", function () {
 
-            const id = $(this).data("id");
+            const id =
+                $(this).data("id");
 
             cancelDocument(id);
 
@@ -523,7 +616,8 @@ function bindExtendedActions() {
         .off("click")
         .on("click", function () {
 
-            const id = $(this).data("id");
+            const id =
+                $(this).data("id");
 
             openProcessHardwareModal(id);
 
@@ -533,14 +627,13 @@ function bindExtendedActions() {
         .off("click")
         .on("click", function () {
 
-            const id = $(this).data("id");
+            const id =
+                $(this).data("id");
 
             openProcessSoftwareModal(id);
 
         });
-
 }
-
 
 function renderActionDropdown(row) {
 
@@ -551,17 +644,25 @@ function renderActionDropdown(row) {
                 type="button"
                 class="
                     btn-dropdown
-                    inline-flex h-9 w-9 items-center justify-center
+
+                    inline-flex h-9 w-9
+                    items-center justify-center
+
                     rounded-lg
+
                     border border-slate-200
-                    dark:border-white/10
+                    dark:border-white/[0.06]
+
                     bg-white
-                    dark:bg-white/5
+                    dark:bg-white/[0.04]
+
                     text-slate-600
                     dark:text-slate-300
-                    transition
+
+                    transition-all duration-200
+
                     hover:bg-slate-100
-                    dark:hover:bg-white/10
+                    dark:hover:bg-white/[0.08]
                 "
                 data-id="${row.eid}">
 
@@ -571,13 +672,20 @@ function renderActionDropdown(row) {
 
             <div class="
                 dropdown-menu
+
                 absolute right-0 z-50 mt-2 hidden
-                w-52 overflow-hidden rounded-lg
+
+                w-52 overflow-hidden
+
+                rounded-2xl
+
                 border border-slate-200
-                dark:border-white/10
+                dark:border-white/[0.06]
+
                 bg-white
-                dark:bg-[#0f172a]
-                shadow-xl
+                dark:bg-[#111c2d]
+
+                shadow-2xl
             ">
 
                 <div class="p-2">
@@ -585,19 +693,28 @@ function renderActionDropdown(row) {
                     <button
                         class="
                             btn-detail
+
                             flex w-full items-center gap-3
-                            rounded-lg px-3 py-2
+
+                            rounded-lg
+
+                            px-3 py-2.5
+
                             text-left text-sm
+
                             text-slate-700
                             dark:text-slate-200
-                            transition
+
+                            transition-all duration-200
+
                             hover:bg-slate-100
-                            dark:hover:bg-white/10
+                            dark:hover:bg-white/[0.06]
                         "
                         data-id="${row.eid}">
 
                         <i class="
                             fa-solid fa-eye w-4
+
                             text-slate-500
                             dark:text-slate-400
                         "></i>
@@ -609,19 +726,28 @@ function renderActionDropdown(row) {
                     <button
                         class="
                             btn-print
+
                             flex w-full items-center gap-3
-                            rounded-lg px-3 py-2
+
+                            rounded-lg
+
+                            px-3 py-2.5
+
                             text-left text-sm
+
                             text-slate-700
                             dark:text-slate-200
-                            transition
+
+                            transition-all duration-200
+
                             hover:bg-slate-100
-                            dark:hover:bg-white/10
+                            dark:hover:bg-white/[0.06]
                         "
                         data-id="${row.eid}">
 
                         <i class="
                             fa-solid fa-print w-4
+
                             text-slate-500
                             dark:text-slate-400
                         "></i>
@@ -637,18 +763,28 @@ function renderActionDropdown(row) {
                                 <button
                                     class="
                                         btn-edit
+
                                         flex w-full items-center gap-3
-                                        rounded-lg px-3 py-2
+
+                                        rounded-lg
+
+                                        px-3 py-2.5
+
                                         text-left text-sm
+
                                         text-amber-700
                                         dark:text-amber-300
-                                        transition
+
+                                        transition-all duration-200
+
                                         hover:bg-amber-50
                                         dark:hover:bg-amber-500/10
                                     "
                                     data-id="${row.eid}">
 
-                                    <i class="fa-solid fa-pen-to-square w-4"></i>
+                                    <i class="
+                                        fa-solid fa-pen-to-square w-4
+                                    "></i>
 
                                     Edit
 
@@ -664,18 +800,28 @@ function renderActionDropdown(row) {
                                 <button
                                     class="
                                         btn-cancel-document
+
                                         flex w-full items-center gap-3
-                                        rounded-lg px-3 py-2
+
+                                        rounded-lg
+
+                                        px-3 py-2.5
+
                                         text-left text-sm
+
                                         text-red-700
                                         dark:text-red-300
-                                        transition
+
+                                        transition-all duration-200
+
                                         hover:bg-red-50
                                         dark:hover:bg-red-500/10
                                     "
                                     data-id="${row.eid}">
 
-                                    <i class="fa-solid fa-ban w-4"></i>
+                                    <i class="
+                                        fa-solid fa-ban w-4
+                                    "></i>
 
                                     Cancel
 
@@ -692,11 +838,14 @@ function renderActionDropdown(row) {
     `;
 }
 
-
 async function cancelDocument(id) {
+
     const confirm = await confirmDialog({
+
         title: "Cancel Document?",
+
         text: "This action cannot be undone.",
+
         confirmText: "Yes, Cancel",
     });
 
@@ -705,44 +854,85 @@ async function cancelDocument(id) {
     }
 
     $.ajax({
+
         url: `/access-request/cancel/${id}`,
+
         type: "POST",
 
         success: function (res) {
-            swalSuccess(res.message ?? "Document cancelled successfully");
 
-            table.ajax.reload(null, false);
+            swalSuccess(
+                res.message ??
+                "Document cancelled successfully"
+            );
+
+            table.ajax.reload(
+                null,
+                false
+            );
         },
 
         error: function (xhr) {
-            swalWarning(xhr.responseJSON?.message ?? "Failed cancel document");
+
+            swalWarning(
+                xhr.responseJSON?.message ??
+                "Failed cancel document"
+            );
         },
     });
 }
-$(document).on("click", ".btn-dropdown", function (e) {
-    e.stopPropagation();
 
-    const menu = $(this).closest(".relative").find(".dropdown-menu");
+$(document).on(
+    "click",
+    ".btn-dropdown",
+    function (e) {
 
-    $(".dropdown-menu").not(menu).addClass("hidden");
+        e.stopPropagation();
 
-    menu.toggleClass("hidden");
-});
+        const menu = $(this)
+            .closest(".relative")
+            .find(".dropdown-menu");
 
-$(document).on("click", ".btn-refresh-table", function () {
-    table.ajax.reload(null, false);
-});
+        $(".dropdown-menu")
+            .not(menu)
+            .addClass("hidden");
 
-$(document).on("click", ".btn-create-request", function () {
-    resetRequestForm();
+        menu.toggleClass("hidden");
 
-    openModal("#requestModal");
-});
+    }
+);
 
-$(document).on("click", function () {
-    $(".dropdown-menu").addClass("hidden");
-});
+$(document).on(
+    "click",
+    ".btn-refresh-table",
+    function () {
 
+        table.ajax.reload(
+            null,
+            false
+        );
 
+    }
+);
 
+$(document).on(
+    "click",
+    ".btn-create-request",
+    function () {
 
+        resetRequestForm();
+
+        openModal("#requestModal");
+
+    }
+);
+
+$(document).on(
+    "click",
+    function () {
+
+        $(".dropdown-menu")
+            .addClass("hidden");
+
+    }
+);
