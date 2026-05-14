@@ -246,7 +246,7 @@ function initModalHandlers() {
                 customClass: {
 
                     popup: `
-                        rounded-2xl
+                        rounded-lg
                         border border-white/[0.06]
                         shadow-[0_25px_80px_rgba(0,0,0,.35)]
                     `,
@@ -260,13 +260,13 @@ function initModalHandlers() {
                     `,
 
                     confirmButton: `
-                        rounded-xl
+                        rounded-lg
                         px-5 py-3
                         text-sm font-semibold
                     `,
 
                     cancelButton: `
-                        rounded-xl
+                        rounded-lg
                         px-5 py-3
                         text-sm font-semibold
                     `,

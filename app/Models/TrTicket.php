@@ -4,75 +4,119 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\TrAttachment;
 
 class TrTicket extends Model
 {
     use SoftDeletes;
 
     protected $connection = 'pgsql5';
+
     protected $table = 'tr_ticket';
 
     protected $fillable = [
         'ticketid',
         'ticketdate',
+
         'cpny_id',
         'department_id',
-        'ticket_priority',
-        'ticket_sla_days',
-        'ticket_duedate',
+
         'ticket_type',
         'ticket_categoryid',
         'ticket_subcategoryid',
+
+        'ticket_priority',
+        'ticket_sla_days',
+        'ticket_duedate',
+
         'user_peminta',
+
         'location_id',
         'sub_location_id',
+
         'issue_summary',
         'issue_descr',
-        'status',
+
         'pic_ticket',
-        'pic_department',
-        'pic_completed_ticket',
+
         'solution_descr',
+
+        'status',
         'status_pekerjaan',
-        'reopen_ticket',
+
         'reopen_descr',
+
+        'response_by',
+        'response_at',
+
+        'completed_by',
+        'completed_at',
+
         'created_by',
         'updated_by',
         'deleted_by',
-        'completed_by',
-        'completed_at',
     ];
 
     protected $casts = [
         'ticketdate' => 'date',
-        'ticket_duedate' => 'date',
+        'ticket_duedate' => 'datetime',
+        'response_at' => 'datetime',
         'completed_at' => 'datetime',
-        'reopen_ticket' => 'boolean',
         'ticket_sla_days' => 'integer',
     ];
 
     public function type()
     {
-        return $this->belongsTo(MsTicketType::class, 'ticket_type', 'ticket_type');
+        return $this->belongsTo(
+            MsTicketType::class,
+            'ticket_type',
+            'ticket_type'
+        );
     }
 
     public function category()
     {
-        return $this->belongsTo(MsTicketCategory::class, 'ticket_categoryid', 'ticket_categoryid');
+        return $this->belongsTo(
+            MsTicketCategory::class,
+            'ticket_categoryid',
+            'ticket_categoryid'
+        );
     }
 
     public function subcategory()
     {
-        return $this->belongsTo(MsTicketSubcategory::class, 'ticket_subcategoryid', 'ticket_subcategoryid');
+        return $this->belongsTo(
+            MsTicketSubcategory::class,
+            'ticket_subcategoryid',
+            'ticket_subcategoryid'
+        );
     }
 
     public function priority()
     {
-        return $this->belongsTo(MsTicketPriority::class, 'ticket_priority', 'ticket_priority');
+        return $this->belongsTo(
+            MsTicketPriority::class,
+            'ticket_priority',
+            'ticket_priority'
+        );
     }
 
     public function activities()
     {
-        return $this->hasMany(TrTicketActivity::class, 'ticketid', 'ticketid');
+        return $this->hasMany(
+            TrTicketActivity::class,
+            'ticketid',
+            'ticketid'
+        )
+        ->orderBy('response_date');
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(
+            TrAttachment::class,
+            'refnbr',
+            'ticketid'
+        );
     }
 }

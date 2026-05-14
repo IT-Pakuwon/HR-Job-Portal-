@@ -1376,34 +1376,46 @@ Route::middleware(['auth'])->group(function () {
     ->name('it-recommendation.comment');
 
     Route::prefix('ticket')->controller(TicketController::class)->group(function () {
+
         Route::get('/', 'index')->name('ticket');
-        Route::get('/json', 'json')->name('ticket.json');
+        Route::get('/json', 'json')->name('json');
 
-        Route::get('/create', 'create')->name('ticket.create');
-        Route::post('/store', 'store')->name('ticket.store');
-        Route::get('/detail/{hash}', 'detail')->name('ticket.detail');
-        Route::post('/update/{hash}', 'update')->name('ticket.update');
-        Route::post('/cancel/{hash}', 'cancel')->name('ticket.cancel');
+        Route::post('/store', 'store')->name('store');
+        Route::post('/update/{hash}', 'update')->name('update');
 
-        Route::post('/start-work/{hash}', 'startWork')->name('ticket.startWork');
-        Route::post('/progress/{hash}', 'progress')->name('ticket.progress');
-        Route::post('/reopen/{hash}', 'reopen')->name('ticket.reopen');
+        Route::get('/detail/{hash}', 'detail')->name('detail');
+        Route::get('/tracking/{hash}', 'tracking')->name('tracking');
 
-        Route::get('/tracking/{hash}', 'tracking')->name('ticket.tracking');
+        Route::post('/response/{hash}', 'responseTicket')->name('response');
+        Route::post('/process/{hash}', 'processTicket')->name('process');
+        Route::post('/pending/{hash}', 'pendingTicket')->name('pending');
+        Route::post('/envision/{hash}', 'envisionTicket')->name('envision');
+        Route::post('/transfer/{hash}', 'transferTicket')->name('transfer');
+        Route::post('/complete/{hash}', 'completeTicket')->name('complete');
 
-        Route::get('/category-by-type', 'categoryByType')->name('ticket.categoryByType');
-        Route::get('/subcategory-by-category', 'subcategoryByCategory')->name('ticket.subcategoryByCategory');
-        Route::get('/priority-by-category', 'priorityByCategory')->name('ticket.priorityByCategory');
-        Route::get('/sub-location', 'subLocation')->name('ticket.subLocation');
+        Route::post('/reopen/{hash}', 'reopenTicket')->name('reopen');
+        Route::post('/cancel/{hash}', 'cancelTicket')->name('cancel');
 
-        Route::get('pic-by-category', 'picByCategory');
+        Route::post('/comment/{hash}', 'comment')->name('comment');
+        Route::get('/comments/{hash}', 'comments')->name('comments');
+
+        Route::delete('/attachment/{id}', 'removeAttachment')->name('attachment.remove');
+        Route::get('/attachment/preview/{id}', 'previewAttachment')->name('attachment.preview');
+        Route::get('/attachment/download/{id}', 'downloadAttachment')->name('attachment.download');
+
+        Route::get('/print/{hash}', 'print')->name('print');
     });
 
-    // ✅ AUTO OPEN (KEEP THIS)
-    Route::get('/showticket/{eid}', [TicketController::class, 'index'])->name('ticket.show');
-    Route::get('/editticket/{eid}', [TicketController::class, 'index'])->name('ticket.edit');
-    Route::get('/processticket/{eid}', [TicketController::class, 'index'])->name('ticket.process');
-    Route::get('/ticket/create', [TicketController::class, 'index']); // 🔥 SAME METHOD
+    Route::get('/showticket/{eid}', [TicketController::class, 'index']);
+    Route::get('/editticket/{eid}', [TicketController::class, 'index']);
+    Route::get('/responseticket/{eid}', [TicketController::class, 'index']);
+    Route::get('/processticket/{eid}', [TicketController::class, 'index']);
+    Route::get('/pendingticket/{eid}', [TicketController::class, 'index']);
+    Route::get('/envisionticket/{eid}', [TicketController::class, 'index']);
+    Route::get('/transferticket/{eid}', [TicketController::class, 'index']);
+    Route::get('/completeticket/{eid}', [TicketController::class, 'index']);
+    Route::get('/reopenticket/{eid}', [TicketController::class, 'index']);
+
 
     Route::prefix('ticket-setup')->controller(TicketSetupController::class)->group(function () {
         Route::get('/', 'index')->name('ticketsetup');

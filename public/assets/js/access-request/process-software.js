@@ -351,7 +351,7 @@ function renderProcessSoftwareItems(access, details = []) {
                 align-top
             ">
 
-                <td class="px-5 py-5">
+                <td class="px-5 py-5 min-w-[280px]"
 
                     <div class="space-y-2">
 
@@ -1104,7 +1104,8 @@ async function submitSoftwareItem(
             'Software access updated successfully'
         );
 
-        await openProcessSoftwareModal(hash);
+        window.location.href =
+            `/processsoftwareaccess/${hash}`;
 
         table.ajax.reload(null, false);
 

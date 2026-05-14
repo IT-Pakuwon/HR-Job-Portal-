@@ -10,12 +10,8 @@ class MsTicketPriority extends Model
     use SoftDeletes;
 
     protected $connection = 'pgsql5';
-    protected $table = 'ms_ticket_priority';
-    public $timestamps = true;
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
-    const DELETED_AT = 'deleted_at';
+    protected $table = 'ms_ticket_priority';
 
     protected $fillable = [
         'ticket_type',
@@ -35,11 +31,19 @@ class MsTicketPriority extends Model
 
     public function type()
     {
-        return $this->belongsTo(MsTicketType::class, 'ticket_type', 'ticket_type');
+        return $this->belongsTo(
+            MsTicketType::class,
+            'ticket_type',
+            'ticket_type'
+        );
     }
 
     public function category()
     {
-        return $this->belongsTo(MsTicketCategory::class, 'ticket_categoryid', 'ticket_categoryid');
+        return $this->belongsTo(
+            MsTicketCategory::class,
+            'ticket_categoryid',
+            'ticket_categoryid'
+        );
     }
 }

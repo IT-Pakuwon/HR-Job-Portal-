@@ -619,7 +619,7 @@ function bindExtendedActions() {
             const id =
                 $(this).data("id");
 
-            openProcessHardwareModal(id);
+            window.location.href =`/processhardwareaccess/${id}`;
 
         });
 
@@ -630,7 +630,7 @@ function bindExtendedActions() {
             const id =
                 $(this).data("id");
 
-            openProcessSoftwareModal(id);
+           window.location.href =`/processsoftwareaccess/${id}`;
 
         });
 }

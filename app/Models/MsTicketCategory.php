@@ -10,14 +10,14 @@ class MsTicketCategory extends Model
     use SoftDeletes;
 
     protected $connection = 'pgsql5';
-    protected $table = 'ms_ticket_category';
-    protected $primaryKey = 'ticket_categoryid';
-    public $incrementing = false;
-    protected $keyType = 'string';
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
-    const DELETED_AT = 'deleted_at';
+    protected $table = 'ms_ticket_category';
+
+    protected $primaryKey = 'ticket_categoryid';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'ticket_categoryid',
@@ -31,21 +31,37 @@ class MsTicketCategory extends Model
 
     public function type()
     {
-        return $this->belongsTo(MsTicketType::class, 'ticket_type', 'ticket_type');
+        return $this->belongsTo(
+            MsTicketType::class,
+            'ticket_type',
+            'ticket_type'
+        );
     }
 
     public function subcategories()
     {
-        return $this->hasMany(MsTicketSubcategory::class, 'ticket_categoryid', 'ticket_categoryid');
+        return $this->hasMany(
+            MsTicketSubcategory::class,
+            'ticket_categoryid',
+            'ticket_categoryid'
+        );
     }
 
     public function priorities()
     {
-        return $this->hasMany(MsTicketPriority::class, 'ticket_categoryid', 'ticket_categoryid');
+        return $this->hasMany(
+            MsTicketPriority::class,
+            'ticket_categoryid',
+            'ticket_categoryid'
+        );
     }
 
     public function departments()
     {
-        return $this->hasMany(MsTicketCategoryDept::class, 'ticket_categoryid', 'ticket_categoryid');
+        return $this->hasMany(
+            MsTicketCategoryDept::class,
+            'ticket_categoryid',
+            'ticket_categoryid'
+        );
     }
 }

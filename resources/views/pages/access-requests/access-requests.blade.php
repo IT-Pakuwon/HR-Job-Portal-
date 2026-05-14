@@ -95,7 +95,7 @@
         {{-- Init Datatble --}}
         <div class="mt-4 rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-            <div class="flex flex-col gap-4 p-5 dark:border-white/10 border-b border-slate-300">
+            <div class="flex flex-col gap-4 border-b border-slate-300 p-5 dark:border-white/10">
 
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
 
@@ -808,6 +808,237 @@
         </div>
 
     </div>
+    <div id="modalCreateTicket"
+        class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+
+        <div
+            class="w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+
+            <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-neutral-800">
+
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+                        Create Ticket
+                    </h2>
+
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Create new IT support ticket request
+                    </p>
+                </div>
+
+                <button type="button" data-close-modal="modalCreateTicket"
+                    class="flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-neutral-800">
+
+                    <i class="ti ti-x text-lg"></i>
+
+                </button>
+
+            </div>
+
+            <form id="formCreateTicket" enctype="multipart/form-data">
+
+                @csrf
+
+                <div class="max-h-[78vh] space-y-5 overflow-y-auto px-5 py-5">
+
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                        <div class="space-y-2">
+
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Ticket Type
+                            </label>
+
+                            <select name="ticket_type" id="create_ticket_type" class="form-select-ticket w-full">
+                                <option value="">
+                                    Select Ticket Type
+                                </option>
+                            </select>
+
+                        </div>
+
+                        <div class="space-y-2">
+
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Priority
+                            </label>
+
+                            <select name="ticket_priority" id="create_ticket_priority"
+                                class="form-select-ticket w-full">
+                                <option value="">
+                                    Select Priority
+                                </option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                        <div class="space-y-2">
+
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Category
+                            </label>
+
+                            <select name="ticket_categoryid" id="create_ticket_categoryid"
+                                class="form-select-ticket w-full">
+                                <option value="">
+                                    Select Category
+                                </option>
+                            </select>
+
+                        </div>
+
+                        <div class="space-y-2">
+
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Subcategory
+                            </label>
+
+                            <select name="ticket_subcategoryid" id="create_ticket_subcategoryid"
+                                class="form-select-ticket w-full">
+                                <option value="">
+                                    Select Subcategory
+                                </option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                        <div class="space-y-2">
+
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Location
+                            </label>
+
+                            <select name="location_id" id="create_location_id" class="form-select-ticket w-full">
+                                <option value="">
+                                    Select Location
+                                </option>
+                            </select>
+
+                        </div>
+
+                        <div class="space-y-2">
+
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Sub Location
+                            </label>
+
+                            <select name="sub_location_id" id="create_sub_location_id"
+                                class="form-select-ticket w-full">
+                                <option value="">
+                                    Select Sub Location
+                                </option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div class="space-y-2">
+
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Issue Summary
+                        </label>
+
+                        <input type="text" name="issue_summary" maxlength="255" class="form-input-ticket w-full"
+                            placeholder="Enter issue summary">
+
+                    </div>
+
+                    <div class="space-y-2">
+
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Issue Description
+                        </label>
+
+                        <textarea name="issue_descr" rows="6" class="form-textarea-ticket w-full"
+                            placeholder="Explain your issue detail..."></textarea>
+
+                    </div>
+
+                    <div class="space-y-2">
+
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Attachment
+                        </label>
+
+                        <div class="rounded-2xl border-2 border-dashed border-gray-300 p-6 dark:border-neutral-700">
+
+                            <input type="file" name="attachments[]" id="create_ticket_attachment" multiple
+                                class="hidden">
+
+                            <div class="flex flex-col items-center justify-center text-center">
+
+                                <div
+                                    class="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-500/20">
+
+                                    <i class="ti ti-paperclip text-2xl text-blue-600 dark:text-blue-400"></i>
+
+                                </div>
+
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Upload attachment
+                                </p>
+
+                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                    PNG, JPG, PDF, DOCX, XLSX up to 10MB
+                                </p>
+
+                                <button type="button" id="btnBrowseCreateAttachment"
+                                    class="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+
+                                    <i class="ti ti-upload"></i>
+
+                                    <span>
+                                        Browse File
+                                    </span>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <div id="createAttachmentPreview" class="space-y-2"></div>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-neutral-800">
+
+                    <button type="button" data-close-modal="modalCreateTicket"
+                        class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-300 dark:hover:bg-neutral-800">
+
+                        Cancel
+                    </button>
+
+                    <button type="submit" id="btnSubmitCreateTicket"
+                        class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700">
+
+                        <i class="ti ti-device-floppy"></i>
+
+                        <span>
+                            Submit Ticket
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
 
 
 </x-app-layout>
@@ -818,6 +1049,15 @@
 <script>
     window.authUsername = @json(auth()->user()->username);
     window.authRole = @json(auth()->user()->role_id);
+    window.modalType = @json($modalType ?? null);
+    window.modalAccess = @json($eid ?? null);
+</script>
+<script>
+    window.ticketConfig = {
+        showModal: @json($showModal ?? false),
+        modalType: @json($modalType),
+        modalTicket: @json($modalTicket),
+    };
 </script>
 
 <script src="{{ asset('assets/js/access-request/core.js') }}"></script>

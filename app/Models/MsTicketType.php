@@ -10,14 +10,14 @@ class MsTicketType extends Model
     use SoftDeletes;
 
     protected $connection = 'pgsql5';
-    protected $table = 'ms_ticket_type';
-    protected $primaryKey = 'ticket_type';
-    public $incrementing = false;
-    protected $keyType = 'string';
 
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
-    const DELETED_AT = 'deleted_at';
+    protected $table = 'ms_ticket_type';
+
+    protected $primaryKey = 'ticket_type';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'ticket_type',
@@ -30,11 +30,19 @@ class MsTicketType extends Model
 
     public function categories()
     {
-        return $this->hasMany(MsTicketCategory::class, 'ticket_type', 'ticket_type');
+        return $this->hasMany(
+            MsTicketCategory::class,
+            'ticket_type',
+            'ticket_type'
+        );
     }
 
     public function priorities()
     {
-        return $this->hasMany(MsTicketPriority::class, 'ticket_type', 'ticket_type');
+        return $this->hasMany(
+            MsTicketPriority::class,
+            'ticket_type',
+            'ticket_type'
+        );
     }
 }
