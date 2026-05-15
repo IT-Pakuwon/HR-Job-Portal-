@@ -13,12 +13,6 @@ class MsTicketCategory extends Model
 
     protected $table = 'ms_ticket_category';
 
-    protected $primaryKey = 'ticket_categoryid';
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
     protected $fillable = [
         'ticket_categoryid',
         'ticket_category_name',
@@ -29,39 +23,8 @@ class MsTicketCategory extends Model
         'deleted_by',
     ];
 
-    public function type()
-    {
-        return $this->belongsTo(
-            MsTicketType::class,
-            'ticket_type',
-            'ticket_type'
-        );
-    }
-
     public function subcategories()
     {
-        return $this->hasMany(
-            MsTicketSubcategory::class,
-            'ticket_categoryid',
-            'ticket_categoryid'
-        );
-    }
-
-    public function priorities()
-    {
-        return $this->hasMany(
-            MsTicketPriority::class,
-            'ticket_categoryid',
-            'ticket_categoryid'
-        );
-    }
-
-    public function departments()
-    {
-        return $this->hasMany(
-            MsTicketCategoryDept::class,
-            'ticket_categoryid',
-            'ticket_categoryid'
-        );
+        return $this->hasMany(MsTicketSubcategory::class, 'ticket_categoryid', 'ticket_categoryid');
     }
 }

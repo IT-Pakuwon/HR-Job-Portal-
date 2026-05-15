@@ -3,8 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Traits\HasAutonbr;
-use App\Models\MsCompany;
-use App\Models\MsDepartment;
+use App\Http\Controllers\TrAttachmentController;
 use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use App\Models\MsTicketCategory;
@@ -12,442 +11,670 @@ use App\Models\MsTicketCategoryDept;
 use App\Models\MsTicketPriority;
 use App\Models\MsTicketSubcategory;
 use App\Models\MsTicketType;
+use App\Models\TrAttachment;
+use App\Models\TrMessage;
 use App\Models\TrTicket;
 use App\Models\TrTicketActivity;
-use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
+use Yajra\DataTables\Facades\DataTables;
+use App\Services\TicketNotificationService;
 
 class TicketController extends Controller
 {
     use HasAutonbr;
 
-    public function index()
+    protected $notificationService;
+
+    public function __construct(
+        TicketNotificationService $notificationService
+    ) {
+        $this->notificationService =
+            $notificationService;
+    }
+
+    public function index(Request $request, $eid = null)
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         if (!$user) {
             return redirect()->route('login');
         }
 
-        $cpnyIds = array_filter(array_map('trim', explode(',', $user->cpny_id)));
-        $deptIds = array_filter(array_map('trim', explode(',', $user->department_id)));
 
-        $baseQuery = TrTicket::query()
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds);
+        $companies = collect(
+            explode(',', $user->cpny_id)
+        )->filter()->map(function ($item) {
+            return [
+                'cpny_id' => trim($item),
+                'cpny_name' => trim($item),
+            ];
+        })->values();
 
-        $all = (clone $baseQuery)->count();
+        $departments = collect(
+            explode(',', $user->department_id)
+        )->filter()->map(function ($item) {
+            return [
+                'department_id' => trim($item),
+                'department_name' => trim($item),
+            ];
+        })->values();
 
-        $created = (clone $baseQuery)
-            ->where('status_pekerjaan', 'CREATED')
-            ->count();
+        $counts = [
+            'all' => TrTicket::count(),
 
-        $response = (clone $baseQuery)
-            ->where('status_pekerjaan', 'RESPONSE')
-            ->count();
+            'created' => TrTicket::where(
+                'status_pekerjaan',
+                'CREATED'
+            )->count(),
 
-        $pending = (clone $baseQuery)
-            ->where('status_pekerjaan', 'PENDING')
-            ->count();
+            'response' => TrTicket::where(
+                'status_pekerjaan',
+                'RESPONSE'
+            )->count(),
 
-        $completed = (clone $baseQuery)
-            ->where('status', 'C')
-            ->count();
+            'process' => TrTicket::where(
+                'status_pekerjaan',
+                'PROCESS'
+            )->count(),
 
-        $reopen = (clone $baseQuery)
-            ->where('status', 'R')
-            ->count();
+            'pending' => TrTicket::where(
+                'status_pekerjaan',
+                'PENDING'
+            )->count(),
 
-        $cancel = (clone $baseQuery)
-            ->where('status', 'X')
-            ->count();
+            'envision' => TrTicket::where(
+                'status_pekerjaan',
+                'ENVISION'
+            )->count(),
 
-        $usercpny = MsCompany::query()
-            ->whereIn('cpny_id', $cpnyIds)
-            ->orderBy('cpny_name')
-            ->get();
+            'transfer' => TrTicket::where(
+                'status_pekerjaan',
+                'TRANSFER'
+            )->count(),
 
-        $userdept = MsDepartment::query()
-            ->whereIn('department_id', $deptIds)
-            ->orderBy('department_name')
-            ->get();
+            'completed' => TrTicket::where(
+                'status_pekerjaan',
+                'COMPLETED'
+            )->count(),
 
-        $types = MsTicketType::query()
-            ->where('status', 'A')
-            ->orderBy('ticket_type_name')
-            ->get();
+            'reopen' => TrTicket::where(
+                'status_pekerjaan',
+                'REOPEN'
+            )->count(),
 
-        $locations = MsLocation::query()
-            ->where('status', 'A')
-            ->orderBy('location_name')
-            ->get();
+            'cancel' => TrTicket::where(
+                'status_pekerjaan',
+                'CANCEL'
+            )->count(),
+        ];
 
-        return view('pages.ticket.ticket', compact(
-            'all',
-            'created',
-            'response',
-            'pending',
-            'completed',
-            'reopen',
-            'cancel',
-            'usercpny',
-            'userdept',
-            'types',
-            'locations'
-        ));
+        return view('pages.ticket.ticket', [
+            'title' => 'Ticket',
+            'eid' => $eid,
+            'companies' => $companies,
+            'departments' => $departments,
+            'counts' => $counts,
+        ]);
     }
 
     public function json(Request $request)
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        if (!$user) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 401);
-        }
+        $isIT = $this->isITRole();
 
-        $cpnyIds = array_filter(array_map('trim', explode(',', $user->cpny_id)));
-        $deptIds = array_filter(array_map('trim', explode(',', $user->department_id)));
+        $query = TrTicket::with([
+            'category',
+            'subcategory',
+            'priority',
+            'location',
+            'subLocation',
+        ])->whereNull('deleted_at');
 
-        $status = trim((string) $request->query('status'));
-        $workflow = trim((string) $request->query('workflow'));
-        $category = trim((string) $request->query('category'));
-        $search = trim((string) $request->query('search'));
+        if (!$isIT) {
 
-        $query = TrTicket::query()
-            ->leftJoin('ms_ticket_category as cat', 'cat.ticket_categoryid', '=', 'tr_ticket.ticket_categoryid')
-            ->leftJoin('ms_ticket_subcategory as subcat', 'subcat.ticket_subcategoryid', '=', 'tr_ticket.ticket_subcategoryid')
-            ->whereIn('tr_ticket.cpny_id', $cpnyIds)
-            ->whereIn('tr_ticket.department_id', $deptIds)
-            ->select(
-                'tr_ticket.*',
-                'cat.ticket_category_name',
-                'subcat.ticket_subcategory_name'
-            );
+            $query->where(function ($q) use ($user) {
 
-        if ($status) {
-            $query->where('tr_ticket.status', $status);
-        }
-
-        if ($workflow) {
-            $query->where('tr_ticket.status_pekerjaan', $workflow);
-        }
-
-        if ($category) {
-            $query->where('tr_ticket.ticket_categoryid', $category);
-        }
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('tr_ticket.ticketid', 'ilike', "%{$search}%")
-                    ->orWhere('tr_ticket.issue_summary', 'ilike', "%{$search}%")
-                    ->orWhere('tr_ticket.issue_descr', 'ilike', "%{$search}%")
-                    ->orWhere('tr_ticket.pic_ticket', 'ilike', "%{$search}%")
-                    ->orWhere('tr_ticket.created_by', 'ilike', "%{$search}%")
-                    ->orWhere('cat.ticket_category_name', 'ilike', "%{$search}%")
-                    ->orWhere('subcat.ticket_subcategory_name', 'ilike', "%{$search}%");
+                $q->where('created_by', $user->username)
+                    ->orWhere('pic_ticket', $user->username);
             });
         }
 
-        $rows = $query
-            ->orderByDesc('tr_ticket.ticketdate')
-            ->orderByDesc('tr_ticket.ticketid')
-            ->get();
+        if ($request->filled('status')) {
 
-        $locations = MsLocation::query()
-            ->pluck('location_name', 'location_id');
-
-        $subLocations = MsSubLocation::query()
-            ->pluck('sub_location_name', 'sub_location_id');
-
-        $rows->transform(function ($row) use ($locations, $subLocations, $user) {
-            $row->eid = Hashids::encode($row->id);
-
-            $row->location_name =
-                $locations[$row->location_id] ?? null;
-
-            $row->sub_location_name =
-                $subLocations[$row->sub_location_id] ?? null;
-
-            $row->is_creator =
-                $row->created_by === $user->username;
-
-            $row->can_response =
-                in_array($row->status_pekerjaan, ['CREATED', 'REOPEN']);
-
-            $row->can_progress =
-                in_array($row->status_pekerjaan, ['RESPONSE', 'PENDING']);
-
-            $row->can_transfer =
-                in_array($row->status, ['P', 'R']);
-
-            $row->can_reopen =
-                $row->status === 'C';
-
-            $row->can_cancel =
-                $row->status === 'P'
-                && $row->created_by === $user->username;
-
-            return $row;
-        });
-
-        return response()->json([
-            'data' => $rows,
-        ]);
-    }
-
-    public function categories()
-    {
-        $rows = MsTicketCategory::query()
-            ->where('status', 'A')
-            ->orderBy('ticket_category_name')
-            ->get([
-                'ticket_categoryid',
-                'ticket_category_name',
-            ]);
-
-        return response()->json($rows);
-    }
-
-    public function categoryByType(Request $request)
-    {
-        $rows = MsTicketCategory::query()
-            ->where('ticket_type', $request->ticket_type)
-            ->where('status', 'A')
-            ->orderBy('ticket_category_name')
-            ->get();
-
-        return response()->json($rows);
-    }
-
-    public function subcategoryByCategory(Request $request)
-    {
-        $rows = MsTicketSubcategory::query()
-            ->where('ticket_type', $request->ticket_type)
-            ->where('ticket_categoryid', $request->ticket_categoryid)
-            ->where('status', 'A')
-            ->orderBy('ticket_subcategory_name')
-            ->get();
-
-        return response()->json($rows);
-    }
-
-    public function priorityByCategory(Request $request)
-    {
-        $rows = MsTicketPriority::query()
-            ->where('ticket_type', $request->ticket_type)
-            ->where('ticket_categoryid', $request->ticket_categoryid)
-            ->where('status', 'A')
-            ->orderBy('ticket_priority_name')
-            ->get();
-
-        return response()->json($rows);
-    }
-
-    public function subLocation(Request $request)
-    {
-        $rows = MsSubLocation::query()
-            ->where('location_id', $request->location_id)
-            ->where('status', 'A')
-            ->orderBy('sub_location_name')
-            ->get();
-
-        return response()->json($rows);
-    }
-
-    public function picByCategory(Request $request)
-    {
-        $usernames = MsTicketCategoryDept::query()
-            ->where('ticket_type', $request->ticket_type)
-            ->where('ticket_categoryid', $request->ticket_categoryid)
-            ->where('department_id', $request->department_id)
-            ->pluck('username')
-            ->flatMap(fn ($u) => explode(',', $u))
-            ->map(fn ($x) => trim($x))
-            ->filter()
-            ->unique()
-            ->values();
-
-        if ($usernames->isEmpty()) {
-            return response()->json([]);
+            $query->where(
+                'status_pekerjaan',
+                $request->status
+            );
         }
 
-        $users = User::query()
-            ->whereIn('username', $usernames)
-            ->orderBy('username')
-            ->get([
-                'username',
-                'name',
-            ]);
+        if ($request->filled('status_filter')) {
 
-        return response()->json($users);
-    }
-
-    public function create()
-    {
-        $user = Auth::user();
-
-        if (!$user) {
-            return redirect()->route('login');
+            $query->where(
+                'status',
+                $request->status_filter
+            );
         }
 
-        $cpnyIds = array_filter(array_map('trim', explode(',', $user->cpny_id)));
-        $deptIds = array_filter(array_map('trim', explode(',', $user->department_id)));
+        if ($request->filled('status_pekerjaan')) {
 
-        $usercpny = MsCompany::query()
-            ->whereIn('cpny_id', $cpnyIds)
-            ->orderBy('cpny_name')
-            ->get();
+            $query->where(
+                'status_pekerjaan',
+                $request->status_pekerjaan
+            );
+        }
 
-        $userdept = MsDepartment::query()
-            ->whereIn('department_id', $deptIds)
-            ->orderBy('department_name')
-            ->get();
+        if ($request->filled('search')) {
 
-        $types = MsTicketType::query()
+            $search =
+                $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where(
+                    'ticketid',
+                    'ilike',
+                    "%{$search}%"
+                )
+                    ->orWhere(
+                        'issue_summary',
+                        'ilike',
+                        "%{$search}%"
+                    )
+                    ->orWhere(
+                        'pic_ticket',
+                        'ilike',
+                        "%{$search}%"
+                    );
+            });
+        }
+
+        if ($request->filled('ticket_type')) {
+
+            $query->where(
+                'ticket_type',
+                $request->ticket_type
+            );
+        }
+
+        if ($request->filled('cpny_id')) {
+
+            $query->where(
+                'cpny_id',
+                $request->cpny_id
+            );
+        }
+
+        if ($request->filled('department_id')) {
+
+            $query->where(
+                'department_id',
+                $request->department_id
+            );
+        }
+
+        if ($request->filled('date_from')) {
+
+            $query->whereDate(
+                'ticketdate',
+                '>=',
+                $request->date_from
+            );
+        }
+
+        if ($request->filled('date_to')) {
+
+            $query->whereDate(
+                'ticketdate',
+                '<=',
+                $request->date_to
+            );
+        }
+
+        return DataTables::of($query)
+
+            ->addColumn('eid', function ($row) {
+
+                return Hashids::encode(
+                    $row->id
+                );
+            })
+
+            ->addColumn('ticket_category', function ($row) {
+
+                return optional(
+                    $row->category
+                )->ticket_category_name;
+            })
+
+            ->addColumn('ticket_subcategory', function ($row) {
+
+                return optional(
+                    $row->subcategory
+                )->ticket_subcategory_name;
+            })
+
+            ->addColumn('priority_name', function ($row) {
+
+                return optional(
+                    $row->priority
+                )->ticket_priority_name;
+            })
+
+            ->addColumn('location_name', function ($row) {
+
+                return optional(
+                    $row->location
+                )->location_name;
+            })
+
+            ->addColumn('sub_location_name', function ($row) {
+
+                return optional(
+                    $row->subLocation
+                )->sub_location_name;
+            })
+
+            ->addColumn('actions', function ($row) {
+
+                return $this->buildActions($row);
+            })
+
+            ->rawColumns([
+                'actions',
+            ])
+
+            ->make(true);
+    }
+    protected function isITRole()
+    {
+        return MsTicketCategoryDept::query()
+            ->where('username', auth()->user()->username)
             ->where('status', 'A')
-            ->orderBy('ticket_type_name')
-            ->get();
+            ->exists();
+    }
 
-        $locations = MsLocation::query()
-            ->where('status', 'A')
-            ->orderBy('location_name')
-            ->get();
+    protected function canAccessTicket($ticket)
+    {
+        $user = auth()->user();
 
-        return view('pages.ticket.create', compact(
-            'usercpny',
-            'userdept',
-            'types',
-            'locations'
-        ));
+        return
+            $ticket->created_by === $user->username
+            || $ticket->pic_ticket === $user->username
+            || $this->isITRole();
     }
 
     public function store(Request $request)
     {
+        $doctype = 'TIC';
+
+        $user = $request->user();
+
+        $username = $user->username ?? 'system';
+
+        $dt = Carbon::now();
+
+        $year = (int) $dt->year;
+
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+
         $request->validate([
-            'cpny_id' => 'required|string',
-            'department_id' => 'required|string',
-            'ticket_type' => 'required|string',
-            'ticket_categoryid' => 'required|string',
-            'ticket_subcategoryid' => 'required|string',
-            'location_id' => 'required|string',
-            'sub_location_id' => 'nullable|string',
-            'issue_summary' => 'required|string|max:255',
-            'issue_descr' => 'required|string|min:5',
-            'attachments' => 'nullable|array',
-            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx|max:5120',
+            'cpny_id' => 'required',
+            'department_id' => 'required',
+            'ticket_type' => 'required',
+            'ticket_categoryid' => 'required',
+            'ticket_subcategoryid' => 'required',
+            'location_id' => 'required',
+            'sub_location_id' => 'required',
+            'issue_summary' => 'required|max:255',
+            'issue_descr' => 'required',
+
+            'attachments.*' => [
+                'nullable',
+                'file',
+                'max:5120',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+            ],
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $user = $request->user();
-
-            $username = $user->username ?? 'system';
-
-            $dt = now();
-
             $auto = $this->nextAutonbr(
-                'TIC',
-                $dt->year,
-                str_pad($dt->month, 2, '0', STR_PAD_LEFT),
+                $doctype,
+                $year,
+                $month,
                 $username,
-                'Ticketing'
+                'TIC'
             );
 
-            $ticketid =
-                'TIC'
-                .substr((string) $dt->year, 2)
-                .str_pad($dt->month, 2, '0', STR_PAD_LEFT)
-                .sprintf('%04d', (int) $auto['next']);
+            $urutan = (int) $auto['next'];
 
-            $ticket = new TrTicket();
+            $tglbln = substr((string) $year, 2) . $month;
 
-            $ticket->ticketid = $ticketid;
-            $ticket->ticketdate = now()->toDateString();
+            $ticketid = $doctype . $tglbln . sprintf('%04d', $urutan);
 
-            $ticket->cpny_id = $request->cpny_id;
-            $ticket->department_id = $request->department_id;
+            $defaultPriority = MsTicketPriority::where(
+                'ticket_priority',
+                'Medium'
+            )->first();
 
-            $ticket->ticket_type = $request->ticket_type;
-            $ticket->ticket_categoryid = $request->ticket_categoryid;
-            $ticket->ticket_subcategoryid = $request->ticket_subcategoryid;
+            $ticket = TrTicket::create([
+                'ticketid' => $ticketid,
+                'ticketdate' => now(),
 
-            $ticket->location_id = $request->location_id;
-            $ticket->sub_location_id = $request->sub_location_id;
+                'cpny_id' => $request->cpny_id,
+                'department_id' => $request->department_id,
 
-            $ticket->issue_summary = $request->issue_summary;
-            $ticket->issue_descr = $request->issue_descr;
+                'ticket_type' => $request->ticket_type,
+                'ticket_categoryid' => $request->ticket_categoryid,
+                'ticket_subcategoryid' => $request->ticket_subcategoryid,
 
-            $ticket->user_peminta = $username;
+                'ticket_priority' => 'Medium',
 
-            $ticket->status = 'P';
-            $ticket->status_pekerjaan = 'CREATED';
+                'user_peminta' => $username,
 
-            $ticket->created_by = $username;
+                'location_id' => $request->location_id,
+                'sub_location_id' => $request->sub_location_id,
 
-            $ticket->save();
+                'issue_summary' => $request->issue_summary,
+                'issue_descr' => $request->issue_descr,
 
-            TrTicketActivity::create([
-                'ticketid' => $ticket->ticketid,
-                'cpny_id' => $ticket->cpny_id,
-                'department_id' => $ticket->department_id,
-                'pic_ticket' => $username,
-                'response_date' => now(),
-                'response_summary' => 'Ticket Created',
-                'response_descr' => $ticket->issue_summary,
+                'status' => 'P',
                 'status_pekerjaan' => 'CREATED',
-                'status' => 'A',
+
                 'created_by' => $username,
             ]);
 
-            DB::connection('pgsql5')->commit();
+            $this->createActivity([
+                'ticketid' => $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
 
-            // ======================
-            // ATTACHMENT
-            // ======================
+                'pic_ticket' => $ticket->user_peminta,
+
+                'response_date' => now(),
+
+                'response_summary' => 'Ticket Created',
+
+                'response_descr' => $ticket->issue_descr,
+
+                'status_pekerjaan' => 'CREATED',
+
+                'status' => 'A',
+
+                'created_by' => $username,
+            ]);
+
+            $uploadResult = null;
 
             if ($request->hasFile('attachments')) {
+
                 $meta = [
-                    'refnbr' => $ticketid,
+
+                    'refnbr' => $ticket->ticketid,
+
                     'doctype' => 'TIC',
-                    'cpnyid' => $request->cpny_id,
-                    'departementid' => $request->department_id,
-                    'base_folder' => 'att-ticket',
+
+                    'cpny_id' => $ticket->cpny_id,
+
+                    'department_id' => $ticket->department_id,
+
+                    'base_folder' => 'att-ticket/tic',
+
                     'created_by' => $username,
                 ];
 
-                $files = $request->file('attachments');
+                $files = (array) $request->file('attachments');
 
-                if (!is_array($files)) {
-                    $files = [$files];
+                try {
+
+                    $uploader = app(
+                        TrAttachmentController::class
+                    );
+
+                    $uploadResult =
+                        $uploader->uploadInternal(
+                            $meta,
+                            $files
+                        );
+                } catch (\Throwable $e) {
+
+                    DB::connection('pgsql5')
+                        ->rollBack();
+
+                    return response()->json([
+
+                        'success' => false,
+
+                        'message' => 'Failed upload attachment',
+
+                        'error' => config('app.debug')
+                            ? $e->getMessage()
+                            : null,
+
+                    ], 500);
                 }
-
-                app(TrAttachmentController::class)
-                    ->uploadInternal($meta, $files);
             }
 
-            $this->notifyTicketCreated($ticket);
+            $this->notificationService
+                ->ticketCreated($ticket);
+
+            DB::connection('pgsql5')->commit();
 
             return response()->json([
-                'message' => 'Ticket created successfully',
-                'ticketid' => $ticketid,
-                'eid' => Hashids::encode($ticket->id),
+                'success' => true,
+                'message' => 'Ticket created successfully.',
             ]);
-        } catch (\Throwable $e) {
+        } catch (\Throwable $th) {
+
             DB::connection('pgsql5')->rollBack();
 
-            report($e);
+            dd([
+                'message' => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+        }
+    }
+
+    public function update(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        abort_if(
+            $ticket->created_by !== auth()->user()->username,
+            403
+        );
+
+        abort_if(
+            $ticket->status !== 'P'
+                || $ticket->status_pekerjaan !== 'CREATED',
+            403
+        );
+
+        $request->validate([
+            'ticket_type' => 'required',
+            'ticket_categoryid' => 'required',
+            'ticket_subcategoryid' => 'required',
+            'location_id' => 'required',
+            'sub_location_id' => 'required',
+            'issue_summary' => 'required|max:255',
+            'issue_descr' => 'required',
+        ]);
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $ticket->update([
+                'ticket_type' => $request->ticket_type,
+                'ticket_categoryid' => $request->ticket_categoryid,
+                'ticket_subcategoryid' => $request->ticket_subcategoryid,
+                'location_id' => $request->location_id,
+                'sub_location_id' => $request->sub_location_id,
+                'issue_summary' => $request->issue_summary,
+                'issue_descr' => $request->issue_descr,
+                'updated_by' => auth()->user()->username,
+            ]);
+
+            $this->createActivity([
+                'ticketid' => $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
+                'pic_ticket' => auth()->user()->username,
+                'response_date' => now(),
+                'response_summary' => 'Ticket Updated',
+                'response_descr' => $ticket->issue_descr,
+                'status_pekerjaan' => 'CREATED',
+                'status' => 'A',
+                'created_by' => auth()->user()->username,
+            ]);
+
+
+            $uploadResult = null;
+
+            if ($request->hasFile('attachments')) {
+
+                $meta = [
+
+                    'refnbr' => $ticket->ticketid,
+
+                    'doctype' => 'TIC',
+
+                    'cpny_id' => $ticket->cpny_id,
+
+                    'department_id' => $ticket->department_id,
+
+                    'base_folder' => 'att-ticket/tic',
+
+                    'created_by' => auth()->user()->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+
+                    $uploader = app(
+                        TrAttachmentController::class
+                    );
+
+                    $uploadResult =
+                        $uploader->uploadInternal(
+                            $meta,
+                            $files
+                        );
+                } catch (\Throwable $e) {
+
+                    DB::connection('pgsql5')
+                        ->rollBack();
+
+                    return response()->json([
+
+                        'success' => false,
+
+                        'message' => 'Failed upload attachment',
+
+                        'error' => config('app.debug')
+                            ? $e->getMessage()
+                            : null,
+
+                    ], 500);
+                }
+            }
+
+            DB::connection('pgsql5')->commit();
 
             return response()->json([
-                'message' => 'Failed create ticket',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
+                'success' => true,
+                'message' => 'Ticket updated successfully.',
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function cancel($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        abort_if(
+            !(
+                (
+                    $ticket->created_by === auth()->user()->username
+                    &&
+                    $ticket->status === 'P'
+                    &&
+                    $ticket->status_pekerjaan === 'CREATED'
+                )
+                ||
+                (
+                    $this->isITRole()
+                    &&
+                    $ticket->status_pekerjaan !== 'COMPLETED'
+                )
+            ),
+            403
+        );
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $ticket->update([
+                'status' => 'X',
+                'status_pekerjaan' => 'CANCEL',
+                'updated_by' => auth()->user()->username,
+            ]);
+
+            $this->createActivity([
+                'ticketid' => $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
+                'pic_ticket' => auth()->user()->username,
+                'response_date' => now(),
+                'response_summary' => 'Ticket Cancelled',
+                'response_descr' => 'Ticket cancelled by requester.',
+                'status_pekerjaan' => 'CANCEL',
+                'status' => 'A',
+                'created_by' => auth()->user()->username,
+            ]);
+
+
+            $ticket->refresh();
+
+            $this->notificationService
+                ->ticketCancelled($ticket);
+
+
+            DB::connection('pgsql5')->commit();
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ticket cancelled successfully.',
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
@@ -458,669 +685,231 @@ class TicketController extends Controller
 
         abort_if(!$id, 404);
 
-        $ticket = TrTicket::query()
-            ->leftJoin('ms_ticket_category as cat', 'cat.ticket_categoryid', '=', 'tr_ticket.ticket_categoryid')
-            ->leftJoin('ms_ticket_subcategory as subcat', 'subcat.ticket_subcategoryid', '=', 'tr_ticket.ticket_subcategoryid')
-            ->where('tr_ticket.id', $id)
-            ->select(
-                'tr_ticket.*',
-                'cat.ticket_category_name',
-                'subcat.ticket_subcategory_name'
-            )
-            ->firstOrFail();
+        $ticket = TrTicket::with([
+            'activities',
+            'category',
+            'subcategory',
+            'priority',
+            'location',
+            'subLocation',
+        ])->findOrFail($id);
 
-        $locations = MsLocation::query()
-            ->pluck('location_name', 'location_id');
+        abort_unless(
+            $this->canAccessTicket($ticket),
+            403
+        );
 
-        $subLocations = MsSubLocation::query()
-            ->pluck('sub_location_name', 'sub_location_id');
+        /*
+        |--------------------------------------------------------------------------
+        | Attachments
+        |--------------------------------------------------------------------------
+        */
 
-        $ticket->location_name =
-            $locations[$ticket->location_id] ?? null;
+        $attachmentController =
+            app(TrAttachmentController::class);
 
-        $ticket->sub_location_name =
-            $subLocations[$ticket->sub_location_id] ?? null;
+        $attachmentResponse =
+            $attachmentController->listAttachments(
+                request(),
+                'TIC',
+                $ticket->ticketid
+            );
 
-        $ticket->eid = Hashids::encode($ticket->id);
+        $attachmentData =
+            $attachmentResponse->getData(true);
 
-        $activities = TrTicketActivity::query()
-            ->where('ticketid', $ticket->ticketid)
-            ->orderBy('response_date', 'asc')
-            ->get();
+        $attachments =
+            $attachmentData['attachments'] ?? [];
 
-        $rows = TrAttachment::query()
+        /*
+        |--------------------------------------------------------------------------
+        | Comments
+        |--------------------------------------------------------------------------
+        */
+
+        $comments = TrMessage::query()
             ->where('refnbr', $ticket->ticketid)
             ->where('doctype', 'TIC')
-            ->where('status', 'A')
-            ->orderByDesc('created_at')
-            ->get();
+            ->orderBy('created_at')
+            ->get()
+            ->map(function ($comment) {
 
-        $attachments = collect();
+                return [
 
-        if ($rows->count()) {
-            $config = config('filesystems.disks.gcs');
+                    'id' => $comment->id,
 
-            $keyFilePath = $config['key_file'];
+                    'message' => $comment->message,
 
-            if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
-                $keyFilePath = base_path($keyFilePath);
-            }
+                    'created_by' => $comment->created_by,
 
-            $storage = new StorageClient([
-                'projectId' => $config['project_id'],
-                'keyFilePath' => $keyFilePath,
-            ]);
+                    'created_at' => optional(
+                        $comment->created_at
+                    )->format('Y-m-d H:i:s'),
 
-            $bucket = $storage->bucket($config['bucket']);
-
-            $attachments = $rows->map(function ($r) use ($bucket) {
-                $objectPath =
-                    rtrim($r->folder, '/')
-                    .'/'
-                    .$r->filename;
-
-                $object = $bucket->object($objectPath);
-
-                $signedUrl = null;
-
-                try {
-                    $signedUrl = $object->signedUrl(
-                        new \DateTimeImmutable('+10 minutes'),
-                        ['version' => 'v4']
-                    );
-                } catch (\Throwable $e) {
-                    \Log::warning('Signed URL failed', [
-                        'path' => $objectPath,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-
-                return (object) [
-                    'id' => $r->id,
-                    'display_name' => $r->attachment_name,
-                    'created_by' => $r->created_by,
-                    'created_at' => $r->created_at,
-                    'url' => $signedUrl,
-                    'folder' => $r->folder,
-                    'filename' => $r->filename,
-                    'extention' => $r->extention,
-                    'size' => $r->filesize,
                 ];
             });
-        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tracking Timeline
+        |--------------------------------------------------------------------------
+        */
+
+        $tracking = $this->buildTracking(
+            $ticket->activities,
+            $comments
+        );
 
         return response()->json([
-            'ticket' => $ticket,
-            'activities' => $activities,
-            'attachments' => $attachments,
+
+            'success' => true,
+
+            'data' => [
+
+                'ticket' => [
+
+                    'id' =>
+                    $ticket->id,
+
+                    'eid' =>
+                    Hashids::encode($ticket->id),
+
+                    'ticketid' =>
+                    $ticket->ticketid,
+
+                    'ticketdate' =>
+                    optional(
+                        $ticket->ticketdate
+                    )->format('Y-m-d H:i:s'),
+
+                    'cpny_id' =>
+                    $ticket->cpny_id,
+
+                    'department_id' =>
+                    $ticket->department_id,
+
+                    'ticket_type' =>
+                    $ticket->ticket_type,
+
+                    'ticket_categoryid' =>
+                    $ticket->ticket_categoryid,
+
+                    'ticket_category' =>
+                    optional(
+                        $ticket->category
+                    )->ticket_category_name,
+
+                    'ticket_category_name' =>
+                    optional(
+                        $ticket->category
+                    )->ticket_category_name,
+
+                    'ticket_subcategoryid' =>
+                    $ticket->ticket_subcategoryid,
+
+                    'ticket_subcategory' =>
+                    optional(
+                        $ticket->subcategory
+                    )->ticket_subcategory_name,
+
+                    'ticket_subcategory_name' =>
+                    optional(
+                        $ticket->subcategory
+                    )->ticket_subcategory_name,
+
+                    'location_id' =>
+                    $ticket->location_id,
+
+                    'location_name' =>
+                    optional(
+                        $ticket->location
+                    )->location_name,
+
+                    'sub_location_id' =>
+                    $ticket->sub_location_id,
+
+                    'sub_location_name' =>
+                    optional(
+                        $ticket->subLocation
+                    )->sub_location_name,
+
+                    'ticket_priority' =>
+                    $ticket->ticket_priority,
+
+                    'priority_name' =>
+                    optional(
+                        $ticket->priority
+                    )->ticket_priority_name,
+
+                    'ticket_priority_name' =>
+                    optional(
+                        $ticket->priority
+                    )->ticket_priority_name,
+
+                    'ticket_duedate' =>
+                    optional(
+                        $ticket->ticket_duedate
+                    )->format('Y-m-d H:i:s'),
+
+                    'issue_summary' =>
+                    $ticket->issue_summary,
+
+                    'issue_descr' =>
+                    $ticket->issue_descr,
+
+                    'solution_descr' =>
+                    $ticket->solution_descr,
+
+                    'status' =>
+                    $ticket->status,
+
+                    'working_start_date' =>
+                    optional(
+                        $ticket->working_start_date
+                    )->format('Y-m-d H:i:s'),
+
+                    'working_end_date' =>
+                    optional(
+                        $ticket->working_end_date
+                    )->format('Y-m-d H:i:s'),
+
+                    'status_pekerjaan' =>
+                    $ticket->status_pekerjaan,
+
+                    'created_by' =>
+                    $ticket->created_by,
+
+                    'user_peminta' =>
+                    $ticket->user_peminta,
+
+                    'pic_ticket' =>
+                    $ticket->pic_ticket,
+
+                    'completed_by' =>
+                    $ticket->completed_by,
+
+                    'completed_at' =>
+                    optional(
+                        $ticket->completed_at
+                    )->format('Y-m-d H:i:s'),
+
+                ],
+
+                'attachments' =>
+                $attachments,
+
+                'comments' =>
+                $comments,
+
+                'tracking' =>
+                $tracking,
+
+                'actions' =>
+                $this->buildActions($ticket),
+
+            ],
+
         ]);
-    }
-
-    public function update(Request $request, $hash)
-    {
-        $request->validate([
-            'issue_summary' => 'required|string|max:255',
-            'issue_descr' => 'required|string|min:5',
-            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx|max:5120',
-        ]);
-
-        DB::connection('pgsql5')->beginTransaction();
-
-        try {
-            $user = $request->user();
-
-            $username = $user->username ?? 'system';
-
-            $id = Hashids::decode($hash)[0] ?? null;
-
-            abort_if(!$id, 404);
-
-            $ticket = TrTicket::lockForUpdate()->findOrFail($id);
-
-            if ($ticket->created_by !== $username) {
-                return response()->json([
-                    'message' => 'Only creator can update ticket',
-                ], 403);
-            }
-
-            if (
-                in_array($ticket->status, ['C', 'X'])
-            ) {
-                return response()->json([
-                    'message' => 'Completed/cancelled ticket cannot be updated',
-                ], 422);
-            }
-
-            if (
-                !in_array($ticket->status_pekerjaan, ['CREATED', 'REOPEN'])
-            ) {
-                return response()->json([
-                    'message' => 'Ticket already processed',
-                ], 422);
-            }
-
-            $ticket->issue_summary = $request->issue_summary;
-            $ticket->issue_descr = $request->issue_descr;
-            $ticket->updated_by = $username;
-
-            $ticket->save();
-
-            TrTicketActivity::create([
-                'ticketid' => $ticket->ticketid,
-                'cpny_id' => $ticket->cpny_id,
-                'department_id' => $ticket->department_id,
-                'pic_ticket' => $username,
-                'response_date' => now(),
-                'response_summary' => 'Update Ticket',
-                'response_descr' => $request->issue_summary,
-                'status_pekerjaan' => $ticket->status_pekerjaan,
-                'status' => 'A',
-                'created_by' => $username,
-            ]);
-
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr' => $ticket->ticketid,
-                    'doctype' => 'TIC',
-                    'cpnyid' => $ticket->cpny_id,
-                    'departementid' => $ticket->department_id,
-                    'base_folder' => 'att-ticket',
-                    'created_by' => $username,
-                ];
-
-                $files = $request->file('attachments');
-
-                if (!is_array($files)) {
-                    $files = [$files];
-                }
-
-                app(TrAttachmentController::class)
-                    ->uploadInternal($meta, $files);
-            }
-
-            DB::connection('pgsql5')->commit();
-
-            return response()->json([
-                'message' => 'Ticket updated successfully',
-            ]);
-        } catch (\Throwable $e) {
-            DB::connection('pgsql5')->rollBack();
-
-            report($e);
-
-            return response()->json([
-                'message' => 'Failed update ticket',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ], 500);
-        }
-    }
-
-    public function cancel($hash)
-    {
-        DB::connection('pgsql5')->beginTransaction();
-
-        try {
-            $user = Auth::user();
-
-            $username = $user->username ?? 'system';
-
-            $id = Hashids::decode($hash)[0] ?? null;
-
-            abort_if(!$id, 404);
-
-            $ticket = TrTicket::lockForUpdate()->findOrFail($id);
-
-            if ($ticket->created_by !== $username) {
-                return response()->json([
-                    'message' => 'Only creator can cancel ticket',
-                ], 403);
-            }
-
-            if (in_array($ticket->status, ['C', 'X'])) {
-                return response()->json([
-                    'message' => 'Completed/cancelled ticket cannot be cancelled',
-                ], 422);
-            }
-
-            $ticket->status = 'X';
-            $ticket->status_pekerjaan = 'CANCEL';
-            $ticket->updated_by = $username;
-
-            $ticket->save();
-
-            TrTicketActivity::create([
-                'ticketid' => $ticket->ticketid,
-                'cpny_id' => $ticket->cpny_id,
-                'department_id' => $ticket->department_id,
-                'pic_ticket' => $username,
-                'response_date' => now(),
-                'response_summary' => 'Cancel Ticket',
-                'response_descr' => 'Ticket cancelled by requester',
-                'status_pekerjaan' => 'CANCEL',
-                'status' => 'A',
-                'created_by' => $username,
-            ]);
-
-            $this->notifyTicketCancelled($ticket);
-
-            DB::connection('pgsql5')->commit();
-
-            return response()->json([
-                'message' => 'Ticket cancelled successfully',
-            ]);
-        } catch (\Throwable $e) {
-            DB::connection('pgsql5')->rollBack();
-
-            report($e);
-
-            return response()->json([
-                'message' => 'Failed cancel ticket',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ], 500);
-        }
-    }
-
-    public function responseTicket(Request $request, $hash)
-    {
-        $request->validate([
-            'pic_ticket' => 'required|string|exists:users,username',
-            'ticket_priority' => 'required|string',
-            'response_summary' => 'required|string|max:255',
-            'response_descr' => 'nullable|string',
-        ]);
-
-        DB::connection('pgsql5')->beginTransaction();
-
-        try {
-            $user = $request->user();
-
-            $username = $user->username ?? 'system';
-
-            $id = Hashids::decode($hash)[0] ?? null;
-
-            abort_if(!$id, 404);
-
-            $ticket = TrTicket::lockForUpdate()->findOrFail($id);
-
-            if (
-                !in_array($ticket->status_pekerjaan, ['CREATED', 'REOPEN'])
-            ) {
-                return response()->json([
-                    'message' => 'Ticket already responded',
-                ], 422);
-            }
-
-            $priority = MsTicketPriority::query()
-                ->where('ticket_type', $ticket->ticket_type)
-                ->where('ticket_categoryid', $ticket->ticket_categoryid)
-                ->where('ticket_priority', $request->ticket_priority)
-                ->first();
-
-            if (!$priority) {
-                return response()->json([
-                    'message' => 'Priority setup not found',
-                ], 422);
-            }
-
-            $slaDays = (int) $priority->ticket_sla_days;
-
-            $dueDate = now()->addDays($slaDays);
-
-            $ticket->pic_ticket = $request->pic_ticket;
-
-            $ticket->ticket_priority = $request->ticket_priority;
-            $ticket->ticket_sla_days = $slaDays;
-            $ticket->ticket_duedate = $dueDate;
-
-            $ticket->status = 'P';
-            $ticket->status_pekerjaan = 'RESPONSE';
-
-            $ticket->response_by = $username;
-            $ticket->response_at = now();
-
-            $ticket->updated_by = $username;
-
-            $ticket->save();
-
-            TrTicketActivity::create([
-                'ticketid' => $ticket->ticketid,
-                'cpny_id' => $ticket->cpny_id,
-                'department_id' => $ticket->department_id,
-                'pic_ticket' => $request->pic_ticket,
-                'response_date' => now(),
-                'response_summary' => $request->response_summary,
-                'response_descr' => $request->response_descr,
-                'status_pekerjaan' => 'RESPONSE',
-                'status' => 'A',
-                'created_by' => $username,
-            ]);
-
-            $this->notifyTicketResponse($ticket);
-
-            DB::connection('pgsql5')->commit();
-
-            return response()->json([
-                'message' => 'Ticket responded successfully',
-            ]);
-        } catch (\Throwable $e) {
-            DB::connection('pgsql5')->rollBack();
-
-            report($e);
-
-            return response()->json([
-                'message' => 'Failed response ticket',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ], 500);
-        }
-    }
-
-    public function transfer(Request $request, $hash)
-    {
-        $request->validate([
-            'ticket_categoryid' => 'required|string',
-            'ticket_subcategoryid' => 'required|string',
-            'transfer_reason' => 'required|string|min:3',
-        ]);
-
-        DB::connection('pgsql5')->beginTransaction();
-
-        try {
-            $user = $request->user();
-
-            $username = $user->username ?? 'system';
-
-            $id = Hashids::decode($hash)[0] ?? null;
-
-            abort_if(!$id, 404);
-
-            $ticket = TrTicket::lockForUpdate()->findOrFail($id);
-
-            if (in_array($ticket->status, ['C', 'X'])) {
-                return response()->json([
-                    'message' => 'Completed/cancelled ticket cannot be transferred',
-                ], 422);
-            }
-
-            $oldCategory = MsTicketCategory::query()
-                ->where('ticket_categoryid', $ticket->ticket_categoryid)
-                ->first();
-
-            $oldSubcategory = MsTicketSubcategory::query()
-                ->where('ticket_subcategoryid', $ticket->ticket_subcategoryid)
-                ->first();
-
-            $newCategory = MsTicketCategory::query()
-                ->where('ticket_type', $ticket->ticket_type)
-                ->where('ticket_categoryid', $request->ticket_categoryid)
-                ->where('status', 'A')
-                ->first();
-
-            $newSubcategory = MsTicketSubcategory::query()
-                ->where('ticket_type', $ticket->ticket_type)
-                ->where('ticket_categoryid', $request->ticket_categoryid)
-                ->where('ticket_subcategoryid', $request->ticket_subcategoryid)
-                ->where('status', 'A')
-                ->first();
-
-            if (!$newCategory || !$newSubcategory) {
-                return response()->json([
-                    'message' => 'Invalid category/subcategory',
-                ], 422);
-            }
-
-            $ticket->ticket_categoryid = $newCategory->ticket_categoryid;
-            $ticket->ticket_subcategoryid = $newSubcategory->ticket_subcategoryid;
-
-            // reset workflow
-            $ticket->pic_ticket = null;
-            $ticket->ticket_priority = null;
-            $ticket->ticket_sla_days = null;
-            $ticket->ticket_duedate = null;
-
-            $ticket->response_by = null;
-            $ticket->response_at = null;
-
-            $ticket->status = 'P';
-            $ticket->status_pekerjaan = 'TRANSFER';
-
-            $ticket->updated_by = $username;
-
-            $ticket->save();
-
-            TrTicketActivity::create([
-                'ticketid' => $ticket->ticketid,
-                'cpny_id' => $ticket->cpny_id,
-                'department_id' => $ticket->department_id,
-                'pic_ticket' => $username,
-                'response_date' => now(),
-                'response_summary' => 'Transfer Ticket',
-                'response_descr' => 'Transfer from '
-                    .($oldCategory->ticket_category_name ?? '-')
-                    .' / '
-                    .($oldSubcategory->ticket_subcategory_name ?? '-')
-                    .' to '
-                    .($newCategory->ticket_category_name ?? '-')
-                    .' / '
-                    .($newSubcategory->ticket_subcategory_name ?? '-')
-                    .'. Reason : '
-                    .$request->transfer_reason,
-                'status_pekerjaan' => 'TRANSFER',
-                'status' => 'A',
-                'created_by' => $username,
-            ]);
-
-            $this->notifyTransferTicket($ticket);
-
-            DB::connection('pgsql5')->commit();
-
-            return response()->json([
-                'message' => 'Ticket transferred successfully',
-            ]);
-        } catch (\Throwable $e) {
-            DB::connection('pgsql5')->rollBack();
-
-            report($e);
-
-            return response()->json([
-                'message' => 'Failed transfer ticket',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ], 500);
-        }
-    }
-
-    public function progress(Request $request, $hash)
-    {
-        $request->validate([
-            'response_summary' => 'required|string|max:255',
-            'response_descr' => 'required|string|min:3',
-            'status_pekerjaan' => 'required|in:PENDING,COMPLETED',
-            'is_itr' => 'nullable|boolean',
-        ]);
-
-        DB::connection('pgsql5')->beginTransaction();
-
-        try {
-            $user = $request->user();
-
-            $username = $user->username ?? 'system';
-
-            $id = Hashids::decode($hash)[0] ?? null;
-
-            abort_if(!$id, 404);
-
-            $ticket = TrTicket::lockForUpdate()->findOrFail($id);
-
-            if ($ticket->pic_ticket !== $username) {
-                return response()->json([
-                    'message' => 'Only assigned PIC can update progress',
-                ], 403);
-            }
-
-            if (in_array($ticket->status, ['C', 'X'])) {
-                return response()->json([
-                    'message' => 'Completed/cancelled ticket cannot be updated',
-                ], 422);
-            }
-
-            $workflow = $request->status_pekerjaan;
-
-            TrTicketActivity::create([
-                'ticketid' => $ticket->ticketid,
-                'cpny_id' => $ticket->cpny_id,
-                'department_id' => $ticket->department_id,
-                'pic_ticket' => $username,
-                'response_date' => now(),
-                'response_summary' => $request->response_summary,
-                'response_descr' => $request->response_descr,
-                'status_pekerjaan' => $workflow,
-                'status' => 'A',
-                'created_by' => $username,
-            ]);
-
-            // ======================================
-            // COMPLETED
-            // ======================================
-
-            if ($workflow === 'COMPLETED') {
-                $ticket->status = 'C';
-                $ticket->status_pekerjaan = 'COMPLETED';
-
-                $ticket->solution_descr = $request->response_descr;
-
-                $ticket->completed_by = $username;
-                $ticket->completed_at = now();
-                $ticket->pic_completed_ticket = $username;
-
-                $ticket->is_itr =
-                    $request->boolean('is_itr');
-            } else {
-                // ======================================
-                // PENDING
-                // ======================================
-
-                $ticket->status = 'P';
-                $ticket->status_pekerjaan = 'PENDING';
-            }
-
-            $ticket->updated_by = $username;
-
-            $ticket->save();
-
-            if ($workflow === 'COMPLETED') {
-                $this->notifyTicketCompleted($ticket);
-            } else {
-                $this->notifyTicketProgress($ticket);
-            }
-
-            DB::connection('pgsql5')->commit();
-
-            return response()->json([
-                'message' => 'Progress updated successfully',
-            ]);
-        } catch (\Throwable $e) {
-            DB::connection('pgsql5')->rollBack();
-
-            report($e);
-
-            return response()->json([
-                'message' => 'Failed update progress',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ], 500);
-        }
-    }
-
-    public function reopen(Request $request, $hash)
-    {
-        $request->validate([
-            'reopen_descr' => 'required|string|min:5',
-        ]);
-
-        DB::connection('pgsql5')->beginTransaction();
-
-        try {
-            $user = $request->user();
-
-            $username = $user->username ?? 'system';
-
-            $id = Hashids::decode($hash)[0] ?? null;
-
-            abort_if(!$id, 404);
-
-            $ticket = TrTicket::lockForUpdate()->findOrFail($id);
-
-            if ($ticket->created_by !== $username) {
-                return response()->json([
-                    'message' => 'Only creator can reopen ticket',
-                ], 403);
-            }
-
-            if ($ticket->status !== 'C') {
-                return response()->json([
-                    'message' => 'Only completed ticket can reopen',
-                ], 422);
-            }
-
-            $ticket->status = 'R';
-            $ticket->status_pekerjaan = 'REOPEN';
-
-            $ticket->reopen_ticket = true;
-            $ticket->reopen_descr = $request->reopen_descr;
-
-            // reset completion
-            $ticket->completed_by = null;
-            $ticket->completed_at = null;
-            $ticket->pic_completed_ticket = null;
-
-            // reset response flow
-            $ticket->response_by = null;
-            $ticket->response_at = null;
-
-            $ticket->updated_by = $username;
-
-            $ticket->save();
-
-            TrTicketActivity::create([
-                'ticketid' => $ticket->ticketid,
-                'cpny_id' => $ticket->cpny_id,
-                'department_id' => $ticket->department_id,
-                'pic_ticket' => $username,
-                'response_date' => now(),
-                'response_summary' => 'Reopen Ticket',
-                'response_descr' => $request->reopen_descr,
-                'status_pekerjaan' => 'REOPEN',
-                'status' => 'A',
-                'created_by' => $username,
-            ]);
-
-            $this->notifyTicketReopened($ticket);
-
-            DB::connection('pgsql5')->commit();
-
-            return response()->json([
-                'message' => 'Ticket reopened successfully',
-            ]);
-        } catch (\Throwable $e) {
-            DB::connection('pgsql5')->rollBack();
-
-            report($e);
-
-            return response()->json([
-                'message' => 'Failed reopen ticket',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-            ], 500);
-        }
     }
 
     public function tracking($hash)
@@ -1131,531 +920,1858 @@ class TicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
-        $activities = TrTicketActivity::query()
-            ->where('ticketid', $ticket->ticketid)
-            ->orderBy('response_date', 'asc')
+        abort_unless(
+            $this->canAccessTicket($ticket),
+            403
+        );
+
+        $activities = TrTicketActivity::where(
+            'ticketid',
+            $ticket->ticketid
+        )
+            ->whereNull('deleted_at')
+            ->orderBy('response_date')
+            ->get();
+
+        $comments = TrMessage::query()
+            ->where('refnbr', $ticket->ticketid)
+            ->where('doctype', 'TIC')
+            ->orderBy('created_at')
             ->get();
 
         return response()->json([
-            'ticketid' => $ticket->ticketid,
-            'status' => $ticket->status,
-            'status_pekerjaan' => $ticket->status_pekerjaan,
-            'activities' => $activities,
+            'success' => true,
+            'data' => $this->buildTracking(
+                $activities,
+                $comments
+            ),
         ]);
     }
 
-    private function notifyTicketCreated($ticket)
+public function responseTicket(Request $request, $hash)
+{
+    abort_unless(
+        $this->isITRole(),
+        403
+    );
+
+    $id = Hashids::decode($hash)[0] ?? null;
+
+    abort_if(!$id, 404);
+
+    $ticket = TrTicket::findOrFail($id);
+
+    abort_if(
+        !in_array($ticket->status_pekerjaan, [
+            'CREATED',
+            'REOPEN',
+        ]),
+        403
+    );
+
+    $request->validate([
+
+        'pic_ticket' => 'required',
+
+        'ticket_priority' => 'required',
+
+        'response_descr' => 'required',
+
+        'working_start_date' => 'nullable|date',
+
+        'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
+
+    ]);
+
+    abort_if(
+        !$this->validatePIC(
+            $request->pic_ticket,
+            $ticket->ticket_type,
+            $ticket->ticket_categoryid
+        ),
+        422,
+        'Selected PIC is invalid.'
+    );
+
+    DB::connection('pgsql5')->beginTransaction();
+
+    try {
+
+        $priority = MsTicketPriority::where(
+            'ticket_priority',
+            $request->ticket_priority
+        )->first();
+
+        $dueDate = now()->addDays(
+            $priority?->ticket_sla_days ?? 1
+        );
+
+        $workingStart =
+            $request->working_start_date
+            ?? now();
+
+        $workingEnd =
+            $request->working_end_date
+            ?? $dueDate;
+
+        $ticket->update([
+
+            'pic_ticket' =>
+                $request->pic_ticket,
+
+            'ticket_priority' =>
+                $request->ticket_priority,
+
+            'ticket_sla_days' =>
+                $priority?->ticket_sla_days,
+
+            'ticket_duedate' =>
+                $dueDate,
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status' => 'P',
+
+            'status_pekerjaan' =>
+                'RESPONSE',
+
+            'updated_by' =>
+                auth()->user()->username,
+        ]);
+
+        $this->createActivity([
+
+            'ticketid' =>
+                $ticket->ticketid,
+
+            'cpny_id' =>
+                $ticket->cpny_id,
+
+            'department_id' =>
+                $ticket->department_id,
+
+            'pic_ticket' =>
+                $request->pic_ticket,
+
+            'response_date' =>
+                now(),
+
+            'response_summary' =>
+                'Ticket Response',
+
+            'response_descr' =>
+                $request->response_descr,
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status_pekerjaan' =>
+                'RESPONSE',
+
+            'status' => 'A',
+
+            'created_by' =>
+                auth()->user()->username,
+        ]);
+
+        $ticket->refresh();
+
+        $this->notificationService
+            ->ticketAssigned($ticket);
+
+        DB::connection('pgsql5')->commit();
+
+        return response()->json([
+
+            'success' => true,
+
+            'message' =>
+                'Ticket responded successfully.',
+        ]);
+
+    } catch (\Throwable $th) {
+
+        DB::connection('pgsql5')->rollBack();
+
+        return response()->json([
+
+            'success' => false,
+
+            'message' =>
+                $th->getMessage(),
+
+        ], 500);
+    }
+}
+
+public function processTicket(Request $request, $hash)
+{
+    $id = Hashids::decode($hash)[0] ?? null;
+
+    abort_if(!$id, 404);
+
+    $ticket = TrTicket::findOrFail($id);
+
+    abort_if(
+        $ticket->pic_ticket !== auth()->user()->username,
+        403
+    );
+
+    abort_if(
+        $ticket->status !== 'P',
+        403
+    );
+
+    abort_if(
+        !in_array($ticket->status_pekerjaan, [
+            'RESPONSE',
+            'PENDING',
+            'ENVISION',
+            'TRANSFER',
+            'REOPEN',
+        ]),
+        403,
+        'Ticket cannot be processed.'
+    );
+
+    $request->validate([
+
+        'response_descr' => 'required',
+
+        'working_start_date' =>
+            'nullable|date',
+
+        'working_end_date' =>
+            'nullable|date|after_or_equal:working_start_date',
+
+    ]);
+
+    DB::connection('pgsql5')->beginTransaction();
+
+    try {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Working Schedule
+        |--------------------------------------------------------------------------
+        */
+
+        $workingStart =
+            $request->working_start_date
+            ?? $ticket->working_start_date
+            ?? now();
+
+        $workingEnd =
+            $request->working_end_date
+            ?? $ticket->working_end_date
+            ?? $ticket->ticket_duedate
+            ?? now()->addDay();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Ticket
+        |--------------------------------------------------------------------------
+        */
+
+        $ticket->update([
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status' => 'P',
+
+            'status_pekerjaan' =>
+                'PROCESS',
+
+            'updated_by' =>
+                auth()->user()->username,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Activity
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createActivity([
+
+            'ticketid' =>
+                $ticket->ticketid,
+
+            'cpny_id' =>
+                $ticket->cpny_id,
+
+            'department_id' =>
+                $ticket->department_id,
+
+            'pic_ticket' =>
+                auth()->user()->username,
+
+            'response_date' =>
+                now(),
+
+            'response_summary' =>
+                'Ticket Process',
+
+            'response_descr' =>
+                $request->response_descr,
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status_pekerjaan' =>
+                'PROCESS',
+
+            'status' => 'A',
+
+            'created_by' =>
+                auth()->user()->username,
+        ]);
+
+        DB::connection('pgsql5')->commit();
+
+        return response()->json([
+
+            'success' => true,
+
+            'message' =>
+                'Ticket processed successfully.',
+
+        ]);
+
+    } catch (\Throwable $th) {
+
+        DB::connection('pgsql5')->rollBack();
+
+        return response()->json([
+
+            'success' => false,
+
+            'message' =>
+                $th->getMessage(),
+
+        ], 500);
+    }
+}
+public function pendingTicket(Request $request, $hash)
+{
+    $id = Hashids::decode($hash)[0] ?? null;
+
+    abort_if(!$id, 404);
+
+    $ticket = TrTicket::findOrFail($id);
+
+    abort_if(
+        $ticket->pic_ticket !== auth()->user()->username,
+        403
+    );
+
+    abort_if(
+        $ticket->status !== 'P',
+        403
+    );
+
+    abort_if(
+        !in_array($ticket->status_pekerjaan, [
+            'PROCESS',
+            'RESPONSE',
+            'ENVISION',
+        ]),
+        403,
+        'Ticket cannot be pending.'
+    );
+
+    $request->validate([
+
+        'response_descr' => 'required',
+
+        'working_start_date' =>
+            'nullable|date',
+
+        'working_end_date' =>
+            'nullable|date|after_or_equal:working_start_date',
+
+    ]);
+
+    DB::connection('pgsql5')->beginTransaction();
+
+    try {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Working Schedule
+        |--------------------------------------------------------------------------
+        */
+
+        $workingStart =
+            $request->working_start_date
+            ?? $ticket->working_start_date
+            ?? now();
+
+        $workingEnd =
+            $request->working_end_date
+            ?? $ticket->working_end_date
+            ?? $ticket->ticket_duedate
+            ?? now()->addDay();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Ticket
+        |--------------------------------------------------------------------------
+        */
+
+        $ticket->update([
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status' => 'P',
+
+            'status_pekerjaan' =>
+                'PENDING',
+
+            'updated_by' =>
+                auth()->user()->username,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Activity
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createActivity([
+
+            'ticketid' =>
+                $ticket->ticketid,
+
+            'cpny_id' =>
+                $ticket->cpny_id,
+
+            'department_id' =>
+                $ticket->department_id,
+
+            'pic_ticket' =>
+                auth()->user()->username,
+
+            'response_date' =>
+                now(),
+
+            'response_summary' =>
+                'Ticket Pending',
+
+            'response_descr' =>
+                $request->response_descr,
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status_pekerjaan' =>
+                'PENDING',
+
+            'status' => 'A',
+
+            'created_by' =>
+                auth()->user()->username,
+        ]);
+
+        DB::connection('pgsql5')->commit();
+
+        return response()->json([
+
+            'success' => true,
+
+            'message' =>
+                'Ticket pending updated successfully.',
+
+        ]);
+
+    } catch (\Throwable $th) {
+
+        DB::connection('pgsql5')->rollBack();
+
+        return response()->json([
+
+            'success' => false,
+
+            'message' =>
+                $th->getMessage(),
+
+        ], 500);
+    }
+}
+
+public function envisionTicket(Request $request, $hash)
+{
+    $id = Hashids::decode($hash)[0] ?? null;
+
+    abort_if(!$id, 404);
+
+    $ticket = TrTicket::findOrFail($id);
+
+    abort_if(
+        $ticket->pic_ticket !== auth()->user()->username,
+        403
+    );
+
+    abort_if(
+        $ticket->status !== 'P',
+        403
+    );
+
+    abort_if(
+        !in_array($ticket->status_pekerjaan, [
+            'PROCESS',
+            'PENDING',
+            'RESPONSE',
+        ]),
+        403,
+        'Ticket cannot be envisioned.'
+    );
+
+    $request->validate([
+
+        'response_descr' => 'required',
+
+        'working_start_date' =>
+            'required|date',
+
+        'working_end_date' =>
+            'required|date|after_or_equal:working_start_date',
+
+    ]);
+
+    DB::connection('pgsql5')->beginTransaction();
+
+    try {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Working Schedule
+        |--------------------------------------------------------------------------
+        */
+
+        $workingStart =
+            $request->working_start_date;
+
+        $workingEnd =
+            $request->working_end_date;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Ticket
+        |--------------------------------------------------------------------------
+        */
+
+        $ticket->update([
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status' => 'P',
+
+            'status_pekerjaan' =>
+                'ENVISION',
+
+            'updated_by' =>
+                auth()->user()->username,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Activity
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createActivity([
+
+            'ticketid' =>
+                $ticket->ticketid,
+
+            'cpny_id' =>
+                $ticket->cpny_id,
+
+            'department_id' =>
+                $ticket->department_id,
+
+            'pic_ticket' =>
+                auth()->user()->username,
+
+            'response_date' =>
+                now(),
+
+            'response_summary' =>
+                'Ticket Envision',
+
+            'response_descr' =>
+                $request->response_descr,
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status_pekerjaan' =>
+                'ENVISION',
+
+            'status' => 'A',
+
+            'created_by' =>
+                auth()->user()->username,
+        ]);
+
+        DB::connection('pgsql5')->commit();
+
+        return response()->json([
+
+            'success' => true,
+
+            'message' =>
+                'Ticket envision updated successfully.',
+
+        ]);
+
+    } catch (\Throwable $th) {
+
+        DB::connection('pgsql5')->rollBack();
+
+        return response()->json([
+
+            'success' => false,
+
+            'message' =>
+                $th->getMessage(),
+
+        ], 500);
+    }
+}
+public function transferTicket(Request $request, $hash)
+{
+    abort_if(
+        !$this->isITRole()
+        &&
+        $ticket->pic_ticket !== auth()->user()->username,
+        403
+    );
+
+    $id = Hashids::decode($hash)[0] ?? null;
+
+    abort_if(!$id, 404);
+
+    $ticket = TrTicket::findOrFail($id);
+
+    abort_if(
+        !in_array($ticket->status_pekerjaan, [
+            'CREATED',
+            'RESPONSE',
+            'PROCESS',
+            'PENDING',
+            'ENVISION',
+            'REOPEN',
+        ]),
+        403,
+        'Ticket cannot be transferred.'
+    );
+
+    $request->validate([
+
+        'ticket_type' =>
+            'required',
+
+        'ticket_categoryid' =>
+            'required',
+
+        'ticket_subcategoryid' =>
+            'required',
+
+        'pic_ticket' =>
+            'required',
+
+    ]);
+
+    abort_if(
+        !$this->validatePIC(
+            $request->pic_ticket,
+            $request->ticket_type,
+            $request->ticket_categoryid
+        ),
+        422,
+        'Selected PIC is invalid.'
+    );
+
+    DB::connection('pgsql5')->beginTransaction();
+
+    try {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Transfer Note
+        |--------------------------------------------------------------------------
+        */
+
+        $transferNote = null;
+
+        if (
+            $ticket->ticket_categoryid != $request->ticket_categoryid
+            || $ticket->ticket_subcategoryid != $request->ticket_subcategoryid
+        ) {
+
+            $oldCategory = optional(
+                MsTicketCategory::where(
+                    'ticket_categoryid',
+                    $ticket->ticket_categoryid
+                )->first()
+            )->ticket_category_name;
+
+            $oldSubcategory = optional(
+                MsTicketSubcategory::where(
+                    'ticket_subcategoryid',
+                    $ticket->ticket_subcategoryid
+                )->first()
+            )->ticket_subcategory_name;
+
+            $newCategory = optional(
+                MsTicketCategory::where(
+                    'ticket_categoryid',
+                    $request->ticket_categoryid
+                )->first()
+            )->ticket_category_name;
+
+            $newSubcategory = optional(
+                MsTicketSubcategory::where(
+                    'ticket_subcategoryid',
+                    $request->ticket_subcategoryid
+                )->first()
+            )->ticket_subcategory_name;
+
+            $transferNote =
+                "Transfer category from {$oldCategory} / {$oldSubcategory} to {$newCategory} / {$newSubcategory}";
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Reset Workflow Schedule
+        |--------------------------------------------------------------------------
+        */
+
+        $workingStart = null;
+
+        $workingEnd = null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Ticket
+        |--------------------------------------------------------------------------
+        */
+
+        $ticket->update([
+
+            'ticket_type' =>
+                $request->ticket_type,
+
+            'ticket_categoryid' =>
+                $request->ticket_categoryid,
+
+            'ticket_subcategoryid' =>
+                $request->ticket_subcategoryid,
+
+            'pic_ticket' =>
+                $request->pic_ticket,
+
+            /*
+            |--------------------------------------------------------------------------
+            | Reset SLA
+            |--------------------------------------------------------------------------
+            */
+
+            'ticket_priority' =>
+                null,
+
+            'ticket_sla_days' =>
+                null,
+
+            'ticket_duedate' =>
+                null,
+
+            /*
+            |--------------------------------------------------------------------------
+            | Reset Working Schedule
+            |--------------------------------------------------------------------------
+            */
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            /*
+            |--------------------------------------------------------------------------
+            | Workflow
+            |--------------------------------------------------------------------------
+            */
+
+            'status' => 'P',
+
+            'status_pekerjaan' =>
+                'TRANSFER',
+
+            'updated_by' =>
+                auth()->user()->username,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Activity
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createActivity([
+
+            'ticketid' =>
+                $ticket->ticketid,
+
+            'cpny_id' =>
+                $ticket->cpny_id,
+
+            'department_id' =>
+                $ticket->department_id,
+
+            'pic_ticket' =>
+                $request->pic_ticket,
+
+            'response_date' =>
+                now(),
+
+            'response_summary' =>
+                'Ticket Transfer',
+
+            'response_descr' =>
+                $transferNote,
+
+            'working_start_date' =>
+                $workingStart,
+
+            'working_end_date' =>
+                $workingEnd,
+
+            'status_pekerjaan' =>
+                'TRANSFER',
+
+            'status' => 'A',
+
+            'created_by' =>
+                auth()->user()->username,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notification
+        |--------------------------------------------------------------------------
+        */
+
+        $ticket->refresh();
+
+        $this->notificationService
+            ->ticketTransferred($ticket);
+
+        DB::connection('pgsql5')->commit();
+
+        return response()->json([
+
+            'success' => true,
+
+            'message' =>
+                'Ticket transferred successfully.',
+
+        ]);
+
+    } catch (\Throwable $th) {
+
+        DB::connection('pgsql5')->rollBack();
+
+        return response()->json([
+
+            'success' => false,
+
+            'message' =>
+                $th->getMessage(),
+
+        ], 500);
+    }
+}
+
+    public function completeTicket(Request $request, $hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        abort_if(
+            $ticket->pic_ticket !== auth()->user()->username,
+            403
+        );
+
+        abort_if(
+            !in_array($ticket->status_pekerjaan, [
+                'PROCESS',
+                'PENDING',
+                'ENVISION',
+                'TRANSFER',
+                'REOPEN',
+                'RESPONSE',
+            ]),
+            403,
+            'Ticket cannot be completed.'
+        );
+
+        $request->validate([
+            'solution_descr' => 'required',
+        ]);
+
+        DB::connection('pgsql5')->beginTransaction();
+
         try {
-            $creator = User::query()
-                ->where('username', $ticket->created_by)
-                ->first();
-
-            $picDept = MsTicketCategoryDept::query()
-                ->where('ticket_type', $ticket->ticket_type)
-                ->where('ticket_categoryid', $ticket->ticket_categoryid)
-                ->where('department_id', $ticket->department_id)
-                ->where('status', 'A')
-                ->first();
-
-            $picUsers = collect(
-                explode(',', $picDept?->username ?? '')
-            )
-            ->map(fn ($x) => trim($x))
-            ->filter()
-            ->unique()
-            ->values();
-
-            $url = route('ticket.index', [
-                'showticket' => Hashids::encode($ticket->id),
+            $ticket->update([
+                'solution_descr' => $request->solution_descr,
+                'pic_completed_ticket' => auth()->user()->username,
+                'completed_by' => auth()->user()->username,
+                'completed_at' => now(),
+                'status' => 'C',
+                'status_pekerjaan' => 'COMPLETED',
+                'updated_by' => auth()->user()->username,
             ]);
 
-            $subject =
-                '[Ticket] New Ticket - '
-                .$ticket->ticketid;
-
-            $message = "
-            <p>New ticket has been created.</p>
-
-            <table cellpadding='6' cellspacing='0' border='1'>
-                <tr>
-                    <td><b>Ticket ID</b></td>
-                    <td>{$ticket->ticketid}</td>
-                </tr>
-                <tr>
-                    <td><b>Issue</b></td>
-                    <td>{$ticket->issue_summary}</td>
-                </tr>
-                <tr>
-                    <td><b>Category</b></td>
-                    <td>{$ticket->ticket_categoryid}</td>
-                </tr>
-            </table>
-
-            <br>
-
-            <a href='{$url}'>Open Ticket</a>
-        ";
-
-            $emails = collect();
-
-            if ($creator?->email) {
-                $emails->push($creator->email);
-            }
-
-            foreach ($picUsers as $username) {
-                $user = User::query()
-                    ->where('username', $username)
-                    ->first();
-
-                if (!$user?->email) {
-                    continue;
-                }
-
-                $emails->push($user->email);
-            }
-
-            $emails = $emails->unique();
-
-            foreach ($emails as $email) {
-                TrMessage::create([
-                    'message_date' => now(),
-                    'message_to' => $email,
-                    'subject' => $subject,
-                    'message' => $message,
-                    'status' => 'W',
-                    'created_by' => auth()->user()->username ?? 'system',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            \Log::error('notifyTicketCreated error', [
-                'error' => $e->getMessage(),
+            $this->createActivity([
+                'ticketid' => $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
+                'pic_ticket' => auth()->user()->username,
+                'response_date' => now(),
+                'response_summary' => 'Ticket Completed',
+                'response_descr' => $request->solution_descr,
+                'status_pekerjaan' => 'COMPLETED',
+                'status' => 'A',
+                'created_by' => auth()->user()->username,
             ]);
+
+            $ticket->refresh();
+            $this->notificationService
+                ->ticketCompleted($ticket);
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ticket completed successfully.',
+            ]);
+        } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
         }
     }
 
-    private function notifyTicketResponse($ticket)
+public function reopenTicket(Request $request, $hash)
+{
+    $id = Hashids::decode($hash)[0] ?? null;
+
+    abort_if(!$id, 404);
+
+    $ticket = TrTicket::findOrFail($id);
+
+    abort_unless(
+        $this->isITRole(),
+        403
+    );
+
+    abort_if(
+        $ticket->status !== 'C',
+        403
+    );
+
+    $request->validate([
+
+        'reopen_descr' =>
+            'required',
+
+        'working_start_date' =>
+            'nullable|date',
+
+        'working_end_date' =>
+            'nullable|date|after_or_equal:working_start_date',
+
+    ]);
+
+    DB::connection('pgsql5')->beginTransaction();
+
+    try {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Working Schedule
+        |--------------------------------------------------------------------------
+        */
+
+        $workingStart =
+            $request->working_start_date
+            ?? now();
+
+        $workingEnd =
+            $request->working_end_date
+            ?? $ticket->ticket_duedate
+            ?? now()->addDay();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Ticket
+        |--------------------------------------------------------------------------
+        */
+
+        $ticket->update([
+
+            'reopen_ticket' =>
+
+                ($ticket->reopen_ticket ?? 0) + 1,
+
+            'reopen_descr' =>
+
+                $request->reopen_descr,
+
+            /*
+            |--------------------------------------------------------------------------
+            | Working Schedule
+            |--------------------------------------------------------------------------
+            */
+
+            'working_start_date' =>
+
+                $workingStart,
+
+            'working_end_date' =>
+
+                $workingEnd,
+
+            /*
+            |--------------------------------------------------------------------------
+            | Workflow
+            |--------------------------------------------------------------------------
+            */
+
+            'status' => 'P',
+
+            'status_pekerjaan' =>
+
+                'REOPEN',
+
+            'updated_by' =>
+
+                auth()->user()->username,
+
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Activity
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createActivity([
+
+            'ticketid' =>
+
+                $ticket->ticketid,
+
+            'cpny_id' =>
+
+                $ticket->cpny_id,
+
+            'department_id' =>
+
+                $ticket->department_id,
+
+            'pic_ticket' =>
+
+                auth()->user()->username,
+
+            'response_date' =>
+
+                now(),
+
+            'response_summary' =>
+
+                'Ticket Reopen',
+
+            'response_descr' =>
+
+                $request->reopen_descr,
+
+            'working_start_date' =>
+
+                $workingStart,
+
+            'working_end_date' =>
+
+                $workingEnd,
+
+            'status_pekerjaan' =>
+
+                'REOPEN',
+
+            'status' => 'A',
+
+            'created_by' =>
+
+                auth()->user()->username,
+
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notification
+        |--------------------------------------------------------------------------
+        */
+
+        $ticket->refresh();
+
+        $this->notificationService
+            ->ticketReopened($ticket);
+
+        DB::connection('pgsql5')->commit();
+
+        return response()->json([
+
+            'success' => true,
+
+            'message' =>
+
+                'Ticket reopened successfully.',
+
+        ]);
+
+    } catch (\Throwable $th) {
+
+        DB::connection('pgsql5')->rollBack();
+
+        return response()->json([
+
+            'success' => false,
+
+            'message' =>
+
+                $th->getMessage(),
+
+        ], 500);
+    }
+}
+
+    public function comments($hash)
     {
-        try {
-            $creator = User::query()
-                ->where('username', $ticket->created_by)
-                ->first();
+        $id = Hashids::decode($hash)[0] ?? null;
 
-            $pic = User::query()
-                ->where('username', $ticket->pic_ticket)
-                ->first();
+        abort_if(!$id, 404);
 
-            $url = route('ticket.index', [
-                'showticket' => Hashids::encode($ticket->id),
-            ]);
+        $ticket = TrTicket::findOrFail($id);
 
-            $subject =
-                '[Ticket] Ticket Responded - '
-                .$ticket->ticketid;
+        abort_unless(
+            $this->canAccessTicket($ticket),
+            403
+        );
 
-            $message = "
-            <p>Ticket has been responded and assigned.</p>
+        $comments = TrMessage::query()
+            ->where('refnbr', $ticket->ticketid)
+            ->where('doctype', 'TIC')
+            ->orderBy('created_at')
+            ->get();
 
-            <table cellpadding='6' cellspacing='0' border='1'>
-                <tr>
-                    <td><b>Ticket ID</b></td>
-                    <td>{$ticket->ticketid}</td>
-                </tr>
-                <tr>
-                    <td><b>PIC</b></td>
-                    <td>{$ticket->pic_ticket}</td>
-                </tr>
-                <tr>
-                    <td><b>Priority</b></td>
-                    <td>{$ticket->ticket_priority}</td>
-                </tr>
-                <tr>
-                    <td><b>Due Date</b></td>
-                    <td>{$ticket->ticket_duedate}</td>
-                </tr>
-            </table>
-
-            <br>
-
-            <a href='{$url}'>Open Ticket</a>
-        ";
-
-            $emails = collect();
-
-            if ($creator?->email) {
-                $emails->push($creator->email);
-            }
-
-            if ($pic?->email) {
-                $emails->push($pic->email);
-            }
-
-            $emails = $emails->unique();
-
-            foreach ($emails as $email) {
-                TrMessage::create([
-                    'message_date' => now(),
-                    'message_to' => $email,
-                    'subject' => $subject,
-                    'message' => $message,
-                    'status' => 'W',
-                    'created_by' => auth()->user()->username ?? 'system',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            \Log::error('notifyTicketResponse error', [
-                'error' => $e->getMessage(),
-            ]);
-        }
+        return response()->json([
+            'success' => true,
+            'data' => $comments,
+        ]);
     }
 
-    private function notifyTicketProgress($ticket)
+    public function comment(Request $request, $hash)
     {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        abort_unless(
+            $this->canAccessTicket($ticket),
+            403
+        );
+
+        $request->validate([
+
+            'message' => 'required',
+
+            'attachments.*' => [
+
+                'nullable',
+                'file',
+                'max:5120',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+
+            ],
+
+        ]);
+
+        DB::connection('pgsql5')->beginTransaction();
+
         try {
-            $creator = User::query()
-                ->where('username', $ticket->created_by)
-                ->first();
 
-            if (!$creator?->email) {
-                return;
-            }
 
-            $lastActivity = TrTicketActivity::query()
-                ->where('ticketid', $ticket->ticketid)
-                ->latest('response_date')
-                ->first();
+            $this->createActivity([
 
-            $url = route('ticket.index', [
-                'showticket' => Hashids::encode($ticket->id),
+                'ticketid' => $ticket->ticketid,
+
+                'cpny_id' => $ticket->cpny_id,
+
+                'department_id' => $ticket->department_id,
+
+                'pic_ticket' => auth()->user()->username,
+
+                'response_date' => now(),
+
+                'response_summary' => 'Ticket Comment',
+
+                'response_descr' => $request->message,
+
+                'status_pekerjaan' => $ticket->status_pekerjaan,
+
+                'status' => 'A',
+
+                'created_by' => auth()->user()->username,
+
             ]);
-
-            $subject =
-                '[Ticket] Progress Update - '
-                .$ticket->ticketid;
-
-            $message = "
-            <p>Ticket progress has been updated.</p>
-
-            <table cellpadding='6' cellspacing='0' border='1'>
-                <tr>
-                    <td><b>Ticket ID</b></td>
-                    <td>{$ticket->ticketid}</td>
-                </tr>
-                <tr>
-                    <td><b>PIC</b></td>
-                    <td>{$ticket->pic_ticket}</td>
-                </tr>
-                <tr>
-                    <td><b>Summary</b></td>
-                    <td>{$lastActivity?->response_summary}</td>
-                </tr>
-                <tr>
-                    <td><b>Description</b></td>
-                    <td>{$lastActivity?->response_descr}</td>
-                </tr>
-            </table>
-
-            <br>
-
-            <a href='{$url}'>Open Ticket</a>
-        ";
 
             TrMessage::create([
-                'message_date' => now(),
-                'message_to' => $creator->email,
-                'subject' => $subject,
-                'message' => $message,
-                'status' => 'W',
-                'created_by' => auth()->user()->username ?? 'system',
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('notifyTicketProgress error', [
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
 
-    private function notifyTicketCompleted($ticket)
-    {
-        try {
-            $creator = User::query()
-                ->where('username', $ticket->created_by)
-                ->first();
+                'refnbr' =>
+                $ticket->ticketid,
 
-            if (!$creator?->email) {
-                return;
+                'doctype' =>
+                'TIC',
+
+                'message_date' =>
+                now(),
+
+                'cpny_id' =>
+                $ticket->cpny_id,
+
+                'department_id' =>
+                $ticket->department_id,
+
+                'username' =>
+                auth()->user()->username,
+
+                'name' =>
+                auth()->user()->name
+                    ?? auth()->user()->username,
+
+                'message' =>
+                $request->message,
+
+                'status' =>
+                'A',
+
+                'created_by' =>
+                auth()->user()->username,
+
+            ]);
+
+            $uploadResult = null;
+
+            if ($request->hasFile('attachments')) {
+
+                $meta = [
+
+                    'refnbr' => $ticket->ticketid,
+
+                    'doctype' => 'TIC',
+
+                    'cpny_id' => $ticket->cpny_id,
+
+                    'department_id' => $ticket->department_id,
+
+                    'base_folder' => 'att-ticket/tic-comment',
+
+                    'created_by' => auth()->user()->username,
+
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+
+                    $uploader = app(
+                        TrAttachmentController::class
+                    );
+
+                    $uploadResult =
+                        $uploader->uploadInternal(
+                            $meta,
+                            $files
+                        );
+                } catch (\Throwable $e) {
+
+                    DB::connection('pgsql5')
+                        ->rollBack();
+
+                    return response()->json([
+
+                        'success' => false,
+
+                        'message' => 'Failed upload attachment',
+
+                        'error' => config('app.debug')
+                            ? $e->getMessage()
+                            : null,
+
+                    ], 500);
+                }
             }
 
-            $url = route('ticket.index', [
-                'showticket' => Hashids::encode($ticket->id),
+            /*
+        |--------------------------------------------------------------------------
+        | Notification
+        |--------------------------------------------------------------------------
+        */
+
+            try {
+
+                $ticket->refresh();
+
+                if (
+                    method_exists(
+                        $this->notificationService,
+                        'ticketCommented'
+                    )
+                ) {
+
+                    $this->notificationService
+                        ->ticketCommented(
+                            $ticket,
+                            auth()->user()->username,
+                            $request->message
+                        );
+                }
+            } catch (\Throwable $e) {
+
+                \Log::warning(
+                    'Ticket comment notification failed',
+                    [
+                        'ticketid' => $ticket->ticketid,
+                        'error' => $e->getMessage(),
+                    ]
+                );
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+
+                'success' => true,
+
+                'message' => 'Comment sent successfully.',
+
             ]);
+        } catch (\Throwable $th) {
 
-            $subject =
-                '[Ticket] Ticket Completed - '
-                .$ticket->ticketid;
+            DB::connection('pgsql5')->rollBack();
 
-            $message = "
-            <p>Ticket has been completed.</p>
+            return response()->json([
 
-            <table cellpadding='6' cellspacing='0' border='1'>
-                <tr>
-                    <td><b>Ticket ID</b></td>
-                    <td>{$ticket->ticketid}</td>
-                </tr>
-                <tr>
-                    <td><b>Completed By</b></td>
-                    <td>{$ticket->completed_by}</td>
-                </tr>
-                <tr>
-                    <td><b>Solution</b></td>
-                    <td>{$ticket->solution_descr}</td>
-                </tr>
-            </table>
+                'success' => false,
 
-            <br>
+                'message' => $th->getMessage(),
 
-            <a href='{$url}'>Open Ticket</a>
-        ";
-
-            TrMessage::create([
-                'message_date' => now(),
-                'message_to' => $creator->email,
-                'subject' => $subject,
-                'message' => $message,
-                'status' => 'W',
-                'created_by' => auth()->user()->username ?? 'system',
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('notifyTicketCompleted error', [
-                'error' => $e->getMessage(),
-            ]);
+            ], 500);
         }
     }
-
-    private function notifyTicketReopened($ticket)
+    public function createDropdown()
     {
-        try {
-            $creator = User::query()
-                ->where('username', $ticket->created_by)
-                ->first();
+        $user = auth()->user();
 
-            $picDept = MsTicketCategoryDept::query()
-                ->where('ticket_type', $ticket->ticket_type)
-                ->where('ticket_categoryid', $ticket->ticket_categoryid)
-                ->where('department_id', $ticket->department_id)
-                ->where('status', 'A')
-                ->first();
-
-            $picUsers = collect(
-                explode(',', $picDept?->username ?? '')
-            )
-            ->map(fn ($x) => trim($x))
+        $companies = collect(
+            explode(',', $user->cpny_id)
+        )
             ->filter()
-            ->unique()
+            ->map(function ($item) {
+                return [
+                    'cpny_id' => trim($item),
+                    'cpny_name' => trim($item),
+                ];
+            })
             ->values();
 
-            $url = route('ticket.index', [
-                'showticket' => Hashids::encode($ticket->id),
-            ]);
-
-            $subject =
-                '[Ticket] Ticket Reopened - '
-                .$ticket->ticketid;
-
-            $message = "
-            <p>Ticket has been reopened.</p>
-
-            <table cellpadding='6' cellspacing='0' border='1'>
-                <tr>
-                    <td><b>Ticket ID</b></td>
-                    <td>{$ticket->ticketid}</td>
-                </tr>
-                <tr>
-                    <td><b>Reason</b></td>
-                    <td>{$ticket->reopen_descr}</td>
-                </tr>
-            </table>
-
-            <br>
-
-            <a href='{$url}'>Open Ticket</a>
-        ";
-
-            $emails = collect();
-
-            if ($creator?->email) {
-                $emails->push($creator->email);
-            }
-
-            foreach ($picUsers as $username) {
-                $user = User::query()
-                    ->where('username', $username)
-                    ->first();
-
-                if (!$user?->email) {
-                    continue;
-                }
-
-                $emails->push($user->email);
-            }
-
-            $emails = $emails->unique();
-
-            foreach ($emails as $email) {
-                TrMessage::create([
-                    'message_date' => now(),
-                    'message_to' => $email,
-                    'subject' => $subject,
-                    'message' => $message,
-                    'status' => 'W',
-                    'created_by' => auth()->user()->username ?? 'system',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            \Log::error('notifyTicketReopened error', [
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    private function notifyTicketCancelled($ticket)
-    {
-        try {
-            $creator = User::query()
-                ->where('username', $ticket->created_by)
-                ->first();
-
-            $pic = User::query()
-                ->where('username', $ticket->pic_ticket)
-                ->first();
-
-            $url = route('ticket.index', [
-                'showticket' => Hashids::encode($ticket->id),
-            ]);
-
-            $subject =
-                '[Ticket] Ticket Cancelled - '
-                .$ticket->ticketid;
-
-            $message = "
-            <p>Ticket has been cancelled.</p>
-
-            <table cellpadding='6' cellspacing='0' border='1'>
-                <tr>
-                    <td><b>Ticket ID</b></td>
-                    <td>{$ticket->ticketid}</td>
-                </tr>
-                <tr>
-                    <td><b>Issue</b></td>
-                    <td>{$ticket->issue_summary}</td>
-                </tr>
-            </table>
-
-            <br>
-
-            <a href='{$url}'>Open Ticket</a>
-        ";
-
-            $emails = collect();
-
-            if ($creator?->email) {
-                $emails->push($creator->email);
-            }
-
-            if ($pic?->email) {
-                $emails->push($pic->email);
-            }
-
-            $emails = $emails->unique();
-
-            foreach ($emails as $email) {
-                TrMessage::create([
-                    'message_date' => now(),
-                    'message_to' => $email,
-                    'subject' => $subject,
-                    'message' => $message,
-                    'status' => 'W',
-                    'created_by' => auth()->user()->username ?? 'system',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            \Log::error('notifyTicketCancelled error', [
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    private function notifyTransferTicket($ticket)
-    {
-        try {
-            $picDept = MsTicketCategoryDept::query()
-                ->where('ticket_type', $ticket->ticket_type)
-                ->where('ticket_categoryid', $ticket->ticket_categoryid)
-                ->where('department_id', $ticket->department_id)
-                ->where('status', 'A')
-                ->first();
-
-            $picUsers = collect(
-                explode(',', $picDept?->username ?? '')
-            )
-            ->map(fn ($x) => trim($x))
+        $departments = collect(
+            explode(',', $user->department_id)
+        )
             ->filter()
-            ->unique()
+            ->map(function ($item) {
+                return [
+                    'department_id' => trim($item),
+                    'department_name' => trim($item),
+                ];
+            })
             ->values();
 
-            $url = route('ticket.index', [
-                'showticket' => Hashids::encode($ticket->id),
+        $userCompanies = explode(
+            ',',
+            $user->cpny_id
+        );
+
+        $locations = MsLocation::query()
+            ->where('status', 'A')
+            ->whereIn('cpny_id', $userCompanies)
+            ->orderBy('location_name')
+            ->get([
+                'location_id',
+                'location_name',
+                'cpny_id',
             ]);
 
-            $subject =
-                '[Ticket] Ticket Transfer - '
-                .$ticket->ticketid;
+        $types = MsTicketType::query()
+            ->where('status', 'A')
+            ->orderBy('ticket_type_name')
+            ->get([
+                'ticket_type',
+                'ticket_type_name',
+            ]);
 
-            $message = "
-            <p>Ticket has been transferred.</p>
+        return response()->json([
+            'success' => true,
+            'companies' => $companies,
+            'departments' => $departments,
+            'locations' => $locations,
+            'types' => $types,
+        ]);
+    }
 
-            <table cellpadding='6' cellspacing='0' border='1'>
-                <tr>
-                    <td><b>Ticket ID</b></td>
-                    <td>{$ticket->ticketid}</td>
-                </tr>
-                <tr>
-                    <td><b>New Category</b></td>
-                    <td>{$ticket->ticket_categoryid}</td>
-                </tr>
-                <tr>
-                    <td><b>New Subcategory</b></td>
-                    <td>{$ticket->ticket_subcategoryid}</td>
-                </tr>
-            </table>
+    public function categorySearch(Request $request)
+    {
+        $query = MsTicketCategory::query()
+            ->where('status', 'A');
 
-            <br>
+        if ($request->filled('ticket_type')) {
+            $query->where('ticket_type', $request->ticket_type);
+        }
 
-            <a href='{$url}'>Open Ticket</a>
-        ";
+        return response()->json([
+            'results' => $query
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->ticket_categoryid,
+                        'text' => $row->ticket_category_name,
+                    ];
+                }),
+        ]);
+    }
 
-            foreach ($picUsers as $username) {
-                $user = User::query()
-                    ->where('username', $username)
-                    ->first();
+    public function subcategorySearch(Request $request)
+    {
+        $query = MsTicketSubcategory::query()
+            ->where('status', 'A');
 
-                if (!$user?->email) {
-                    continue;
-                }
+        if ($request->filled('ticket_type')) {
+            $query->where('ticket_type', $request->ticket_type);
+        }
 
-                TrMessage::create([
-                    'message_date' => now(),
-                    'message_to' => $user->email,
-                    'subject' => $subject,
-                    'message' => $message,
-                    'status' => 'W',
-                    'created_by' => auth()->user()->username ?? 'system',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            \Log::error('notifyTransferTicket error', [
-                'error' => $e->getMessage(),
+        if ($request->filled('ticket_categoryid')) {
+            $query->where('ticket_categoryid', $request->ticket_categoryid);
+        }
+
+        return response()->json([
+            'results' => $query
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->ticket_subcategoryid,
+                        'text' => $row->ticket_subcategory_name,
+                    ];
+                }),
+        ]);
+    }
+
+    public function prioritySearch(Request $request)
+    {
+        $query = MsTicketPriority::query()
+            ->where('status', 'A');
+
+        if ($request->filled('ticket_type')) {
+            $query->where('ticket_type', $request->ticket_type);
+        }
+
+        if ($request->filled('ticket_categoryid')) {
+            $query->where('ticket_categoryid', $request->ticket_categoryid);
+        }
+
+        return response()->json([
+            'results' => $query
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->ticket_priority,
+                        'text' => $row->ticket_priority_name,
+                        'sla_days' => $row->ticket_sla_days,
+                    ];
+                }),
+        ]);
+    }
+
+    public function locationSearch(Request $request)
+    {
+
+        $query = MsLocation::query()
+            ->where('status', 'A');
+
+        return response()->json([
+
+            'results' => $query
+                ->orderBy('location_name')
+                ->get()
+                ->map(function ($row) {
+
+                    return [
+
+                        'id' => $row->location_id,
+
+                        'text' => $row->location_name,
+
+                    ];
+                }),
+
+        ]);
+    }
+
+    public function subLocationSearch(Request $request)
+    {
+
+        $query = MsSubLocation::query()
+            ->where('status', 'A');
+
+        if ($request->filled('location_id')) {
+
+            $query->where(
+                'location_id',
+                $request->location_id
+            );
+        }
+
+        return response()->json([
+
+            'results' => $query
+                ->orderBy('sub_location_name')
+                ->get()
+                ->map(function ($row) {
+
+                    return [
+
+                        'id' => $row->sub_location_id,
+
+                        'text' => $row->sub_location_name,
+
+                    ];
+                }),
+
+        ]);
+    }
+
+public function picSearch(Request $request)
+{
+    $query = MsTicketCategoryDept::query()
+        ->where('status', 'A');
+
+    if ($request->filled('ticket_type')) {
+
+        $query->where(
+            'ticket_type',
+            $request->ticket_type
+        );
+    }
+
+    if ($request->filled('ticket_categoryid')) {
+
+        $query->where(
+            'ticket_categoryid',
+            $request->ticket_categoryid
+        );
+    }
+
+    if ($request->filled('department_id')) {
+
+        $query->where(
+            'department_id',
+            $request->department_id
+        );
+    }
+
+    return response()->json([
+
+        'results' => $query
+            ->distinct()
+            ->orderBy('username')
+            ->get()
+            ->map(function ($row) {
+
+                return [
+
+                    'id' => $row->username,
+
+                    'text' => $row->username,
+
+                ];
+            }),
+
+    ]);
+}
+
+    protected function createActivity(array $data)
+    {
+        return TrTicketActivity::create([
+            'ticketid' => $data['ticketid'],
+            'cpny_id' => $data['cpny_id'],
+            'department_id' => $data['department_id'],
+            'pic_ticket' => $data['pic_ticket'] ?? null,
+            'response_date' => $data['response_date'] ?? now(),
+            'response_summary' => $data['response_summary'] ?? null,
+            'response_descr' => $data['response_descr'] ?? null,
+            'working_start_date' => $data['working_start_date'] ?? null,
+            'working_end_date' => $data['working_end_date'] ?? null,
+            'status_pekerjaan' => $data['status_pekerjaan'] ?? null,
+            'status' => $data['status'] ?? 'A',
+            'created_by' => $data['created_by'] ?? auth()->user()->username,
+        ]);
+    }
+
+    protected function buildTracking($activities, $comments = [])
+    {
+        $timeline = collect();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Activity Timeline
+    |--------------------------------------------------------------------------
+    */
+
+        foreach ($activities as $activity) {
+
+            $timeline->push([
+
+                'type' => 'activity',
+
+                'title' =>
+                $activity->response_summary
+                    ?: 'Ticket Activity',
+
+                'description' =>
+                $activity->response_descr,
+
+                'status' =>
+                $activity->status_pekerjaan
+                    ?: '-',
+
+                'pic' =>
+                $activity->pic_ticket
+                    ?: $activity->created_by
+                    ?: 'System',
+
+                'datetime' =>
+                optional(
+                    $activity->response_date
+                )->format('Y-m-d H:i:s'),
+
+                'working_start_date' =>
+                optional(
+                    $activity->working_start_date
+                )->format('Y-m-d H:i:s'),
+
+                'working_end_date' =>
+                optional(
+                    $activity->working_end_date
+                )->format('Y-m-d H:i:s'),
+
             ]);
         }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Comment Timeline
+    |--------------------------------------------------------------------------
+    */
+
+        foreach ($comments as $comment) {
+
+            $timeline->push([
+
+                'type' => 'comment',
+
+                'title' =>
+                'Ticket Comment',
+
+                'description' =>
+                $comment['message'] ?? '-',
+
+                'status' =>
+                'COMMENT',
+
+                'pic' =>
+                $comment['created_by']
+                    ?? 'User',
+
+                'datetime' =>
+                $comment['created_at']
+                    ?? now()->format('Y-m-d H:i:s'),
+
+            ]);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Remove Duplicate Comment Activity
+    |--------------------------------------------------------------------------
+    */
+
+        $timeline = $timeline->reject(function ($item) {
+
+            return
+                $item['type'] === 'activity'
+                &&
+                $item['title'] === 'Ticket Comment';
+        });
+
+        return $timeline
+            ->sortBy('datetime')
+            ->values();
+    }
+
+    protected function buildActions($ticket)
+    {
+        $user = auth()->user();
+
+        $isRequester =
+            $ticket->created_by === $user->username;
+
+        $isPIC =
+            $ticket->pic_ticket === $user->username;
+
+        $isIT = $this->isITRole();
+
+        return [
+            'can_edit' => $isRequester
+                && $ticket->status === 'P'
+                && $ticket->status_pekerjaan === 'CREATED',
+
+            'can_cancel' => $isRequester
+                && $ticket->status === 'P'
+                && $ticket->status_pekerjaan === 'CREATED',
+
+            'can_response' => $isIT
+                && $ticket->status === 'P'
+                && in_array($ticket->status_pekerjaan, [
+                    'CREATED',
+                    'REOPEN',
+                ]),
+
+            'can_process' => $isPIC
+                && $ticket->status === 'P'
+                && in_array($ticket->status_pekerjaan, [
+                    'RESPONSE',
+                    'PENDING',
+                    'ENVISION',
+                    'TRANSFER',
+                    'REOPEN',
+                ]),
+
+            'can_pending' => $isPIC
+                && $ticket->status === 'P'
+                && in_array($ticket->status_pekerjaan, [
+                    'PROCESS',
+                    'RESPONSE',
+                    'ENVISION',
+                ]),
+
+            'can_envision' => $isPIC
+                && $ticket->status === 'P'
+                && in_array($ticket->status_pekerjaan, [
+                    'PROCESS',
+                    'PENDING',
+                    'RESPONSE',
+                ]),
+
+            'can_transfer' => (
+                    $isIT
+                    || $isPIC
+                )
+                && $ticket->status === 'P'
+                && in_array($ticket->status_pekerjaan, [
+                    'CREATED',
+                    'RESPONSE',
+                    'PROCESS',
+                    'PENDING',
+                    'ENVISION',
+                    'REOPEN',
+                ]),
+
+            'can_complete' => $isPIC
+                && $ticket->status === 'P'
+                && in_array($ticket->status_pekerjaan, [
+                    'PROCESS',
+                    'PENDING',
+                    'ENVISION',
+                    'TRANSFER',
+                    'REOPEN',
+                    'RESPONSE',
+                ]),
+
+            'can_reopen' => $isRequester
+                && $ticket->status === 'C'
+                && $ticket->status_pekerjaan === 'COMPLETED',
+        ];
+    }
+
+    protected function validatePIC(
+        $username,
+        $ticketType,
+        $categoryId
+    ) {
+        return MsTicketCategoryDept::query()
+            ->where('username', $username)
+            ->where('ticket_type', $ticketType)
+            ->where('ticket_categoryid', $categoryId)
+            ->where('status', 'A')
+            ->exists();
     }
 }

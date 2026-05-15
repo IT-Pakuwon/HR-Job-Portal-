@@ -13,30 +13,18 @@ class TrTicketActivity extends Model
 
     protected $table = 'tr_ticket_activity';
 
-    public $timestamps = true;
-
     protected $fillable = [
         'ticketid',
-
         'cpny_id',
         'department_id',
-
         'pic_ticket',
-
-        'activity_type',
-        'activity_title',
-        'activity_message',
-
+        'response_date',
+        'response_summary',
+        'response_descr',
         'working_start_date',
         'working_end_date',
-
-        'response_date',
-
         'status_pekerjaan',
         'status',
-
-        'is_system',
-
         'created_by',
         'updated_by',
         'deleted_by',
@@ -46,28 +34,10 @@ class TrTicketActivity extends Model
         'response_date' => 'datetime',
         'working_start_date' => 'datetime',
         'working_end_date' => 'datetime',
-        'is_system' => 'boolean',
     ];
 
     public function ticket()
     {
-        return $this->belongsTo(
-            TrTicket::class,
-            'ticketid',
-            'ticketid'
-        );
-    }
-
-    public function getDurationMinutesAttribute()
-    {
-        if (
-            !$this->working_start_date
-            || !$this->working_end_date
-        ) {
-            return null;
-        }
-
-        return $this->working_start_date
-            ->diffInMinutes($this->working_end_date);
+        return $this->belongsTo(TrTicket::class, 'ticketid', 'ticketid');
     }
 }

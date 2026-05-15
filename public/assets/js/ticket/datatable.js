@@ -1,0 +1,875 @@
+let ticketStatusFilter = "";
+let ticketSearchTimeout;
+
+const isIT = window.isIT || false;
+
+const ticketTable = $("#ticketTable").DataTable({
+    processing: true,
+
+    serverSide: true,
+
+    responsive: false,
+
+    autoWidth: false,
+
+    pageLength: 10,
+
+    lengthMenu: [
+        [10, 25, 50, 100, -1],
+        [10, 25, 50, 100, "All"],
+    ],
+
+    lengthChange: true,
+
+    searching: !isIT,
+
+    dom: isIT ? "lrtip" : "flrtip",
+
+    ordering: true,
+
+    order: [[2, "desc"]],
+
+    ajax: {
+        url: "/ticket/json",
+
+        data: function (d) {
+            d.status = ticketStatusFilter;
+
+            d.search = $("#filter_search").val();
+
+            d.status_filter = $("#filter_status").val();
+
+            d.status_pekerjaan = $("#filter_status_pekerjaan").val();
+
+            d.date_from = $("#filter_date_from").val();
+
+            d.date_to = $("#filter_date_to").val();
+        },
+    },
+
+    columns: [
+        {
+            data: null,
+
+            orderable: false,
+
+            searchable: false,
+
+            className: "px-5 py-4 text-center align-top",
+
+            render: function (data, type, row, meta) {
+                return `
+                        <span class="text-sm text-gray-500 dark:text-gray-400">
+                            ${meta.row + meta.settings._iDisplayStart + 1}
+                        </span>
+                    `;
+            },
+        },
+        {
+            data: "ticketid",
+
+            name: "ticketid",
+
+            className:
+                "px-5 py-4 whitespace-nowrap align-top",
+
+           render: function (data, type, row) {
+
+    let url =
+        `/showticket/${row.eid}`;
+
+    let cls = `
+        inline-flex
+        items-center
+        justify-center
+
+        min-w-[150px]
+
+        rounded-lg
+
+        bg-slate-800
+        dark:bg-slate-100
+
+        px-4 py-2.5
+
+        text-sm
+        font-semibold
+
+        text-white
+        dark:text-slate-900
+
+        transition-all
+        duration-200
+
+        hover:bg-slate-700
+        dark:hover:bg-white
+    `;
+
+    const canEdit =
+        row.status === "P" &&
+        row.status_pekerjaan === "CREATED" &&
+        row.created_by === window.currentUser;
+
+    if (canEdit) {
+
+        cls = `
+            inline-flex
+            items-center
+            justify-center
+
+            min-w-[150px]
+
+            rounded-lg
+
+            bg-amber-500
+            dark:bg-amber-400
+
+            px-4 py-2.5
+
+            text-sm
+            font-semibold
+
+            text-white
+            dark:text-slate-900
+
+            transition-all
+            duration-200
+
+            hover:bg-amber-600
+            dark:hover:bg-amber-300
+        `;
+
+    }
+
+    return `
+        <div class="flex items-center gap-2 whitespace-nowrap">
+
+            ${
+                canEdit
+                    ? `
+                        <button
+                            type="button"
+                            class="${cls} btn-edit-ticket"
+                            data-id="${row.eid}"
+                        >
+                            ${row.ticketid ?? "-"}
+                        </button>
+                    `
+                    : `
+                        <a
+                            href="${url}"
+                            class="${cls}"
+                        >
+                            ${row.ticketid ?? "-"}
+                        </a>
+                    `
+            }
+
+            ${
+                canEdit
+                    ? `
+                        <a
+                            href="/showticket/${row.eid}"
+                            class="
+                                inline-flex
+                                h-9 w-9
+
+                                items-center
+                                justify-center
+
+                                rounded-lg
+
+                                border
+                                border-slate-200
+
+                                dark:border-white/[0.06]
+
+                                bg-white
+                                dark:bg-white/[0.04]
+
+                                text-slate-600
+                                dark:text-slate-300
+
+                                transition-all
+                                duration-200
+
+                                hover:bg-slate-100
+                                dark:hover:bg-white/[0.08]
+                            "
+                            title="View Ticket"
+                        >
+
+                            <i class="fa-regular fa-eye"></i>
+
+                        </a>
+
+                        <button
+                            type="button"
+                            class="
+                                btn-cancel-ticket
+
+                                inline-flex
+                                h-9 w-9
+
+                                items-center
+                                justify-center
+
+                                rounded-lg
+
+                                border
+                                border-red-200
+
+                                dark:border-red-500/20
+
+                                bg-red-50
+                                dark:bg-red-500/10
+
+                                text-red-600
+                                dark:text-red-300
+
+                                transition-all
+                                duration-200
+
+                                hover:bg-red-100
+                                dark:hover:bg-red-500/20
+                            "
+                            data-id="${row.eid}"
+                            title="Cancel Ticket"
+                        >
+
+                            <i class="fa-solid fa-ban"></i>
+
+                        </button>
+                    `
+                    : ""
+            }
+
+        </div>
+    `;
+
+
+            },
+
+        },
+                {
+            data: "ticketdate",
+
+            name: "ticketdate",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data) {
+                return formatDateTime(data);
+            },
+        },
+
+        {
+            data: "ticket_type",
+
+            name: "ticket_type",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data) {
+                return `
+                        <span class="inline-flex rounded-lg bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                            ${data ?? "-"}
+                        </span>
+                    `;
+            },
+        },
+
+        {
+            data: "ticket_category",
+
+            name: "ticket_category",
+
+            className: "px-5 py-4 align-top",
+
+            render: function (data, type, row) {
+                return `
+                        <div class="flex flex-col">
+
+                            <span class="font-medium text-gray-900 dark:text-white">
+                                ${data ?? "-"}
+                            </span>
+
+                            <span class="mt-1 text-[11px] text-gray-400">
+                                ${row.ticket_subcategory ?? "-"}
+                            </span>
+
+                        </div>
+                    `;
+            },
+        },
+
+        {
+            data: "issue_summary",
+
+            name: "issue_summary",
+
+            className: "min-w-[260px] px-5 py-4 align-top",
+
+            render: function (data) {
+                return `
+                        <div class="max-w-[260px] text-sm leading-relaxed text-gray-700 dark:text-gray-200">
+                            ${data ?? "-"}
+                        </div>
+                    `;
+            },
+        },
+
+        {
+            data: "pic_ticket",
+
+            name: "pic_ticket",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data) {
+                if (!data) {
+                    return `
+                            <span class="text-gray-400">
+                                -
+                            </span>
+                        `;
+                }
+
+                return `
+                        <div class="flex items-center gap-2">
+
+                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs font-semibold uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                ${data.charAt(0)}
+                            </div>
+
+                            <span class="text-sm text-gray-700 dark:text-gray-200">
+                                ${data}
+                            </span>
+
+                        </div>
+                    `;
+            },
+        },
+
+        {
+            data: "priority_name",
+
+            name: "priority_name",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data) {
+                return `
+                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${priorityBadgeClass(data)}">
+                            ${data ?? "-"}
+                        </span>
+                    `;
+            },
+        },
+
+        {
+            data: "status",
+
+            name: "status",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data, type, row) {
+                return renderTicketStatusBadge(data);
+            },
+        },
+
+        ...(isIT
+            ? [
+                  {
+                      data: "status_pekerjaan",
+
+                      name: "status_pekerjaan",
+
+                      className: "px-5 py-4 whitespace-nowrap align-top",
+
+                      render: function (data) {
+                          return renderWorkflowBadge(data);
+                      },
+                  },
+              ]
+            : []),
+
+        {
+            data: "ticket_duedate",
+
+            name: "ticket_duedate",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data, type, row) {
+                if (!data) {
+                    return `
+                            <span class="text-gray-400">
+                                -
+                            </span>
+                        `;
+                }
+
+                const isOverdue = isOverdueDate(data) && row.status !== "C";
+
+                return `
+                        <div class="flex flex-col leading-tight">
+
+                            <span class="${
+                                isOverdue
+                                    ? "font-medium text-red-500 dark:text-red-400"
+                                    : "text-gray-700 dark:text-gray-200"
+                            }">
+
+                                ${formatDate(data)}
+
+                            </span>
+
+                            <div class="mt-1 flex items-center gap-2">
+
+                                <span class="text-[11px] text-gray-400">
+                                    ${formatTime(data)}
+                                </span>
+
+                                ${
+                                    isOverdue
+                                        ? `
+                                            <span class="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-red-600 dark:bg-red-900/30 dark:text-red-400">
+                                                Late
+                                            </span>
+                                        `
+                                        : `
+                                            <span class="rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                                                On Time
+                                            </span>
+                                        `
+                                }
+
+                            </div>
+
+                        </div>
+                    `;
+            },
+        },
+
+        {
+            data: "actions",
+
+            orderable: false,
+
+            searchable: false,
+
+            className:"px-5 py-3 text-center whitespace-nowrap align-middle",
+
+           render: function (data, type, row) {
+
+                return renderTicketActionDropdown(row);
+            }
+        },
+    ],
+
+    drawCallback: function () {
+        $("#ticketTable tbody tr").addClass(
+            "transition duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/40",
+        );
+
+        $(".dataTables_paginate > .pagination").addClass(
+            "flex items-center gap-2",
+        );
+
+        $(".paginate_button").addClass(
+            "rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
+        );
+
+        $(".paginate_button.current").addClass(
+            "border-black bg-black text-white dark:border-white dark:bg-white dark:text-black",
+        );
+    },
+});
+
+function renderTicketActionDropdown(row) {
+
+    const actions =
+        buildTicketActions(row);
+
+    let html = '';
+
+    actions.forEach(action => {
+
+        html += `
+
+            <button
+                type="button"
+
+                onclick="${action.onclick}"
+
+                class="
+                    flex w-full items-center gap-3
+
+                    px-4 py-2.5
+
+                    text-left text-sm
+
+                    transition
+
+                    hover:bg-slate-100
+                    dark:hover:bg-white/[0.06]
+
+                    ${action.class || 'text-slate-700 dark:text-slate-200'}
+                "
+            >
+
+                <i class="${action.icon} text-base"></i>
+
+                <span>
+                    ${action.label}
+                </span>
+
+            </button>
+
+        `;
+    });
+
+    return `
+
+        <div class="relative inline-block text-left ticket-dropdown">
+
+            <button
+                type="button"
+
+                class="
+                    ticket-action-btn
+
+                    inline-flex
+                    items-center
+                    justify-center
+
+                    h-8
+                    min-w-[36px]
+
+                    rounded-md
+
+                    border border-slate-200
+                    dark:border-white/[0.06]
+
+                    bg-slate-50
+                    dark:bg-white/[0.03]
+
+                    px-2
+
+                    text-slate-500
+                    dark:text-slate-300
+
+                    transition-all
+                    duration-150
+
+                    hover:border-slate-300
+                    hover:bg-slate-100
+                    hover:text-slate-700
+
+                    dark:hover:border-white/[0.12]
+                    dark:hover:bg-white/[0.06]
+                    dark:hover:text-white
+                "
+            >
+
+                <i class="ti ti-dots text-[18px]"></i>
+
+            </button>
+
+            <div
+                class="
+                    ticket-action-menu
+
+                    absolute right-0 top-full z-[99999] mt-2
+
+                    hidden
+
+                    min-w-[220px]
+
+                    overflow-hidden
+
+                    rounded-xl
+
+                    border border-slate-200
+                    dark:border-white/[0.08]
+
+                    bg-white
+                    dark:bg-[#0f172a]
+
+                    shadow-xl
+                "
+            >
+
+                ${html}
+
+            </div>
+
+        </div>
+
+    `;
+}
+
+function buildTicketActions(row) {
+
+    const actions = [];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Response
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        row.status === 'P' &&
+        row.status_pekerjaan === 'CREATED' &&
+        window.isIT
+    ) {
+
+        actions.push({
+
+            label: 'Response Ticket',
+
+            icon: 'ti ti-user-check',
+
+            onclick:
+                `openResponseTicketModal('${row.eid}')`
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Process
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        row.status === 'P' &&
+        row.status_pekerjaan === 'RESPONSE' &&
+        row.pic_ticket === window.currentUser
+    ) {
+
+        actions.push({
+
+            label: 'Process Ticket',
+
+            icon: 'ti ti-player-play',
+
+            onclick:
+                `openProcessTicketModal('${row.eid}')`
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pending
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        row.status === 'P' &&
+        row.status_pekerjaan === 'PROCESS' &&
+        row.pic_ticket === window.currentUser
+    ) {
+
+        actions.push({
+
+            label: 'Pending Ticket',
+
+            icon: 'ti ti-clock-pause',
+
+            onclick:
+                `openPendingTicketModal('${row.eid}')`
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Transfer
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        row.status === 'P' &&
+        [
+            'CREATED',
+            'RESPONSE',
+            'PROCESS',
+            'PENDING',
+            'ENVISION',
+            'TRANSFER',
+            'REOPEN'
+        ].includes(row.status_pekerjaan) &&
+        (
+            row.pic_ticket === window.currentUser ||
+            window.isIT
+        )
+    ) {
+
+        actions.push({
+
+            label: 'Transfer Ticket',
+
+            icon: 'ti ti-switch-horizontal',
+
+            onclick:
+                `openTransferTicketModal('${row.eid}')`
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Complete
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        row.status === 'P' &&
+        row.status_pekerjaan === 'PROCESS' &&
+        row.pic_ticket === window.currentUser
+    ) {
+
+        actions.push({
+
+            label: 'Complete Ticket',
+
+            icon: 'ti ti-check',
+
+            onclick:
+                `openCompleteTicketModal('${row.eid}')`
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reopen
+    |--------------------------------------------------------------------------
+    */
+
+   if (
+            row.status === 'C' &&
+            window.isIT
+    ){
+
+        actions.push({
+
+            label: 'Reopen Ticket',
+
+            icon: 'ti ti-rotate-clockwise',
+
+            onclick:
+                `openReopenTicketModal('${row.eid}')`
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cancel
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        (
+            row.created_by === window.currentUser &&
+            row.status === 'P' &&
+            row.status_pekerjaan === 'CREATED'
+        )
+        ||
+        (
+            window.isIT &&
+            row.status !== 'C'
+        )
+    ) {
+
+        actions.push({
+
+            label: 'Cancel Ticket',
+
+            icon: 'ti ti-x',
+
+            class:
+                'text-rose-600 dark:text-rose-400',
+
+            onclick:
+                `cancelTicket('${row.eid}')`
+        });
+    }
+
+    return actions;
+}
+
+$(document).on(
+    'click',
+    '.ticket-action-btn',
+    function (e) {
+
+        e.stopPropagation();
+
+        $('.ticket-action-menu')
+            .not(
+                $(this)
+                    .siblings('.ticket-action-menu')
+            )
+            .addClass('hidden');
+
+        $(this)
+            .siblings('.ticket-action-menu')
+            .toggleClass('hidden');
+    }
+);
+
+$(document).on(
+    'click',
+    function () {
+
+        $('.ticket-action-menu')
+            .addClass('hidden');
+    }
+);
+
+$(document).on("click", ".ticket-status-filter", function (e) {
+    e.preventDefault();
+
+    $(".ticket-status-card").removeClass("active");
+
+    $(this).find(".ticket-status-card").addClass("active");
+
+    ticketStatusFilter = $(this).data("status");
+
+    ticketTable.ajax.reload();
+});
+
+$(document).on("keyup", "#filter_search", function () {
+    clearTimeout(ticketSearchTimeout);
+
+    ticketSearchTimeout = setTimeout(function () {
+        ticketTable.ajax.reload();
+    }, 500);
+});
+
+$(document).on("change", "#filter_status", function () {
+    ticketTable.ajax.reload();
+});
+
+$(document).on("change", "#filter_status_pekerjaan", function () {
+    ticketTable.ajax.reload();
+});
+
+$(document).on("change", "#filter_date_from", function () {
+    ticketTable.ajax.reload();
+});
+
+$(document).on("change", "#filter_date_to", function () {
+    ticketTable.ajax.reload();
+});
+
+$(document).on("click", "#btn_export_ticket", function () {
+    Swal.fire({
+        icon: "info",
+
+        title: "Coming Soon",
+
+        text: "Export feature is under development.",
+    });
+});

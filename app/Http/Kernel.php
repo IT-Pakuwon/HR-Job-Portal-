@@ -22,7 +22,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
 
-        
+
     ];
 
     /**
@@ -40,7 +40,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
-        'api' => [            
+        'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,'throttle:api',
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
@@ -75,6 +75,7 @@ class Kernel extends HttpKernel
         // ...
         'access' => \App\Http\Middleware\AccessRightMiddleware::class,
         'bearer.sanctum' => \App\Http\Middleware\BearerSanctum::class,
+        'ajax' => \App\Http\Middleware\AjaxMiddleware::class,
 
     ];
 
