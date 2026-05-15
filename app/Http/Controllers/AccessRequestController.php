@@ -709,7 +709,11 @@ class AccessRequestController extends Controller
         try {
             $request->validate([
                 'docid' => 'required',
-                'attachments.*' => 'required|file|max:10240',
+               'attachments.*' => [
+                    'file',
+                    'mimes:jpg,jpeg,png,pdf,xlsx,doc,docx',
+                    'max:5120'
+                ],
             ]);
 
             $access = TrAccess::where(

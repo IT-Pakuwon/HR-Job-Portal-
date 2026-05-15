@@ -351,16 +351,42 @@ function initAttachmentHandlers() {
             "#requestAttachment",
             function (e) {
 
-                const files = [
-                    ...e.target.files
-                ];
+                const maxSize =
+                    5 * 1024 * 1024;
+
+                const files =
+                    [...e.target.files];
+
+                const validFiles = [];
+
+                files.forEach((file) => {
+
+                    if (file.size > maxSize) {
+
+                        Swal.fire({
+                            icon: "warning",
+                            title: "File Too Large",
+                            text:
+                                `${file.name} exceeds the maximum size of 5 MB.`,
+                            confirmButtonColor:
+                                "#2563eb"
+                        });
+
+                        return;
+                    }
+
+                    validFiles.push(file);
+
+                });
 
                 selectedFiles = [
                     ...selectedFiles,
-                    ...files
+                    ...validFiles
                 ];
 
                 renderNewAttachments();
+
+                $(this).val("");
 
             }
         );
