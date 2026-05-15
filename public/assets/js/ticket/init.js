@@ -14,9 +14,17 @@ $(document).ready(function () {
 
     initTicketComment();
 
-    initTicketProcess();
-
-    initResponseTicketSelect();
+    initResponseTicket();
 
     initTransferTicket();
+
+    initProcessTicket();
+
+    initPendingTicket();
+
+    initEnvisionTicket();
+
+    initReopenTicket();
+
+    initCompleteTicket();
 });

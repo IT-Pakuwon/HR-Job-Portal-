@@ -1447,6 +1447,12 @@
         </div>
 
         @include('pages.ticket.partial.modal-response')
+        @include('pages.ticket.partial.modal-transfer')
+        @include('pages.ticket.partial.modal-process')
+        @include('pages.ticket.partial.modal-pending')
+        @include('pages.ticket.partial.modal-envision')
+        @include('pages.ticket.partial.modal-reopen')
+        @include('pages.ticket.partial.modal-completed')
 
     </div>
 
@@ -1522,6 +1528,11 @@
     <script src="{{ asset('assets/js/ticket/process.js') }}"></script>
     <script src="{{ asset('assets/js/ticket/response.js') }}"></script>
     <script src="{{ asset('assets/js/ticket/transfer.js') }}"></script>
+    <script src="{{ asset('assets/js/ticket/process_ticket.js') }}"></script>
+    <script src="{{ asset('assets/js/ticket/pending.js') }}"></script>
+    <script src="{{ asset('assets/js/ticket/envision.js') }}"></script>
+    <script src="{{ asset('assets/js/ticket/reopen.js') }}"></script>
+    <script src="{{ asset('assets/js/ticket/complete.js') }}"></script>
 
     <script src="{{ asset('assets/js/ticket/init.js') }}"></script>
 </x-app-layout>

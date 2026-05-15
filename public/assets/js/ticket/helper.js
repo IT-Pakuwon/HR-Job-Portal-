@@ -34,6 +34,35 @@ function showError(message = 'Something went wrong') {
 
 }
 
+function showLoading(
+    title = 'Loading...',
+    text = 'Please wait'
+) {
+
+    Swal.fire({
+
+        title,
+
+        text,
+
+        allowOutsideClick: false,
+
+        allowEscapeKey: false,
+
+        showConfirmButton: false,
+
+        didOpen: () => {
+
+            Swal.showLoading();
+        }
+    });
+}
+
+function hideLoading() {
+
+    Swal.close();
+}
+
 function showWarning(message = 'Warning') {
 
     Swal.fire({

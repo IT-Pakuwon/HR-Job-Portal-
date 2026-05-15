@@ -35,6 +35,58 @@ class TicketController extends Controller
             $notificationService;
     }
 
+    protected array $workflowTransitions = [
+
+        'response' => [
+            'CREATED',
+            'TRANSFER',
+            'REOPEN',
+        ],
+
+        'process' => [
+            'RESPONSE',
+            'PENDING',
+            'ENVISION',
+        ],
+
+        'pending' => [
+            'PROCESS',
+        ],
+
+        'envision' => [
+            'PENDING',
+        ],
+
+        'complete' => [
+            'PROCESS',
+            'PENDING',
+            'ENVISION',
+        ],
+
+        'transfer' => [
+            'CREATED',
+            'RESPONSE',
+            'TRANSFER',
+            'REOPEN',
+        ],
+
+        'reopen' => [
+            'COMPLETED',
+        ],
+
+    ];
+
+    protected function canTransition(
+        string $current,
+        string $action
+    ): bool {
+
+        return in_array(
+            $current,
+            $this->workflowTransitions[$action] ?? []
+        );
+    }
+
     public function index(Request $request, $eid = null)
     {
         $user = auth()->user();
@@ -460,10 +512,12 @@ class TicketController extends Controller
                 }
             }
 
+
+            DB::connection('pgsql5')->commit();
+
             $this->notificationService
                 ->ticketCreated($ticket);
 
-            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
@@ -658,11 +712,11 @@ class TicketController extends Controller
 
             $ticket->refresh();
 
+            DB::connection('pgsql5')->commit();
+
             $this->notificationService
                 ->ticketCancelled($ticket);
 
-
-            DB::connection('pgsql5')->commit();
 
 
             return response()->json([
@@ -756,7 +810,14 @@ class TicketController extends Controller
         */
 
         $tracking = $this->buildTracking(
-            $ticket->activities,
+
+            TrTicketActivity::where(
+                'ticketid',
+                $ticket->ticketid
+            )
+                ->orderBy('id')
+                ->get(),
+
             $comments
         );
 
@@ -948,881 +1009,1042 @@ class TicketController extends Controller
         ]);
     }
 
-public function responseTicket(Request $request, $hash)
-{
-    abort_unless(
-        $this->isITRole(),
-        403
-    );
-
-    $id = Hashids::decode($hash)[0] ?? null;
-
-    abort_if(!$id, 404);
-
-    $ticket = TrTicket::findOrFail($id);
-
-    abort_if(
-        !in_array($ticket->status_pekerjaan, [
-            'CREATED',
-            'REOPEN',
-        ]),
-        403
-    );
-
-    $request->validate([
-
-        'pic_ticket' => 'required',
-
-        'ticket_priority' => 'required',
-
-        'response_descr' => 'required',
-
-        'working_start_date' => 'nullable|date',
-
-        'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
-
-    ]);
-
-    abort_if(
-        !$this->validatePIC(
-            $request->pic_ticket,
-            $ticket->ticket_type,
-            $ticket->ticket_categoryid
-        ),
-        422,
-        'Selected PIC is invalid.'
-    );
-
-    DB::connection('pgsql5')->beginTransaction();
-
-    try {
-
-        $priority = MsTicketPriority::where(
-            'ticket_priority',
-            $request->ticket_priority
-        )->first();
-
-        $dueDate = now()->addDays(
-            $priority?->ticket_sla_days ?? 1
+    public function responseTicket(Request $request, $hash)
+    {
+        abort_unless(
+            $this->isITRole(),
+            403
         );
 
-        $workingStart =
-            $request->working_start_date
-            ?? now();
+        $id = Hashids::decode($hash)[0] ?? null;
 
-        $workingEnd =
-            $request->working_end_date
-            ?? $dueDate;
+        abort_if(!$id, 404);
 
-        $ticket->update([
+        $ticket = TrTicket::findOrFail($id);
 
-            'pic_ticket' =>
+        abort_if(
+            !$this->canTransition(
+                $ticket->status_pekerjaan,
+                'response'
+            ),
+            403
+        );
+
+        $request->validate([
+
+            'pic_ticket' => 'required',
+
+            'ticket_priority' => 'required',
+
+            'response_descr' => 'required',
+
+            'working_start_date' => 'nullable|date',
+
+            'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
+
+        ]);
+
+        abort_if(
+            !$this->validatePIC(
+                $request->pic_ticket,
+                $ticket->ticket_type,
+                $ticket->ticket_categoryid
+            ),
+            422,
+            'Selected PIC is invalid.'
+        );
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+
+            $priority = MsTicketPriority::where(
+                'ticket_priority',
+                $request->ticket_priority
+            )->first();
+
+            $dueDate = now()->addDays(
+                $priority?->ticket_sla_days ?? 1
+            );
+
+            $workingStart =
+                $request->working_start_date
+                ?? now();
+
+            $workingEnd =
+                $request->working_end_date
+                ?? $dueDate;
+
+            $ticket->update([
+
+                'pic_ticket' =>
                 $request->pic_ticket,
 
-            'ticket_priority' =>
+                'ticket_priority' =>
                 $request->ticket_priority,
 
-            'ticket_sla_days' =>
+                'ticket_sla_days' =>
                 $priority?->ticket_sla_days,
 
-            'ticket_duedate' =>
+                'ticket_duedate' =>
                 $dueDate,
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status' => 'P',
+                'status' => 'P',
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'RESPONSE',
 
-            'updated_by' =>
+                'updated_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        $this->createActivity([
+            $this->createActivity([
 
-            'ticketid' =>
+                'ticketid' =>
                 $ticket->ticketid,
 
-            'cpny_id' =>
+                'cpny_id' =>
                 $ticket->cpny_id,
 
-            'department_id' =>
+                'department_id' =>
                 $ticket->department_id,
 
-            'pic_ticket' =>
+                'pic_ticket' =>
                 $request->pic_ticket,
 
-            'response_date' =>
+                'response_date' =>
                 now(),
 
-            'response_summary' =>
+                'response_summary' =>
                 'Ticket Response',
 
-            'response_descr' =>
+                'response_descr' =>
                 $request->response_descr,
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'RESPONSE',
 
-            'status' => 'A',
+                'status' => 'A',
 
-            'created_by' =>
+                'created_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        $ticket->refresh();
+            $ticket->refresh();
 
-        $this->notificationService
-            ->ticketAssigned($ticket);
+            DB::connection('pgsql5')->commit();
 
-        DB::connection('pgsql5')->commit();
+            $this->notificationService
+                ->ticketAssigned($ticket);
 
-        return response()->json([
+            return response()->json([
 
-            'success' => true,
+                'success' => true,
 
-            'message' =>
+                'message' =>
                 'Ticket responded successfully.',
-        ]);
+            ]);
+        } catch (\Throwable $th) {
 
-    } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
 
-        DB::connection('pgsql5')->rollBack();
+            return response()->json([
 
-        return response()->json([
+                'success' => false,
 
-            'success' => false,
-
-            'message' =>
+                'message' =>
                 $th->getMessage(),
 
-        ], 500);
+            ], 500);
+        }
     }
-}
 
-public function processTicket(Request $request, $hash)
-{
-    $id = Hashids::decode($hash)[0] ?? null;
+    public function processTicket(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
 
-    abort_if(!$id, 404);
+        abort_if(!$id, 404);
 
-    $ticket = TrTicket::findOrFail($id);
+        $ticket = TrTicket::findOrFail($id);
 
-    abort_if(
-        $ticket->pic_ticket !== auth()->user()->username,
-        403
-    );
+        abort_if(
+            $ticket->pic_ticket !== auth()->user()->username,
+            403
+        );
 
-    abort_if(
-        $ticket->status !== 'P',
-        403
-    );
+        abort_if(
+            $ticket->status !== 'P',
+            403
+        );
 
-    abort_if(
-        !in_array($ticket->status_pekerjaan, [
-            'RESPONSE',
-            'PENDING',
-            'ENVISION',
-            'TRANSFER',
-            'REOPEN',
-        ]),
-        403,
-        'Ticket cannot be processed.'
-    );
+        abort_if(
+            !$this->canTransition(
+                $ticket->status_pekerjaan,
+                'process'
+            ),
+            403
+        );
+        $request->validate([
 
-    $request->validate([
+            'response_descr' => 'required',
 
-        'response_descr' => 'required',
-
-        'working_start_date' =>
+            'working_start_date' =>
             'nullable|date',
 
-        'working_end_date' =>
+            'working_end_date' =>
             'nullable|date|after_or_equal:working_start_date',
 
-    ]);
+            'attachments.*' => [
+                'nullable',
+                'file',
+                'max:5120',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+            ],
 
-    DB::connection('pgsql5')->beginTransaction();
+        ]);
 
-    try {
+        DB::connection('pgsql5')->beginTransaction();
 
-        /*
+        try {
+
+            /*
         |--------------------------------------------------------------------------
         | Working Schedule
         |--------------------------------------------------------------------------
         */
 
-        $workingStart =
-            $request->working_start_date
-            ?? $ticket->working_start_date
-            ?? now();
+            $workingStart =
+                $request->working_start_date
+                ?? $ticket->working_start_date
+                ?? now();
 
-        $workingEnd =
-            $request->working_end_date
-            ?? $ticket->working_end_date
-            ?? $ticket->ticket_duedate
-            ?? now()->addDay();
+            $workingEnd =
+                $request->working_end_date
+                ?? $ticket->working_end_date
+                ?? $ticket->ticket_duedate
+                ?? now()->addDay();
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Update Ticket
         |--------------------------------------------------------------------------
         */
 
-        $ticket->update([
+            $ticket->update([
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status' => 'P',
+                'status' => 'P',
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'PROCESS',
 
-            'updated_by' =>
+                'updated_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Create Activity
         |--------------------------------------------------------------------------
         */
 
-        $this->createActivity([
+            $this->createActivity([
 
-            'ticketid' =>
+                'ticketid' =>
                 $ticket->ticketid,
 
-            'cpny_id' =>
+                'cpny_id' =>
                 $ticket->cpny_id,
 
-            'department_id' =>
+                'department_id' =>
                 $ticket->department_id,
 
-            'pic_ticket' =>
+                'pic_ticket' =>
                 auth()->user()->username,
 
-            'response_date' =>
+                'response_date' =>
                 now(),
 
-            'response_summary' =>
+                'response_summary' =>
                 'Ticket Process',
 
-            'response_descr' =>
+                'response_descr' =>
                 $request->response_descr,
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'PROCESS',
 
-            'status' => 'A',
+                'status' => 'A',
 
-            'created_by' =>
+                'created_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        DB::connection('pgsql5')->commit();
+            $uploadResult = null;
 
-        return response()->json([
+            if ($request->hasFile('attachments')) {
 
-            'success' => true,
+                $meta = [
 
-            'message' =>
+                    'refnbr' => $ticket->ticketid,
+
+                    'doctype' => 'TIC',
+
+                    'cpny_id' => $ticket->cpny_id,
+
+                    'department_id' => $ticket->department_id,
+
+                    'base_folder' => 'att-ticket/tic-workflow',
+
+                    'created_by' => auth()->user()->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+
+                    $uploader = app(
+                        TrAttachmentController::class
+                    );
+
+                    $uploadResult =
+                        $uploader->uploadInternal(
+                            $meta,
+                            $files
+                        );
+                } catch (\Throwable $e) {
+
+                    DB::connection('pgsql5')
+                        ->rollBack();
+
+                    return response()->json([
+
+                        'success' => false,
+
+                        'message' => 'Failed upload attachment',
+
+                        'error' => config('app.debug')
+                            ? $e->getMessage()
+                            : null,
+
+                    ], 500);
+                }
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+
+                'success' => true,
+
+                'message' =>
                 'Ticket processed successfully.',
 
-        ]);
+            ]);
+        } catch (\Throwable $th) {
 
-    } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
 
-        DB::connection('pgsql5')->rollBack();
+            return response()->json([
 
-        return response()->json([
+                'success' => false,
 
-            'success' => false,
-
-            'message' =>
+                'message' =>
                 $th->getMessage(),
 
-        ], 500);
+            ], 500);
+        }
     }
-}
-public function pendingTicket(Request $request, $hash)
-{
-    $id = Hashids::decode($hash)[0] ?? null;
+    public function pendingTicket(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
 
-    abort_if(!$id, 404);
+        abort_if(!$id, 404);
 
-    $ticket = TrTicket::findOrFail($id);
+        $ticket = TrTicket::findOrFail($id);
 
-    abort_if(
-        $ticket->pic_ticket !== auth()->user()->username,
-        403
-    );
+        abort_if(
+            $ticket->pic_ticket !== auth()->user()->username,
+            403
+        );
 
-    abort_if(
-        $ticket->status !== 'P',
-        403
-    );
+        abort_if(
+            $ticket->status !== 'P',
+            403
+        );
 
-    abort_if(
-        !in_array($ticket->status_pekerjaan, [
-            'PROCESS',
-            'RESPONSE',
-            'ENVISION',
-        ]),
-        403,
-        'Ticket cannot be pending.'
-    );
+        abort_if(
+            !$this->canTransition(
+                $ticket->status_pekerjaan,
+                'pending'
+            ),
+            403
+        );
 
-    $request->validate([
+        $request->validate([
 
-        'response_descr' => 'required',
+            'response_descr' => 'required',
 
-        'working_start_date' =>
+            'working_start_date' =>
             'nullable|date',
 
-        'working_end_date' =>
+            'working_end_date' =>
             'nullable|date|after_or_equal:working_start_date',
 
-    ]);
+            'attachments.*' => [
+                'nullable',
+                'file',
+                'max:5120',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+            ],
 
-    DB::connection('pgsql5')->beginTransaction();
+        ]);
 
-    try {
+        DB::connection('pgsql5')->beginTransaction();
 
-        /*
+        try {
+
+            /*
         |--------------------------------------------------------------------------
         | Working Schedule
         |--------------------------------------------------------------------------
         */
 
-        $workingStart =
-            $request->working_start_date
-            ?? $ticket->working_start_date
-            ?? now();
+            $workingStart =
+                $request->working_start_date
+                ?? $ticket->working_start_date
+                ?? now();
 
-        $workingEnd =
-            $request->working_end_date
-            ?? $ticket->working_end_date
-            ?? $ticket->ticket_duedate
-            ?? now()->addDay();
+            $workingEnd =
+                $request->working_end_date
+                ?? $ticket->working_end_date
+                ?? $ticket->ticket_duedate
+                ?? now()->addDay();
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Update Ticket
         |--------------------------------------------------------------------------
         */
 
-        $ticket->update([
+            $ticket->update([
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status' => 'P',
+                'status' => 'P',
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'PENDING',
 
-            'updated_by' =>
+                'updated_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Create Activity
         |--------------------------------------------------------------------------
         */
 
-        $this->createActivity([
+            $this->createActivity([
 
-            'ticketid' =>
+                'ticketid' =>
                 $ticket->ticketid,
 
-            'cpny_id' =>
+                'cpny_id' =>
                 $ticket->cpny_id,
 
-            'department_id' =>
+                'department_id' =>
                 $ticket->department_id,
 
-            'pic_ticket' =>
+                'pic_ticket' =>
                 auth()->user()->username,
 
-            'response_date' =>
+                'response_date' =>
                 now(),
 
-            'response_summary' =>
+                'response_summary' =>
                 'Ticket Pending',
 
-            'response_descr' =>
+                'response_descr' =>
                 $request->response_descr,
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'PENDING',
 
-            'status' => 'A',
+                'status' => 'A',
 
-            'created_by' =>
+                'created_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        DB::connection('pgsql5')->commit();
+            $uploadResult = null;
 
-        return response()->json([
+            if ($request->hasFile('attachments')) {
 
-            'success' => true,
+                $meta = [
 
-            'message' =>
+                    'refnbr' => $ticket->ticketid,
+
+                    'doctype' => 'TIC',
+
+                    'cpny_id' => $ticket->cpny_id,
+
+                    'department_id' => $ticket->department_id,
+
+                    'base_folder' => 'att-ticket/tic-workflow',
+
+                    'created_by' => auth()->user()->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+
+                    $uploader = app(
+                        TrAttachmentController::class
+                    );
+
+                    $uploadResult =
+                        $uploader->uploadInternal(
+                            $meta,
+                            $files
+                        );
+                } catch (\Throwable $e) {
+
+                    DB::connection('pgsql5')
+                        ->rollBack();
+
+                    return response()->json([
+
+                        'success' => false,
+
+                        'message' => 'Failed upload attachment',
+
+                        'error' => config('app.debug')
+                            ? $e->getMessage()
+                            : null,
+
+                    ], 500);
+                }
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+
+                'success' => true,
+
+                'message' =>
                 'Ticket pending updated successfully.',
 
-        ]);
+            ]);
+        } catch (\Throwable $th) {
 
-    } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
 
-        DB::connection('pgsql5')->rollBack();
+            return response()->json([
 
-        return response()->json([
+                'success' => false,
 
-            'success' => false,
-
-            'message' =>
+                'message' =>
                 $th->getMessage(),
 
-        ], 500);
+            ], 500);
+        }
     }
-}
 
-public function envisionTicket(Request $request, $hash)
-{
-    $id = Hashids::decode($hash)[0] ?? null;
+    public function envisionTicket(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
 
-    abort_if(!$id, 404);
+        abort_if(!$id, 404);
 
-    $ticket = TrTicket::findOrFail($id);
+        $ticket = TrTicket::findOrFail($id);
 
-    abort_if(
-        $ticket->pic_ticket !== auth()->user()->username,
-        403
-    );
+        abort_if(
+            $ticket->pic_ticket !== auth()->user()->username,
+            403
+        );
 
-    abort_if(
-        $ticket->status !== 'P',
-        403
-    );
+        abort_if(
+            $ticket->status !== 'P',
+            403
+        );
 
-    abort_if(
-        !in_array($ticket->status_pekerjaan, [
-            'PROCESS',
-            'PENDING',
-            'RESPONSE',
-        ]),
-        403,
-        'Ticket cannot be envisioned.'
-    );
+        abort_if(
+            !$this->canTransition(
+                $ticket->status_pekerjaan,
+                'envision'
+            ),
+            403
+        );
 
-    $request->validate([
+        $request->validate([
 
-        'response_descr' => 'required',
+            'response_descr' => 'required',
 
-        'working_start_date' =>
+            'working_start_date' =>
             'required|date',
 
-        'working_end_date' =>
+            'working_end_date' =>
             'required|date|after_or_equal:working_start_date',
 
-    ]);
+            'attachments.*' => [
+                'nullable',
+                'file',
+                'max:5120',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+            ],
 
-    DB::connection('pgsql5')->beginTransaction();
+        ]);
 
-    try {
+        DB::connection('pgsql5')->beginTransaction();
 
-        /*
+        try {
+
+            /*
         |--------------------------------------------------------------------------
         | Working Schedule
         |--------------------------------------------------------------------------
         */
 
-        $workingStart =
-            $request->working_start_date;
+            $workingStart =
+                $request->working_start_date;
 
-        $workingEnd =
-            $request->working_end_date;
+            $workingEnd =
+                $request->working_end_date;
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Update Ticket
         |--------------------------------------------------------------------------
         */
 
-        $ticket->update([
+            $ticket->update([
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status' => 'P',
+                'status' => 'P',
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'ENVISION',
 
-            'updated_by' =>
+                'updated_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Create Activity
         |--------------------------------------------------------------------------
         */
 
-        $this->createActivity([
+            $this->createActivity([
 
-            'ticketid' =>
+                'ticketid' =>
                 $ticket->ticketid,
 
-            'cpny_id' =>
+                'cpny_id' =>
                 $ticket->cpny_id,
 
-            'department_id' =>
+                'department_id' =>
                 $ticket->department_id,
 
-            'pic_ticket' =>
+                'pic_ticket' =>
                 auth()->user()->username,
 
-            'response_date' =>
+                'response_date' =>
                 now(),
 
-            'response_summary' =>
+                'response_summary' =>
                 'Ticket Envision',
 
-            'response_descr' =>
+                'response_descr' =>
                 $request->response_descr,
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'ENVISION',
 
-            'status' => 'A',
+                'status' => 'A',
 
-            'created_by' =>
+                'created_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        DB::connection('pgsql5')->commit();
+            $uploadResult = null;
 
-        return response()->json([
+            if ($request->hasFile('attachments')) {
 
-            'success' => true,
+                $meta = [
 
-            'message' =>
+                    'refnbr' => $ticket->ticketid,
+
+                    'doctype' => 'TIC',
+
+                    'cpny_id' => $ticket->cpny_id,
+
+                    'department_id' => $ticket->department_id,
+
+                    'base_folder' => 'att-ticket/tic-workflow',
+
+                    'created_by' => auth()->user()->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+
+                    $uploader = app(
+                        TrAttachmentController::class
+                    );
+
+                    $uploadResult =
+                        $uploader->uploadInternal(
+                            $meta,
+                            $files
+                        );
+                } catch (\Throwable $e) {
+
+                    DB::connection('pgsql5')
+                        ->rollBack();
+
+                    return response()->json([
+
+                        'success' => false,
+
+                        'message' => 'Failed upload attachment',
+
+                        'error' => config('app.debug')
+                            ? $e->getMessage()
+                            : null,
+
+                    ], 500);
+                }
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            return response()->json([
+
+                'success' => true,
+
+                'message' =>
                 'Ticket envision updated successfully.',
 
-        ]);
+            ]);
+        } catch (\Throwable $th) {
 
-    } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
 
-        DB::connection('pgsql5')->rollBack();
+            return response()->json([
 
-        return response()->json([
+                'success' => false,
 
-            'success' => false,
-
-            'message' =>
+                'message' =>
                 $th->getMessage(),
 
-        ], 500);
+            ], 500);
+        }
     }
-}
-public function transferTicket(Request $request, $hash)
-{
-    abort_if(
-        !$this->isITRole()
-        &&
-        $ticket->pic_ticket !== auth()->user()->username,
-        403
-    );
+    public function transferTicket(Request $request, $hash)
+    {
 
-    $id = Hashids::decode($hash)[0] ?? null;
+        $id = Hashids::decode($hash)[0] ?? null;
 
-    abort_if(!$id, 404);
+        abort_if(!$id, 404);
 
-    $ticket = TrTicket::findOrFail($id);
+        $ticket = TrTicket::findOrFail($id);
 
-    abort_if(
-        !in_array($ticket->status_pekerjaan, [
-            'CREATED',
-            'RESPONSE',
-            'PROCESS',
-            'PENDING',
-            'ENVISION',
-            'REOPEN',
-        ]),
-        403,
-        'Ticket cannot be transferred.'
-    );
+        abort_if(
+            !$this->isITRole()
+                &&
+                $ticket->pic_ticket !== auth()->user()->username,
+            403
+        );
 
-    $request->validate([
 
-        'ticket_type' =>
+        abort_if(
+            !$this->canTransition(
+                $ticket->status_pekerjaan,
+                'transfer'
+            ),
+            403
+        );
+
+        $request->validate([
+
+            'ticket_type' =>
             'required',
 
-        'ticket_categoryid' =>
+            'ticket_categoryid' =>
             'required',
 
-        'ticket_subcategoryid' =>
+            'ticket_subcategoryid' =>
             'required',
 
-        'pic_ticket' =>
-            'required',
+            'pic_ticket' =>
+            'nullable',
 
-    ]);
+        ]);
 
-    abort_if(
-        !$this->validatePIC(
-            $request->pic_ticket,
-            $request->ticket_type,
-            $request->ticket_categoryid
-        ),
-        422,
-        'Selected PIC is invalid.'
-    );
+        if ($request->filled('pic_ticket')) {
 
-    DB::connection('pgsql5')->beginTransaction();
+            abort_if(
+                !$this->validatePIC(
+                    $request->pic_ticket,
+                    $ticket->ticket_type,
+                    $ticket->ticket_categoryid
+                ),
+                422,
+                'Selected PIC is invalid.'
+            );
+        }
+        DB::connection('pgsql5')->beginTransaction();
 
-    try {
+        try {
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Transfer Note
         |--------------------------------------------------------------------------
         */
 
-        $transferNote = null;
+            $transferNote = null;
 
-        if (
-            $ticket->ticket_categoryid != $request->ticket_categoryid
-            || $ticket->ticket_subcategoryid != $request->ticket_subcategoryid
-        ) {
+            if (
+                $ticket->ticket_categoryid != $request->ticket_categoryid
+                || $ticket->ticket_subcategoryid != $request->ticket_subcategoryid
+            ) {
 
-            $oldCategory = optional(
-                MsTicketCategory::where(
-                    'ticket_categoryid',
-                    $ticket->ticket_categoryid
-                )->first()
-            )->ticket_category_name;
+                $oldCategory = optional(
+                    MsTicketCategory::where(
+                        'ticket_categoryid',
+                        $ticket->ticket_categoryid
+                    )->first()
+                )->ticket_category_name;
 
-            $oldSubcategory = optional(
-                MsTicketSubcategory::where(
-                    'ticket_subcategoryid',
-                    $ticket->ticket_subcategoryid
-                )->first()
-            )->ticket_subcategory_name;
+                $oldSubcategory = optional(
+                    MsTicketSubcategory::where(
+                        'ticket_subcategoryid',
+                        $ticket->ticket_subcategoryid
+                    )->first()
+                )->ticket_subcategory_name;
 
-            $newCategory = optional(
-                MsTicketCategory::where(
-                    'ticket_categoryid',
-                    $request->ticket_categoryid
-                )->first()
-            )->ticket_category_name;
+                $newCategory = optional(
+                    MsTicketCategory::where(
+                        'ticket_categoryid',
+                        $request->ticket_categoryid
+                    )->first()
+                )->ticket_category_name;
 
-            $newSubcategory = optional(
-                MsTicketSubcategory::where(
-                    'ticket_subcategoryid',
-                    $request->ticket_subcategoryid
-                )->first()
-            )->ticket_subcategory_name;
+                $newSubcategory = optional(
+                    MsTicketSubcategory::where(
+                        'ticket_subcategoryid',
+                        $request->ticket_subcategoryid
+                    )->first()
+                )->ticket_subcategory_name;
 
-            $transferNote =
-                "Transfer category from {$oldCategory} / {$oldSubcategory} to {$newCategory} / {$newSubcategory}";
-        }
+                $transferNote =
+                    "Transfer category from {$oldCategory} / {$oldSubcategory} to {$newCategory} / {$newSubcategory}";
+            }
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Reset Workflow Schedule
         |--------------------------------------------------------------------------
         */
 
-        $workingStart = null;
+            $workingStart = null;
 
-        $workingEnd = null;
+            $workingEnd = null;
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Update Ticket
         |--------------------------------------------------------------------------
         */
 
-        $ticket->update([
+            $ticket->update([
 
-            'ticket_type' =>
+                'ticket_type' =>
                 $request->ticket_type,
 
-            'ticket_categoryid' =>
+                'ticket_categoryid' =>
                 $request->ticket_categoryid,
 
-            'ticket_subcategoryid' =>
+                'ticket_subcategoryid' =>
                 $request->ticket_subcategoryid,
 
-            'pic_ticket' =>
+                'pic_ticket' =>
                 $request->pic_ticket,
 
-            /*
+                /*
             |--------------------------------------------------------------------------
             | Reset SLA
             |--------------------------------------------------------------------------
             */
 
-            'ticket_priority' =>
+                'ticket_priority' =>
                 null,
 
-            'ticket_sla_days' =>
+                'ticket_sla_days' =>
                 null,
 
-            'ticket_duedate' =>
+                'ticket_duedate' =>
                 null,
 
-            /*
+                /*
             |--------------------------------------------------------------------------
             | Reset Working Schedule
             |--------------------------------------------------------------------------
             */
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            /*
+                /*
             |--------------------------------------------------------------------------
             | Workflow
             |--------------------------------------------------------------------------
             */
 
-            'status' => 'P',
+                'status' => 'P',
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'TRANSFER',
 
-            'updated_by' =>
+                'updated_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Create Activity
         |--------------------------------------------------------------------------
         */
 
-        $this->createActivity([
+            $this->createActivity([
 
-            'ticketid' =>
+                'ticketid' =>
                 $ticket->ticketid,
 
-            'cpny_id' =>
+                'cpny_id' =>
                 $ticket->cpny_id,
 
-            'department_id' =>
+                'department_id' =>
                 $ticket->department_id,
 
-            'pic_ticket' =>
+                'pic_ticket' =>
                 $request->pic_ticket,
 
-            'response_date' =>
+                'response_date' =>
                 now(),
 
-            'response_summary' =>
+                'response_summary' =>
                 'Ticket Transfer',
 
-            'response_descr' =>
+                'response_descr' =>
                 $transferNote,
 
-            'working_start_date' =>
+                'working_start_date' =>
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
                 $workingEnd,
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
                 'TRANSFER',
 
-            'status' => 'A',
+                'status' => 'A',
 
-            'created_by' =>
+                'created_by' =>
                 auth()->user()->username,
-        ]);
+            ]);
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Notification
         |--------------------------------------------------------------------------
         */
 
-        $ticket->refresh();
+            $ticket->refresh();
 
-        $this->notificationService
-            ->ticketTransferred($ticket);
 
-        DB::connection('pgsql5')->commit();
 
-        return response()->json([
+            DB::connection('pgsql5')->commit();
 
-            'success' => true,
+            $this->notificationService
+                ->ticketTransferred($ticket);
 
-            'message' =>
+            return response()->json([
+
+                'success' => true,
+
+                'message' =>
                 'Ticket transferred successfully.',
 
-        ]);
+            ]);
+        } catch (\Throwable $th) {
 
-    } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
 
-        DB::connection('pgsql5')->rollBack();
+            return response()->json([
 
-        return response()->json([
+                'success' => false,
 
-            'success' => false,
-
-            'message' =>
+                'message' =>
                 $th->getMessage(),
 
-        ], 500);
+            ], 500);
+        }
     }
-}
 
     public function completeTicket(Request $request, $hash)
     {
@@ -1838,28 +2060,32 @@ public function transferTicket(Request $request, $hash)
         );
 
         abort_if(
-            !in_array($ticket->status_pekerjaan, [
-                'PROCESS',
-                'PENDING',
-                'ENVISION',
-                'TRANSFER',
-                'REOPEN',
-                'RESPONSE',
-            ]),
-            403,
-            'Ticket cannot be completed.'
+            !$this->canTransition(
+                $ticket->status_pekerjaan,
+                'complete'
+            ),
+            403
         );
 
         $request->validate([
             'solution_descr' => 'required',
+
+            'attachments.*' => [
+                'nullable',
+                'file',
+                'max:5120',
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+            ],
         ]);
+
+
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
             $ticket->update([
                 'solution_descr' => $request->solution_descr,
-                'pic_completed_ticket' => auth()->user()->username,
+                'pic_completed_ticket' => Carbon::now(),
                 'completed_by' => auth()->user()->username,
                 'completed_at' => now(),
                 'status' => 'C',
@@ -1880,11 +2106,64 @@ public function transferTicket(Request $request, $hash)
                 'created_by' => auth()->user()->username,
             ]);
 
+            $uploadResult = null;
+
+            if ($request->hasFile('attachments')) {
+
+                $meta = [
+
+                    'refnbr' => $ticket->ticketid,
+
+                    'doctype' => 'TIC',
+
+                    'cpny_id' => $ticket->cpny_id,
+
+                    'department_id' => $ticket->department_id,
+
+                    'base_folder' => 'att-ticket/tic-workflow',
+
+                    'created_by' => auth()->user()->username,
+                ];
+
+                $files = (array) $request->file('attachments');
+
+                try {
+
+                    $uploader = app(
+                        TrAttachmentController::class
+                    );
+
+                    $uploadResult =
+                        $uploader->uploadInternal(
+                            $meta,
+                            $files
+                        );
+                } catch (\Throwable $e) {
+
+                    DB::connection('pgsql5')
+                        ->rollBack();
+
+                    return response()->json([
+
+                        'success' => false,
+
+                        'message' => 'Failed upload attachment',
+
+                        'error' => config('app.debug')
+                            ? $e->getMessage()
+                            : null,
+
+                    ], 500);
+                }
+            }
+
             $ticket->refresh();
+
+            DB::connection('pgsql5')->commit();
+
             $this->notificationService
                 ->ticketCompleted($ticket);
 
-            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
@@ -1900,198 +2179,196 @@ public function transferTicket(Request $request, $hash)
         }
     }
 
-public function reopenTicket(Request $request, $hash)
-{
-    $id = Hashids::decode($hash)[0] ?? null;
+    public function reopenTicket(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
 
-    abort_if(!$id, 404);
+        abort_if(!$id, 404);
 
-    $ticket = TrTicket::findOrFail($id);
+        $ticket = TrTicket::findOrFail($id);
 
-    abort_unless(
-        $this->isITRole(),
-        403
-    );
+        abort_unless(
+            $this->isITRole(),
+            403
+        );
 
-    abort_if(
-        $ticket->status !== 'C',
-        403
-    );
+        abort_if(
+            $ticket->status !== 'C'
+            || $ticket->status_pekerjaan !== 'COMPLETED',
+            403
+        );
 
-    $request->validate([
+        $request->validate([
 
-        'reopen_descr' =>
+            'response_descr' =>
             'required',
 
-        'working_start_date' =>
+            'working_start_date' =>
             'nullable|date',
 
-        'working_end_date' =>
+            'working_end_date' =>
             'nullable|date|after_or_equal:working_start_date',
 
-    ]);
+        ]);
 
-    DB::connection('pgsql5')->beginTransaction();
+        DB::connection('pgsql5')->beginTransaction();
 
-    try {
+        try {
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Working Schedule
         |--------------------------------------------------------------------------
         */
 
-        $workingStart =
-            $request->working_start_date
-            ?? now();
+            $workingStart =
+                $request->working_start_date
+                ?? now();
 
-        $workingEnd =
-            $request->working_end_date
-            ?? $ticket->ticket_duedate
-            ?? now()->addDay();
+            $workingEnd =
+                $request->working_end_date
+                ?? $ticket->ticket_duedate
+                ?? now()->addDay();
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Update Ticket
         |--------------------------------------------------------------------------
         */
 
-        $ticket->update([
+            $ticket->update([
 
-            'reopen_ticket' =>
+                'reopen_ticket' => now(),
 
-                ($ticket->reopen_ticket ?? 0) + 1,
+                'reopen_descr' =>
 
-            'reopen_descr' =>
+                $request->response_descr,
 
-                $request->reopen_descr,
-
-            /*
+                /*
             |--------------------------------------------------------------------------
             | Working Schedule
             |--------------------------------------------------------------------------
             */
 
-            'working_start_date' =>
+                'working_start_date' =>
 
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
 
                 $workingEnd,
 
-            /*
+                /*
             |--------------------------------------------------------------------------
             | Workflow
             |--------------------------------------------------------------------------
             */
 
-            'status' => 'P',
+                'status' => 'P',
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
 
                 'REOPEN',
 
-            'updated_by' =>
+                'updated_by' =>
 
                 auth()->user()->username,
 
-        ]);
+            ]);
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Create Activity
         |--------------------------------------------------------------------------
         */
 
-        $this->createActivity([
+            $this->createActivity([
 
-            'ticketid' =>
+                'ticketid' =>
 
                 $ticket->ticketid,
 
-            'cpny_id' =>
+                'cpny_id' =>
 
                 $ticket->cpny_id,
 
-            'department_id' =>
+                'department_id' =>
 
                 $ticket->department_id,
 
-            'pic_ticket' =>
+                'pic_ticket' =>
 
                 auth()->user()->username,
 
-            'response_date' =>
+                'response_date' =>
 
                 now(),
 
-            'response_summary' =>
+                'response_summary' =>
 
                 'Ticket Reopen',
 
-            'response_descr' =>
+                'response_descr' =>
 
-                $request->reopen_descr,
+                $request->response_descr,
 
-            'working_start_date' =>
+                'working_start_date' =>
 
                 $workingStart,
 
-            'working_end_date' =>
+                'working_end_date' =>
 
                 $workingEnd,
 
-            'status_pekerjaan' =>
+                'status_pekerjaan' =>
 
                 'REOPEN',
 
-            'status' => 'A',
+                'status' => 'A',
 
-            'created_by' =>
+                'created_by' =>
 
                 auth()->user()->username,
 
-        ]);
+            ]);
 
-        /*
+            /*
         |--------------------------------------------------------------------------
         | Notification
         |--------------------------------------------------------------------------
         */
 
-        $ticket->refresh();
+            $ticket->refresh();
 
-        $this->notificationService
-            ->ticketReopened($ticket);
+            DB::connection('pgsql5')->commit();
 
-        DB::connection('pgsql5')->commit();
+            $this->notificationService
+                ->ticketReopened($ticket);
 
-        return response()->json([
+            return response()->json([
 
-            'success' => true,
+                'success' => true,
 
-            'message' =>
+                'message' =>
 
                 'Ticket reopened successfully.',
 
-        ]);
+            ]);
+        } catch (\Throwable $th) {
 
-    } catch (\Throwable $th) {
+            DB::connection('pgsql5')->rollBack();
 
-        DB::connection('pgsql5')->rollBack();
+            return response()->json([
 
-        return response()->json([
+                'success' => false,
 
-            'success' => false,
-
-            'message' =>
+                'message' =>
 
                 $th->getMessage(),
 
-        ], 500);
+            ], 500);
+        }
     }
-}
 
     public function comments($hash)
     {
@@ -2509,54 +2786,54 @@ public function reopenTicket(Request $request, $hash)
         ]);
     }
 
-public function picSearch(Request $request)
-{
-    $query = MsTicketCategoryDept::query()
-        ->where('status', 'A');
+    public function picSearch(Request $request)
+    {
+        $query = MsTicketCategoryDept::query()
+            ->where('status', 'A');
 
-    if ($request->filled('ticket_type')) {
+        if ($request->filled('ticket_type')) {
 
-        $query->where(
-            'ticket_type',
-            $request->ticket_type
-        );
+            $query->where(
+                'ticket_type',
+                $request->ticket_type
+            );
+        }
+
+        if ($request->filled('ticket_categoryid')) {
+
+            $query->where(
+                'ticket_categoryid',
+                $request->ticket_categoryid
+            );
+        }
+
+        if ($request->filled('department_id')) {
+
+            $query->where(
+                'department_id',
+                $request->department_id
+            );
+        }
+
+        return response()->json([
+
+            'results' => $query
+                ->distinct()
+                ->orderBy('username')
+                ->get()
+                ->map(function ($row) {
+
+                    return [
+
+                        'id' => $row->username,
+
+                        'text' => $row->username,
+
+                    ];
+                }),
+
+        ]);
     }
-
-    if ($request->filled('ticket_categoryid')) {
-
-        $query->where(
-            'ticket_categoryid',
-            $request->ticket_categoryid
-        );
-    }
-
-    if ($request->filled('department_id')) {
-
-        $query->where(
-            'department_id',
-            $request->department_id
-        );
-    }
-
-    return response()->json([
-
-        'results' => $query
-            ->distinct()
-            ->orderBy('username')
-            ->get()
-            ->map(function ($row) {
-
-                return [
-
-                    'id' => $row->username,
-
-                    'text' => $row->username,
-
-                ];
-            }),
-
-    ]);
-}
 
     protected function createActivity(array $data)
     {
@@ -2597,7 +2874,8 @@ public function picSearch(Request $request)
                     ?: 'Ticket Activity',
 
                 'description' =>
-                $activity->response_descr,
+                $activity->response_descr
+                    ?: '-',
 
                 'status' =>
                 $activity->status_pekerjaan
@@ -2609,20 +2887,25 @@ public function picSearch(Request $request)
                     ?: 'System',
 
                 'datetime' =>
-                optional(
-                    $activity->response_date
-                )->format('Y-m-d H:i:s'),
+                $activity->response_date
+                    ? \Carbon\Carbon::parse(
+                        $activity->response_date
+                    )->format('Y-m-d H:i:s')
+                    : null,
 
                 'working_start_date' =>
-                optional(
-                    $activity->working_start_date
-                )->format('Y-m-d H:i:s'),
+                $activity->working_start_date
+                    ? \Carbon\Carbon::parse(
+                        $activity->working_start_date
+                    )->format('Y-m-d H:i:s')
+                    : null,
 
                 'working_end_date' =>
-                optional(
-                    $activity->working_end_date
-                )->format('Y-m-d H:i:s'),
-
+                $activity->working_end_date
+                    ? \Carbon\Carbon::parse(
+                        $activity->working_end_date
+                    )->format('Y-m-d H:i:s')
+                    : null,
             ]);
         }
 
@@ -2694,15 +2977,29 @@ public function picSearch(Request $request)
                 && $ticket->status === 'P'
                 && $ticket->status_pekerjaan === 'CREATED',
 
-            'can_cancel' => $isRequester
-                && $ticket->status === 'P'
-                && $ticket->status_pekerjaan === 'CREATED',
+           'can_cancel' => (
+
+                (
+                    $isRequester
+                    && $ticket->status === 'P'
+                    && $ticket->status_pekerjaan === 'CREATED'
+                )
+
+                ||
+
+                (
+                    $isIT
+                    && $ticket->status_pekerjaan !== 'COMPLETED'
+                )
+
+            ),
 
             'can_response' => $isIT
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
                     'CREATED',
                     'REOPEN',
+                    'TRANSFER',
                 ]),
 
             'can_process' => $isPIC
@@ -2711,37 +3008,29 @@ public function picSearch(Request $request)
                     'RESPONSE',
                     'PENDING',
                     'ENVISION',
-                    'TRANSFER',
-                    'REOPEN',
                 ]),
 
             'can_pending' => $isPIC
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
                     'PROCESS',
-                    'RESPONSE',
-                    'ENVISION',
                 ]),
 
             'can_envision' => $isPIC
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
-                    'PROCESS',
                     'PENDING',
-                    'RESPONSE',
                 ]),
 
             'can_transfer' => (
-                    $isIT
-                    || $isPIC
-                )
+                $isIT
+                || $isPIC
+            )
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
                     'CREATED',
                     'RESPONSE',
-                    'PROCESS',
-                    'PENDING',
-                    'ENVISION',
+                    'TRANSFER',
                     'REOPEN',
                 ]),
 
@@ -2751,12 +3040,9 @@ public function picSearch(Request $request)
                     'PROCESS',
                     'PENDING',
                     'ENVISION',
-                    'TRANSFER',
-                    'REOPEN',
-                    'RESPONSE',
                 ]),
 
-            'can_reopen' => $isRequester
+           'can_reopen' => $isIT
                 && $ticket->status === 'C'
                 && $ticket->status_pekerjaan === 'COMPLETED',
         ];

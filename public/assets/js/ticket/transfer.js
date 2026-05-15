@@ -2,7 +2,16 @@ window.Ticket = window.Ticket || {};
 
 function initTransferTicket() {
 
-    bindSubmitTransferTicket();
+    $(document).on(
+        'submit',
+        '#transferTicketForm',
+        function (e) {
+
+            e.preventDefault();
+
+            submitTransferTicket();
+        }
+    );
 }
 
 function openTransferTicketModal(eid) {
@@ -25,35 +34,35 @@ function openTransferTicketModal(eid) {
 
 function resetTransferTicketForm() {
 
-    $('#transferTicketForm')[0]
-        .reset();
+    const form =
+        $('#transferTicketForm');
 
-    if (
-        $('#transfer_ticket_categoryid')
-            .hasClass('select2-hidden-accessible')
-    ) {
+    if (!form.length) {
 
-        $('#transfer_ticket_categoryid')
-            .select2('destroy');
+        console.error(
+            'transferTicketForm not found'
+        );
+
+        return;
     }
 
-    if (
-        $('#transfer_ticket_subcategoryid')
-            .hasClass('select2-hidden-accessible')
-    ) {
+    form[0].reset();
 
-        $('#transfer_ticket_subcategoryid')
-            .select2('destroy');
-    }
+    [
+        '#transfer_ticket_categoryid',
+        '#transfer_ticket_subcategoryid',
+        '#transfer_pic_ticket'
+    ].forEach(selector => {
 
-    if (
-        $('#transfer_pic_ticket')
-            .hasClass('select2-hidden-accessible')
-    ) {
+        if (
+            $(selector)
+                .hasClass('select2-hidden-accessible')
+        ) {
 
-        $('#transfer_pic_ticket')
-            .select2('destroy');
-    }
+            $(selector)
+                .select2('destroy');
+        }
+    });
 
     $('#transfer_ticket_categoryid')
         .empty();
@@ -108,7 +117,7 @@ function loadTransferTicketDetail(eid) {
             hideLoading();
 
             populateTransferTicket(
-                res.data
+                res.data.ticket
             );
         },
 
@@ -148,16 +157,24 @@ function populateTransferTicket(ticket) {
         );
 
     loadTransferCategory(ticket);
-
-    loadTransferSubcategory(ticket);
-
-    loadTransferPIC(ticket);
 }
 
 function loadTransferCategory(ticket) {
 
-    $('#transfer_ticket_categoryid')
-        .empty();
+    const categorySelect =
+        $('#transfer_ticket_categoryid');
+
+    if (
+        categorySelect.hasClass(
+            'select2-hidden-accessible'
+        )
+    ) {
+
+        categorySelect
+            .select2('destroy');
+    }
+
+    categorySelect.empty();
 
     $.ajax({
 
@@ -177,12 +194,11 @@ function loadTransferCategory(ticket) {
             const results =
                 res.results || [];
 
-            $('#transfer_ticket_categoryid')
-                .append(`
-                    <option value="">
-                        Select Category
-                    </option>
-                `);
+            categorySelect.append(`
+                <option value="">
+                    Select Category
+                </option>
+            `);
 
             results.forEach(category => {
 
@@ -201,19 +217,20 @@ function loadTransferCategory(ticket) {
                         selected
                     );
 
-                $('#transfer_ticket_categoryid')
+                categorySelect
                     .append(option);
             });
 
-            $('#transfer_ticket_categoryid')
-                .select2({
+            categorySelect.select2({
 
-                    dropdownParent:
-                        $('#transferTicketModal'),
+                dropdownParent:
+                    $('#transferTicketModal'),
 
-                    width:
-                        '100%'
-                });
+                width:
+                    '100%'
+            });
+
+            loadTransferSubcategory(ticket);
         },
 
         error(xhr) {
@@ -225,8 +242,20 @@ function loadTransferCategory(ticket) {
 
 function loadTransferSubcategory(ticket) {
 
-    $('#transfer_ticket_subcategoryid')
-        .empty();
+    const subcategorySelect =
+        $('#transfer_ticket_subcategoryid');
+
+    if (
+        subcategorySelect.hasClass(
+            'select2-hidden-accessible'
+        )
+    ) {
+
+        subcategorySelect
+            .select2('destroy');
+    }
+
+    subcategorySelect.empty();
 
     $.ajax({
 
@@ -246,12 +275,11 @@ function loadTransferSubcategory(ticket) {
             const results =
                 res.results || [];
 
-            $('#transfer_ticket_subcategoryid')
-                .append(`
-                    <option value="">
-                        Select Sub Category
-                    </option>
-                `);
+            subcategorySelect.append(`
+                <option value="">
+                    Select Sub Category
+                </option>
+            `);
 
             results.forEach(subcategory => {
 
@@ -270,19 +298,20 @@ function loadTransferSubcategory(ticket) {
                         selected
                     );
 
-                $('#transfer_ticket_subcategoryid')
+                subcategorySelect
                     .append(option);
             });
 
-            $('#transfer_ticket_subcategoryid')
-                .select2({
+            subcategorySelect.select2({
 
-                    dropdownParent:
-                        $('#transferTicketModal'),
+                dropdownParent:
+                    $('#transferTicketModal'),
 
-                    width:
-                        '100%'
-                });
+                width:
+                    '100%'
+            });
+
+            loadTransferPIC(ticket);
         },
 
         error(xhr) {
@@ -294,16 +323,20 @@ function loadTransferSubcategory(ticket) {
 
 function loadTransferPIC(ticket) {
 
+    const picSelect =
+        $('#transfer_pic_ticket');
+
     if (
-        $('#transfer_pic_ticket')
-            .hasClass('select2-hidden-accessible')
+        picSelect.hasClass(
+            'select2-hidden-accessible'
+        )
     ) {
 
-        $('#transfer_pic_ticket')
+        picSelect
             .select2('destroy');
     }
 
-    $('#transfer_pic_ticket')
+    picSelect
         .empty()
         .append(`
             <option value="">
@@ -351,19 +384,22 @@ function loadTransferPIC(ticket) {
                         selected
                     );
 
-                $('#transfer_pic_ticket')
-                    .append(option);
+                picSelect.append(option);
             });
 
-            $('#transfer_pic_ticket')
-                .select2({
+            picSelect.select2({
 
-                    dropdownParent:
-                        $('#transferTicketModal'),
+                dropdownParent:
+                    $('#transferTicketModal'),
 
-                    width:
-                        '100%'
-                });
+                width:
+                    '100%',
+
+                allowClear: true,
+
+                placeholder:
+                    'Select PIC'
+            });
         },
 
         error(xhr) {
@@ -381,8 +417,20 @@ $(document).on(
         const categoryid =
             $(this).val();
 
-        $('#transfer_ticket_subcategoryid')
-            .empty();
+        const subcategorySelect =
+            $('#transfer_ticket_subcategoryid');
+
+        if (
+            subcategorySelect.hasClass(
+                'select2-hidden-accessible'
+            )
+        ) {
+
+            subcategorySelect
+                .select2('destroy');
+        }
+
+        subcategorySelect.empty();
 
         $.ajax({
 
@@ -402,12 +450,11 @@ $(document).on(
                 const results =
                     res.results || [];
 
-                $('#transfer_ticket_subcategoryid')
-                    .append(`
-                        <option value="">
-                            Select Sub Category
-                        </option>
-                    `);
+                subcategorySelect.append(`
+                    <option value="">
+                        Select Sub Category
+                    </option>
+                `);
 
                 results.forEach(subcategory => {
 
@@ -422,12 +469,18 @@ $(document).on(
                             false
                         );
 
-                    $('#transfer_ticket_subcategoryid')
+                    subcategorySelect
                         .append(option);
                 });
 
-                $('#transfer_ticket_subcategoryid')
-                    .trigger('change');
+                subcategorySelect.select2({
+
+                    dropdownParent:
+                        $('#transferTicketModal'),
+
+                    width:
+                        '100%'
+                });
 
                 reloadTransferPIC();
             },
@@ -440,7 +493,19 @@ $(document).on(
     }
 );
 
+$(document).on(
+    'change',
+    '#transfer_ticket_subcategoryid',
+    function () {
+
+        reloadTransferPIC();
+    }
+);
+
 function reloadTransferPIC() {
+
+    const currentPIC =
+        $('#transfer_pic_ticket').val();
 
     const ticketType =
         $('#transfer_ticket_type').val();
@@ -448,16 +513,20 @@ function reloadTransferPIC() {
     const categoryid =
         $('#transfer_ticket_categoryid').val();
 
+    const picSelect =
+        $('#transfer_pic_ticket');
+
     if (
-        $('#transfer_pic_ticket')
-            .hasClass('select2-hidden-accessible')
+        picSelect.hasClass(
+            'select2-hidden-accessible'
+        )
     ) {
 
-        $('#transfer_pic_ticket')
+        picSelect
             .select2('destroy');
     }
 
-    $('#transfer_pic_ticket')
+    picSelect
         .empty()
         .append(`
             <option value="">
@@ -488,6 +557,9 @@ function reloadTransferPIC() {
 
             results.forEach(pic => {
 
+                const selected =
+                    currentPIC === pic.id;
+
                 const option =
                     new Option(
 
@@ -495,23 +567,26 @@ function reloadTransferPIC() {
 
                         pic.id,
 
-                        false,
-                        false
+                        selected,
+                        selected
                     );
 
-                $('#transfer_pic_ticket')
-                    .append(option);
+                picSelect.append(option);
             });
 
-            $('#transfer_pic_ticket')
-                .select2({
+            picSelect.select2({
 
-                    dropdownParent:
-                        $('#transferTicketModal'),
+                dropdownParent:
+                    $('#transferTicketModal'),
 
-                    width:
-                        '100%'
-                });
+                width:
+                    '100%',
+
+                allowClear: true,
+
+                placeholder:
+                    'Select PIC'
+            });
         },
 
         error(xhr) {
@@ -519,20 +594,6 @@ function reloadTransferPIC() {
             handleAjaxError(xhr);
         }
     });
-}
-
-function bindSubmitTransferTicket() {
-
-    $(document).on(
-        'submit',
-        '#transferTicketForm',
-        function (e) {
-
-            e.preventDefault();
-
-            submitTransferTicket();
-        }
-    );
 }
 
 function submitTransferTicket() {

@@ -281,15 +281,6 @@ $(document).on(
     }
 );
 
-$('#responseTicketForm').on(
-    'submit',
-    function (e) {
-
-        e.preventDefault();
-
-        submitResponseTicket();
-    }
-);
 
 function submitResponseTicket() {
 
@@ -377,6 +368,22 @@ function submitResponseTicket() {
             handleAjaxError(xhr);
         }
     });
+}
+
+function initResponseTicket() {
+
+    initResponseTicketSelect();
+
+    $(document).on(
+        'submit',
+        '#responseTicketForm',
+        function (e) {
+
+            e.preventDefault();
+
+            submitResponseTicket();
+        }
+    );
 }
 
 if (

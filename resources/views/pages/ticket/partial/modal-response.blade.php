@@ -122,9 +122,9 @@
 
                         <div>
 
-                            <label class="form-label">
+                            <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                                 PIC
-                            </label>
+                            </div>
 
                             <select id="response_pic" name="pic_ticket" class="form-select" required>
 
@@ -138,9 +138,9 @@
 
                         <div>
 
-                            <label class="form-label">
+                            <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                                 Priority
-                            </label>
+                            </div>
 
                             <select id="response_priority" name="ticket_priority" class="form-select" required>
 
@@ -157,9 +157,9 @@
                     {{-- Description --}}
                     <div>
 
-                        <label class="form-label">
+                        <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                             Response Description
-                        </label>
+                        </div>
 
                         <textarea id="response_descr" name="response_descr" rows="5" class="form-textarea w-full"
                             placeholder="Write response description..." required></textarea>
@@ -282,7 +282,7 @@
                                 '#responseTicketModal'
                             )
                         "
-                        class="btn-secondary w-full min-w-[110px] sm:w-auto">
+                          class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
                         Cancel
                     </button>
 

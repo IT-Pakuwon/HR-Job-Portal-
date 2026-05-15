@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MsTicketSubcategory extends Model
 {
-    use SoftDeletes;
+    // use SoftDeletes;
 
     protected $connection = 'pgsql5';
 

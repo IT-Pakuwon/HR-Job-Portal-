@@ -621,9 +621,13 @@ function buildTicketActions(row) {
     |--------------------------------------------------------------------------
     */
 
-    if (
+   if (
         row.status === 'P' &&
-        row.status_pekerjaan === 'CREATED' &&
+        [
+            'CREATED',
+            'REOPEN',
+            'TRANSFER'
+        ].includes(row.status_pekerjaan) &&
         window.isIT
     ) {
 
@@ -646,7 +650,11 @@ function buildTicketActions(row) {
 
     if (
         row.status === 'P' &&
-        row.status_pekerjaan === 'RESPONSE' &&
+        [
+            'RESPONSE',
+            'ENVISION',
+            'PENDING'
+        ].includes(row.status_pekerjaan) &&
         row.pic_ticket === window.currentUser
     ) {
 
@@ -695,9 +703,6 @@ function buildTicketActions(row) {
         [
             'CREATED',
             'RESPONSE',
-            'PROCESS',
-            'PENDING',
-            'ENVISION',
             'TRANSFER',
             'REOPEN'
         ].includes(row.status_pekerjaan) &&
@@ -720,13 +725,39 @@ function buildTicketActions(row) {
 
     /*
     |--------------------------------------------------------------------------
+    | Envision
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        row.status === 'P' &&
+        row.status_pekerjaan === 'PENDING' &&
+        row.pic_ticket === window.currentUser
+    ) {
+
+        actions.push({
+
+            label: 'Envision Ticket',
+
+            icon: 'ti ti-bulb',
+
+            onclick:
+                `openEnvisionTicketModal('${row.eid}')`
+        });
+    }
+    /*
+    |--------------------------------------------------------------------------
     | Complete
     |--------------------------------------------------------------------------
     */
 
     if (
         row.status === 'P' &&
-        row.status_pekerjaan === 'PROCESS' &&
+        [
+            'PROCESS',
+            'PENDING',
+            'ENVISION'
+        ].includes(row.status_pekerjaan) &&
         row.pic_ticket === window.currentUser
     ) {
 
@@ -769,7 +800,7 @@ function buildTicketActions(row) {
     |--------------------------------------------------------------------------
     */
 
-    if (
+   if (
         (
             row.created_by === window.currentUser &&
             row.status === 'P' &&
@@ -778,7 +809,7 @@ function buildTicketActions(row) {
         ||
         (
             window.isIT &&
-            row.status !== 'C'
+            row.status_pekerjaan !== 'COMPLETED'
         )
     ) {
 

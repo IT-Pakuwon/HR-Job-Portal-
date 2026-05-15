@@ -1,4 +1,4 @@
-<div id="transferTicketModal" class="ticket-modal fixed inset-0 z-[9999] hidden overflow-y-auto p-4">
+<div id="transferTicketModal" class="ticket-modal fixed inset-0 z-[9999] hidden overflow-y-hidden p-4">
 
     {{-- Backdrop --}}
     <div
@@ -28,8 +28,7 @@
 
                 </div>
 
-                <button type="button"
-                    onclick="closeModal('#transferTicketModal')"
+                <button type="button" onclick="closeModal('#transferTicketModal')"
                     class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.06] dark:hover:text-white">
 
                     <i class="fa-solid fa-xmark text-base"></i>
@@ -103,13 +102,11 @@
 
                             <div>
 
-                                <label class="form-label">
+                                <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Ticket Category
-                                </label>
+                                </div>
 
-                                <select id="transfer_ticket_categoryid"
-                                    name="ticket_categoryid"
-                                    class="form-select"
+                                <select id="transfer_ticket_categoryid" name="ticket_categoryid" class="form-select"
                                     required>
                                 </select>
 
@@ -117,54 +114,49 @@
 
                             <div>
 
-                                <label class="form-label">
+                                <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Ticket Sub Category
-                                </label>
+                                </div>
 
-                                <select id="transfer_ticket_subcategoryid"
-                                    name="ticket_subcategoryid"
-                                    class="form-select"
-                                    required>
+                                <select id="transfer_ticket_subcategoryid" name="ticket_subcategoryid"
+                                    class="form-select" required>
                                 </select>
 
                             </div>
 
-                            <div>
+                            {{-- PIC --}}
+                                <div>
 
-                                <label class="form-label">
-                                    PIC
-                                </label>
+                                    <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        PIC
+                                    </div>
 
-                                <select id="transfer_pic_ticket"
-                                    name="pic_ticket"
-                                    class="form-select"
-                                    required>
+                                    <select id="transfer_pic_ticket" name="pic_ticket" class="form-select">
 
-                                    <option value="">
-                                        Select PIC
-                                    </option>
+                                        <option value="">
+                                            Select PIC
+                                        </option>
 
-                                </select>
+                                    </select>
 
-                            </div>
+                                </div>
 
-                            <div>
+                                <div class="flex flex-col justify-start">
 
-                                <label class="form-label">
-                                    Ticket Type
-                                </label>
+                                     <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Ticket Type
+                                     </div>
 
-                                <input type="text"
-                                    id="transfer_ticket_type_text"
-                                    class="form-input bg-slate-100 dark:bg-white/[0.05]"
-                                    readonly>
+                                    <input type="text"
+                                        id="transfer_ticket_type_text"
+                                        class="form-input bg-slate-100 dark:bg-white/[0.05]"
+                                        readonly>
 
-                                <input type="hidden"
-                                    id="transfer_ticket_type"
-                                    name="ticket_type">
+                                    <input type="hidden"
+                                        id="transfer_ticket_type"
+                                        name="ticket_type">
 
-                            </div>
-
+                                </div>
                         </div>
 
                     </div>
@@ -172,14 +164,11 @@
                     {{-- Transfer Note --}}
                     <div>
 
-                        <label class="form-label">
+                          <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                             Transfer Note
-                        </label>
+                          </div>
 
-                        <textarea id="transfer_note"
-                            rows="5"
-                            class="form-textarea w-full"
-                            placeholder="Write transfer note or reason..."></textarea>
+                        <textarea id="transfer_note" rows="5" class="form-textarea w-full" placeholder="Write transfer note or reason..."></textarea>
 
                     </div>
 
@@ -189,17 +178,15 @@
                 <div
                     class="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-5">
 
-                    <button type="button"
-                        onclick="closeModal('#transferTicketModal')"
-                        class="btn-secondary w-full min-w-[110px] sm:w-auto">
+                    <button type="button" onclick="closeModal('#transferTicketModal')"
+                         class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
 
                         Cancel
 
                     </button>
 
-                    <button type="submit"
-                        id="btnSubmitTransferTicket"
-                        class="btn-primary w-full min-w-[170px] sm:w-auto">
+                    <button type="submit" id="btnSubmitTransferTicket"
+                        class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
 
                         Submit Transfer
 

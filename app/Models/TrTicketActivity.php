@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TrTicketActivity extends Model
 {
-    use SoftDeletes;
+    // use SoftDeletes;
 
     protected $connection = 'pgsql5';
 
