@@ -60,10 +60,13 @@ class ItRecommendationController extends Controller
         $tickets = TrTicket::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
-            ->whereIn('status', ['W', 'P']) // optional: only active tickets
+            ->whereIn('status', ['P', 'C'])
             ->orderByDesc('ticketdate')
             ->limit(50)
-            ->get(['ticketid', 'issue_summary']);
+            ->get([
+                'ticketid',
+                'issue_summary',
+            ]);
 
         $isITHardware = SysUserRole::where('username', $user->username)
             ->where('role_id', 'ITHARDWARE')
@@ -207,14 +210,19 @@ class ItRecommendationController extends Controller
         $data = TrTicket::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
+            ->whereIn('status', ['P', 'C'])
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('ticketid', 'ilike', "%{$q}%")
                         ->orWhere('issue_summary', 'ilike', "%{$q}%");
                 });
             })
+            ->orderByDesc('ticketdate')
             ->limit(20)
-            ->get(['ticketid', 'issue_summary']);
+            ->get([
+                'ticketid',
+                'issue_summary',
+            ]);
 
         return response()->json($data);
     }

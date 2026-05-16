@@ -8,7 +8,19 @@ const ticketTable = $("#ticketTable").DataTable({
 
     serverSide: true,
 
-    responsive: false,
+   responsive: {
+        details: {
+            type: "column",
+            target: 0,
+        },
+    },
+
+    columnDefs: [
+        {
+            targets: 0,
+            orderable: false,
+        },
+    ],
 
     autoWidth: false,
 
@@ -48,23 +60,20 @@ const ticketTable = $("#ticketTable").DataTable({
     },
 
     columns: [
-        {
-            data: null,
+{
+    data: null,
 
-            orderable: false,
+    defaultContent: "",
 
-            searchable: false,
+    orderable: false,
 
-            className: "px-5 py-4 text-center align-top",
+    searchable: false,
 
-            render: function (data, type, row, meta) {
-                return `
-                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                            ${meta.row + meta.settings._iDisplayStart + 1}
-                        </span>
-                    `;
-            },
-        },
+    className:
+        "dtr-control px-5 py-4 text-center align-top",
+
+    width: "20px",
+},
         {
             data: "ticketid",
 

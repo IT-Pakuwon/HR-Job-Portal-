@@ -624,7 +624,7 @@
 
             {{-- Panel --}}
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 {{-- Header --}}
                 <div
@@ -1021,7 +1021,7 @@
             <div class="mx-auto flex min-h-screen w-full max-w-[95vw] items-center justify-center xl:max-w-7xl">
 
                 <div
-                    class="modal-panel modal-scroll relative flex max-h-[95vh] w-full flex-col overflow-hidden rounded-lg bg-white opacity-0 shadow-2xl transition-all duration-200 dark:bg-gray-900">
+                    class="modal-panel modal-scroll relative flex max-h-[95vh] w-full flex-col overflow-hidden rounded-lg bg-white opacity-0 transition-all duration-200 dark:bg-gray-900">
 
                     {{-- Header --}}
                     <div
@@ -1052,17 +1052,45 @@
                         {{-- Action --}}
                         <div class="flex flex-wrap items-center justify-end gap-2">
 
-                            <button type="button" id="btn_print_ticket"
-                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+                            <div class="relative">
 
-                                Print
+                                <button type="button" id="ticketActionBtn"
+                                    class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-gray-300 hover:bg-gray-50 hover:shadow-lg dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-200 dark:hover:bg-[#182132]">
+
+                                    <i class="ti ti-bolt text-[17px]"></i>
+
+                                    <span>
+                                        Actions
+                                    </span>
+
+                                    <i class="ti ti-chevron-down text-[15px]"></i>
+
+                                </button>
+
+                                <div id="ticketActionDropdown"
+                                    class="absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[280px] overflow-hidden rounded-lg border border-gray-200/80 bg-white/95 shadow-gray-200/70 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#111827]/95 dark:shadow-black/40">
+
+                                    <div id="ticketActionList" class="max-h-[320px] overflow-y-auto p-2"></div>
+
+                                </div>
+
+                            </div>
+
+                            <button type="button" id="btn_print_ticket"
+                                class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-gray-300 hover:bg-gray-50 hover:shadow-lg dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-200 dark:hover:bg-[#182132]">
+
+                                <i class="ti ti-printer text-[16px]"></i>
+
+                                <span>
+                                    Print
+                                </span>
 
                             </button>
 
                             <button type="button"
-                                class="btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                                class="btn-close-modal inline-flex h-11 w-11 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 hover:shadow-lg dark:border-white/[0.06] dark:bg-[#111827] dark:text-gray-300 dark:hover:bg-rose-500/10">
 
-                                ✕
+                                <i class="ti ti-x text-[18px]"></i>
 
                             </button>
 
@@ -1075,7 +1103,7 @@
 
                         {{-- Left Panel --}}
                         <div
-                            class="min-h-0 overflow-y-auto border-b border-gray-200 p-6 dark:border-gray-800 xl:col-span-5 xl:border-b-0 xl:border-r 2xl:col-span-4">
+                            class="min-h-0 overflow-y-auto border-b border-gray-200 p-6 dark:border-gray-800 xl:col-span-5 xl:border-b-0 xl:border-r">
 
                             {{-- Information --}}
                             <div class="space-y-5">
@@ -1304,7 +1332,7 @@
                         </div>
 
                         {{-- Right Panel --}}
-                        <div class="flex min-h-0 flex-col xl:col-span-7 2xl:col-span-8">
+                        <div class="flex min-h-0 flex-col xl:col-span-7">
 
                             {{-- Tabs --}}
                             <div
@@ -1350,9 +1378,9 @@
 
                                 </div>
 
-                                <div id="ticketTimeline" class="space-y-5">
+                                <div id="ticketTimeline" class="space-y-3">
 
-                                    <div class="animate-pulse space-y-3">
+                                    <div class="animate-pulse space-y-2">
 
                                         <div class="h-20 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
