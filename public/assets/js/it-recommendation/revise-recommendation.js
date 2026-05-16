@@ -1,206 +1,626 @@
+function createEditRecommendationRow(data = {}) {
+    return `
+
+        <tr class="
+            edit-detail-row
+
+            border-b border-slate-200
+            dark:border-white/5
+        ">
+
+            <td class="
+                relative
+
+                px-3 py-3
+                align-top
+            ">
+
+                <div class="relative">
+
+                    <input
+                        type="text"
+
+                        class="
+                            edit-inventory-search
+
+                            w-full
+
+                            rounded-lg
+
+                            border border-slate-200
+                            dark:border-white/10
+
+                            bg-white
+                            dark:bg-[#111827]
+
+                            py-2.5
+                            pl-3
+                            pr-10
+
+                            text-sm
+                            text-slate-700
+                            dark:text-white
+
+                            outline-none
+
+                            transition-all
+                            duration-200
+
+                            focus:border-indigo-500
+                            focus:ring-2
+                            focus:ring-indigo-500/20
+                        "
+
+                        placeholder="Search inventory name or item code..."
+
+                        autocomplete="off"
+
+                        value="${data.inventory_descr || ""}"
+                    >
+
+                    <input
+                        type="hidden"
+
+                        class="edit-inventory-id"
+
+                        value="${data.inventoryid || ""}"
+                    >
+
+                    <div class="
+                        pointer-events-none
+
+                        absolute
+                        inset-y-0
+                        right-0
+
+                        flex
+                        items-center
+
+                        pr-3
+
+                        text-slate-400
+                    ">
+
+                        <i class="
+                            fa-solid
+                            fa-chevron-down
+
+                            text-xs
+                        "></i>
+
+                    </div>
+
+                    <div class="
+                        edit-inventory-result
+
+                        absolute
+                        left-0
+                        top-full
+
+                        z-[999999]
+
+                        mt-2
+
+                        hidden
+
+                        max-h-72
+                        w-full
+
+                        overflow-y-auto
+
+                        rounded-xl
+
+                        border border-slate-200
+                        dark:border-white/10
+
+                        bg-white
+                        dark:bg-[#111827]
+
+                        shadow-[0_20px_60px_rgba(0,0,0,0.25)]
+
+                        ring-1
+                        ring-black/5
+
+                        isolate
+                    ">
+                    </div>
+
+                </div>
+
+            </td>
+
+            <td class="w-24 px-3 py-3 align-top">
+
+                <input
+                    type="number"
+
+                    min="1"
+
+                    class="
+                        edit-item-qty
+
+                        w-full
+
+                        rounded-lg
+
+                        border border-slate-200
+                        dark:border-white/10
+
+                        bg-slate-50
+                        dark:bg-[#111827]
+
+                        px-3 py-2.5
+
+                        text-sm
+                        text-slate-700
+                        dark:text-white
+
+                        outline-none
+
+                        transition-all
+                        duration-200
+
+                        focus:border-indigo-500
+                        focus:ring-2
+                        focus:ring-indigo-500/20
+                    "
+
+                    value="${data.qty || 1}"
+                >
+
+            </td>
+
+            <td class="w-24 px-3 py-3 align-top">
+
+                <input
+                    type="text"
+
+                    readonly
+
+                    class="
+                        edit-item-uom
+
+                        w-full
+
+                        rounded-lg
+
+                        border border-slate-200
+                        dark:border-white/10
+
+                        bg-slate-100
+                        dark:bg-[#1f2937]
+
+                        px-3 py-2.5
+
+                        text-sm
+                        text-slate-500
+                        dark:text-slate-300
+
+                        outline-none
+                    "
+
+                    value="${data.uom || ""}"
+                >
+
+            </td>
+
+            <td class="px-3 py-3 align-top">
+
+                <textarea
+                    rows="2"
+
+                    class="
+                        edit-item-note
+
+                        w-full
+
+                        rounded-lg
+
+                        border border-slate-200
+                        dark:border-white/10
+
+                        bg-slate-50
+                        dark:bg-[#111827]
+
+                        px-3 py-2.5
+
+                        text-sm
+                        text-slate-700
+                        dark:text-white
+
+                        outline-none
+
+                        transition-all
+                        duration-200
+
+                        focus:border-indigo-500
+                        focus:ring-2
+                        focus:ring-indigo-500/20
+                    "
+
+                    placeholder="Optional note"
+                >${data.recommend_note || ""}</textarea>
+
+            </td>
+
+            <td class="
+                w-14
+
+                px-3 py-3
+
+                align-top
+                text-center
+            ">
+
+                <button
+                    type="button"
+
+                    class="
+                        btn-remove-edit-item
+
+                        inline-flex
+
+                        h-9
+                        w-9
+
+                        items-center
+                        justify-center
+
+                        rounded-lg
+
+                        border border-red-200
+                        dark:border-red-500/20
+
+                        bg-red-50
+                        dark:bg-red-500/10
+
+                        text-red-600
+                        dark:text-red-300
+
+                        transition-all
+                        duration-200
+
+                        hover:bg-red-100
+                        dark:hover:bg-red-500/20
+                    "
+                >
+
+                    <i class="
+                        fa-solid
+                        fa-trash
+
+                        text-xs
+                    "></i>
+
+                </button>
+
+            </td>
+
+        </tr>
+
+    `;
+}
 function addEditRecommendationRow(data = {}) {
-    const html = `
-                    <tr class="edit-detail-row border-b border-gray-100 dark:border-white/5">
+    $("#edit_recommendation_detail_body").append(
+        createEditRecommendationRow(data),
+    );
+}
 
-                        <td class="px-3 py-3 align-top">
+function renderEditAttachments(files = []) {
+    if (files.length === 0) {
+        $("#edit_recommendation_attachments").html(`
+            <div class="
+                w-full
 
-                        <div class="relative">
+                rounded-lg
 
-                                <input
-                                    type="text"
-                                    class="edit-inventory-search w-full rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
-                                    placeholder="Search inventory name or item code..."
-                                    autocomplete="off"
-                                    value="${data.inventory_descr ?? ""}">
+                border
+                border-dashed
+                border-slate-200
+                dark:border-white/10
 
-                                <input
-                                    type="hidden"
-                                    class="edit-inventory-id"
-                                    value="${data.inventoryid ?? ""}">
+                px-4 py-6
 
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-                                    <i class="fa-solid fa-chevron-down text-xs"></i>
-                                </div>
+                text-center
+                text-sm
 
-                                <div class="edit-inventory-result  absolute left-0 bottom-full z-[9999] mt-1 hidden max-h-64 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/10 dark:bg-[#111827]">
-                            </div>
+                text-slate-400
+            ">
+                No attachments
+            </div>
+        `);
 
-                            </div>
+        return;
+    }
 
-                        </td>
+    const html = files
+        .map((file) => {
+            return `
 
-                        <td class="w-24 px-3 py-3 align-top">
+                <a
+                    href="${file.signed_url || "#"}"
 
-                            <input
-                                type="number"
-                                min="1"
-                                class="edit-item-qty w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
-                                value="${data.qty ?? 1}">
+                    target="_blank"
 
-                        </td>
+                    class="
+                        inline-flex
+                        items-center
+                        gap-2
 
-                        <td class="w-24 px-3 py-3 align-top">
+                        rounded-lg
 
-                            <input
-                                type="text"
-                                class="edit-item-uom w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-500 outline-none dark:border-white/10 dark:bg-[#1f2937] dark:text-gray-300"
-                                readonly
-                                value="${data.uom ?? ""}">
+                        border border-slate-200
+                        dark:border-white/10
 
-                        </td>
+                        bg-slate-50
+                        dark:bg-white/[0.03]
 
-                        <td class="px-3 py-3 align-top">
+                        px-3 py-2
 
-                            <textarea
-                                rows="2"
-                                class="edit-item-note w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
-                                placeholder="Optional note">${data.recommend_note ?? ""}</textarea>
+                        text-xs
+                        text-slate-700
+                        dark:text-slate-300
 
-                        </td>
+                        transition-all
+                        duration-200
 
-                        <td class="w-14 px-3 py-3 align-top text-center">
+                        hover:bg-slate-100
+                        dark:hover:bg-white/[0.05]
+                    "
+                >
 
-                            <button
-                                type="button"
-                                class="btn-remove-edit-item inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+                    <i class="
+                        fa-solid
+                        fa-paperclip
 
-                                <i class="fa-solid fa-trash text-xs"></i>
+                        text-slate-400
+                    "></i>
 
-                            </button>
+                    <div class="
+                        max-w-[220px]
 
-                        </td>
+                        truncate
+                    ">
+                        ${file.filename || "Attachment"}
+                    </div>
 
-                    </tr>
-                `;
+                </a>
 
-    $("#edit_recommendation_detail_body").append(html);
+            `;
+        })
+        .join("");
+
+    $("#edit_recommendation_attachments").html(html);
+}
+
+function renderRevisionNote(tracking = []) {
+    const reviseTimeline = tracking.find((row) => row.status === "D");
+
+    if (reviseTimeline?.note) {
+        $("#revision_note_container").html(`
+            <div class="
+                rounded-lg
+
+                border border-orange-200
+                dark:border-orange-500/20
+
+                bg-white
+                dark:bg-[#111827]
+
+                px-4 py-3
+
+                text-sm
+
+                text-orange-700
+                dark:text-orange-300
+            ">
+                ${reviseTimeline.note}
+            </div>
+        `);
+
+        return;
+    }
+
+    $("#revision_note_container").html(`
+        <div class="
+            rounded-lg
+
+            border
+            border-dashed
+            border-orange-200
+
+            px-4 py-3
+
+            text-sm
+
+            text-orange-500
+
+            dark:border-orange-500/20
+            dark:text-orange-300
+        ">
+            No revision note available
+        </div>
+    `);
+}
+
+function renderEditRecommendationInfo(header) {
+    $("#edit_recommendation_information").html(`
+
+        ${infoItem(
+            "Date",
+
+            header.itrecommend_date
+                ? new Date(header.itrecommend_date).toLocaleDateString(
+                      "en-GB",
+                      {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                      },
+                  )
+                : "-",
+        )}
+
+        ${infoItem("Company", header.cpny_id)}
+
+        ${infoItem("Department", header.department_id)}
+
+        ${infoItem("Requester", header.user_peminta)}
+
+        ${infoItem("Ticket Number", header.ticketnbr)}
+
+        ${infoItem("Asset Number", header.assetnbr || "-")}
+
+        ${infoItem("IT PIC", header.recommend_pic || "-")}
+
+        ${infoItem("Purpose / Requirement", header.keperluan)}
+
+    `);
+}
+
+function renderEditRecommendationDetails(details = []) {
+    $("#edit_recommendation_detail_body").html("");
+
+    if (details.length === 0) {
+        addEditRecommendationRow();
+
+        return;
+    }
+
+    details.forEach((row) => {
+        addEditRecommendationRow({
+            inventory_descr: row.recommend_descr,
+
+            inventoryid: row.inventoryid,
+
+            qty: row.qty,
+
+            uom: row.uom,
+
+            recommend_note: row.recommend_note,
+        });
+    });
 }
 
 async function loadEditRecommendation(hash) {
     try {
         const res = await $.ajax({
             url: `/it-recommendation/detail/${hash}`,
+
             type: "GET",
         });
 
-        const h = res.header;
+        const header = res.header;
 
         $("#edit_recommendation_hash").val(hash);
 
         $("#edit_recommendation_docid").text(
-            `Revise Recommendation - ${h.docid}`,
+            `Revise Recommendation - ${header.docid}`,
         );
 
-        $("#edit_recommendation_status").html(statusBadge(h.status));
+        $("#edit_recommendation_status").html(statusBadge(header.status));
 
-        $("#edit_recommendation_information").html(`
+        renderEditRecommendationInfo(header);
 
-                        ${editInfoItem(
-                            "Date",
-                            h.itrecommend_date
-                                ? new Date(
-                                      h.itrecommend_date,
-                                  ).toLocaleDateString("en-GB", {
-                                      day: "2-digit",
-                                      month: "short",
-                                      year: "numeric",
-                                  })
-                                : "-",
-                        )}
+        $("#edit_recommend_type").val(header.recommend_type || "");
 
-                        ${editInfoItem("Company", h.cpny_id)}
-                        ${editInfoItem("Department", h.department_id)}
-                        ${editInfoItem("Requester", h.user_peminta)}
-                        ${editInfoItem("Ticket Number", h.ticketnbr)}
-                        ${editInfoItem("Asset Number", h.assetnbr || "-")}
-                        ${editInfoItem("IT PIC", h.recommend_pic || "-")}
-                        ${editInfoItem("Purpose / Requirement", h.keperluan)}
+        $("#edit_waranty").val(header.waranty || "");
 
-                    `);
+        $("#edit_recommendation").val(header.recommendation || "");
 
-        $("#edit_recommend_type").val(h.recommend_type || "");
-        $("#edit_waranty").val(h.waranty || "");
-        $("#edit_recommendation").val(h.recommendation || "");
-
-        let attachmentHtml = "";
-
-        if (res.attachments.length === 0) {
-            attachmentHtml = `
-                            <div class="w-full rounded-lg border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-400 dark:border-white/10">
-                                No attachments
-                            </div>
-                        `;
-        } else {
-            res.attachments.forEach((file) => {
-                attachmentHtml += `
-                                <a
-                                    href="${file.signed_url ?? "#"}"
-                                    target="_blank"
-                                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]">
-
-                                    <i class="fa-solid fa-paperclip text-gray-400"></i>
-
-                                    <div class="max-w-[220px] truncate">
-                                        ${file.filename ?? "Attachment"}
-                                    </div>
-
-                                </a>
-                            `;
-            });
-        }
-
-        $("#edit_recommendation_attachments").html(attachmentHtml);
-
-        let reviseNoteHtml = "";
+        renderEditAttachments(res.attachments || []);
 
         const tracking = await $.ajax({
-            url: `/it-recommendation/tracking/${h.docid}`,
+            url: `/it-recommendation/tracking/${header.docid}`,
+
             type: "GET",
         });
 
-        const reviseTimeline = tracking.find((x) => x.status === "D");
+        renderRevisionNote(tracking);
 
-        if (reviseTimeline?.note) {
-            reviseNoteHtml = `
-                            <div class="rounded-lg border border-orange-200 bg-white px-4 py-3 text-sm text-orange-700 dark:border-orange-500/20 dark:bg-[#111827] dark:text-orange-300">
-                                ${reviseTimeline.note}
-                            </div>
-                        `;
-        } else {
-            reviseNoteHtml = `
-                            <div class="rounded-lg border border-dashed border-orange-200 px-4 py-3 text-sm text-orange-500 dark:border-orange-500/20 dark:text-orange-300">
-                                No revision note available
-                            </div>
-                        `;
-        }
+        renderEditRecommendationDetails(res.details || []);
 
-        $("#revision_note_container").html(reviseNoteHtml);
-
-        $("#edit_recommendation_detail_body").html("");
-
-        if (res.details.length > 0) {
-            res.details.forEach((row) => {
-                addEditRecommendationRow({
-                    inventory_descr: row.recommend_descr,
-                    inventoryid: row.inventoryid,
-                    qty: row.qty,
-                    uom: row.uom,
-                    recommend_note: row.recommend_note,
-                });
-            });
-        } else {
-            addEditRecommendationRow();
-        }
+        modalState.reviseDirty = false;
 
         openEditRecommendationModal();
     } catch (err) {
+        console.error(err);
+
         Swal.fire({
             icon: "error",
+
             title: "Error",
+
             text:
                 err.responseJSON?.message || "Failed load recommendation data",
         });
     }
+}
+
+function collectEditRecommendationDetails() {
+    const details = [];
+
+    $("#edit_recommendation_detail_body tr").each(function () {
+        const row = $(this);
+
+        const recommendDescr = row.find(".edit-inventory-search").val().trim();
+
+        if (!recommendDescr) {
+            return;
+        }
+
+        details.push({
+            recommend_descr: recommendDescr,
+
+            qty: row.find(".edit-item-qty").val(),
+
+            uom: row.find(".edit-item-uom").val(),
+
+            recommend_note: row.find(".edit-item-note").val(),
+        });
+    });
+
+    return details;
+}
+
+async function submitEditRecommendation() {
+    const hash = $("#edit_recommendation_hash").val();
+
+    const details = collectEditRecommendationDetails();
+
+    if (details.length === 0) {
+        Swal.fire({
+            icon: "warning",
+
+            title: "Validation",
+
+            text: "Please select inventory item",
+        });
+
+        return false;
+    }
+
+    await $.ajax({
+        url: `/it-recommendation/process/${hash}`,
+
+        type: "POST",
+
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+        },
+
+        data: {
+            recommend_type: $("#edit_recommend_type").val(),
+
+            waranty: $("#edit_waranty").val(),
+
+            recommendation: $("#edit_recommendation").val(),
+
+            details,
+        },
+    });
+
+    return true;
 }
 
 $(document).on("click", ".edit-recommendation-btn", function () {
@@ -211,89 +631,82 @@ $(document).on("click", ".edit-recommendation-btn", function () {
     loadEditRecommendation(hash);
 });
 
-$("#btnCloseEditRecommendationModal").on("click", function () {
-    closeEditRecommendationModal();
-});
+$("#btnCloseEditRecommendationModal, #btnCloseEditRecommendationFooter").on(
+    "click",
+    function () {
+        closeEditRecommendationModal();
+    },
+);
 
 $("#btnAddEditItem").on("click", function () {
     addEditRecommendationRow();
+
+    modalState.reviseDirty = true;
 });
 
 $(document).on("click", ".btn-remove-edit-item", function () {
     $(this).closest("tr").remove();
+
+    modalState.reviseDirty = true;
 
     if ($("#edit_recommendation_detail_body tr").length === 0) {
         addEditRecommendationRow();
     }
 });
 
+$(document).on(
+    "input change",
+    `
+        #editRecommendationForm input,
+        #editRecommendationForm textarea,
+        #editRecommendationForm select
+    `,
+    function () {
+        modalState.reviseDirty = true;
+    },
+);
+
 $("#editRecommendationForm").on("submit", async function (e) {
     e.preventDefault();
-
-    const hash = $("#edit_recommendation_hash").val();
-
-    let details = [];
-    $("#edit_recommendation_detail_body tr").each(function () {
-        const row = $(this);
-
-        const recommend_descr = row.find(".edit-inventory-search").val().trim();
-
-        if (!recommend_descr) {
-            return;
-        }
-
-        details.push({
-            recommend_descr: recommend_descr,
-            qty: row.find(".edit-item-qty").val(),
-            uom: row.find(".edit-item-uom").val(),
-            recommend_note: row.find(".edit-item-note").val(),
-        });
-    });
-    if (details.length === 0) {
-        Swal.fire({
-            icon: "warning",
-            title: "Validation",
-            text: "Please select inventory item",
-        });
-
-        return;
-    }
 
     const btn = $(this).find('button[type="submit"]');
 
     btn.prop("disabled", true).html(`
-                        <i class="fa-solid fa-spinner fa-spin text-xs"></i>
-                        Resubmitting...
-                    `);
+
+            <i class="
+                fa-solid
+                fa-spinner
+                fa-spin
+
+                text-xs
+            "></i>
+
+            Resubmitting...
+
+        `);
 
     try {
-        await $.ajax({
-            url: `/it-recommendation/process/${hash}`,
-            type: "POST",
+        const success = await submitEditRecommendation();
 
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            },
-
-            data: {
-                recommend_type: $("#edit_recommend_type").val(),
-                waranty: $("#edit_waranty").val(),
-                recommendation: $("#edit_recommendation").val(),
-                details: details,
-            },
-        });
+        if (!success) {
+            return;
+        }
 
         Swal.fire({
             icon: "success",
+
             title: "Success",
+
             text: "Recommendation resubmitted successfully",
+
             timer: 1800,
+
             showConfirmButton: false,
         });
 
-        closeEditRecommendationModal();
+        closeEditRecommendationModal(true);
 
-        closeShowModal();
+        closeShowModal(true);
 
         table.ajax.reload(null, false);
     } catch (err) {
@@ -305,21 +718,29 @@ $("#editRecommendationForm").on("submit", async function (e) {
 
         Swal.fire({
             icon: "error",
+
             title: "Error",
+
             html: msg,
         });
     } finally {
         btn.prop("disabled", false).html(`
-                            <i class="fa-solid fa-paper-plane text-xs"></i>
-                            Resubmit Approval
-                        `);
+
+                <i class="
+                    fa-solid
+                    fa-paper-plane
+
+                    text-xs
+                "></i>
+
+                Resubmit Approval
+
+            `);
     }
 });
 
-const revisePath = window.location.pathname;
-
-if (path.includes("/edit-processitrecommendation/")) {
-    const hash = path.split("/").pop();
+if (window.location.pathname.includes("/edit-processitrecommendation/")) {
+    const hash = window.location.pathname.split("/").pop();
 
     loadEditRecommendation(hash);
 }

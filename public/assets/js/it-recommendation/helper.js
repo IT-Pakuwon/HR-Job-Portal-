@@ -1,138 +1,348 @@
 function statusBadge(status) {
-    const raw = status;
-
-    if (raw === "Processed") {
-        return `
-                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-300">
-                                Processed
-                            </span>
-                        `;
-    }
     const map = {
+        Processed: {
+            text: "Processed",
+
+            cls: `
+                border border-green-200
+                bg-green-50
+                text-green-700
+
+                dark:border-green-500/20
+                dark:bg-green-500/10
+                dark:text-green-300
+            `,
+        },
+
         S: {
             text: "Submitted",
-            cls: "bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300",
+
+            cls: `
+                border border-indigo-200
+                bg-indigo-50
+                text-indigo-700
+
+                dark:border-indigo-500/20
+                dark:bg-indigo-500/10
+                dark:text-indigo-300
+            `,
         },
 
         IT: {
             text: "Processed",
-            cls: "bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-300",
+
+            cls: `
+                border border-green-200
+                bg-green-50
+                text-green-700
+
+                dark:border-green-500/20
+                dark:bg-green-500/10
+                dark:text-green-300
+            `,
         },
 
         A: {
             text: "Approved",
-            cls: "bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-300",
+
+            cls: `
+                border border-green-200
+                bg-green-50
+                text-green-700
+
+                dark:border-green-500/20
+                dark:bg-green-500/10
+                dark:text-green-300
+            `,
         },
 
         W: {
             text: "Waiting IT",
-            cls: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-300",
+
+            cls: `
+                border border-amber-200
+                bg-amber-50
+                text-amber-700
+
+                dark:border-amber-500/20
+                dark:bg-amber-500/10
+                dark:text-amber-300
+            `,
         },
 
         I: {
             text: "Waiting IT Revision",
-            cls: "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20 dark:text-orange-300",
+
+            cls: `
+                border border-orange-200
+                bg-orange-50
+                text-orange-700
+
+                dark:border-orange-500/20
+                dark:bg-orange-500/10
+                dark:text-orange-300
+            `,
         },
 
         P: {
             text: "Waiting Approval",
-            cls: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-300",
+
+            cls: `
+                border border-blue-200
+                bg-blue-50
+                text-blue-700
+
+                dark:border-blue-500/20
+                dark:bg-blue-500/10
+                dark:text-blue-300
+            `,
         },
 
         C: {
             text: "Completed",
-            cls: "bg-green-50 text-green-700 border border-green-200 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-300",
+
+            cls: `
+                border border-green-200
+                bg-green-50
+                text-green-700
+
+                dark:border-green-500/20
+                dark:bg-green-500/10
+                dark:text-green-300
+            `,
         },
 
         R: {
             text: "Rejected",
-            cls: "bg-red-50 text-red-700 border border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-300",
+
+            cls: `
+                border border-red-200
+                bg-red-50
+                text-red-700
+
+                dark:border-red-500/20
+                dark:bg-red-500/10
+                dark:text-red-300
+            `,
         },
 
         D: {
             text: "Revise",
-            cls: "bg-gray-100 text-gray-700 border border-gray-200 dark:bg-white/10 dark:border-white/10 dark:text-gray-300",
+
+            cls: `
+                border border-slate-200
+                bg-slate-100
+                text-slate-700
+
+                dark:border-white/10
+                dark:bg-white/10
+                dark:text-slate-300
+            `,
         },
 
         X: {
             text: "Cancelled",
-            cls: "bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-500/10 dark:border-slate-500/20 dark:text-slate-300",
+
+            cls: `
+                border border-slate-200
+                bg-slate-100
+                text-slate-700
+
+                dark:border-slate-500/20
+                dark:bg-slate-500/10
+                dark:text-slate-300
+            `,
         },
     };
 
     const item = map[status] || {
-        text: status ?? "-",
-        cls: "bg-gray-100 text-gray-700 border border-gray-200",
+        text: status || "-",
+
+        cls: `
+            border border-slate-200
+            bg-slate-100
+            text-slate-700
+
+            dark:border-white/10
+            dark:bg-white/10
+            dark:text-slate-300
+        `,
     };
 
     return `
-                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${item.cls}">
-                        ${item.text}
-                    </span>
-                `;
+
+        <span class="
+            inline-flex
+            items-center
+
+            rounded-full
+
+            px-2.5 py-1
+
+            text-[11px]
+            font-semibold
+
+            ${item.cls}
+        ">
+
+            ${item.text}
+
+        </span>
+
+    `;
 }
 
 function timelineIcon(status) {
     const map = {
         S: "fa-paper-plane text-indigo-500",
+
         IT: "fa-gears text-green-500",
+
         A: "fa-check text-green-500",
+
         W: "fa-clock text-amber-500",
+
         I: "fa-rotate-left text-orange-500",
+
         P: "fa-hourglass-half text-blue-500",
+
         C: "fa-circle-check text-green-500",
+
         R: "fa-xmark text-red-500",
-        D: "fa-pen text-gray-500",
+
+        D: "fa-pen text-slate-500",
+
         X: "fa-ban text-slate-500",
     };
 
-    return map[status] || "fa-circle text-gray-400";
+    return map[status] || "fa-circle text-slate-400";
 }
 
 function infoItem(label, value) {
     return `
-                    <div class="min-w-0">
 
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-400">
-                            ${label}
-                        </div>
+        <div class="min-w-0">
 
-                        <div class="mt-1 break-words text-sm text-gray-700 dark:text-gray-200">
-                            ${value ?? "-"}
-                        </div>
+            <div class="
+                text-[11px]
+                font-semibold
+                uppercase
 
-                    </div>
-                `;
+                tracking-[0.15em]
+
+                text-slate-400
+            ">
+
+                ${label}
+
+            </div>
+
+            <div class="
+                mt-1
+
+                break-words
+
+                text-sm
+
+                text-slate-700
+                dark:text-slate-200
+            ">
+
+                ${value || "-"}
+
+            </div>
+
+        </div>
+
+    `;
 }
 
-function processInfoItem(label, value) {
+function emptyState(text = "No data available") {
     return `
-                    <div class="min-w-0">
 
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-400">
-                            ${label}
-                        </div>
+        <div class="
+            rounded-xl
 
-                        <div class="mt-1 break-words text-sm text-gray-700 dark:text-gray-200">
-                            ${value ?? "-"}
-                        </div>
+            border
+            border-dashed
+            border-slate-200
 
-                    </div>
-                `;
+            px-4 py-8
+
+            text-center
+            text-sm
+
+            text-slate-400
+
+            dark:border-white/10
+        ">
+
+            ${text}
+
+        </div>
+
+    `;
 }
 
-function editInfoItem(label, value) {
+function sectionCard({
+    title = "",
+    content = "",
+    actions = "",
+    className = "",
+}) {
     return `
-                    <div class="min-w-0">
 
-                        <div class="text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-400">
-                            ${label}
-                        </div>
+        <div class="
+            rounded-2xl
 
-                        <div class="mt-1 break-words text-sm text-gray-700 dark:text-gray-200">
-                            ${value ?? "-"}
-                        </div>
+            border border-slate-200
+            dark:border-white/10
 
-                    </div>
-                `;
+            bg-white
+            dark:bg-[#0f172a]
+
+            shadow-sm
+
+            ${className}
+        ">
+
+            <div class="
+                flex
+                items-center
+                justify-between
+
+                border-b border-slate-200
+                dark:border-white/10
+
+                px-5 py-4
+            ">
+
+                <h3 class="
+                    text-xs
+                    font-semibold
+                    uppercase
+
+                    tracking-[0.2em]
+
+                    text-slate-500
+                    dark:text-slate-400
+                ">
+
+                    ${title}
+
+                </h3>
+
+                ${actions}
+
+            </div>
+
+            <div class="p-5">
+
+                ${content}
+
+            </div>
+
+        </div>
+
+    `;
 }

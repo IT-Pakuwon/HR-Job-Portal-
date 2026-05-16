@@ -1254,6 +1254,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tracking/{hash}', 'tracking')->name('it-recommendation.tracking');
         Route::post('/process/{hash}', 'process')->name('it-recommendation.process');
         Route::post('/it-revise/{hash}', 'itRevise')->name('it-recommendation.it-revise');
+
         Route::post('/it-reject/{hash}', 'itReject')->name('it-recommendation.it-reject');
         Route::post('/approve/{docid}', 'approve')->name('it-recommendation.approve');
         Route::post('/reject/{docid}', 'reject')->name('it-recommendation.reject');
@@ -1265,6 +1266,10 @@ Route::middleware(['auth'])->group(function () {
             '/comments/{docid}',
             [ItRecommendationController::class, 'comments']
         );
+        Route::get(
+    '/ticket-search',
+    'ticketSearch'
+)->name('it-recommendation.ticket-search');
     });
 
     Route::get('/showitrecommendation/{eid}', [ItRecommendationController::class, 'index']);
@@ -1322,8 +1327,7 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('ticket-setup')
-           ->controller(TicketSetupController::class)
-           ->group(function () {
+           ->controller(TicketSetupController::class)->group(function () {
                Route::get('/', 'index')->name('ticketsetup');
 
                Route::middleware('ajax')->group(function () {
@@ -1376,8 +1380,7 @@ Route::middleware(['auth'])->group(function () {
            });
 
         Route::prefix('access-request')
-        ->controller(AccessRequestController::class)
-        ->group(function () {
+            ->controller(AccessRequestController::class)->group(function () {
             Route::get('/', 'index')->name('accessrequest');
 
             Route::middleware('ajax')->group(function () {
@@ -1430,9 +1433,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/processsoftwareaccess/{eid}', 'index');
         });
 
-        Route::prefix('meeting')
-        ->controller(MeetingController::class)
-        ->group(function () {
+        Route::prefix('meeting')->controller(MeetingController::class)->group(function () {
             Route::get('/', 'index')->name('meeting');
 
             Route::middleware('ajax')->group(function () {
@@ -1473,10 +1474,7 @@ Route::middleware(['auth'])->group(function () {
                 ->name('meeting.teams.update');
         });
 
-        Route::prefix('meetingroom/setup')
-            ->controller(MeetingRoomSetupController::class)
-            ->name('meetingroom.setup.')
-            ->group(function () {
+        Route::prefix('meetingroom/setup')->controller(MeetingRoomSetupController::class)->name('meetingroom.setup.')->group(function () {
                 Route::get('/', 'index')->name('index');
 
                 Route::middleware('ajax')->group(function () {
@@ -1516,7 +1514,62 @@ Route::middleware(['auth'])->group(function () {
 
                 Route::post('/accessories/status/{id}', 'updateAccessoriesStatus')
                     ->name('accessories.status');
+        });
+
+        Route::prefix('it-recommendation')->controller(ItRecommendationController::class)->group(function () {
+
+            Route::get('/', 'index')->name('it-recommendation');
+
+            Route::middleware('ajax')->group(function () {
+
+                Route::get('/json', 'json')->name('it-recommendation.json');
+
+                Route::get('/detail/{hash}', 'detail')->name('it-recommendation.detail');
+
+                Route::get('/tracking/{hash}', 'tracking')->name('it-recommendation.tracking');
+
+                Route::get('/comments/{docid}', 'comments')->name('it-recommendation.comments');
+
+                Route::get('/inventory-search', 'inventorySearch')->name('it-recommendation.inventory-search');
+
+                Route::get('/ticket-search', 'ticketSearch')->name('it-recommendation.ticket-search');
             });
+
+            Route::post('/store', 'store')->name('it-recommendation.store');
+
+            Route::post('/update/{hash}', 'update')->name('it-recommendation.update');
+
+            Route::post('/cancel/{hash}', 'cancel')->name('it-recommendation.cancel');
+
+            Route::post('/process/{hash}', 'process')->name('it-recommendation.process');
+
+            Route::post('/it-revise/{hash}', 'itRevise')->name('it-recommendation.it-revise');
+
+            Route::post('/it-reject/{hash}', 'itReject')->name('it-recommendation.it-reject');
+
+            Route::post('/approve/{docid}', 'approve')->name('it-recommendation.approve');
+
+            Route::post('/reject/{docid}', 'reject')->name('it-recommendation.reject');
+
+            Route::post('/revise/{docid}', 'revise')->name('it-recommendation.revise');
+
+            Route::post('/comment/{hash}', 'comment')->name('it-recommendation.comment');
+
+            Route::get('/print/{hash}', 'print')->name('it-recommendation.print');
+        });
+
+        Route::controller(ItRecommendationController::class)->group(function () {
+
+            Route::get('/showitrecommendation/{eid}', 'index');
+
+            Route::get('/edititrecommendation/{eid}', 'index');
+
+            Route::get('/processitrecommendation/{eid}', 'index');
+
+            Route::get('/edit-processitrecommendation/{eid}', 'index');
+
+            Route::get('/createitrecommendation', 'index');
+        });
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');

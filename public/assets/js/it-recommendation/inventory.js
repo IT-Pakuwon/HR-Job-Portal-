@@ -1,10 +1,4 @@
-$(document).on("keyup", ".inventory-search", async function () {
-    const input = $(this);
-
-    const keyword = input.val();
-
-    const container = input.closest("td").find(".inventory-result");
-
+async function searchInventory({ keyword, container, selectClass }) {
     if (keyword.length < 2) {
         container.addClass("hidden").html("");
 
@@ -14,155 +8,199 @@ $(document).on("keyup", ".inventory-search", async function () {
     try {
         const res = await $.ajax({
             url: `/it-recommendation/inventory-search`,
+
             type: "GET",
+
             data: {
                 q: keyword,
             },
         });
 
-        let html = "";
+        renderInventoryResult({
+            container,
 
-        if (res.length === 0) {
-            html = `
-                            <div class="px-3 py-2 text-xs text-gray-400">
-                                No inventory found
-                            </div>
-                        `;
-        } else {
-            res.forEach((row) => {
-                html += `
-                            <button
-                                type="button"
-                                class="inventory-select group flex w-full flex-col gap-1 border-b border-gray-100 px-4 py-3 text-left transition hover:bg-indigo-50 dark:border-white/5 dark:hover:bg-white/[0.03]"
-                                data-id="${row.inventoryid}"
-                                data-name="${row.inventory_descr}"
-                                data-uom="${row.purchase_unit ?? ""}">
+            rows: res,
 
-                            <span class="line-clamp-2 text-sm font-medium leading-snug text-gray-700 dark:text-gray-200">
-                                    ${row.inventory_descr}
-                                </span>
-
-                                <div class="flex items-center gap-2 text-[11px] text-gray-400">
-
-                                    <span class="rounded bg-gray-100 px-2 py-0.5 dark:bg-white/10">
-                                        ${row.inventoryid}
-                                    </span>
-
-                                </div>
-                            </button>
-                        `;
-            });
-        }
-
-        container.removeClass("hidden").html(html);
+            selectClass,
+        });
     } catch (err) {
         console.log(err);
     }
-});
+}
 
-$(document).on("click", ".inventory-select", function () {
-    const btn = $(this);
+function renderInventoryResult({ container, rows = [], selectClass }) {
+    let html = "";
 
+    if (rows.length === 0) {
+        html = `
+            <div class="
+                px-3 py-2
+
+                text-xs
+
+                text-gray-400
+            ">
+                No inventory found
+            </div>
+        `;
+    } else {
+        rows.forEach((row) => {
+            html += `
+
+                <button
+                    type="button"
+
+                    class="
+                        ${selectClass}
+
+                        group
+
+                        flex
+                        w-full
+                        flex-col
+                        gap-1
+
+                        border-b border-gray-100
+                        dark:border-white/5
+
+                        px-4 py-3
+
+                        text-left
+
+                        transition-all
+                        duration-150
+
+                        hover:bg-indigo-50
+                        dark:hover:bg-white/[0.03]
+                    "
+
+                    data-id="${row.inventoryid}"
+
+                    data-name="${row.inventory_descr}"
+
+                    data-uom="${row.purchase_unit ?? ""}"
+                >
+
+                    <span class="
+                        line-clamp-2
+
+                        text-sm
+                        font-medium
+                        leading-snug
+
+                        text-gray-700
+                        dark:text-gray-200
+                    ">
+                        ${row.inventory_descr}
+                    </span>
+
+                    <div class="
+                        flex
+                        items-center
+                        gap-2
+
+                        text-[11px]
+
+                        text-gray-400
+                    ">
+
+                        <span class="
+                            rounded
+
+                            bg-gray-100
+                            dark:bg-white/10
+
+                            px-2 py-0.5
+                        ">
+                            ${row.inventoryid}
+                        </span>
+
+                    </div>
+
+                </button>
+
+            `;
+        });
+    }
+
+    container.removeClass("hidden").html(html);
+}
+
+function selectInventory({ btn, searchClass, idClass, uomClass, resultClass }) {
     const row = btn.closest("tr");
 
-    row.find(".inventory-search").val(btn.data("name"));
+    row.find(searchClass).val(btn.data("name"));
 
-    row.find(".inventory-id").val(btn.data("id"));
+    row.find(idClass).val(btn.data("id"));
 
-    row.find(".item-uom").val(btn.data("uom") || "");
+    row.find(uomClass).val(btn.data("uom") || "");
 
-    row.find(".inventory-result").addClass("hidden").html("");
+    row.find(resultClass).addClass("hidden").html("");
+}
+
+$(document).on("keyup", ".inventory-search", async function () {
+    const input = $(this);
+
+    searchInventory({
+        keyword: input.val(),
+
+        container: input.closest("td").find(".inventory-result"),
+
+        selectClass: "inventory-select",
+    });
 });
 
 $(document).on("keyup", ".edit-inventory-search", async function () {
     const input = $(this);
 
-    const keyword = input.val();
+    searchInventory({
+        keyword: input.val(),
 
-    const container = input.closest("td").find(".edit-inventory-result");
+        container: input.closest("td").find(".edit-inventory-result"),
 
-    if (keyword.length < 2) {
-        container.addClass("hidden").html("");
+        selectClass: "edit-inventory-select",
+    });
+});
 
-        return;
-    }
+$(document).on("click", ".inventory-select", function () {
+    selectInventory({
+        btn: $(this),
 
-    try {
-        const res = await $.ajax({
-            url: `/it-recommendation/inventory-search`,
-            type: "GET",
+        searchClass: ".inventory-search",
 
-            data: {
-                q: keyword,
-            },
-        });
+        idClass: ".inventory-id",
 
-        let html = "";
+        uomClass: ".item-uom",
 
-        if (res.length === 0) {
-            html = `
-                            <div class="px-3 py-2 text-xs text-gray-400">
-                                No inventory found
-                            </div>
-                        `;
-        } else {
-            res.forEach((row) => {
-                html += `
-                                <button
-                                    type="button"
-                                    class="edit-inventory-select group flex w-full flex-col gap-1 border-b border-gray-100 px-4 py-3 text-left transition hover:bg-indigo-50 dark:border-white/5 dark:hover:bg-white/[0.03]"
-                                    data-id="${row.inventoryid}"
-                                    data-name="${row.inventory_descr}"
-                                    data-uom="${row.purchase_unit ?? ""}">
-
-                                    <span class="line-clamp-2 text-sm font-medium leading-snug text-gray-700 dark:text-gray-200">
-                                        ${row.inventory_descr}
-                                    </span>
-
-                                    <div class="flex items-center gap-2 text-[11px] text-gray-400">
-
-                                        <span class="rounded bg-gray-100 px-2 py-0.5 dark:bg-white/10">
-                                            ${row.inventoryid}
-                                        </span>
-
-                                    </div>
-
-                                </button>
-                            `;
-            });
-        }
-
-        container.removeClass("hidden").html(html);
-    } catch (err) {
-        console.log(err);
-    }
+        resultClass: ".inventory-result",
+    });
 });
 
 $(document).on("click", ".edit-inventory-select", function () {
-    const btn = $(this);
+    selectInventory({
+        btn: $(this),
 
-    const row = btn.closest("tr");
+        searchClass: ".edit-inventory-search",
 
-    row.find(".edit-inventory-search").val(btn.data("name"));
+        idClass: ".edit-inventory-id",
 
-    row.find(".edit-inventory-id").val(btn.data("id"));
+        uomClass: ".edit-item-uom",
 
-    row.find(".edit-item-uom").val(btn.data("uom") || "");
-
-    row.find(".edit-inventory-result").addClass("hidden").html("");
+        resultClass: ".edit-inventory-result",
+    });
 });
 
 $(document).on("click", function (e) {
     if (
-        !$(e.target).closest(".edit-inventory-search, .edit-inventory-result")
-            .length
+        !$(e.target).closest(`
+                    .inventory-search,
+                    .inventory-result,
+                    .edit-inventory-search,
+                    .edit-inventory-result
+                `).length
     ) {
-        $(".edit-inventory-result").addClass("hidden");
-    }
-});
-
-$(document).on("click", function (e) {
-    if (!$(e.target).closest(".inventory-search, .inventory-result").length) {
         $(".inventory-result").addClass("hidden");
+
+        $(".edit-inventory-result").addClass("hidden");
     }
 });

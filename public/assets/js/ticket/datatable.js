@@ -88,30 +88,25 @@ const ticketTable = $("#ticketTable").DataTable({
         `/showticket/${row.eid}`;
 
     let cls = `
-        inline-flex
-        items-center
-        justify-center
+         inline-flex items-center justify-center
+                        w-[150px]
 
-        min-w-[150px]
+                        rounded-lg
 
-        rounded-lg
+                        bg-slate-800
+                        dark:bg-slate-100
 
-        bg-slate-800
-        dark:bg-slate-100
+                        px-3 py-1.5
 
-        px-4 py-2.5
+                        text-sm font-semibold
 
-        text-sm
-        font-semibold
+                        text-white
+                        dark:text-slate-900
 
-        text-white
-        dark:text-slate-900
+                        transition-all duration-200
 
-        transition-all
-        duration-200
-
-        hover:bg-slate-700
-        dark:hover:bg-white
+                        hover:bg-slate-700
+                        dark:hover:bg-white
     `;
 
     const canEdit =
@@ -133,7 +128,7 @@ const ticketTable = $("#ticketTable").DataTable({
             bg-amber-500
             dark:bg-amber-400
 
-            px-4 py-2.5
+           px-3 py-1.5
 
             text-sm
             font-semibold
@@ -516,7 +511,7 @@ function renderTicketActionDropdown(row) {
                 class="
                     flex w-full items-center gap-3
 
-                    px-4 py-2.5
+                   px-3 py-1.5
 
                     text-left text-sm
 

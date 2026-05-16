@@ -1,68 +1,192 @@
-function openShowModal() {
-    $("#showModal").removeClass("hidden").addClass("flex");
+const modalState = {
+    createDirty: false,
 
-    $("body").addClass("overflow-hidden");
+    processDirty: false,
+
+    reviseDirty: false,
+};
+
+function toggleBodyScroll() {
+    const hasOpenModal = [
+        "#createModal",
+        "#showModal",
+        "#processModal",
+        "#editRecommendationModal",
+    ].some((selector) => {
+        return !$(selector).hasClass("hidden");
+    });
+
+    $("body").toggleClass("overflow-hidden", hasOpenModal);
 }
 
-function closeShowModal() {
-    $("#showModal").removeClass("flex").addClass("hidden");
+function animateOpenModal(target) {
+    const modal = $(target);
 
-    if (
-        $("#createModal").hasClass("hidden") &&
-        $("#showModal").hasClass("hidden") &&
-        $("#processModal").hasClass("hidden") &&
-        $("#editRecommendationModal").hasClass("hidden")
-    ) {
-        $("body").removeClass("overflow-hidden");
-    }
+    modal.removeClass("hidden").addClass("flex");
 
+    requestAnimationFrame(() => {
+        modal.find(".modal-backdrop").removeClass("opacity-0");
+
+        modal.find(".modal-panel").removeClass(`
+                opacity-0
+                translate-y-4
+                scale-[0.98]
+            `).addClass(`
+                opacity-100
+                translate-y-0
+                scale-100
+            `);
+    });
+
+    toggleBodyScroll();
+}
+
+function animateCloseModal(target, callback = null) {
+    const modal = $(target);
+
+    modal.find(".modal-backdrop").addClass("opacity-0");
+
+    modal.find(".modal-panel").removeClass(`
+            opacity-100
+            translate-y-0
+            scale-100
+        `).addClass(`
+            opacity-0
+            translate-y-4
+            scale-[0.98]
+        `);
+
+    setTimeout(() => {
+        modal.removeClass("flex").addClass("hidden");
+
+        toggleBodyScroll();
+
+        if (typeof callback === "function") {
+            callback();
+        }
+    }, 200);
+}
+
+async function confirmCloseModal() {
+    const result = await Swal.fire({
+        icon: "warning",
+
+        title: "Discard Changes?",
+
+        text: "Your unsaved changes will be lost.",
+
+        showCancelButton: true,
+
+        confirmButtonText: "Yes, Close",
+
+        confirmButtonColor: "#dc2626",
+    });
+
+    return result.isConfirmed;
+}
+
+function resetUrl() {
+    window.history.pushState({}, "", "/it-recommendation");
+}
+
+function resetShowModal() {
     $("#show_docid").text("-");
+
     $("#show_status_badge").html("");
+
     $("#show_information").html("");
+
+    $("#show_recommendation_info").html("");
+
     $("#show_detail_items").html("");
+
     $("#show_attachments").html("");
+
     $("#show_tracking").html("");
+
+    $("#show_comments").html("");
 
     $("#show_header_actions").addClass("hidden").html("");
 
     $("#commentSection").removeClass("hidden");
 
-    $("#show_comments").html("");
-
-    const cleanUrl = '/it-recommendation';
-
-    window.history.pushState({}, "", cleanUrl);
+    $("#comment_message").val("");
 }
 
-function openProcessModal() {
-    $("#processModal").removeClass("hidden").addClass("flex");
-
-    $("body").addClass("overflow-hidden");
-}
-
-function closeProcessModal() {
-    $("#processModal").removeClass("flex").addClass("hidden");
-
-    if (
-        $("#createModal").hasClass("hidden") &&
-        $("#showModal").hasClass("hidden") &&
-        $("#processModal").hasClass("hidden") &&
-        $("#editRecommendationModal").hasClass("hidden")
-    ) {
-        $("body").removeClass("overflow-hidden");
-    }
-
+function resetProcessModal() {
     $("#processForm")[0].reset();
 
     $("#process_hash").val("");
+
     $("#process_docid").text("Process IT Recommendation");
+
     $("#process_information").html("");
+
     $("#process_attachments").html("");
+
     $("#process_detail_body").html("");
 
-    const cleanUrl = '/it-recommendation';
+    modalState.processDirty = false;
+}
 
-    window.history.pushState({}, "", cleanUrl);
+function resetEditRecommendationModal() {
+    $("#editRecommendationForm")[0].reset();
+
+    $("#edit_recommendation_hash").val("");
+
+    $("#edit_recommendation_information").html("");
+
+    $("#edit_recommendation_attachments").html("");
+
+    $("#edit_recommendation_detail_body").html("");
+
+    $("#revision_note_container").html("");
+
+    modalState.reviseDirty = false;
+}
+
+function resetCreateModalState() {
+    modalState.createDirty = false;
+}
+
+function openShowModal() {
+    animateOpenModal("#showModal");
+}
+
+async function closeShowModal(force = false) {
+    animateCloseModal(
+        "#showModal",
+
+        function () {
+            resetShowModal();
+
+            resetUrl();
+        },
+    );
+}
+
+function openProcessModal() {
+    animateOpenModal("#processModal");
+}
+
+async function closeProcessModal(force = false) {
+    if (!force && modalState.processDirty) {
+        const confirmed = await confirmCloseModal();
+
+        if (!confirmed) {
+            return;
+        }
+    }
+
+    animateCloseModal(
+        "#processModal",
+
+        function () {
+            resetProcessModal();
+
+            resetUrl();
+        },
+    );
 }
 
 function openEditRecommendationModal() {
@@ -70,33 +194,101 @@ function openEditRecommendationModal() {
 
     $("#processModal").removeClass("flex").addClass("hidden");
 
-    $("#editRecommendationModal").removeClass("hidden").addClass("flex");
-
-    $("body").addClass("overflow-hidden");
+    animateOpenModal("#editRecommendationModal");
 }
 
-function closeEditRecommendationModal() {
-    $("#editRecommendationModal").removeClass("flex").addClass("hidden");
+async function closeEditRecommendationModal(force = false) {
+    if (!force && modalState.reviseDirty) {
+        const confirmed = await confirmCloseModal();
 
-    if (
-        $("#createModal").hasClass("hidden") &&
-        $("#showModal").hasClass("hidden") &&
-        $("#processModal").hasClass("hidden") &&
-        $("#editRecommendationModal").hasClass("hidden")
-    ) {
-        $("body").removeClass("overflow-hidden");
+        if (!confirmed) {
+            return;
+        }
     }
 
-    $("#editRecommendationForm")[0].reset();
+    animateCloseModal(
+        "#editRecommendationModal",
 
-    $("#edit_recommendation_hash").val("");
-    $("#edit_recommendation_information").html("");
-    $("#edit_recommendation_detail_body").html("");
-    $("#revision_note_container").html("");
+        function () {
+            resetEditRecommendationModal();
 
-    const cleanUrl = '/it-recommendation';
+            resetUrl();
 
-    window.history.pushState({}, "", cleanUrl);
-
-    table.ajax.reload(null, false);
+            table.ajax.reload(null, false);
+        },
+    );
 }
+
+$(document).on(
+    "input change",
+    `
+        #createForm input,
+        #createForm textarea,
+        #createForm select
+    `,
+    function () {
+        modalState.createDirty = true;
+    },
+);
+
+$(document).on(
+    "input change",
+    `
+        #processForm input,
+        #processForm textarea,
+        #processForm select
+    `,
+    function () {
+        modalState.processDirty = true;
+    },
+);
+
+$(document).on(
+    "input change",
+    `
+        #editRecommendationForm input,
+        #editRecommendationForm textarea,
+        #editRecommendationForm select
+    `,
+    function () {
+        modalState.reviseDirty = true;
+    },
+);
+
+$("#btnCloseShowModal").on("click", function () {
+    closeShowModal();
+});
+
+$("#btnCloseProcessModal").on("click", function () {
+    closeProcessModal();
+});
+
+$("#btnCloseEditRecommendationModal").on("click", function () {
+    closeEditRecommendationModal();
+});
+
+$(document).on("click", "#showModal .modal-backdrop", function (e) {
+    e.preventDefault();
+});
+
+$(document).on("click", "#processModal .modal-backdrop", function (e) {
+    e.preventDefault();
+});
+
+$(document).on(
+    "click",
+    "#editRecommendationModal .modal-backdrop",
+    function (e) {
+        e.preventDefault();
+    },
+);
+
+$(document).on("click", "#createModal .modal-backdrop", function (e) {
+    e.preventDefault();
+});
+
+$(document).on("keydown", function (e) {
+    if (e.key === "Escape") {
+        e.preventDefault();
+    }
+});

@@ -1,191 +1,109 @@
-$(document).on("click", 'a[href*="/createitrecommendation"]', function (e) {
-    e.preventDefault();
+let selectedCreateFiles = [];
 
-    openCreateModal();
-});
+function initCreateSelect2() {
+    $(".select2").select2({
+        width: "100%",
+        dropdownParent: $("#createModal"),
+        placeholder: "Select option",
+        allowClear: true,
+    });
 
-$("#ticketnbr").on("select2:open", function () {
-    if (!$(this).data("loaded")) {
-        $(this).data("loaded", true);
-        $(this).select2("trigger", "query", { term: "" });
-    }
-});
+    $("#ticketnbr").select2({
+        width: "100%",
+        dropdownParent: $("#createModal"),
+        placeholder: "Search Ticket...",
+        allowClear: true,
+        minimumInputLength: 0,
 
-$(".select2").select2({
-    width: "100%",
-    dropdownParent: $("#createModal"),
-    placeholder: "Select option",
-    allowClear: true,
-});
+        ajax: {
+            url: "/it-recommendation/ticket-search",
+            dataType: "json",
+            delay: 300,
 
-$("#ticketnbr").select2({
-    dropdownParent: $("#createModal"),
-    placeholder: "Search Ticket...",
-    allowClear: true,
-    minimumInputLength: 0,
+            data: function (params) {
+                return {
+                    q: params.term || "",
+                };
+            },
 
-    ajax: {
-        url: "/it-recommendation/ticket-search",
-        dataType: "json",
-        delay: 300,
-        data: (params) => ({
-            q: params.term || "",
-        }),
-        processResults: (data) => ({
-            results: data.map((item) => ({
-                id: item.ticketid,
-                text: `${item.ticketid} - ${item.issue_summary}`,
-            })),
-        }),
-    },
-});
-
-$(document).on("click", 'a[href*="/edititrecommendation/"]', function (e) {
-    e.preventDefault();
-
-    const hash = $(this).attr("href").split("/").pop();
-
-    window.history.pushState({}, "", $(this).attr("href"));
-
-    openEditModal(hash);
-});
-
-$("#btnCloseCreateModal, #btnCancelCreate").on("click", function () {
-    closeCreateModal();
-});
-
-$("#createForm").on("submit", function (e) {
-    e.preventDefault();
-
-    const btn = $("#btnSubmitCreate");
-
-    btn.prop("disabled", true).html(`
-                    <i class="fa-solid fa-spinner fa-spin mr-2"></i>
-                    Submitting...
-                `);
-
-    $("#create_cpny_id").prop("disabled", false);
-    $("#create_department_id").prop("disabled", false);
-
-    const formData = new FormData(this);
-    if (editMode) {
-        formData.append("_method", "PUT");
-    }
-
-    $.ajax({
-        url: editMode
-            ? `/it-recommendation/update/${editHash}`
-            : "{{ route('it-recommendation.store') }}",
-
-        type: "POST",
-
-        data: formData,
-
-        processData: false,
-        contentType: false,
-
-        headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-        },
-
-        success: function (res) {
-            Swal.fire({
-                icon: "success",
-                title: "Success",
-                text: res.message || "Request saved successfully",
-                timer: 1800,
-                showConfirmButton: false,
-            });
-
-            closeCreateModal();
-
-            table.ajax.reload(null, false);
-        },
-
-        error: function (xhr) {
-            let msg = "Failed to save request";
-
-            if (xhr.responseJSON?.message) {
-                msg = xhr.responseJSON.message;
-            }
-
-            if (xhr.status === 422 && xhr.responseJSON?.errors) {
-                msg = Object.values(xhr.responseJSON.errors)
-                    .flat()
-                    .join("<br>");
-            }
-
-            Swal.fire({
-                icon: "error",
-                title: "Validation Error",
-                html: msg,
-            });
-        },
-
-        complete: function () {
-            btn.prop("disabled", false).html(`
-                    <i class="fa-solid fa-paper-plane mr-2"></i>
-                    ${editMode ? "Update Request" : "Submit Request"}
-                `);
+            processResults: function (data) {
+                return {
+                    results: data.map((item) => ({
+                        id: item.ticketid,
+                        text: `${item.ticketid} - ${item.issue_summary}`,
+                    })),
+                };
+            },
         },
     });
-});
-
-const path = window.location.pathname;
-
-if (path.includes("/createitrecommendation")) {
-    openCreateModal();
 }
 
-$("#btnCancelRequest").on("click", async function () {
-    if (!editHash) return;
+function syncCreateAttachmentInput() {
+    const dataTransfer = new DataTransfer();
 
-    const result = await Swal.fire({
-        icon: "warning",
-        title: "Cancel Document?",
-        text: "This document will be cancelled, and this action cannot be undone !",
-        showCancelButton: true,
-        confirmButtonText: "Yes, Cancel",
-        confirmButtonColor: "#dc2626",
+    selectedCreateFiles.forEach((file) => {
+        dataTransfer.items.add(file);
     });
 
-    if (!result.isConfirmed) return;
+    $("#create_attachments")[0].files = dataTransfer.files;
+}
 
-    try {
-        await $.ajax({
-            url: `/it-recommendation/cancel/${editHash}`,
-            type: "POST",
+function renderCreateAttachments() {
+    renderAttachmentList(
+        "#createAttachmentPreview",
+        selectedCreateFiles,
+        "upload",
+    );
+}
 
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            },
-        });
+$("#create_attachments").on("change", function (e) {
+    selectedCreateFiles = [
+        ...selectedCreateFiles,
+        ...Array.from(e.target.files),
+    ];
 
-        Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: "Document cancelled",
-            timer: 1500,
-            showConfirmButton: false,
-        });
+    syncCreateAttachmentInput();
 
-        closeCreateModal();
-
-        table.ajax.reload(null, false);
-    } catch (err) {
-        Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: err.responseJSON?.message || "Failed cancel document",
-        });
-    }
+    renderCreateAttachments();
 });
 
-function openCreateModal() {
-    $("#createModal").removeClass("hidden").addClass("flex");
+$(document).on("click", ".btn-remove-create-attachment", function () {
+    const index = $(this).data("index");
 
-    $("body").addClass("overflow-hidden");
+    selectedCreateFiles.splice(index, 1);
 
+    syncCreateAttachmentInput();
+
+    renderCreateAttachments();
+});
+
+function resetCreateForm() {
+    $("#createForm")[0].reset();
+
+    $(".select2").val(null).trigger("change");
+
+    $("#ticketnbr").empty().trigger("change");
+
+    if ($("#create_cpny_id option").length === 2) {
+        $("#create_cpny_id")
+            .val($("#create_cpny_id option:eq(1)").val())
+            .trigger("change");
+    }
+
+    if ($("#create_department_id option").length === 2) {
+        $("#create_department_id")
+            .val($("#create_department_id option:eq(1)").val())
+            .trigger("change");
+    }
+
+    selectedCreateFiles = [];
+
+    $("#create_attachments").val("");
+
+    renderCreateAttachments();
+}
+
+function updateCreateModalContent() {
     $("#createmodaltitle").text(
         editMode ? "Edit IT Recommendation" : "Create IT Recommendation",
     );
@@ -198,9 +116,16 @@ function openCreateModal() {
 
     $("#btnSubmitCreate").html(
         editMode
-            ? '<i class="fa-solid fa-floppy-disk mr-2"></i>Update Request'
-            : '<i class="fa-solid fa-paper-plane mr-2"></i>Submit Request',
+            ? `
+                <i class="fa-solid fa-floppy-disk mr-2"></i>
+                Update Request
+            `
+            : `
+                <i class="fa-solid fa-paper-plane mr-2"></i>
+                Submit Request
+            `,
     );
+
     if (editMode && ["D"].includes(editStatus)) {
         $("#btnCancelRequest").removeClass("hidden").addClass("inline-flex");
     } else {
@@ -208,33 +133,34 @@ function openCreateModal() {
     }
 }
 
-function closeCreateModal() {
+function openCreateModal() {
+    animateOpenModal("#createModal");
+
+    updateCreateModalContent();
+}
+
+async function closeCreateModal(force = false) {
+    if (!force && modalState.createDirty) {
+        const confirmed = await confirmCloseModal();
+
+        if (!confirmed) {
+            return;
+        }
+    }
+
     editMode = false;
+
     editHash = null;
+
     editStatus = null;
-    $("#createModal").removeClass("flex").addClass("hidden");
 
-    if (
-        $("#createModal").hasClass("hidden") &&
-        $("#showModal").hasClass("hidden") &&
-        $("#processModal").hasClass("hidden") &&
-        $("#editRecommendationModal").hasClass("hidden")
-    ) {
-        $("body").removeClass("overflow-hidden");
-    }
+    animateCloseModal("#createModal", function () {
+        resetCreateForm();
 
-    $("#createForm")[0].reset();
-    if ($("#create_cpny_id option").length === 2) {
-        $("#create_cpny_id").val($("#create_cpny_id option:eq(1)").val());
-    }
+        resetCreateModalState();
 
-    if ($("#create_department_id option").length === 2) {
-        $("#create_department_id").val(
-            $("#create_department_id option:eq(1)").val(),
-        );
-    }
-
-    $("#createAttachmentPreview").html("");
+        window.history.pushState({}, "", "/it-recommendation");
+    });
 }
 
 async function openEditModal(hash) {
@@ -244,21 +170,32 @@ async function openEditModal(hash) {
             type: "GET",
         });
 
-        const h = res.header;
-        if (h.ticketnbr) {
-            const option = new Option(h.ticketnbr, h.ticketnbr, true, true);
+        const header = res.header;
+
+        editMode = true;
+
+        editHash = hash;
+
+        editStatus = header.status;
+
+        $("#create_cpny_id").val(header.cpny_id).trigger("change");
+
+        $("#create_department_id").val(header.department_id).trigger("change");
+
+        if (header.ticketnbr) {
+            const option = new Option(
+                header.ticketnbr,
+                header.ticketnbr,
+                true,
+                true,
+            );
+
             $("#ticketnbr").append(option).trigger("change");
         }
 
-        editMode = true;
-        editHash = hash;
-        editStatus = h.status;
+        $("#create_assetnbr").val(header.assetnbr);
 
-        $("#create_cpny_id").val(h.cpny_id).trigger("change");
-        $("#create_department_id").val(h.department_id);
-        $("#ticketnbr").val(h.ticketnbr).trigger("change");
-        $("#create_assetnbr").val(h.assetnbr);
-        $("#create_keperluan").val(h.keperluan);
+        $("#create_keperluan").val(header.keperluan);
 
         openCreateModal();
     } catch (err) {
@@ -268,4 +205,129 @@ async function openEditModal(hash) {
             text: err.responseJSON?.message || "Failed load edit data",
         });
     }
+}
+
+async function submitCreateForm(form) {
+    const formData = new FormData(form);
+
+    if (editMode) {
+        formData.append("_method", "PUT");
+    }
+
+    return $.ajax({
+        url: editMode
+            ? `/it-recommendation/update/${editHash}`
+            : window.ITRecommendationRoutes.store,
+
+        type: "POST",
+
+        data: formData,
+
+        processData: false,
+
+        contentType: false,
+
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+        },
+    });
+}
+
+$(document).on("click", 'a[href*="/createitrecommendation"]', function (e) {
+    e.preventDefault();
+
+    openCreateModal();
+});
+
+$(document).on("click", 'a[href*="/edititrecommendation/"]', function (e) {
+    e.preventDefault();
+
+    const href = $(this).attr("href");
+
+    const hash = href.split("/").pop();
+
+    window.history.pushState({}, "", href);
+
+    openEditModal(hash);
+});
+
+$("#btnCloseCreateModal, #btnCancelCreate").on("click", function () {
+    closeCreateModal();
+});
+
+$("#ticketnbr").on("select2:open", function () {
+    const el = $(this);
+
+    if (!el.data("loaded")) {
+        el.data("loaded", true);
+
+        el.select2("trigger", "query", {
+            term: "",
+        });
+    }
+});
+
+$("#createForm").on("submit", async function (e) {
+    e.preventDefault();
+
+    const btn = $("#btnSubmitCreate");
+
+    btn.prop("disabled", true).html(`
+        <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+        Submitting...
+    `);
+
+    $("#create_cpny_id").prop("disabled", false);
+
+    $("#create_department_id").prop("disabled", false);
+
+    try {
+        const res = await submitCreateForm(this);
+
+        Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: res.message || "Request saved successfully",
+            timer: 1800,
+            showConfirmButton: false,
+        });
+
+        closeCreateModal(true);
+
+        table.ajax.reload(null, false);
+    } catch (xhr) {
+        let msg = "Failed to save request";
+
+        if (xhr.responseJSON?.message) {
+            msg = xhr.responseJSON.message;
+        }
+
+        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+            msg = Object.values(xhr.responseJSON.errors).flat().join("<br>");
+        }
+
+        Swal.fire({
+            icon: "error",
+            title: "Validation Error",
+            html: msg,
+        });
+    } finally {
+        btn.prop("disabled", false).html(
+            editMode
+                ? `
+                    <i class="fa-solid fa-floppy-disk mr-2"></i>
+                    Update Request
+                `
+                : `
+                    <i class="fa-solid fa-paper-plane mr-2"></i>
+                    Submit Request
+                `,
+        );
+    }
+});
+
+initCreateSelect2();
+
+if (window.location.pathname.includes("/createitrecommendation")) {
+    openCreateModal();
 }

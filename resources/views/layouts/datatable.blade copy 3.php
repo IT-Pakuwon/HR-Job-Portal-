@@ -427,9 +427,15 @@ ROWGROUP (COMPANY GROUPING) – KEEP
         border-left: none;
     }
 
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{
+        padding:16px 18px;
+    }
 
-/*
-
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate{
+        padding:14px 18px;
+    }
 
     .dataTables_wrapper .dataTables_filter input{
         margin-left:8px;
@@ -456,7 +462,7 @@ ROWGROUP (COMPANY GROUPING) – KEEP
         margin:0 3px;
 
         border-radius:8px !important;
-    } */
+    }
 
     /* =====================================================
 MISC

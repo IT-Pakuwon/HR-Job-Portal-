@@ -143,9 +143,11 @@
         </div>
 
         {{-- Table --}}
-        <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div
+            class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+            <div
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
                 <div>
 
@@ -159,7 +161,7 @@
                     <a href="{{ url('/createitrecommendation') }}"
                         class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
 
-                        <i class="fa-solid fa-plus text-xs mr-2"></i>
+                        <i class="fa-solid fa-plus mr-2 text-xs"></i>
 
                         Create Request
 
@@ -173,21 +175,12 @@
 
                 <div class="overflow-x-auto">
 
-                    <table id="itrTable"
-                        class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <table id="itrTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
 
                             <tr
-                                class="
-                                    border-b border-gray-100
-                                    bg-gray-50/70
-                                    text-[11px] uppercase tracking-[0.08em]
-                                    text-gray-500
-                                    dark:border-white/[0.06]
-                                    dark:bg-white/[0.02]
-                                    dark:text-gray-400
-                                ">
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
 
                                 <th class="w-10 px-4 py-3"></th>
 
@@ -248,402 +241,488 @@
         </div>
 
         {{-- Create Modal --}}
-        <div id="createModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 px-3 py-6">
+        <div id="createModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
-                class="relative flex max-h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+                class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
+            </div>
 
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+            <div
+                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+
+                <div
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
-                        <h2 id="createmodaltitle" class="text-lg font-bold text-gray-800 dark:text-white">
+
+                        <h2 id="createmodaltitle" class="text-xl font-bold text-slate-900 dark:text-white">
                             Create IT Recommendation
                         </h2>
-                        <p id="createmodaldesc" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                            Submit request for IT recommendation process
+
+                        <p id="createmodaldesc" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            Submit request for IT recommendation process.
                         </p>
+
                     </div>
 
                     <button id="btnCloseCreateModal" type="button"
-                        class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white">
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
-                        <i class="fa-solid fa-xmark text-sm"></i>
+                        <i class="fa-solid fa-xmark text-lg"></i>
 
                     </button>
 
                 </div>
 
-                  <div id="show_notes" class="space-y-2 mb-3"></div>
-                <form id="createForm" class="flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div class="space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
 
-                    @csrf
+                    <div id="show_notes" class="space-y-2"></div>
 
-                    <div class="flex-1 overflow-y-auto px-6 py-5">
+                    <form id="createForm" class="space-y-4">
 
-                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        @csrf
 
-                            <div>
-                                <label class="req mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Company
-                                </label>
+                        <div
+                            class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
-                                <select name="cpny_id" id="create_cpny_id" required
-                                    {{ count($usercpny) === 1 ? 'disabled' : '' }}
-                                    class="select2 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+                            <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
-                                    <option value="">
-                                        Select Company
-                                    </option>
+                                <h3
+                                    class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                    Request Information
+                                </h3>
 
-                                    @foreach ($usercpny as $row)
-                                        <option value="{{ $row->cpny_id }}"
-                                            {{ count($usercpny) === 1 ? 'selected' : '' }}>
-                                            {{ $row->cpny_id }}
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
+
+                                <div>
+
+                                    <label
+                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Company
+                                    </label>
+
+                                    <select name="cpny_id" id="create_cpny_id" required
+                                        {{ count($usercpny) === 1 ? 'disabled' : '' }}
+                                        class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+
+                                        <option value="">
+                                            Select Company
                                         </option>
-                                    @endforeach
 
-                                </select>
-                            </div>
+                                        @foreach ($usercpny as $row)
+                                            <option value="{{ $row->cpny_id }}"
+                                                {{ count($usercpny) === 1 ? 'selected' : '' }}>
+                                                {{ $row->cpny_id }}
+                                            </option>
+                                        @endforeach
 
-                            <div>
-                                <label class="req mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Department
-                                </label>
+                                    </select>
 
-                                <select name="department_id" id="create_department_id" required
-                                    {{ count($userdept) === 1 ? 'disabled' : '' }}
-                                    class="select2 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+                                </div>
 
-                                    <option value="">
-                                        Select Department
-                                    </option>
+                                <div>
 
-                                    @foreach ($userdept as $row)
-                                        <option value="{{ $row->department_id }}"
-                                            {{ count($userdept) === 1 ? 'selected' : '' }}>
-                                            {{ $row->department_id }}
+                                    <label
+                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Department
+                                    </label>
+
+                                    <select name="department_id" id="create_department_id" required
+                                        {{ count($userdept) === 1 ? 'disabled' : '' }}
+                                        class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+
+                                        <option value="">
+                                            Select Department
                                         </option>
-                                    @endforeach
 
-                                </select>
-                            </div>
+                                        @foreach ($userdept as $row)
+                                            <option value="{{ $row->department_id }}"
+                                                {{ count($userdept) === 1 ? 'selected' : '' }}>
+                                                {{ $row->department_id }}
+                                            </option>
+                                        @endforeach
 
-                            <div>
-                                <label class="req mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Ticket Number
-                                </label>
-                                    <select name="ticketnbr" id="ticketnbr"
-                                    class="select2 w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
-                                        required>
-                                    <option value="">Select Ticket</option>
-                                </select>
+                                    </select>
 
+                                </div>
 
-                            </div>
+                                <div>
 
-                            <div>
-                                <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Asset Number
-                                </label>
+                                    <label
+                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Ticket Number
+                                    </label>
 
-                                <input type="text" name="assetnbr" id="create_assetnbr" placeholder="Optional"
-                                    class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
-                            </div>
+                                    <select name="ticketnbr" id="ticketnbr" required
+                                        class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
 
-                            <div class="md:col-span-2">
-                                <label class="req mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Purpose / Requirement
-                                </label>
+                                        <option value="">
+                                            Select Ticket
+                                        </option>
 
-                                <textarea name="keperluan" id="create_keperluan" rows="5" placeholder="Describe requirement..."
-                                    class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
-                                    required></textarea>
-                            </div>
+                                    </select>
 
-                            <div class="md:col-span-2">
-                                <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Attachments
-                                </label>
+                                </div>
 
-                                <input type="file" id="create_attachments" name="attachments[]" multiple
-                                    class="block w-full rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-indigo-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-300">
+                                <div>
 
-                                <div id="createAttachmentPreview" class="mt-4 flex flex-wrap gap-2"></div>
+                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Asset Number
+                                    </label>
+
+                                    <input type="text" name="assetnbr" id="create_assetnbr"
+                                        placeholder="Optional"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500">
+
+                                </div>
+
+                                <div class="md:col-span-2">
+
+                                    <label
+                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Purpose / Requirement
+                                    </label>
+
+                                    <textarea name="keperluan" id="create_keperluan" rows="5" placeholder="Describe requirement..."
+                                        class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500"
+                                        required></textarea>
+
+                                </div>
+
                             </div>
 
                         </div>
 
-                    </div>
+                        <div
+                            class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                    <div
-                        class="flex items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+                            <div
+                                class="border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
 
+                                <h3
+                                    class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-200">
+                                    Attachment
+                                </h3>
 
-                        <button id="btnCancelCreate" type="button"
-                            class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10">
+                            </div>
 
-                            Cancel
+                            <div class="p-5">
 
-                        </button>
+                                <label for="create_attachments"
+                                    class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
 
-                        <div class="flex gap-4">
-                        <button id="btnCancelRequest" type="button"
-                            class="hidden items-center justify-center rounded-lg border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+                                    <div
+                                        class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-all duration-200 group-hover:scale-105 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
 
-                            <i class="fa-solid fa-ban mr-2"></i>
-                            Cancel Document
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
 
-                        </button>
+                                    </div>
 
-                        <button id="btnSubmitCreate" type="submit"
-                            class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                                    <div class="text-left">
 
-                            <i class="fa-solid fa-paper-plane mr-2"></i>
-                            Submit Request
+                                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                            Upload Attachment
+                                        </p>
 
-                        </button>
+                                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                            PDF, DOCX, XLSX, PNG, JPG
+                                        </p>
+
+                                    </div>
+
+                                    <input type="file" id="create_attachments" name="attachments[]" multiple
+                                        class="hidden">
+
+                                </label>
+
+                                <div id="createAttachmentPreview" class="mt-4 flex flex-wrap gap-3"></div>
+
+                            </div>
 
                         </div>
 
+                        <div
+                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
-                    </div>
+                            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-                </form>
+                                <div class="flex items-center gap-2">
+
+                                    <button id="btnCancelRequest" type="button"
+                                        class="inline-flex hidden h-11 items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20">
+
+                                        <i class="fa-solid fa-ban text-xs"></i>
+
+                                        Cancel Document
+
+                                    </button>
+
+                                </div>
+
+                                <div class="flex items-center justify-end gap-3">
+
+                                    <button id="btnCancelCreate" type="button"
+                                        class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+
+                                        Cancel
+
+                                    </button>
+
+                                    <button id="btnSubmitCreate" type="submit"
+                                        class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+
+                                        <i class="fa-solid fa-paper-plane text-xs"></i>
+
+                                        Submit Request
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
 
             </div>
 
         </div>
 
         {{-- View Modal --}}
-            <div id="showModal"
-            class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/40 p-3">
+        <div id="showModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+
+            <div
+                class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
+            </div>
+
+            <div
+                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 <div
-                    class="relative flex max-h-[70vh] w-full max-w-7xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 bdark:border-white/10 dark:bg-[#0f172a]/90">
 
-                    <div
-                        class="flex items-start justify-between gap-4 border-b border-gray-200 px-5 py-3 dark:border-white/10">
+                    <div class="min-w-0">
 
-                        <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-3">
 
-                            <div class="flex flex-wrap items-center gap-2">
+                            <h2 id="show_docid" class="truncate text-xl font-bold text-slate-900 dark:text-white">
+                                -
+                            </h2>
 
-                                <h2 id="show_docid"
-                                    class="truncate text-lg font-semibold tracking-tight text-gray-800 dark:text-white">
-                                    -
-                                </h2>
-
-                                <span id="show_status_badge"></span>
-
-                            </div>
-
-                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                                IT Recommendation Detail
-                            </p>
+                            <div id="show_status_badge"></div>
 
                         </div>
 
-                        <div class="flex items-center gap-2">
-
-                            <div id="show_header_actions" class="flex items-center gap-2"></div>
-
-                            <button id="btnCloseShowModal" type="button"
-                                class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white">
-
-                                <i class="fa-solid fa-xmark text-sm"></i>
-
-                            </button>
-
-                        </div>
-
-
-
-                        {{-- <button id="btnCloseShowModal" type="button"
-                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white">
-
-                            <i class="fa-solid fa-xmark text-sm"></i>
-
-                        </button> --}}
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            IT Recommendation Detail
+                        </p>
 
                     </div>
 
-                      <div id="show_notes" class="space-y-2 mb-3"></div>
+                    <div class="flex items-center gap-2">
 
-                    <div class="flex-1 overflow-y-auto overflow-x-visible">
+                        <div id="show_header_actions" class="flex flex-wrap items-center gap-2">
+                        </div>
 
-                        <div class="grid gap-4 p-4 lg:grid-cols-[1.8fr_0.9fr]">
+                        <button id="btnCloseShowModal" type="button"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
-                            <div class="space-y-2">
+                            <i class="fa-solid fa-xmark text-lg"></i>
 
-                                {{-- INFORMATION --}}
-                                <div
-                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                        </button>
 
-                                    <div
-                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                    </div>
 
-                                        <h3
-                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                            Request Information
-                                        </h3>
+                </div>
 
-                                    </div>
+                <div class="flex-1 overflow-y-auto">
 
-                                    <div id="show_information"
-                                        class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-                                    </div>
+                    <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-4">
 
-                                </div>
+                        <div class="space-y-5 lg:col-span-3">
 
-                                <div
-                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                            {{-- REQUEST INFORMATION --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                    <div
-                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                        <h3
-                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                            IT Recommendation
-                                        </h3>
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 
-                                    </div>
+                                        Request Information
 
-                                    <div id="show_recommendation_info"
-                                        class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-                                    </div>
+                                    </h3>
 
                                 </div>
 
-                                {{-- RECOMMENDATION ITEMS --}}
-                                <div
-                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                                <div id="show_information"
+                                    class="grid grid-cols-1 gap-x-6 gap-y-5 p-5 text-sm md:grid-cols-2 xl:grid-cols-3">
+                                </div>
 
-                                    <div
-                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                            </div>
 
-                                        <h3
-                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                            Recommendation Items
-                                        </h3>
+                            {{-- RECOMMENDATION --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                    </div>
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                    <div class="overflow-x-auto">
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 
-                                        <table class="w-full text-sm">
+                                        IT Recommendation
 
-                                            <thead
-                                                class="border-b border-gray-100 text-[11px] uppercase tracking-[0.15em] text-gray-400 dark:border-white/5 dark:text-gray-500">
-
-                                                <tr>
-
-                                                    <th class="w-56 px-3 py-2 text-left font-semibold">
-                                                        Description
-                                                    </th>
-
-                                                    <th class="px-3 py-2 text-left font-semibold">
-                                                        Qty
-                                                    </th>
-
-                                                    <th class="px-3 py-2 text-left font-semibold">
-                                                        UOM
-                                                    </th>
-
-                                                    <th class="px-3 py-2 text-left font-semibold">
-                                                        Category
-                                                    </th>
-
-                                                    <th class="px-3 py-2 text-left font-semibold">
-                                                        Note
-                                                    </th>
-
-                                                </tr>
-
-                                            </thead>
-
-                                            <tbody id="show_detail_items"></tbody>
-
-                                        </table>
-
-                                    </div>
+                                    </h3>
 
                                 </div>
 
-                                {{-- ATTACHMENT --}}
-                                <div
-                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                                <div id="show_recommendation_info"
+                                    class="grid grid-cols-1 gap-x-6 gap-y-5 p-5 text-sm md:grid-cols-2 xl:grid-cols-3">
+                                </div>
 
-                                    <div
-                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                            </div>
 
-                                        <h3
-                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                            Attachments
-                                        </h3>
+                            {{-- ITEMS --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                    </div>
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                    <div id="show_attachments" class="flex flex-wrap gap-2">
-                                    </div>
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                        Recommendation Items
+
+                                    </h3>
+
+                                </div>
+
+                                <div class="overflow-x-auto">
+
+                                    <table class="w-full text-sm">
+
+                                        <thead
+                                            class="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-[0.15em] text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
+
+                                            <tr>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    Description
+                                                </th>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    Qty
+                                                </th>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    UOM
+                                                </th>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    Category
+                                                </th>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    Note
+                                                </th>
+
+                                            </tr>
+
+                                        </thead>
+
+                                        <tbody id="show_detail_items"></tbody>
+
+                                    </table>
 
                                 </div>
 
                             </div>
 
-                            <div class="space-y-2">
+                            {{-- ATTACHMENT --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                {{-- TIMELINE --}}
-                                <div
-                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                    <div
-                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 
-                                        <h3
-                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                            Approval Timeline
-                                        </h3>
+                                        Attachments
 
-                                    </div>
-
-                                    <div id="show_tracking" class="space-y-2">
-                                    </div>
+                                    </h3>
 
                                 </div>
 
-                                {{-- ACTION --}}
-                                <div class="space-y-2">
+                                <div id="show_attachments" class="flex flex-wrap gap-3 p-5">
+                                </div>
 
-                                    <div id="commentSection"
-                                        class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                            </div>
 
-                                        <div
-                                            class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                        </div>
 
-                                            <h3
-                                                class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                                Comments
-                                            </h3>
+                        <div class="space-y-5 lg:col-span-1">
 
-                                        </div>
-                                        <div id="show_comments" class="max-h-[150px] space-y-2 overflow-y-auto pr-1">
-                                        </div>
-                                        <div class="mt-4">
+                            {{-- TIMELINE --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                            <textarea id="comment_message" rows="1" placeholder="Write comment..."
-                                                class="w-full rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:bg-white/[0.03] dark:text-white"></textarea>
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                        </div>
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 
-                                        <button type="button" id="btnSubmitComment"
-                                            class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">
+                                        Approval Timeline
 
-                                            <i class="fa-solid fa-paper-plane text-xs"></i>
-                                            Submit Comment
+                                    </h3>
 
-                                        </button>
+                                </div>
+
+                                <div id="show_tracking" class="space-y-4 p-5">
+                                </div>
+
+                            </div>
+
+                            {{-- COMMENTS --}}
+                            <div id="commentSection"
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                        Comments
+
+                                    </h3>
+
+                                </div>
+
+                                <div class="p-5">
+
+                                    <div id="show_comments" class="max-h-[260px] space-y-3 overflow-y-auto pr-1">
+                                    </div>
+
+                                    <div class="mt-4">
+
+                                        <textarea id="comment_message" rows="2" placeholder="Write comment..."
+                                            class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-white dark:focus:border-blue-500"></textarea>
 
                                     </div>
+
+                                    <button type="button" id="btnSubmitComment"
+                                        class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+
+                                        <i class="fa-solid fa-paper-plane text-xs"></i>
+
+                                        Submit Comment
+
+                                    </button>
 
                                 </div>
 
@@ -655,35 +734,37 @@
 
                 </div>
 
+            </div>
+
         </div>
 
         {{-- Process Modal --}}
-        <div id="processModal"
-            class="fixed inset-0 z-[90] hidden items-center justify-center overflow-y-auto bg-black/40 p-4 ">
-
-            {{-- <div
-                class="relative mx-auto my-6 flex min-h-[85vh] w-full max-w-7xl flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]"> --}}
+        <div id="processModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
-                class="relative mx-auto my-6 flex h-auto w-full max-w-7xl flex-col overflow-visible rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+                class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
+            </div>
+
+            <div
+                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 {{-- HEADER --}}
-                <div class="flex items-start justify-between border-b border-gray-200 px-5 py-3 dark:border-white/10">
+                <div
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div class="min-w-0">
 
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-3">
 
-                            <h2 id="process_docid"
-                                class="truncate text-lg font-semibold tracking-tight text-gray-800 dark:text-white">
+                            <h2 id="process_docid" class="truncate text-xl font-bold text-slate-900 dark:text-white">
                                 Process IT Recommendation
                             </h2>
 
-                            <span id="process_status_badge"></span>
+                            <div id="process_status_badge"></div>
 
                         </div>
 
-                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                             IT Hardware recommendation processing
                         </p>
 
@@ -692,31 +773,36 @@
                     <div class="flex items-center gap-2">
 
                         <button type="submit" form="processForm" id="btnSubmitProcess"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
 
                             <i class="fa-solid fa-gears text-xs"></i>
+
                             Submit
 
                         </button>
 
                         <button type="button" id="btnReviseProcess"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition hover:bg-amber-100 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
 
-                            <i class="fa-solid fa-rotate-left text-xs"></i> Revise
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+
+                            Revise
 
                         </button>
 
                         <button type="button" id="btnRejectProcess"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
 
-                            <i class="fa-solid fa-xmark text-xs"></i> Reject
+                            <i class="fa-solid fa-xmark text-xs"></i>
+
+                            Reject
 
                         </button>
 
                         <button id="btnCloseProcessModal" type="button"
-                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white">
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
-                            <i class="fa-solid fa-xmark text-sm"></i>
+                            <i class="fa-solid fa-xmark text-lg"></i>
 
                         </button>
 
@@ -725,87 +811,68 @@
                 </div>
 
                 {{-- BODY --}}
-                <form id="processForm" class="flex min-h-0 flex-1 flex-col overflow-visible">
+                <form id="processForm" class="flex min-h-0 flex-1 flex-col">
 
                     @csrf
 
                     <input type="hidden" id="process_hash">
 
-                    <div class="flex-1 overflow-y-auto overflow-x-visible">
+                    <div class="flex-1 overflow-y-auto">
 
-                        <div class="space-y-4 p-4">
+                        <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-1">
 
                             {{-- LEFT --}}
-                            <div class="space-y-2">
+                            <div class="space-y-5 lg:col-span-2">
 
-                                <div class="grid gap-4 lg:grid-cols-[1.8fr_0.9fr]">
+                                {{-- REQUEST INFORMATION --}}
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                    {{-- REQUEST INFO --}}
-                                    <div
-                                        class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                        <div
-                                            class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                                        <h3
+                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 
-                                            <h3
-                                                class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                                Request Information
-                                            </h3>
+                                            Request Information
 
-                                        </div>
-
-                                        <div id="process_information"
-                                            class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-                                        </div>
+                                        </h3>
 
                                     </div>
 
-                                    {{-- ATTACHMENTS --}}
-                                    <div
-                                        class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
-
-                                        <div
-                                            class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                            <h3
-                                                class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                                                Attachments
-                                            </h3>
-
-                                        </div>
-
-                                        <div id="process_attachments" class="flex flex-wrap gap-2">
-                                        </div>
-
+                                    <div id="process_information"
+                                        class="grid grid-cols-1 gap-x-6 gap-y-5 p-5 text-sm md:grid-cols-2 xl:grid-cols-3">
                                     </div>
 
                                 </div>
 
                                 {{-- RECOMMENDATION --}}
                                 <div
-                                    class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                    <div
-                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
                                         <h3
-                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
                                             Recommendation
+
                                         </h3>
 
                                     </div>
 
-                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div class="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
 
                                         <div>
+
                                             <label
-                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">
+                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+
                                                 Recommendation Type
+
                                             </label>
 
-                                            <select name="recommend_type" id="recommend_type"
-                                                class="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
-                                                required>
+                                            <select name="recommend_type" id="recommend_type" required
+                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
 
                                                 <option value="">
                                                     Select Type
@@ -824,29 +891,35 @@
                                                 </option>
 
                                             </select>
+
                                         </div>
 
                                         <div>
+
                                             <label
-                                                class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">
+                                                class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+
                                                 Warranty
+
                                             </label>
 
                                             <input type="text" name="waranty" id="waranty"
                                                 placeholder="Optional"
-                                                class="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+
                                         </div>
 
                                         <div class="md:col-span-2">
 
                                             <label
-                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">
+                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+
                                                 Recommendation
+
                                             </label>
 
-                                            <textarea name="recommendation" id="recommendation" rows="5" placeholder="Write recommendation..."
-                                                class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"
-                                                required></textarea>
+                                            <textarea name="recommendation" id="recommendation" rows="5" required placeholder="Write recommendation..."
+                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"></textarea>
 
                                         </div>
 
@@ -856,52 +929,55 @@
 
                                 {{-- ITEMS --}}
                                 <div
-                                    class="relative z-50 rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                     <div
-                                        class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
+                                        class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
                                         <h3
-                                            class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
                                             Recommendation Items
+
                                         </h3>
 
                                         <button type="button" id="btnAddItem"
                                             class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">
 
                                             <i class="fa-solid fa-plus text-[10px]"></i>
+
                                             Add Item
 
                                         </button>
 
                                     </div>
+
                                     <div class="overflow-visible">
 
                                         <table class="w-full text-sm">
 
                                             <thead
-                                                class="border-b border-gray-100 text-[11px] uppercase tracking-[0.15em] text-gray-400 dark:border-white/5 dark:text-gray-500">
+                                                class="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-[0.15em] text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
 
                                                 <tr>
 
-                                                    <th class="px-3 py-2 text-left">
+                                                    <th class="px-4 py-3 text-left font-semibold">
                                                         Inventory
                                                     </th>
 
-                                                    <th class="px-3 py-2 text-left">
+                                                    <th class="px-4 py-3 text-left font-semibold">
                                                         Qty
                                                     </th>
 
-                                                    <th class="px-3 py-2 text-left">
+                                                    <th class="px-4 py-3 text-left font-semibold">
                                                         UOM
                                                     </th>
 
-                                                    <th class="px-3 py-2 text-left">
+                                                    <th class="px-4 py-3 text-left font-semibold">
                                                         Note
                                                     </th>
 
-                                                    <th class="w-14 px-3 py-2 text-center">
-
+                                                    <th class="w-14 px-4 py-3 text-center">
                                                     </th>
 
                                                 </tr>
@@ -912,6 +988,31 @@
 
                                         </table>
 
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            {{-- RIGHT --}}
+                            <div class="space-y-5 lg:col-span-2">
+
+                                {{-- ATTACHMENTS --}}
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                        <h3
+                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                            Attachments
+
+                                        </h3>
+
+                                    </div>
+
+                                    <div id="process_attachments" class="flex flex-wrap gap-3 p-5">
                                     </div>
 
                                 </div>
@@ -929,223 +1030,289 @@
         </div>
 
         {{-- Edit Recommendation Modal --}}
-        <div id="editRecommendationModal"
-            class="fixed inset-0 z-[95] hidden items-center justify-center overflow-y-auto bg-black/40 p-4" >
+        <div id="editRecommendationModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             <div
-                class="relative mx-auto my-6 flex h-auto w-full max-w-7xl flex-col overflow-visible rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+                class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
+            </div>
 
-                <div class="flex items-start justify-between border-b border-gray-200 px-5 py-3 dark:border-white/10">
+            <div
+                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
-                    <div>
+                {{-- HEADER --}}
+                <div
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
-                        <div class="flex items-center gap-2">
+                    <div class="min-w-0">
+
+                        <div class="flex flex-wrap items-center gap-3">
 
                             <h2 id="edit_recommendation_docid"
-                                class="text-lg font-semibold tracking-tight text-gray-800 dark:text-white">
+                                class="truncate text-xl font-bold text-slate-900 dark:text-white">
 
                                 Revise Recommendation
 
                             </h2>
 
-                            <span id="edit_recommendation_status"></span>
+                            <div id="edit_recommendation_status"></div>
 
                         </div>
 
-                        <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                             Update recommendation based on approver revision request
                         </p>
 
                     </div>
 
                     <button id="btnCloseEditRecommendationModal" type="button"
-                        class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white">
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
-                        <i class="fa-solid fa-xmark text-sm"></i>
+                        <i class="fa-solid fa-xmark text-lg"></i>
 
                     </button>
 
                 </div>
 
-                <div id="show_notes" class="space-y-2 mb-3"></div>
-
-                <form id="editRecommendationForm" class="flex min-h-0 flex-1 flex-col overflow-visible">
+                {{-- BODY --}}
+                <form id="editRecommendationForm" class="flex min-h-0 flex-1 flex-col">
 
                     @csrf
 
                     <input type="hidden" id="edit_recommendation_hash">
 
-                    <div class="flex-1 space-y-4 overflow-y-auto p-4">
+                    <div class="flex-1 overflow-y-auto">
 
+                        <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-1">
+
+                            {{-- LEFT --}}
+                            <div class="space-y-5 lg:col-span-2">
+
+                                {{-- REVISION NOTE --}}
+                                <div
+                                    class="rounded-lg border border-orange-200 bg-orange-50 shadow-sm dark:border-orange-500/20 dark:bg-orange-500/10">
+
+                                    <div class="flex items-start gap-4 p-5">
+
+                                        <div
+                                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-300">
+
+                                            <i class="fa-solid fa-rotate-left"></i>
+
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+
+                                            <h3
+                                                class="text-xs font-bold uppercase tracking-[0.18em] text-orange-700 dark:text-orange-300">
+
+                                                Revision Requested by Approver
+
+                                            </h3>
+
+                                            <p
+                                                class="mt-2 text-sm leading-relaxed text-orange-700 dark:text-orange-200">
+
+                                                Please review and update recommendation before resubmitting approval.
+
+                                            </p>
+
+                                            <div id="revision_note_container" class="mt-4"></div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {{-- REQUEST INFORMATION --}}
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                        <h3
+                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                            Request Information
+
+                                        </h3>
+
+                                    </div>
+
+                                    <div id="edit_recommendation_information"
+                                        class="grid grid-cols-1 gap-x-6 gap-y-5 p-5 text-sm md:grid-cols-2 xl:grid-cols-3">
+                                    </div>
+
+                                </div>
+
+                                {{-- RECOMMENDATION --}}
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                        <h3
+                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                            Recommendation
+
+                                        </h3>
+
+                                    </div>
+
+                                    <div class="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
+
+                                        <div>
+
+                                            <label
+                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+
+                                                Recommendation Type
+
+                                            </label>
+
+                                            <select id="edit_recommend_type"
+                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+
+                                                <option value="New Purchase">
+                                                    New Purchase
+                                                </option>
+
+                                                <option value="Repair">
+                                                    Repair
+                                                </option>
+
+                                                <option value="Replacement">
+                                                    Replacement
+                                                </option>
+
+                                            </select>
+
+                                        </div>
+
+                                        <div>
+
+                                            <label
+                                                class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+
+                                                Warranty
+
+                                            </label>
+
+                                            <input type="text" id="edit_waranty"
+                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+
+                                        </div>
+
+                                        <div class="md:col-span-2">
+
+                                            <label
+                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+
+                                                Recommendation
+
+                                            </label>
+
+                                            <textarea id="edit_recommendation" rows="5"
+                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"></textarea>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {{-- RECOMMENDATION ITEMS --}}
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                    <div
+                                        class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                        <h3
+                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                            Recommendation Items
+
+                                        </h3>
+
+                                        <button type="button" id="btnAddEditItem"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">
+
+                                            <i class="fa-solid fa-plus text-[10px]"></i>
+
+                                            Add Item
+
+                                        </button>
+
+                                    </div>
+
+                                    <div class="overflow-visible">
+
+                                        <table class="w-full text-sm">
+
+                                            <tbody id="edit_recommendation_detail_body"></tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            {{-- RIGHT --}}
+                            <div class="space-y-5 lg:col-span-2">
+
+                                {{-- ATTACHMENTS --}}
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                        <h3
+                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                            Attachments
+
+                                        </h3>
+
+                                    </div>
+
+                                    <div id="edit_recommendation_attachments" class="flex flex-wrap gap-3 p-5">
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {{-- FOOTER --}}
                     <div
-                        class="rounded-xl border border-orange-200/70 bg-orange-50/60 p-3 dark:border-orange-500/20 dark:bg-orange-500/10">
+                        class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
-                        <div class="flex items-start gap-3">
+                        <div class="flex items-center justify-end gap-3">
 
-                            <div class="mt-0.5 text-orange-500">
-                                <i class="fa-solid fa-rotate-left"></i>
-                            </div>
+                            <button type="button" id="btnCloseEditRecommendationFooter"
+                                class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
 
-                            <div>
+                                Cancel
 
-                                <h3
-                                    class="text-xs font-semibold uppercase tracking-[0.15em] text-orange-700 dark:text-orange-300">
+                            </button>
 
-                                    Revision Requested by Approver
+                            <button type="submit"
+                                class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
 
-                                </h3>
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
 
-                                <p class="mt-1 text-sm text-orange-600 dark:text-orange-200">
+                                Resubmit Approval
 
-                                    Please review and update recommendation before resubmitting approval.
-
-                                </p>
-
-                                <div id="revision_note_container" class="mt-3"></div>
-
-                            </div>
+                            </button>
 
                         </div>
-
-                    </div>
-
-                    <div class="grid gap-4 lg:grid-cols-[1.8fr_0.9fr]">
-
-                        {{-- REQUEST INFO --}}
-                        <div
-                            class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
-
-                            <div
-                                class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                <h3
-                                    class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-
-                                    Request Information
-
-                                </h3>
-
-                            </div>
-
-                            <div id="edit_recommendation_information"
-                                class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm md:grid-cols-3">
-                            </div>
-
-                        </div>
-
-                        {{-- ATTACHMENTS --}}
-                        <div
-                            class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:border-white/[0.06] dark:bg-white/[0.03]">
-
-                            <div
-                                class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                <h3
-                                    class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-
-                                    Attachments
-
-                                </h3>
-
-                            </div>
-
-                            <div id="edit_recommendation_attachments" class="flex flex-wrap gap-2">
-                            </div>
-
-                        </div>
-
-                    </div>
-                        <div
-                            class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-
-                                <div>
-
-                                    <label
-                                        class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">
-                                        Recommendation Type
-                                    </label>
-
-                                    <select id="edit_recommend_type"
-                                        class="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm dark:border-white/10 dark:bg-[#111827] dark:text-white">
-
-                                        <option value="New Purchase">New Purchase</option>
-                                        <option value="Repair">Repair</option>
-                                        <option value="Replacement">Replacement</option>
-
-                                    </select>
-
-                                </div>
-
-                                <div>
-
-                                    <label
-                                        class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">
-                                        Warranty
-                                    </label>
-
-                                    <input type="text" id="edit_waranty"
-                                        class="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm dark:border-white/10 dark:bg-[#111827] dark:text-white">
-
-                                </div>
-
-                                <div class="md:col-span-2">
-
-                                    <label
-                                        class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">
-                                        Recommendation
-                                    </label>
-
-                                    <textarea id="edit_recommendation" rows="5"
-                                        class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm dark:border-white/10 dark:bg-[#111827] dark:text-white"></textarea>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div
-                            class="rounded-xl border border-gray-100/80 bg-white/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-
-                            <div
-                                class="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 dark:border-white/5">
-
-                                <h3
-                                    class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-
-                                    Recommendation Items
-
-                                </h3>
-
-                                <button type="button" id="btnAddEditItem"
-                                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">
-
-                                    <i class="fa-solid fa-plus text-[10px]"></i>
-                                    Add Item
-
-                                </button>
-
-                            </div>
-
-                            <table class="w-full text-sm">
-                                <tbody id="edit_recommendation_detail_body"></tbody>
-                            </table>
-
-                        </div>
-
-                    </div>
-
-                    <div
-                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-white/10">
-
-                        <button type="submit"
-                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">
-
-                            <i class="fa-solid fa-paper-plane text-xs"></i>
-                            Resubmit Approval
-
-                        </button>
 
                     </div>
 
@@ -1168,11 +1335,9 @@
         window.currentUser = "{{ auth()->user()->username }}";
 
         window.isITHardware = @json($isITHardware);
-
     </script>
 
     <script>
-
         window.ITRecommendationRoutes = {
 
             index: @json(route('it-recommendation')),
@@ -1186,7 +1351,6 @@
             base: @json(url('/it-recommendation'))
 
         };
-
     </script>
     <script src="{{ asset('assets/js/it-recommendation/helper.js') }}"></script>
 

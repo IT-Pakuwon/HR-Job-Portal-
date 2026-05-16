@@ -474,7 +474,7 @@
             class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
                 <div>
 
@@ -608,7 +608,7 @@
 
                 {{-- Header --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-5 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
                         <h2 class="modal-title text-xl font-bold text-slate-900 dark:text-white">
@@ -638,7 +638,7 @@
                         <div
                             class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
-                            <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                            <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
                                 <h3
                                     class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -733,7 +733,7 @@
                         <div
                             class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
-                            <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                            <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
                                 <h3
                                     class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -792,7 +792,7 @@
                         <div
                             class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
-                            <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                            <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
                                 <h3
                                     class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -851,7 +851,7 @@
                         <div
                             class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
-                            <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                            <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
                                 <h3
                                     class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -900,7 +900,7 @@
                             class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                             <div
-                                class="border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+                                class="border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
 
                                 <h3
                                     class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-200">
@@ -953,7 +953,7 @@
 
                         {{-- Footer --}}
                         <div
-                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
 
                             <div class="flex items-center justify-end gap-3">
 
@@ -1000,7 +1000,7 @@
 
                     {{-- Header --}}
                     <div
-                        class="sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white px-6 py-5 dark:border-gray-800 dark:bg-gray-900 xl:flex-row xl:items-start xl:justify-between">
+                        class="sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-800 dark:bg-gray-900 xl:flex-row xl:items-start xl:justify-between">
 
                         <div>
 
@@ -1226,7 +1226,7 @@
                                     <div class="relative">
 
                                         <div id="detail_issue_descr"
-                                            class="ticket-expandable rounded-lg bg-gray-50 px-4 py-4 text-sm leading-7 text-gray-800 dark:bg-gray-800/70 dark:text-gray-200">
+                                            class="ticket-expandable rounded-lg bg-gray-50 px-4 py-2 text-sm leading-7 text-gray-800 dark:bg-gray-800/70 dark:text-gray-200">
 
                                             -
 
@@ -1257,7 +1257,7 @@
                                     <div class="relative">
 
                                         <div id="detail_solution_descr"
-                                            class="ticket-expandable rounded-lg bg-gray-50 px-4 py-4 text-sm leading-7 text-gray-800 dark:bg-gray-800/70 dark:text-gray-200">
+                                            class="ticket-expandable rounded-lg bg-gray-50 px-4 py-2 text-sm leading-7 text-gray-800 dark:bg-gray-800/70 dark:text-gray-200">
 
                                             -
 
@@ -1311,7 +1311,7 @@
 
                             {{-- Tabs --}}
                             <div
-                                class="border-b border-gray-200 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-gray-900/60">
+                                class="border-b border-gray-200 bg-gray-50/70 px-6 py-2 dark:border-gray-800 dark:bg-gray-900/60">
 
                                 <div
                                     class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -1390,7 +1390,7 @@
                                                 class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100 dark:border-gray-700 dark:bg-gray-900 dark:focus-within:border-blue-500 dark:focus-within:ring-blue-500/10">
 
                                                 <textarea id="comment_message" rows="1" placeholder="Write discussion, progress update, or response..."
-                                                    class="w-full resize-none border-0 bg-transparent px-5 py-4 text-sm leading-7 text-gray-700 outline-none ring-0 placeholder:text-gray-400 dark:text-gray-200 dark:placeholder:text-gray-500"></textarea>
+                                                    class="w-full resize-none border-0 bg-transparent px-5 py-2 text-sm leading-7 text-gray-700 outline-none ring-0 placeholder:text-gray-400 dark:text-gray-200 dark:placeholder:text-gray-500"></textarea>
 
                                                 <div
                                                     class="flex flex-col gap-3 border-t border-gray-100 bg-gray-50/70 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/40 sm:flex-row sm:items-center sm:justify-between">

@@ -95,7 +95,7 @@
         {{-- Init Datatble --}}
         <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
                 <div>
 
@@ -192,6 +192,7 @@
             </div>
 
         </div>
+
         {{-- CREATE / EDIT MODAL --}}
         <div id="requestModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
@@ -203,7 +204,7 @@
                 class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-5 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
 
@@ -239,7 +240,7 @@
                         <div
                             class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
-                            <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                            <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
                                 <h3
                                     class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -376,7 +377,7 @@
                             class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] dark:shadow-[0_10px_40px_rgba(0,0,0,.28)]">
 
                             <div
-                                class="flex items-center justify-between border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+                                class="flex items-center justify-between border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
 
                                 <div>
 
@@ -447,7 +448,7 @@
                             class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] dark:shadow-[0_10px_40px_rgba(0,0,0,.28)]">
 
                             <div
-                                class="border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+                                class="border-b border-slate-200 bg-slate-50/80 px-5 py-2 dark:border-white/10 dark:bg-white/[0.03]">
 
                                 <h3
                                     class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-200">
@@ -495,7 +496,7 @@
 
 
                         <div
-                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
 
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -581,7 +582,7 @@
                 class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-5 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div class="flex items-center gap-3">
 
@@ -655,7 +656,7 @@
                     class="fixed bottom-24 right-6 z-[10001] hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
 
                     <div
-                        class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                        class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
                         <div>
 
@@ -716,7 +717,7 @@
                 class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-5 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
 
@@ -762,7 +763,7 @@
                 class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-6xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-5 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
 
@@ -810,7 +811,7 @@
         <div
             class="w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
 
-            <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-neutral-800">
+            <div class="flex items-center justify-between border-b border-gray-200 px-5 py-2 dark:border-neutral-800">
 
                 <div>
                     <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
@@ -835,7 +836,7 @@
 
                 @csrf
 
-                <div class="max-h-[78vh] space-y-5 overflow-y-auto px-5 py-5">
+                <div class="max-h-[78vh] space-y-5 overflow-y-auto px-5 py-4">
 
                     <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 
@@ -1009,7 +1010,7 @@
                 </div>
 
                 <div
-                    class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-neutral-800">
+                    class="flex items-center justify-end gap-3 border-t border-gray-200 px-5 py-2 dark:border-neutral-800">
 
                     <button type="button" data-close-modal="modalCreateTicket"
                         class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-gray-300 dark:hover:bg-neutral-800">
