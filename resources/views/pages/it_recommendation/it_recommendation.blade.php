@@ -143,7 +143,7 @@
         </div>
 
         {{-- Table --}}
-        <div class="mt-4 rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
@@ -152,11 +152,6 @@
                     <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                         IT Recommendation
                     </h2>
-
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Manage recommendation requests and processing workflow
-                    </p>
-
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -196,39 +191,39 @@
 
                                 <th class="w-10 px-4 py-3"></th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Doc ID
                                 </th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Date
                                 </th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Ticket
                                 </th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Company
                                 </th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Department
                                 </th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Requester
                                 </th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Purpose
                                 </th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     IT PIC
                                 </th>
 
-                                <th class="px-4 py-3 text-left font-semibold">
+                                <th class="px-4 py-3 text-left font-medium">
                                     Status
                                 </th>
 

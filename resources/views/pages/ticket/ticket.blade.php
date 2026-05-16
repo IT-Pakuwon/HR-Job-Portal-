@@ -471,143 +471,123 @@
         @endif
         {{-- Table Wrapper --}}
         <div
-            class="mt-4 overflow-visible rounded-lg border border-gray-200/70 bg-white shadow-sm dark:border-gray-800 dark:bg-[#0F172A]">
+            class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            {{-- Top Toolbar --}}
-            <div class="flex flex-col gap-4 border-b border-slate-300 p-5 dark:border-white/10">
+            <div
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
-                <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
 
-                    <div class="flex flex-col gap-1">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+                        Ticket Support
+                    </h2>
 
-                        <h1 class="text-lg font-bold text-slate-800 dark:text-white">
+                </div>
 
-                            Ticket Support
+                <div class="flex items-center gap-3">
 
-                        </h1>
+                    @if ($isIT)
+                        <button type="button" id="btn_export_ticket"
+                            class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
 
-                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
 
-                            Manage hardware and software access request workflow.
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 16V4m0 12l-4-4m4 4l4-4m5 8H3" />
 
-                        </p>
+                            </svg>
 
-                    </div>
-
-                    <div class="flex items-center gap-2">
-
-                        @if ($isIT)
-                            <button type="button" id="btn_export_ticket"
-                                class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-
-                                <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 16V4m0 12l-4-4m4 4l4-4m5 8H3" />
-
-                                </svg>
-
-                                Export
-
-                            </button>
-                        @endif
-
-                        <button type="button" id="btn_create_ticket"
-                            class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
-
-                            <span class="mr-2 text-base">
-                                +
-                            </span>
-
-                            Create Ticket
+                            Export
 
                         </button>
+                    @endif
 
-                    </div>
+                    <button type="button" id="btn_create_ticket"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+
+                        <span class="mr-2 text-base">
+                            +
+                        </span>
+
+                        Create Ticket
+
+                    </button>
 
                 </div>
 
             </div>
 
-            <div class="overflow-x-auto overflow-y-visible p-5">
+            <div class="overflow-hidden">
 
-                <table id="ticketTable" class="w-full min-w-full text-sm">
+                <div class="overflow-x-auto overflow-y-visible">
 
-                    <thead class="bg-gray-50/80 dark:bg-[#1A2234]">
+                    <table id="ticketTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
-                        <tr class="border-b border-gray-200 dark:border-gray-800">
+                        <thead>
 
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                No
-                            </th>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
 
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                Ticket
-                            </th>
-
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                Date
-                            </th>
-
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                Type
-                            </th>
-
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                Category
-                            </th>
-
-                            <th
-                                class="min-w-[260px] px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                Summary
-                            </th>
-
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                PIC
-                            </th>
-
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                Priority
-                            </th>
-
-                            {{-- Status --}}
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                Status
-                            </th>
-
-                            @if ($isIT)
-                                {{-- Workflow --}}
-                                <th
-                                    class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                    Workflow
+                                <th class="px-4 py-3 text-left font-medium">
+                                    No
                                 </th>
-                            @endif
 
-                            <th
-                                class="px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                SLA
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Ticket
+                                </th>
 
-                            <th
-                                class="px-5 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                                Action
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Date
+                                </th>
 
-                        </tr>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Type
+                                </th>
 
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Category
+                                </th>
 
-                </table>
+                                <th class="min-w-[260px] px-4 py-3 text-left font-medium">
+                                    Summary
+                                </th>
+
+                                <th class="px-4 py-3 text-left font-medium">
+                                    PIC
+                                </th>
+
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Priority
+                                </th>
+
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Status
+                                </th>
+
+                                @if ($isIT)
+                                    <th class="px-4 py-3 text-left font-medium">
+                                        Workflow
+                                    </th>
+                                @endif
+
+                                <th class="px-4 py-3 text-left font-medium">
+                                    SLA
+                                </th>
+
+                                <th class="px-4 py-3 text-center font-semibold">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
@@ -634,11 +614,6 @@
                         <h2 class="modal-title text-xl font-bold text-slate-900 dark:text-white">
                             Create Ticket
                         </h2>
-
-                        <p class="modal-description mt-1 text-sm text-slate-500 dark:text-slate-400">
-                            Create new IT support ticket request.
-                        </p>
-
                     </div>
 
                     <button type="button"

@@ -427,6 +427,43 @@ ROWGROUP (COMPANY GROUPING) – KEEP
         border-left: none;
     }
 
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter{
+        padding:16px 18px;
+    }
+
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate{
+        padding:14px 18px;
+    }
+
+    .dataTables_wrapper .dataTables_filter input{
+        margin-left:8px;
+
+        height:40px;
+
+        border-radius:10px;
+
+        padding:0 14px;
+    }
+
+    .dataTables_wrapper .dataTables_length select{
+        height:40px;
+
+        border-radius:10px;
+
+        padding:0 32px 0 10px;
+    }
+
+    .dataTables_wrapper .paginate_button{
+        min-width:36px;
+        height:36px;
+
+        margin:0 3px;
+
+        border-radius:8px !important;
+    }
+
     /* =====================================================
 MISC
 ===================================================== */

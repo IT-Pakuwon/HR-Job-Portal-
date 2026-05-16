@@ -93,109 +93,105 @@
         </div>
 
         {{-- Init Datatble --}}
-        <div class="mt-4 rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div class="flex flex-col gap-4 border-b border-slate-300 p-5 dark:border-white/10">
+            <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
-                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div>
 
-                    <div class="flex flex-col gap-1">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+                        Access Request
+                    </h2>
 
-                        <h1 class="text-lg font-bold text-slate-800 dark:text-white">
-                            Access Request
-                        </h1>
+                </div>
 
-                        <p class="text-sm text-slate-500 dark:text-slate-400">
-                            Manage hardware and software access request workflow.
-                        </p>
+                <div class="flex items-center gap-3">
 
-                    </div>
+                    <button id="btnCreate"
+                        type="button"
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
 
-                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-plus mr-2 text-xs"></i>
 
-                        <button id="btnCreate" type="button"
-                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-[0.98] dark:bg-blue-600 dark:hover:bg-blue-500">
+                        Create Request
 
-                            <i class="fa-solid fa-plus text-xs"></i>
-
-                            Create Request
-
-                        </button>
-
-                    </div>
+                    </button>
 
                 </div>
 
             </div>
 
-            <div class="relative overflow-x-auto p-4">
+            <div class="overflow-hidden">
 
-                <table id="accessRequestTable" class="min-w-full divide-y divide-slate-200 dark:divide-white/10">
+                <div class="overflow-x-auto overflow-y-visible">
 
-                    <thead class="bg-slate-50 dark:bg-[#0b1220]">
+                    <table id="accessRequestTable"
+                        class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
-                        <tr>
+                        <thead>
 
-                            <th class="w-[28px]"></th>
+                            <tr
+                                class="
+                                    border-b border-gray-100
+                                    bg-gray-50/70
+                                    text-[11px] uppercase tracking-[0.08em]
+                                    text-gray-500
+                                    dark:border-white/[0.06]
+                                    dark:bg-white/[0.02]
+                                    dark:text-gray-400
+                                ">
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Document
-                            </th>
+                                <th class="w-10 px-4 py-3"></th>
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Date
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Document
+                                </th>
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Requester
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Date
+                                </th>
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Company
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Requester
+                                </th>
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Department
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Company
+                                </th>
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Group
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Department
+                                </th>
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Progress
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Group
+                                </th>
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Status
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Progress
+                                </th>
 
-                            <th
-                                class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Action
-                            </th>
+                                <th class="px-4 py-3 text-left font-medium">
+                                    Status
+                                </th>
 
-                        </tr>
+                                <th class="px-4 py-3 text-center font-semibold">
+                                    Action
+                                </th>
 
-                    </thead>
+                            </tr>
 
-                    <tbody class="divide-y divide-slate-100 bg-white dark:divide-white/[0.05] dark:bg-[#0f172a]">
-                    </tbody>
+                        </thead>
 
-                </table>
+                        <tbody></tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
         </div>
-
         {{-- CREATE / EDIT MODAL --}}
         <div id="requestModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
