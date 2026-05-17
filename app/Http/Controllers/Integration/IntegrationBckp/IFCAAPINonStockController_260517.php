@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Models\MsInventory;
-use App\Models\StagingIfcaIcStkMas;
+use App\Models\StagingIfcaPoItem;
 use App\Models\MsIntegrationSetting;
 use App\Models\TrIntegrationLog;
 
@@ -14,35 +14,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
-class IFCAAPIStockController extends Controller
+class IFCAAPINonStockController extends Controller
 {
-    public function filters()
-    {
-        return response()->json([
-            'ok' => true,
-            'data' => [
-                'statuses'  => ['H', 'P', 'C'],
-                'per_pages' => [25, 50, 100],
-            ],
-        ]);
-    }
-
     /**
-     * AJAX list Stock + filter status + pagination
-     * Logic sumber data tetap sama:
-     * - Source utama MsInventory item_type GI status A
-     * - Status H jika belum ada staging
-     * - Status P jika staging process_flag selain Y
-     * - Status C jika staging process_flag Y
+     * AJAX list Non Stock
      */
     public function list(Request $request)
     {
         $from = $request->query('from');
         $to   = $request->query('to');
-
-        $status  = strtoupper(trim((string) $request->query('status', '')));
-        $perPage = (int) $request->query('per_page', 25);
-        $page    = max((int) $request->query('page', 1), 1);
 
         if (!$from || !$to) {
             return response()->json([
@@ -52,110 +32,76 @@ class IFCAAPIStockController extends Controller
             ], 422);
         }
 
-        if (!in_array($perPage, [25, 50, 100])) {
-            $perPage = 25;
-        }
-
-        if ($status !== '' && !in_array($status, ['H', 'P', 'C'])) {
-            $status = '';
-        }
-
         $fromDt = Carbon::parse($from)->startOfDay();
         $toDt   = Carbon::parse($to)->endOfDay();
 
-        // 1) inventory (pgsql) - flow lama tetap: item_type GI, status A, range created_at
+        // 1) inventory (pgsql)
         $invRows = MsInventory::query()
-            ->select(['id', 'inventoryid', 'inventory_descr', 'stock_unit', 'purchase_unit'])
-            ->whereIn('item_type', ['GI'])
+            ->select(['id','inventoryid','inventory_descr','stock_unit','purchase_unit'])
+            ->whereIn('item_type', ['SE','NS'])
             ->where('status', 'A')
             ->whereBetween('created_at', [$fromDt, $toDt])
             ->orderBy('inventoryid')
+            ->limit(100)
             ->get();
 
         if ($invRows->isEmpty()) {
-            return response()->json([
-                'ok' => true,
-                'data' => [],
-                'summary' => [
-                    'H' => 0,
-                    'P' => 0,
-                    'C' => 0,
-                    'ready' => 0,
-                ],
-                'meta' => [
-                    'current_page' => 1,
-                    'last_page'    => 1,
-                    'per_page'     => $perPage,
-                    'total'        => 0,
-                    'from'         => 0,
-                    'to'           => 0,
-                ],
-            ]);
+            return response()->json(['ok' => true, 'data' => []]);
         }
 
-        $stockCds = $invRows->pluck('inventoryid')->map(fn ($v) => (string) $v)->values()->all();
+        $itemCds = $invRows->pluck('inventoryid')->map(fn($v) => (string)$v)->all();
 
         // 2) staging (pgsql3)
-        $stagingMap = StagingIfcaIcStkMas::query()
-            ->whereIn('stock_cd', $stockCds)
-            ->get(['stock_cd', 'process_flag', 'process_note', 'updated_at'])
-            ->keyBy(fn ($r) => (string) $r->stock_cd);
+        $stagingMap = StagingIfcaPoItem::query()
+            ->whereIn('item_cd', $itemCds)
+            ->get(['item_cd','process_flag'])
+            ->keyBy('item_cd');
 
         // 2.5) latest log message + last_update (pgsql2)
         $logRows = TrIntegrationLog::query()
             ->where('integration_id', 'IFCA')
-            ->where('setting_id', 'api.StockItem.url')
-            ->whereIn('refnbr', $stockCds)
+            ->where('setting_id', 'api.NonStockItem.url')
+            ->whereIn('refnbr', $itemCds)
             ->orderByDesc('id')
             ->get(['id', 'refnbr', 'payload_response', 'created_at']);
 
         $logMap = [];
         foreach ($logRows as $lg) {
             $ref = (string) $lg->refnbr;
-            if (isset($logMap[$ref])) {
-                continue; // ambil latest saja
-            }
+            if (isset($logMap[$ref])) continue; // ambil latest saja
 
             $msg = '';
             $raw = $lg->payload_response;
 
             if ($raw !== null && $raw !== '') {
                 $decoded = json_decode($raw, true);
-                $msg = (json_last_error() === JSON_ERROR_NONE && is_array($decoded))
-                    ? (string) ($decoded['message'] ?? $raw)
-                    : (string) $raw;
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $msg = (string)($decoded['message'] ?? '');
+                } else {
+                    $msg = (string) $raw;
+                }
             }
 
             $logMap[$ref] = [
-                'message'     => $msg,
+                'message' => $msg,
                 'last_update' => optional($lg->created_at)->format('Y-m-d H:i:s'),
             ];
         }
 
         // 3) merge
         $rows = $invRows->map(function ($r) use ($stagingMap, $logMap) {
-            $stockCd = (string) $r->inventoryid;
-            $st = $stagingMap->get($stockCd);
+            $invId = (string) $r->inventoryid;
+            $st = $stagingMap->get($invId);
 
             $stageStatus = 'H';
-            $note = '';
-            $last = '';
-
             if ($st) {
-                $stageStatus = ((string) $st->process_flag === 'Y') ? 'C' : 'P';
-                $note = (string) ($st->process_note ?? '');
-                $last = $st->updated_at ? Carbon::parse($st->updated_at)->format('Y-m-d H:i:s') : '';
+                $stageStatus = ($st->process_flag === 'Y') ? 'C' : 'P';
             }
 
             $uom = $r->stock_unit ?: ($r->purchase_unit ?: '');
 
-            $payloadMsg = '';
-            $lastUpdate = '';
-
-            if ($stageStatus === 'P' || $stageStatus === 'C') {
-                $payloadMsg = $logMap[$stockCd]['message'] ?? $note;
-                $lastUpdate = $logMap[$stockCd]['last_update'] ?? $last;
-            }
+            $payloadMsg = ($stageStatus === 'H') ? '' : ($logMap[$invId]['message'] ?? '');
+            $lastUpdate = ($stageStatus === 'H') ? '' : ($logMap[$invId]['last_update'] ?? '');
 
             return [
                 'id' => $r->id,
@@ -168,39 +114,7 @@ class IFCAAPIStockController extends Controller
             ];
         })->values();
 
-        if ($status !== '') {
-            $rows = $rows->filter(fn ($r) => strtoupper((string) ($r['stage_status'] ?? '')) === $status)->values();
-        }
-
-        $summary = [
-            'H' => $rows->where('stage_status', 'H')->count(),
-            'P' => $rows->where('stage_status', 'P')->count(),
-            'C' => $rows->where('stage_status', 'C')->count(),
-        ];
-        $summary['ready'] = $rows->filter(fn ($r) => in_array((string) ($r['stage_status'] ?? ''), ['H', 'P']))->count();
-
-        $total = $rows->count();
-        $lastPage = max((int) ceil($total / $perPage), 1);
-        $page = min($page, $lastPage);
-
-        $items = $rows->slice(($page - 1) * $perPage, $perPage)->values();
-
-        $fromRow = $total > 0 ? (($page - 1) * $perPage) + 1 : 0;
-        $toRow   = min($page * $perPage, $total);
-
-        return response()->json([
-            'ok' => true,
-            'data' => $items,
-            'summary' => $summary,
-            'meta' => [
-                'current_page' => $page,
-                'last_page'    => $lastPage,
-                'per_page'     => $perPage,
-                'total'        => $total,
-                'from'         => $fromRow,
-                'to'           => $toRow,
-            ],
-        ]);
+        return response()->json(['ok' => true, 'data' => $rows]);
     }
 
     /**
@@ -220,7 +134,7 @@ class IFCAAPIStockController extends Controller
         $inventories = MsInventory::query()
             ->select(['id', 'inventoryid', 'inventory_descr', 'stock_unit', 'item_type', 'status'])
             ->whereIn('id', $request->ids)
-            ->whereIn('item_type', ['GI'])
+            ->whereIn('item_type', ['SE', 'NS'])
             ->where('status', 'A')
             ->get();
 
@@ -231,13 +145,13 @@ class IFCAAPIStockController extends Controller
             ], 404);
         }
 
-        $stockCds = $inventories->pluck('inventoryid')->map(fn ($v) => (string) $v)->values()->all();
-                
+        $itemCds = $inventories->pluck('inventoryid')->map(fn ($v) => (string) $v)->values()->all();
+
         // 2) Ambil staging existing (pgsql3)
-        $stagingMap = StagingIfcaIcStkMas::query()
-            ->whereIn('stock_cd', $stockCds)
-            ->get(['id', 'stock_cd', 'process_flag'])
-            ->keyBy('stock_cd');
+        $stagingMap = StagingIfcaPoItem::query()
+            ->whereIn('item_cd', $itemCds)
+            ->get(['id', 'item_cd', 'process_flag'])
+            ->keyBy('item_cd');
 
         $insertedH = 0;
         $sentOkP   = 0;
@@ -245,31 +159,38 @@ class IFCAAPIStockController extends Controller
         $skippedC  = 0;
 
         // STEP A: INSERT H -> P (hanya yang belum ada staging)
-        $stagingConn = (new StagingIfcaIcStkMas)->getConnectionName(); // 'pgsql3'
+        $stagingConn = (new StagingIfcaPoItem)->getConnectionName(); // 'pgsql3'
         DB::connection($stagingConn)->beginTransaction();
 
         try {
             foreach ($inventories as $inv) {
-                $stockCd = (string) $inv->inventoryid;
+                $itemCd = (string) $inv->inventoryid;
 
-                if (!$stagingMap->has($stockCd )) {
-                    StagingIfcaIcStkMas::query()->create([
-                        'stock_cd'      => $stockCd,
-                        'stock_descs'   => (string) $inv->inventory_descr,
-                        'uom_cd'        => (string) ($inv->stock_unit ?? ''),
-                        // default (silakan mapping kalau Anda punya data master-nya)
-                        'group_cd'      => '01',
-                        'product_cd'    => '',
-                        'catalog_no'    => '',
-                        'type_cd'       => 'NA',
-                        'class_cd'      => 'NA',
-                        'abc_flag'      => 'C',
-                        'shelf_life'    => 0,
-                        'std_cost'      => 0,
-                        'serial_ctrl'   => 'N',
-                        'lot_ctrl'      => 'N',
-                        'voucher_flag'  => 'N',
-                        'voucher_amt'   => 0,
+                if (!$stagingMap->has($itemCd)) {
+                    StagingIfcaPoItem::query()->create([
+                        'item_cd'          => $itemCd,
+                        'item_descs'       => (string) $inv->inventory_descr,
+                        'uom_cd'           => (string) ($inv->stock_unit ?? ''),
+                        'item_type'        => 'N',
+                        'stock_cd'         => '',
+                        'item_remarks'     => (string) $inv->inventory_descr,
+
+                        'costcode'         => '',
+                        'expense_acct'     => '',
+                        'asset_acct'       => '',
+                        'management_acct'  => '',
+
+                        'latest_cost'      => 0,
+                        'std_cost'         => 0,
+                        'budget_rate'      => 0,
+
+                        'supplier_cd'      => '',
+                        'product_cd'       => '',
+                        'leadtime'         => 0,
+
+                        'alt_supplier_cd'  => '',
+                        'alt_product_cd'   => '',
+                        'alt_leadtime'     => 0,
 
                         'process_flag'     => 'N',
                         'status'           => 'A',
@@ -293,10 +214,10 @@ class IFCAAPIStockController extends Controller
         }
 
         // refresh staging map setelah insert
-        $stagingMap = StagingIfcaIcStkMas::query()
-            ->whereIn('stock_cd', $stockCds)
-            ->get(['id', 'stock_cd', 'process_flag'])
-            ->keyBy('stock_cd');
+        $stagingMap = StagingIfcaPoItem::query()
+            ->whereIn('item_cd', $itemCds)
+            ->get(['id', 'item_cd', 'process_flag'])
+            ->keyBy('item_cd');
 
         // STEP B: SEND P -> C
         try {
@@ -309,20 +230,20 @@ class IFCAAPIStockController extends Controller
             ], 500);
         }
 
-        foreach ($stagingMap as $stockCd => $st) {
+        foreach ($stagingMap as $itemCd => $st) {
             if ($st->process_flag === 'Y') {
                 $skippedC++;
                 continue;
             }
 
             if ($st->process_flag === 'N') {
-                $item = StagingIfcaIcStkMas::query()->where('stock_cd', $stockCd)->first();
+                $item = StagingIfcaPoItem::query()->where('item_cd', $itemCd)->first();
 
-                $res = $this->sendStockAPI($item, $token, $username);
+                $res = $this->sendNonStockAPI($item, $token, $username);
 
                 if ($res['ok']) {
-                    StagingIfcaIcStkMas::query()
-                        ->where('stock_cd', $stockCd )
+                    StagingIfcaPoItem::query()
+                        ->where('item_cd', $itemCd)
                         ->update([
                             'process_flag' => 'Y',
                             'process_dt'   => now(),
@@ -332,8 +253,8 @@ class IFCAAPIStockController extends Controller
                         ]);
                     $sentOkP++;
                 } else {
-                    StagingIfcaIcStkMas::query()
-                        ->where('stock_cd', $stockCd)
+                    StagingIfcaPoItem::query()
+                        ->where('item_cd', $itemCd)
                         ->update([
                             'process_note' => substr((string)($res['response_body'] ?? 'ERROR'), 0, 255),
                             'updated_by'   => $username,
@@ -469,33 +390,37 @@ class IFCAAPIStockController extends Controller
         }
     }
 
-    private function sendStockAPI(StagingIfcaIcStkMas $item, string $token, string $usernameForLog): array
+    private function sendNonStockAPI(StagingIfcaPoItem $item, string $token, string $usernameForLog): array
     {
-        $url = $this->buildUrl('api.StockItem.url');
-        if ($url === '') throw new \RuntimeException('Setting api.StockItem.url kosong');
+        $url = $this->buildUrl('api.NonStockItem.url');
+        if ($url === '') throw new \RuntimeException('Setting api.NonStockItem.url kosong');
 
-        $settingName = $this->getSettingName('api.StockItem.url', 'IFCA Stock Item');
+        $settingName = $this->getSettingName('api.NonStockItem.url', 'IFCA Non Stock Item');
 
         $payload = [[
-            "stock_cd"      => (string)$item->stock_cd,
-            "stock_descs"   => (string)$item->stock_descs,
-            "uom_cd"        => (string)$item->uom_cd,
-            "group_cd"      => (string)($item->group_cd ?? "01"),
-            "product_cd"    => (string)($item->product_cd ?? ""),
-            "catalog_no"    => (string)($item->catalog_no ?? ""),
-            "type_cd"       => (string)($item->type_cd ?? "NA"),
-            "class_cd"      => (string)($item->class_cd ?? "NA"),
-            "abc_flag"      => (string)($item->abc_flag ?? "C"),
-            "shelf_life"    => (int)($item->shelf_life ?? 0),
-            "std_cost"      => (float)($item->std_cost ?? 0),
-            "serial_ctrl"   => (string)($item->serial_ctrl ?? "N"),
-            "lot_ctrl"      => (string)($item->lot_ctrl ?? "N"),
-            "voucher_flag"  => (string)($item->voucher_flag ?? "N"),
-            "voucher_amt"   => (float)($item->voucher_amt ?? 0),
-            "process_flag"  => (string)($item->process_flag ?? "N"),
-            "create_date"   => (string)($item->create_date ?? ""),
-            "process_dt"    => (string)($item->process_dt ?? ""),
-            "process_note"  => (string)($item->process_note ?? ""),
+            "item_cd"          => (string)$item->item_cd,
+            "item_descs"       => (string)$item->item_descs,
+            "uom_cd"           => (string)$item->uom_cd,
+            "item_type"        => (string)$item->item_type,
+            "stock_cd"         => (string)($item->stock_cd ?? ""),
+            "item_remarks"     => (string)($item->item_remarks ?? ""),
+            "costcode"         => (string)($item->costcode ?? ""),
+            "expense_acct"     => (string)($item->expense_acct ?? ""),
+            "asset_acct"       => (string)($item->asset_acct ?? ""),
+            "management_acct"  => (string)($item->management_acct ?? ""),
+            "latest_cost"      => (float)($item->latest_cost ?? 0),
+            "std_cost"         => (float)($item->std_cost ?? 0),
+            "budget_rate"      => (float)($item->budget_rate ?? 0),
+            "supplier_cd"      => (string)($item->supplier_cd ?? ""),
+            "product_cd"       => (string)($item->product_cd ?? ""),
+            "leadtime"         => (int)($item->leadtime ?? 0),
+            "alt_supplier_cd"  => (string)($item->alt_supplier_cd ?? ""),
+            "alt_product_cd"   => (string)($item->alt_product_cd ?? ""),
+            "alt_leadtime"     => (int)($item->alt_leadtime ?? 0),
+            "process_flag"     => (string)($item->process_flag ?? "N"),
+            "create_date"      => (string)($item->create_date ?? ""),
+            "process_dt"       => (string)($item->process_dt ?? ""),
+            "process_note"     => (string)($item->process_note ?? ""),
         ]];
 
         try {
@@ -508,9 +433,9 @@ class IFCAAPIStockController extends Controller
             $body = $resp->body();
 
             $this->writeIntegrationLog([
-                'setting_id'       => 'api.StockItem.url',
+                'setting_id'       => 'api.NonStockItem.url',
                 'setting_name'     => $settingName,
-                'refnbr'           => $item->stock_cd,
+                'refnbr'           => $item->item_cd,
                 'payload'          => json_encode($payload),
                 'payload_response' => $body,
                 'payload_status'   => (string)$resp->status(),
@@ -525,9 +450,9 @@ class IFCAAPIStockController extends Controller
             ];
         } catch (\Throwable $e) {
             $this->writeIntegrationLog([
-                'setting_id'       => 'api.StockItem.url',
+                'setting_id'       => 'api.NonStockItem.url',
                 'setting_name'     => $settingName,
-                'refnbr'           => $item->stock_cd,
+                'refnbr'           => $item->item_cd,
                 'payload'          => json_encode($payload),
                 'payload_response' => null,
                 'payload_status'   => 'EXCEPTION',

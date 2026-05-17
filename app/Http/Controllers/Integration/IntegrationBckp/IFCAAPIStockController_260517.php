@@ -16,33 +16,13 @@ use Illuminate\Support\Str;
 
 class IFCAAPIStockController extends Controller
 {
-    public function filters()
-    {
-        return response()->json([
-            'ok' => true,
-            'data' => [
-                'statuses'  => ['H', 'P', 'C'],
-                'per_pages' => [25, 50, 100],
-            ],
-        ]);
-    }
-
     /**
-     * AJAX list Stock + filter status + pagination
-     * Logic sumber data tetap sama:
-     * - Source utama MsInventory item_type GI status A
-     * - Status H jika belum ada staging
-     * - Status P jika staging process_flag selain Y
-     * - Status C jika staging process_flag Y
+     * AJAX list Non Stock
      */
     public function list(Request $request)
     {
         $from = $request->query('from');
         $to   = $request->query('to');
-
-        $status  = strtoupper(trim((string) $request->query('status', '')));
-        $perPage = (int) $request->query('per_page', 25);
-        $page    = max((int) $request->query('page', 1), 1);
 
         if (!$from || !$to) {
             return response()->json([
@@ -52,54 +32,29 @@ class IFCAAPIStockController extends Controller
             ], 422);
         }
 
-        if (!in_array($perPage, [25, 50, 100])) {
-            $perPage = 25;
-        }
-
-        if ($status !== '' && !in_array($status, ['H', 'P', 'C'])) {
-            $status = '';
-        }
-
         $fromDt = Carbon::parse($from)->startOfDay();
         $toDt   = Carbon::parse($to)->endOfDay();
 
-        // 1) inventory (pgsql) - flow lama tetap: item_type GI, status A, range created_at
+        // 1) inventory (pgsql)
         $invRows = MsInventory::query()
-            ->select(['id', 'inventoryid', 'inventory_descr', 'stock_unit', 'purchase_unit'])
+            ->select(['id','inventoryid','inventory_descr','stock_unit','purchase_unit'])
             ->whereIn('item_type', ['GI'])
             ->where('status', 'A')
             ->whereBetween('created_at', [$fromDt, $toDt])
             ->orderBy('inventoryid')
+            ->limit(100)
             ->get();
 
         if ($invRows->isEmpty()) {
-            return response()->json([
-                'ok' => true,
-                'data' => [],
-                'summary' => [
-                    'H' => 0,
-                    'P' => 0,
-                    'C' => 0,
-                    'ready' => 0,
-                ],
-                'meta' => [
-                    'current_page' => 1,
-                    'last_page'    => 1,
-                    'per_page'     => $perPage,
-                    'total'        => 0,
-                    'from'         => 0,
-                    'to'           => 0,
-                ],
-            ]);
+            return response()->json(['ok' => true, 'data' => []]);
         }
 
-        $stockCds = $invRows->pluck('inventoryid')->map(fn ($v) => (string) $v)->values()->all();
-
+        $stockCds = $invRows->pluck('inventoryid')->map(fn($v) => (string)$v)->all();
         // 2) staging (pgsql3)
         $stagingMap = StagingIfcaIcStkMas::query()
             ->whereIn('stock_cd', $stockCds)
-            ->get(['stock_cd', 'process_flag', 'process_note', 'updated_at'])
-            ->keyBy(fn ($r) => (string) $r->stock_cd);
+            ->get(['stock_cd','process_flag'])
+            ->keyBy('stock_cd');
 
         // 2.5) latest log message + last_update (pgsql2)
         $logRows = TrIntegrationLog::query()
@@ -112,50 +67,40 @@ class IFCAAPIStockController extends Controller
         $logMap = [];
         foreach ($logRows as $lg) {
             $ref = (string) $lg->refnbr;
-            if (isset($logMap[$ref])) {
-                continue; // ambil latest saja
-            }
+            if (isset($logMap[$ref])) continue; // ambil latest saja
 
             $msg = '';
             $raw = $lg->payload_response;
 
             if ($raw !== null && $raw !== '') {
                 $decoded = json_decode($raw, true);
-                $msg = (json_last_error() === JSON_ERROR_NONE && is_array($decoded))
-                    ? (string) ($decoded['message'] ?? $raw)
-                    : (string) $raw;
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $msg = (string)($decoded['message'] ?? '');
+                } else {
+                    $msg = (string) $raw;
+                }
             }
 
             $logMap[$ref] = [
-                'message'     => $msg,
+                'message' => $msg,
                 'last_update' => optional($lg->created_at)->format('Y-m-d H:i:s'),
             ];
         }
 
         // 3) merge
         $rows = $invRows->map(function ($r) use ($stagingMap, $logMap) {
-            $stockCd = (string) $r->inventoryid;
-            $st = $stagingMap->get($stockCd);
+            $stockCd  = (string) $r->inventoryid;
+            $st = $stagingMap->get($stockCd );
 
             $stageStatus = 'H';
-            $note = '';
-            $last = '';
-
             if ($st) {
-                $stageStatus = ((string) $st->process_flag === 'Y') ? 'C' : 'P';
-                $note = (string) ($st->process_note ?? '');
-                $last = $st->updated_at ? Carbon::parse($st->updated_at)->format('Y-m-d H:i:s') : '';
+                $stageStatus = ($st->process_flag === 'Y') ? 'C' : 'P';
             }
 
             $uom = $r->stock_unit ?: ($r->purchase_unit ?: '');
 
-            $payloadMsg = '';
-            $lastUpdate = '';
-
-            if ($stageStatus === 'P' || $stageStatus === 'C') {
-                $payloadMsg = $logMap[$stockCd]['message'] ?? $note;
-                $lastUpdate = $logMap[$stockCd]['last_update'] ?? $last;
-            }
+            $payloadMsg = ($stageStatus === 'H') ? '' : ($logMap[$stockCd ]['message'] ?? '');
+            $lastUpdate = ($stageStatus === 'H') ? '' : ($logMap[$stockCd]['last_update'] ?? '');
 
             return [
                 'id' => $r->id,
@@ -168,39 +113,7 @@ class IFCAAPIStockController extends Controller
             ];
         })->values();
 
-        if ($status !== '') {
-            $rows = $rows->filter(fn ($r) => strtoupper((string) ($r['stage_status'] ?? '')) === $status)->values();
-        }
-
-        $summary = [
-            'H' => $rows->where('stage_status', 'H')->count(),
-            'P' => $rows->where('stage_status', 'P')->count(),
-            'C' => $rows->where('stage_status', 'C')->count(),
-        ];
-        $summary['ready'] = $rows->filter(fn ($r) => in_array((string) ($r['stage_status'] ?? ''), ['H', 'P']))->count();
-
-        $total = $rows->count();
-        $lastPage = max((int) ceil($total / $perPage), 1);
-        $page = min($page, $lastPage);
-
-        $items = $rows->slice(($page - 1) * $perPage, $perPage)->values();
-
-        $fromRow = $total > 0 ? (($page - 1) * $perPage) + 1 : 0;
-        $toRow   = min($page * $perPage, $total);
-
-        return response()->json([
-            'ok' => true,
-            'data' => $items,
-            'summary' => $summary,
-            'meta' => [
-                'current_page' => $page,
-                'last_page'    => $lastPage,
-                'per_page'     => $perPage,
-                'total'        => $total,
-                'from'         => $fromRow,
-                'to'           => $toRow,
-            ],
-        ]);
+        return response()->json(['ok' => true, 'data' => $rows]);
     }
 
     /**

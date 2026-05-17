@@ -16,28 +16,13 @@ use Illuminate\Support\Str;
 
 class IFCAAPISupplierController extends Controller
 {
-    public function filters()
-    {
-        return response()->json([
-            'ok' => true,
-            'data' => [
-                'statuses'  => ['H', 'P', 'C'],
-                'per_pages' => [25, 50, 100],
-            ],
-        ]);
-    }
-
     /**
-     * AJAX list Supplier + filter status + pagination
+     * AJAX list Non Stock
      */
     public function list(Request $request)
     {
         $from = $request->query('from');
         $to   = $request->query('to');
-
-        $status  = strtoupper(trim((string) $request->query('status', '')));
-        $perPage = (int) $request->query('per_page', 25);
-        $page    = max((int) $request->query('page', 1), 1);
 
         if (!$from || !$to) {
             return response()->json([
@@ -47,166 +32,82 @@ class IFCAAPISupplierController extends Controller
             ], 422);
         }
 
-        if (!in_array($perPage, [25, 50, 100])) {
-            $perPage = 25;
-        }
-
-        if ($status !== '' && !in_array($status, ['H', 'P', 'C'])) {
-            $status = '';
-        }
-
         $fromDt = Carbon::parse($from)->startOfDay();
         $toDt   = Carbon::parse($to)->endOfDay();
 
-        // 1) ms_vendor (pgsql) - source utama supplier
+        // 1) ms_vendor (pgsql)
         $vendors = MsVendor::query()
             ->select([
-                'id',
-                'vendor_id',
-                'vendor_name',
-                'npwp',
-                'vendor_addr1',
-                'vendor_addr2',
-                'contact_person',
-                'contact_number1',
-                'contact_number2',
-                'post_cd',
-                'fax_no',
-                'contact_email',
-                'created_at',
+                'id','vendor_id','vendor_name','npwp','vendor_addr1','vendor_addr2','contact_person',
+                'contact_number1','contact_number2','post_cd','fax_no','contact_email','created_at'
             ])
             ->where('status', 'A')
             ->whereBetween('created_at', [$fromDt, $toDt])
             ->orderBy('vendor_id')
+            ->limit(100)
             ->get();
 
         if ($vendors->isEmpty()) {
-            return response()->json([
-                'ok' => true,
-                'data' => [],
-                'summary' => [
-                    'H' => 0,
-                    'P' => 0,
-                    'C' => 0,
-                    'ready' => 0,
-                ],
-                'meta' => [
-                    'current_page' => 1,
-                    'last_page'    => 1,
-                    'per_page'     => $perPage,
-                    'total'        => 0,
-                    'from'         => 0,
-                    'to'           => 0,
-                ],
-            ]);
+        return response()->json(['ok'=>true,'data'=>[]]);
         }
 
-        $supplierCds = $vendors->pluck('vendor_id')->map(fn ($v) => (string) $v)->values()->all();
+        $supplierCds = $vendors->pluck('vendor_id')->map(fn($v)=>(string)$v)->all();
 
         // 2) staging (pgsql3)
         $stagingMap = StagingIfcaPoSupplier::query()
             ->whereIn('supplier_cd', $supplierCds)
-            ->get(['supplier_cd', 'process_flag', 'process_note', 'updated_at'])
-            ->keyBy(fn ($r) => (string) $r->supplier_cd);
+            ->get(['supplier_cd','process_flag'])
+            ->keyBy('supplier_cd');
 
-        // 3) latest log message + last_update (pgsql2)
+        // 2.5) latest log message + last_update (pgsql2)
         $logRows = TrIntegrationLog::query()
             ->where('integration_id', 'IFCA')
             ->where('setting_id', 'api.POSuplier.url')
             ->whereIn('refnbr', $supplierCds)
             ->orderByDesc('id')
-            ->get(['id', 'refnbr', 'payload_response', 'created_at']);
+            ->get(['id','refnbr','payload_response','created_at']);
 
         $logMap = [];
         foreach ($logRows as $lg) {
-            $ref = (string) $lg->refnbr;
-            if (isset($logMap[$ref])) {
-                continue;
-            }
+            $ref = (string)$lg->refnbr;
+            if (isset($logMap[$ref])) continue;
 
             $msg = '';
             $raw = $lg->payload_response;
-
             if ($raw !== null && $raw !== '') {
                 $decoded = json_decode($raw, true);
-                $msg = (json_last_error() === JSON_ERROR_NONE && is_array($decoded))
-                    ? (string) ($decoded['message'] ?? $raw)
-                    : (string) $raw;
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $msg = (string)($decoded['message'] ?? '');
+                } else {
+                    $msg = (string)$raw;
+                }
             }
 
             $logMap[$ref] = [
-                'message'     => $msg,
+                'message' => $msg,
                 'last_update' => optional($lg->created_at)->format('Y-m-d H:i:s'),
             ];
         }
-
-        // 4) merge source + staging + log
+    
+        // 3) merge
         $rows = $vendors->map(function ($v) use ($stagingMap, $logMap) {
-            $supplierCd = (string) $v->vendor_id;
+            $supplierCd = (string)$v->vendor_id; // untuk cek staging & log
             $st = $stagingMap->get($supplierCd);
-
             $stage = 'H';
-            $note  = '';
-            $last  = '';
-
-            if ($st) {
-                $stage = ((string) $st->process_flag === 'Y') ? 'C' : 'P';
-                $note  = (string) ($st->process_note ?? '');
-                $last  = $st->updated_at ? Carbon::parse($st->updated_at)->format('Y-m-d H:i:s') : '';
-            }
-
-            $respMsg  = '';
-            $respLast = '';
-
-            if ($stage === 'P' || $stage === 'C') {
-                $respMsg  = $logMap[$supplierCd]['message'] ?? $note;
-                $respLast = $logMap[$supplierCd]['last_update'] ?? $last;
-            }
+            if ($st) $stage = ($st->process_flag === 'Y') ? 'C' : 'P';
 
             return [
-                'id'               => $v->id, // integer untuk checkbox process
-                'vendor_id'        => $v->vendor_id,
-                'vendor_name'      => $v->vendor_name,
-                'npwp'             => $v->npwp,
-                'stage_status'     => $stage,
-                'payload_response' => $respMsg,
-                'last_update'      => $respLast,
+                'id'             => $v->id,          // ✅ integer untuk checkbox
+                'vendor_id'      => $v->vendor_id,   // tampil
+                'vendor_name'    => $v->vendor_name,
+                'npwp'           => $v->npwp,
+                'stage_status'   => $stage,
+                'payload_response'=> ($stage === 'H') ? '' : ($logMap[$supplierCd]['message'] ?? ''),
+                'last_update'     => ($stage === 'H') ? '' : ($logMap[$supplierCd]['last_update'] ?? ''),
             ];
         })->values();
 
-        if ($status !== '') {
-            $rows = $rows->filter(fn ($r) => strtoupper((string) ($r['stage_status'] ?? '')) === $status)->values();
-        }
-
-        $summary = [
-            'H' => $rows->where('stage_status', 'H')->count(),
-            'P' => $rows->where('stage_status', 'P')->count(),
-            'C' => $rows->where('stage_status', 'C')->count(),
-        ];
-        $summary['ready'] = $rows->filter(fn ($r) => in_array((string) ($r['stage_status'] ?? ''), ['H', 'P']))->count();
-
-        $total = $rows->count();
-        $lastPage = max((int) ceil($total / $perPage), 1);
-        $page = min($page, $lastPage);
-
-        $items = $rows->slice(($page - 1) * $perPage, $perPage)->values();
-
-        $fromRow = $total > 0 ? (($page - 1) * $perPage) + 1 : 0;
-        $toRow   = min($page * $perPage, $total);
-
-        return response()->json([
-            'ok' => true,
-            'data' => $items,
-            'summary' => $summary,
-            'meta' => [
-                'current_page' => $page,
-                'last_page'    => $lastPage,
-                'per_page'     => $perPage,
-                'total'        => $total,
-                'from'         => $fromRow,
-                'to'           => $toRow,
-            ],
-        ]);
+        return response()->json(['ok'=>true,'data'=>$rows]);
     }
 
     /**

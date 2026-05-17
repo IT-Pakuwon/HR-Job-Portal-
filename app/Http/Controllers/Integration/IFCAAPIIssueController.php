@@ -10,6 +10,7 @@ use App\Models\DepartmentFin;
 use App\Models\MsCoa;
 use App\Models\MsIntegrationSetting;
 use App\Models\TrIntegrationLog;
+use App\Models\StagingIfcaMappingDiv;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -400,7 +401,12 @@ class IFCAAPIIssueController extends Controller
 
                 $buRows = BusinessUnit::query()
                     ->select([
-                        'cpny_id','business_unit_id','ifca_entity_cd','solomon_cpny_id','solomon_allocation_cd','integration_type'
+                        'cpny_id',
+                        'business_unit_id',
+                        'ifca_entity_cd',
+                        'solomon_cpny_id',
+                        'solomon_allocation_cd',
+                        'integration_type',
                     ])
                     ->where('status', 'A')
                     ->whereIn(DB::raw("(cpny_id || '||' || business_unit_id)"), $buKeys)
@@ -410,7 +416,10 @@ class IFCAAPIIssueController extends Controller
 
                 $deptRows = DepartmentFin::query()
                     ->select([
-                        'cpny_id','department_fin_id','ifca_dept_cd','solomon_subaccount_dept'
+                        'cpny_id',
+                        'department_fin_id',
+                        'ifca_dept_cd',
+                        'solomon_subaccount_dept',
                     ])
                     ->where('status', 'A')
                     ->whereIn(DB::raw("(cpny_id || '||' || department_fin_id)"), $deptKeys)
@@ -420,13 +429,52 @@ class IFCAAPIIssueController extends Controller
 
                 $coaRows = MsCoa::query()
                     ->select([
-                        'cpny_id','account_id','ifca_acct_cd','solomon_acct_cd'
+                        'cpny_id',
+                        'account_id',
+                        'ifca_acct_cd',
+                        'solomon_acct_cd',
                     ])
                     ->where('status', 'A')
                     ->whereIn(DB::raw("(cpny_id || '||' || account_id)"), $coaKeys)
                     ->get();
 
                 $coaMap = $coaRows->keyBy(fn($r) => (string)$r->cpny_id.'||'.(string)$r->account_id);
+
+                $needDivKeys = [];
+
+                foreach ($lines as $l) {
+                    $buId = trim((string)($l->budget_business_unit_id ?? ''));
+                    if ($buId === '') {
+                        continue;
+                    }
+
+                    $mapCpnyX = (string)($l->budget_cpny_id ?? $cpny);
+                    $deptKeyX = $mapCpnyX.'||'.(string)$l->budget_department_fin_id;
+                    $dpX = $deptMap->get($deptKeyX);
+
+                    $deptCdIfca = trim($this->s($dpX->ifca_dept_cd ?? '', 8));
+                    if ($deptCdIfca === '' || $deptCdIfca === 'ERR') {
+                        continue;
+                    }
+
+                    $needDivKeys[] = $buId.'||'.$deptCdIfca;
+                }
+
+                $needDivKeys = array_values(array_unique($needDivKeys));
+
+                $divMap = collect();
+                if (!empty($needDivKeys)) {
+                    $divMap = StagingIfcaMappingDiv::query()
+                        ->select([
+                            'business_unit_id',
+                            'dept_cd',
+                            'div_cd',
+                        ])
+                        ->where('status', 'A')
+                        ->whereIn(DB::raw("(business_unit_id || '||' || dept_cd)"), $needDivKeys)
+                        ->get()
+                        ->keyBy(fn($r) => trim((string)$r->business_unit_id).'||'.trim((string)$r->dept_cd));
+                }
 
                 foreach ($lines as $ln) {
                     $mapCpny = (string)($ln->budget_cpny_id ?? $cpny);
@@ -447,13 +495,27 @@ class IFCAAPIIssueController extends Controller
 
                     if ($integrationType === 'IFCA') {
                         $entityCd   = $this->s($bu->ifca_entity_cd ?? 'ERR', 4);
-                        $locationCd = $this->s($ln->ic_location ?? $bu->ifca_entity_cd ?? 'ERR', 4);
+                        $locationCd = $this->s($bu->ifca_entity_cd ?? 'ERR', 4);
 
                         $acctCd = $this->s($coa->ifca_acct_cd ?? 'ERR', 20);
                         $deptCd = $this->s($dp->ifca_dept_cd ?? 'ERR', 8);
 
                         $divCd = '0000';
-                        if ($deptCd === '' || $deptCd === 'ERR') $deptCd = '0000';
+                        if ($deptCd === '' || $deptCd === 'ERR') {
+                            $deptCd = '0000';
+                        }
+
+                        $buIdLine  = trim((string)($ln->budget_business_unit_id ?? ''));
+                        $deptCdKey = trim((string)$deptCd);
+
+                        if ($buIdLine !== '' && $deptCdKey !== '' && $deptCdKey !== 'ERR' && $deptCdKey !== '0000') {
+                            $mk = $buIdLine.'||'.$deptCdKey;
+                            $mappedDiv = $divMap->get($mk);
+
+                            if ($mappedDiv) {
+                                $divCd = $this->s($mappedDiv->div_cd ?? $divCd, 20);
+                            }
+                        }
 
                         $solAcctCd = $solAlloc = $solSubDept = '';
                     } elseif ($integrationType === 'SOLOMON') {
@@ -476,8 +538,6 @@ class IFCAAPIIssueController extends Controller
                         $solSubDept = 'ERR';
                         $divCd      = 'ERR';
                     }
-
-                    $trxCd = '5301';
 
                     StagingIfcaIcStkIssue::create([
                         'cpny_id' => $cpny,
@@ -508,8 +568,7 @@ class IFCAAPIIssueController extends Controller
                         'integration_type' => $this->s($integrationType, 20),
 
                         'ic_location' => $locationCd,
-                        'trx_cd' => $trxCd,
-
+                        'trx_cd' => $acctCd,
                         'div_cd'  => $divCd,
                         'dept_cd' => $deptCd,
 
@@ -795,7 +854,7 @@ class IFCAAPIIssueController extends Controller
 
             return [
                 "entity_cd"       => (string)$r->entity_cd,
-                "trx_cd"          => (string)($r->trx_cd ?? '5301'),
+                "trx_cd"          => (string)$r->acctCd,
                 "doc_no"          => (string)$r->issue_id,
                 "doc_date"        => $r->issue_date ? Carbon::parse($r->issue_date)->format('Y-m-d') : "",
                 "issuehd_descs"   => (string)$r->issuehd_descs,

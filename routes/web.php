@@ -2159,6 +2159,7 @@ Route::middleware(['auth'])->group(function () {
 
         // ✅ module: BAST API endpoints
         Route::prefix('ifcaintegration/bast')->name('ifcaintegration.bast.')->group(function () {
+            Route::get('/filters', [IFCAAPIBASTController::class, 'filters'])->name('filters');
             Route::get('list', [IFCAAPIBASTController::class, 'list'])->name('list');
             Route::post('process', [IFCAAPIBASTController::class, 'process'])->name('process');
         });
