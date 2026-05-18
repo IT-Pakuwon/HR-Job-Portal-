@@ -1429,19 +1429,11 @@ class AccessRequestController extends Controller
             ],
 
             'details.*.access_username' => [
-                Rule::requiredIf(
-                    strtoupper($access->access_type ?? '') === 'NEW'
-                ),
-
                 'nullable',
                 'string',
             ],
 
             'details.*.access_password' => [
-                Rule::requiredIf(
-                    strtoupper($access->access_type ?? '') === 'NEW'
-                ),
-
                 'nullable',
                 'string',
             ],

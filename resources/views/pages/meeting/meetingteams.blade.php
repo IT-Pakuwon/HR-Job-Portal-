@@ -500,12 +500,9 @@
                     if (!p.teams_url) {
                         status = 'Waiting';
                         bg = 'bg-yellow-100 text-yellow-700';
-                    } else if (p.isTeams) {
-                        status = 'Teams';
-                        bg = 'bg-blue-100 text-blue-700';
                     } else {
-                        status = 'Zoom';
-                        bg = 'bg-purple-100 text-purple-700';
+                        status = 'Link Ready';
+                        bg = 'bg-emerald-100 text-emerald-700';
                     }
 
                     return {

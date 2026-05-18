@@ -1264,9 +1264,9 @@ class MeetingController extends Controller
         // ==========================
         // 🔥 FALLBACK LINK
         // ==========================
-        $teamsLink = !empty($meeting->msteams_join_url)
+        $teamsLink = filter_var($meeting->msteams_join_url, FILTER_VALIDATE_URL)
             ? $meeting->msteams_join_url
-            : '#';
+            : null;
 
         // ==========================
         // 🔥 EMAIL BODY
