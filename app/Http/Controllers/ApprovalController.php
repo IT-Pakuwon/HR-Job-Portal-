@@ -189,7 +189,7 @@ class ApprovalController extends Controller
     /**
      * Evaluasi satu rule MsApproval terhadap context dokumen.
      */
-    protected function evaluateCondition(MsApproval $rule, array $ctx): bool
+    protected function evaluateCondition_xxx(MsApproval $rule, array $ctx): bool
     {
         $type = trim((string)$rule->aprv_type);
 
@@ -212,6 +212,63 @@ class ApprovalController extends Controller
         }
 
         // 2) fallback generic match (untuk kondisi WO seperti di gambar)
+        return $this->checkDocCondition($rule, $ctx);
+    }
+
+    protected function evaluateCondition(MsApproval $rule, array $ctx): bool
+    {
+        $type = trim((string) $rule->aprv_type);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normal approval
+        |--------------------------------------------------------------------------
+        | Kalau aprv_type kosong atau Normal, langsung lolos.
+        */
+        if ($type === '' || strcasecmp($type, 'Normal') === 0) {
+            return true;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Selain Condition, tidak lolos
+        |--------------------------------------------------------------------------
+        */
+        if (strcasecmp($type, 'Condition') !== 0) {
+            return false;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Khusus Parking Registration
+        |--------------------------------------------------------------------------
+        | Jika ctx membawa site_id_parking, maka aprv_condition wajib sama dengan
+        | site_id_parking.
+        |
+        | Contoh:
+        | site_id_parking = AW
+        | aprv_condition  = AW
+        | Maka approval line dipakai.
+        |--------------------------------------------------------------------------
+        */
+        if (array_key_exists('site_id_parking', $ctx)) {
+            return $this->checkSiteParking($rule, $ctx);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Logic condition lama
+        |--------------------------------------------------------------------------
+        | Biarkan flow lain tetap jalan seperti sebelumnya.
+        */
+        $cond = trim((string) $rule->aprv_condition);
+
+        $checker = $this->getConditionChecker($cond);
+
+        if ($checker) {
+            return call_user_func($checker, $rule, $ctx);
+        }
+
         return $this->checkDocCondition($rule, $ctx);
     }
 
@@ -656,5 +713,17 @@ class ApprovalController extends Controller
         $docType  = strtoupper(trim((string)($ctx['inventory_type'] ?? '')));
         $ruleCond = strtoupper(trim((string)($rule->aprv_condition ?? '')));
         return $docType !== '' && $ruleCond !== '' && $docType === $ruleCond;
+    }
+
+    protected function checkSiteParking(MsApproval $rule, array $ctx): bool
+    {
+        $siteParking = strtoupper(trim((string) ($ctx['site_id_parking'] ?? '')));
+        $ruleCondition = strtoupper(trim((string) ($rule->aprv_condition ?? '')));
+
+        if ($siteParking === '' || $ruleCondition === '') {
+            return false;
+        }
+
+        return $siteParking === $ruleCondition;
     }
 }

@@ -124,6 +124,7 @@ use App\Http\Controllers\VoucherTaxiController;
 use App\Http\Controllers\WoController;
 use App\Http\Controllers\WorkInstructionController;
 use App\Http\Controllers\WorksCategoryController;
+use App\Http\Controllers\ParkingRegistrationController;
 use App\Models\MsScreen;
 use App\Models\SysMenu;
 use App\Models\SysRoleMenu;
@@ -1177,6 +1178,25 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/calrnonpurch/{id}/revise', [CalrNonPurchController::class, 'reviseCalrNonPurch']);
     Route::post('/calrnonpurch/{hash}/received', [CalrNonPurchController::class, 'receivedCalrNonPurch'])->name('calrnonpurch.received');
     Route::post('/calrnonpurch/{hash}/treasury', [CalrNonPurchController::class, 'treasuryCalrNonPurch'])->name('calrnonpurch.treasury');
+
+    Route::post('/calrnonpurch/{hash}/reminder', [CalrNonPurchController::class, 'reminderCalrNonPurch'])->name('calrnonpurch.reminder');
+    Route::post('/calrnonpurch/{hash}/finance-revise', [CalrNonPurchController::class, 'financeReviseCalrNonPurch'])->name('calrnonpurch.finance-revise');
+
+    Route::get('/parkingregistration', [ParkingRegistrationController::class, 'index'])->name('parkingregistration');
+    Route::get('/parkingregistration/json', [ParkingRegistrationController::class, 'json'])->name('parkingregistration.json');
+    Route::get('/showparkingregistration/{hash}', [ParkingRegistrationController::class, 'showParkingRegistration']);
+    Route::get('/parkingregistration/{id}/tracking', [ParkingRegistrationController::class, 'tracking'])->name('parkingregistration.tracking');
+    Route::get('/pdf_parkingregistration/{hash}', [ParkingRegistrationController::class, 'printParkingRegistration']);  
+    Route::get('/createparkingregistration', [ParkingRegistrationController::class, 'createParkingRegistration']);
+    Route::post('/parkingregistration', [ParkingRegistrationController::class, 'storeParkingRegistration'])->name('parkingregistration.store');  
+    Route::get('/editparkingregistration/{hash}', [ParkingRegistrationController::class, 'editParkingRegistration']);
+    Route::put('/parkingregistration/{id}', [ParkingRegistrationController::class, 'updateParkingRegistration'])->name('parkingregistration.update');
+    Route::put('/parkingregistration/remove-attachment/{id}', [ParkingRegistrationController::class, 'removeAttachment']);
+    Route::post('/parkingregistration/{id}/approve', [ParkingRegistrationController::class, 'approveParkingRegistration']);
+    Route::post('/parkingregistration/{id}/reject', [ParkingRegistrationController::class, 'rejectParkingRegistration']);
+    Route::post('/parkingregistration/{id}/revise', [ParkingRegistrationController::class, 'reviseParkingRegistration']);
+
+    Route::get('/parkingregistration/employees', [ParkingRegistrationController::class, 'employeesByFilter'])->name('parkingregistration.employees');
 
     Route::controller(VoucherTaxiController::class)->group(function () {
         Route::get('/vouchertaxi', 'index')->name('vouchertaxi');

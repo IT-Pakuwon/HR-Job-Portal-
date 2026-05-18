@@ -170,6 +170,7 @@ class SppbController extends Controller
             ->leftJoin('tr_wo as wo', function ($join) {
                 $join->on('wo.woid', '=', 'sppb.woid');
             })
+            ->where('rt.doctype', 'SPPB')
             ->whereIn('sppb.cpny_id', $cpnyIds);
 
         // ==============================

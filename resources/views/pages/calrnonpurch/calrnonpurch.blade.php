@@ -138,6 +138,20 @@
                 <div><strong>Total Amount:</strong> <span id="modalAmount">-</span></div>
                 <div><strong id="modalUserLabel">User Receive:</strong> <span id="modalUserValue">-</span></div>
                 <div><strong id="modalDateLabel">Date Receive:</strong> <span id="modalDateValue">-</span></div>
+
+                <div id="modalMessageWrapper" class="hidden">
+                    <label id="modalMessageLabel" class="mb-1 block font-semibold text-gray-700 dark:text-gray-200">
+                        Message
+                    </label>
+
+                    <textarea id="modalMessage" rows="4"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        placeholder="Input message..."></textarea>
+
+                    <p id="modalMessageHint" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Message wajib diisi.
+                    </p>
+                </div>
             </div>
 
             <div class="mt-6 flex justify-end gap-2">
@@ -168,7 +182,57 @@
             defaultContent: ''
         };
 
+        function formatNow() {
+            const now = new Date();
+
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = now.toLocaleString('en-US', { month: 'short' });
+            const year = now.getFullYear();
+            const time = now.toTimeString().slice(0, 8);
+
+            return `${day} ${month} ${year} ${time}`;
+        }
+
         $(function() {
+
+            $(document).on('click', '.btn-calr-action-menu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const $btn = $(this);
+                const $dropdown = $btn.closest('.calr-action-wrap').find('.calr-action-dropdown');
+                const isOpen = !$dropdown.hasClass('hidden');
+
+                $('.calr-action-dropdown').addClass('hidden');
+
+                if (isOpen) {
+                    return;
+                }
+
+                const rect = this.getBoundingClientRect();
+
+                $dropdown
+                    .css({
+                        top: rect.bottom + 6 + 'px',
+                        left: Math.max(8, rect.right - 208) + 'px',
+                    })
+                    .removeClass('hidden');
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.calr-action-wrap').length) {
+                    $('.calr-action-dropdown').addClass('hidden');
+                }
+            });
+
+            $(window).on('scroll resize', function() {
+                $('.calr-action-dropdown').addClass('hidden');
+            });
+
+            $('.overflow-x-auto').on('scroll', function() {
+                $('.calr-action-dropdown').addClass('hidden');
+            });
+
             let scope = 'calrjobs';
             const $title = $('h1.text-base.font-extrabold');
             let table;
@@ -312,7 +376,23 @@
                                 return '';
                             }
 
-                            const statusText = row.finance_flow_status_text || '';
+                            let statusText = row.finance_flow_status_text || '';
+
+                            if (!statusText) {
+                                if (
+                                    row.statuspayment === 'C' ||
+                                    (row.userpayment && row.paymentdate)
+                                ) {
+                                    statusText = 'Treasury Received';
+                                } else if (
+                                    row.statusreceive === 'C' ||
+                                    (row.userreceive && row.receivedate)
+                                ) {
+                                    statusText = 'Finance Received';
+                                } else {
+                                    statusText = 'Waiting User';
+                                }
+                            }
 
                             const isReceiveCompleted =
                                 row.statusreceive === 'C' ||
@@ -323,66 +403,104 @@
                                 row.statuspayment === 'C' ||
                                 (row.userpayment && row.paymentdate);
 
+                            let receiveMode = '';
+                            let receiveAction = '';
+                            let receiveText = '';
+                            let receiveUser = '';
+                            let receiveDate = '';
+                            let receiveAllowed = false;
+
                             if (hasApTreAccess && isReceiveCompleted) {
-                                const buttonText = isPaymentCompleted
-                                    ? 'Rollback Treasury'
-                                    : 'Update Treasury';
-
-                                const btnClass = isPaymentCompleted
-                                    ? 'bg-red-600 hover:bg-red-700'
-                                    : 'bg-indigo-600 hover:bg-indigo-700';
-
-                                return `
-                                    <button type="button"
-                                        class="btn-action-calr rounded ${btnClass} px-3 py-1 text-white"
-                                        data-mode="treasury"
-                                        data-action="${isPaymentCompleted ? 'rollback' : 'update'}"
-                                        data-hash="${row.calrnonpurchase_eid}"
-                                        data-calrnonpurchaseid="${escapeHtml(row.calrnonpurchaseid || '')}"
-                                        data-rfpnonpurchaseid="${escapeHtml(row.rfpnonpurchaseid || '')}"
-                                        data-keperluan="${escapeHtml(row.keperluan || '-')}"
-                                        data-amount="${row.amountsettlement || 0}"
-                                        data-user="${escapeHtml(row.userpayment || '')}"
-                                        data-date="${escapeHtml(row.paymentdate || '')}"
-                                        data-button-text="${buttonText}">
-                                        ${buttonText}
-                                    </button>
-                                `;
-                            }
-
-                            if (
+                                receiveMode = 'treasury';
+                                receiveAction = isPaymentCompleted ? 'rollback' : 'update';
+                                receiveText = isPaymentCompleted ? 'Rollback Treasury' : 'Update Treasury';
+                                receiveUser = row.userpayment || '';
+                                receiveDate = row.paymentdate || '';
+                                receiveAllowed = true;
+                            } else if (
                                 hasApFinAccess &&
                                 (statusText === 'Waiting User' || statusText === 'Finance Received')
                             ) {
-                                const isReceived = row.statusreceive === 'C' || (row.userreceive && row.receivedate);
+                                const isReceived =
+                                    row.statusreceive === 'C' ||
+                                    (row.userreceive && row.receivedate);
 
-                                const buttonText = isReceived
-                                    ? 'Rollback Received'
-                                    : 'Update Received';
+                                receiveMode = 'received';
+                                receiveAction = isReceived ? 'rollback' : 'update';
+                                receiveText = isReceived ? 'Rollback Received' : 'Update Received';
+                                receiveUser = row.userreceive || '';
+                                receiveDate = row.receivedate || '';
+                                receiveAllowed = true;
+                            }
 
-                                const btnClass = isReceived
-                                    ? 'bg-red-600 hover:bg-red-700'
-                                    : 'bg-green-600 hover:bg-green-700';
+                            const commonData = `
+                                data-hash="${row.calrnonpurchase_eid}"
+                                data-calrnonpurchaseid="${escapeHtml(row.calrnonpurchaseid || '')}"
+                                data-rfpnonpurchaseid="${escapeHtml(row.rfpnonpurchaseid || '')}"
+                                data-keperluan="${escapeHtml(row.keperluan || '-')}"
+                                data-amount="${row.amountsettlement || 0}"
+                            `;
 
-                                return `
+                            let receiveItem = '';
+
+                            if (receiveAllowed) {
+                                receiveItem = `
                                     <button type="button"
-                                        class="btn-action-calr rounded ${btnClass} px-3 py-1 text-white"
-                                        data-mode="received"
-                                        data-action="${isReceived ? 'rollback' : 'update'}"
-                                        data-hash="${row.calrnonpurchase_eid}"
-                                        data-calrnonpurchaseid="${escapeHtml(row.calrnonpurchaseid || '')}"
-                                        data-rfpnonpurchaseid="${escapeHtml(row.rfpnonpurchaseid || '')}"
-                                        data-keperluan="${escapeHtml(row.keperluan || '-')}"
-                                        data-amount="${row.amountsettlement || 0}"
-                                        data-user="${escapeHtml(row.userreceive || '')}"
-                                        data-date="${escapeHtml(row.receivedate || '')}"
-                                        data-button-text="${buttonText}">
-                                        ${buttonText}
+                                        class="calr-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-mode="${receiveMode}"
+                                        data-action="${receiveAction}"
+                                        ${commonData}
+                                        data-user="${escapeHtml(receiveUser)}"
+                                        data-date="${escapeHtml(receiveDate)}"
+                                        data-button-text="${escapeHtml(receiveText)}">
+                                        ${escapeHtml(receiveText)}
+                                    </button>
+                                `;
+                            } else {
+                                receiveItem = `
+                                    <button type="button"
+                                        class="block w-full cursor-not-allowed px-4 py-2 text-left text-sm text-gray-400"
+                                        disabled>
+                                        Receive / Rollback
                                     </button>
                                 `;
                             }
 
-                            return `<span class="text-gray-400 italic">No Access</span>`;
+                            return `
+                                <div class="calr-action-wrap inline-block text-left">
+                                    <button type="button"
+                                        class="btn-calr-action-menu inline-flex items-center gap-2 rounded bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                                        Action
+                                        <span>▾</span>
+                                    </button>
+
+                                    <div class="calr-action-dropdown fixed z-[9999] hidden w-52 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                                        ${receiveItem}
+
+                                        <button type="button"
+                                            class="calr-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-mode="revise"
+                                            data-action="update"
+                                            ${commonData}
+                                            data-user=""
+                                            data-date=""
+                                            data-button-text="Submit Revise">
+                                            Revise
+                                        </button>
+
+                                        <button type="button"
+                                            class="calr-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-mode="reminder"
+                                            data-action="update"
+                                            ${commonData}
+                                            data-user=""
+                                            data-date=""
+                                            data-button-text="Send Reminder">
+                                            Reminder
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
                         }
                     },
                     {
@@ -750,10 +868,19 @@
             let selectedActionMode = null;
             let selectedActionType = null;
 
-            $(document).on('click', '.btn-action-calr', function() {
+            $(document).on('click', '.calr-dropdown-item', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                $('.calr-action-dropdown').addClass('hidden');
+
                 selectedActionHash = $(this).data('hash');
                 selectedActionMode = $(this).data('mode');
                 selectedActionType = $(this).data('action');
+
+                if (!selectedActionHash || !selectedActionMode) {
+                    return;
+                }
 
                 if (selectedActionMode === 'received' && !hasApFinAccess) {
                     toastr.error('You are not authorized to update or rollback receive.');
@@ -778,6 +905,11 @@
                 $('#modalKeperluan').text(keperluan || '-');
                 $('#modalAmount').text(formatRupiah(amount));
 
+                $('#modalMessage').val('');
+                $('#modalMessageWrapper').addClass('hidden');
+                $('#modalMessageLabel').text('Message');
+                $('#modalMessageHint').text('Message wajib diisi.');
+
                 if (selectedActionMode === 'received') {
                     $('#calrActionTitle').text(
                         selectedActionType === 'rollback'
@@ -786,7 +918,9 @@
                     );
                     $('#modalUserLabel').text('User Receive:');
                     $('#modalDateLabel').text('Date Receive:');
-                } else {
+                    $('#modalUserValue').text(currentValueUser || '');
+                    $('#modalDateValue').text(currentValueDate || '');
+                } else if (selectedActionMode === 'treasury') {
                     $('#calrActionTitle').text(
                         selectedActionType === 'rollback'
                             ? 'Rollback Treasury'
@@ -794,17 +928,41 @@
                     );
                     $('#modalUserLabel').text('User Payment:');
                     $('#modalDateLabel').text('Date Payment:');
-                }
+                    $('#modalUserValue').text(currentValueUser || '');
+                    $('#modalDateValue').text(currentValueDate || '');
+                } else if (selectedActionMode === 'revise') {
+                    $('#calrActionTitle').text('Revise CALR');
+                    $('#modalUserLabel').text('Action:');
+                    $('#modalDateLabel').text('Date:');
+                    $('#modalUserValue').text('Revise');
+                    $('#modalDateValue').text(formatNow());
 
-                $('#modalUserValue').text(currentValueUser || '');
-                $('#modalDateValue').text(currentValueDate || '');
+                    $('#modalMessageWrapper').removeClass('hidden');
+                    $('#modalMessageLabel').text('Revise Message');
+                    $('#modalMessage').attr('placeholder', 'Input revise reason/message...');
+                    $('#modalMessageHint').text('Message wajib diisi untuk Revise.');
+                } else if (selectedActionMode === 'reminder') {
+                    $('#calrActionTitle').text('Send Reminder');
+                    $('#modalUserLabel').text('Action:');
+                    $('#modalDateLabel').text('Date:');
+                    $('#modalUserValue').text('Reminder');
+                    $('#modalDateValue').text(formatNow());
+
+                    $('#modalMessageWrapper').removeClass('hidden');
+                    $('#modalMessageLabel').text('Reminder Message');
+                    $('#modalMessage').attr('placeholder', 'Input reminder message...');
+                    $('#modalMessageHint').text('Message wajib diisi untuk Reminder.');
+                }
 
                 $('#submitCalrActionBtn')
                     .text(buttonText)
-                    .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-green-600 hover:bg-green-700')
-                    .addClass(selectedActionType === 'rollback'
-                        ? 'bg-red-600 hover:bg-red-700'
-                        : 'bg-indigo-600 hover:bg-indigo-700'
+                    .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-green-600 hover:bg-green-700 bg-yellow-600 hover:bg-yellow-700')
+                    .addClass(
+                        selectedActionType === 'rollback'
+                            ? 'bg-red-600 hover:bg-red-700'
+                            : selectedActionMode === 'revise'
+                                ? 'bg-yellow-600 hover:bg-yellow-700'
+                                : 'bg-indigo-600 hover:bg-indigo-700'
                     );
 
                 $('#calrActionModal').removeClass('hidden').addClass('flex');
@@ -829,24 +987,50 @@
                     return;
                 }
 
+                let message = '';
+
+                if (selectedActionMode === 'revise' || selectedActionMode === 'reminder') {
+                    message = ($('#modalMessage').val() || '').trim();
+
+                    if (!message) {
+                        toastr.error('Message wajib diisi.');
+                        $('#modalMessage').focus();
+                        return;
+                    }
+                }
+
                 let url = '';
 
                 if (selectedActionMode === 'received') {
                     url = `/calrnonpurch/${selectedActionHash}/received`;
-                } else {
+                } else if (selectedActionMode === 'treasury') {
                     url = `/calrnonpurch/${selectedActionHash}/treasury`;
+                } else if (selectedActionMode === 'revise') {
+                    url = `/calrnonpurch/${selectedActionHash}/finance-revise`;
+                } else if (selectedActionMode === 'reminder') {
+                    url = `/calrnonpurch/${selectedActionHash}/reminder`;
                 }
+
+                if (!url) {
+                    toastr.error('Invalid action.');
+                    return;
+                }
+
+                $('#submitCalrActionBtn').prop('disabled', true).text('Processing...');
 
                 $.ajax({
                     url: url,
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        action_type: selectedActionType
+                        action_type: selectedActionType,
+                        message: message,
+                        comment: message,
+                        reason: message
                     },
                     success: function(res) {
                         if (res.success) {
-                            toastr.success(res.message || 'Updated successfully.');
+                            toastr.success(res.message || 'Action processed successfully.');
 
                             $('#calrActionModal').addClass('hidden').removeClass('flex');
 
@@ -854,17 +1038,22 @@
                             selectedActionMode = null;
                             selectedActionType = null;
 
+                            $('#modalMessage').val('');
+
                             $('#calrTable').DataTable().ajax.reload(null, false);
                         } else {
-                            toastr.error(res.message || 'Update failed.');
+                            toastr.error(res.message || 'Action failed.');
                         }
                     },
                     error: function(xhr) {
                         toastr.error(
                             xhr.responseJSON?.error ||
                             xhr.responseJSON?.message ||
-                            'Update failed.'
+                            'Action failed.'
                         );
+                    },
+                    complete: function() {
+                        $('#submitCalrActionBtn').prop('disabled', false);
                     }
                 });
             });

@@ -160,6 +160,7 @@ class SppjController extends Controller
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid');
             })
+            ->where('rt.doctype', 'SPPJ')
             ->whereIn('sppj.cpny_id', $cpnyIds);
 
         // ==============================

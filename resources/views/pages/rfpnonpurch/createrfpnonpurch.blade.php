@@ -12,8 +12,7 @@
                         </div>
 
                         <!-- Row 1 -->
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
-
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
@@ -63,18 +62,7 @@
                                     id="groupbiaya_id"
                                     class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
                                     required>
-                                    <option value="">Select Group</option>
-                                    {{-- @foreach ($groupbiaya as $g)
-                                        <option value="{{ $g->groupbiaya_id }}">
-                                            {{ $g->groupbiayadescr }}
-                                        </option>
-                                    @endforeach --}}
-                                    {{-- @foreach ($groupbiaya as $g)
-                                        <option value="{{ $g->groupbiaya_id }}"
-                                            data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}">
-                                            {{ $g->groupbiayadescr }}
-                                        </option>
-                                    @endforeach --}}
+                                    <option value="">Select Group</option>                         
                                     @foreach ($groupbiaya as $g)
                                         <option value="{{ $g->groupbiaya_id }}"
                                             data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}"
@@ -84,6 +72,16 @@
                                     @endforeach
                                 </select>
                             </div>
+
+                            {{-- Tanggal Diperlukan --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tanggal Diperlukan
+                                </label>
+                                <input type="date" name="datediperlukan" id="datediperlukan" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
                             <!-- Business Unit -->
                             <div class="hidden flex flex-col gap-2" id="businessUnitBox">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
@@ -96,7 +94,7 @@
                         </div>
                         {{-- Deposit Information --}}
                         <div id="depositFieldsBox"
-                            class="hidden mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            class="hidden mt-4 grid min-w-[1200px] grid-cols-6 gap-4 overflow-x-auto">
 
                             {{-- Customer Name --}}
                             <div class="flex flex-col gap-2">
@@ -178,19 +176,7 @@
 
                         </div>
                         {{-- Row Tanggal & Dibayarkan Kepada --}}
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-
-                            {{-- Tanggal Diperlukan --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tanggal Diperlukan
-                                </label>
-                                <input type="date" name="datediperlukan" id="datediperlukan" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                            </div>
-                            
-
-                            {{-- Dibayarkan Kepada --}}
+                        {{-- <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">                              
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Dibayarkan Kepada
@@ -217,18 +203,94 @@
                                     placeholder="0,00">
                             </div>                        
 
-                        </div>
+                        </div> --}}
 
                         {{-- Row Kepada & Tembusan --}}
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-3">
+                        {{-- <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-3">
 
-                            {{-- Tanggal Realisasi --}}
+                           
                             <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Tanggal Realisasi
                                 </label>
                                 <input type="date" name="datepenyelesaian" id="datepenyelesaian"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                           
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Kepada
+                                </label>
+                                <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    multiple >
+                                    @foreach ($kepada as $u)
+                                        <option value="{{ $u->username }}">
+                                            {{ $u->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                           
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tembusan
+                                </label>
+                                <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    multiple>
+                                    @foreach ($tembusan as $u)
+                                        <option value="{{ $u->username }}">
+                                            {{ $u->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                        </div> --}}
+                        {{-- Row Payment Info --}}
+                        <div id="paymentInfoRow"
+                            class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+
+                            {{-- Amount Request Payment - khusus RCA --}}
+                            <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Amount Request Payment
+                                </label>
+                                <input type="text" name="amountrequestpayment" id="amountrequestpayment"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="0,00">
+                            </div>
+
+                            {{-- Tanggal Realisasi - khusus RCA --}}
+                            <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tanggal Realisasi
+                                </label>
+                                <input type="date" name="datepenyelesaian" id="datepenyelesaian"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                            {{-- Dibayarkan Kepada --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Dibayarkan Kepada
+                                </label>
+                                <textarea name="pleasepayto" id="pleasepayto" rows="2" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="Input nama / detail penerima pembayaran..."></textarea>
+                            </div>
+
+                            {{-- Keperluan --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Keperluan
+                                </label>
+                                <textarea name="keperluan" id="keperluan" rows="2" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="Input keperluan..."></textarea>
                             </div>
 
                             {{-- Kepada --}}
@@ -238,7 +300,7 @@
                                 </label>
                                 <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
                                     class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple >
+                                    multiple>
                                     @foreach ($kepada as $u)
                                         <option value="{{ $u->username }}">
                                             {{ $u->name }}
@@ -262,7 +324,6 @@
                                     @endforeach
                                 </select>
                             </div>
-
                         </div>
                     </div>
 
@@ -1364,113 +1425,7 @@
                 });
             });
         });
-    </script>
-    {{-- <script>
-        $(function () {
-            function parseNumber(value) {
-                value = String(value || '').trim();
-                if (!value) return 0;
-
-                value = value.replace(/\./g, '').replace(',', '.');
-
-                const num = parseFloat(value);
-                return isNaN(num) ? 0 : num;
-            }
-
-            function formatNumber(value) {
-                return Number(value || 0).toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
-
-            function toggleRfpRcaMode() {
-                const type = $('#rfpnonpurchase_type').val();
-
-                if (type === 'RFP') {
-                    $('#tanggalRealisasiBox').addClass('hidden');
-                    $('#datepenyelesaian').val('').prop('required', false);
-
-                    $('#amountRequestPaymentBox').addClass('hidden');
-                    $('#amountrequestpayment').val('').prop('required', false);
-
-                    $('#detailSection').removeClass('hidden');
-
-                    $('#rfpnonpurchTable')
-                        .find('textarea, input, select, button')
-                        .prop('disabled', false);
-
-                } else if (type === 'RCA') {
-                    $('#tanggalRealisasiBox').removeClass('hidden');
-                    $('#datepenyelesaian').prop('required', true);
-
-                    $('#amountRequestPaymentBox').removeClass('hidden');
-                    $('#amountrequestpayment').prop('required', true);
-
-                    $('#detailSection').addClass('hidden');
-
-                    $('#rfpnonpurchTable')
-                        .find('textarea, input, select, button')
-                        .prop('disabled', true);
-
-                    $('#grandTotalDisplay').text('0,00');
-                    $('#grandTotalInput').val('0');
-
-                } else {
-                    $('#tanggalRealisasiBox').addClass('hidden');
-                    $('#datepenyelesaian').val('').prop('required', false);
-
-                    $('#amountRequestPaymentBox').addClass('hidden');
-                    $('#amountrequestpayment').val('').prop('required', false);
-
-                    $('#detailSection').removeClass('hidden');
-
-                    $('#rfpnonpurchTable')
-                        .find('textarea, input, select, button')
-                        .prop('disabled', false);
-                }
-            }
-
-            $('#rfpnonpurchase_type').on('change', toggleRfpRcaMode);
-
-            $(document).on('input', '#amountrequestpayment', function () {
-                this.value = this.value.replace(/\./g, ',').replace(/[^0-9,]/g, '');
-
-                const parts = this.value.split(',');
-                if (parts.length > 2) {
-                    this.value = parts[0] + ',' + parts.slice(1).join('');
-                }
-            });
-
-            $(document).on('blur', '#amountrequestpayment', function () {
-                const value = parseNumber($(this).val());
-                $(this).val(value ? formatNumber(value) : '');
-            });
-
-            toggleRfpRcaMode();
-
-
-            // =========================
-            // Deposit Fields
-            // =========================
-            function toggleDepositFields() {
-                const isDeposit = $('#groupbiaya_id option:selected').data('is-deposit');
-
-                if (String(isDeposit) === '1') {
-                    $('#depositFieldsBox').removeClass('hidden');
-                    $('#depositFieldsBox').find('input').prop('required', true);
-                } else {
-                    $('#depositFieldsBox').addClass('hidden');
-                    $('#depositFieldsBox').find('input').prop('required', false).val('');
-                }
-            }
-
-            $('#groupbiaya_id').on('change select2:select', toggleDepositFields);
-
-            toggleDepositFields();
-          
-        });
-    </script>  --}}
+    </script>  
 
     <script>
         $(function () {
@@ -1621,90 +1576,7 @@
                         .prop('disabled', false);
                 }
             }
-            // function toggleBudgetMode() {
-
-            //     const selected = $('#groupbiaya_id option:selected');
-
-            //     const isBudget = (
-            //         selected.data('is-budget') == 1 ||
-            //         selected.data('is-budget') === '1' ||
-            //         selected.data('is-budget') === true ||
-            //         selected.data('is-budget') === 't'
-            //     );
-
-            //     const type = $('#rfpnonpurchase_type').val();
-
-            //     // =========================
-            //     // BUSINESS UNIT
-            //     // =========================
-            //     // if (isBudget) {
-
-            //     //     $('#business_unit_id')
-            //     //         .closest('.flex.flex-col.gap-2')
-            //     //         .removeClass('hidden');
-
-            //     //     $('#business_unit_id')
-            //     //         .prop('required', true);
-
-            //     // } else {
-
-            //     //     $('#business_unit_id')
-            //     //         .closest('.flex.flex-col.gap-2')
-            //     //         .addClass('hidden');
-
-            //     //     $('#business_unit_id')
-            //     //         .prop('required', false)
-            //     //         .val('');
-
-            //     // }
-            //     if (isBudget) {
-
-            //         $('#businessUnitBox').removeClass('hidden');
-
-            //         $('#business_unit_id')
-            //             .prop('required', true);
-
-            //     } else {
-
-            //         $('#businessUnitBox').addClass('hidden');
-
-            //         $('#business_unit_id')
-            //             .prop('required', false)
-            //             .val('');
-            //     }
-
-            //     // =========================
-            //     // DETAIL SECTION
-            //     // =========================
-            //     if (type === 'RFP' && isBudget) {
-
-            //         $('#detailSection').removeClass('hidden');
-
-            //         $('#rfpnonpurchTable')
-            //             .find('textarea, input, select, button')
-            //             .prop('disabled', false);
-
-            //     } else {
-
-            //         $('#detailSection').addClass('hidden');
-
-            //         $('#rfpnonpurchTable')
-            //             .find('textarea, input, select, button')
-            //             .prop('disabled', true);
-
-            //         // reset budget fields
-            //         $('#rfpnonpurchTable')
-            //             .find('textarea').val('');
-
-            //         $('#rfpnonpurchTable')
-            //             .find('input[type=text], input[type=hidden]')
-            //             .val('');
-
-            //         $('#grandTotalDisplay').text('0,00');
-            //         $('#grandTotalInput').val('0');
-
-            //     }
-            // }
+            
 
             // =====================================================
             // DEPOSIT MODE

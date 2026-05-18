@@ -3914,6 +3914,28 @@ class CanvassController extends Controller
 
         $round2 = fn ($n) => round((float) $n, 2);
 
+        $nullIfBlank = function ($v) {
+            if ($v === null) {
+                return null;
+            }
+
+            if (is_string($v) && trim($v) === '') {
+                return null;
+            }
+
+            return $v;
+        };
+
+        $intOrNull = function ($v) use ($nullIfBlank) {
+            $v = $nullIfBlank($v);
+
+            if ($v === null) {
+                return null;
+            }
+
+            return is_numeric($v) ? (int) $v : null;
+        };
+
         // =========================================================
         // MAP col_key -> slot vendor (1..6)
         // Penting agar setiap kolom vendor berdiri sendiri
@@ -4221,13 +4243,21 @@ class CanvassController extends Controller
             foreach ($details as $d) {
                 ++$lineNo;
 
-                $requestRefNo =
+                // $requestRefNo =
+                //     $d['sppb_no'] ??
+                //     $d['sppj_no'] ??
+                //     $d['sppk_no'] ??
+                //     $d['sppt_no'] ??
+                //     $d['sppbjkt_no'] ??
+                //     null;
+                $requestRefNo = $nullIfBlank(
                     $d['sppb_no'] ??
                     $d['sppj_no'] ??
                     $d['sppk_no'] ??
                     $d['sppt_no'] ??
                     $d['sppbjkt_no'] ??
-                    null;
+                    null
+                );
 
                 $inventoryid = $d['inventoryid'] ?? null;
                 $inventoryDescr = $d['inventory_descr'] ?? null;
@@ -4273,7 +4303,8 @@ class CanvassController extends Controller
                 $det->csid = $csid;
                 $det->sppbjktid = $request->input('sppbjktid');
                 $det->cs_no = $lineNo;
-                $det->sppbjkt_no = $requestRefNo ?? $srcRefNo ?? ($prevDet->sppbjkt_no ?? null);
+                // $det->sppbjkt_no = $requestRefNo ?? $srcRefNo ?? ($prevDet->sppbjkt_no ?? null);
+                $det->sppbjkt_no = $intOrNull($requestRefNo ?? $srcRefNo ?? ($prevDet->sppbjkt_no ?? null));
 
                 $det->inventory_type = $d['inventory_type'] ?? ($src->inventory_type ?? ($prevDet->inventory_type ?? null));
                 $det->inventoryid = $finalInventoryId;
@@ -4299,15 +4330,22 @@ class CanvassController extends Controller
                 $det->inventory_last_price = $lastPriceMap[$det->inventoryid] ?? ($prevDet->inventory_last_price ?? 0);
                 $det->csnote_detail = $d['csnote_detail'] ?? ($src->note ?? ($prevDet->csnote_detail ?? null));
 
-                $det->location_id = $src->location_id ?? ($prevDet->location_id ?? null);
-                $det->sub_location_id = $src->sub_location_id ?? ($prevDet->sub_location_id ?? null);
+                // $det->location_id = $src->location_id ?? ($prevDet->location_id ?? null);
+                // $det->sub_location_id = $src->sub_location_id ?? ($prevDet->sub_location_id ?? null);
                 $det->budget_perpost = $src->budget_perpost ?? ($prevDet->budget_perpost ?? null);
                 $det->budget_cpny_id = $cpnyId;
-                $det->budget_business_unit_id = $src->budget_business_unit_id ?? ($prevDet->budget_business_unit_id ?? null);
-                $det->budget_department_fin_id = $src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null);
-                $det->budget_account_id = $src->budget_account_id ?? ($prevDet->budget_account_id ?? null);
-                $det->budget_activity_id = $src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null);
+                // $det->budget_business_unit_id = $src->budget_business_unit_id ?? ($prevDet->budget_business_unit_id ?? null);
+                // $det->budget_department_fin_id = $src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null);
+                // $det->budget_account_id = $src->budget_account_id ?? ($prevDet->budget_account_id ?? null);
+                // $det->budget_activity_id = $src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null);
                 $det->budget_activity_descr = $src->budget_activity_descr ?? ($prevDet->budget_activity_descr ?? null);
+                $det->location_id = $intOrNull($src->location_id ?? ($prevDet->location_id ?? null));
+                $det->sub_location_id = $intOrNull($src->sub_location_id ?? ($prevDet->sub_location_id ?? null));
+
+                $det->budget_business_unit_id = $intOrNull($src->budget_business_unit_id ?? ($prevDet->budget_business_unit_id ?? null));
+                $det->budget_department_fin_id = $intOrNull($src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null));
+                $det->budget_account_id = $intOrNull($src->budget_account_id ?? ($prevDet->budget_account_id ?? null));
+                $det->budget_activity_id = $intOrNull($src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null));
 
                 // reset dulu semua slot vendor detail
                 for ($slot = 1; $slot <= 6; ++$slot) {
@@ -4390,6 +4428,7 @@ class CanvassController extends Controller
                     }
                 } else {
                     $this->updateOrderedOnPOReuse($details, $prev_csid, $cpnyId);
+                    $this->reserveBudget('CS', $cs->csid, $cpnyId, 'Submit', $username);
                 }
 
                 $cs->status = 'P';

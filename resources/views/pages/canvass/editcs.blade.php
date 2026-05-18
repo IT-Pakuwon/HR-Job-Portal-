@@ -955,8 +955,15 @@
                 const lastPrice = Number($tr.data('lastprice') || 0);
                 const csNote = String($tr.find('.note-input').val() || '');
 
-                const csNo = $tr.data('cs_no') || '';
-                const sppbjktNo = $tr.data('sppbjkt_no') || '';
+                // const csNo = $tr.data('cs_no') || '';
+                // const sppbjktNo = $tr.data('sppbjkt_no') || '';
+                const normalizeNullable = (v) => {
+                    v = String(v ?? '').trim();
+                    return v === '' ? null : v;
+                };
+
+                const csNo = normalizeNullable($tr.data('cs_no'));
+                const sppbjktNo = normalizeNullable($tr.data('sppbjkt_no'));
 
                 const row = {
                     row_index: rowIdx,

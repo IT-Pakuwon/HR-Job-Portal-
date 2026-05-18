@@ -154,6 +154,7 @@ class SppkController extends Controller
             ->leftJoin('ms_request_type as rt', function ($join) {
                 $join->on('rt.requesttypeid', '=', 'sppk.requesttypeid');
             })
+            ->where('rt.doctype', 'SPPK')
             ->whereIn('sppk.cpny_id', $cpnyIds);
 
         // ==============================
