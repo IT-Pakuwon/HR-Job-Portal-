@@ -286,4 +286,17 @@
     .dataTables_wrapper .dataTables_paginate{
         padding:14px 18px;
     }
+
+    #ticketTable_wrapper,
+    .dataTables_wrapper,
+    .dataTables_scroll,
+    .dataTables_scrollBody,
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+    #ticketTable tbody tr,
+    #ticketTable tbody td {
+        overflow: visible !important;
+    }
 </style>

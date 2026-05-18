@@ -1104,7 +1104,7 @@ class ItRecommendationController extends Controller
         $q = trim($request->q ?? '');
 
         $data = MsInventory::query()
-            ->where('item_type', 'NS')
+            ->whereIn('item_type', ['NS', 'SE'])
             ->where('status', 'A')
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
