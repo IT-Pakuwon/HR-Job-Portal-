@@ -1005,10 +1005,6 @@ $(document).on('click', '.btn-complete-hardware', async function () {
 
     const detailId = button.data('id');
 
-    const accessType = (
-        button.data('type') ?? ''
-    ).toUpperCase();
-
     const response = $(`
         .hardware-response[data-id="${detailId}"]
     `).val()?.trim();
@@ -1020,26 +1016,6 @@ $(document).on('click', '.btn-complete-hardware', async function () {
     const password = $(`
         .hardware-password[data-id="${detailId}"]
     `).val()?.trim();
-
-    if (accessType === 'NEW') {
-
-        if (!username) {
-
-            swalWarning('Username is required');
-
-            return;
-
-        }
-
-        if (!password) {
-
-            swalWarning('Password is required');
-
-            return;
-
-        }
-
-    }
 
     await submitHardwareItem(
         button,
