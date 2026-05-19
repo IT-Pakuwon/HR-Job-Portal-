@@ -698,7 +698,7 @@
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="text-blue-600 font-medium hover:underline">
-                                Open Teams Meeting
+                                Open Link Meeting
                             </a>
 
                             <button

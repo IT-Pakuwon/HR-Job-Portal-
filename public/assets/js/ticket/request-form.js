@@ -45,31 +45,44 @@ function resetCreateTicketForm() {
 
     renderTicketAttachment();
 
-    $('#ticket_type')
-        .val(null)
-        .trigger('change');
+    $('#ticket_type').val(null).trigger('change');
+    $('#ticket_categoryid').val(null).trigger('change');
+    $('#ticket_subcategoryid').val(null).trigger('change');
+    $('#location_id').val(null).trigger('change');
+    $('#sub_location_id').val(null).trigger('change');
 
-    $('#ticket_categoryid')
-        .val(null)
-        .trigger('change');
+    const firstCompany =
+        window.ticketCompanies?.[0];
 
-    $('#ticket_subcategoryid')
-        .val(null)
-        .trigger('change');
+    if (firstCompany) {
 
-    $('#location_id')
-        .val(null)
-        .trigger('change');
+        $('#cpny_id')
+            .val(
+                String(
+                    firstCompany.cpny_id
+                ).trim()
+            )
+            .trigger('change.select2');
 
-    $('#sub_location_id')
-        .val(null)
-        .trigger('change');
+    }
 
-    $('#issue_summary')
-        .val('');
+    const firstDepartment =
+        window.ticketDepartments?.[0];
 
-    $('#issue_descr')
-        .val('');
+    if (firstDepartment) {
+
+        $('#department_id')
+            .val(
+                String(
+                    firstDepartment.department_id
+                ).trim()
+            )
+            .trigger('change.select2');
+
+    }
+
+    $('#issue_summary').val('');
+    $('#issue_descr').val('');
 
 }
 
@@ -102,6 +115,7 @@ function submitCreateTicket() {
         Ticket.selectors.createForm
     );
 
+
     const form =
         $(Ticket.selectors.createForm)[0];
 
@@ -124,6 +138,11 @@ function submitCreateTicket() {
         true,
         'Submitting...'
     );
+
+    // console.log(
+    //     'department_id:',
+    //     $('#department_id').val()
+    // );
 
     $.ajax({
 

@@ -629,7 +629,6 @@ function buildTicketActions(row) {
         row.status === 'P' &&
         [
             'CREATED',
-            'REOPEN',
             'TRANSFER'
         ].includes(row.status_pekerjaan) &&
         window.isIT
@@ -656,7 +655,6 @@ function buildTicketActions(row) {
         row.status === 'P' &&
         [
             'RESPONSE',
-            'ENVISION',
             'PENDING'
         ].includes(row.status_pekerjaan) &&
         row.pic_ticket === window.currentUser
@@ -706,7 +704,6 @@ function buildTicketActions(row) {
         row.status === 'P' &&
         [
             'CREATED',
-            'RESPONSE',
             'TRANSFER',
             'REOPEN'
         ].includes(row.status_pekerjaan) &&
@@ -735,7 +732,10 @@ function buildTicketActions(row) {
 
     if (
         row.status === 'P' &&
-        row.status_pekerjaan === 'PENDING' &&
+        [
+            'PROCESS',
+            'PENDING',
+        ].includes(row.status_pekerjaan)  &&
         row.pic_ticket === window.currentUser
     ) {
 
