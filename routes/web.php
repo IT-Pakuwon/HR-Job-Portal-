@@ -121,6 +121,7 @@ use App\Http\Controllers\UsersEngController;
 use App\Http\Controllers\UserSyncController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VoucherTaxiController;
+use App\Http\Controllers\VoucherTaxiSetupController;
 use App\Http\Controllers\WoController;
 use App\Http\Controllers\WorkInstructionController;
 use App\Http\Controllers\WorksCategoryController;
@@ -1232,6 +1233,23 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/showvouchertaxi/{eid}', 'index')->name('vouchertaxi.show');
         });
 
+        Route::controller(VoucherTaxiSetupController::class)
+        ->prefix('vouchertaxi/setup')
+        ->name('vouchertaxi.setup.')
+        ->group(function () {
+
+            Route::get('/', 'index')->name('index');
+
+            Route::middleware('ajax')->group(function () {
+
+                Route::get('/category/json', 'jsonCategory')->name('category.json');
+                Route::get('/category/find/{id}', 'findCategory')->name('category.find');
+            });
+
+            Route::post('/category/store', 'storeCategory')->name('category.store');
+            Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
+            Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
+        });
         Route::controller(BookingCarController::class)->group(function () {
 
             Route::get('/bookingcar', 'index')->name('bookingcar');
@@ -1261,27 +1279,37 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');
         });
 
-        Route::controller(BookingCarSetupController::class)->prefix('bookingcar/setup')->name('bookingcar.setup.')->group(function () {
+        Route::controller(BookingCarSetupController::class)
+            ->prefix('bookingcar/setup')
+            ->name('bookingcar.setup.')
+            ->group(function () {
 
-            Route::get('/', 'index')->name('index');
+                Route::get('/', 'index')->name('index');
 
-            Route::middleware('ajax')->group(function () {
+                Route::middleware('ajax')->group(function () {
 
-                Route::get('/driver/json', 'jsonDriver')->name('driver.json');
-                Route::get('/driver/find/{id}', 'findDriver')->name('driver.find');
+                    Route::get('/driver/json', 'jsonDriver')->name('driver.json');
+                    Route::get('/driver/find/{id}', 'findDriver')->name('driver.find');
 
-                Route::get('/vehicle/json', 'jsonVehicle')->name('vehicle.json');
-                Route::get('/vehicle/find/{id}', 'findVehicle')->name('vehicle.find');
+                    Route::get('/vehicle/json', 'jsonVehicle')->name('vehicle.json');
+                    Route::get('/vehicle/find/{id}', 'findVehicle')->name('vehicle.find');
+
+                    Route::get('/category/json', 'jsonCategory')->name('category.json');
+                    Route::get('/category/find/{id}', 'findCategory')->name('category.find');
+                });
+
+                Route::post('/driver/store', 'storeDriver')->name('driver.store');
+                Route::post('/driver/update/{id}', 'updateDriver')->name('driver.update');
+                Route::post('/driver/status/{id}', 'updateDriverStatus')->name('driver.status');
+
+                Route::post('/vehicle/store', 'storeVehicle')->name('vehicle.store');
+                Route::post('/vehicle/update/{id}', 'updateVehicle')->name('vehicle.update');
+                Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
+
+                Route::post('/category/store', 'storeCategory')->name('category.store');
+                Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
+                Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
             });
-
-            Route::post('/driver/store', 'storeDriver')->name('driver.store');
-            Route::post('/driver/update/{id}', 'updateDriver')->name('driver.update');
-            Route::post('/driver/status/{id}', 'updateDriverStatus')->name('driver.status');
-
-            Route::post('/vehicle/store', 'storeVehicle')->name('vehicle.store');
-            Route::post('/vehicle/update/{id}', 'updateVehicle')->name('vehicle.update');
-            Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
-        });
 
 
         Route::prefix('ticket')->controller(TicketController::class)->group(function () {

@@ -15,7 +15,8 @@
                 <!-- TITLE -->
                 <div>
 
-                    <h1 class="text-lg font-semibold tracking-tight text-gray-900">
+                    <h1 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-200">
+
                         Taxi Booking
                     </h1>
 
@@ -42,6 +43,21 @@
 
                 </button>
 
+                @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+                    <a href="{{ route('vouchertaxi.setup.index') }}"
+                        class="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20">
+
+                        <span class="text-base">
+                            ⚙️
+                        </span>
+
+                        <span>
+                            Voucher Taxi Setup
+                        </span>
+
+                    </a>
+                @endif
+
                 <!-- CREATE -->
                 <button id="openCreateVoucherModal"
                     class="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-black">
@@ -63,7 +79,8 @@
     <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-12">
 
         <!-- 📅 CALENDAR -->
-        <div id="calendarWrapper" class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
+        <div id="calendarWrapper"
+            class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/10">
 
                 <div>
@@ -137,6 +154,23 @@
 
                 </div>
 
+                <!-- SEARCH -->
+                <div class="relative mt-4">
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+
+                    </svg>
+
+                    <input type="text" id="voucherSearch" placeholder="Search voucher..."
+                        class="w-full rounded-xl border border-gray-200 bg-white py-2 pl-10 pr-3 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
+
+                </div>
+
                 <!-- FILTER -->
                 <div class="mt-4 flex w-full flex-wrap justify-between gap-2">
 
@@ -152,7 +186,7 @@
                         Completed
                     </button>
 
-                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+                    @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
                         <button class="voucher-filter" data-filter="WAITING_PROCESS">
                             Waiting Process
                         </button>
@@ -289,7 +323,8 @@
 
                             <div class="flex gap-2 rounded-lg bg-gray-100 p-1">
                                 <label class="cursor-pointer">
-                                    <input type="radio" name="type_trip" value="Return" checked class="peer hidden">
+                                    <input type="radio" name="type_trip" value="Return" checked
+                                        class="peer hidden">
                                     <span
                                         class="rounded-md px-3 py-1 text-xs peer-checked:bg-black peer-checked:text-white">
                                         Return
@@ -366,7 +401,8 @@
                                     <option value="">Select user</option>
 
                                     @foreach ($requesters as $p)
-                                        <option value="{{ $p->username }}" data-dept="{{ trim($p->department_id) }}">
+                                        <option value="{{ $p->username }}"
+                                            data-dept="{{ trim($p->department_id) }}">
                                             {{ $p->name }}
                                         </option>
                                     @endforeach
@@ -604,8 +640,7 @@
         </div>
     </div>
 
-    <div id="viewVoucherModal"
-        class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
+    <div id="viewVoucherModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
 
         <!-- CENTER -->
         <div class="flex min-h-screen items-center justify-center p-4">
@@ -615,8 +650,7 @@
                 class="w-full max-w-6xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
 
                 <!-- HEADER -->
-                <div
-                    class="flex items-start justify-between border-b border-gray-200 px-8 py-6 dark:border-white/10">
+                <div class="flex items-start justify-between border-b border-gray-200 px-8 py-6 dark:border-white/10">
 
                     <div>
                         <h2 class="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
@@ -768,8 +802,7 @@
                         <div
                             class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
 
-                            <div
-                                class="text-[11px] uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+                            <div class="text-[11px] uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
                                 Purpose
                             </div>
 
@@ -812,8 +845,7 @@
                         <div id="reviseReasonWrapper"
                             class="hidden rounded-2xl border border-yellow-200 bg-yellow-50 p-5 shadow-sm dark:border-yellow-500/20 dark:bg-yellow-500/10">
 
-                            <div
-                                class="text-[11px] uppercase tracking-[0.18em] text-yellow-700 dark:text-yellow-300">
+                            <div class="text-[11px] uppercase tracking-[0.18em] text-yellow-700 dark:text-yellow-300">
                                 Revision Reason
                             </div>
 
@@ -1197,6 +1229,7 @@
         let currentVoucherPage = 1;
         let voucherPerPage = 6;
         let currentVoucherFilter = 'ALL';
+        let voucherSearchKeyword = '';
         document.addEventListener('DOMContentLoaded', function() {
             loadVoucherList();
 
@@ -1595,6 +1628,20 @@
             }, 800);
         });
 
+        document.addEventListener('input', function(e) {
+
+            if (e.target.id === 'voucherSearch') {
+
+                voucherSearchKeyword = e.target.value
+                    .toLowerCase()
+                    .trim();
+
+                currentVoucherPage = 1;
+
+                renderVoucherList();
+            }
+        });
+
         function openEditModal(data) {
 
 
@@ -1879,10 +1926,10 @@
         //             if (!res.steps || res.steps.length === 0) {
 
         //                 el.innerHTML = `
-        //                 <div class="text-xs text-gray-400">
-        //                     No approval data
-        //                 </div>
-        //             `;
+    //                 <div class="text-xs text-gray-400">
+    //                     No approval data
+    //                 </div>
+    //             `;
 
         //                 return;
         //             }
@@ -1909,53 +1956,53 @@
         //                     'bg-gray-200';
 
         //                 el.innerHTML += `
-        //                 <div class="relative pl-6">
+    //                 <div class="relative pl-6">
 
-        //                     <div class="absolute left-[7px] top-0 h-full w-[2px] ${lineColor}"></div>
+    //                     <div class="absolute left-[7px] top-0 h-full w-[2px] ${lineColor}"></div>
 
-        //                     <div class="absolute left-0 top-1 w-4 h-4 rounded-full ${dotColor}"></div>
+    //                     <div class="absolute left-0 top-1 w-4 h-4 rounded-full ${dotColor}"></div>
 
-        //                     <div class="pb-6">
+    //                     <div class="pb-6">
 
-        //                         <div class="flex justify-between items-center">
+    //                         <div class="flex justify-between items-center">
 
-        //                             <div class="text-sm font-semibold text-gray-900">
-        //                                 ${escapeHtml(step.title)}
-        //                             </div>
+    //                             <div class="text-sm font-semibold text-gray-900">
+    //                                 ${escapeHtml(step.title)}
+    //                             </div>
 
-        //                             <div class="text-xs px-2 py-0.5 rounded-full
-        //                                 ${
-        //                                     isDone
-        //                                     ? 'bg-green-100 text-green-600'
-        //                                     : isActive
-        //                                     ? 'bg-blue-100 text-blue-600'
-        //                                     : 'bg-gray-100 text-gray-500'
-        //                                 }">
+    //                             <div class="text-xs px-2 py-0.5 rounded-full
+    //                                 ${
+    //                                     isDone
+    //                                     ? 'bg-green-100 text-green-600'
+    //                                     : isActive
+    //                                     ? 'bg-blue-100 text-blue-600'
+    //                                     : 'bg-gray-100 text-gray-500'
+    //                                 }">
 
-        //                                 ${escapeHtml(step.status_label)}
-        //                             </div>
+    //                                 ${escapeHtml(step.status_label)}
+    //                             </div>
 
-        //                         </div>
+    //                         </div>
 
-        //                         ${
-        //                             step.by
-        //                             ? `
+    //                         ${
+    //                             step.by
+    //                             ? `
         //                                     <div class="text-xs text-gray-400 mt-1">
         //                                         ${escapeHtml(step.by)}
         //                                         •
         //                                         ${escapeHtml(step.at || '')}
         //                                     </div>
         //                                 `
-        //                             : `
+    //                             : `
         //                                     <div class="text-xs text-gray-400 mt-1 italic">
         //                                         Waiting for action
         //                                     </div>
         //                                 `
-        //                         }
+    //                         }
 
-        //                         ${
-        //                             step.reason
-        //                             ? `
+    //                         ${
+    //                             step.reason
+    //                             ? `
         //                                     <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2">
 
         //                                         <div class="text-[10px] font-semibold uppercase tracking-wide text-yellow-700">
@@ -1968,13 +2015,13 @@
 
         //                                     </div>
         //                                 `
-        //                             : ''
-        //                         }
+    //                             : ''
+    //                         }
 
-        //                     </div>
+    //                     </div>
 
-        //                 </div>
-        //             `;
+    //                 </div>
+    //             `;
         //             });
 
         //             if (currentStep) {
@@ -2008,11 +2055,11 @@
         //                 ) {
 
         //                     actionDiv.innerHTML = `
-        //                     <button id="openProcessBtn"
-        //                         class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
-        //                         Process
-        //                     </button>
-        //                 `;
+    //                     <button id="openProcessBtn"
+    //                         class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800">
+    //                         Process
+    //                     </button>
+    //                 `;
 
         //                     document.getElementById('openProcessBtn')
         //                         ?.addEventListener('click', () => {
@@ -2029,10 +2076,10 @@
         //             console.error(err);
 
         //             el.innerHTML = `
-        //             <div class="text-xs text-red-500">
-        //                 Failed to load approval
-        //             </div>
-        //         `;
+    //             <div class="text-xs text-red-500">
+    //                 Failed to load approval
+    //             </div>
+    //         `;
         //         });
         // }
 
@@ -2066,7 +2113,7 @@
                     }
                 })
 
-                .then(async(res) => {
+                .then(async (res) => {
 
                     const text = await res.text();
 
@@ -2148,15 +2195,15 @@
                                 ${
                                     index !== res.steps.length - 1
                                     ? `
-                                        <div class="
-                                            absolute
-                                            left-[7px]
-                                            top-4
-                                            h-full
-                                            w-[2px]
-                                            ${lineColor}
-                                        "></div>
-                                    `
+                                            <div class="
+                                                absolute
+                                                left-[7px]
+                                                top-4
+                                                h-full
+                                                w-[2px]
+                                                ${lineColor}
+                                            "></div>
+                                        `
                                     : ''
                                 }
 
@@ -2191,28 +2238,28 @@
                                             ${
                                                 step.by
                                                 ? `
-                                                    <div class="
-                                                        mt-1
-                                                        text-xs
-                                                        text-gray-400
-                                                        dark:text-gray-500
-                                                    ">
-                                                        ${escapeHtml(step.by)}
-                                                        •
-                                                        ${escapeHtml(step.at || '')}
-                                                    </div>
-                                                `
+                                                        <div class="
+                                                            mt-1
+                                                            text-xs
+                                                            text-gray-400
+                                                            dark:text-gray-500
+                                                        ">
+                                                            ${escapeHtml(step.by)}
+                                                            •
+                                                            ${escapeHtml(step.at || '')}
+                                                        </div>
+                                                    `
                                                 : `
-                                                    <div class="
-                                                        mt-1
-                                                        text-xs
-                                                        italic
-                                                        text-gray-400
-                                                        dark:text-gray-500
-                                                    ">
-                                                        Waiting for action
-                                                    </div>
-                                                `
+                                                        <div class="
+                                                            mt-1
+                                                            text-xs
+                                                            italic
+                                                            text-gray-400
+                                                            dark:text-gray-500
+                                                        ">
+                                                            Waiting for action
+                                                        </div>
+                                                    `
                                             }
 
                                         </div>
@@ -2235,41 +2282,41 @@
                                     ${
                                         step.reason
                                         ? `
-                                            <div class="
-                                                mt-3
-                                                rounded-xl
-                                                border
-                                                border-yellow-200
-                                                bg-yellow-50
-                                                px-4
-                                                py-3
-                                                dark:border-yellow-500/20
-                                                dark:bg-yellow-500/10
-                                            ">
-
                                                 <div class="
-                                                    text-[10px]
-                                                    font-semibold
-                                                    uppercase
-                                                    tracking-[0.15em]
-                                                    text-yellow-700
-                                                    dark:text-yellow-300
+                                                    mt-3
+                                                    rounded-xl
+                                                    border
+                                                    border-yellow-200
+                                                    bg-yellow-50
+                                                    px-4
+                                                    py-3
+                                                    dark:border-yellow-500/20
+                                                    dark:bg-yellow-500/10
                                                 ">
-                                                    Reason
-                                                </div>
 
-                                                <div class="
-                                                    mt-2
-                                                    text-xs
-                                                    leading-relaxed
-                                                    text-yellow-900
-                                                    dark:text-yellow-100
-                                                ">
-                                                    ${escapeHtml(step.reason)}
-                                                </div>
+                                                    <div class="
+                                                        text-[10px]
+                                                        font-semibold
+                                                        uppercase
+                                                        tracking-[0.15em]
+                                                        text-yellow-700
+                                                        dark:text-yellow-300
+                                                    ">
+                                                        Reason
+                                                    </div>
 
-                                            </div>
-                                        `
+                                                    <div class="
+                                                        mt-2
+                                                        text-xs
+                                                        leading-relaxed
+                                                        text-yellow-900
+                                                        dark:text-yellow-100
+                                                    ">
+                                                        ${escapeHtml(step.reason)}
+                                                    </div>
+
+                                                </div>
+                                            `
                                         : ''
                                     }
 
@@ -2574,7 +2621,12 @@
 
         function loadVoucherList() {
 
-            fetch('/vouchertaxi/json')
+            fetch('/vouchertaxi/json', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                 .then(res => res.json())
                 .then(res => {
 
@@ -2600,6 +2652,23 @@
             // =========================================
 
             let filteredData = voucherData;
+
+            if (voucherSearchKeyword) {
+
+                filteredData = filteredData.filter(v => {
+
+                    const keyword = voucherSearchKeyword;
+
+                    return (
+                        String(v.docid || '').toLowerCase().includes(keyword) ||
+                        String(v.user_peminta || '').toLowerCase().includes(keyword) ||
+                        String(v.origin || '').toLowerCase().includes(keyword) ||
+                        String(v.destination || '').toLowerCase().includes(keyword) ||
+                        String(v.purpose || '').toLowerCase().includes(keyword)
+                    );
+
+                });
+            }
 
             // 🔥 WAITING PROCESS
             if (currentVoucherFilter === 'WAITING_PROCESS') {
@@ -2741,6 +2810,7 @@
                 }
             };
 
+
             // =========================================
             // RENDER LIST
             // =========================================
@@ -2838,17 +2908,17 @@
                             ${
                                 item.status === 'C' && item.actual_budget
                                 ? `
-                                    <span class="
-                                        rounded-full
-                                        bg-emerald-100
-                                        px-2.5 py-1
-                                        text-[10px]
-                                        font-semibold
-                                        text-emerald-700
-                                    ">
-                                        Processed
-                                    </span>
-                                `
+                                        <span class="
+                                            rounded-full
+                                            bg-emerald-100
+                                            px-2.5 py-1
+                                            text-[10px]
+                                            font-semibold
+                                            text-emerald-700
+                                        ">
+                                            Processed
+                                        </span>
+                                    `
                                 : ''
                             }
 
@@ -2861,25 +2931,25 @@
                         item.status === 'C' &&
                         !item.actual_budget
                         ? `
-                                <div class="mt-3 flex justify-end">
+                                    <div class="mt-3 flex justify-end">
 
-                                    <button
-                                        class="
-                                            process-btn
-                                            rounded-lg
-                                            bg-black
-                                            px-3 py-1.5
-                                            text-[11px]
-                                            font-medium
-                                            text-white
-                                            transition
-                                            hover:opacity-90
-                                        ">
-                                        Process
-                                    </button>
+                                        <button
+                                            class="
+                                                process-btn
+                                                rounded-lg
+                                                bg-black
+                                                px-3 py-1.5
+                                                text-[11px]
+                                                font-medium
+                                                text-white
+                                                transition
+                                                hover:opacity-90
+                                            ">
+                                            Process
+                                        </button>
 
-                                </div>
-                            `
+                                    </div>
+                                `
                         : ''
                     }
                 `;

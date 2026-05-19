@@ -3,30 +3,59 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- HEADER TAB --}}
-        <div
-            class="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-sm dark:border-white/10 dark:bg-white/5">
+        <div class="mb-4 rounded-2xl border border-gray-200 bg-white p-2 shadow-sm">
 
-            <button id="tabOperational"
-                class="tab-button active-tab inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition">
+            <div class="flex flex-wrap gap-2">
 
-                <span class="text-base">🚗</span>
+                <button id="tabOperational"
+                    class="tab-button active-tab inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200">
 
-                <span>
-                    Operational Car
-                </span>
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+                        🚗
+                    </span>
 
-            </button>
+                    <div class="text-left">
+                        <div>Operational Car</div>
+                        <div class="text-xs font-normal opacity-70">
+                            Vehicle Master
+                        </div>
+                    </div>
 
-            <button id="tabDriver"
-                class="tab-button inline-flex items-center gap-2 rounded-xl border border-transparent bg-transparent px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
+                </button>
 
-                <span class="text-base">👨‍✈️</span>
+                <button id="tabDriver"
+                    class="tab-button inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200">
 
-                <span>
-                    Driver
-                </span>
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
+                        👨‍✈️
+                    </span>
 
-            </button>
+                    <div class="text-left">
+                        <div>Driver</div>
+                        <div class="text-xs font-normal opacity-70">
+                            Driver Master
+                        </div>
+                    </div>
+
+                </button>
+
+                <button id="tabCategory"
+                    class="tab-button inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200">
+
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
+                        📂
+                    </span>
+
+                    <div class="text-left">
+                        <div>Category</div>
+                        <div class="text-xs font-normal opacity-70">
+                            Booking Category
+                        </div>
+                    </div>
+
+                </button>
+
+            </div>
 
         </div>
         {{-- OPERATIONAL CAR --}}
@@ -135,6 +164,58 @@
 
                             </tr>
 
+                        </thead>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {{-- CATEGORY --}}
+        <div id="categoryPanel" class="hidden">
+
+            <div
+                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+
+                <div
+                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
+
+                    <div>
+                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
+                            Category List
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            List of booking categories.
+                        </p>
+                    </div>
+
+                    <button type="button" onclick="openCreateCategoryModal()"
+                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
+
+                        <span>＋</span>
+                        <span>Add Category</span>
+
+                    </button>
+
+                </div>
+
+                <div class="overflow-x-auto p-5">
+
+                    <table id="categoryTable" class="display w-full border-collapse text-sm">
+
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Category ID</th>
+                                <th>Category Name</th>
+                                <th>Group</th>
+                                <th>Status</th>
+                                <th class="text-right">Action</th>
+                            </tr>
                         </thead>
 
                     </table>
@@ -321,6 +402,85 @@
 
         </div>
 
+        {{-- Create Category Modal --}}
+        <div id="createCategoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+
+            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                    <h2 class="text-lg font-semibold">
+                        Add Category
+                    </h2>
+
+                    <button type="button" onclick="closeCreateCategoryModal()">
+                        ✕
+                    </button>
+                </div>
+
+                <form id="createCategoryForm">
+
+                    @csrf
+
+                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                                Category ID
+                            </label>
+                            <input type="text" name="categoryid"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm" required>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                                Category Name
+                            </label>
+                            <input type="text" name="category_name"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm" required>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                                Group
+                            </label>
+                            <input type="text" name="groups"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm">
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
+                                Type
+                            </label>
+                            <input type="text" name="type"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm">
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+
+                        <button type="button" onclick="closeCreateCategoryModal()"
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+
+                            Cancel
+
+                        </button>
+
+                        <button type="submit"
+                            class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700">
+
+                            Save Category
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
 
         {{-- Edit Vehicle Modal --}}
         <div id="editVehicleModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
@@ -501,65 +661,188 @@
 
         </div>
 
+        {{-- Edit Category Modal --}}
+        <div id="editCategoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+
+            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Edit Category
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Update category information.
+                        </p>
+                    </div>
+
+                    <button type="button" onclick="closeEditCategoryModal()"
+                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+
+                        ✕
+
+                    </button>
+
+                </div>
+
+                <form id="editCategoryForm">
+
+                    @csrf
+
+                    <input type="hidden" id="edit_category_id">
+
+                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Category ID
+                            </label>
+
+                            <input type="text" id="edit_categoryid" name="categoryid"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                required>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Category Name
+                            </label>
+
+                            <input type="text" id="edit_category_name" name="category_name"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                required>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Group
+                            </label>
+
+                            <input type="text" id="edit_groups" name="groups"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Type
+                            </label>
+
+                            <input type="text" id="edit_type" name="type"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+
+                        <button type="button" onclick="closeEditCategoryModal()"
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700">
+
+                            Cancel
+
+                        </button>
+
+                        <button type="submit"
+                            class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700">
+
+                            Update Category
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
 
     </div>
 
     <script>
         const operationalTab = document.getElementById('tabOperational');
         const driverTab = document.getElementById('tabDriver');
+        const categoryTab = document.getElementById('tabCategory');
 
         const operationalPanel = document.getElementById('operationalPanel');
         const driverPanel = document.getElementById('driverPanel');
+        const categoryPanel = document.getElementById('categoryPanel');
 
-        function activateTab(activeBtn, inactiveBtn) {
+        function resetTabs() {
+            [operationalTab, driverTab, categoryTab].forEach(btn => {
 
-            activeBtn.classList.add(
-                'active-tab',
-                'border-blue-200',
-                'bg-blue-50',
-                'text-blue-700'
-            );
+                btn.classList.remove(
+                    'active-tab',
+                    'border-blue-200',
+                    'bg-blue-50',
+                    'text-blue-700'
+                );
 
-            activeBtn.classList.remove(
-                'border-gray-200',
-                'bg-white',
-                'text-gray-600'
-            );
+                btn.classList.add(
+                    'border-gray-200',
+                    'bg-white',
+                    'text-gray-600'
+                );
 
-            inactiveBtn.classList.remove(
-                'active-tab',
-                'border-blue-200',
-                'bg-blue-50',
-                'text-blue-700'
-            );
-
-            inactiveBtn.classList.add(
-                'border-gray-200',
-                'bg-white',
-                'text-gray-600'
-            );
+            });
         }
 
         operationalTab.addEventListener('click', function() {
 
-            activateTab(operationalTab, driverTab);
+            resetTabs();
+
+            operationalTab.classList.add(
+                'active-tab',
+                'border-blue-200',
+                'bg-blue-50',
+                'text-blue-700'
+            );
 
             operationalPanel.classList.remove('hidden');
             driverPanel.classList.add('hidden');
-
+            categoryPanel.classList.add('hidden');
         });
-
         driverTab.addEventListener('click', function() {
 
-            activateTab(driverTab, operationalTab);
+            resetTabs();
+
+            driverTab.classList.add(
+                'active-tab',
+                'border-blue-200',
+                'bg-blue-50',
+                'text-blue-700'
+            );
 
             driverPanel.classList.remove('hidden');
             operationalPanel.classList.add('hidden');
-
+            categoryPanel.classList.add('hidden');
         });
+
+        categoryTab.addEventListener('click', function() {
+
+            resetTabs();
+
+            categoryTab.classList.add(
+                'active-tab',
+                'border-blue-200',
+                'bg-blue-50',
+                'text-blue-700'
+            );
+
+            categoryPanel.classList.remove('hidden');
+            operationalPanel.classList.add('hidden');
+            driverPanel.classList.add('hidden');
+        });
+
 
         let vehicleTable;
         let driverTable;
+        let categoryTable;
+
 
         $(document).ready(function() {
             vehicleTable = $('#vehicleTable').DataTable({
@@ -627,13 +910,13 @@
 
                 pageLength: 10,
                 autoWidth: false,
-                order: [[1, 'asc']],
-                columnDefs: [
-                    {
-                        targets: [0, 3, 4],
-                        orderable: false
-                    }
+                order: [
+                    [1, 'asc']
                 ],
+                columnDefs: [{
+                    targets: [0, 3, 4],
+                    orderable: false
+                }],
 
                 language: {
                     search: '',
@@ -706,13 +989,13 @@
 
                 pageLength: 10,
                 autoWidth: false,
-                order: [[1, 'asc']],
-                columnDefs: [
-                    {
-                        targets: [0, 3, 4],
-                        orderable: false
-                    }
+                order: [
+                    [1, 'asc']
                 ],
+                columnDefs: [{
+                    targets: [0, 3, 4],
+                    orderable: false
+                }],
 
                 language: {
                     search: '',
@@ -720,6 +1003,63 @@
                 }
             });
 
+            categoryTable = $('#categoryTable').DataTable({
+
+                processing: true,
+                serverSide: true,
+                responsive: true,
+
+                ajax: "{{ route('bookingcar.setup.category.json') }}",
+
+                dom: '<"dt-toolbar"l B f>rtip',
+
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Booking_Category_List'
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Booking_Category_List'
+                    }
+                ],
+
+                columns: [{
+                        data: 'DT_RowIndex',
+                        searchable: false,
+                        orderable: false
+                    },
+                    {
+                        data: 'categoryid',
+                        name: 'categoryid'
+                    },
+                    {
+                        data: 'category_name',
+                        name: 'category_name'
+                    },
+                    {
+                        data: 'groups',
+                        name: 'groups'
+                    },
+                    {
+                        data: 'status',
+                        searchable: false,
+                        orderable: false
+                    },
+                    {
+                        data: 'action',
+                        searchable: false,
+                        orderable: false,
+                        className: 'text-right'
+                    }
+                ],
+
+                pageLength: 10,
+                order: [
+                    [1, 'asc']
+                ]
+            });
         });
 
         function openCreateVehicleModal() {
@@ -748,6 +1088,20 @@
                 .addClass('hidden');
 
             $('#createDriverForm')[0].reset();
+        }
+
+        function openCreateCategoryModal() {
+            $('#createCategoryModal')
+                .removeClass('hidden')
+                .addClass('flex');
+        }
+
+        function closeCreateCategoryModal() {
+            $('#createCategoryModal')
+                .removeClass('flex')
+                .addClass('hidden');
+
+            $('#createCategoryForm')[0].reset();
         }
 
         $('#createVehicleForm').submit(function(e) {
@@ -885,6 +1239,15 @@
             $('#editDriverForm')[0].reset();
         }
 
+
+        function closeEditCategoryModal() {
+
+            $('#editCategoryModal')
+                .removeClass('flex')
+                .addClass('hidden');
+
+            $('#editCategoryForm')[0].reset();
+        }
 
         function editVehicle(id) {
 
@@ -1204,6 +1567,208 @@
             });
 
         }
+
+        function updateCategoryStatus(id, status, element = null) {
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Category status will be updated.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Update'
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    $.ajax({
+
+                        url: `/bookingcar/setup/category/status/${id}`,
+                        type: 'POST',
+
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            status: status
+                        },
+
+                        beforeSend: function() {
+
+                            Swal.fire({
+                                title: 'Updating...',
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+
+                        },
+
+                        success: function(response) {
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: response.message,
+                                timer: 1800,
+                                showConfirmButton: false
+                            });
+
+                            categoryTable.ajax.reload(null, false);
+
+                        },
+
+                        error: function(xhr) {
+
+                            if (element) {
+                                element.checked = !element.checked;
+                            }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: xhr.responseJSON?.message ??
+                                    'Something went wrong'
+                            });
+
+                        }
+
+                    });
+
+                } else {
+
+                    if (element) {
+                        element.checked = !element.checked;
+                    }
+
+                }
+
+            });
+
+        }
+        $('#createCategoryForm').submit(function(e) {
+
+            e.preventDefault();
+
+            $.ajax({
+
+                url: "{{ route('bookingcar.setup.category.store') }}",
+                type: 'POST',
+                data: $(this).serialize(),
+
+                beforeSend: function() {
+
+                    Swal.fire({
+                        title: 'Saving...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                },
+
+                success: function(response) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message
+                    });
+
+                    closeCreateCategoryModal();
+
+                    categoryTable.ajax.reload(null, false);
+
+                },
+
+                error: function(xhr) {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message ??
+                            'Something went wrong'
+                    });
+
+                }
+
+            });
+
+        });
+
+        function editCategory(id) {
+            $.ajax({
+
+                url: `/bookingcar/setup/category/find/${id}`,
+                type: 'GET',
+
+                success: function(response) {
+
+                    const data = response.data;
+
+                    $('#edit_category_id').val(data.id);
+                    $('#edit_categoryid').val(data.categoryid);
+                    $('#edit_category_name').val(data.category_name);
+                    $('#edit_groups').val(data.groups);
+                    $('#edit_type').val(data.type);
+
+                    $('#editCategoryModal')
+                        .removeClass('hidden')
+                        .addClass('flex');
+                }
+
+            });
+        }
+
+        $('#editCategoryForm').submit(function(e) {
+
+            e.preventDefault();
+
+            let id = $('#edit_category_id').val();
+
+            $.ajax({
+
+                url: `/bookingcar/setup/category/update/${id}`,
+                type: 'POST',
+                data: $(this).serialize(),
+
+                beforeSend: function() {
+
+                    Swal.fire({
+                        title: 'Updating...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                },
+
+                success: function(response) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: response.message,
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
+
+                    closeEditCategoryModal();
+
+                    categoryTable.ajax.reload(null, false);
+
+                },
+
+                error: function(xhr) {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseJSON?.message ??
+                            'Something went wrong'
+                    });
+
+                }
+
+            });
+
+        });
     </script>
 
 </x-app-layout>
