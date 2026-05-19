@@ -15,6 +15,12 @@ class MeetingRoomSetupController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $rooms = MsMeetingRoom::where('status', 'A')
             ->orderBy('room_name')
             ->get();

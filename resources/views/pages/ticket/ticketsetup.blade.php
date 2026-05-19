@@ -84,7 +84,7 @@
 
                     </div>
 
-                    <button type="button" onclick="openCreateTypeModal()"
+                    <button type="button" onclick="toggleModal('#createTypeModal', true)"
                         class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
 
                         <span>＋</span>
@@ -142,7 +142,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeCreateTypeModal()"
+                    <button type="button" onclick="toggleModal('#createTypeModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -202,7 +202,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeCreateTypeModal()"
+                        <button type="button" onclick="toggleModal('#createTypeModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -243,7 +243,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeEditTypeModal()"
+                    <button type="button" onclick="toggleModal('#editTypeModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -304,7 +304,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeEditTypeModal()"
+                        <button type="button" onclick="toggleModal('#editTypeModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -347,7 +347,7 @@
 
                     </div>
 
-                    <button type="button" onclick="openCreateCategoryModal()"
+                    <button type="button" onclick="toggleModal('#createCategoryModal', true)"
                         class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
 
                         <span>＋</span>
@@ -406,7 +406,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeCreateCategoryModal()"
+                    <button type="button" onclick="toggleModal('#createCategoryModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -487,7 +487,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeCreateCategoryModal()"
+                        <button type="button" onclick="toggleModal('#createCategoryModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -528,7 +528,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeEditCategoryModal()"
+                    <button type="button" onclick="toggleModal('#editCategoryModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -612,7 +612,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeEditCategoryModal()"
+                        <button type="button" onclick="toggleModal('#editCategoryModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -655,7 +655,7 @@
 
                     </div>
 
-                    <button type="button" onclick="openCreateSubcategoryModal()"
+                    <button type="button" onclick="toggleModal('#createSubcategoryModal', true)"
                         class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700">
 
                         <span>＋</span>
@@ -716,7 +716,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeCreateSubcategoryModal()"
+                    <button type="button" onclick="toggleModal('#createSubcategoryModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -783,7 +783,7 @@
                             </label>
 
                             <select name="ticket_categoryid" id="subcategory_category"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                class="dynamic-select w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                                 <option value="">
                                     Select Category
@@ -814,7 +814,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeCreateSubcategoryModal()"
+                        <button type="button" onclick="toggleModal('#createSubcategoryModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -855,7 +855,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeEditSubcategoryModal()"
+                    <button type="button" onclick="toggleModal('#editSubcategoryModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -925,7 +925,7 @@
                             </label>
 
                             <select name="ticket_categoryid" id="edit_subcategory_category"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                class="dynamic-select w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                                 <option value="">
                                     Select Category
@@ -956,7 +956,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeEditSubcategoryModal()"
+                        <button type="button" onclick="toggleModal('#editSubcategoryModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -999,7 +999,7 @@
 
                     </div>
 
-                    <button type="button" onclick="openCreatePriorityModal()"
+                    <button type="button" onclick="toggleModal('#createPriorityModal', true)"
                         class="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700">
 
                         <span>＋</span>
@@ -1061,7 +1061,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeCreatePriorityModal()"
+                    <button type="button" onclick="toggleModal('#createPriorityModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -1128,7 +1128,7 @@
                             </label>
 
                             <select name="ticket_categoryid" id="priority_category"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                class="dynamic-select w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                                 <option value="">
                                     Select Category
@@ -1170,7 +1170,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeCreatePriorityModal()"
+                        <button type="button" onclick="toggleModal('#createPriorityModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -1211,7 +1211,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeEditPriorityModal()"
+                    <button type="button" onclick="toggleModal('#editPriorityModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -1281,7 +1281,7 @@
                             </label>
 
                             <select name="ticket_categoryid" id="edit_priority_category"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                class="dynamic-select w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                                 <option value="">
                                     Select Category
@@ -1323,7 +1323,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeEditPriorityModal()"
+                        <button type="button" onclick="toggleModal('#editPriorityModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -1366,7 +1366,7 @@
 
                     </div>
 
-                    <button type="button" onclick="openCreateDeptModal()"
+                    <button type="button" onclick="toggleModal('#createDeptModal', true)"
                         class="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-700">
 
                         <span>＋</span>
@@ -1426,7 +1426,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeCreateDeptModal()"
+                    <button type="button" onclick="toggleModal('#createDeptModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -1471,7 +1471,7 @@
                             </label>
 
                             <select name="ticket_categoryid" id="dept_category"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                class="dynamic-select w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                                 <option value="">
                                     Select Category
@@ -1548,7 +1548,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeCreateDeptModal()"
+                        <button type="button" onclick="toggleModal('#createDeptModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -1589,7 +1589,7 @@
 
                     </div>
 
-                    <button type="button" onclick="closeEditDeptModal()"
+                    <button type="button" onclick="toggleModal('#editDeptModal', false)"
                         class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
 
                         ✕
@@ -1637,7 +1637,7 @@
                             </label>
 
                             <select name="ticket_categoryid" id="edit_dept_category"
-                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                class="dynamic-select w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
 
                                 <option value="">
                                     Select Category
@@ -1714,7 +1714,7 @@
                     <div
                         class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
 
-                        <button type="button" onclick="closeEditDeptModal()"
+                        <button type="button" onclick="toggleModal('#editDeptModal', false)"
                             class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
 
                             Cancel
@@ -1748,15 +1748,9 @@
 
         $(document).ready(function() {
 
-            tableType = $('#tableType').DataTable({
+            tableType = $('#tableType').DataTable(baseTableConfig({
 
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                autoWidth: false,
-                pageLength: 10,
-
-                ajax: "{{ route('ticketsetup.typeJson') }}",
+                ajax: routes.type.json,
 
                 columns: [{
                         data: 'DT_RowIndex',
@@ -1785,50 +1779,23 @@
                         className: 'text-right',
                         render: function(data, type, row) {
 
-                            return `
-                            <div class="flex items-center justify-end gap-2">
-
-                                <button onclick="editType('${row.ticket_type}')"
-                                    class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white transition hover:bg-amber-600">
-
-                                    Edit
-
-                                </button>
-
-                                <button onclick="deleteType('${row.ticket_type}')"
-                                    class="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition hover:bg-red-700">
-
-                                    Delete
-
-                                </button>
-
-                            </div>
-                        `;
+                            return actionButton(
+                                'editType',
+                                'deleteType',
+                                row.ticket_type
+                            );
 
                         }
                     }
                 ],
 
-                order: [
-                    [1, 'asc']
-                ],
+                searchPlaceholder: 'Search type...'
 
-                language: {
-                    search: '',
-                    searchPlaceholder: 'Search type...'
-                }
+            }));
 
-            });
+            tableCategory = $('#tableCategory').DataTable(baseTableConfig({
 
-            tableCategory = $('#tableCategory').DataTable({
-
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                autoWidth: false,
-                pageLength: 10,
-
-                ajax: "{{ route('ticketsetup.categoryJson') }}",
+                ajax: routes.category.json,
 
                 columns: [{
                         data: 'DT_RowIndex',
@@ -1860,50 +1827,22 @@
                         className: 'text-right',
                         render: function(data, type, row) {
 
-                            return `
-                            <div class="flex items-center justify-end gap-2">
-
-                                <button onclick="editCategory('${row.ticket_categoryid}')"
-                                    class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white transition hover:bg-amber-600">
-
-                                    Edit
-
-                                </button>
-
-                                <button onclick="deleteCategory('${row.ticket_categoryid}')"
-                                    class="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition hover:bg-red-700">
-
-                                    Delete
-
-                                </button>
-
-                            </div>
-                        `;
+                            return actionButton(
+                                'editCategory',
+                                'deleteCategory',
+                                row.ticket_categoryid
+                            );
 
                         }
                     }
                 ],
 
-                order: [
-                    [1, 'asc']
-                ],
+                searchPlaceholder: 'Search category...'
 
-                language: {
-                    search: '',
-                    searchPlaceholder: 'Search category...'
-                }
+            }));
+            tableSubcategory = $('#tableSubcategory').DataTable(baseTableConfig({
 
-            });
-
-            tableSubcategory = $('#tableSubcategory').DataTable({
-
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                autoWidth: false,
-                pageLength: 10,
-
-                ajax: "{{ route('ticketsetup.subcategoryJson') }}",
+                ajax: routes.subcategory.json,
 
                 columns: [{
                         data: 'DT_RowIndex',
@@ -1939,50 +1878,22 @@
                         className: 'text-right',
                         render: function(data, type, row) {
 
-                            return `
-                            <div class="flex items-center justify-end gap-2">
-
-                                <button onclick="editSubcategory('${row.ticket_subcategoryid}')"
-                                    class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white transition hover:bg-amber-600">
-
-                                    Edit
-
-                                </button>
-
-                                <button onclick="deleteSubcategory('${row.ticket_subcategoryid}')"
-                                    class="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition hover:bg-red-700">
-
-                                    Delete
-
-                                </button>
-
-                            </div>
-                        `;
+                            return actionButton(
+                                'editSubcategory',
+                                'deleteSubcategory',
+                                row.ticket_subcategoryid
+                            );
 
                         }
                     }
                 ],
 
-                order: [
-                    [1, 'asc']
-                ],
+                searchPlaceholder: 'Search subcategory...'
 
-                language: {
-                    search: '',
-                    searchPlaceholder: 'Search subcategory...'
-                }
+            }));
+            tablePriority = $('#tablePriority').DataTable(baseTableConfig({
 
-            });
-
-            tablePriority = $('#tablePriority').DataTable({
-
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                autoWidth: false,
-                pageLength: 10,
-
-                ajax: "{{ route('ticketsetup.priorityJson') }}",
+                ajax: routes.priority.json,
 
                 columns: [{
                         data: 'DT_RowIndex',
@@ -2022,50 +1933,22 @@
                         className: 'text-right',
                         render: function(data, type, row) {
 
-                            return `
-                            <div class="flex items-center justify-end gap-2">
-
-                                <button onclick="editPriority('${row.id}')"
-                                    class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white transition hover:bg-amber-600">
-
-                                    Edit
-
-                                </button>
-
-                                <button onclick="deletePriority('${row.id}')"
-                                    class="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition hover:bg-red-700">
-
-                                    Delete
-
-                                </button>
-
-                            </div>
-                        `;
+                            return actionButton(
+                                'editPriority',
+                                'deletePriority',
+                                row.id
+                            );
 
                         }
                     }
                 ],
 
-                order: [
-                    [1, 'asc']
-                ],
+                searchPlaceholder: 'Search priority...'
 
-                language: {
-                    search: '',
-                    searchPlaceholder: 'Search priority...'
-                }
+            }));
+            tableDept = $('#tableDept').DataTable(baseTableConfig({
 
-            });
-
-            tableDept = $('#tableDept').DataTable({
-
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                autoWidth: false,
-                pageLength: 10,
-
-                ajax: "{{ route('ticketsetup.deptJson') }}",
+                ajax: routes.dept.json,
 
                 columns: [{
                         data: 'DT_RowIndex',
@@ -2101,102 +1984,199 @@
                         className: 'text-right',
                         render: function(data, type, row) {
 
-                            return `
-                            <div class="flex items-center justify-end gap-2">
-
-                                <button onclick="editDept('${row.id}')"
-                                    class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white transition hover:bg-amber-600">
-
-                                    Edit
-
-                                </button>
-
-                                <button onclick="deleteDept('${row.id}')"
-                                    class="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition hover:bg-red-700">
-
-                                    Delete
-
-                                </button>
-
-                            </div>
-                        `;
+                            return actionButton(
+                                'editDept',
+                                'deleteDept',
+                                row.id
+                            );
 
                         }
                     }
                 ],
 
-                order: [
-                    [1, 'asc']
-                ],
+                searchPlaceholder: 'Search department PIC...'
 
-                language: {
-                    search: '',
-                    searchPlaceholder: 'Search department PIC...'
-                }
-
-            });
+            }));
 
         });
     </script>
-
     <script>
-        function openCreateTypeModal() {
+        const routes = {
 
-            $('#createTypeModal')
-                .removeClass('hidden')
-                .addClass('flex');
+            type: {
+                json: "{{ route('ticketsetup.typeJson') }}",
+                store: "{{ route('ticketsetup.storeType') }}",
+                update: "{{ url('/ticket-setup/type/update') }}",
+                delete: "{{ url('/ticket-setup/type/delete') }}"
+            },
+
+            category: {
+                json: "{{ route('ticketsetup.categoryJson') }}",
+                store: "{{ route('ticketsetup.storeCategory') }}",
+                update: "{{ url('/ticket-setup/category/update') }}",
+                delete: "{{ url('/ticket-setup/category/delete') }}"
+            },
+
+            subcategory: {
+                json: "{{ route('ticketsetup.subcategoryJson') }}",
+                store: "{{ route('ticketsetup.storeSubcategory') }}",
+                update: "{{ url('/ticket-setup/subcategory/update') }}",
+                delete: "{{ url('/ticket-setup/subcategory/delete') }}"
+            },
+
+            priority: {
+                json: "{{ route('ticketsetup.priorityJson') }}",
+                store: "{{ route('ticketsetup.storePriority') }}",
+                update: "{{ url('/ticket-setup/priority/update') }}",
+                delete: "{{ url('/ticket-setup/priority/delete') }}"
+            },
+
+            dept: {
+                json: "{{ route('ticketsetup.deptJson') }}",
+                store: "{{ route('ticketsetup.storeDept') }}",
+                update: "{{ url('/ticket-setup/dept/update') }}",
+                delete: "{{ url('/ticket-setup/dept/delete') }}"
+            },
+
+            categoryByType: "{{ url('/ticket-setup/category-by-type') }}"
+        };
+
+        function toggleModal(modalId, show = true) {
+
+            const modal = $(modalId);
+
+            if (show) {
+
+                modal
+                    .removeClass('hidden')
+                    .addClass('flex');
+
+            } else {
+
+                modal
+                    .removeClass('flex')
+                    .addClass('hidden');
+
+                const form = modal.find('form');
+
+                if (form.length) {
+
+                    form[0].reset();
+
+                    form.find('select').trigger('change');
+
+                }
+                modal.find('select.dynamic-select').html(`
+                <option value="">
+                    Select Category
+                </option>
+            `);
+
+            }
 
         }
 
-        function closeCreateTypeModal() {
+        function showLoading(title = 'Processing...') {
 
-            $('#createTypeModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#createTypeForm')[0].reset();
-
-        }
-
-        function openEditTypeModal() {
-
-            $('#editTypeModal')
-                .removeClass('hidden')
-                .addClass('flex');
+            Swal.fire({
+                title,
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
 
         }
 
-        function closeEditTypeModal() {
+        function showSuccess(message) {
 
-            $('#editTypeModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#editTypeForm')[0].reset();
-
-        }
-
-        function editType(ticket_type) {
-
-            let row = tableType.rows().data().toArray().find(x => x.ticket_type == ticket_type);
-
-            if (!row) return;
-
-            $('#edit_ticket_type_old').val(row.ticket_type);
-            $('#edit_ticket_type').val(row.ticket_type);
-            $('#edit_ticket_type_name').val(row.ticket_type_name);
-            $('#edit_type_status').val(row.status);
-
-            openEditTypeModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: message,
+                timer: 1500,
+                showConfirmButton: false
+            });
 
         }
 
-        function deleteType(ticket_type) {
+        function showError(message = 'Something went wrong') {
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: message
+            });
+
+        }
+
+        function submitForm({
+            form,
+            url,
+            method = 'POST',
+            table = null,
+            modal = null,
+            loadingText = 'Processing...'
+        }) {
+
+            $.ajax({
+
+                url,
+                type: method,
+                data: form.serialize(),
+
+                beforeSend: function() {
+
+                    form.find('button[type="submit"]')
+                        .prop('disabled', true);
+
+                    showLoading(loadingText);
+
+                },
+
+                complete: function() {
+
+                    form.find('button[type="submit"]')
+                        .prop('disabled', false);
+
+                },
+
+                success: function(response) {
+
+                    showSuccess(response.message);
+
+                    if (modal) {
+                        toggleModal(modal, false);
+                    }
+
+                    if (table) {
+                        table.ajax.reload(null, false);
+                    }
+
+                },
+
+                error: function(xhr) {
+
+                    showError(
+                        xhr.responseJSON?.message ??
+                        'Something went wrong'
+                    );
+
+                }
+
+            });
+
+        }
+
+        function confirmDelete({
+            url,
+            table,
+            title = 'Delete Data?',
+            text = 'This data will be deleted.'
+        }) {
 
             Swal.fire({
 
-                title: 'Delete Ticket Type?',
-                text: 'This data will be deleted.',
+                title,
+                text,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
@@ -2208,7 +2188,7 @@
 
                 $.ajax({
 
-                    url: `/ticket-setup/type/delete/${ticket_type}`,
+                    url,
                     type: 'DELETE',
 
                     data: {
@@ -2217,25 +2197,20 @@
 
                     success: function(response) {
 
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
+                        showSuccess(response.message);
 
-                        tableType.ajax.reload(null, false);
+                        if (table) {
+                            table.ajax.reload(null, false);
+                        }
 
                     },
 
                     error: function(xhr) {
 
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message ?? 'Something went wrong'
-                        });
+                        showError(
+                            xhr.responseJSON?.message ??
+                            'Something went wrong'
+                        );
 
                     }
 
@@ -2245,1153 +2220,34 @@
 
         }
 
-        function openCreateCategoryModal() {
+        function actionButton(editFn, deleteFn, key) {
 
-            $('#createCategoryModal')
-                .removeClass('hidden')
-                .addClass('flex');
+            const safeKey = String(key).replace(/'/g, "\\'");
 
-        }
+            return `
+                <div class="flex items-center justify-end gap-2">
 
-        function closeCreateCategoryModal() {
+                    <button
+                        onclick="${editFn}('${safeKey}')"
+                        class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white transition hover:bg-amber-600">
 
-            $('#createCategoryModal')
-                .removeClass('flex')
-                .addClass('hidden');
+                        Edit
 
-            $('#createCategoryForm')[0].reset();
+                    </button>
 
-        }
+                    <button
+                        onclick="${deleteFn}('${safeKey}')"
+                        class="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition hover:bg-red-700">
 
-        function openEditCategoryModal() {
+                        Delete
 
-            $('#editCategoryModal')
-                .removeClass('hidden')
-                .addClass('flex');
+                    </button>
 
-        }
-
-        function closeEditCategoryModal() {
-
-            $('#editCategoryModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#editCategoryForm')[0].reset();
+                </div>
+            `;
 
         }
 
-        function editCategory(ticket_categoryid) {
-
-            let row = tableCategory.rows().data().toArray().find(x => x.ticket_categoryid == ticket_categoryid);
-
-            if (!row) return;
-
-            $('#edit_ticket_categoryid_old').val(row.ticket_categoryid);
-            $('#edit_ticket_categoryid').val(row.ticket_categoryid);
-            $('#edit_ticket_category_name').val(row.ticket_category_name);
-            $('#edit_category_ticket_type').val(row.ticket_type);
-            $('#edit_category_status').val(row.status);
-
-            openEditCategoryModal();
-
-        }
-
-        function deleteCategory(ticket_categoryid) {
-
-            Swal.fire({
-
-                title: 'Delete Category?',
-                text: 'This data will be deleted.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Yes, Delete'
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) return;
-
-                $.ajax({
-
-                    url: `/ticket-setup/category/delete/${ticket_categoryid}`,
-                    type: 'DELETE',
-
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-
-                    success: function(response) {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-
-                        tableCategory.ajax.reload(null, false);
-
-                    },
-
-                    error: function(xhr) {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message ?? 'Something went wrong'
-                        });
-
-                    }
-
-                });
-
-            });
-
-        }
-
-        function openCreateSubcategoryModal() {
-
-            $('#createSubcategoryModal')
-                .removeClass('hidden')
-                .addClass('flex');
-
-        }
-
-        function closeCreateSubcategoryModal() {
-
-            $('#createSubcategoryModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#createSubcategoryForm')[0].reset();
-
-            $('#subcategory_category').html(`
-                <option value="">
-                    Select Category
-                </option>
-            `);
-
-        }
-
-        function openEditSubcategoryModal() {
-
-            $('#editSubcategoryModal')
-                .removeClass('hidden')
-                .addClass('flex');
-
-        }
-
-        function closeEditSubcategoryModal() {
-
-            $('#editSubcategoryModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#editSubcategoryForm')[0].reset();
-
-            $('#edit_subcategory_category').html(`
-                <option value="">
-                    Select Category
-                </option>
-            `);
-
-        }
-
-        function editSubcategory(ticket_subcategoryid) {
-
-            let row = tableSubcategory.rows().data().toArray().find(x => x.ticket_subcategoryid == ticket_subcategoryid);
-
-            if (!row) return;
-
-            $('#edit_ticket_subcategoryid_old').val(row.ticket_subcategoryid);
-            $('#edit_ticket_subcategoryid').val(row.ticket_subcategoryid);
-            $('#edit_ticket_subcategory_name').val(row.ticket_subcategory_name);
-            $('#edit_subcategory_ticket_type').val(row.ticket_type);
-            $('#edit_subcategory_status').val(row.status);
-
-            $.get(`/ticket-setup/category-by-type/${row.ticket_type}`, function(response) {
-
-                let html = `
-                    <option value="">
-                        Select Category
-                    </option>
-                `;
-
-                response.forEach(item => {
-
-                    html += `
-                        <option value="${item.ticket_categoryid}">
-                            ${item.ticket_category_name}
-                        </option>
-                    `;
-
-                });
-
-                $('#edit_subcategory_category').html(html);
-                $('#edit_subcategory_category').val(row.ticket_categoryid);
-
-                openEditSubcategoryModal();
-
-            });
-
-        }
-
-        function deleteSubcategory(ticket_subcategoryid) {
-
-            Swal.fire({
-
-                title: 'Delete Subcategory?',
-                text: 'This data will be deleted.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Yes, Delete'
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) return;
-
-                $.ajax({
-
-                    url: `/ticket-setup/subcategory/delete/${ticket_subcategoryid}`,
-                    type: 'DELETE',
-
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-
-                    success: function(response) {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-
-                        tableSubcategory.ajax.reload(null, false);
-
-                    },
-
-                    error: function(xhr) {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message ?? 'Something went wrong'
-                        });
-
-                    }
-
-                });
-
-            });
-
-        }
-
-        function openCreatePriorityModal() {
-
-            $('#createPriorityModal')
-                .removeClass('hidden')
-                .addClass('flex');
-
-        }
-
-        function closeCreatePriorityModal() {
-
-            $('#createPriorityModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#createPriorityForm')[0].reset();
-
-            $('#priority_category').html(`
-                <option value="">
-                    Select Category
-                </option>
-            `);
-
-        }
-
-        function openEditPriorityModal() {
-
-            $('#editPriorityModal')
-                .removeClass('hidden')
-                .addClass('flex');
-
-        }
-
-        function closeEditPriorityModal() {
-
-            $('#editPriorityModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#editPriorityForm')[0].reset();
-
-            $('#edit_priority_category').html(`
-                <option value="">
-                    Select Category
-                </option>
-            `);
-
-        }
-
-        function editPriority(id) {
-
-            let row = tablePriority.rows().data().toArray().find(x => x.id == id);
-
-            if (!row) return;
-
-            $('#edit_priority_id').val(row.id);
-            $('#edit_ticket_priority').val(row.ticket_priority);
-            $('#edit_ticket_priority_name').val(row.ticket_priority_name);
-            $('#edit_priority_ticket_type').val(row.ticket_type);
-            $('#edit_ticket_sla_days').val(row.ticket_sla_days);
-            $('#edit_priority_status').val(row.status);
-
-            $.get(`/ticket-setup/category-by-type/${row.ticket_type}`, function(response) {
-
-                let html = `
-                    <option value="">
-                        Select Category
-                    </option>
-                `;
-
-                response.forEach(item => {
-
-                    html += `
-                        <option value="${item.ticket_categoryid}">
-                            ${item.ticket_category_name}
-                        </option>
-                    `;
-
-                });
-
-                $('#edit_priority_category').html(html);
-                $('#edit_priority_category').val(row.ticket_categoryid);
-
-                openEditPriorityModal();
-
-            });
-
-        }
-
-        function deletePriority(id) {
-
-            Swal.fire({
-
-                title: 'Delete Priority?',
-                text: 'This data will be deleted.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Yes, Delete'
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) return;
-
-                $.ajax({
-
-                    url: `/ticket-setup/priority/delete/${id}`,
-                    type: 'DELETE',
-
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-
-                    success: function(response) {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-
-                        tablePriority.ajax.reload(null, false);
-
-                    },
-
-                    error: function(xhr) {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message ?? 'Something went wrong'
-                        });
-
-                    }
-
-                });
-
-            });
-
-        }
-
-        function openCreateDeptModal() {
-
-            $('#createDeptModal')
-                .removeClass('hidden')
-                .addClass('flex');
-
-        }
-
-        function closeCreateDeptModal() {
-
-            $('#createDeptModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#createDeptForm')[0].reset();
-
-            $('#dept_category').html(`
-                <option value="">
-                    Select Category
-                </option>
-            `);
-
-        }
-
-        function openEditDeptModal() {
-
-            $('#editDeptModal')
-                .removeClass('hidden')
-                .addClass('flex');
-
-        }
-
-        function closeEditDeptModal() {
-
-            $('#editDeptModal')
-                .removeClass('flex')
-                .addClass('hidden');
-
-            $('#editDeptForm')[0].reset();
-
-            $('#edit_dept_category').html(`
-                <option value="">
-                    Select Category
-                </option>
-            `);
-
-        }
-
-        function editDept(id) {
-
-            let row = tableDept.rows().data().toArray().find(x => x.id == id);
-
-            if (!row) return;
-
-            $('#edit_dept_id').val(row.id);
-            $('#edit_dept_ticket_type').val(row.ticket_type);
-            $('#edit_department_id').val(row.department_id);
-            $('#edit_username').val(row.username);
-            $('#edit_dept_status').val(row.status);
-
-            $.get(`/ticket-setup/category-by-type/${row.ticket_type}`, function(response) {
-
-                let html = `
-                    <option value="">
-                        Select Category
-                    </option>
-                `;
-
-                response.forEach(item => {
-
-                    html += `
-                        <option value="${item.ticket_categoryid}">
-                            ${item.ticket_category_name}
-                        </option>
-                    `;
-
-                });
-
-                $('#edit_dept_category').html(html);
-                $('#edit_dept_category').val(row.ticket_categoryid);
-
-                openEditDeptModal();
-
-            });
-
-        }
-
-        function deleteDept(id) {
-
-            Swal.fire({
-
-                title: 'Delete Department PIC?',
-                text: 'This data will be deleted.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Yes, Delete'
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) return;
-
-                $.ajax({
-
-                    url: `/ticket-setup/dept/delete/${id}`,
-                    type: 'DELETE',
-
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-
-                    success: function(response) {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-
-                        tableDept.ajax.reload(null, false);
-
-                    },
-
-                    error: function(xhr) {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message ?? 'Something went wrong'
-                        });
-
-                    }
-
-                });
-
-            });
-
-        }
-    </script>
-
-    <script>
-        $('#createTypeForm').submit(function(e) {
-
-            e.preventDefault();
-
-            $.ajax({
-
-                url: "{{ route('ticketsetup.storeType') }}",
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#createTypeForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Saving...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#createTypeForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeCreateTypeModal();
-
-                    tableType.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-
-        $('#editTypeForm').submit(function(e) {
-
-            e.preventDefault();
-
-            let ticket_type = $('#edit_ticket_type_old').val();
-
-            $.ajax({
-
-                url: `/ticket-setup/type/update/${ticket_type}`,
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#editTypeForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Updating...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#editTypeForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeEditTypeModal();
-
-                    tableType.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-
-        $('#createCategoryForm').submit(function(e) {
-
-            e.preventDefault();
-
-            $.ajax({
-
-                url: "{{ route('ticketsetup.storeCategory') }}",
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#createCategoryForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Saving...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#createCategoryForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeCreateCategoryModal();
-
-                    tableCategory.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-
-        $('#editCategoryForm').submit(function(e) {
-
-            e.preventDefault();
-
-            let ticket_categoryid = $('#edit_ticket_categoryid_old').val();
-
-            $.ajax({
-
-                url: `/ticket-setup/category/update/${ticket_categoryid}`,
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#editCategoryForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Updating...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#editCategoryForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeEditCategoryModal();
-
-                    tableCategory.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-    </script>
-
-    <script>
-        $('#createSubcategoryForm').submit(function(e) {
-
-            e.preventDefault();
-
-            $.ajax({
-
-                url: "{{ route('ticketsetup.storeSubcategory') }}",
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#createSubcategoryForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Saving...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#createSubcategoryForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeCreateSubcategoryModal();
-
-                    tableSubcategory.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-
-        $('#editSubcategoryForm').submit(function(e) {
-
-            e.preventDefault();
-
-            let ticket_subcategoryid = $('#edit_ticket_subcategoryid_old').val();
-
-            $.ajax({
-
-                url: `/ticket-setup/subcategory/update/${ticket_subcategoryid}`,
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#editSubcategoryForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Updating...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#editSubcategoryForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeEditSubcategoryModal();
-
-                    tableSubcategory.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-
-        $('#createPriorityForm').submit(function(e) {
-
-            e.preventDefault();
-
-            $.ajax({
-
-                url: "{{ route('ticketsetup.storePriority') }}",
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#createPriorityForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Saving...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#createPriorityForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeCreatePriorityModal();
-
-                    tablePriority.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-
-        $('#editPriorityForm').submit(function(e) {
-
-            e.preventDefault();
-
-            let id = $('#edit_priority_id').val();
-
-            $.ajax({
-
-                url: `/ticket-setup/priority/update/${id}`,
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#editPriorityForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Updating...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#editPriorityForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeEditPriorityModal();
-
-                    tablePriority.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-
-
-        $('#createDeptForm').submit(function(e) {
-
-            e.preventDefault();
-
-            $.ajax({
-
-                url: "{{ route('ticketsetup.storeDept') }}",
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#createDeptForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Saving...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#createDeptForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeCreateDeptModal();
-
-                    tableDept.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-
-        $('#editDeptForm').submit(function(e) {
-
-            e.preventDefault();
-
-            let id = $('#edit_dept_id').val();
-
-            $.ajax({
-
-                url: `/ticket-setup/dept/update/${id}`,
-                type: 'POST',
-                data: $(this).serialize(),
-
-                beforeSend: function() {
-
-                    $('#editDeptForm button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: 'Updating...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    $('#editDeptForm button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    closeEditDeptModal();
-
-                    tableDept.ajax.reload(null, false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        });
-    </script>
-
-    <script>
         function loadCategoryOptions(type, targetSelector, selected = '') {
 
             if (!type) {
@@ -3412,7 +2268,7 @@
             </option>
         `);
 
-            $.get(`/ticket-setup/category-by-type/${type}`, function(response) {
+            $.get(`${routes.categoryByType}/${type}`, function(response) {
 
                 let html = `
                 <option value="">
@@ -3440,225 +2296,328 @@
 
         }
 
-        function actionButton(editFn, deleteFn, key) {
+        function baseTableConfig({
+            ajax,
+            columns,
+            order = [
+                [1, 'asc']
+            ],
+            searchPlaceholder = 'Search...'
+        }) {
 
-            return `
-            <div class="flex items-center justify-end gap-2">
+            return {
 
-                <button onclick="${editFn}('${key}')"
-                    class="rounded-lg bg-amber-500 px-3 py-1 text-xs text-white transition hover:bg-amber-600">
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                autoWidth: false,
+                pageLength: 10,
 
-                    Edit
+                ajax,
+                columns,
+                order,
 
-                </button>
-
-                <button onclick="${deleteFn}('${key}')"
-                    class="rounded-lg bg-red-600 px-3 py-1 text-xs text-white transition hover:bg-red-700">
-
-                    Delete
-
-                </button>
-
-            </div>
-        `;
-
-        }
-
-        function toggleModal(modalId, show = true) {
-
-            if (show) {
-
-                $(modalId)
-                    .removeClass('hidden')
-                    .addClass('flex');
-
-            } else {
-
-                $(modalId)
-                    .removeClass('flex')
-                    .addClass('hidden');
-
-                const form = $(modalId).find('form')[0];
-
-                if (form) {
-                    form.reset();
+                language: {
+                    search: '',
+                    searchPlaceholder
                 }
 
-            }
-
-        }
-
-        function submitForm(config) {
-
-            $.ajax({
-
-                url: config.url,
-                type: config.type ?? 'POST',
-                data: config.form.serialize(),
-
-                beforeSend: function() {
-
-                    config.form.find('button[type="submit"]').prop('disabled', true);
-
-                    Swal.fire({
-                        title: config.loadingText ?? 'Processing...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                },
-
-                complete: function() {
-
-                    config.form.find('button[type="submit"]').prop('disabled', false);
-
-                },
-
-                success: function(response) {
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-
-                    if (config.closeModal) {
-                        config.closeModal();
-                    }
-
-                    if (config.reloadTable) {
-                        config.reloadTable.ajax.reload(null, false);
-                    }
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message ?? 'Something went wrong'
-                    });
-
-                }
-
-            });
-
-        }
-
-        function confirmDelete(config) {
-
-            Swal.fire({
-
-                title: config.title ?? 'Delete Data?',
-                text: config.text ?? 'This data will be deleted.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Yes, Delete'
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) return;
-
-                $.ajax({
-
-                    url: config.url,
-                    type: 'DELETE',
-
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-
-                    success: function(response) {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-
-                        config.table.ajax.reload(null, false);
-
-                    },
-
-                    error: function(xhr) {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: xhr.responseJSON?.message ?? 'Something went wrong'
-                        });
-
-                    }
-
-                });
-
-            });
-
-        }
-
-        $('.tab-button').click(function() {
-
-            $('.tab-button')
-                .removeClass('border-blue-200 bg-blue-50 text-blue-700')
-                .addClass(
-                    'border-transparent bg-transparent text-gray-600 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'
-                    );
-
-            $('#typePanel,#categoryPanel,#subcategoryPanel,#priorityPanel,#deptPanel')
-                .addClass('hidden');
-
-            $(this)
-                .removeClass(
-                    'border-transparent bg-transparent text-gray-600 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white'
-                    )
-                .addClass('border-blue-200 bg-blue-50 text-blue-700');
-
-            const panelMap = {
-                tabType: '#typePanel',
-                tabCategory: '#categoryPanel',
-                tabSubcategory: '#subcategoryPanel',
-                tabPriority: '#priorityPanel',
-                tabDept: '#deptPanel'
             };
 
-            $(panelMap[this.id]).removeClass('hidden');
+        }
+    </script>
+    <script>
+        function editType(ticket_type) {
+
+            let row = tableType.rows().data().toArray().find(x => x.ticket_type == ticket_type);
+
+            if (!row) return;
+
+            $('#edit_ticket_type_old').val(row.ticket_type);
+            $('#edit_ticket_type').val(row.ticket_type);
+            $('#edit_ticket_type_name').val(row.ticket_type_name);
+            $('#edit_type_status').val(row.status);
+
+            toggleModal('#editTypeModal', true);
+
+        }
+
+        function deleteType(ticket_type) {
+
+            confirmDelete({
+                url: `${routes.type.delete}/${ticket_type}`,
+                table: tableType,
+                title: 'Delete Ticket Type?'
+            });
+
+        }
+
+        function editCategory(ticket_categoryid) {
+
+            let row = tableCategory.rows().data().toArray().find(x => x.ticket_categoryid == ticket_categoryid);
+
+            if (!row) return;
+
+            $('#edit_ticket_categoryid_old').val(row.ticket_categoryid);
+            $('#edit_ticket_categoryid').val(row.ticket_categoryid);
+            $('#edit_ticket_category_name').val(row.ticket_category_name);
+            $('#edit_category_ticket_type').val(row.ticket_type);
+            $('#edit_category_status').val(row.status);
+
+            toggleModal('#editCategoryModal', true);
+
+        }
+
+        function deleteCategory(ticket_categoryid) {
+
+            confirmDelete({
+                url: `${routes.category.delete}/${ticket_categoryid}`,
+                table: tableCategory,
+                title: 'Delete Category?'
+            });
+
+        }
+
+        function editSubcategory(ticket_subcategoryid) {
+
+            let row = tableSubcategory.rows().data().toArray()
+                .find(x => x.ticket_subcategoryid == ticket_subcategoryid);
+
+            if (!row) return;
+
+            $('#edit_ticket_subcategoryid_old').val(row.ticket_subcategoryid);
+            $('#edit_ticket_subcategoryid').val(row.ticket_subcategoryid);
+            $('#edit_ticket_subcategory_name').val(row.ticket_subcategory_name);
+            $('#edit_subcategory_ticket_type').val(row.ticket_type);
+            $('#edit_subcategory_status').val(row.status);
+
+            loadCategoryOptions(
+                row.ticket_type,
+                '#edit_subcategory_category',
+                row.ticket_categoryid
+            );
+
+            toggleModal('#editSubcategoryModal', true);
+
+        }
+
+        function deleteSubcategory(ticket_subcategoryid) {
+
+            confirmDelete({
+                url: `${routes.subcategory.delete}/${ticket_subcategoryid}`,
+                table: tableSubcategory,
+                title: 'Delete Subcategory?'
+            });
+
+        }
+
+        function editPriority(id) {
+
+            let row = tablePriority.rows().data().toArray()
+                .find(x => x.id == id);
+
+            if (!row) return;
+
+            $('#edit_priority_id').val(row.id);
+            $('#edit_ticket_priority').val(row.ticket_priority);
+            $('#edit_ticket_priority_name').val(row.ticket_priority_name);
+            $('#edit_priority_ticket_type').val(row.ticket_type);
+            $('#edit_ticket_sla_days').val(row.ticket_sla_days);
+            $('#edit_priority_status').val(row.status);
+
+            loadCategoryOptions(
+                row.ticket_type,
+                '#edit_priority_category',
+                row.ticket_categoryid
+            );
+
+            toggleModal('#editPriorityModal', true);
+
+        }
+
+        function deletePriority(id) {
+
+            confirmDelete({
+                url: `${routes.priority.delete}/${id}`,
+                table: tablePriority,
+                title: 'Delete Priority?'
+            });
+
+        }
+
+        function editDept(id) {
+
+            let row = tableDept.rows().data().toArray()
+                .find(x => x.id == id);
+
+            if (!row) return;
+
+            $('#edit_dept_id').val(row.id);
+            $('#edit_dept_ticket_type').val(row.ticket_type);
+            $('#edit_department_id').val(row.department_id);
+            $('#edit_username').val(row.username);
+            $('#edit_dept_status').val(row.status);
+
+            loadCategoryOptions(
+                row.ticket_type,
+                '#edit_dept_category',
+                row.ticket_categoryid
+            );
+
+            toggleModal('#editDeptModal', true);
+
+        }
+
+        function deleteDept(id) {
+
+            confirmDelete({
+                url: `${routes.dept.delete}/${id}`,
+                table: tableDept,
+                title: 'Delete Department PIC?'
+            });
+
+        }
+    </script>
+
+    <script>
+        $('#createTypeForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: routes.type.store,
+                table: tableType,
+                modal: '#createTypeModal',
+                loadingText: 'Saving Type...'
+            });
 
         });
 
-        $('input.uppercase').on('input', function() {
-            this.value = this.value.toUpperCase();
+        $('#editTypeForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: `${routes.type.update}/${$('#edit_ticket_type_old').val()}`,
+                table: tableType,
+                modal: '#editTypeModal',
+                loadingText: 'Updating Type...'
+            });
+
         });
 
-        $('#subcategory_ticket_type').change(function() {
-            loadCategoryOptions($(this).val(), '#subcategory_category');
+        $('#createCategoryForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: routes.category.store,
+                table: tableCategory,
+                modal: '#createCategoryModal',
+                loadingText: 'Saving Category...'
+            });
+
         });
 
-        $('#priority_ticket_type').change(function() {
-            loadCategoryOptions($(this).val(), '#priority_category');
+        $('#editCategoryForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: `${routes.category.update}/${$('#edit_ticket_categoryid_old').val()}`,
+                table: tableCategory,
+                modal: '#editCategoryModal',
+                loadingText: 'Updating Category...'
+            });
+
         });
 
-        $('#dept_ticket_type').change(function() {
-            loadCategoryOptions($(this).val(), '#dept_category');
+        $('#createSubcategoryForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: routes.subcategory.store,
+                table: tableSubcategory,
+                modal: '#createSubcategoryModal',
+                loadingText: 'Saving Subcategory...'
+            });
+
         });
 
-        $('#edit_subcategory_ticket_type').change(function() {
-            loadCategoryOptions($(this).val(), '#edit_subcategory_category');
+        $('#editSubcategoryForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: `${routes.subcategory.update}/${$('#edit_ticket_subcategoryid_old').val()}`,
+                table: tableSubcategory,
+                modal: '#editSubcategoryModal',
+                loadingText: 'Updating Subcategory...'
+            });
+
         });
 
-        $('#edit_priority_ticket_type').change(function() {
-            loadCategoryOptions($(this).val(), '#edit_priority_category');
+        $('#createPriorityForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: routes.priority.store,
+                table: tablePriority,
+                modal: '#createPriorityModal',
+                loadingText: 'Saving Priority...'
+            });
+
         });
 
-        $('#edit_dept_ticket_type').change(function() {
-            loadCategoryOptions($(this).val(), '#edit_dept_category');
+        $('#editPriorityForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: `${routes.priority.update}/${$('#edit_priority_id').val()}`,
+                table: tablePriority,
+                modal: '#editPriorityModal',
+                loadingText: 'Updating Priority...'
+            });
+
+        });
+
+        $('#createDeptForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: routes.dept.store,
+                table: tableDept,
+                modal: '#createDeptModal',
+                loadingText: 'Saving PIC...'
+            });
+
+        });
+
+        $('#editDeptForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: `${routes.dept.update}/${$('#edit_dept_id').val()}`,
+                table: tableDept,
+                modal: '#editDeptModal',
+                loadingText: 'Updating PIC...'
+            });
+
         });
     </script>
 

@@ -80,3 +80,28 @@ $.ajaxSetup({
     },
 
 });
+
+$(document).on('click', '#btn_export_ticket', function() {
+
+    const params = new URLSearchParams({
+
+        search: $('#search_ticket').val() || '',
+
+        cpny_id: $('#filter_company').val() || '',
+
+        department_id: $('#filter_department').val() || '',
+
+        ticket_type: $('#filter_ticket_type').val() || '',
+
+        date_from: $('#filter_date_from').val() || '',
+
+        date_to: $('#filter_date_to').val() || ''
+
+    });
+
+    window.open(
+        `/ticket/export?${params.toString()}`,
+        '_blank'
+    );
+
+});
