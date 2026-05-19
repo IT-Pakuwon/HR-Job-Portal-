@@ -43,7 +43,7 @@
             padding:2vw;
             display:flex;
             flex-direction:column;
-            gap:1.5vw;
+            gap:0.5vw;
         }
 
         .topbar{
