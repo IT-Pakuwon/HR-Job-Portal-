@@ -157,8 +157,8 @@ Route::post('/login', function (Request $request) {
     $user = User::where('status', 'A')
         ->where(function ($query) use ($credentials) {
             $query->where('email', $credentials['login'])
-                  ->orWhere('username', $credentials['login'])
-                  ->orWhere('npk', $credentials['login']);
+                ->orWhere('username', $credentials['login'])
+                ->orWhere('npk', $credentials['login']);
         })
         ->first();
 
@@ -386,7 +386,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/applicant/mapping', [SelfRegisterApplicantController::class, 'storeMapping'])
         ->name('applicant.mapping.store');
     Route::post('/applicant/mapping/rollback', [SelfRegisterApplicantController::class, 'rollbackMapping'])
-    ->name('applicant.mapping.rollback');
+        ->name('applicant.mapping.rollback');
 
     Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
     Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');
@@ -549,7 +549,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/pdf_sppbs/{hash}', [SppbController::class, 'printSppb']);
         Route::get('/sppb/export/{id}', [SppbController::class, 'exportDetail'])
-        ->name('sppb.export');
+            ->name('sppb.export');
     });
 
     // ✍️ CREATE SPPB
@@ -585,7 +585,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/createbqkontrak/{sppjId}/categories', [SppjController::class, 'categoriesBqKontrak'])->name('bqkontrak.categories');
         Route::get('/showbqkontrak/{hash}', [SppjController::class, 'showBqKontrak'])->name('bqkontrak.show');
         Route::get('/sppj/export/{id}', [SppjController::class, 'exportDetail'])
-        ->name('sppj.export');
+            ->name('sppj.export');
     });
 
     Route::middleware('access:SPPJ,CREATE')->group(function () {
@@ -633,7 +633,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/sppks/{hash}/tracking-detail/item', [SppkController::class, 'trackingDetailItem'])->name('sppks.trackingDetailItem');
         Route::get('/pdf_sppks/{hash}', [SppkController::class, 'printSppk']);
         Route::get('/sppk/export/{id}', [SppkController::class, 'exportDetail'])
-        ->name('sppk.export');
+            ->name('sppk.export');
     });
 
     Route::middleware('access:SPPK,CREATE')->group(function () {
@@ -663,7 +663,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/showbqsppts/{hash}', [SpptController::class, 'showBQ']);
         Route::get('/pdf_bq_pt/{hash}', [SpptController::class, 'printBQ']);
         Route::get('/sppt/export/{id}', [SpptController::class, 'exportDetail'])
-        ->name('sppt.export');
+            ->name('sppt.export');
     });
 
     Route::middleware('access:SPPT,CREATE')->group(function () {
@@ -730,11 +730,11 @@ Route::middleware(['auth'])->group(function () {
             ->name('canvass.createcs');
 
         Route::get('/createcsrev/{doc}/{hash}', [CanvassController::class, 'createCSReuse'])
-        ->where([
-            'doc' => 'PO',
-            'hash' => '[A-Za-z0-9]+',
-        ])
-        ->name('canvass.createcsreuse');
+            ->where([
+                'doc' => 'PO',
+                'hash' => '[A-Za-z0-9]+',
+            ])
+            ->name('canvass.createcsreuse');
 
         // SAVE / STORE CANVASS SHEET
         Route::post('/csstore', [CanvassController::class, 'storeCS'])->name('cs.store');
@@ -802,7 +802,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/showreceipt/{hash}', [ReceiptController::class, 'showReceipt']);
         Route::get('/receipts/print/{hash}', [ReceiptController::class, 'printReceipt'])->name('receipts.print');
         Route::get('/receipt/export/{id}', [ReceiptController::class, 'export'])
-        ->name('receipt.export');
+            ->name('receipt.export');
         // Lookup sites / warehouse
     });
 
@@ -868,7 +868,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/spbs/{id}/tracking', [SpbController::class, 'tracking'])->name('spbs.tracking');
         Route::get('/pdf_spbs/{hash}', [SpbController::class, 'printSpb']);
         Route::get('/spb/export/{id}', [SpbController::class, 'exportDetail'])
-        ->name('spb.export');
+            ->name('spb.export');
     });
 
     Route::middleware('access:SPBLIST,CREATE')->group(function () {
@@ -1198,79 +1198,96 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/parkingregistration/employees', [ParkingRegistrationController::class, 'employeesByFilter'])->name('parkingregistration.employees');
 
-    Route::controller(VoucherTaxiController::class)->group(function () {
-        Route::get('/vouchertaxi', 'index')->name('vouchertaxi');
 
-        Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
-            Route::get('/json', 'json')->name('json');
-            Route::get('/detail/{eid}', 'detail')->name('detail');
-            Route::get('/tracking/{eid}', 'tracking')->name('tracking');
-            Route::get('/find/{eid}', 'findByHash')->name('find');
-            Route::get('/print/{hash}', 'printVoucherTaxi')->name('print');
+    Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv');
 
-            Route::post('/store', 'storeVoucher')->name('store');
-            Route::post('/update/{id}', 'updateVoucherTaxi')->name('update');
-            Route::post('/cancel/{docid}', 'cancel')->name('cancel');
-
-            Route::post('/approve/{docid}', 'approveVoucherTaxi')->name('approve');
-            Route::post('/reject/{docid}', 'rejectVoucherTaxi')->name('reject');
-            Route::post('/revise/{docid}', 'reviseVoucherTaxi')->name('revise');
-
-            Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
-        });
-
-        Route::get('/showvouchertaxi/{eid}', 'index')->name('vouchertaxi.show');
-    });
-
-    Route::controller(BookingCarController::class)->group(function () {
-        Route::get('/bookingcar', 'index')->name('bookingcar');
-        Route::prefix('bookingcar')->name('bookingcar.')->group(function () {
-            Route::get('/json', 'json')->name('json');
-            Route::get('/detail/{eid}', 'detail')->name('detail');
-            Route::get('/tracking/{eid}', 'tracking')->name('tracking');
-            Route::get('/find/{eid}', 'findByHash')->name('find');
-            Route::get('/print/{hash}', 'printBookingCar')->name('print');
-
-            Route::post('/store', 'storeBookingCar')->name('store');
-            Route::post('/update/{docid}', 'updateBookingCar')->name('update');
-            Route::post('/cancel/{docid}', 'cancel')->name('cancel');
-
-            Route::post('/approve/{docid}', 'approveBookingCar')->name('approve');
-            Route::post('/reject/{docid}', 'rejectBookingCar')->name('reject');
-            Route::post('/revise/{docid}', 'reviseBookingCar')->name('revise');
-
-            Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
-        });
-
-        Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');
-    });
-
-    Route::controller(BookingCarSetupController::class)->prefix('bookingcar/setup')->name('bookingcar.setup.')->group(function () {
-        Route::get('/', 'index')->name('index');
-
-        /* DRIVER */
-        Route::get('/driver/json', 'jsonDriver')->name('driver.json');
-        Route::get('/driver/find/{id}', 'findDriver')->name('driver.find');
-
-        Route::post('/driver/store', 'storeDriver')->name('driver.store');
-        Route::post('/driver/update/{id}', 'updateDriver')->name('driver.update');
-        Route::post('/driver/status/{id}', 'updateDriverStatus')->name('driver.status');
-
-        /* VEHICLE */
-        Route::get('/vehicle/json', 'jsonVehicle')->name('vehicle.json');
-        Route::get('/vehicle/find/{id}', 'findVehicle')->name('vehicle.find');
-
-        Route::post('/vehicle/store', 'storeVehicle')->name('vehicle.store');
-        Route::post('/vehicle/update/{id}', 'updateVehicle')->name('vehicle.update');
-        Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
-    });
-
-    Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])
-    ->name('meeting.tv');
     Route::middleware(['auth'])->group(function () {
+
+        Route::controller(VoucherTaxiController::class)->group(function () {
+
+            Route::get('/vouchertaxi', 'index')->name('vouchertaxi');
+
+            Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('json');
+                    Route::get('/detail/{eid}', 'detail')->name('detail');
+                    Route::get('/tracking/{eid}', 'tracking')->name('tracking');
+                    Route::get('/find/{eid}', 'findByHash')->name('find');
+                });
+
+                Route::get('/print/{hash}', 'printVoucherTaxi')->name('print');
+
+                Route::post('/store', 'storeVoucher')->name('store');
+                Route::post('/update/{id}', 'updateVoucherTaxi')->name('update');
+                Route::post('/cancel/{docid}', 'cancel')->name('cancel');
+
+                Route::post('/approve/{docid}', 'approveVoucherTaxi')->name('approve');
+                Route::post('/reject/{docid}', 'rejectVoucherTaxi')->name('reject');
+                Route::post('/revise/{docid}', 'reviseVoucherTaxi')->name('revise');
+
+                Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
+            });
+
+            Route::get('/showvouchertaxi/{eid}', 'index')->name('vouchertaxi.show');
+        });
+
+        Route::controller(BookingCarController::class)->group(function () {
+
+            Route::get('/bookingcar', 'index')->name('bookingcar');
+
+            Route::prefix('bookingcar')->name('bookingcar.')->group(function () {
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('json');
+                    Route::get('/detail/{eid}', 'detail')->name('detail');
+                    Route::get('/tracking/{eid}', 'tracking')->name('tracking');
+                    Route::get('/find/{eid}', 'findByHash')->name('find');
+                });
+
+                Route::get('/print/{hash}', 'printBookingCar')->name('print');
+
+                Route::post('/store', 'storeBookingCar')->name('store');
+                Route::post('/update/{docid}', 'updateBookingCar')->name('update');
+                Route::post('/cancel/{docid}', 'cancel')->name('cancel');
+
+                Route::post('/approve/{docid}', 'approveBookingCar')->name('approve');
+                Route::post('/reject/{docid}', 'rejectBookingCar')->name('reject');
+                Route::post('/revise/{docid}', 'reviseBookingCar')->name('revise');
+
+                Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
+            });
+
+            Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');
+        });
+
+        Route::controller(BookingCarSetupController::class)->prefix('bookingcar/setup')->name('bookingcar.setup.')->group(function () {
+
+            Route::get('/', 'index')->name('index');
+
+            Route::middleware('ajax')->group(function () {
+
+                Route::get('/driver/json', 'jsonDriver')->name('driver.json');
+                Route::get('/driver/find/{id}', 'findDriver')->name('driver.find');
+
+                Route::get('/vehicle/json', 'jsonVehicle')->name('vehicle.json');
+                Route::get('/vehicle/find/{id}', 'findVehicle')->name('vehicle.find');
+            });
+
+            Route::post('/driver/store', 'storeDriver')->name('driver.store');
+            Route::post('/driver/update/{id}', 'updateDriver')->name('driver.update');
+            Route::post('/driver/status/{id}', 'updateDriverStatus')->name('driver.status');
+
+            Route::post('/vehicle/store', 'storeVehicle')->name('vehicle.store');
+            Route::post('/vehicle/update/{id}', 'updateVehicle')->name('vehicle.update');
+            Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
+        });
+
 
         Route::prefix('ticket')->controller(TicketController::class)->group(function () {
             Route::get('/', 'index')->name('ticket');
+            Route::get('/export', 'export')->name('ticket.export');
+
 
             Route::middleware('ajax')->group(function () {
                 Route::get('/json', 'json')->name('ticket.json');
@@ -1457,7 +1474,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/edit-processitrecommendation/{eid}', 'index');
             Route::get('/createitrecommendation', 'index');
         });
-
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
@@ -1695,7 +1711,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
     Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
     Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
-    ->name('attachments.delete');
+        ->name('attachments.delete');
 
     Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
     Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
@@ -1777,11 +1793,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/training-events', [TrainingRegistrationController::class, 'index'])
         ->name('training');
 
-    Route::get('/training/{id}/register',
+    Route::get(
+        '/training/{id}/register',
         [TrainingRegistrationController::class, 'showRegisterForm']
     )->name('training.register.form');
 
-    Route::post('/training/{id}/register',
+    Route::post(
+        '/training/{id}/register',
         [TrainingRegistrationController::class, 'register']
     )->name('training.register');
     Route::get('/training', [TrainingRegistrationController::class, 'index'])
@@ -1849,11 +1867,11 @@ Route::middleware(['auth'])->group(function () {
             ->where('status', 'A')
             ->with(['children' => function ($q) use ($allowedIds) {
                 $q->whereIn('menu_id', $allowedIds)
-                ->where('status', 'A')
-                ->with(['children' => function ($qq) use ($allowedIds) {
-                    $qq->whereIn('menu_id', $allowedIds)
-                        ->where('status', 'A');
-                }]);
+                    ->where('status', 'A')
+                    ->with(['children' => function ($qq) use ($allowedIds) {
+                        $qq->whereIn('menu_id', $allowedIds)
+                            ->where('status', 'A');
+                    }]);
             }])
             ->orderBy('menu_sort_order')
             ->get();
@@ -1997,7 +2015,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.ga.export');
 
         Route::get('/view/{type}', function ($type) {
-            return view('pages.report.'.$type);
+            return view('pages.report.' . $type);
         });
     });
 

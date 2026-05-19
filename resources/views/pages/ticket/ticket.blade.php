@@ -487,6 +487,32 @@
                 <div class="flex items-center gap-3">
 
                     @if ($isIT)
+                        <a href="{{ route('ticketsetup') }}"
+                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50">
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 flex-shrink-0"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor">
+
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" />
+
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19.5 12a7.5 7.5 0 01-.14 1.44l2.11 1.65-2 3.46-2.52-1a7.53 7.53 0 01-2.5 1.45L14 21h-4l-.45-2a7.53 7.53 0 01-2.5-1.45l-2.52 1-2-3.46 2.11-1.65A7.5 7.5 0 014.5 12c0-.49.05-.97.14-1.44L2.53 8.91l2-3.46 2.52 1A7.53 7.53 0 019.55 5L10 3h4l.45 2a7.53 7.53 0 012.5 1.45l2.52-1 2 3.46-2.11 1.65c.09.47.14.95.14 1.44z" />
+
+                            </svg>
+
+                            <span>
+                                Setup
+                            </span>
+
+                        </a>
                         <button type="button" id="btn_export_ticket"
                             class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
 
@@ -592,7 +618,6 @@
             </div>
 
         </div>
-
         {{-- CREATE TICKET MODAL --}}
         <div id="createTicketModal"
             class="ticket-modal fixed inset-0 z-[9999] hidden items-center justify-center p-4">

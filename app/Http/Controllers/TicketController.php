@@ -1,4 +1,4 @@
-1<?php
+<?php
 
 namespace App\Http\Controllers;
 
@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\DB;
 use Vinkla\Hashids\Facades\Hashids;
 use Yajra\DataTables\Facades\DataTables;
 use App\Services\TicketNotificationService;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\TicketExport;
 
 class TicketController extends Controller
 {
@@ -3059,5 +3061,18 @@ class TicketController extends Controller
             ->where('ticket_categoryid', $categoryId)
             ->where('status', 'A')
             ->exists();
+    }
+
+    public function export(Request $request)
+    {
+        abort_unless(
+            $this->isITRole(),
+            403
+        );
+
+        return Excel::download(
+            new TicketExport($request),
+            'ticket-export-' . now()->format('YmdHis') . '.xlsx'
+        );
     }
 }
