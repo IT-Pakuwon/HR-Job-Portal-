@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Autonbr;
 use App\Models\MsDasSetting;
 use App\Models\MsMeetingAccessories;
-use App\Models\MsMeetingRoomAccess;
 use App\Models\MsMeetingRoom;
+use App\Models\MsMeetingRoomAccess;
 use App\Models\SysUserRole;
 use App\Models\TrMeeting;
 use App\Models\User;
@@ -22,7 +22,6 @@ class MeetingController extends Controller
 {
     public function index(Request $request)
     {
-
         $user = Auth::user();
 
         if (!$user) {
@@ -100,7 +99,6 @@ class MeetingController extends Controller
             ->get()
 
             ->map(function ($m) use ($roomMap) {
-
                 return [
                     'hash' => Hashids::encode($m->id),
 
@@ -130,7 +128,6 @@ class MeetingController extends Controller
             });
 
         $calendarEvents = $meetings->map(function ($m) {
-
             return [
                 'id' => $m['hash'],
 
@@ -149,7 +146,6 @@ class MeetingController extends Controller
                     'isTeams' => $m['isTeams'] ?? false,
                 ],
             ];
-
         })->values();
 
         $users = User::query()
@@ -158,12 +154,10 @@ class MeetingController extends Controller
             ->get()
 
             ->map(function ($user) {
-
                 $user->meeting_email =
                     $user->notification_email ?: $user->email;
 
                 return $user;
-
             })
 
             ->filter(function ($user) {
@@ -198,14 +192,12 @@ class MeetingController extends Controller
             ->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-
             $maxBookingDate = now()
                 ->addDays((int) $bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
         return view('pages.meeting.meeting', [
-
             'selectedDate' => $date,
 
             'rooms' => $rooms,
@@ -1791,12 +1783,10 @@ class MeetingController extends Controller
             ->exists();
 
         if ($roomHasRestriction && !$hasRoomAccess) {
-
             return response()->json([
                 'success' => false,
                 'message' => 'We\'re sorry, this room is restricted',
             ], 403);
-
         }
         $oldStart = $meeting->start_meeting_time;
         $oldEnd = $meeting->end_meeting_time;
@@ -2856,5 +2846,49 @@ class MeetingController extends Controller
         }
 
         return $accessToken;
+    }
+
+    public function showRoomTv($id)
+    {
+        $roommeet = MsMeetingRoom::query()
+            ->where('room_id', $id)
+            ->firstOrFail();
+
+        $now = now();
+        $today = $now->format('Y-m-d');
+
+        /*
+        |--------------------------------------------------------------------------
+        | CURRENT MEETING
+        |--------------------------------------------------------------------------
+        */
+
+        $meeting = TrMeeting::query()
+            ->where('room_id', $roommeet->room_id)
+            ->where('status', '!=', 'X')
+            ->where('start_meeting_time', '<=', $now)
+            ->where('end_meeting_time', '>=', $now)
+            ->orderBy('start_meeting_time')
+            ->first();
+
+        /*
+        |--------------------------------------------------------------------------
+        | NEXT MEETINGS TODAY
+        |--------------------------------------------------------------------------
+        */
+
+        $meeting2 = TrMeeting::query()
+            ->where('room_id', $roommeet->room_id)
+            ->where('status', '!=', 'X')
+            ->whereDate('start_meeting_time', $today)
+            ->where('start_meeting_time', '>', $now)
+            ->orderBy('start_meeting_time')
+            ->get();
+
+        return view('pages.meeting.tv-room', compact(
+            'roommeet',
+            'meeting',
+            'meeting2'
+        ));
     }
 }

@@ -1294,10 +1294,6 @@ function normalizeActivities(res) {
 
 });
 
-    activities.sort((a, b) => {
-        return new Date(a.date) - new Date(b.date);
-    });
-
     return activities;
 
 }

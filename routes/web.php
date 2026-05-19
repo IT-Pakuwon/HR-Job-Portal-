@@ -1186,9 +1186,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/parkingregistration/json', [ParkingRegistrationController::class, 'json'])->name('parkingregistration.json');
     Route::get('/showparkingregistration/{hash}', [ParkingRegistrationController::class, 'showParkingRegistration']);
     Route::get('/parkingregistration/{id}/tracking', [ParkingRegistrationController::class, 'tracking'])->name('parkingregistration.tracking');
-    Route::get('/pdf_parkingregistration/{hash}', [ParkingRegistrationController::class, 'printParkingRegistration']);  
+    Route::get('/pdf_parkingregistration/{hash}', [ParkingRegistrationController::class, 'printParkingRegistration']);
     Route::get('/createparkingregistration', [ParkingRegistrationController::class, 'createParkingRegistration']);
-    Route::post('/parkingregistration', [ParkingRegistrationController::class, 'storeParkingRegistration'])->name('parkingregistration.store');  
+    Route::post('/parkingregistration', [ParkingRegistrationController::class, 'storeParkingRegistration'])->name('parkingregistration.store');
     Route::get('/editparkingregistration/{hash}', [ParkingRegistrationController::class, 'editParkingRegistration']);
     Route::put('/parkingregistration/{id}', [ParkingRegistrationController::class, 'updateParkingRegistration'])->name('parkingregistration.update');
     Route::put('/parkingregistration/remove-attachment/{id}', [ParkingRegistrationController::class, 'removeAttachment']);
@@ -1265,40 +1265,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
     });
 
-    Route::prefix('it-recommendation')->controller(ItRecommendationController::class)->group(function () {
-        Route::get('/', 'index')->name('it-recommendation');
-        Route::get('/json', 'json')->name('it-recommendation.json');
-        Route::post('/store', 'store')->name('it-recommendation.store');
-        Route::put('/update/{hash}', 'update')->name('it-recommendation.update');
-        Route::get('/detail/{hash}', 'detail')->name('it-recommendation.detail');
-        Route::get('/tracking/{hash}', 'tracking')->name('it-recommendation.tracking');
-        Route::post('/process/{hash}', 'process')->name('it-recommendation.process');
-        Route::post('/it-revise/{hash}', 'itRevise')->name('it-recommendation.it-revise');
-
-        Route::post('/it-reject/{hash}', 'itReject')->name('it-recommendation.it-reject');
-        Route::post('/approve/{docid}', 'approve')->name('it-recommendation.approve');
-        Route::post('/reject/{docid}', 'reject')->name('it-recommendation.reject');
-        Route::post('/revise/{docid}', 'revise')->name('it-recommendation.revise');
-        Route::post('/cancel/{hash}', 'cancel')->name('it-recommendation.cancel');
-        Route::get('/inventory-search', 'inventorySearch')->name('it-recommendation.inventory-search');
-        Route::get('/print/{hash}', 'print')->name('it-recommendation.print');
-        Route::get(
-            '/comments/{docid}',
-            [ItRecommendationController::class, 'comments']
-        );
-        Route::get(
-            '/ticket-search',
-            'ticketSearch'
-        )->name('it-recommendation.ticket-search');
-    });
-
-    Route::get('/showitrecommendation/{eid}', [ItRecommendationController::class, 'index']);
-    Route::get('/edititrecommendation/{eid}', [ItRecommendationController::class, 'index']);
-    Route::get('/processitrecommendation/{eid}', [ItRecommendationController::class, 'index']);
-    Route::post('/it-recommendation/comment/{hash}', [ItRecommendationController::class, 'comment'])
-    ->name('it-recommendation.comment');
-
+    Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])
+    ->name('meeting.tv');
     Route::middleware(['auth'])->group(function () {
+
         Route::prefix('ticket')->controller(TicketController::class)->group(function () {
             Route::get('/', 'index')->name('ticket');
 
@@ -1307,7 +1277,6 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/detail/{hash}', 'detail')->name('ticket.detail');
                 Route::get('/tracking/{hash}', 'tracking')->name('ticket.tracking');
                 Route::get('/comments/{hash}', 'comments')->name('ticket.comments');
-
                 Route::get('/category-search', 'categorySearch')->name('ticket.categorySearch');
                 Route::get('/subcategory-search', 'subcategorySearch')->name('ticket.subcategorySearch');
                 Route::get('/priority-search', 'prioritySearch')->name('ticket.prioritySearch');
@@ -1320,7 +1289,6 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/store', 'store')->name('ticket.store');
             Route::post('/update/{hash}', 'update')->name('ticket.update');
             Route::post('/cancel/{hash}', 'cancel')->name('ticket.cancel');
-
             Route::post('/response/{hash}', 'responseTicket')->name('ticket.response');
             Route::post('/process/{hash}', 'processTicket')->name('ticket.process');
             Route::post('/pending/{hash}', 'pendingTicket')->name('ticket.pending');
@@ -1328,7 +1296,6 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/transfer/{hash}', 'transferTicket')->name('ticket.transfer');
             Route::post('/complete/{hash}', 'completeTicket')->name('ticket.complete');
             Route::post('/reopen/{hash}', 'reopenTicket')->name('ticket.reopen');
-
             Route::post('/comment/{hash}', 'comment')->name('ticket.comment');
         });
 
@@ -1344,238 +1311,153 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/reopenticket/{eid}', 'index');
         });
 
-        Route::prefix('ticket-setup')
-           ->controller(TicketSetupController::class)->group(function () {
-               Route::get('/', 'index')->name('ticketsetup');
+        Route::prefix('ticket-setup')->controller(TicketSetupController::class)->group(function () {
+            Route::get('/', 'index')->name('ticketsetup');
 
-               Route::middleware('ajax')->group(function () {
-                   Route::get('/type-json', 'typeJson')->name('ticketsetup.typeJson');
+            Route::middleware('ajax')->group(function () {
+                Route::get('/type-json', 'typeJson')->name('ticketsetup.typeJson');
+                Route::get('/category-json', 'categoryJson')->name('ticketsetup.categoryJson');
+                Route::get('/subcategory-json', 'subcategoryJson')->name('ticketsetup.subcategoryJson');
+                Route::get('/priority-json', 'priorityJson')->name('ticketsetup.priorityJson');
+                Route::get('/dept-json', 'deptJson')->name('ticketsetup.deptJson');
+                Route::get('/category-by-type/{ticket_type}', 'categoryByType')->name('ticketsetup.categoryByType');
+                Route::get('/subcategory-by-category/{ticket_categoryid}', 'subcategoryByCategory')->name('ticketsetup.subcategoryByCategory');
+                Route::get('/priority-by-category/{ticket_categoryid}', 'priorityByCategory')->name('ticketsetup.priorityByCategory');
+            });
 
-                   Route::get('/category-json', 'categoryJson')->name('ticketsetup.categoryJson');
+            Route::post('/store-type', 'storeType')->name('ticketsetup.storeType');
+            Route::post('/update-type/{ticket_type}', 'updateType')->name('ticketsetup.updateType');
+            Route::delete('/destroy-type/{ticket_type}', 'destroyType')->name('ticketsetup.destroyType');
 
-                   Route::get('/subcategory-json', 'subcategoryJson')->name('ticketsetup.subcategoryJson');
+            Route::post('/store-category', 'storeCategory')->name('ticketsetup.storeCategory');
+            Route::post('/update-category/{ticket_categoryid}', 'updateCategory')->name('ticketsetup.updateCategory');
+            Route::delete('/destroy-category/{ticket_categoryid}', 'destroyCategory')->name('ticketsetup.destroyCategory');
 
-                   Route::get('/priority-json', 'priorityJson')->name('ticketsetup.priorityJson');
+            Route::post('/store-subcategory', 'storeSubcategory')->name('ticketsetup.storeSubcategory');
+            Route::post('/update-subcategory/{ticket_subcategoryid}', 'updateSubcategory')->name('ticketsetup.updateSubcategory');
+            Route::delete('/destroy-subcategory/{ticket_subcategoryid}', 'destroySubcategory')->name('ticketsetup.destroySubcategory');
 
-                   Route::get('/dept-json', 'deptJson')->name('ticketsetup.deptJson');
+            Route::post('/store-priority', 'storePriority')->name('ticketsetup.storePriority');
+            Route::post('/update-priority/{id}', 'updatePriority')->name('ticketsetup.updatePriority');
+            Route::delete('/destroy-priority/{id}', 'destroyPriority')->name('ticketsetup.destroyPriority');
 
-                   Route::get('/category-by-type/{ticket_type}', 'categoryByType')->name('ticketsetup.categoryByType');
-
-                   Route::get('/subcategory-by-category/{ticket_categoryid}', 'subcategoryByCategory')->name('ticketsetup.subcategoryByCategory');
-
-                   Route::get('/priority-by-category/{ticket_categoryid}', 'priorityByCategory')->name('ticketsetup.priorityByCategory');
-               });
-
-               Route::post('/store-type', 'storeType')->name('ticketsetup.storeType');
-
-               Route::post('/update-type/{ticket_type}', 'updateType')->name('ticketsetup.updateType');
-
-               Route::delete('/destroy-type/{ticket_type}', 'destroyType')->name('ticketsetup.destroyType');
-
-               Route::post('/store-category', 'storeCategory')->name('ticketsetup.storeCategory');
-
-               Route::post('/update-category/{ticket_categoryid}', 'updateCategory')->name('ticketsetup.updateCategory');
-
-               Route::delete('/destroy-category/{ticket_categoryid}', 'destroyCategory')->name('ticketsetup.destroyCategory');
-
-               Route::post('/store-subcategory', 'storeSubcategory')->name('ticketsetup.storeSubcategory');
-
-               Route::post('/update-subcategory/{ticket_subcategoryid}', 'updateSubcategory')->name('ticketsetup.updateSubcategory');
-
-               Route::delete('/destroy-subcategory/{ticket_subcategoryid}', 'destroySubcategory')->name('ticketsetup.destroySubcategory');
-
-               Route::post('/store-priority', 'storePriority')->name('ticketsetup.storePriority');
-
-               Route::post('/update-priority/{id}', 'updatePriority')->name('ticketsetup.updatePriority');
-
-               Route::delete('/destroy-priority/{id}', 'destroyPriority')->name('ticketsetup.destroyPriority');
-
-               Route::post('/store-dept', 'storeDept')->name('ticketsetup.storeDept');
-
-               Route::post('/update-dept/{id}', 'updateDept')->name('ticketsetup.updateDept');
-
-               Route::delete('/destroy-dept/{id}', 'destroyDept')->name('ticketsetup.destroyDept');
+            Route::post('/store-dept', 'storeDept')->name('ticketsetup.storeDept');
+            Route::post('/update-dept/{id}', 'updateDept')->name('ticketsetup.updateDept');
+            Route::delete('/destroy-dept/{id}', 'destroyDept')->name('ticketsetup.destroyDept');
         });
 
-        Route::prefix('access-request')
-            ->controller(AccessRequestController::class)->group(function () {
-                Route::get('/', 'index')->name('accessrequest');
+        Route::prefix('access-request')->controller(AccessRequestController::class)->group(function () {
+            Route::get('/', 'index')->name('accessrequest');
 
-                Route::middleware('ajax')->group(function () {
-                    Route::get('/json', 'json')->name('access-request.json');
-
-                    Route::get('/detail/{hash}', 'detail')->name('access-request.detail');
-
-                    Route::get('/tracking/{hash}', 'tracking')->name('access-request.tracking');
-
-                    Route::get('/comments/{hash}', 'comments')->name('access-request.comments');
-
-                    Route::get('/category-search', 'categorySearch')->name('access-request.category-search');
-                });
-
-                Route::post('/store', 'store')->name('access-request.store');
-
-                Route::post('/update/{hash}', 'update')->name('access-request.update');
-
-                Route::post('/cancel/{hash}', 'cancel')->name('access-request.cancel');
-
-                Route::post('/upload-attachment', 'uploadAttachment')
-                    ->name('access-request.upload-attachment');
-
-                Route::post('/approve/{docid}', 'approve')->name('access-request.approve');
-
-                Route::post('/reject/{docid}', 'reject')->name('access-request.reject');
-
-                Route::post('/revise/{docid}', 'revise')->name('access-request.revise');
-
-                Route::post('/process-hardware/{hash}', 'processHardware')
-                    ->name('access-request.process-hardware');
-
-                Route::post('/process-software/{hash}', 'processSoftware')
-                    ->name('access-request.process-software');
-
-                Route::post('/comment/{hash}', 'comment')
-                    ->name('access-request.comment');
-
-                Route::get('/print/{hash}', 'print')
-                    ->name('access-request.print');
+            Route::middleware('ajax')->group(function () {
+                Route::get('/json', 'json')->name('access-request.json');
+                Route::get('/detail/{hash}', 'detail')->name('access-request.detail');
+                Route::get('/tracking/{hash}', 'tracking')->name('access-request.tracking');
+                Route::get('/comments/{hash}', 'comments')->name('access-request.comments');
+                Route::get('/category-search', 'categorySearch')->name('access-request.category-search');
             });
+
+            Route::post('/store', 'store')->name('access-request.store');
+            Route::post('/update/{hash}', 'update')->name('access-request.update');
+            Route::post('/cancel/{hash}', 'cancel')->name('access-request.cancel');
+
+            Route::post('/upload-attachment', 'uploadAttachment')->name('access-request.upload-attachment');
+
+            Route::post('/approve/{docid}', 'approve')->name('access-request.approve');
+            Route::post('/reject/{docid}', 'reject')->name('access-request.reject');
+            Route::post('/revise/{docid}', 'revise')->name('access-request.revise');
+
+            Route::post('/process-hardware/{hash}', 'processHardware')->name('access-request.process-hardware');
+            Route::post('/process-software/{hash}', 'processSoftware')->name('access-request.process-software');
+
+            Route::post('/comment/{hash}', 'comment')->name('access-request.comment');
+
+            Route::get('/print/{hash}', 'print')->name('access-request.print');
+        });
 
         Route::controller(AccessRequestController::class)->group(function () {
             Route::get('/showaccessrequest/{eid}', 'index');
-
             Route::get('/editaccessrequest/{eid}', 'index');
-
             Route::get('/processhardwareaccess/{eid}', 'index');
-
             Route::get('/processsoftwareaccess/{eid}', 'index');
         });
 
         Route::controller(MeetingController::class)->group(function () {
-            Route::get('/meeting', 'index')
-                ->name('meeting');
-
+            Route::get('/meeting', 'index')->name('meeting');
             Route::get('/inforoom_{id}', 'getRoom');
 
-            Route::post('/savemeeting', 'storeMeeting')
-                ->name('meeting.store');
+            Route::post('/savemeeting', 'storeMeeting')->name('meeting.store');
+            Route::put('/updatemeeting/{id}', 'updateMeeting')->name('updatemeeting');
 
-            Route::put('/updatemeeting/{id}', 'updateMeeting')
-                ->name('updatemeeting');
-
-            Route::get('/meetinglist/json', 'json')
-                ->name('meetinglist.json');
-
-            Route::get('/calendar-json', 'calendarJson')
-                ->name('meeting.calendarJson');
+            Route::get('/meetinglist/json', 'json')->name('meetinglist.json');
+            Route::get('/calendar-json', 'calendarJson')->name('meeting.calendarJson');
 
             Route::get('/get-accessories/{id}', 'getAccessories');
 
-            Route::get('/meetingteams', 'MeetingTeams')
-                ->name('meetingteams');
+            Route::get('/meetingteams', 'MeetingTeams')->name('meetingteams');
 
-            Route::post('/saveteams', 'storeTeams')
-                ->name('teams.store');
+            Route::post('/saveteams', 'storeTeams')->name('teams.store');
 
             Route::put('/updateteams/{id}', 'updateTeams');
 
             Route::post('/cancel-meeting/{id}', 'cancelMeeting');
 
-            Route::get('/teamslist/json', 'jsonTeams')
-                ->name('teamslist.json');
+            Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
 
             Route::post('/update-zoom/{id}', 'updateZoomLink');
         });
 
-        Route::controller(MeetingRoomSetupController::class)
-            ->prefix('meetingroom/setup')
-            ->name('meetingroom.setup.')
-            ->group(function () {
-                Route::get('/', 'index')
-                    ->name('index');
+        Route::controller(MeetingRoomSetupController::class)->prefix('meetingroom/setup')->name('meetingroom.setup.')->group(function () {
+            Route::get('/', 'index')->name('index');
 
-                Route::get('/room/json', 'jsonRoom')
-                    ->name('room.json');
+            Route::get('/room/json', 'jsonRoom')->name('room.json');
+            Route::get('/room/find/{id}', 'findRoom')->name('room.find');
 
-                Route::get('/room/find/{id}', 'findRoom')
-                    ->name('room.find');
+            Route::post('/room/store', 'storeRoom')->name('room.store');
+            Route::post('/room/update/{id}', 'updateRoom')->name('room.update');
+            Route::post('/room/status/{id}', 'updateRoomStatus')->name('room.status');
 
-                Route::post('/room/store', 'storeRoom')
-                    ->name('room.store');
+            Route::get('/accessories/json', 'jsonAccessories')->name('accessories.json');
+            Route::get('/accessories/find/{id}', 'findAccessories')->name('accessories.find');
 
-                Route::post('/room/update/{id}', 'updateRoom')
-                    ->name('room.update');
-
-                Route::post('/room/status/{id}', 'updateRoomStatus')
-                    ->name('room.status');
-
-                Route::get('/accessories/json', 'jsonAccessories')
-                    ->name('accessories.json');
-
-                Route::get('/accessories/find/{id}', 'findAccessories')
-                    ->name('accessories.find');
-
-                Route::post('/accessories/store', 'storeAccessories')
-                    ->name('accessories.store');
-
-                Route::post('/accessories/update/{id}', 'updateAccessories')
-                    ->name('accessories.update');
-
-                Route::post('/accessories/status/{id}', 'updateAccessoriesStatus')
-                    ->name('accessories.status');
-            });
+            Route::post('/accessories/store', 'storeAccessories')->name('accessories.store');
+            Route::post('/accessories/update/{id}', 'updateAccessories')->name('accessories.update');
+            Route::post('/accessories/status/{id}', 'updateAccessoriesStatus')->name('accessories.status');
+        });
 
         Route::prefix('it-recommendation')->controller(ItRecommendationController::class)->group(function () {
             Route::get('/', 'index')->name('it-recommendation');
 
             Route::middleware('ajax')->group(function () {
                 Route::get('/json', 'json')->name('it-recommendation.json');
-
                 Route::get('/detail/{hash}', 'detail')->name('it-recommendation.detail');
-
                 Route::get('/tracking/{hash}', 'tracking')->name('it-recommendation.tracking');
-
                 Route::get('/comments/{docid}', 'comments')->name('it-recommendation.comments');
-
                 Route::get('/inventory-search', 'inventorySearch')->name('it-recommendation.inventory-search');
-
                 Route::get('/ticket-search', 'ticketSearch')->name('it-recommendation.ticket-search');
             });
 
             Route::post('/store', 'store')->name('it-recommendation.store');
-
             Route::post('/update/{hash}', 'update')->name('it-recommendation.update');
-
             Route::post('/cancel/{hash}', 'cancel')->name('it-recommendation.cancel');
-
             Route::post('/process/{hash}', 'process')->name('it-recommendation.process');
-
             Route::post('/it-revise/{hash}', 'itRevise')->name('it-recommendation.it-revise');
-
             Route::post('/it-reject/{hash}', 'itReject')->name('it-recommendation.it-reject');
-
             Route::post('/approve/{docid}', 'approve')->name('it-recommendation.approve');
-
             Route::post('/reject/{docid}', 'reject')->name('it-recommendation.reject');
-
             Route::post('/revise/{docid}', 'revise')->name('it-recommendation.revise');
-
             Route::post('/comment/{hash}', 'comment')->name('it-recommendation.comment');
-
             Route::get('/print/{hash}', 'print')->name('it-recommendation.print');
         });
 
         Route::controller(ItRecommendationController::class)->group(function () {
             Route::get('/showitrecommendation/{eid}', 'index');
-
             Route::get('/edititrecommendation/{eid}', 'index');
-
             Route::get('/processitrecommendation/{eid}', 'index');
-
             Route::get('/edit-processitrecommendation/{eid}', 'index');
-
             Route::get('/createitrecommendation', 'index');
         });
+
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
