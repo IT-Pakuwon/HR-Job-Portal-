@@ -42,13 +42,11 @@ class TicketController extends Controller
         'response' => [
             'CREATED',
             'TRANSFER',
-            'REOPEN',
         ],
 
         'process' => [
             'RESPONSE',
             'PENDING',
-            'ENVISION',
         ],
 
         'pending' => [
@@ -57,6 +55,7 @@ class TicketController extends Controller
 
         'envision' => [
             'PENDING',
+            'PROCESS',
         ],
 
         'complete' => [
@@ -67,7 +66,6 @@ class TicketController extends Controller
 
         'transfer' => [
             'CREATED',
-            'RESPONSE',
             'TRANSFER',
             'REOPEN',
         ],
@@ -1038,7 +1036,7 @@ class TicketController extends Controller
 
             'ticket_priority' => 'required',
 
-            'response_descr' => 'required',
+            'response_descr' => 'nullable',
 
             'working_start_date' => 'nullable|date',
 
@@ -1200,7 +1198,7 @@ class TicketController extends Controller
         );
         $request->validate([
 
-            'response_descr' => 'required',
+            'response_descr' => 'nullable',
 
             'working_start_date' =>
             'nullable|date',
@@ -2196,7 +2194,7 @@ class TicketController extends Controller
 
         abort_if(
             $ticket->status !== 'C'
-            || $ticket->status_pekerjaan !== 'COMPLETED',
+                || $ticket->status_pekerjaan !== 'COMPLETED',
             403
         );
 
@@ -2633,14 +2631,18 @@ class TicketController extends Controller
 
         $locations = MsLocation::query()
             ->where('status', 'A')
-            ->whereIn('cpny_id', $userCompanies)
+            ->where(function ($q) use ($userCompanies) {
+
+                $q->whereIn('cpny_id', $userCompanies)
+                ->orWhere('cpny_id', 'ALL');
+
+            })
             ->orderBy('location_name')
             ->get([
                 'location_id',
                 'location_name',
                 'cpny_id',
             ]);
-
         $types = MsTicketType::query()
             ->where('status', 'A')
             ->orderBy('ticket_type_name')
@@ -2710,31 +2712,68 @@ class TicketController extends Controller
             ->where('status', 'A');
 
         if ($request->filled('ticket_type')) {
-            $query->where('ticket_type', $request->ticket_type);
+
+            $query->where(
+                'ticket_type',
+                $request->ticket_type
+            );
         }
 
         if ($request->filled('ticket_categoryid')) {
-            $query->where('ticket_categoryid', $request->ticket_categoryid);
+
+            $query->where(
+                'ticket_categoryid',
+                $request->ticket_categoryid
+            );
         }
 
         return response()->json([
+
             'results' => $query
+                ->orderBy('ticket_priority_name')
                 ->get()
                 ->map(function ($row) {
+
                     return [
+
                         'id' => $row->ticket_priority,
+
                         'text' => $row->ticket_priority_name,
+
                         'sla_days' => $row->ticket_sla_days,
+
                     ];
                 }),
+
         ]);
     }
 
     public function locationSearch(Request $request)
     {
+        $user = auth()->user();
+
+        $userCompanies = collect(
+            explode(',', $user->cpny_id)
+        )
+            ->map(fn($item) => trim($item))
+            ->filter()
+            ->values()
+            ->toArray();
 
         $query = MsLocation::query()
-            ->where('status', 'A');
+            ->where('status', 'A')
+            ->where(function ($q) use ($userCompanies) {
+
+                $q->whereIn(
+                    'cpny_id',
+                    $userCompanies
+                )
+                ->orWhere(
+                    'cpny_id',
+                    'all'
+                );
+
+            });
 
         return response()->json([
 
@@ -2750,6 +2789,7 @@ class TicketController extends Controller
                         'text' => $row->location_name,
 
                     ];
+
                 }),
 
         ]);
@@ -2979,7 +3019,7 @@ class TicketController extends Controller
                 && $ticket->status === 'P'
                 && $ticket->status_pekerjaan === 'CREATED',
 
-           'can_cancel' => (
+            'can_cancel' => (
 
                 (
                     $isRequester
@@ -3000,7 +3040,6 @@ class TicketController extends Controller
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
                     'CREATED',
-                    'REOPEN',
                     'TRANSFER',
                 ]),
 
@@ -3009,7 +3048,6 @@ class TicketController extends Controller
                 && in_array($ticket->status_pekerjaan, [
                     'RESPONSE',
                     'PENDING',
-                    'ENVISION',
                 ]),
 
             'can_pending' => $isPIC
@@ -3031,7 +3069,6 @@ class TicketController extends Controller
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
                     'CREATED',
-                    'RESPONSE',
                     'TRANSFER',
                     'REOPEN',
                 ]),
@@ -3044,7 +3081,7 @@ class TicketController extends Controller
                     'ENVISION',
                 ]),
 
-           'can_reopen' => $isIT
+            'can_reopen' => $isIT
                 && $ticket->status === 'C'
                 && $ticket->status_pekerjaan === 'COMPLETED',
         ];

@@ -162,7 +162,7 @@
                         </div>
 
                         <textarea id="response_descr" name="response_descr" rows="5" class="form-textarea w-full"
-                            placeholder="Write response description..." required></textarea>
+                            placeholder="Write response description..."></textarea>
 
                     </div>
 

@@ -167,8 +167,7 @@
                                     name="response_descr"
                                     rows="5"
                                     class="form-textarea w-full"
-                                    placeholder="Write current process progress..."
-                                    required></textarea>
+                                    placeholder="Write current process progress..."></textarea>
 
                             </div>
 
