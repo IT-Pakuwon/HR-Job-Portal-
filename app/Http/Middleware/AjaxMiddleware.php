@@ -9,10 +9,11 @@ class AjaxMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->ajax()) {
-
+        if (
+            !$request->ajax() &&
+            !$request->expectsJson()
+        ) {
             abort(404);
-
         }
 
         return $next($request);

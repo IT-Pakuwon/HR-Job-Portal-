@@ -20,7 +20,7 @@
             <!-- TITLE -->
             <div>
 
-                <h1 class="text-lg font-semibold tracking-tight text-gray-900">
+                <h1 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-200">
 
                     Booking Car
 
