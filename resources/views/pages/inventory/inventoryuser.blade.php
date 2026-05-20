@@ -182,8 +182,8 @@
                                 return v;
                             }
 
-                           return n.toLocaleString('id-ID', {
-                                minimumFractionDigits: 2,
+                            return n.toLocaleString('id-ID', {
+                                minimumFractionDigits: 0,
                                 maximumFractionDigits: 2
                             });
                         }
