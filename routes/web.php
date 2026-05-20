@@ -1168,8 +1168,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/calrnonpurch', [CalrNonPurchController::class, 'index'])->name('calrnonpurch');
     Route::get('/calrnonpurch/json', [CalrNonPurchController::class, 'json'])->name('calrnonpurch.json');
     Route::get('/showcalrnonpurch/{hash}', [CalrNonPurchController::class, 'showCalrNonPurch']);
-    Route::get('/pdf_calrnonpurch/{hash}', [CalrNonPurchController::class, 'printCalrNonPurch'])->name('calrnonpurch.print');
-    Route::get('/pdf_calrnonpurch_vendor/{hash}', [CalrNonPurchController::class, 'printCalrVendor'])->name('calrnonpurch.printvendor');
+    // Route::get('/pdf_calrnonpurch/{hash}', [CalrNonPurchController::class, 'printCalrNonPurch'])->name('calrnonpurch.print');
+    // Route::get('/pdf_calrnonpurch_vendor/{hash}', [CalrNonPurchController::class, 'printCalrVendor'])->name('calrnonpurch.printvendor');
     Route::get('/calrnonpurch/create', [CalrNonPurchController::class, 'createCalrNonPurch'])->name('calrnonpurch.create');
     Route::post('/calrnonpurch', [CalrNonPurchController::class, 'storeCalrNonPurch'])->name('calrnonpurch.store');
     Route::get('/editcalrnonpurch/{hash}', [CalrNonPurchController::class, 'editCalrNonPurch'])->name('calrnonpurch.edit');
@@ -1182,6 +1182,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/calrnonpurch/{hash}/reminder', [CalrNonPurchController::class, 'reminderCalrNonPurch'])->name('calrnonpurch.reminder');
     Route::post('/calrnonpurch/{hash}/finance-revise', [CalrNonPurchController::class, 'financeReviseCalrNonPurch'])->name('calrnonpurch.finance-revise');
+    Route::get('/printcalrnonpurch/{hash}', [CalrNonPurchController::class, 'printPdfCalrNonPurch'])->name('calrnonpurch.print');
 
     Route::get('/parkingregistration', [ParkingRegistrationController::class, 'index'])->name('parkingregistration');
     Route::get('/parkingregistration/json', [ParkingRegistrationController::class, 'json'])->name('parkingregistration.json');
@@ -1198,6 +1199,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/parkingregistration/{id}/revise', [ParkingRegistrationController::class, 'reviseParkingRegistration']);
 
     Route::get('/parkingregistration/employees', [ParkingRegistrationController::class, 'employeesByFilter'])->name('parkingregistration.employees');
+    Route::put('/parkingregistration/{docid}/cancel', [ParkingRegistrationController::class, 'cancelParkingRegistration'])->name('parkingregistration.cancel');
+    Route::put('/parking-kendaraan/{id}/toggle-status', [ParkingRegistrationController::class, 'toggleStatusParkingKendaraan'])->name('parkingkendaraan.toggleStatus');
+    Route::put('/parking-kendaraan/{id}/no-kartu', [ParkingRegistrationController::class, 'updateNoKartuParkingKendaraan'])->name('parkingkendaraan.updateNoKartu');
+    
 
 
     Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv');

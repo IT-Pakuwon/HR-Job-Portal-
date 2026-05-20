@@ -11,11 +11,11 @@
                     class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-600">
                     Revise
                 </button>
-
+{{-- 
                 <button id="rejectBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200">
                     Reject
-                </button>
+                </button> --}}
             </div>
         </div>
 

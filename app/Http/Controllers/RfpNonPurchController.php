@@ -2011,10 +2011,11 @@ class RfpNonPurchController extends Controller
         // STATUS DOC (FOR COLOR)
         // =========================
         $status_doc = match ($rfpnonpurch->status) {
-            'P' => 'Waiting Approval',
+            'P' => 'On Progress',
             'R' => 'Rejected',
-            'D' => 'Revised',
+            'D' => 'Revise',
             'C' => 'Completed',
+            'X' => 'Cancel',
             default => 'Unknown',
         };
 

@@ -4,14 +4,14 @@
         $user = auth()->user();
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
 
-        $xlCols = 5;
+        $xlCols = 4;
         if ($hasRfpAllAccess) {
             $xlCols++;
         }
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 
             <a href="#" class="status-filter group block h-full" data-status="">
                 <div class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
@@ -33,7 +33,7 @@
                 </div>
             </a>
 
-            <a href="#" class="status-filter group block h-full" data-status="R">
+            {{-- <a href="#" class="status-filter group block h-full" data-status="R">
                 <div class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⛔️</div>
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
@@ -41,7 +41,7 @@
                     </div>
                     <p class="shrink-0 text-base font-extrabold">{{ $reject }}</p>
                 </div>
-            </a>
+            </a> --}}
 
             <a href="#" class="status-filter group block h-full" data-status="D">
                 <div class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
@@ -375,6 +375,8 @@
                             `;
 
                             let receiveItem = '';
+                            let reviseItem = '';
+                            let reminderItem = '';
 
                             if (receiveAllowed) {
                                 receiveItem = `
@@ -389,12 +391,54 @@
                                         ${escapeHtml(receiveText)}
                                     </button>
                                 `;
+
+                                reviseItem = `
+                                    <button type="button"
+                                        class="rfp-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-mode="revise"
+                                        data-action="update"
+                                        ${commonData}
+                                        data-user=""
+                                        data-date=""
+                                        data-button-text="Submit Revise">
+                                        Revise
+                                    </button>
+                                `;
+
+                                reminderItem = `
+                                    <button type="button"
+                                        class="rfp-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-mode="reminder"
+                                        data-action="update"
+                                        ${commonData}
+                                        data-user=""
+                                        data-date=""
+                                        data-button-text="Send Reminder">
+                                        Reminder
+                                    </button>
+                                `;
                             } else {
                                 receiveItem = `
                                     <button type="button"
                                         class="block w-full cursor-not-allowed px-4 py-2 text-left text-sm text-gray-400"
                                         disabled>
                                         Receive / Rollback
+                                    </button>
+                                `;
+
+                                reviseItem = `
+                                    <button type="button"
+                                        class="block w-full cursor-not-allowed px-4 py-2 text-left text-sm text-gray-400"
+                                        disabled>
+                                        Revise
+                                    </button>
+                                `;
+
+                                reminderItem = `
+                                    <button type="button"
+                                        class="block w-full cursor-not-allowed px-4 py-2 text-left text-sm text-gray-400"
+                                        disabled>
+                                        Reminder
                                     </button>
                                 `;
                             }
@@ -409,31 +453,11 @@
 
                                     <div class="rfp-action-dropdown fixed z-[9999] hidden w-52 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
                                         ${receiveItem}
-
-                                        <button type="button"
-                                            class="rfp-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            data-mode="revise"
-                                            data-action="update"
-                                            ${commonData}
-                                            data-user=""
-                                            data-date=""
-                                            data-button-text="Submit Revise">
-                                            Revise
-                                        </button>
-
-                                        <button type="button"
-                                            class="rfp-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            data-mode="reminder"
-                                            data-action="update"
-                                            ${commonData}
-                                            data-user=""
-                                            data-date=""
-                                            data-button-text="Send Reminder">
-                                            Reminder
-                                        </button>
+                                        ${reviseItem}
+                                        ${reminderItem}
                                     </div>
                                 </div>
-                            `;
+                            `;                           
                         }
                     },
 
@@ -555,6 +579,15 @@
                     return;
                 }
 
+                if (
+                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder') &&
+                    !hasApFinAccess &&
+                    !hasApTreAccess
+                ) {
+                    toastr.error('You are not authorized to process this action.');
+                    return;
+                }
+
                 const rfpid = $(this).data('rfpid');
                 const keperluan = $(this).data('keperluan');
                 const amount = $(this).data('amount');
@@ -643,6 +676,15 @@
 
                 if (selectedActionMode === 'treasury' && !hasApTreAccess) {
                     toastr.error('You are not authorized to update or rollback payment.');
+                    return;
+                }
+
+                if (
+                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder') &&
+                    !hasApFinAccess &&
+                    !hasApTreAccess
+                ) {
+                    toastr.error('You are not authorized to process this action.');
                     return;
                 }
 

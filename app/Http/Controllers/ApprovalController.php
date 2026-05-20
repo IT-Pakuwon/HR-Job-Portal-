@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\MsApproval;
 use App\Models\TrApproval;
+use App\Models\TrApprovalHistory;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -615,7 +616,7 @@ class ApprovalController extends Controller
     /** ===========================================
      *  4) API untuk Blade/UI
      *  =========================================== */
-    public function getApprovalByDocument(string $refnbr, string $doctype)
+    public function getApprovalByDocument_xxx(string $refnbr, string $doctype)
     {
         $query = TrApproval::query()
             ->where('refnbr', $refnbr)
@@ -641,6 +642,78 @@ class ApprovalController extends Controller
         return response()->json([
             'refnbr'  => $refnbr,
             'doctype' => $doctype,
+            'data'    => $rows,
+        ]);
+    }
+
+    public function getApprovalByDocument(string $refnbr, string $doctype)
+    {
+        $approvalColumns = [
+            'aprv_leveling',
+            'aprv_name',
+            'aprv_datebefore',
+            'aprv_dateafter',
+            'status',
+            'aprv_type',
+            'aprv_condition',
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Order aman untuk aprv_leveling
+        |--------------------------------------------------------------------------
+        | aprv_leveling bisa numeric atau varchar.
+        | Jadi casting dulu ke text saat pakai regex.
+        |--------------------------------------------------------------------------
+        */
+        $orderByApprovalLevel = "
+            CASE 
+                WHEN aprv_leveling::text ~ '^[0-9]+(\\.[0-9]+)?$' 
+                THEN CAST(aprv_leveling AS numeric)
+                ELSE 999999
+            END ASC
+        ";
+
+        /*
+        |--------------------------------------------------------------------------
+        | 1) Baca approval aktif dari tr_approval
+        |--------------------------------------------------------------------------
+        */
+        $rows = TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('aprv_doctype', $doctype)
+            ->where('status', '<>', 'X')
+            ->reorder()
+            ->orderBy('created_at', 'asc')
+            ->orderByRaw($orderByApprovalLevel)
+            ->orderBy('id', 'asc')
+            ->get($approvalColumns);
+
+        $source = 'tr_approval';
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2) Kalau tr_approval kosong, fallback ke tr_approval_history
+        |--------------------------------------------------------------------------
+        */
+        if ($rows->isEmpty()) {
+            $rows = TrApprovalHistory::query()
+                ->where('refnbr', $refnbr)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', '<>', 'X')
+                ->reorder()
+                ->orderBy('created_at', 'asc')
+                ->orderByRaw($orderByApprovalLevel)
+                ->orderBy('id', 'asc')
+                ->get($approvalColumns);
+
+            $source = 'tr_approval_history';
+        }
+
+        return response()->json([
+            'refnbr'  => $refnbr,
+            'doctype' => $doctype,
+            'source'  => $source,
             'data'    => $rows,
         ]);
     }
