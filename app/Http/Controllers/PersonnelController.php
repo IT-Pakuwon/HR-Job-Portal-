@@ -958,7 +958,7 @@ class PersonnelController extends Controller
             'state_position' => 'required|string',
             'job_type' => 'required|string|in:Replacement,New',
             'reason_vacancy' => 'required|string',
-            'required' => 'required|integer|min:1',
+            'required' => 'required|integer|min:0',
             'actual' => 'required|integer|min:0',
             'total_actual' => 'required|integer|min:0',
             // 'attachments.*' => 'file|max:20480', // opsional, 20MB
