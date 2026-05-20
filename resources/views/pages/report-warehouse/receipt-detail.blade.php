@@ -112,6 +112,8 @@
                         <th class="px-3 py-3 text-left">COA</th>
                         <th class="px-3 py-3 text-left">Activity</th>
 
+                        <th class="px-3 py-3 text-left">Receipt Note</th>
+
                     </tr>
 
                 </thead>
@@ -223,6 +225,9 @@
                 },
                 {
                     data: 'budget_activity_id'
+                },
+                {
+                    data: 'receiptnote'
                 }
 
             ]

@@ -142,6 +142,7 @@ class ReportWarehouseController extends Controller
 
                 'd.inventoryid',
                 'd.inventory_descr',
+                'h.receiptnote',
 
                 'd.qtyordered',
                 'd.qty_received',
@@ -898,6 +899,8 @@ class ReportWarehouseController extends Controller
                 'COA' => $row->budget_account_id,
 
                 'Activity' => $row->budget_activity_id,
+
+                'Receipt Note' => $row->receiptnote,
 
             ];
         });
