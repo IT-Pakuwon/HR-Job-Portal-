@@ -3,7 +3,7 @@
     <!-- FILTER PANEL -->
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-8">
 
             <!-- Date From -->
             <div>
@@ -30,6 +30,22 @@
             <div>
                 <label class="text-xs text-gray-500">Vendor</label>
                 <input type="text" id="bast_vendor"
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+            </div>
+
+            <!-- CS No -->
+            <div>
+                <label class="text-xs text-gray-500">CS No</label>
+                <input type="text" id="bast_csid"
+                    placeholder="CSxxxx"
+                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+            </div>
+
+            <!-- SPPBJKT No -->
+            <div>
+                <label class="text-xs text-gray-500">SPPBJKT No</label>
+                <input type="text" id="bast_sppbjktid"
+                    placeholder="SPPBJKTxxxx"
                     class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
             </div>
 
@@ -119,6 +135,9 @@
                     d.date_to = $('#bast_date_to').val();
                     d.bastid = $('#bast_id').val();
                     d.vendor = $('#bast_vendor').val();
+
+                    d.csid = $('#bast_csid').val();
+                    d.sppbjktid = $('#bast_sppbjktid').val();
                 }
             },
 
@@ -264,7 +283,7 @@
         $('#bastFilter').click(() => table.ajax.reload());
 
         $('#bastReset').click(function() {
-            $('#bast_date_from, #bast_date_to, #bast_id, #bast_vendor').val('');
+            $('#bast_date_from, #bast_date_to, #bast_id, #bast_vendor, #bast_csid, #bast_sppbjktid').val('');
             table.ajax.reload();
         });
 
@@ -276,6 +295,8 @@
             url += "&date_to=" + $('#bast_date_to').val();
             url += "&bastid=" + $('#bast_id').val();
             url += "&vendor=" + $('#bast_vendor').val();
+            url += "&csid=" + $('#bast_csid').val();
+            url += "&sppbjktid=" + $('#bast_sppbjktid').val();
 
             window.location.href = url;
         });

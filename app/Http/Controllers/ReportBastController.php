@@ -75,6 +75,16 @@ class ReportBastController extends Controller
             $query->where('b.vendorname', 'ilike', "%{$request->vendor}%");
         }
 
+        // CS No
+        if ($request->csid) {
+            $query->where('b.csid', 'ilike', "%{$request->csid}%");
+        }
+
+        // SPPBJKT No
+        if ($request->sppbjktid) {
+            $query->where('b.sppbjktid', 'ilike', "%{$request->sppbjktid}%");
+        }
+
         return $query;
     }
 
