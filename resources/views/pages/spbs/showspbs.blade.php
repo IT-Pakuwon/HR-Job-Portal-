@@ -384,6 +384,7 @@
                                 <th class="px-4 py-2">No</th>
                                 <th class="px-4 py-2">Inventory ID</th>
                                 <th class="px-4 py-2">Description / Note</th>
+                                <th class="px-4 py-2">Stock</th>
                                 <th class="px-4 py-2">Qty / UoM</th>
                                 <th class="px-4 py-2">Location</th>
                                 <th class="px-4 py-2">Budget Department</th>
@@ -422,6 +423,15 @@
                                             </div>
                                         @endif
                                     </td>
+
+                                    <!-- Stock -->
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium">
+                                           {{ $item->stock_qty ?? '-' }}
+                                        </div>
+                                    </td>
+
+
 
                                     <!-- Qty -->
                                     <td class="px-4 py-3 text-center">

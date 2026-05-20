@@ -1378,6 +1378,7 @@ class SpbController extends Controller
                 'spb_no',
                 'inventoryid',
                 'inventory_descr',
+                'stock_qty',
                 'siteid',
                 'uom',
                 'qty',
