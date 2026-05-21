@@ -173,15 +173,14 @@
                                 {{ $statusText }}
                             </span>
 
-                            {{-- Aktifkan kalau route PDF sudah ada --}}
-                            {{-- 
-                            <a href="{{ url('/pdf_calrnonpurch') }}/{{ $hash }}" target="_blank">
-                                <button
-                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                            {{-- Aktifkan kalau route PDF sudah ada --}}           
+                            <a href="{{ url('/printcalrnonpurch') }}/{{ $hash }}" target="_blank">
+                                    <button
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                 </button>
-                            </a> 
-                            --}}
+                            </a>
+                           
                         </div>
                     </header>
 

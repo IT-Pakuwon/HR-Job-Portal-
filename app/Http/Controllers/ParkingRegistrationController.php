@@ -20,6 +20,7 @@ use App\Models\SysUserRole;
 use App\Models\MsCategory;
 use App\Models\MsSite;
 use App\Models\MsParkingKendaraan;
+use App\Models\MsKendaraan;
 
 use Mail;
 use PDF;
@@ -288,22 +289,23 @@ class ParkingRegistrationController extends Controller
         $departmentId    = trim((string) $request->query('department_id', ''));
 
         $columns = [
-            0  => 'mk.site_id_parking',
-            1  => 'mk.site_id_parking',
-            2  => 'mk.nama',
-            3  => 'mk.nopol',
-            4  => 'mk.jenis_kendaraan',
-            5  => 'mk.parking_type',
-            6  => 'mk.worker_type',
-            7  => 'mk.department_id',
-            8  => 'mk.perpost',
-            9  => 'mk.startdate',
-            10 => 'mk.enddate',
-            11 => 'mk.no_kartu',
-            12 => 'mk.attach_stnk',
-            13 => 'mk.attach_idcard',
-            14 => 'mk.attach_bukti_bayar',
-            15 => 'mk.status',
+            0  => 'mk.id',
+            1  => 'mk.id',
+            2  => 'mk.site_id_parking',
+            3  => 'mk.nama',
+            4  => 'mk.nopol',
+            5  => 'mk.jenis_kendaraan',
+            6  => 'mk.parking_type',
+            7  => 'mk.worker_type',
+            8  => 'mk.department_id',
+            9  => 'mk.perpost',
+            10 => 'mk.startdate',
+            11 => 'mk.enddate',
+            12 => 'mk.no_kartu',
+            13 => 'mk.attach_stnk',
+            14 => 'mk.attach_idcard',
+            15 => 'mk.attach_bukti_bayar',
+            16 => 'mk.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 1);
@@ -361,26 +363,26 @@ class ParkingRegistrationController extends Controller
         $recordsFiltered = (clone $base)->count();
 
         $data = $base->select([
-                'mk.id',
-                'mk.site_id_parking',
-                'mk.parking_type',
-                'mk.worker_type',
-                'mk.nopol',
-                'mk.jenis_kendaraan',
-                'mk.username',
-                'mk.nama',
-                'mk.cpny_id',
-                'mk.department_id',
-                'mk.perpost',
-                'mk.startdate',
-                'mk.enddate',
-                'mk.no_kartu',
-                'mk.attach_stnk',
-                'mk.attach_idcard',
-                'mk.attach_bukti_bayar',
-                'mk.status',
-                'mk.created_at',
-            ])
+            'mk.id',
+            'mk.site_id_parking',
+            'mk.parking_type',
+            'mk.worker_type',
+            'mk.nopol',
+            'mk.jenis_kendaraan',
+            'mk.username',
+            'mk.nama',
+            'mk.cpny_id',
+            'mk.department_id',
+            'mk.perpost',
+            'mk.startdate',
+            'mk.enddate',
+            'mk.no_kartu',
+            'mk.attach_stnk',
+            'mk.attach_idcard',
+            'mk.attach_bukti_bayar',
+            'mk.status',
+            'mk.created_at',
+        ])
             ->orderBy($orderCol, $orderDir)
             ->skip($start)
             ->take($length)
@@ -448,9 +450,19 @@ class ParkingRegistrationController extends Controller
         return $data->transform(function ($row) use ($siteMap, $parkingTypeMap, $workerTypeMap, $type) {
             if ($type === 'parking' && isset($row->id)) {
                 $row->eid = Hashids::encode($row->id);
+                unset($row->id);
             }
 
-            unset($row->id);
+            /*
+            |--------------------------------------------------------------------------
+            | PENTING:
+            |--------------------------------------------------------------------------
+            | Untuk master kendaraan, id jangan di-unset.
+            | Karena dipakai tombol:
+            | /parking-kendaraan/{id}/toggle-status
+            | /parking-kendaraan/{id}/no-kartu
+            |--------------------------------------------------------------------------
+            */
 
             $row->row_type = $type;
 
@@ -597,6 +609,69 @@ class ParkingRegistrationController extends Controller
         $parkingType  = strtoupper(trim((string) $request->query('parking_type', '')));
         $workerType   = strtoupper(trim((string) $request->query('worker_type', '')));
         $search       = trim((string) $request->query('q', ''));
+
+        /*
+        |--------------------------------------------------------------------------
+        | Worker Type = OPRVEHICLES
+        |--------------------------------------------------------------------------
+        | Name dropdown diambil dari ms_kendaraan.
+        | Yang ditampilkan: namakendaraan
+        | Auto isi:
+        | - nopol = no_polisi
+        | - jenis_kendaraan = typekendaraan
+        |--------------------------------------------------------------------------
+        */
+        if (
+            $workerType === 'OPRVEHICLES'
+            && in_array($parkingType, ['NEWREQUEST', 'TEMPREQUEST'], true)
+        ) {
+            $q = MsKendaraan::query()
+                ->where('status', 'A');
+
+            if ($cpnyId !== '') {
+                $q->where('cpny_id', $cpnyId);
+            }
+
+            if ($search !== '') {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('namakendaraan', 'ilike', "%{$search}%")
+                        ->orWhere('no_polisi', 'ilike', "%{$search}%")
+                        ->orWhere('typekendaraan', 'ilike', "%{$search}%")
+                        ->orWhere('merk_kendaraan', 'ilike', "%{$search}%")
+                        ->orWhere('pemilikkendaraan', 'ilike', "%{$search}%");
+                });
+            }
+
+            $data = $q->orderBy('namakendaraan', 'asc')
+                ->limit(30)
+                ->get([
+                    'id',
+                    'cpny_id',
+                    'no_polisi',
+                    'namakendaraan',
+                    'typekendaraan',
+                    'merk_kendaraan',
+                    'pemilikkendaraan',
+                ])
+                ->map(function ($row) {
+                    return [
+                        'id'              => 'OPRVEHICLES|' . $row->id,
+                        'text'            => $row->namakendaraan,
+                        'name'            => $row->namakendaraan,
+                        'username'        => null,
+                        'nopol'           => $row->no_polisi,
+                        'jenis_kendaraan' => $row->typekendaraan,
+                        'cpny_id'         => $row->cpny_id,
+                        'merk_kendaraan'  => $row->merk_kendaraan,
+                        'pemilik'         => $row->pemilikkendaraan,
+                    ];
+                });
+
+            return response()->json([
+                'results' => $data,
+            ]);
+        }     
+       
 
         /*
         |--------------------------------------------------------------------------
@@ -1134,10 +1209,17 @@ class ParkingRegistrationController extends Controller
 
                 $parkingTypeUpper = strtoupper(trim((string) $parkingType));
 
+                // $detailUsername = $request->input("detail_username.$i");
+                // $detailUsername = $detailUsername && str_contains($detailUsername, '|')
+                //     ? explode('|', $detailUsername)[0]
+                //     : $detailUsername;
                 $detailUsername = $request->input("detail_username.$i");
-                $detailUsername = $detailUsername && str_contains($detailUsername, '|')
-                    ? explode('|', $detailUsername)[0]
-                    : $detailUsername;
+
+                if ($detailUsername && str_starts_with($detailUsername, 'OPRVEHICLES|')) {
+                    $detailUsername = null;
+                } elseif ($detailUsername && str_contains($detailUsername, '|')) {
+                    $detailUsername = explode('|', $detailUsername)[0];
+                }
 
                 $detailNopol = strtoupper(trim((string) $request->input("detail_no_polisi.$i")));
                 $detailJenis = $request->input("detail_jenis_kendaraan.$i");
@@ -2832,6 +2914,157 @@ class ParkingRegistrationController extends Controller
 
             throw $e;
         }
+    }
+
+    public function cancelParkingRegistration(Request $request, $docid)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $parking = TrParkingRegistration::where('docid', $docid)->first();
+
+        if (!$parking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Parking Registration not found',
+            ], 404);
+        }
+
+        // Optional: hanya creator yang boleh cancel
+        if ($parking->created_by !== $user->username) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not allowed to cancel this document.',
+            ], 403);
+        }
+
+        // Optional: hanya status D/P yang boleh dicancel
+        if (!in_array($parking->status, ['D', 'P'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only Revise / On Progress document can be cancelled.',
+            ], 403);
+        }
+
+        $parking->update([
+            'status'     => 'X',
+            'updated_by' => $user->username,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Parking Registration cancelled successfully.',
+        ]);
+    }
+
+    public function toggleStatusParkingKendaraan(Request $request, $id)
+    {
+        // dd($id);
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'PARKINGACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not allowed to update parking master.',
+            ], 403);
+        }
+
+        $row = MsParkingKendaraan::where('id', $id)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$row) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data kendaraan tidak ditemukan.',
+            ], 404);
+        }
+
+        $newStatus = strtoupper((string) $row->status) === 'A' ? 'I' : 'A';
+
+        $row->update([
+            'status'     => $newStatus,
+            'updated_by' => $user->username,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $newStatus === 'A'
+                ? 'Data kendaraan berhasil diaktifkan.'
+                : 'Data kendaraan berhasil dinonaktifkan.',
+            'status' => $newStatus,
+        ]);
+    }
+
+    public function updateNoKartuParkingKendaraan(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'PARKINGACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not allowed to update parking master.',
+            ], 403);
+        }
+
+        $request->validate([
+            'no_kartu' => ['required', 'string', 'max:100'],
+        ]);
+
+        $row = MsParkingKendaraan::where('id', $id)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$row) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data kendaraan tidak ditemukan.',
+            ], 404);
+        }
+
+        $row->update([
+            'no_kartu'   => $request->no_kartu,
+            'updated_by' => $user->username,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'No Kartu berhasil disimpan.',
+            'no_kartu' => $row->no_kartu,
+        ]);
     }
 
 

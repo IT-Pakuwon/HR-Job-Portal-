@@ -2967,6 +2967,68 @@ class SpptController extends Controller
             ->values();
     }
 
+    public function showBQ($hash)
+{
+    $id = Hashids::decode($hash)[0] ?? null;
+    abort_if(!$id, 404);
+
+    $user = Auth::user();
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    $bq = Bq::with(['creator:username,name'])->findOrFail($id);
+
+    $loginUsername = $user->username ?? $user->name ?? null;
+
+    // 1) Cek approval level 1 masih exist & pending
+    $approvalLevel1Exists = TrApproval::where('refnbr', $bq->sppjtid)
+        ->whereIn('aprv_leveling', ['1', '1.00'])
+        ->where('status', 'P')
+        ->whereNotNull('aprv_datebefore')
+        ->exists();
+
+    // 2) Approver level 1 boleh edit jika user termasuk approver
+    $canApproveEdit = TrApproval::where('refnbr', $bq->sppjtid)
+        ->whereIn('aprv_leveling', ['1', '1.00'])
+        ->where('status', 'P')
+        ->whereNotNull('aprv_datebefore')
+        ->where(function ($q) use ($loginUsername) {
+            $u = $loginUsername;
+
+            $q->where('aprv_username', $u)
+                ->orWhere('aprv_username', 'ilike', $u . ',%')
+                ->orWhere('aprv_username', 'ilike', '%,' . $u . ',%')
+                ->orWhere('aprv_username', 'ilike', '%,' . $u);
+        })
+        ->exists();
+
+    // 3) Creator boleh edit hanya jika approval level 1 MASIH EXIST
+    $isCreator = $bq->created_by === $loginUsername;
+    $canCreatorEdit = $isCreator && $approvalLevel1Exists;
+
+    // 4) Final
+    $canEdit = $canApproveEdit || $canCreatorEdit;
+
+    $bqdetail = BqDetail::where('bqid', $bq->bqid)
+        ->orderByRaw("
+            CASE 
+                WHEN bq_line_no ~ '^[0-9]+$' THEN 0
+                ELSE 1
+            END ASC
+        ")
+        ->orderByRaw("
+            CASE 
+                WHEN bq_line_no ~ '^[0-9]+$' THEN bq_line_no::int
+                ELSE NULL
+            END ASC
+        ")
+        ->orderBy('bq_line_no', 'ASC')
+        ->get();
+
+    return view('pages.sppts.showbqsppts', compact('bq', 'bqdetail', 'canEdit', 'hash'));
+}
+
     public function showBQ_xxx($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -3003,7 +3065,7 @@ class SpptController extends Controller
         return view('pages.sppts.showbqsppts', compact('bq', 'bqdetail', 'canEdit', 'hash'));
     }
 
-    public function showBQ($hash)
+    public function showBQ_zzz($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -3785,9 +3847,25 @@ class SpptController extends Controller
         // Detail baris SPPJ
         // $bqdetail = BqDetail::where('bqid', $bq->bqid)
         //     ->get();
+        // $bqdetail = BqDetail::where('bqid', $bq->bqid)
+        //     ->orderByRaw('bq_line_no::int ASC')
+        //     ->get();
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
-            ->orderByRaw('bq_line_no::int ASC')
-            ->get();
+        ->orderByRaw("
+            CASE 
+                WHEN bq_line_no ~ '^[0-9]+$' THEN 0
+                ELSE 1
+            END ASC
+        ")
+        ->orderByRaw("
+            CASE 
+                WHEN bq_line_no ~ '^[0-9]+$' THEN bq_line_no::int
+                ELSE NULL
+            END ASC
+        ")
+        ->orderBy('bq_line_no', 'ASC')
+        ->get();
+
 
         $sppt = TrSPPT::where('spptid', $bq->sppjtid)
             ->first();

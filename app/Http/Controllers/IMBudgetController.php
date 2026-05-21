@@ -414,6 +414,59 @@ class IMBudgetController extends Controller
 
             };
 
+            // // === 3) INSERT DETAIL hasil GROUP & hitung totals
+            // $sumNeeded    = 0.0;
+            // $sumRequested = 0.0;
+
+            // foreach ($groups as $g) {
+
+            //     $expense = (float) $g['sum'];
+            //     $remain  = (float) $getBudgetRemain(
+            //         $g['perpost'],
+            //         $g['cpny'],
+            //         $g['bu'],
+            //         $g['deptfin'],
+            //         $g['account'],
+            //         $g['activity'],
+            //         $g['actdescr']
+            //     );
+
+            //     $remainx = $remain + $expense;
+            //     $needed = max($expense - $remainx, 0.0);
+
+            //     // ✅ kalau kamu hanya mau baris yang kekurangan budget:
+            //     if ($needed <= 0) {
+            //         continue;
+            //     }
+
+            //     $detail = new TrIMBudgetdetail();
+            //     $detail->imbudgetid                  = $docid;
+            //     $detail->csid                        = $csid;
+            //     $detail->sppbjktid                   = $sppbjktid;
+
+            //     $detail->budget_perpost              = $g['perpost'];
+            //     $detail->budget_cpny_id              = $g['cpny'];
+            //     $detail->budget_business_unit_id     = $g['bu'];
+            //     $detail->budget_department_fin_id    = $g['deptfin'];
+            //     $detail->budget_account_id           = $g['account'];
+            //     $detail->budget_activity_id          = $g['activity'];
+            //     $detail->budget_activity_descr       = $g['actdescr'];
+
+            //     $detail->amount_expense              = $expense;
+            //     $detail->budget_remain               = $remainx;
+            //     $detail->budget_needed               = $needed;
+
+            //     // kalau kolom ini masih dipakai
+            //     $detail->budget_requested            = $needed;
+
+            //     $detail->status                      = 'P';
+            //     $detail->created_by                  = $username;
+            //     $detail->save();
+
+            //     $sumRequested += $expense;
+            //     $sumNeeded    += $needed;
+            // }
+
             // === 3) INSERT DETAIL hasil GROUP & hitung totals
             $sumNeeded    = 0.0;
             $sumRequested = 0.0;
@@ -421,7 +474,8 @@ class IMBudgetController extends Controller
             foreach ($groups as $g) {
 
                 $expense = (float) $g['sum'];
-                $remain  = (float) $getBudgetRemain(
+
+                $remain = (float) $getBudgetRemain(
                     $g['perpost'],
                     $g['cpny'],
                     $g['bu'],
@@ -431,10 +485,15 @@ class IMBudgetController extends Controller
                     $g['actdescr']
                 );
 
-                $remainx = $remain + $expense;
-                $needed = max($expense - $remainx, 0.0);
+                /*
+                * remain = sisa budget saat ini
+                * expense = nilai CS yang mau dipakai
+                * needed = kekurangan budget
+                */
+                $budgetRemain = $remain;
+                $needed = max($expense - $budgetRemain, 0.0);
 
-                // ✅ kalau kamu hanya mau baris yang kekurangan budget:
+                // Kalau hanya mau insert yang kekurangan budget
                 if ($needed <= 0) {
                     continue;
                 }
@@ -453,10 +512,8 @@ class IMBudgetController extends Controller
                 $detail->budget_activity_descr       = $g['actdescr'];
 
                 $detail->amount_expense              = $expense;
-                $detail->budget_remain               = $remainx;
+                $detail->budget_remain               = $budgetRemain;
                 $detail->budget_needed               = $needed;
-
-                // kalau kolom ini masih dipakai
                 $detail->budget_requested            = $needed;
 
                 $detail->status                      = 'P';
