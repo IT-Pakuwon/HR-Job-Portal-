@@ -19,8 +19,8 @@
             </div>
         </div>
 
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- LEFT CARD --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -255,12 +255,12 @@
                                                     </td>
                                                 </tr>
                                             @endforelse
-                                        </tbody>                                        
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>
                         @endif
-                        
+
                     </div>
                 </div>
 
@@ -785,7 +785,7 @@
                 return $('#rfpAttachmentTbody');
             }
 
-          
+
             function renderAttachmentRows(rows) {
                 const $tb = $tbody().empty();
 

@@ -145,8 +145,8 @@
             </div>
         </div>
 
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- Left card (Kontrak Info) --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -378,7 +378,7 @@
                                     @endif
                                 </div> --}}
 
-                                
+
                             </div>
 
                             {{-- ROW 3: Start Date + End Date --}}
@@ -431,8 +431,8 @@
                                 @endif
                             </div>
                         </form>
-                    </div>                    
-                </div>     
+                    </div>
+                </div>
 
             </div>
             {{-- ===================== DETAIL SECTION ===================== --}}
@@ -486,7 +486,7 @@
                                 <td class="px-3 py-2 whitespace-nowrap">{{ $d->bq_no ?? '-' }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap">{{ $d->bq_line_no ?? '-' }}</td>
                                 <td class="px-3 py-2">
-                                    <div class="font-medium text-gray-900 dark:text-gray-100">{{ $d->bq_descr ?? '-' }}</div>                                       
+                                    <div class="font-medium text-gray-900 dark:text-gray-100">{{ $d->bq_descr ?? '-' }}</div>
                                 </td>
                                 <td class="px-3 py-2 text-right whitespace-nowrap">{{ $fmtNum($d->qty ?? $d->bq_qty) }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap">{{ $d->uom ?? '-' }}</td>
@@ -499,7 +499,7 @@
                                     @else
                                         <div class="space-y-2">
                                             @foreach($vendorSlots as $v)
-                                                <div class="rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800">                                                 
+                                                <div class="rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800">
 
                                                     <div class="mt-1 grid grid-cols-2 gap-2 text-xs text-gray-700 dark:text-gray-200">
                                                         @if(!empty($v['product']))
@@ -534,9 +534,9 @@
         </div>
         </div>
 
-        
+
     </div>
-             
+
 
     {{-- spinner overlay (samakan dengan showpo) --}}
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading" style="display:none;">

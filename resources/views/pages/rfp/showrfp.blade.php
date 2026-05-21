@@ -11,7 +11,7 @@
                     class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-600">
                     Revise
                 </button>
-{{-- 
+{{--
                 <button id="rejectBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200">
                     Reject
@@ -19,8 +19,8 @@
             </div>
         </div>
 
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- LEFT CARD --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -92,35 +92,35 @@
                                 ['label' => 'RP Date', 'value' => $rfp->rfp_date ? \Carbon\Carbon::parse($rfp->rfp_date)->format('d M Y') : '-'],
                                 ['label' => 'Created User', 'value' => optional($rfp->creator)->name ?: $rfp->created_by ?: '-'],
                                 ['label' => 'Vendor ID', 'value' => $rfp->vendor_id ?: '-'],
-                                ['label' => 'Vendor Name', 'value' => $rfp->vendor_name ?: '-'],                               
+                                ['label' => 'Vendor Name', 'value' => $rfp->vendor_name ?: '-'],
                                 ['label' => 'PO No',
                                 'value' => !empty($poUrl)
                                     ? '<a href="' . e($poUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->ponbr) . '</a>'
                                     : e($rfp->ponbr ?: '-')],
-                                ['label' => 'Contract ID', 'value' => $rfp->kontrak_id ?: '-'],                              
+                                ['label' => 'Contract ID', 'value' => $rfp->kontrak_id ?: '-'],
                                 ['label' => 'CS ID',
                                 'value' => !empty($csUrl)
                                     ? '<a href="' . e($csUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->cs_id) . '</a>'
-                                    : e($rfp->cs_id ?: '-')],                                
+                                    : e($rfp->cs_id ?: '-')],
                                 ['label' => 'SPPBJKT ID',
                                 'value' => !empty($sppbjktUrl)
                                     ? '<a href="' . e($sppbjktUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->sppbjkt_id) . '</a>'
-                                    : e($rfp->sppbjkt_id ?: '-')],                                                            
+                                    : e($rfp->sppbjkt_id ?: '-')],
                                 ['label' => 'BAST ID',
                                 'value' => !empty($bastUrl)
                                     ? '<a href="' . e($bastUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->bastid) . '</a>'
-                                    : e($rfp->bastid ?: '-')], 
+                                    : e($rfp->bastid ?: '-')],
                                 ['label' => 'IR ID', 'value' => $rfp->ir_id ?: '-'],
                                 ['label' => 'IR Date', 'value' => $rfp->ir_date ? \Carbon\Carbon::parse($rfp->ir_date)->format('d M Y H:i:s') : '-'],
                                 ['label' => 'IR Submit Date', 'value' => $rfp->ir_submit_date ? \Carbon\Carbon::parse($rfp->ir_submit_date)->format('d M Y H:i:s') : '-'],
-                                ['label' => 'Type PO', 'value' => $rfp->type_po ?: '-'],                               
+                                ['label' => 'Type PO', 'value' => $rfp->type_po ?: '-'],
                                 ['label' => 'Type Payment', 'value' => e($typepayment ?: '-')],
                                 ['label' => 'Payment Period', 'value' => $rfp->period_payment ?: '-'],
                                 ['label' => 'Base Amount', 'value' => $baseAmount],
                                 ['label' => 'Tax Amount', 'value' => $taxAmount],
                                 ['label' => 'Total Amount', 'value' => $totalAmount],
                                 ['label' => 'Payment Type', 'value' => $rfp->payment_type ?: '-'],
-                                ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? 'Rp ' . number_format((float) $rfp->amount_payment, 2, ',', '.') : '-'],                       
+                                ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? 'Rp ' . number_format((float) $rfp->amount_payment, 2, ',', '.') : '-'],
                                 ['label' => 'Terbilang', 'value' => $rfp->terbilang ?: '-'],
                             ];
                         @endphp
@@ -670,7 +670,7 @@
                 return $('#rfpAttachmentTbody');
             }
 
-          
+
             function renderAttachmentRows(rows) {
                 const $tb = $tbody().empty();
 
