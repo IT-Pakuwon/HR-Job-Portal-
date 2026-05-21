@@ -268,13 +268,7 @@
 
                                             {{-- Name final yang dikirim ke backend --}}
                                             <input type="hidden" name="detail_name[]" class="detailNameHidden">
-                                        </td>
-
-                                        {{-- <td class="border p-3">
-                                            <input type="text" name="detail_no_polisi[]"
-                                                class="w-full rounded border border-gray-300 bg-white p-2 text-sm uppercase focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                                placeholder="B 1234 ABC" required>
-                                        </td> --}}
+                                        </td>                                      
                                         <td class="border p-3">
                                             <input type="hidden" name="detail_nopol_lama[]" class="oldNopolHidden">
 
@@ -296,15 +290,6 @@
                                                 placeholder="B 1234 ABC" required>
                                         </td>
 
-                                        {{-- <td class="border p-3">
-                                            <select name="detail_jenis_kendaraan[]"
-                                                class="w-full rounded border border-gray-300 bg-white p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                                required>
-                                                <option value="">Select</option>
-                                                <option value="Motor">Motor</option>
-                                                <option value="Mobil">Mobil</option>
-                                            </select>
-                                        </td> --}}
                                         <td class="border p-3">
                                             <input type="hidden" name="detail_jenis_lama[]" class="oldJenisHidden">
 
@@ -330,40 +315,18 @@
                                             </select>
                                         </td>
 
-                                        {{-- <td class="border p-3">
-                                            <input type="file" name="detail_attach_stnk[]" required
-                                                class="w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        </td>
-
-                                        <td class="border p-3">
-                                            <input type="file" name="detail_attach_idcard[]" required
-                                                class="w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        </td>
-
-                                        <td class="border p-3">
-                                            <input type="file" name="detail_attach_bukti_bayar[]"
-                                                class="w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                        </td> --}}
-
                                         <td class="stnkCell border p-3">
                                             <input type="file" name="detail_attach_stnk[]"
-                                                class="attachStnkInput parking-file-input">
-                                            {{-- <input type="file" name="detail_attach_stnk[]"
-                                                class="attachStnkInput w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"> --}}
-                                        </td>
+                                                class="attachStnkInput parking-file-input">                                           
 
                                         <td class="idcardCell border p-3">
                                             <input type="file" name="detail_attach_idcard[]"
-                                                class="attachIdcardInput parking-file-input">
-                                            {{-- <input type="file" name="detail_attach_idcard[]"
-                                                class="attachIdcardInput w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"> --}}
+                                                class="attachIdcardInput parking-file-input">                                            
                                         </td>
 
                                         <td class="buktiBayarCell border p-3">
                                             <input type="file" name="detail_attach_bukti_bayar[]"
-                                                class="attachBuktiBayarInput parking-file-input">
-                                            {{-- <input type="file" name="detail_attach_bukti_bayar[]"
-                                                class="attachBuktiBayarInput w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"> --}}
+                                                class="attachBuktiBayarInput parking-file-input">                                            
                                         </td>
 
                                         <td class="border p-3 text-center align-middle">
@@ -460,24 +423,7 @@
         </form>
     </div>
 
-    {{-- Overlay --}}
-    {{-- <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading"
-        style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.35); align-items:center; justify-content:center;">
-        <div class="rounded-xl bg-white px-6 py-4 shadow-lg dark:bg-gray-800">
-            <div class="flex items-center gap-3">
-                <svg class="h-5 w-5 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg"
-                    fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                        stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-                <span class="loading-text text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    Processing...
-                </span>
-            </div>
-        </div>
-    </div> --}}
+    {{-- Overlay --}}  
 
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
         <div class="loading-card">
@@ -716,7 +662,7 @@
             const text = String($('#worker_type option:selected').text() || '').toUpperCase();
 
             return val === 'EMPLOYEE' || text.includes('KARYAWAN');
-        }
+        }        
 
         function isExistingParkingType() {
             const parkingType = currentParkingType();
@@ -724,15 +670,42 @@
             return ['RENEWAL', 'CHANGECARD', 'CHANGENOPOL'].includes(parkingType);
         }
 
+        function isOprVehiclesWorkerType() {
+            return currentWorkerType() === 'OPRVEHICLES';
+        }
+
+        function isNewOrTempParkingType() {
+            return ['NEWREQUEST', 'TEMPREQUEST'].includes(currentParkingType());
+        }
+
         function shouldUseDropdownName() {
             /*
             |--------------------------------------------------------------------------
-            | Dropdown dipakai untuk:
-            | 1. EMPLOYEE semua parking type
-            | 2. RENEWAL / CHANGECARD / CHANGENOPOL semua worker type
+            | Dropdown Name dipakai untuk:
+            | 1. EMPLOYEE
+            | 2. OPRVEHICLES hanya untuk NEWREQUEST / TEMPREQUEST
+            | 3. RENEWAL / CHANGECARD / CHANGENOPOL tetap dari MsParkingKendaraan
             |--------------------------------------------------------------------------
             */
-            return isEmployeeWorkerType() || isExistingParkingType();
+            return isEmployeeWorkerType()
+                || (isOprVehiclesWorkerType() && isNewOrTempParkingType())
+                || isExistingParkingType();
+        }
+
+        function setJenisKendaraanValue($row, jenis) {
+            const $jenis = $row.find('.jenisFinalInput');
+            jenis = String(jenis || '').trim();
+
+            if (!jenis) {
+                $jenis.val('');
+                return;
+            }
+
+            if ($jenis.find(`option[value="${jenis}"]`).length === 0) {
+                $jenis.append(new Option(jenis, jenis, true, true));
+            }
+
+            $jenis.val(jenis);
         }
 
         function destroyEmployeeSelect2($select) {
@@ -850,6 +823,10 @@
         function cleanSelectedUsername(raw) {
             raw = String(raw || '');
 
+            if (raw.startsWith('OPRVEHICLES|')) {
+                return '';
+            }
+
             if (raw.includes('|')) {
                 return raw.split('|')[0];
             }
@@ -929,65 +906,7 @@
                     $select.empty().append(option);
                 }
             });
-        }
-
-        // function parkingDetailRowTemplate() {
-        //     return `
-        //         <tr class="parking-detail-row">
-        //             <td class="row-number border p-3 text-center align-middle">1</td>
-
-        //             <td class="border p-3">
-        //                 <select name="detail_username[]"
-        //                     class="employeeSelect hidden w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-        //                 </select>
-
-        //                 <input type="text" name="detail_name_manual[]"
-        //                     class="manualNameInput w-full rounded border border-gray-300 bg-white p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-        //                     placeholder="Input name...">
-
-        //                 <input type="hidden" name="detail_name[]" class="detailNameHidden">
-        //             </td>
-
-        //             <td class="border p-3">
-        //                 <input type="text" name="detail_no_polisi[]"
-        //                     class="w-full rounded border border-gray-300 bg-white p-2 text-sm uppercase focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-        //                     placeholder="B 1234 ABC" required>
-        //             </td>
-
-        //             <td class="border p-3">
-        //                 <select name="detail_jenis_kendaraan[]"
-        //                     class="w-full rounded border border-gray-300 bg-white p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-        //                     required>
-        //                     <option value="">Select</option>
-        //                     <option value="Motor">Motor</option>
-        //                     <option value="Mobil">Mobil</option>
-        //                 </select>
-        //             </td>
-
-        //             <td class="border p-3">
-        //                 <input type="file" name="detail_attach_stnk[]" required
-        //                     class="w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-        //             </td>
-
-        //             <td class="border p-3">
-        //                 <input type="file" name="detail_attach_idcard[]" required
-        //                     class="w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-        //             </td>
-
-        //             <td class="border p-3">
-        //                 <input type="file" name="detail_attach_bukti_bayar[]"
-        //                     class="w-full rounded border border-gray-300 bg-white p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-        //             </td>
-
-        //             <td class="border p-3 text-center align-middle">
-        //                 <button type="button"
-        //                     class="removeParkingDetail rounded border border-red-500 px-3 py-2 text-red-500 hover:bg-red-50">
-        //                     🗑️
-        //                 </button>
-        //             </td>
-        //         </tr>
-        //     `;
-        // }
+        }       
 
         function parkingDetailRowTemplate() {
             return `
@@ -1072,15 +991,7 @@
                 </tr>
             `;
         }
-
-        // $(document).on('click', '#addParkingDetail', function () {
-        //     const $row = $(parkingDetailRowTemplate());
-
-        //     $('#parkingDetailTable').append($row);
-
-        //     refreshDetailRowNumber();
-        //     applyNameMode();
-        // });
+       
         $(document).on('click', '#addParkingDetail', function () {
             const $row = $(parkingDetailRowTemplate());
 
@@ -1121,23 +1032,7 @@
                 $('#info').val('');
             }
         }
-
-        // $(document).on('change', '#worker_type, #parking_type', function () {
-        //     clearDropdownSelections();
-        //     applyNameMode();
-        //     toggleNonEmployeeExtraFields();
-        // });
-
-        // $(document).on('change', '#worker_type, #parking_type', function () {
-        //     clearDropdownSelections();
-        //     applyNameMode();
-        //     applyParkingTypeDetailMode();
-
-        //     if (typeof toggleNonEmployeeExtraFields === 'function') {
-        //         toggleNonEmployeeExtraFields();
-        //     }
-        // });
-
+       
         $(document).on('change', '#parking_type', function () {
             resetParkingDetailRows();
 
@@ -1163,38 +1058,7 @@
                 applyParkingTypeDetailMode();
             }
         });
-
-        // $(document).on('change', '#cpny_id, #department_id, #site_id_parking, #perpost', function () {
-        //     if (shouldUseDropdownName()) {
-        //         clearDropdownSelections();
-        //         applyNameMode();
-        //     }
-        // });
-
-        // $(document).on('change', '.employeeSelect', function () {
-        //     const data = $(this).select2('data');
-        //     const selected = data && data.length ? data[0] : null;
-
-        //     const $row = $(this).closest('.parking-detail-row');
-
-        //     const name = selected?.name || selected?.text || '';
-        //     $row.find('.detailNameHidden').val(name || '');
-
-        //     /*
-        //     |--------------------------------------------------------------------------
-        //     | Untuk RENEWAL / CHANGECARD / CHANGENOPOL,
-        //     | data dari MsParkingKendaraan bisa auto isi nopol dan jenis kendaraan.
-        //     |--------------------------------------------------------------------------
-        //     */
-        //     if (selected?.nopol) {
-        //         $row.find('input[name="detail_no_polisi[]"]').val(selected.nopol);
-        //     }
-
-        //     if (selected?.jenis_kendaraan) {
-        //         $row.find('select[name="detail_jenis_kendaraan[]"]').val(selected.jenis_kendaraan);
-        //     }
-        // });
-
+       
         $(document).on('change', '.employeeSelect', function () {
             const data = $(this).select2('data');
             const selected = data && data.length ? data[0] : null;
@@ -1209,7 +1073,33 @@
 
             /*
             |--------------------------------------------------------------------------
-            | Untuk RENEWAL / CHANGECARD / CHANGENOPOL
+            | OPRVEHICLES
+            |--------------------------------------------------------------------------
+            | Data dari MsKendaraan:
+            | - name = namakendaraan
+            | - nopol = no_polisi
+            | - jenis = typekendaraan
+            |--------------------------------------------------------------------------
+            */
+            if (isOprVehiclesWorkerType() && isNewOrTempParkingType()) {
+                $row.find('.nopolFinalInput')
+                    .val(nopol)
+                    .prop('readonly', true)
+                    .addClass('bg-gray-100 cursor-not-allowed');
+
+                setJenisKendaraanValue($row, jenis);
+
+                $row.find('.jenisFinalInput')
+                    .addClass('bg-gray-100 cursor-not-allowed pointer-events-none')
+                    .attr('tabindex', '-1');
+
+                applyParkingTypeDetailMode();
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | RENEWAL / CHANGECARD / CHANGENOPOL
             |--------------------------------------------------------------------------
             | Data dari MsParkingKendaraan.
             |--------------------------------------------------------------------------
@@ -1222,13 +1112,11 @@
                 $row.find('.oldJenisDisplay').val(jenis);
 
                 if (isChangeNopolType()) {
-                    // Lama tampil readonly, final input dikosongkan untuk input baru
                     $row.find('.nopolFinalInput').val('').prop('readonly', false);
                     $row.find('.jenisFinalInput').val('').removeClass('pointer-events-none');
                 } else {
-                    // RENEWAL / CHANGECARD pakai data lama sebagai final
                     $row.find('.nopolFinalInput').val(nopol);
-                    $row.find('.jenisFinalInput').val(jenis);
+                    setJenisKendaraanValue($row, jenis);
                 }
             }
 
@@ -1243,12 +1131,7 @@
                 .find('.detailNameHidden')
                 .val(val);
         });
-
-        // $(function () {
-        //     refreshDetailRowNumber();
-        //     applyNameMode();
-        //     toggleNonEmployeeExtraFields();
-        // });
+      
         $(function () {
             refreshDetailRowNumber();
             applyNameMode();
@@ -1317,16 +1200,18 @@
 
                 let finalName = '';
 
-                if (isEmployeeWorkerType()) {
+                if (shouldUseDropdownName()) {
                     if ($empSelect.hasClass('select2-hidden-accessible')) {
                         const data = $empSelect.select2('data');
-                        finalName = data && data.length ? (data[0].text || '') : '';
+                        const selected = data && data.length ? data[0] : null;
+
+                        finalName = selected?.name || selected?.text || '';
                     }
 
                     if (!finalName) {
                         finalName = $empSelect.find(':selected').data('name') ||
-                                    $empSelect.find(':selected').text() ||
-                                    '';
+                            $empSelect.find(':selected').text() ||
+                            '';
                     }
 
                     finalName = String(finalName).trim();
@@ -1366,8 +1251,7 @@
             }
 
             return true;
-        }       
-
+        }
 
         $('#parkingRegistrationForm').on('submit', function (e) {
             e.preventDefault();

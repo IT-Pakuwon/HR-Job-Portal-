@@ -1,4 +1,53 @@
 <x-app-layout>
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #ef4444;
+            transition: .25s;
+            border-radius: 9999px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .25s;
+            border-radius: 9999px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.25);
+        }
+
+        .switch input:checked + .slider {
+            background-color: #16a34a;
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .switch input:disabled + .slider {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+    </style>
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
@@ -154,6 +203,45 @@
 
                 </div>
             </div>
+
+            <div id="noKartuModal"
+                class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40 p-4">
+                <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
+                    <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-700">
+                        <h3 class="text-base font-bold text-gray-800 dark:text-white">
+                            Update No Kartu
+                        </h3>
+
+                        <button type="button" id="closeNoKartuModal"
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            ✕
+                        </button>
+                    </div>
+
+                    <input type="hidden" id="modal_kendaraan_id">
+
+                    <div class="mb-4">
+                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            No Kartu
+                        </label>
+                        <input type="text" id="modal_no_kartu"
+                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                            placeholder="Input No Kartu">
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button type="button" id="cancelNoKartuModal"
+                            class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300">
+                            Close
+                        </button>
+
+                        <button type="button" id="saveNoKartuBtn"
+                            class="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
             
 
             <div class="rounded-base relative overflow-x-auto">
@@ -178,8 +266,13 @@
                 </table>
             </div>
         </div>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        <script>
+        <script>       
+            
             const currentUser = @json(auth()->user()->username ?? '');
             let parkingStatus = '';
             let parkingScope = 'my';
@@ -198,6 +291,7 @@
                     $('#parkingRegistrationThead').html(`
                         <tr>
                             <th class="w-8"></th>
+                            <th class="w-28 px-6 py-2 font-medium">Action</th>
                             <th class="w-40 px-6 py-2 font-medium">Site Parking</th>
                             <th class="w-56 px-6 py-2 font-medium">Name</th>
                             <th class="w-36 px-6 py-2 font-medium">No Polisi</th>
@@ -241,6 +335,9 @@
                     return `<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>`;
                 }
 
+                if (v === 'I') {
+                    return `<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>`;
+                }
                 if (v === 'D') {
                     return `<span class="inline-block w-24 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">Revise</span>`;
                 }
@@ -287,49 +384,55 @@
                             orderable: false
                         },
                         {
-                            data: 'site_parking_name',
-                            defaultContent: '-'
+                            data: null,
+                            searchable: false,
+                            orderable: false,
+                            className: 'text-center',
+                            render: function (data, type, row) {
+                                const id = row.id;
+
+                                if (!id) {
+                                    return `<span class="text-xs text-red-500">ID missing</span>`;
+                                }
+
+                                const status = String(row.status || '').toUpperCase();
+                                const checked = status === 'A' ? 'checked' : '';
+                                const disabled = ['P', 'D'].includes(status) ? 'disabled' : '';
+
+                                return `
+                                    <div class="flex items-center justify-center gap-3">
+                                        <label class="switch" title="${status === 'A' ? 'Set Inactive' : 'Set Active'}">
+                                            <input type="checkbox"
+                                                class="toggleStatus"
+                                                data-id="${id}"
+                                                data-status="${status}"
+                                                ${checked}
+                                                ${disabled}>
+                                            <span class="slider round"></span>
+                                        </label>
+
+                                        <button type="button"
+                                            class="openNoKartuBtn inline-flex items-center justify-center rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                                            data-id="${id}"
+                                            data-no-kartu="${row.no_kartu || ''}"
+                                            title="Update No Kartu">
+                                            <i class="fa-solid fa-id-card"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
                         },
-                        {
-                            data: 'nama',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'nopol',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'jenis_kendaraan',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'parking_type_name',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'worker_type_name',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'department_id',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'perpost',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'startdate',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'enddate',
-                            defaultContent: '-'
-                        },
-                        {
-                            data: 'no_kartu',
-                            defaultContent: '-'
-                        },
+                        { data: 'site_parking_name', defaultContent: '-' },
+                        { data: 'nama', defaultContent: '-' },
+                        { data: 'nopol', defaultContent: '-' },
+                        { data: 'jenis_kendaraan', defaultContent: '-' },
+                        { data: 'parking_type_name', defaultContent: '-' },
+                        { data: 'worker_type_name', defaultContent: '-' },
+                        { data: 'department_id', defaultContent: '-' },
+                        { data: 'perpost', defaultContent: '-' },
+                        { data: 'startdate', defaultContent: '-' },
+                        { data: 'enddate', defaultContent: '-' },
+                        { data: 'no_kartu', defaultContent: '-' },
                         {
                             data: 'attach_stnk_url',
                             render: function (data) {
@@ -519,9 +622,9 @@
                             }
                         }
                     },
-                    order: [
-                        [1, 'desc']
-                    ],
+                    order: parkingScope === 'master'
+                        ? [[2, 'asc']]
+                        : [[1, 'desc']],
                     columns: getParkingColumns(parkingScope)
                 });
             }
@@ -537,6 +640,131 @@
             }
 
             $(document).ready(function () {
+
+                $(document).on('change', '.toggleStatus', function () {
+                    const $toggle = $(this);
+                    const id = $toggle.data('id');
+                    const currentStatus = String($toggle.data('status') || '').toUpperCase();
+
+                    if (!id) {
+                        toastr.error('ID kendaraan tidak ditemukan.');
+                        $toggle.prop('checked', currentStatus === 'A');
+                        return;
+                    }
+
+                    const willBeActive = $toggle.is(':checked');
+                    const nextLabel = willBeActive ? 'Active' : 'Inactive';
+
+                    Swal.fire({
+                        title: 'Anda yakin?',
+                        text: `Status kendaraan akan diubah menjadi ${nextLabel}.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Update',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#2563eb',
+                        cancelButtonColor: '#6b7280',
+                    }).then(function (result) {
+                        if (!result.isConfirmed) {
+                            $toggle.prop('checked', currentStatus === 'A');
+                            return;
+                        }
+
+                        $toggle.prop('disabled', true);
+
+                        $.ajax({
+                            url: `/parking-kendaraan/${id}/toggle-status`,
+                            type: 'POST',
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                _method: 'PUT'
+                            }
+                        })
+                        .done(function (res) {
+                            toastr.success(res.message || 'Status berhasil diupdate.');
+
+                            if (parkingTable) {
+                                parkingTable.ajax.reload(null, false);
+                            }
+                        })
+                        .fail(function (xhr) {
+                            $toggle.prop('checked', currentStatus === 'A');
+
+                            let msg = xhr.responseJSON?.message || xhr.responseJSON?.error || 'Gagal update status.';
+                            toastr.error(msg);
+                            console.error(xhr.responseText);
+                        })
+                        .always(function () {
+                            $toggle.prop('disabled', false);
+                        });
+                    });
+                });
+
+                $(document).on('click', '.openNoKartuBtn', function () {
+                    const id = $(this).data('id');
+                    const noKartu = $(this).data('no-kartu') || '';
+
+                    $('#modal_kendaraan_id').val(id);
+                    $('#modal_no_kartu').val(noKartu);
+
+                    $('#noKartuModal').removeClass('hidden').addClass('flex');
+                });
+
+                $('#closeNoKartuModal, #cancelNoKartuModal').on('click', function () {
+                    $('#noKartuModal').addClass('hidden').removeClass('flex');
+                    $('#modal_kendaraan_id').val('');
+                    $('#modal_no_kartu').val('');
+                });
+
+                $('#saveNoKartuBtn').on('click', function () {
+                    const id = $('#modal_kendaraan_id').val();
+                    const noKartu = String($('#modal_no_kartu').val() || '').trim();
+
+                    if (!noKartu) {
+                        toastr.warning('No Kartu wajib diisi.');
+                        return;
+                    }
+
+                    $('#saveNoKartuBtn').prop('disabled', true).text('Saving...');
+
+                    $.ajax({
+                        url: `/parking-kendaraan/${id}/no-kartu`,
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            _method: 'PUT',
+                            no_kartu: noKartu
+                        }
+                    })
+                    .done(function (res) {
+                        toastr.success(res.message || 'No Kartu berhasil disimpan.');
+
+                        $('#noKartuModal').addClass('hidden').removeClass('flex');
+                        $('#modal_kendaraan_id').val('');
+                        $('#modal_no_kartu').val('');
+
+                        if (parkingTable) {
+                            parkingTable.ajax.reload(null, false);
+                        }
+                    })
+                    .fail(function (xhr) {
+                        let msg = 'Gagal simpan No Kartu.';
+
+                        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                            msg = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                        } else if (xhr.responseJSON?.message) {
+                            msg = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON?.error) {
+                            msg = xhr.responseJSON.error;
+                        }
+
+                        toastr.error(msg);
+                        console.error(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#saveNoKartuBtn').prop('disabled', false).text('Save');
+                    });
+                });
                 $(document).on('change', '#filter_site_parking, #filter_parking_type, #filter_worker_type, #filter_jenis_kendaraan, #filter_department', function () {
                     if (parkingScope === 'master' && parkingTable) {
                         parkingTable.ajax.reload(null, true);

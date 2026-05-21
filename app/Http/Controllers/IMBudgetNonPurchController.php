@@ -23,7 +23,7 @@ use App\Models\TrReceiptdetail;
 use App\Models\TrSPB;
 use App\Models\TrSPBdetail;
 use App\Models\TrImbudgetNonPurch;
-use App\Models\TrImbudgetNonPurchdetail;
+use App\Models\TrImbudgetNonPurchDetail;
 use App\Models\TrWO;
 use App\Models\User;
 use App\Models\Userbusinessunit;
@@ -497,7 +497,7 @@ class IMBudgetNonPurchController extends Controller
         // =========================
         // DETAIL
         // =========================
-        $imnonpurchasedetail = TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)
+        $imnonpurchasedetail = TrImbudgetNonPurchDetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)
             ->get(); // ❗ FIX: kurang ;
 
         // =========================
@@ -1006,7 +1006,7 @@ class IMBudgetNonPurchController extends Controller
     {
         $imnonpurchase = TrImbudgetNonPurch::findOrFail($id);
 
-        $imnonpurchasedetail = TrImbudgetNonPurchdetail::with([
+        $imnonpurchasedetail = TrImbudgetNonPurchDetail::with([
             'location',
             'subLocation',
         ])
@@ -1118,7 +1118,7 @@ class IMBudgetNonPurchController extends Controller
                 $imnonpurchase->completed_at = $now;
                 $imnonpurchase->save();
 
-                TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'C']);
+                TrImbudgetNonPurchDetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'C']);
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $imnonpurchase->imnonpurchaseid,
@@ -1273,7 +1273,7 @@ class IMBudgetNonPurchController extends Controller
                 $imnonpurchase->save();
 
                 // (opsional) DETAIL -> D
-                // \App\Models\TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'D']);
+                // \App\Models\TrImbudgetNonPurchDetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'D']);
 
                 // === Email ke requester ===
                 app(ApprovalController::class)->notifyRequesterOnStatus(
@@ -1386,7 +1386,7 @@ class IMBudgetNonPurchController extends Controller
     //             $imnonpurchase->save();
 
     //             // Close semua detail
-    //             TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'C']);
+    //             TrImbudgetNonPurchDetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'C']);
 
     //             // Kirim email ke requester (creator)
     //             $status        = 'C';
@@ -1643,7 +1643,7 @@ class IMBudgetNonPurchController extends Controller
     //         $imnonpurchase->save();
 
     //         // (opsional) tandai detail sebagai D juga kalau mau:
-    //         // TrImbudgetNonPurchdetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'D']);
+    //         // TrImbudgetNonPurchDetail::where('imnonpurchaseid', $imnonpurchase->imnonpurchaseid)->update(['status' => 'D']);
 
     //         // 6) Batalkan semua approval lain yang masih pending (status 'X')
     //         TrApproval::query()
@@ -1726,7 +1726,7 @@ class IMBudgetNonPurchController extends Controller
         $approved = fn ($h) => $h ? (!empty($h->completed_by) || !empty($h->completed_at)) : false;
 
         // ===== IMBudgetNonPurch =====
-        $imnonpurchaseDetails = TrImbudgetNonPurchdetail::query()
+        $imnonpurchaseDetails = TrImbudgetNonPurchDetail::query()
             ->where('imnonpurchaseid', $imnonpurchaseNo)
             ->whereNull('deleted_at')
             ->orderBy('id')

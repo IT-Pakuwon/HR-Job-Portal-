@@ -643,6 +643,9 @@ class RfpController extends Controller
             ], 422);
         }
 
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $rfp->cpny_id, $rfp->department_id);
+
         $updatedBy = $user->username ?? $user->name;
 
         if (!empty($rfp->user_payment) && !empty($rfp->payment_date)) {
@@ -804,6 +807,150 @@ class RfpController extends Controller
     }
 
     public function reviseRfp(Request $request, $docid)
+    {
+        $user = $request->user();
+        $doctype = 'RP';
+
+        $rfp = TrRfp::with('creator')->where('rfp_id', $docid)->first();
+
+        if (!$rfp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'RP not found'
+            ], 404);
+        }
+
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->loadLines($doctype, $rfp->cpny_id, $rfp->department_id);
+
+        $eid = Hashids::encode($rfp->id);
+        $docUrl = url('/showrfp/' . $eid);
+        $fullname = data_get($rfp, 'creator.name') ?: $rfp->created_by;
+
+        $result = app(ApprovalController::class)->reviseStep(
+            $rfp->rfp_id,
+            $doctype,
+            $user->username,
+            $user->name,
+
+            function (string $refnbr, \Carbon\Carbon $now) use ($request, $rfp, $fullname, $docUrl, $doctype, $user) {
+
+                // =========================
+                // 1) HEADER RP -> D
+                // =========================
+                $rfp->status = 'D';
+                $rfp->completed_by = auth()->user()->username;
+                $rfp->completed_at = $now;
+                $rfp->save();
+
+                // =========================
+                // 2) Email ke requester
+                // =========================
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $rfp->rfp_id,
+                    'RFP',
+                    'D',
+                    $rfp->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid' => $rfp->cpny_id ?? $rfp->cpnyid ?? '',
+                        'deptname' => $rfp->department_id ?? $rfp->departementid ?? '',
+                        'date' => $now->toDateString(),
+                        'info' => $rfp->keperluan,
+                        'fullname' => $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
+
+                // =========================
+                // 3) Simpan komentar revise
+                // =========================
+                try {
+                    app('App\Http\Controllers\SendCommentController')->sendmsg($rfp->id, 'RP', $request);
+                } catch (\Throwable $e) {
+                    \Log::warning('[reviseRfp] sendmsg failed', [
+                        'rfp_id' => $rfp->rfp_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                // =========================
+                // 4) Generate ulang approval waiting status P
+                // =========================
+                $approvalCtl = app(ApprovalController::class);
+
+                $dt = \Carbon\Carbon::now();
+                $username = $user->username ?? auth()->user()->username ?? 'system';
+
+                $cpnyid = $request->input('cpnyid')                    
+                    ?? $rfp->cpny_id                    
+                    ?? null;
+
+                $departementid = $request->input('departementid')                   
+                    ?? $rfp->department_id                   
+                    ?? null;
+
+                $grandTotal = (float) (
+                    $rfp->rfp_amount                   
+                    ?? 0
+                );
+
+                $ctx = [
+                    'ignore_nominal' => false,
+                    'grand_total' => $grandTotal,
+                ];
+
+                [$firstApprovalUsernames] = $approvalCtl->generateForDocument(
+                    $rfp->rfp_id,
+                    $doctype,
+                    $cpnyid,
+                    $departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
+
+                // =========================
+                // 5) Ubah header kembali ke P
+                // =========================
+                $rfp->status = 'P';
+                $rfp->updated_by = $username;
+                $rfp->updated_at = $dt;
+                $rfp->save();
+
+                // =========================
+                // 6) Email ke first approver
+                // =========================
+                $approvalCtl->notifyFirstApprover(
+                    $rfp->rfp_id,
+                    $doctype,
+                    $rfp->status,
+                    'RFP',
+                    $docUrl,
+                    [
+                        'info' => $rfp->keperluan,
+                        'createdby' => $rfp->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Revise failed',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'RP revised successfully',
+        ]);
+    }
+
+    public function reviseRfp_xxx(Request $request, $docid)
     {
         $user = $request->user();
         $doctype = 'RP';

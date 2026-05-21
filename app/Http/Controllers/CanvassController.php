@@ -4330,22 +4330,22 @@ class CanvassController extends Controller
                 $det->inventory_last_price = $lastPriceMap[$det->inventoryid] ?? ($prevDet->inventory_last_price ?? 0);
                 $det->csnote_detail = $d['csnote_detail'] ?? ($src->note ?? ($prevDet->csnote_detail ?? null));
 
-                // $det->location_id = $src->location_id ?? ($prevDet->location_id ?? null);
-                // $det->sub_location_id = $src->sub_location_id ?? ($prevDet->sub_location_id ?? null);
+                $det->location_id = $src->location_id ?? ($prevDet->location_id ?? null);
+                $det->sub_location_id = $src->sub_location_id ?? ($prevDet->sub_location_id ?? null);
                 $det->budget_perpost = $src->budget_perpost ?? ($prevDet->budget_perpost ?? null);
                 $det->budget_cpny_id = $cpnyId;
-                // $det->budget_business_unit_id = $src->budget_business_unit_id ?? ($prevDet->budget_business_unit_id ?? null);
-                // $det->budget_department_fin_id = $src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null);
-                // $det->budget_account_id = $src->budget_account_id ?? ($prevDet->budget_account_id ?? null);
-                // $det->budget_activity_id = $src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null);
+                $det->budget_business_unit_id = $src->budget_business_unit_id ?? ($prevDet->budget_business_unit_id ?? null);
+                $det->budget_department_fin_id = $src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null);
+                $det->budget_account_id = $src->budget_account_id ?? ($prevDet->budget_account_id ?? null);
+                $det->budget_activity_id = $src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null);
                 $det->budget_activity_descr = $src->budget_activity_descr ?? ($prevDet->budget_activity_descr ?? null);
-                $det->location_id = $intOrNull($src->location_id ?? ($prevDet->location_id ?? null));
-                $det->sub_location_id = $intOrNull($src->sub_location_id ?? ($prevDet->sub_location_id ?? null));
+                // $det->location_id = $intOrNull($src->location_id ?? ($prevDet->location_id ?? null));
+                // $det->sub_location_id = $intOrNull($src->sub_location_id ?? ($prevDet->sub_location_id ?? null));
 
-                $det->budget_business_unit_id = $intOrNull($src->budget_business_unit_id ?? ($prevDet->budget_business_unit_id ?? null));
-                $det->budget_department_fin_id = $intOrNull($src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null));
-                $det->budget_account_id = $intOrNull($src->budget_account_id ?? ($prevDet->budget_account_id ?? null));
-                $det->budget_activity_id = $intOrNull($src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null));
+                // $det->budget_business_unit_id = $intOrNull($src->budget_business_unit_id ?? ($prevDet->budget_business_unit_id ?? null));
+                // $det->budget_department_fin_id = $intOrNull($src->budget_department_fin_id ?? ($prevDet->budget_department_fin_id ?? null));
+                // $det->budget_account_id = $intOrNull($src->budget_account_id ?? ($prevDet->budget_account_id ?? null));
+                // $det->budget_activity_id = $intOrNull($src->budget_activity_id ?? ($prevDet->budget_activity_id ?? null));
 
                 // reset dulu semua slot vendor detail
                 for ($slot = 1; $slot <= 6; ++$slot) {

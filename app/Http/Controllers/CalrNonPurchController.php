@@ -19,12 +19,110 @@ use App\Models\TrRfpNonPurch;
 use App\Models\TrCalrNonPurch;
 use App\Models\SysUserRole;
 use App\Models\TrRfpNonPurchDetail;
-
+use App\Models\MsCompany;
 
 class CalrNonPurchController extends Controller
 {
     use HasAutonbr;
+
     public function index()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $u = $user->username ?? '';
+
+        $cpnyList = is_string($user->cpny_id)
+            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
+            : (array) $user->cpny_id;
+
+        $deptList = is_string($user->department_id)
+            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
+            : (array) $user->department_id;
+
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
+
+        $hasApFinAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'APFINACCESS')
+            ->exists();
+
+        $hasApTreAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'APTREACCESS')
+            ->exists();
+
+        /*
+        |--------------------------------------------------------------------------
+        | CALR Jobs
+        |--------------------------------------------------------------------------
+        */
+        $calrjobs = TrRfpNonPurch::query()
+            ->whereIn('cpny_id', $cpnyList)
+            ->whereIn('department_id', $deptList)
+            ->where('rfpnonpurchase_type', 'RCA')
+            ->where('status', 'C')
+            ->where('created_by', $u)
+            ->whereNull('calrid')
+            ->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normal CALR List
+        |--------------------------------------------------------------------------
+        | Non FINACCESS hanya lihat dokumen sendiri.
+        | FINACCESS bisa lihat semua sesuai company + department.
+        */
+        $baseCalr = TrCalrNonPurch::query()
+            ->whereIn('cpny_id', $cpnyList)
+            ->whereIn('department_id', $deptList)
+            ->when(!$isFinanceAccess, function ($q) use ($u) {
+                $q->where('created_by', $u);
+            });
+
+        $all = (clone $baseCalr)->count();
+        $onProgress = (clone $baseCalr)->where('status', 'P')->count();
+        $completed = (clone $baseCalr)->where('status', 'C')->count();
+        $rejected = (clone $baseCalr)->where('status', 'R')->count();
+        $revise = (clone $baseCalr)->where('status', 'D')->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | CALR Finance
+        |--------------------------------------------------------------------------
+        | Sama seperti RFP Non Purch:
+        | - hanya user FINACCESS
+        | - hanya filter cpny_id
+        | - status = C
+        | - tanpa department
+        | - tanpa created_by
+        */
+        $calrFinance = 0;
+
+        if ($isFinanceAccess) {
+            $calrFinance = TrCalrNonPurch::query()
+                ->whereIn('cpny_id', $cpnyList)
+                ->where('status', 'C')
+                ->count();
+        }
+
+        return view('pages.calrnonpurch.calrnonpurch', compact(
+            'calrjobs',
+            'onProgress',
+            'completed',
+            'all',
+            'rejected',
+            'revise',
+            'calrFinance',
+            'isFinanceAccess',
+            'hasApFinAccess',
+            'hasApTreAccess'
+        ));
+    }
+    public function index_xxx()
     {
         $user = Auth::user();
 
@@ -160,6 +258,281 @@ class CalrNonPurchController extends Controller
     }
 
     public function json(Request $req)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'draw' => (int) $req->input('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+            ]);
+        }
+
+        $scope = strtolower((string) $req->query('scope', 'calrjobs'));
+        $u = $user->username ?? '';
+
+        $cpnyList = is_string($user->cpny_id)
+            ? array_values(array_filter(array_map('trim', explode(',', $user->cpny_id))))
+            : (array) $user->cpny_id;
+
+        $deptList = is_string($user->department_id)
+            ? array_values(array_filter(array_map('trim', explode(',', $user->department_id))))
+            : (array) $user->department_id;
+
+        $draw = (int) $req->input('draw', 1);
+        $start = (int) $req->input('start', 0);
+        $length = (int) $req->input('length', 25);
+        $search = trim((string) $req->input('search.value', ''));
+
+        $isFinanceAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'FINACCESS')
+            ->exists();
+
+        if ($scope === 'calrjobs') {
+            /*
+            |--------------------------------------------------------------------------
+            | CALR Jobs
+            |--------------------------------------------------------------------------
+            */
+            $base = TrRfpNonPurch::query()
+                ->whereIn('cpny_id', $cpnyList)
+                ->whereIn('department_id', $deptList)
+                ->where('rfpnonpurchase_type', 'RCA')
+                ->where('status', 'C')
+                ->where('created_by', $u)
+                ->whereNull('calrid')
+                ->select([
+                    'id',
+                    'rfpnonpurchaseid',
+                    'imnonpurchaseid',
+                    'rfpnonpurchasedate',
+                    'datediperlukan',
+                    'datepenyelesaian',
+                    'cpny_id',
+                    'department_id',
+                    'location_id',
+                    'user_peminta',
+                    'rfpnonpurchase_type',
+                    'pleasepayto',
+                    'keperluan',
+                    'amountrequestpayment',
+                    'status',
+                    'created_by',
+                    'created_at',
+                ]);
+
+            $orderColumns = [
+                0 => 'rfpnonpurchaseid',
+                1 => 'rfpnonpurchaseid',
+                2 => 'rfpnonpurchasedate',
+                3 => 'imnonpurchaseid',
+                4 => 'cpny_id',
+                5 => 'department_id',
+                6 => 'pleasepayto',
+                7 => 'amountrequestpayment',
+                8 => 'created_by',
+            ];
+
+            if ($search !== '') {
+                $base->where(function ($q) use ($search) {
+                    $q->where('rfpnonpurchaseid', 'ilike', "%{$search}%")
+                        ->orWhere('imnonpurchaseid', 'ilike', "%{$search}%")
+                        ->orWhere('cpny_id', 'ilike', "%{$search}%")
+                        ->orWhere('department_id', 'ilike', "%{$search}%")
+                        ->orWhere('user_peminta', 'ilike', "%{$search}%")
+                        ->orWhere('rfpnonpurchase_type', 'ilike', "%{$search}%")
+                        ->orWhere('pleasepayto', 'ilike', "%{$search}%")
+                        ->orWhere('keperluan', 'ilike', "%{$search}%")
+                        ->orWhere('created_by', 'ilike', "%{$search}%")
+                        ->orWhereRaw("TO_CHAR(rfpnonpurchasedate, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
+                        ->orWhereRaw("CAST(amountrequestpayment AS TEXT) ILIKE ?", ["%{$search}%"]);
+                });
+            }
+        } else {
+            /*
+            |--------------------------------------------------------------------------
+            | Existing CALR Non Purchase
+            |--------------------------------------------------------------------------
+            */
+            $base = TrCalrNonPurch::query()
+                ->whereIn('cpny_id', $cpnyList);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Samakan dengan RFP Non Purch
+            |--------------------------------------------------------------------------
+            | calrfinance:
+            | - hanya FINACCESS
+            | - hanya cpny_id
+            | - status C
+            | - tanpa department
+            | - tanpa created_by
+            |
+            | scope lain:
+            | - filter department
+            | - non FINACCESS filter created_by
+            */
+            if ($scope === 'calrfinance') {
+                if (!$isFinanceAccess) {
+                    return response()->json([
+                        'draw' => $draw,
+                        'recordsTotal' => 0,
+                        'recordsFiltered' => 0,
+                        'data' => [],
+                    ]);
+                }
+
+                $base->where('status', 'C');
+            } else {
+                $base->whereIn('department_id', $deptList);
+
+                if (!$isFinanceAccess) {
+                    $base->where('created_by', $u);
+                }
+
+                if ($scope === 'onprogress') {
+                    $base->where('status', 'P');
+                } elseif ($scope === 'completed') {
+                    $base->where('status', 'C');
+                } elseif ($scope === 'rejected') {
+                    $base->where('status', 'R');
+                } elseif ($scope === 'revise') {
+                    $base->where('status', 'D');
+                }
+            }
+
+            $base->select([
+                'id',
+                'calrnonpurchaseid',
+                'rfpnonpurchaseid',
+                'calrnonpurchasedate',
+                'datebataspenyelesaian',
+                'cpny_id',
+                'department_id',
+                'location_id',
+                'user_peminta',
+                'keperluan',
+                'amountrfp',
+                'amountsettlement',
+                'amountdiff',
+                'status',
+                'userreceive',
+                'receivedate',
+                'statusreceive',
+                'userpayment',
+                'paymentdate',
+                'paymenttype',
+                'amountpayment',
+                'amountpenyelesaian',
+                'statuspayment',
+                'created_by',
+                'created_at',
+            ]);
+
+            $orderColumns = [
+                0 => 'calrnonpurchaseid',
+                1 => 'calrnonpurchaseid',
+                2 => 'calrnonpurchasedate',
+                3 => 'rfpnonpurchaseid',
+                4 => 'cpny_id',
+                5 => 'department_id',
+                6 => 'amountrfp',
+                7 => 'amountsettlement',
+                8 => 'amountdiff',
+                9 => 'created_by',
+                10 => 'status',
+            ];
+
+            if ($search !== '') {
+                $base->where(function ($q) use ($search) {
+                    $q->where('calrnonpurchaseid', 'ilike', "%{$search}%")
+                        ->orWhere('rfpnonpurchaseid', 'ilike', "%{$search}%")
+                        ->orWhere('cpny_id', 'ilike', "%{$search}%")
+                        ->orWhere('department_id', 'ilike', "%{$search}%")
+                        ->orWhere('user_peminta', 'ilike', "%{$search}%")
+                        ->orWhere('keperluan', 'ilike', "%{$search}%")
+                        ->orWhere('created_by', 'ilike', "%{$search}%")
+                        ->orWhereRaw("TO_CHAR(calrnonpurchasedate, 'YYYY-MM-DD') ILIKE ?", ["%{$search}%"])
+                        ->orWhereRaw("CAST(amountrfp AS TEXT) ILIKE ?", ["%{$search}%"])
+                        ->orWhereRaw("CAST(amountsettlement AS TEXT) ILIKE ?", ["%{$search}%"])
+                        ->orWhereRaw("CAST(amountdiff AS TEXT) ILIKE ?", ["%{$search}%"]);
+                });
+            }
+        }
+
+        $recordsTotal = (clone $base)->count();
+        $recordsFiltered = (clone $base)->count();
+
+        $orderIdx = (int) $req->input('order.0.column', ($scope === 'calrjobs' ? 2 : 1));
+        $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderCol = $orderColumns[$orderIdx] ?? ($scope === 'calrjobs' ? 'rfpnonpurchaseid' : 'calrnonpurchasedate');
+
+        $rows = $base->orderBy($orderCol, $orderDir)
+            ->orderBy($scope === 'calrjobs' ? 'rfpnonpurchaseid' : 'calrnonpurchaseid', 'desc')
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Format rows
+        |--------------------------------------------------------------------------
+        */
+        $rows->transform(function ($row) use ($scope) {
+            if ($scope === 'calrjobs') {
+                $row->rfpnonpurchase_eid = Hashids::encode((string) $row->id);
+
+                $row->rfpnonpurchasedate_fmt = $row->rfpnonpurchasedate
+                    ? Carbon::parse($row->rfpnonpurchasedate)->format('Y-m-d')
+                    : null;
+
+                $row->amountrequestpayment_fmt = number_format((float) ($row->amountrequestpayment ?? 0), 2, '.', ',');
+            } else {
+                $row->calrnonpurchase_eid = Hashids::encode((string) $row->id);
+
+                $row->calrnonpurchasedate_fmt = $row->calrnonpurchasedate
+                    ? Carbon::parse($row->calrnonpurchasedate)->format('Y-m-d')
+                    : null;
+
+                $row->amountrfp_fmt = number_format((float) ($row->amountrfp ?? 0), 2, '.', ',');
+                $row->amountsettlement_fmt = number_format((float) ($row->amountsettlement ?? 0), 2, '.', ',');
+                $row->amountdiff_fmt = number_format((float) ($row->amountdiff ?? 0), 2, '.', ',');
+
+                /*
+                |--------------------------------------------------------------------------
+                | Finance Flow Text
+                |--------------------------------------------------------------------------
+                */
+                $sr = strtoupper(trim($row->statusreceive ?? 'P'));
+                $sp = strtoupper(trim($row->statuspayment ?? 'P'));
+
+                if ($sr === 'P' && $sp === 'P') {
+                    $row->finance_flow_status_text = 'Waiting User';
+                } elseif ($sr === 'C' && $sp === 'P') {
+                    $row->finance_flow_status_text = 'Finance Received';
+                } elseif ($sr === 'C' && $sp === 'C') {
+                    $row->finance_flow_status_text = 'Treasury Received';
+                } else {
+                    $row->finance_flow_status_text = 'Waiting User';
+                }
+            }
+
+            unset($row->id);
+
+            return $row;
+        });
+
+        return response()->json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $rows,
+        ]);
+    }
+
+    public function json_xxx(Request $req)
     {
         $scope = strtolower((string) $req->query('scope', 'calrjobs'));
 
@@ -2160,6 +2533,145 @@ class CalrNonPurchController extends Controller
                 'message' => 'Failed to revise CALR Non Purchase.',
                 'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
+        }
+    }
+
+    public function printPdfCalrNonPurch($hash)
+    {
+        $id = \Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        if (!\Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $calr = TrCalrNonPurch::with(['creator:username,name'])->findOrFail($id);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Detail settlement CALR
+        |--------------------------------------------------------------------------
+        | Detail CALR Non Purchase disimpan di tr_rfp_nonpurchase_detail
+        | dengan:
+        | - rfpnonpurchaseid = ID RCA/RFP asal
+        | - refid = calrnonpurchaseid
+        */
+        $details = TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+            ->where('refid', $calr->calrnonpurchaseid)
+            ->orderBy('id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Approval
+        |--------------------------------------------------------------------------
+        */
+        $approval = TrApproval::where('refnbr', $calr->calrnonpurchaseid)
+            ->where('status', '<>', 'X')
+            ->orderBy('aprv_leveling')
+            ->orderBy('id')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Format date
+        |--------------------------------------------------------------------------
+        */
+        $calr->calrnonpurch_date_fmt = $calr->calrnonpurchasedate
+            ? \Carbon\Carbon::parse($calr->calrnonpurchasedate)->format('d M Y')
+            : '-';
+
+        $calr->receivedate_fmt = $calr->receivedate
+            ? \Carbon\Carbon::parse($calr->receivedate)->format('d M Y H:i')
+            : '-';
+
+        $calr->paymentdate_fmt = $calr->paymentdate
+            ? \Carbon\Carbon::parse($calr->paymentdate)->format('d M Y H:i')
+            : '-';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Terbilang
+        |--------------------------------------------------------------------------
+        */
+        $calr->terbilang = trim($this->terbilang((int) $calr->amountsettlement)) . ' Rupiah';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Status document
+        |--------------------------------------------------------------------------
+        */
+        $status_doc = match ($calr->status) {
+            'P' => 'On Progress',
+            'R' => 'Rejected',
+            'D' => 'Revise',
+            'C' => 'Completed',
+            'X' => 'Cancel',
+            default => 'Unknown',
+        };
+
+        $approve_count = $approval->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Creator
+        |--------------------------------------------------------------------------
+        */
+        $created_by_name = $calr->creator->name ?? null;
+        $created_by_username = $calr->created_by;
+        $req_date_fmt = $calr->created_at
+            ? \Carbon\Carbon::parse($calr->created_at)->format('d M Y H:i')
+            : '-';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Company
+        |--------------------------------------------------------------------------
+        */
+        $company = MsCompany::where('cpny_id', $calr->cpny_id)->first();
+        $cpny_name = $company->cpny_name ?? $calr->cpny_id;
+
+        $pdf = \PDF::loadView('pages.calrnonpurch.pdf_calrnonpurch', [
+            'calr' => $calr,
+            'details' => $details,
+            'approval' => $approval,
+            'status_doc' => $status_doc,
+            'approve_count' => $approve_count,
+            'created_by_name' => $created_by_name,
+            'created_by_username' => $created_by_username,
+            'req_date_fmt' => $req_date_fmt,
+            'cpny_name' => $cpny_name,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream("CALR_{$calr->calrnonpurchaseid}.pdf");
+    }
+
+    private function terbilang($angka)
+    {
+        $angka = abs($angka);
+        $huruf = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+
+        if ($angka < 12) {
+            return " " . $huruf[$angka];
+        } elseif ($angka < 20) {
+            return $this->terbilang($angka - 10) . " Belas";
+        } elseif ($angka < 100) {
+            return $this->terbilang($angka / 10) . " Puluh" . $this->terbilang($angka % 10);
+        } elseif ($angka < 200) {
+            return " Seratus" . $this->terbilang($angka - 100);
+        } elseif ($angka < 1000) {
+            return $this->terbilang($angka / 100) . " Ratus" . $this->terbilang($angka % 100);
+        } elseif ($angka < 2000) {
+            return " Seribu" . $this->terbilang($angka - 1000);
+        } elseif ($angka < 1000000) {
+            return $this->terbilang($angka / 1000) . " Ribu" . $this->terbilang($angka % 1000);
+        } elseif ($angka < 1000000000) {
+            return $this->terbilang($angka / 1000000) . " Juta" . $this->terbilang($angka % 1000000);
+        } else {
+            return "Terlalu Besar";
         }
     }
 }

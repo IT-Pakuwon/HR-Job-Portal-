@@ -1,4 +1,12 @@
 <x-app-layout>
+    @php
+        $user = auth()->user();
+
+        // Samakan seperti view RFP
+        $isFinanceAccess = $isFinanceAccess ?? ($user ? $user->hasRole('FINACCESS') : false);
+        $hasApFinAccess = $hasApFinAccess ?? ($user ? $user->hasRole('APFINACCESS') : false);
+        $hasApTreAccess = $hasApTreAccess ?? ($user ? $user->hasRole('APTREACCESS') : false);
+    @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @if ($isFinanceAccess)
             <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
@@ -442,6 +450,8 @@
                             `;
 
                             let receiveItem = '';
+                            let reviseItem = '';
+                            let reminderItem = '';
 
                             if (receiveAllowed) {
                                 receiveItem = `
@@ -456,12 +466,54 @@
                                         ${escapeHtml(receiveText)}
                                     </button>
                                 `;
+
+                                reviseItem = `
+                                    <button type="button"
+                                        class="calr-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-mode="revise"
+                                        data-action="update"
+                                        ${commonData}
+                                        data-user=""
+                                        data-date=""
+                                        data-button-text="Submit Revise">
+                                        Revise
+                                    </button>
+                                `;
+
+                                reminderItem = `
+                                    <button type="button"
+                                        class="calr-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        data-mode="reminder"
+                                        data-action="update"
+                                        ${commonData}
+                                        data-user=""
+                                        data-date=""
+                                        data-button-text="Send Reminder">
+                                        Reminder
+                                    </button>
+                                `;
                             } else {
                                 receiveItem = `
                                     <button type="button"
                                         class="block w-full cursor-not-allowed px-4 py-2 text-left text-sm text-gray-400"
                                         disabled>
                                         Receive / Rollback
+                                    </button>
+                                `;
+
+                                reviseItem = `
+                                    <button type="button"
+                                        class="block w-full cursor-not-allowed px-4 py-2 text-left text-sm text-gray-400"
+                                        disabled>
+                                        Revise
+                                    </button>
+                                `;
+
+                                reminderItem = `
+                                    <button type="button"
+                                        class="block w-full cursor-not-allowed px-4 py-2 text-left text-sm text-gray-400"
+                                        disabled>
+                                        Reminder
                                     </button>
                                 `;
                             }
@@ -476,28 +528,8 @@
 
                                     <div class="calr-action-dropdown fixed z-[9999] hidden w-52 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
                                         ${receiveItem}
-
-                                        <button type="button"
-                                            class="calr-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            data-mode="revise"
-                                            data-action="update"
-                                            ${commonData}
-                                            data-user=""
-                                            data-date=""
-                                            data-button-text="Submit Revise">
-                                            Revise
-                                        </button>
-
-                                        <button type="button"
-                                            class="calr-dropdown-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-                                            data-mode="reminder"
-                                            data-action="update"
-                                            ${commonData}
-                                            data-user=""
-                                            data-date=""
-                                            data-button-text="Send Reminder">
-                                            Reminder
-                                        </button>
+                                        ${reviseItem}
+                                        ${reminderItem}
                                     </div>
                                 </div>
                             `;
@@ -683,7 +715,7 @@
                     `;
                 }
 
-                const url = `/showcalrnonpurch/${encodeURIComponent(hash)}`;
+                const url = `/showrfpnonpurch/${encodeURIComponent(hash)}`;
 
                 return `
                     <a href="${url}" target="_blank"
@@ -892,6 +924,15 @@
                     return;
                 }
 
+                if (
+                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder') &&
+                    !hasApFinAccess &&
+                    !hasApTreAccess
+                ) {
+                    toastr.error('You are not authorized to process this action.');
+                    return;
+                }
+
                 const calrId = $(this).data('calrnonpurchaseid');
                 const rfpId = $(this).data('rfpnonpurchaseid');
                 const keperluan = $(this).data('keperluan');
@@ -984,6 +1025,15 @@
 
                 if (selectedActionMode === 'treasury' && !hasApTreAccess) {
                     toastr.error('You are not authorized to update or rollback payment.');
+                    return;
+                }
+
+                if (
+                    (selectedActionMode === 'revise' || selectedActionMode === 'reminder') &&
+                    !hasApFinAccess &&
+                    !hasApTreAccess
+                ) {
+                    toastr.error('You are not authorized to process this action.');
                     return;
                 }
 

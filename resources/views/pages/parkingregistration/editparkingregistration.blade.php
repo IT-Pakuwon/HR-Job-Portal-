@@ -536,6 +536,12 @@
                     </button>
 
                     <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                        <button type="button" id="cancelBtn"
+                            class="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                            <i class="fa-solid fa-ban"></i>
+                            <span>Cancel</span>
+                        </button>
+
                         <button type="submit" id="submitBtn"
                             class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                             <span id="btnText">Update Approval</span>
@@ -568,6 +574,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     {{-- Select2 --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -587,6 +596,18 @@
 
         function isNewOrTempType() {
             return ['NEWREQUEST', 'TEMPREQUEST'].includes(currentParkingType());
+        }
+
+        function isOprVehiclesWorkerType() {
+            return currentWorkerType() === 'OPRVEHICLES';
+        }
+
+        function isNewOrTempParkingType() {
+            return ['NEWREQUEST', 'TEMPREQUEST'].includes(currentParkingType());
+        }
+
+        function isOprVehiclesNewOrTemp() {
+            return isOprVehiclesWorkerType() && isNewOrTempParkingType();
         }
 
         function setFileCell($cell, $input, show, required = false) {
@@ -752,7 +773,17 @@
         }
 
         function shouldUseDropdownName() {
-            return isEmployeeWorkerType() || isExistingParkingType();
+            /*
+            |--------------------------------------------------------------------------
+            | Dropdown Name dipakai untuk:
+            | 1. EMPLOYEE
+            | 2. OPRVEHICLES khusus NEWREQUEST / TEMPREQUEST dari MsKendaraan
+            | 3. RENEWAL / CHANGECARD / CHANGENOPOL dari MsParkingKendaraan
+            |--------------------------------------------------------------------------
+            */
+            return isEmployeeWorkerType()
+                || isOprVehiclesNewOrTemp()
+                || isExistingParkingType();
         }
 
         function destroyEmployeeSelect2($select) {
@@ -875,6 +906,16 @@
 
         function cleanSelectedUsername(raw) {
             raw = String(raw || '');
+
+            /*
+            |--------------------------------------------------------------------------
+            | OPRVEHICLES berasal dari MsKendaraan, bukan User.
+            | Jadi username dikirim kosong/null.
+            |--------------------------------------------------------------------------
+            */
+            if (raw.startsWith('OPRVEHICLES|')) {
+                return '';
+            }
 
             if (raw.includes('|')) {
                 return raw.split('|')[0];
@@ -1116,6 +1157,22 @@
             }
         });
 
+        function setJenisKendaraanValue($row, jenis) {
+            const $jenis = $row.find('.jenisFinalInput');
+            jenis = String(jenis || '').trim();
+
+            if (!jenis) {
+                $jenis.val('');
+                return;
+            }
+
+            if ($jenis.find(`option[value="${jenis}"]`).length === 0) {
+                $jenis.append(new Option(jenis, jenis, true, true));
+            }
+
+            $jenis.val(jenis);
+        }
+
         $(document).on('change', '.employeeSelect', function () {
             const data = $(this).select2('data');
             const selected = data && data.length ? data[0] : null;
@@ -1126,10 +1183,46 @@
             const nopol = selected?.nopol || '';
             const jenis = selected?.jenis_kendaraan || '';
 
-            if (name) {
-                $row.find('.detailNameHidden').val(name);
+            $row.find('.detailNameHidden').val(name || '');
+
+            /*
+            |--------------------------------------------------------------------------
+            | OPRVEHICLES + NEWREQUEST / TEMPREQUEST
+            |--------------------------------------------------------------------------
+            | Source dari MsKendaraan:
+            | - text/name = namakendaraan
+            | - nopol = no_polisi
+            | - jenis = typekendaraan
+            |--------------------------------------------------------------------------
+            */
+            if (isOprVehiclesNewOrTemp()) {
+                $row.find('.oldNopolHidden').val('');
+                $row.find('.oldJenisHidden').val('');
+                $row.find('.oldNopolDisplay').val('');
+                $row.find('.oldJenisDisplay').val('');
+
+                $row.find('.nopolFinalInput')
+                    .val(nopol)
+                    .prop('readonly', true)
+                    .addClass('bg-gray-100 cursor-not-allowed');
+
+                setJenisKendaraanValue($row, jenis);
+
+                $row.find('.jenisFinalInput')
+                    .addClass('bg-gray-100 cursor-not-allowed pointer-events-none')
+                    .attr('tabindex', '-1');
+
+                applyParkingTypeDetailMode();
+                return;
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | RENEWAL / CHANGECARD / CHANGENOPOL
+            |--------------------------------------------------------------------------
+            | Source tetap dari MsParkingKendaraan.
+            |--------------------------------------------------------------------------
+            */
             if (isRenewalType() || isChangeCardType() || isChangeNopolType()) {
                 if (nopol) {
                     $row.find('.oldNopolHidden').val(nopol);
@@ -1142,15 +1235,22 @@
                 }
 
                 if (isChangeNopolType()) {
-                    $row.find('.nopolFinalInput').val('').prop('readonly', false);
-                    $row.find('.jenisFinalInput').val('').removeClass('pointer-events-none');
+                    $row.find('.nopolFinalInput')
+                        .val('')
+                        .prop('readonly', false)
+                        .removeClass('bg-gray-100 cursor-not-allowed');
+
+                    $row.find('.jenisFinalInput')
+                        .val('')
+                        .removeClass('bg-gray-100 cursor-not-allowed pointer-events-none')
+                        .removeAttr('tabindex');
                 } else {
                     if (nopol) {
                         $row.find('.nopolFinalInput').val(nopol);
                     }
 
                     if (jenis) {
-                        $row.find('.jenisFinalInput').val(jenis);
+                        setJenisKendaraanValue($row, jenis);
                     }
                 }
             }
@@ -1182,6 +1282,31 @@
 
                 if (!shouldUseDropdownName()) {
                     $row.find('.manualNameInput').val(name);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | OPRVEHICLES + NEWREQUEST / TEMPREQUEST
+                |--------------------------------------------------------------------------
+                | No Polisi dan Jenis Kendaraan readonly karena dari MsKendaraan.
+                |--------------------------------------------------------------------------
+                */
+                if (isOprVehiclesNewOrTemp()) {
+                    const selectedData = $row.find('.employeeSelect').hasClass('select2-hidden-accessible')
+                        ? $row.find('.employeeSelect').select2('data')
+                        : [];
+
+                    const selected = selectedData && selectedData.length ? selectedData[0] : null;
+
+                    if (selected) {
+                        $row.find('.nopolFinalInput')
+                            .prop('readonly', true)
+                            .addClass('bg-gray-100 cursor-not-allowed');
+
+                        $row.find('.jenisFinalInput')
+                            .addClass('bg-gray-100 cursor-not-allowed pointer-events-none')
+                            .attr('tabindex', '-1');
+                    }
                 }
             });
         });
@@ -1230,6 +1355,58 @@
 
         $('#backBtn').on('click', function () {
             window.location.href = "{{ route('parkingregistration') }}";
+        });
+
+        $('#cancelBtn').on('click', function () {
+            Swal.fire({
+                title: 'Anda yakin mau cancel?',
+                text: 'Dokumen akan diubah menjadi Cancelled.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Cancel',
+                cancelButtonText: 'Tidak',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+            }).then(function (result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $('#cancelBtn, #submitBtn, #backBtn').prop('disabled', true);
+                showOverlay('Cancelling');
+
+                $.ajax({
+                    url: "{{ route('parkingregistration.cancel', $parkingRegistration->docid) }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        _method: "PUT"
+                    }
+                })
+                .done(function (res) {
+                    toastr.success(res.message || 'Parking Registration cancelled successfully.');
+
+                    setTimeout(function () {
+                        window.location.href = "{{ route('parkingregistration') }}";
+                    }, 700);
+                })
+                .fail(function (xhr) {
+                    let msg = 'Failed to cancel Parking Registration.';
+
+                    if (xhr.responseJSON?.error) {
+                        msg = xhr.responseJSON.error;
+                    } else if (xhr.responseJSON?.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+
+                    toastr.error(msg);
+                    console.error(xhr.responseText);
+                })
+                .always(function () {
+                    $('#cancelBtn, #submitBtn, #backBtn').prop('disabled', false);
+                    hideOverlay();
+                });
+            });
         });
 
         $('#parkingRegistrationForm').on('submit', function (e) {

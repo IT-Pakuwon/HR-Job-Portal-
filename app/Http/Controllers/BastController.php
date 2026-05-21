@@ -424,6 +424,111 @@ class BastController extends Controller
             return response()->json(['success' => false, 'message' => 'BAST not found'], 404);
         }
 
+        // Ambil rating dari request
+        $ratingScores = $this->extractRatings($request);
+
+        \Log::info('[approveBast] payload', [
+            'all' => $request->all(),
+            'rating_scores' => $ratingScores,
+        ]);
+
+        $eid = Hashids::encode($bast->id);
+        $docUrl = url('/showbast/' . $eid);
+        $fullname = data_get($bast, 'creator.name') ?: $bast->created_by;
+
+        return \DB::transaction(function () use ($user, $doctype, $bast, $ratingScores, $docUrl, $fullname) {
+
+            $result = app(ApprovalController::class)->approveStep(
+                $bast->bastid,
+                $doctype,
+                $user->username,
+                $user->name,
+
+                // FINAL APPROVER
+                function (string $refnbr, Carbon $now) use ($bast, $fullname, $docUrl) {
+                    // JANGAN jalankan applyBastApprovalSideEffects di final
+                    // karena requirement: hanya untuk approval level 1.00 saja
+
+                    $bast->status = 'C';
+                    $bast->completed_by = auth()->user()->username;
+                    $bast->completed_at = $now;
+                    $bast->save();
+
+                    app(ApprovalController::class)->notifyRequesterOnStatus(
+                        $bast->bastid,
+                        'BAST',
+                        'C',
+                        $bast->created_by,
+                        $docUrl,
+                        [
+                            'cpnyid' => $bast->cpny_id ?? '',
+                            'deptname' => $bast->department_id ?? '',
+                            'date' => $bast->bastdate,
+                            'info' => $bast->keperluan,
+                            'fullname' => $fullname,
+                            'createdby' => $fullname,
+                        ]
+                    );
+                },
+
+                // NEXT APPROVER
+                function ($next, Carbon $now) use ($bast, $docUrl, $ratingScores) {
+
+                    /*
+                    * Jika setelah approve current step, next approver adalah level 2.00,
+                    * berarti current approver yang baru saja approve adalah level 1.00.
+                    *
+                    * Jadi applyBastApprovalSideEffects hanya jalan sekali,
+                    * yaitu setelah approval level 1.00.
+                    */
+                    if ((string) ($next['aprv_leveling'] ?? '') === '2.00') {
+                        $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
+                    }
+
+                    app(ApprovalController::class)->notifyFirstApprover(
+                        $bast->bastid,
+                        'BA',
+                        'P',
+                        'BAST',
+                        $docUrl,
+                        [
+                            'info' => $bast->keperluan,
+                            'createdby' => $bast->created_by,
+                            'date' => $now->toDateTimeString(),
+                        ]
+                    );
+
+                    $bast->completed_by = auth()->user()->username;
+                    $bast->completed_at = $now;
+                    $bast->save();
+                }
+            );
+
+            if (!$result['ok']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Approve failed',
+                ], 403);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Task approved successfully',
+                'rating_vendor' => $bast->rating_vendor,
+            ]);
+        });
+    }
+
+    public function approveBast_zzz(Request $request, $docid)
+    {
+        $user = $request->user();
+        $doctype = 'BA';
+
+        $bast = TrBast::with('creator')->where('bastid', $docid)->first();
+        if (!$bast) {
+            return response()->json(['success' => false, 'message' => 'BAST not found'], 404);
+        }
+
         // 🔽 inilah kuncinya
         $ratingScores = $this->extractRatings($request);
 
