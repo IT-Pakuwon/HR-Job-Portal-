@@ -153,7 +153,7 @@
         </div>
 
         <div class="flex w-full flex-col gap-6">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- LEFT CARD --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -173,14 +173,14 @@
                                 {{ $statusText }}
                             </span>
 
-                            {{-- Aktifkan kalau route PDF sudah ada --}}           
+                            {{-- Aktifkan kalau route PDF sudah ada --}}
                             <a href="{{ url('/printcalrnonpurch') }}/{{ $hash }}" target="_blank">
                                     <button
                                     class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-indigo-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     Print PDF
                                 </button>
                             </a>
-                           
+
                         </div>
                     </header>
 
@@ -212,8 +212,8 @@
                                 [
                                     'label' => 'Date Batas Penyelesaian',
                                     'value' => $fmtDate($calr->datebataspenyelesaian),
-                                ],                              
-                              
+                                ],
+
                                 [
                                     'label' => 'User Peminta',
                                     'value' => $calr->user_peminta ?? '-',
@@ -403,7 +403,7 @@
             <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- LEFT: CALR DETAIL --}}
-                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">                    
+                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                     <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                         <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
                             CALR Detail
@@ -449,11 +449,11 @@
                                 </tr>
                             </tfoot>
                         </table>
-                    </div>                    
+                    </div>
                 </div>
 
-                {{-- RIGHT: CALR PROGRESS STEPS --}}         
-                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">            
+                {{-- RIGHT: CALR PROGRESS STEPS --}}
+                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                     <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                         <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
                             CALR Non Purchase Progress Steps
@@ -511,8 +511,8 @@
                             </tbody>
                         </table>
                     </div>
-                </div>     
-            </div>           
+                </div>
+            </div>
         </div>
     </div>
 

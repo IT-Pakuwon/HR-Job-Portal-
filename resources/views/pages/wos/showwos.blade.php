@@ -33,7 +33,7 @@
             </div>
         </div>
         <div class="flex w-full flex-col gap-6 xl:flex-col">
-            <div class="flex w-full items-stretch gap-6 xl:flex-row">
+             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (WO Info) --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
@@ -444,38 +444,6 @@
                     </div>
                 </div>
             </div>
-
-            {{-- === JOB PROCESS (status_pekerjaan + comment) === --}}
-            {{-- form status_pekerjaan + comment (disembunyikan dulu) --}}
-            {{-- @php
-                $loginUser = auth()->user();
-
-                // Ambil semua departemen yang terkait dengan worktype ini
-                $cek_dept = \App\Models\MsWorktypeDept::where('worktypeid', $wo->worktypeid)->get();
-
-                // Department user login
-                $userDept = $loginUser->department_id ?? null;
-
-                // Apakah department user ada di daftar departemen worktype?
-                $deptMatch = $cek_dept->contains('department_id', $userDept);
-
-                // Cek PIC WO
-                $loginUsername = strtolower(trim($loginUser->username));
-                $pic = strtolower(trim($wo->pic_wo ?? ''));
-
-                // User boleh proses jika:
-                // 1. Department user termasuk list department worktype
-                // 2. PIC WO = user login
-                $isProcessor = $deptMatch || $pic === $loginUsername;
-            @endphp --}}
-
-            {{-- @php
-                $loginUser = auth()->user();
-                $loginUsername = strtolower(trim((string)($loginUser->username ?? $loginUser->name ?? '')));
-                $picWo = strtolower(trim((string)($wo->pic_wo ?? '')));
-
-                $isPicWo = ($picWo !== '' && $picWo === $loginUsername); // ✅ hanya true kalau PIC = user login
-            @endphp --}}
 
 
             @if ($canProcess)
