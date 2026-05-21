@@ -471,6 +471,32 @@
                 order: [
                     [1, 'asc']
                 ],
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Master Budget',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Master Budget',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ],
                 columns: [{
                         data: null,
                         defaultContent: '',
@@ -576,6 +602,32 @@
                 }],
                 order: [
                     [2, 'desc']
+                ],
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [{
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Tr_Budget List',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Tr_Budget List',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
                 ],
                 columns: [{
                         data: null,
