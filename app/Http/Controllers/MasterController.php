@@ -1192,78 +1192,7 @@ class MasterController extends Controller
                 'per_page' => $perPage,
             ]);
         }
-
-        // =========================================================
-        // 3) Selain PEMBERI KERJA -> Ambil dari ms_budget (mapping worktype -> dept)
-        // =========================================================
-        // $perpost = $wo->budget_perpost;
-
-        // $deptFinList = MsWorktypeDept::query()
-        //     ->where('worktypeid', $wo->worktypeid)
-        //     ->where('status', 'A')
-        //     ->pluck('department_id')
-        //     ->toArray();
-        //     // dd($deptFinList);
-
-        // if (empty($deptFinList)) {
-        //     return response()->json([
-        //         'meta'     => $meta,
-        //         'data'     => [],
-        //         'total'    => 0,
-        //         'page'     => $page,
-        //         'per_page' => $perPage,
-        //         'message'  => "Mapping Worktype {$wo->worktypeid} ke Department tidak ditemukan.",
-        //     ]);
-        // }
-
-        // // ✅ cek budget header (minimal ada 1 yang completed)
-        // $budgetExists = Budget::query()
-        //     ->where('status', 'C')
-        //     ->where('cpny_id', $wo->cpny_id)
-        //     ->whereIn('department_fin_id', $deptFinList)
-        //     ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
-        //     ->exists();
-
-        // if (!$budgetExists) {
-        //     return response()->json([
-        //         'meta'     => $meta,
-        //         'data'     => [],
-        //         'total'    => 0,
-        //         'page'     => $page,
-        //         'per_page' => $perPage,
-        //         'message'  => "Budget belum tersedia/Completed untuk Company {$wo->cpny_id}, Worktype {$wo->worktypeid}, Perpost {$perpost}.",
-        //     ]);
-        // }
-
-        // $q = BudgetDetail::query()
-        //     ->from('ms_budget as b')
-        //     ->join('ms_coa as c', function ($j) {
-        //         $j->on('c.account_id', '=', 'b.account_id')
-        //         ->on('c.cpny_id', '=', 'b.cpny_id');
-        //     })
-        //     ->leftJoin('ms_activity as a', function ($j) {
-        //         $j->on('a.activity_id', '=', 'b.activity_id')
-        //         ->on('a.cpny_id', '=', 'b.cpny_id');
-        //     })
-        //     ->where('b.status', 'C')
-        //     ->where('b.cpny_id', $wo->cpny_id)
-        //     ->whereIn('b.department_fin_id', $deptFinList)
-        //     ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
-
-        // if ($search !== '') {
-        //     $q->where(function ($w) use ($search) {
-        //         $w->where('b.account_id', 'ilike', "%{$search}%")
-        //         ->orWhere('c.account_descr', 'ilike', "%{$search}%")
-        //         ->orWhere('b.activity_id', 'ilike', "%{$search}%")
-        //         ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
-        //         ->orWhere('a.activity_descr', 'ilike', "%{$search}%")
-        //         ->orWhereRaw(
-        //             "(COALESCE(b.totalbudget,0) + COALESCE(b.totalbudget_add,0))::text ILIKE ?",
-        //             ["%{$search}%"]
-        //         );
-        //     });
-        // }
-
+       
         // =========================================================
         // 3) Selain PEMBERI KERJA -> Ambil dari ms_budget (department_fin_id dari MsDepartment)
         // =========================================================
@@ -1274,7 +1203,7 @@ class MasterController extends Controller
             ->where('status', 'A')
             ->where('department_id', $deptid)   // sumber dari WO
             ->first(['department_id','department_fin_id']);
-
+                        
         $departmentFinId = $dept->department_fin_id;
         // dd("dept_fin_id: {$departmentFinId} untuk dept_id: {$wo->department_id}");
 

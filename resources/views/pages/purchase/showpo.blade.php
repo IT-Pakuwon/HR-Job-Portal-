@@ -125,7 +125,7 @@
                             @endif
                         </h1>
 
-                        @php
+                        {{-- @php
                             // Mapping status PO (versi baru)
                             $statusText = match ($po->status) {
                                 'H' => 'Hold',
@@ -145,6 +145,72 @@
                                 'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
                                 'R' => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
                                 default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+                            };
+
+                            // Helper number format
+                            $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
+                            $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
+                        @endphp --}}
+
+                        @php
+                            /*
+                            |--------------------------------------------------------------------------
+                            | Mapping Status PO / Reuse
+                            |--------------------------------------------------------------------------
+                            | reuse null / false:
+                            | H = Hold
+                            | P = Purchase Order
+                            | O = Partial Release
+                            | C = Completed
+                            | X = Canceled
+                            |
+                            | reuse = true / 't':
+                            | status D = Reuse Canceled
+                            | status C = Reuse Completed
+                            |--------------------------------------------------------------------------
+                            */
+
+                            $isReuse = in_array($po->reuse, [true, 1, '1', 't', 'true'], true);
+
+                            if ($isReuse && $po->status === 'D') {
+                                $statusText = 'Reuse Canceled';
+                            } elseif ($isReuse && $po->status === 'C') {
+                                $statusText = 'Reuse Completed';
+                            } else {
+                                $statusText = match ($po->status) {
+                                    'H' => 'Hold',
+                                    'P' => 'Purchase Order',
+                                    'O' => 'Partial Release',
+                                    'C' => 'Completed',
+                                    'X' => 'Canceled',
+                                    default => 'Unknown',
+                                };
+                            }
+
+                            $statusClasses = match (true) {
+                                $isReuse && $po->status === 'D'
+                                    => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+
+                                $isReuse && $po->status === 'C'
+                                    => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+
+                                $po->status === 'H'
+                                    => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+
+                                $po->status === 'P'
+                                    => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
+
+                                $po->status === 'O'
+                                    => 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
+
+                                $po->status === 'C'
+                                    => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
+
+                                $po->status === 'X'
+                                    => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+
+                                default
+                                    => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
                             };
 
                             // Helper number format

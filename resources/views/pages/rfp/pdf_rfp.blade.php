@@ -17,14 +17,67 @@
         .border-top { border-top: 1px solid #000; }
         .border-bottom { border-bottom: 1px solid #000; }
 
-        .sig-table td, .sig-table th {
+        /* .sig-table td, .sig-table th {
             border: 1px solid #000;
             padding: 6px;
         }
 
         .status.blue { color: blue; }
         .status.red { color: red; }
-        .status.orange { color: orange; }
+        .status.orange { color: orange; } */
+        .sig-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .sig-table td,
+        .sig-table th {
+            border: 1px solid #000;
+            padding: 6px;
+            vertical-align: top;
+            font-size: 10px;
+        }
+
+        .sig-table th {
+            background: #f7f7f7;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .sig-name {
+            font-weight: bold;
+        }
+
+        .sig-status {
+            margin-top: 3px;
+            font-weight: bold;
+        }
+
+        .sig-num {
+            font-weight: bold;
+            margin-right: 4px;
+        }
+
+        .status.blue,
+        .blue {
+            color: blue;
+        }
+
+        .status.red,
+        .red {
+            color: red;
+        }
+
+        .status.orange,
+        .orange {
+            color: orange;
+        }
+
+        .status.black,
+        .black {
+            color: black;
+        }
     </style>
 </head>
 
@@ -135,79 +188,108 @@
 <div class="border-bottom" style="margin-top:8px;"></div>
 
 
-    {{-- Approvals --}}
+    {{-- ================= APPROVAL ================= --}}
     @php
+        $approvalRows = collect($approval ?? [])->values();
+
         $stColor = match (true) {
             in_array($status_doc, ['Approved', 'Completed']) => 'blue',
             in_array($status_doc, ['Rejected', 'Cancel']) => 'red',
-            $status_doc === 'Hold' => 'orange',
+            in_array($status_doc, ['Revise', 'Revised', 'On Progress', 'Waiting Approval']) => 'orange',
             default => 'black',
         };
 
+        $approve_count = $approvalRows->count();
         $colsPerRow = $approve_count > 5 ? 4 : 3;
-        $chunks = $approval->values()->chunk($colsPerRow);
+        $chunks = $approvalRows->chunk($colsPerRow);
+
         $idx = 1;
         $totalCols = 1 + $colsPerRow;
     @endphp
 
-    <table class="sig-table">
+    <table class="sig-table" style="margin-top:12px;">
         <thead>
             <tr>
                 <th colspan="{{ $totalCols }}" style="text-align: left;">
-                    Status: <span class="status {{ $stColor }}">{{ $status_doc }}</span>
+                    Status:
+                    <span class="status {{ $stColor }}">
+                        {{ $status_doc }}
+                    </span>
                 </th>
             </tr>
         </thead>
+
         <tbody>
-            @forelse($chunks as $rowIndex => $chunk)
-                <tr>
-                    @if ($rowIndex === 0)
-                        <td rowspan="{{ $chunks->count() }}" style="width:160px;">
-                            <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
-                            <div class="sig-status blue">Created</div>
-                            <div>{{ $req_date_fmt }}</div>
-                        </td>
-                    @endif
+            @if ($approvalRows->count() > 0)
+                @foreach ($chunks as $rowIndex => $chunk)
+                    <tr>
+                        @if ($rowIndex === 0)
+                            <td rowspan="{{ $chunks->count() }}" style="width:160px;">
+                                <div class="sig-name">
+                                    {{ $created_by_name ?? $created_by_username }}
+                                </div>
+                                <div class="sig-status blue">Created</div>
+                                <div>{{ $req_date_fmt }}</div>
+                            </td>
+                        @endif
 
-                    @foreach ($chunk as $dt2)
-                        @php
-                            $label = match ($dt2->status) {
-                                'A' => 'Approved',
-                                'R' => 'Rejected',
-                                'P' => 'Waiting',
-                                default => 'Revised',
-                            };
-                            $color = match ($dt2->status) {
-                                'A' => 'blue',
-                                'R' => 'red',
-                                'P' => 'orange',
-                                default => 'red',
-                            };
-                            $dateStr = $dt2->aprv_dateafter
-                                ? \Carbon\Carbon::parse($dt2->aprv_dateafter)->format('d M Y H:i')
-                                : '';
-                        @endphp
-                        <td>
-                            <div><span class="sig-num">{{ $idx++ }}.</span><span
-                                    class="sig-name">{{ $dt2->aprv_name }}</span></div>
-                            <div class="sig-status {{ $color }}">{{ $label }}</div>
-                            <div>{{ $dateStr }}</div>
-                        </td>
-                    @endforeach
+                        @foreach ($chunk as $dt2)
+                            @php
+                                $aprvStatus = strtoupper(trim((string) $dt2->status));
 
-                    @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
-                        <td>&nbsp;</td>
-                    @endfor
-                </tr>
-            @empty
+                                $label = match ($aprvStatus) {
+                                    'A', 'C' => 'Approved',
+                                    'R' => 'Rejected',
+                                    'P' => 'Waiting',
+                                    'D' => 'Revised',
+                                    default => 'Waiting',
+                                };
+
+                                $color = match ($aprvStatus) {
+                                    'A', 'C' => 'blue',
+                                    'R' => 'red',
+                                    'P' => 'orange',
+                                    'D' => 'red',
+                                    default => 'orange',
+                                };
+
+                                $dateValue = $dt2->aprv_dateafter ?: $dt2->aprv_datebefore;
+
+                                $dateStr = $dateValue
+                                    ? \Carbon\Carbon::parse($dateValue)->format('d M Y H:i')
+                                    : '';
+                            @endphp
+
+                            <td>
+                                <div>
+                                    <span class="sig-num">{{ $idx++ }}.</span>
+                                    <span class="sig-name">{{ $dt2->aprv_name }}</span>
+                                </div>
+
+                                <div class="sig-status {{ $color }}">
+                                    {{ $label }}
+                                </div>
+
+                                <div>{{ $dateStr }}</div>
+                            </td>
+                        @endforeach
+
+                        @for ($i = $chunk->count(); $i < $colsPerRow; $i++)
+                            <td>&nbsp;</td>
+                        @endfor
+                    </tr>
+                @endforeach
+            @else
                 <tr>
-                    <td>
-                        <div class="sig-name">{{ $created_by_name ?? $created_by_username }}</div>
+                    <td colspan="{{ $totalCols }}">
+                        <div class="sig-name">
+                            {{ $created_by_name ?? $created_by_username }}
+                        </div>
                         <div class="sig-status blue">Created</div>
                         <div>{{ $req_date_fmt }}</div>
                     </td>
                 </tr>
-            @endforelse
+            @endif
         </tbody>
     </table>
 

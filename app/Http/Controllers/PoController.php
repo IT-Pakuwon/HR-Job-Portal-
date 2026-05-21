@@ -529,9 +529,118 @@ class PoController extends Controller
         ]);
     }
 
+    public function ReusePO(Request $req, $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');
+
+        $id = $decoded[0];
+
+        $po = TrPO::findOrFail($id);
+
+        $data = $req->validate([
+            'reason' => ['required', 'string'],
+        ]);
+
+        $username = Auth::user()->username ?? 'system';
+        $now = Carbon::now();
+
+        return DB::connection('pgsql')->transaction(function () use ($po, $data, $username, $now) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | 1) Cek detail PO terlebih dahulu
+            |--------------------------------------------------------------------------
+            */
+            $details = \App\Models\TrPOdetail::where('ponbr', $po->ponbr)
+                ->where('budget_cpny_id', $po->cpny_id)
+                ->get();
+
+            if ($details->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Detail PO {$po->ponbr} tidak ditemukan untuk company {$po->cpny_id}.",
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | 2) Tentukan status berdasarkan qty_received
+            |--------------------------------------------------------------------------
+            | Jika ada minimal 1 detail qty_received > 0, status = C.
+            | Jika semua qty_received = 0/null, status = D.
+            */
+            $hasReceived = $details->contains(function ($detail) {
+                return (float) ($detail->qty_received ?? 0) > 0;
+            });
+
+            $newStatus = $hasReceived ? 'C' : 'D';
+
+            /*
+            |--------------------------------------------------------------------------
+            | 3) Update header PO
+            |--------------------------------------------------------------------------
+            */
+            $reasonLine = 'CANCEL REUSE: ' . $data['reason'];
+
+            $po->status = $newStatus;
+            $po->reuse = true;
+            $po->reuse_at = $now;
+            $po->updated_by = $username;
+            $po->updated_at = $now;
+            $po->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | 4) Insert detail ke tabel Reuse
+            |--------------------------------------------------------------------------
+            */
+            $this->insertPOReuse($po);
+
+            /*
+            |--------------------------------------------------------------------------
+            | 5) Simpan komentar
+            |--------------------------------------------------------------------------
+            */
+            $fakeReq = new \Illuminate\Http\Request([
+                'docid'  => $po->ponbr,
+                'reason' => $reasonLine,
+            ]);
+
+            app('App\Http\Controllers\SendCommentController')
+                ->sendmsg($po->ponbr, 'PO', $fakeReq);
+
+            /*
+            |--------------------------------------------------------------------------
+            | 6) Proses budget reuse
+            |--------------------------------------------------------------------------
+            */
+            DB::connection('pgsql')->statement(
+                'CALL public.sp_process_budget(?, ?, ?, ?, ?)',
+                [
+                    'PO',
+                    $po->ponbr,
+                    $po->cpny_id,
+                    'Reuse',
+                    $username,
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => $hasReceived
+                    ? 'PO telah di-REUSE dengan status C karena sudah ada qty received.'
+                    : 'PO telah di-REUSE dengan status D karena belum ada qty received.',
+                'ponbr' => $po->ponbr,
+                'status' => $newStatus,
+                'has_received' => $hasReceived,
+            ]);
+        });
+    }
+
 
     /** POST /po/{ponbr}/cancel-reuse */
-    public function ReusePO(Request $req, $hash)
+    public function ReusePO_xxx(Request $req, $hash)
     {
         $decoded = Hashids::decode($hash);
         abort_if(empty($decoded), 404, 'Dokumen tidak ditemukan.');

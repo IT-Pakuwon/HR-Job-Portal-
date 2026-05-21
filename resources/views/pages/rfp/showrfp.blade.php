@@ -213,7 +213,7 @@
                                         <tbody id="rfpAttachmentTbody"></tbody>
                                     </table>
 
-                                    @if ($canUpload)
+                                    {{-- @if ($canUpload) --}}
                                         <div class="border-t border-gray-200 p-4 dark:border-gray-700">
                                             <form id="rfpAttachmentUploadForm" enctype="multipart/form-data">
                                                 @csrf
@@ -244,7 +244,7 @@
                                                 </div>
                                             </form>
                                         </div>
-                                    @endif
+                                    {{-- @endif --}}
                                 </div>
 
                                 <div x-show="activeTab === 'comments'" class="flex-1 overflow-y-auto px-4">
