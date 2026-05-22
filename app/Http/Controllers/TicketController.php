@@ -1768,13 +1768,16 @@ class TicketController extends Controller
 
             DB::connection('pgsql5')->commit();
 
+            $ticket->refresh();
+
+            $this->notificationService->ticketEnvision(
+                $ticket,
+                $request->response_descr
+            );
+
             return response()->json([
-
                 'success' => true,
-
-                'message' =>
-                'Ticket envision updated successfully.',
-
+                'message' => 'Ticket envision updated successfully.',
             ]);
         } catch (\Throwable $th) {
 
@@ -1790,6 +1793,7 @@ class TicketController extends Controller
             ], 500);
         }
     }
+
     public function transferTicket(Request $request, $hash)
     {
 

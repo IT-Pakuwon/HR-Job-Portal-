@@ -427,11 +427,9 @@
                                     <!-- Stock -->
                                     <td class="px-4 py-3">
                                         <div class="font-medium">
-                                           {{ $item->stock_qty ?? '-' }}
+                                            {{ number_format( $item->stock_qty, 2, ',', '.') }}
                                         </div>
                                     </td>
-
-
 
                                     <!-- Qty -->
                                     <td class="px-4 py-3 text-center">

@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
@@ -32,9 +31,9 @@ return [
     ],
 
     'google' => [
-    'client_id' => env('GOOGLE_CLIENT_ID'),
-    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
     'ms_graph' => [
@@ -44,4 +43,14 @@ return [
         'scope' => env('MS_GRAPH_SCOPE', 'https://graph.microsoft.com/.default'),
     ],
 
+    'whatsapp' => [
+        'url' => env('WHATSAPP_URL'),
+
+        'api_key' => env('WHATSAPP_API_KEY'),
+
+        'session' => env(
+            'WHATSAPP_SESSION',
+            'default'
+        ),
+    ],
 ];
