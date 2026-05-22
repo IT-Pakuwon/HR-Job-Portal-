@@ -2903,7 +2903,7 @@
                     showOverlay('Cancelling Document');
 
                     $.ajax({
-                        url: "{{ route('sppjs.cancel', $hash) }}",
+                        url: "{{ route('sppks.cancel', $hash) }}",
                         type: "POST",
                         data: {
                             _method: "PUT",
@@ -2917,7 +2917,7 @@
                                     icon: 'success'
                                 }).then(() => {
                                     window.location.href =
-                                        "{{ route('sppjs') }}";
+                                        "{{ route('sppks') }}";
                                 });
                             } else {
                                 Swal.fire('Failed', res?.message ||
@@ -3216,6 +3216,7 @@
                 prevBu = $bu.val();
             }, 300);
         });
+
     </script>
 
 

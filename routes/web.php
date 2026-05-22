@@ -1202,7 +1202,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/parkingregistration/{docid}/cancel', [ParkingRegistrationController::class, 'cancelParkingRegistration'])->name('parkingregistration.cancel');
     Route::put('/parking-kendaraan/{id}/toggle-status', [ParkingRegistrationController::class, 'toggleStatusParkingKendaraan'])->name('parkingkendaraan.toggleStatus');
     Route::put('/parking-kendaraan/{id}/no-kartu', [ParkingRegistrationController::class, 'updateNoKartuParkingKendaraan'])->name('parkingkendaraan.updateNoKartu');
-    
+
 
 
     Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv');
@@ -1221,6 +1221,8 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/tracking/{eid}', 'tracking')->name('tracking');
                     Route::get('/find/{eid}', 'findByHash')->name('find');
                 });
+
+                    Route::get('/purpose-search', 'purposeSearch')->name('purpose-search');
 
                 Route::get('/print/{hash}', 'printVoucherTaxi')->name('print');
 
