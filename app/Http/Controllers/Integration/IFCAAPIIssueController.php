@@ -854,7 +854,7 @@ class IFCAAPIIssueController extends Controller
 
             return [
                 "entity_cd"       => (string)$r->entity_cd,
-                "trx_cd"          => (string)$r->acctCd,
+                "trx_cd"          => (string)$r->trx_cd,
                 "doc_no"          => (string)$r->issue_id,
                 "doc_date"        => $r->issue_date ? Carbon::parse($r->issue_date)->format('Y-m-d') : "",
                 "issuehd_descs"   => (string)$r->issuehd_descs,
