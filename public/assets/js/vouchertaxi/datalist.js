@@ -1,132 +1,99 @@
 (function () {
-    'use strict';
+    "use strict";
 
     VoucherTaxi.DataList = {
-
         loading: false,
 
         init() {
-
             this.bindEvents();
             this.load();
 
-            VoucherTaxi.log('DataList Initialized');
+            VoucherTaxi.log("DataList Initialized");
         },
 
         bindEvents() {
-
             $(document).on(
-                'click',
-                '#closeViewVoucherModal, #closeViewVoucherModalFooter',
+                "click",
+                "#closeViewVoucherModal, #closeViewVoucherModalFooter",
                 function () {
-                    VoucherTaxi.Modal.close(
-                        '#viewVoucherModal'
-                    );
-                }
+                    VoucherTaxi.Modal.close("#viewVoucherModal");
+                },
             );
 
-            $('#voucherSearch').on(
-                'keyup',
+            $("#voucherSearch").on(
+                "keyup",
                 VoucherTaxi.Helper.debounce(() => {
-
-                    VoucherTaxi.state.currentSearch =
-                        $('#voucherSearch').val().trim();
-
-                    VoucherTaxi.state.currentPage = 1;
-
-                    this.load();
-
-                }, 400)
-            );
-
-            $(document).on(
-                'click',
-                '.voucher-filter',
-                (e) => {
-
-                    $('.voucher-filter')
-                        .removeClass('active-filter');
-
-                    $(e.currentTarget)
-                        .addClass('active-filter');
-
-                    VoucherTaxi.state.currentFilter =
-                        $(e.currentTarget).data('filter');
+                    VoucherTaxi.state.currentSearch = $("#voucherSearch")
+                        .val()
+                        .trim();
 
                     VoucherTaxi.state.currentPage = 1;
 
                     this.load();
-                }
+                }, 400),
             );
 
-            $('#prevVoucherPage').on(
-                'click',
-                () => {
+            $(document).on("click", ".voucher-filter", (e) => {
+                $(".voucher-filter").removeClass("active-filter");
 
-                    if (
-                        VoucherTaxi.state.currentPage <= 1
-                    ) {
-                        return;
-                    }
+                $(e.currentTarget).addClass("active-filter");
 
-                    VoucherTaxi.state.currentPage--;
+                VoucherTaxi.state.currentFilter = $(e.currentTarget).data(
+                    "filter",
+                );
 
-                    this.load();
+                VoucherTaxi.state.currentPage = 1;
+
+                this.load();
+            });
+
+            $("#prevVoucherPage").on("click", () => {
+                if (VoucherTaxi.state.currentPage <= 1) {
+                    return;
                 }
-            );
 
-            $('#nextVoucherPage').on(
-                'click',
-                () => {
+                VoucherTaxi.state.currentPage--;
 
-                    const totalPages = Math.ceil(
-                        VoucherTaxi.state.totalRows /
-                        VoucherTaxi.state.pageSize
-                    );
+                this.load();
+            });
 
-                    if (
-                        VoucherTaxi.state.currentPage >= totalPages
-                    ) {
-                        return;
-                    }
+            $("#nextVoucherPage").on("click", () => {
+                const totalPages = Math.ceil(
+                    VoucherTaxi.state.totalRows / VoucherTaxi.state.pageSize,
+                );
 
-                    VoucherTaxi.state.currentPage++;
-
-                    this.load();
+                if (VoucherTaxi.state.currentPage >= totalPages) {
+                    return;
                 }
-            );
+
+                VoucherTaxi.state.currentPage++;
+
+                this.load();
+            });
         },
 
         load() {
-
             if (this.loading) {
                 return;
             }
 
             this.loading = true;
 
-            const page =
-                VoucherTaxi.state.currentPage;
+            const page = VoucherTaxi.state.currentPage;
 
-            const length =
-                VoucherTaxi.state.pageSize;
+            const length = VoucherTaxi.state.pageSize;
 
-            const start =
-                (page - 1) * length;
+            const start = (page - 1) * length;
 
-            let status =
-                VoucherTaxi.state.currentFilter;
+            let status = VoucherTaxi.state.currentFilter;
 
-            if (
-                status === 'ALL'
-            ) {
-                status = '';
+            if (status === "ALL") {
+                status = "";
             }
 
             $.ajax({
-
                 url: VoucherTaxi.Route.json(),
-                type: 'GET',
+                type: "GET",
 
                 data: {
                     draw: 1,
@@ -136,19 +103,14 @@
                     status,
 
                     search: {
-                        value:
-                            VoucherTaxi.state.currentSearch
-                    }
+                        value: VoucherTaxi.state.currentSearch,
+                    },
                 },
 
                 success: (res) => {
+                    VoucherTaxi.state.totalRows = res.recordsFiltered || 0;
 
-                    VoucherTaxi.state.totalRows =
-                        res.recordsFiltered || 0;
-
-                    this.render(
-                        res.data || []
-                    );
+                    this.render(res.data || []);
 
                     this.updateInfo();
                 },
@@ -157,20 +119,16 @@
 
                 complete: () => {
                     this.loading = false;
-                }
+                },
             });
         },
 
         render(rows) {
+            const $body = $("#voucherListBody");
 
-            const $body =
-                $('#voucherListBody');
-
-            $('#voucherCount')
-                .text(rows.length);
+            $("#voucherCount").text(rows.length);
 
             if (!rows.length) {
-
                 $body.html(`
                     <div class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
                         No voucher found
@@ -180,103 +138,68 @@
                 return;
             }
 
-            let html = '';
+            let html = "";
 
-            rows.forEach(row => {
-
-                const badge =
-                    VoucherTaxi.Helper.badge(
-                        row.status
-                    );
+            rows.forEach((row) => {
+                const badge = VoucherTaxi.Helper.badge(row.status);
 
                 html += `
-                    <div
-                        class="voucher-item cursor-pointer rounded-xl border border-slate-200 bg-white p-4 transition hover:border-blue-300 hover:shadow-sm dark:border-white/10 dark:bg-white/[0.02]"
-                        data-eid="${row.eid}"
-                    >
+<div
+    class="voucher-item cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-3 transition hover:border-indigo-300 hover:shadow-sm dark:border-white/10 dark:bg-white/[0.02]"
+    data-eid="${row.eid}"
+>
 
-                        <div class="flex items-start justify-between gap-3">
+    <div class="flex items-start justify-between gap-3">
 
-                            <div>
+        <div class="min-w-0 flex-1">
 
-                                <div class="font-semibold text-slate-900 dark:text-white">
-                                    ${row.docid}
-                                </div>
+            <div class="flex items-center gap-2">
 
-                                <div class="mt-1 text-xs text-slate-500">
-                                    ${row.user_peminta ?? '-'}
-                                </div>
+                <div class="font-semibold text-slate-900 dark:text-white text-[11px]">
+                    ${row.docid}
+                </div>
 
-                            </div>
+            </div>
 
-                            <span class="rounded-full px-2 py-1 text-[11px] font-medium ${badge.class}">
-                                ${badge.text}
-                            </span>
+            <div class="mt-1 truncate text-sm text-slate-700 dark:text-slate-200">
+                ${row.origin ?? "-"} → ${row.destination ?? "-"}
+            </div>
 
-                        </div>
+            <div class="mt-1 text-xs text-slate-500">
+                ${row.user_peminta ?? "-"} • ${row.date_used ?? "-"}
+            </div>
 
-                        <div class="mt-3 space-y-1">
+        </div>
 
-                            <div class="text-sm font-medium text-slate-700 dark:text-slate-200">
-                                ${row.origin ?? '-'}  →  ${row.destination ?? '-'}
-                            </div>
+        <span class="shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${badge.class}">
+            ${badge.text}
+        </span>
 
-                        </div>
+    </div>
 
-                        <div class="mt-3 text-xs text-slate-500">
-                            ${row.purpose ?? '-'}
-                        </div>
-
-                        <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
-
-                            <span>
-                                ${row.date_used ?? '-'}
-                            </span>
-
-                            <span>
-                                ${row.type_trip ?? '-'}
-                            </span>
-
-                        </div>
-
-                    </div>
-                `;
+</div>
+`;
             });
 
             $body.html(html);
         },
 
         updateInfo() {
+            const total = VoucherTaxi.state.totalRows;
 
-            const total =
-                VoucherTaxi.state.totalRows;
+            const page = VoucherTaxi.state.currentPage;
 
-            const page =
-                VoucherTaxi.state.currentPage;
+            const size = VoucherTaxi.state.pageSize;
 
-            const size =
-                VoucherTaxi.state.pageSize;
+            const from = total === 0 ? 0 : (page - 1) * size + 1;
 
-            const from =
-                total === 0
-                    ? 0
-                    : ((page - 1) * size) + 1;
+            const to = Math.min(page * size, total);
 
-            const to =
-                Math.min(
-                    page * size,
-                    total
-                );
-
-            $('#voucherPageInfo')
-                .text(
-                    `Showing ${from}-${to} of ${total}`
-                );
+            $("#voucherPageInfo").text(`Showing ${from}-${to} of ${total}`);
         },
 
         reload() {
             this.load();
-        }
+        },
     };
-
 })();

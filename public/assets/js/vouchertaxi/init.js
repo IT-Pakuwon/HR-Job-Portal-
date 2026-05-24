@@ -21,6 +21,13 @@
 
         VoucherTaxi.AutoOpen.init();
 
+
+        $(window).on('resize', function () {
+
+            VoucherTaxi.syncPanelHeight();
+
+        });
+
         VoucherTaxi.log(
             'Voucher Taxi Application Ready'
         );

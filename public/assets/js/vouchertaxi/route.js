@@ -25,6 +25,10 @@
             return `${this.base}/purpose-search`;
         },
 
+        employeeByDepartment() {
+            return `${this.base}/employee-by-department`;
+        },
+
         store() {
             return `${this.base}/store`;
         },

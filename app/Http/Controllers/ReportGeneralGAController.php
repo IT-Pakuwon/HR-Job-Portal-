@@ -725,63 +725,50 @@ class ReportGeneralGAController extends Controller
             'department_id'
         );
 
-        $users = User::pluck('name', 'username');
+        $companies = \App\Models\MsCompany::pluck(
+            'cpny_name',
+            'cpny_id'
+        );
+
+        $users = User::pluck(
+            'name',
+            'username'
+        );
 
         $user = auth()->user();
 
         $companyIds = collect(
             explode(',', (string) $user->cpny_id)
         )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+            ->map(fn($x) => trim($x))
+            ->filter()
+            ->values()
+            ->toArray();
 
         $query = DB::connection('pgsql5')
             ->table('tr_voucher_taxi as vt')
-
             ->whereIn('vt.cpny_id', $companyIds)
-
             ->select([
                 'vt.docid',
 
                 'vt.voucher_date',
 
-                'vt.cpny_id',
+                'vt.created_by',
 
-                'vt.department_id',
+                'vt.user_peminta_expense',
+                'vt.department_id_expense',
+                'vt.cpny_id_expense',
 
                 'vt.origin',
-
                 'vt.destination',
 
-                'vt.user_peminta',
-
-                'vt.site_id',
-
-                'vt.cpny_id_site',
-
-                'vt.purpose',
-
-                'vt.date_used',
+                'vt.purpose_descr',
 
                 'vt.type_trip',
 
-                'vt.max_trip',
-
-                'vt.status_trip',
-
-                'vt.max_budget',
-
                 'vt.actual_budget',
 
-                'vt.checked_by',
-
-                'vt.checked_at',
-
                 'vt.status',
-
-                'vt.created_by',
 
                 'vt.created_at',
             ]);
@@ -804,19 +791,19 @@ class ReportGeneralGAController extends Controller
 
         if ($request->requester) {
             $query->where(
-                'vt.user_peminta',
+                'vt.user_peminta_expense',
                 'ilike',
                 "%{$request->requester}%"
             );
         }
 
         if ($request->status) {
-
             $query->where(
                 'vt.status',
                 $request->status
             );
         }
+
         if ($request->type_trip) {
             $query->where(
                 'vt.type_trip',
@@ -833,96 +820,92 @@ class ReportGeneralGAController extends Controller
                     : '-';
             })
 
-            ->editColumn('date_used', function ($row) {
-                return $row->date_used
-                    ? Carbon::parse($row->date_used)
-                        ->format('d-M-Y')
-                    : '-';
+            ->editColumn('created_by', function ($row) use ($users) {
+                return $users[$row->created_by]
+                    ?? $row->created_by;
             })
 
             ->addColumn('requester', function ($row) use ($users) {
-                return $users[$row->user_peminta]
-                    ?? $row->user_peminta;
+                return $users[$row->user_peminta_expense]
+                    ?? $row->user_peminta_expense;
             })
 
             ->addColumn('department', function ($row) use ($departments) {
-                return $departments[$row->department_id]
+                return $departments[$row->department_id_expense]
                     ?? '-';
             })
 
-            ->addColumn('route', function ($row) {
-                $origins = [];
+            ->addColumn('company', function ($row) use ($companies) {
+                return $companies[$row->cpny_id_expense]
+                    ?? '-';
+            })
+
+            ->addColumn('origin_label', function ($row) {
 
                 if (is_array($row->origin)) {
-                    $origins = $row->origin;
-                } elseif (!empty($row->origin)) {
-                    $decoded = json_decode(
-                        $row->origin,
-                        true
-                    );
-
-                    $origins = is_array($decoded)
-                        ? $decoded
-                        : [$row->origin];
+                    return implode('<br>', $row->origin);
                 }
 
-                $destinations = [];
+                $decoded = json_decode(
+                    $row->origin,
+                    true
+                );
+
+                if (is_array($decoded)) {
+                    return implode('<br>', $decoded);
+                }
+
+                return $row->origin ?: '-';
+            })
+
+            ->addColumn('destination_label', function ($row) {
 
                 if (is_array($row->destination)) {
-                    $destinations = $row->destination;
-                } elseif (!empty($row->destination)) {
-                    $decoded = json_decode(
-                        $row->destination,
-                        true
-                    );
-
-                    $destinations = is_array($decoded)
-                        ? $decoded
-                        : [$row->destination];
+                    return implode('<br>', $row->destination);
                 }
 
-                $routes = [];
+                $decoded = json_decode(
+                    $row->destination,
+                    true
+                );
 
-                foreach ($origins as $i => $from) {
-                    $to = $destinations[$i] ?? '-';
-
-                    $routes[] = $from.' → '.$to;
+                if (is_array($decoded)) {
+                    return implode('<br>', $decoded);
                 }
 
-                return count($routes)
-                    ? implode('<br>', $routes)
-                    : '-';
+                return $row->destination ?: '-';
+            })
+
+            ->addColumn('purpose', function ($row) {
+                return $row->purpose_descr ?: '-';
             })
 
             ->addColumn('trip_label', function ($row) {
                 return match ($row->type_trip) {
                     'ONEWAY' => 'One Way',
-
                     'ROUNDTRIP' => 'Round Trip',
-
                     default => $row->type_trip ?? '-',
                 };
             })
 
             ->editColumn('actual_budget', function ($row) {
-
                 return $row->actual_budget
-                    ? 'Rp ' . number_format($row->actual_budget)
+                    ? 'Rp ' . number_format(
+                        $row->actual_budget,
+                        0,
+                        ',',
+                        '.'
+                    )
                     : '-';
             })
 
             ->addColumn('status_label', function ($row) {
                 return match ($row->status) {
                     'P' => 'On Progress',
-
                     'C' => 'Completed',
-
                     'R' => 'Rejected',
-
                     'D' => 'Revise',
-
                     'X' => 'Cancelled',
-
                     default => '-',
                 };
             })
@@ -931,13 +914,14 @@ class ReportGeneralGAController extends Controller
                 'voucher_date',
                 'vt.voucher_date $1'
             )
+
             ->rawColumns([
-                'route',
+                'origin_label',
+                'destination_label',
             ])
 
             ->make(true);
     }
-
     /*
     |--------------------------------------------------------------------------
     | EXPORT SECTION

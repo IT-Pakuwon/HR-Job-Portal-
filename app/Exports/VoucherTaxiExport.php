@@ -4,10 +4,9 @@ namespace App\Exports;
 
 use App\Models\TrVoucherTaxi;
 use App\Models\User;
+use App\Models\MsCompany;
 use App\Models\MsDepartment;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
@@ -29,6 +28,11 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
             'department_id'
         );
 
+        $companies = MsCompany::pluck(
+            'cpny_name',
+            'cpny_id'
+        );
+
         $users = User::pluck(
             'name',
             'username'
@@ -39,19 +43,13 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
         $companyIds = collect(
             explode(',', (string) $user->cpny_id)
         )
-        ->map(fn ($x) => trim($x))
-        ->filter()
-        ->values()
-        ->toArray();
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->toArray();
 
         $query = TrVoucherTaxi::query()
             ->whereIn('cpny_id', $companyIds);
-
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER
-        |--------------------------------------------------------------------------
-        */
 
         if ($request->date_from) {
             $query->whereDate(
@@ -71,7 +69,7 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
 
         if ($request->requester) {
             $query->where(
-                'user_peminta',
+                'user_peminta_expense',
                 'ilike',
                 "%{$request->requester}%"
             );
@@ -91,54 +89,57 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
 
         return $rows->map(function ($row) use (
             $departments,
+            $companies,
             $users
         ) {
 
             return [
-                'Document No' => $row->docid,
 
-                'Voucher Date' => $row->voucher_date
+                'DOC ID' => $row->docid,
+
+                'DATE' => $row->voucher_date
                     ? Carbon::parse($row->voucher_date)
                         ->format('d-M-Y')
                     : '-',
 
-                'Requester' => $users[$row->user_peminta]
-                    ?? $row->user_peminta,
+                'CREATED USER' => $users[$row->created_by]
+                    ?? $row->created_by,
 
-                'Department' => $departments[$row->department_id]
-                    ?? $row->department_id,
+                'REQUESTER' => $users[$row->user_peminta_expense]
+                    ?? $row->user_peminta_expense,
 
-                'Company' => $row->cpny_id,
+                'DEPARTMENT' => $departments[$row->department_id_expense]
+                    ?? $row->department_id_expense,
 
-                'Origin' => $row->origin,
+                'COMPANY' => $companies[$row->cpny_id_expense]
+                    ?? $row->cpny_id_expense,
 
-                'Destination' => $row->destination,
+                'ORIGIN' => is_array($row->origin)
+                    ? implode(', ', $row->origin)
+                    : $row->origin,
 
-                'Purpose' => $row->purpose,
+                'DESTINATION' => is_array($row->destination)
+                    ? implode(', ', $row->destination)
+                    : $row->destination,
 
-                'Type Trip' => $row->type_trip,
+                'PURPOSE' => $row->purpose_descr,
 
-                // 'Max Trip' => $row->max_trip,
+                'TYPE TRIP' => match ($row->type_trip) {
+                    'ONEWAY' => 'One Way',
+                    'ROUNDTRIP' => 'Round Trip',
+                    default => $row->type_trip,
+                },
 
-                // 'Max Budget' => $row->max_budget,
+                'ACTUAL BUDGET' => $row->actual_budget,
 
-                'Actual Budget' => $row->actual_budget,
-
-                'Status' => match ($row->status) {
-                    'P' => 'Pending',
+                'STATUS' => match ($row->status) {
+                    'P' => 'On Progress',
                     'C' => 'Completed',
                     'R' => 'Rejected',
                     'D' => 'Revise',
                     'X' => 'Cancelled',
-                    default => '-',
+                    default => $row->status,
                 },
-
-                'Created By' => $row->created_by,
-
-                'Created At' => $row->created_at
-                    ? Carbon::parse($row->created_at)
-                        ->format('d-M-Y H:i')
-                    : '-',
             ];
         });
     }
@@ -146,21 +147,18 @@ class VoucherTaxiExport implements FromCollection, WithHeadings
     public function headings(): array
     {
         return [
-            'Document No',
-            'Voucher Date',
-            'Requester',
-            'Department',
-            'Company',
-            'Origin',
-            'Destination',
-            'Purpose',
-            'Type Trip',
-            // 'Max Trip',
-            // 'Max Budget',
-            'Actual Budget',
-            'Status',
-            'Created By',
-            'Created At',
+            'DOC ID',
+            'DATE',
+            'CREATED USER',
+            'REQUESTER',
+            'DEPARTMENT',
+            'COMPANY',
+            'ORIGIN',
+            'DESTINATION',
+            'PURPOSE',
+            'TYPE TRIP',
+            'ACTUAL BUDGET',
+            'STATUS',
         ];
     }
 }

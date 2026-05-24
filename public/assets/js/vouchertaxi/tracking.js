@@ -1,222 +1,453 @@
 (function () {
-    'use strict';
+    "use strict";
 
     VoucherTaxi.Tracking = {
-
         load(eid) {
-
-            $('#approvalFlow').html(`
-                <div class="flex items-center justify-center py-8">
-                    <div class="text-sm text-slate-500">
-                        Loading timeline...
-                    </div>
+            $("#approvalFlow").html(`
+                <div class="
+                    flex items-center justify-center
+                    rounded-lg border border-slate-200
+                    bg-slate-50 py-10
+                ">
+                    <div class="
+                        h-8 w-8 animate-spin rounded-full
+                        border-4 border-slate-300 border-t-slate-700
+                    "></div>
                 </div>
             `);
 
             $.ajax({
-
                 url: VoucherTaxi.Route.tracking(eid),
-
-                method: 'GET',
+                method: "GET",
 
                 success: (res) => {
-
-                    const rows =
-                        res.data || res || [];
+                    const rows = Array.isArray(res)
+                        ? res
+                        : Array.isArray(res.data)
+                          ? res.data
+                          : Array.isArray(res.steps)
+                            ? res.steps
+                            : Array.isArray(res.data?.steps)
+                              ? res.data.steps
+                              : [];
 
                     this.render(rows);
                 },
 
                 error: (xhr) => {
-
                     VoucherTaxi.Helper.ajaxError(xhr);
 
-                    $('#approvalFlow').html(`
-                        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    $("#approvalFlow").html(`
+                        <div class="
+                            rounded-lg
+                            border border-red-200
+                            bg-red-50
+                            px-5 py-4
+                            text-sm text-red-600
+                        ">
                             Failed to load tracking information
                         </div>
                     `);
-                }
+                },
             });
         },
 
         render(rows) {
-
-            const container =
-                $('#approvalFlow');
+            const container = $("#approvalFlow");
 
             if (!rows.length) {
-
                 container.html(`
-                    <div class="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
-                        No tracking history available
-                    </div>
-                `);
-
+            <div class="
+                rounded-xl border border-slate-200
+                bg-slate-50 px-4 py-8
+                text-center text-sm text-slate-500
+            ">
+                No approval workflow available
+            </div>
+        `);
                 return;
             }
 
-            let html = '';
+            let html = `
+        <div class="
+            rounded-xl border border-slate-200
+            bg-white overflow-hidden
+        ">
+
+            <div class="
+                border-b border-slate-200
+                px-5 py-4
+            ">
+                <h3 class="
+                    text-sm font-bold uppercase
+                    tracking-wider text-slate-700
+                ">
+                    Approval Timeline
+                </h3>
+            </div>
+
+            <div class="space-y-4 p-5">
+    `;
 
             rows.forEach((item, index) => {
-
-                html += this.timelineItem(
-                    item,
-                    index === rows.length - 1
-                );
+                html += this.timelineItem(item, index === rows.length - 1);
             });
+
+            html += `
+            </div>
+        </div>
+    `;
 
             container.html(html);
         },
+        approvalCard(item, stepNo) {
+            const status = (item.status || "").toUpperCase();
 
-        timelineItem(item, isLast) {
+            const approver =
+                item.by || item.user || item.username || item.title || "-";
 
-            const icon =
-                this.icon(item.type);
+            const date = item.at || item.date || item.created_at || "-";
 
-            const color =
-                this.color(item.type);
-
-            const user =
-                item.user ||
-                item.username ||
-                '-';
-
-            const date =
-                item.date ||
-                item.created_at ||
-                '-';
-
-            const title =
-                item.title ||
-                item.status ||
-                '-';
-
-            const description =
-                item.description ||
-                item.comment ||
-                item.message ||
-                '';
+            const remark = item.reason || item.comment || item.message || "";
 
             return `
-                <div class="relative flex gap-4">
+        <div class="
+            rounded-lg border border-slate-200
+            bg-white p-4
+        ">
 
-                    ${
-                        !isLast
-                        ? `
-                            <div
-                                class="absolute left-[15px] top-8 bottom-0 w-px bg-slate-200 dark:bg-white/10">
-                            </div>
-                        `
-                        : ''
-                    }
+            <div class="
+                flex items-start justify-between
+                gap-3
+            ">
 
-                    <div
-                        class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full ${color} text-white text-xs">
+                <div class="flex gap-3">
 
-                        ${icon}
-
+                    <div class="
+                        flex h-10 w-10 shrink-0
+                        items-center justify-center
+                        rounded-full
+                        ${this.badgeColor(status)}
+                    ">
+                        ${stepNo}
                     </div>
 
-                    <div class="flex-1 pb-6">
+                    <div>
 
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-
-                            <div
-                                class="font-semibold text-slate-900 dark:text-white">
-
-                                ${VoucherTaxi.Helper.escapeHtml(title)}
-
-                            </div>
-
-                            <div
-                                class="text-xs text-slate-400">
-
-                                ${VoucherTaxi.Helper.escapeHtml(date)}
-
-                            </div>
-
+                        <div class="
+                            text-xs font-semibold
+                            uppercase tracking-wide
+                            text-slate-400
+                        ">
+                            Step ${stepNo}
                         </div>
 
-                        <div
-                            class="mt-1 text-xs text-slate-500">
-
-                            ${VoucherTaxi.Helper.escapeHtml(user)}
-
+                        <div class="
+                            mt-1 text-sm font-semibold
+                            text-slate-800
+                        ">
+                            ${VoucherTaxi.Helper.escapeHtml(approver)}
                         </div>
 
-                        ${
-                            description
-                            ? `
-                                <div
-                                    class="mt-2 rounded-lg bg-slate-50 p-3 text-sm text-slate-600 dark:bg-white/[0.03] dark:text-slate-300">
-
-                                    ${VoucherTaxi.Helper.nl2br(description)}
-
-                                </div>
-                            `
-                            : ''
-                        }
+                        <div class="
+                            mt-1 text-xs
+                            text-slate-500
+                        ">
+                            ${VoucherTaxi.Helper.escapeHtml(date)}
+                        </div>
 
                     </div>
 
                 </div>
+
+                ${this.statusPill(status)}
+
+            </div>
+
+            ${
+                remark
+                    ? `
+                        <div class="
+                            mt-4 rounded-lg
+                            bg-slate-50
+                            px-3 py-2
+                            text-sm text-slate-600
+                        ">
+                            ${VoucherTaxi.Helper.nl2br(
+                                VoucherTaxi.Helper.escapeHtml(remark),
+                            )}
+                        </div>
+                    `
+                    : ""
+            }
+
+        </div>
+    `;
+        },
+        timelineItem(item, isLast) {
+            const status = (item.status || "").toUpperCase();
+
+            const title =
+                item.title || item.status_label || this.statusTitle(status);
+
+            const user = item.by || item.user || item.username || "-";
+
+            const date = item.at || item.date || item.created_at || "-";
+
+            const remark = item.reason || item.comment || item.message || "";
+
+            return `
+        <div class="relative flex gap-4">
+
+            <div class="flex flex-col items-center">
+
+                <div class="
+                    flex h-10 w-10
+                    items-center justify-center
+                    rounded-full
+                    ${this.badgeColor(status)}
+                ">
+                    ${this.icon(status)}
+                </div>
+
+                ${
+                    !isLast
+                        ? `
+                            <div class="
+                                mt-1 w-px flex-1
+                                min-h-[50px]
+                                bg-slate-200
+                            ">
+                            </div>
+                        `
+                        : ""
+                }
+
+            </div>
+
+            <div class="min-w-0 flex-1">
+
+                <div class="
+                    flex items-start justify-between
+                    gap-3
+                ">
+
+                    <div>
+
+                        <p class="
+                            text-[11px]
+                            font-bold uppercase
+                            tracking-wider
+                            text-slate-400
+                        ">
+                            ${VoucherTaxi.Helper.escapeHtml(title)}
+                        </p>
+
+                        <p class="
+                            mt-1 text-sm
+                            font-semibold
+                            text-slate-700
+                        ">
+                            ${VoucherTaxi.Helper.escapeHtml(user)}
+                        </p>
+
+                        <p class="
+                            mt-1 text-xs
+                            text-slate-400
+                        ">
+                            ${VoucherTaxi.Helper.escapeHtml(date)}
+                        </p>
+
+                    </div>
+
+                    ${this.statusPill(status)}
+
+                </div>
+
+                ${
+                    remark
+                        ? `
+                            <div class="
+                                mt-3 rounded-lg
+                                border border-slate-200
+                                bg-slate-50
+                                px-3 py-2
+                                text-sm text-slate-600
+                            ">
+                                ${VoucherTaxi.Helper.nl2br(
+                                    VoucherTaxi.Helper.escapeHtml(remark),
+                                )}
+                            </div>
+                        `
+                        : ""
+                }
+
+            </div>
+
+        </div>
+    `;
+        },
+
+        statusPill(status) {
+            switch (status) {
+                case "A":
+                    return `
+                        <span class="
+                            inline-flex rounded-full
+                            bg-emerald-100
+                            px-2.5 py-1
+                            text-xs font-semibold
+                            text-emerald-700
+                        ">
+                            Approved
+                        </span>
+                    `;
+
+                case "R":
+                    return `
+                        <span class="
+                            inline-flex rounded-full
+                            bg-red-100
+                            px-2.5 py-1
+                            text-xs font-semibold
+                            text-red-700
+                        ">
+                            Rejected
+                        </span>
+                    `;
+
+                case "D":
+                    return `
+                        <span class="
+                            inline-flex rounded-full
+                            bg-amber-100
+                            px-2.5 py-1
+                            text-xs font-semibold
+                            text-amber-700
+                        ">
+                            Revised
+                        </span>
+                    `;
+
+                case "P":
+                    return `
+                        <span class="
+                            inline-flex rounded-full
+                            bg-blue-100
+                            px-2.5 py-1
+                            text-xs font-semibold
+                            text-blue-700
+                        ">
+                            Waiting Approval
+                        </span>
+                    `;
+
+                default:
+                    return `
+                        <span class="
+                            inline-flex rounded-full
+                            bg-slate-100
+                            px-2.5 py-1
+                            text-xs font-semibold
+                            text-slate-600
+                        ">
+                            Submitted
+                        </span>
+                    `;
+            }
+        },
+        badgeColor(status) {
+            switch (status) {
+                case "A":
+                    return `
+                bg-emerald-100
+                text-emerald-600
             `;
-        },
 
-        icon(type) {
+                case "R":
+                    return `
+                bg-red-100
+                text-red-600
+            `;
 
-            switch ((type || '').toUpperCase()) {
+                case "D":
+                    return `
+                bg-amber-100
+                text-amber-600
+            `;
 
-                case 'SUBMIT':
-                    return '<i class="fa-solid fa-paper-plane"></i>';
+                case "P":
+                    return `
+                bg-blue-100
+                text-blue-600
+            `;
 
-                case 'APPROVE':
-                    return '<i class="fa-solid fa-check"></i>';
-
-                case 'REJECT':
-                    return '<i class="fa-solid fa-xmark"></i>';
-
-                case 'REVISE':
-                    return '<i class="fa-solid fa-rotate-left"></i>';
-
-                case 'PROCESS':
-                    return '<i class="fa-solid fa-money-bill-wave"></i>';
-
-                case 'COMPLETE':
-                    return '<i class="fa-solid fa-flag-checkered"></i>';
+                case "F":
+                case "C":
+                    return `
+                bg-purple-100
+                text-purple-600
+            `;
 
                 default:
-                    return '<i class="fa-solid fa-circle"></i>';
+                    return `
+                bg-slate-100
+                text-slate-500
+            `;
             }
         },
 
-        color(type) {
+        icon(status) {
+            switch (status) {
+                case "A":
+                    return `
+                <i class="
+                    fa-solid fa-check
+                    text-xs
+                "></i>
+            `;
 
-            switch ((type || '').toUpperCase()) {
+                case "R":
+                    return `
+                <i class="
+                    fa-solid fa-xmark
+                    text-xs
+                "></i>
+            `;
 
-                case 'SUBMIT':
-                    return 'bg-blue-500';
+                case "D":
+                    return `
+                <i class="
+                    fa-solid fa-rotate-left
+                    text-xs
+                "></i>
+            `;
 
-                case 'APPROVE':
-                    return 'bg-emerald-500';
+                case "P":
+                    return `
+                <i class="
+                    fa-solid fa-clock
+                    text-xs
+                "></i>
+            `;
 
-                case 'REJECT':
-                    return 'bg-red-500';
-
-                case 'REVISE':
-                    return 'bg-yellow-500';
-
-                case 'PROCESS':
-                    return 'bg-indigo-500';
-
-                case 'COMPLETE':
-                    return 'bg-emerald-600';
+                case "F":
+                case "C":
+                    return `
+                <i class="
+                    fa-solid fa-flag-checkered
+                    text-xs
+                "></i>
+            `;
 
                 default:
-                    return 'bg-slate-500';
+                    return `
+                <i class="
+                    fa-solid fa-paper-plane
+                    text-xs
+                "></i>
+            `;
             }
-        }
+        },
     };
-
 })();

@@ -3,7 +3,7 @@
     {{-- FILTER PANEL --}}
     <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6 items-end">
+        <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-6">
 
             {{-- DATE FROM --}}
             <div class="space-y-1">
@@ -11,10 +11,7 @@
                     Date From
                 </label>
 
-                <input
-                    type="date"
-                    id="voucher_date_from"
-                    class="form-input w-full">
+                <input type="date" id="voucher_date_from" class="form-input w-full">
             </div>
 
             {{-- DATE TO --}}
@@ -23,10 +20,7 @@
                     Date To
                 </label>
 
-                <input
-                    type="date"
-                    id="voucher_date_to"
-                    class="form-input w-full">
+                <input type="date" id="voucher_date_to" class="form-input w-full">
             </div>
 
             {{-- REQUESTER --}}
@@ -35,10 +29,7 @@
                     Requester
                 </label>
 
-                <input
-                    type="text"
-                    id="voucher_requester"
-                    placeholder="Search requester..."
+                <input type="text" id="voucher_requester" placeholder="Search requester..."
                     class="form-input w-full">
             </div>
 
@@ -48,9 +39,7 @@
                     Type Trip
                 </label>
 
-                <select
-                    id="voucher_type_trip"
-                    class="form-input w-full">
+                <select id="voucher_type_trip" class="form-input w-full">
 
                     <option value="">
                         All Type
@@ -73,9 +62,7 @@
                     Status
                 </label>
 
-                <select
-                    id="voucher_status"
-                    class="form-input w-full">
+                <select id="voucher_status" class="form-input w-full">
 
                     <option value="">
                         All Status
@@ -107,22 +94,19 @@
             {{-- ACTION --}}
             <div class="flex items-end justify-end gap-2">
 
-                <button
-                    id="voucherFilterBtn"
+                <button id="voucherFilterBtn"
                     class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
 
                     Apply
                 </button>
 
-                <button
-                    id="voucherResetBtn"
+                <button id="voucherResetBtn"
                     class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium transition hover:bg-gray-50">
 
                     Reset
                 </button>
 
-                <button
-                    id="voucherExportBtn"
+                <button id="voucherExportBtn"
                     class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100">
 
                     Export
@@ -145,27 +129,23 @@
 
         <div class="overflow-x-auto p-5">
 
-            <table
-                id="voucherTaxiTable"
-                class="min-w-full text-sm">
+            <table id="voucherTaxiTable" class="min-w-full text-sm">
 
                 <thead class="bg-gray-50 text-xs uppercase text-gray-500">
-
                     <tr>
                         <th>Doc ID</th>
                         <th>Date</th>
+                        <th>Created User</th>
                         <th>Requester</th>
                         <th>Department</th>
+                        <th>Company</th>
                         <th>Origin</th>
                         <th>Destination</th>
                         <th>Purpose</th>
                         <th>Type Trip</th>
-                        {{-- <th>Max Trip</th>
-                        <th>Max Budget</th> --}}
                         <th>Actual Budget</th>
                         <th>Status</th>
                     </tr>
-
                 </thead>
 
             </table>
@@ -187,8 +167,7 @@
             responsive: true,
             searching: false,
 
-            dom:
-                "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
+            dom: "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
                 'rt' +
                 "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
 
@@ -214,47 +193,64 @@
                 }
             },
 
-            columns: [
-                {
-                    data: 'docid'
+            columns: [{
+                    data: 'docid',
+                    name: 'docid'
                 },
                 {
-                    data: 'voucher_date'
+                    data: 'voucher_date',
+                    name: 'voucher_date'
                 },
                 {
-                    data: 'requester'
+                    data: 'created_by',
+                    name: 'created_by'
                 },
                 {
-                    data: 'department'
+                    data: 'requester',
+                    name: 'requester',
+                    orderable: false
                 },
                 {
-                    data: 'origin'
+                    data: 'department',
+                    name: 'department',
+                    orderable: false
                 },
                 {
-                    data: 'destination'
+                    data: 'company',
+                    name: 'company',
+                    orderable: false
                 },
                 {
-                    data: 'purpose'
+                    data: 'origin_label',
+                    name: 'origin',
+                    orderable: false
                 },
                 {
-                    data: 'trip_label'
-                },
-                // {
-                //     data: 'max_trip'
-                // },
-                // {
-                //     data: 'max_budget'
-                // },
-                {
-                    data: 'actual_budget'
+                    data: 'destination_label',
+                    name: 'destination',
+                    orderable: false
                 },
                 {
-                    data: 'status_label'
+                    data: 'purpose',
+                    name: 'purpose',
+                    orderable: false
+                },
+                {
+                    data: 'trip_label',
+                    name: 'type_trip'
+                },
+                {
+                    data: 'actual_budget',
+                    name: 'actual_budget'
+                },
+                {
+                    data: 'status_label',
+                    name: 'status'
                 }
             ],
 
             order: [
-                [0, 'desc']
+                [1, 'desc']
             ]
         });
 

@@ -23,6 +23,7 @@ class VoucherTaxiSetupController extends Controller
     {
         $query = MsCategory::query()
             ->where('doctype', 'VCR')
+            ->where('groups', 'PURPOSE')
             ->orderByDesc('id');
 
         return DataTables::of($query)

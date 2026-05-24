@@ -1,5 +1,5 @@
 (function () {
-    'use strict';
+    "use strict";
 
     VoucherTaxi.Modal = {
 
@@ -7,59 +7,133 @@
 
             const $modal = $(selector);
 
-            if (!$modal.length) return;
+            if (!$modal.length) {
+                return;
+            }
 
-            $modal.removeClass('hidden');
-            $modal.addClass('flex');
+            $modal.removeClass("hidden");
+            $modal.addClass("flex");
 
-            document.body.classList.add('overflow-hidden');
+            document.body.classList.add(
+                "overflow-hidden"
+            );
 
             requestAnimationFrame(() => {
 
-                $modal.find('.modal-backdrop')
-                    .removeClass('opacity-0')
-                    .addClass('opacity-100');
+                $modal
+                    .find(".modal-backdrop")
+                    .removeClass("opacity-0")
+                    .addClass("opacity-100");
 
-                $modal.find('.modal-panel')
-                    .removeClass('opacity-0 translate-y-4 scale-[0.98]')
-                    .addClass('opacity-100 translate-y-0 scale-100');
+                $modal
+                    .find(".modal-panel")
+                    .removeClass(
+                        "opacity-0 translate-y-4 scale-[0.98]"
+                    )
+                    .addClass(
+                        "opacity-100 translate-y-0 scale-100"
+                    );
             });
+        },
+
+        resetUrl() {
+
+            const path =
+                window.location.pathname;
+
+            if (
+                path.includes("/showvouchertaxi/") ||
+                path.includes("/editvouchertaxi/") ||
+                path.includes("/processvouchertaxi/")
+            ) {
+
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    "/vouchertaxi"
+                );
+            }
+        },
+
+        resetModalForm(selector) {
+
+            if (
+                selector === "#createVoucherModal" &&
+                VoucherTaxi.RequestForm &&
+                typeof VoucherTaxi.RequestForm.reset === "function"
+            ) {
+                VoucherTaxi.RequestForm.reset();
+            }
+
+            if (
+                selector === "#editVoucherTaxiModal" &&
+                VoucherTaxi.EditForm &&
+                typeof VoucherTaxi.EditForm.reset === "function"
+            ) {
+                VoucherTaxi.EditForm.reset();
+            }
         },
 
         close(selector) {
 
-            const $modal = $(selector);
+            return new Promise((resolve) => {
 
-            if (!$modal.length) return;
+                const $modal = $(selector);
 
-            $modal.find('.modal-backdrop')
-                .removeClass('opacity-100')
-                .addClass('opacity-0');
-
-            $modal.find('.modal-panel')
-                .removeClass('opacity-100 translate-y-0 scale-100')
-                .addClass('opacity-0 translate-y-4 scale-[0.98]');
-
-            setTimeout(() => {
-
-                $modal.removeClass('flex');
-                $modal.addClass('hidden');
-
-                if ($('.fixed.flex').length === 0) {
-                    document.body.classList.remove('overflow-hidden');
+                if (!$modal.length) {
+                    resolve();
+                    return;
                 }
 
-            }, 200);
+                $modal
+                    .find(".modal-backdrop")
+                    .removeClass("opacity-100")
+                    .addClass("opacity-0");
+
+                $modal
+                    .find(".modal-panel")
+                    .removeClass(
+                        "opacity-100 translate-y-0 scale-100"
+                    )
+                    .addClass(
+                        "opacity-0 translate-y-4 scale-[0.98]"
+                    );
+
+                setTimeout(() => {
+
+                    $modal.removeClass("flex");
+                    $modal.addClass("hidden");
+
+                    this.resetModalForm(
+                        selector
+                    );
+
+                    if (
+                        $(".fixed.flex").length === 0
+                    ) {
+
+                        document.body.classList.remove(
+                            "overflow-hidden"
+                        );
+
+                        this.resetUrl();
+                    }
+
+                    resolve();
+
+                }, 200);
+            });
         },
 
         closeAll() {
 
             [
-                '#createVoucherModal',
-                '#editVoucherTaxiModal',
-                '#viewVoucherModal',
-                '#processVoucherModal'
-            ].forEach(modal => {
+                "#createVoucherModal",
+                "#editVoucherTaxiModal",
+                "#viewVoucherModal",
+                "#processVoucherModal",
+            ].forEach((modal) => {
+
                 this.close(modal);
             });
         },
@@ -67,14 +141,15 @@
         bindBackdropClose() {
 
             $(document).on(
-                'click',
-                '.modal-backdrop',
+                "click",
+                ".modal-backdrop",
                 function () {
 
-                    const modal = $(this).closest('[id]');
+                    const modal =
+                        $(this).closest("[id]");
 
                     VoucherTaxi.Modal.close(
-                        '#' + modal.attr('id')
+                        "#" + modal.attr("id")
                     );
                 }
             );
@@ -83,10 +158,14 @@
         bindEscapeKey() {
 
             $(document).on(
-                'keydown',
+                "keydown",
                 function (e) {
 
-                    if (e.key !== 'Escape') return;
+                    if (
+                        e.key !== "Escape"
+                    ) {
+                        return;
+                    }
 
                     VoucherTaxi.Modal.closeAll();
                 }
@@ -95,52 +174,93 @@
 
         bindButtons() {
 
-            $('#openCreateVoucherModal').on(
-                'click',
+            $("#openCreateVoucherModal").on(
+                "click",
                 () => {
-                    this.open('#createVoucherModal');
+
+                    this.open(
+                        "#createVoucherModal"
+                    );
                 }
             );
 
-            $('#closeCreateVoucherModal').on(
-                'click',
+            $("#closeCreateVoucherModal").on(
+                "click",
                 () => {
-                    this.close('#createVoucherModal');
+
+                    this.close(
+                        "#createVoucherModal"
+                    );
                 }
             );
 
-            $('#closeCreateVoucherModalFooter').on(
-                'click',
+            $("#closeCreateVoucherModalFooter").on(
+                "click",
                 () => {
-                    this.close('#createVoucherModal');
+
+                    this.close(
+                        "#createVoucherModal"
+                    );
                 }
             );
 
-            $('#cancelEditVoucherTaxiBtn').on(
-                'click',
+            $("#cancelEditVoucherTaxiBtn").on(
+                "click",
                 () => {
-                    this.close('#editVoucherTaxiModal');
+
+                    this.close(
+                        "#editVoucherTaxiModal"
+                    );
                 }
             );
 
-            $('#cancelEditVoucherTaxiBtnFooter').on(
-                'click',
+            $("#cancelEditVoucherTaxiBtnFooter").on(
+                "click",
                 () => {
-                    this.close('#editVoucherTaxiModal');
+
+                    this.close(
+                        "#editVoucherTaxiModal"
+                    );
                 }
             );
 
-            $('#closeProcessVoucherModal').on(
-                'click',
+            $("#closeViewVoucherModal").on(
+                "click",
                 () => {
-                    this.close('#processVoucherModal');
+
+                    this.close(
+                        "#viewVoucherModal"
+                    );
                 }
             );
 
-            $('#closeProcessVoucherModalFooter').on(
-                'click',
+            $("#closeViewVoucherModalFooter").on(
+                "click",
                 () => {
-                    this.close('#processVoucherModal');
+
+                    this.close(
+                        "#viewVoucherModal"
+                    );
+                }
+            );
+
+            $("#closeProcessVoucherModal").on(
+                "click",
+                () => {
+
+                    this.close(
+                        "#processVoucherModal"
+                    );
+                }
+            );
+
+            $("#closeProcessVoucherModalFooter").on(
+                "click",
+                () => {
+
+                    this.close(
+                        "#processVoucherModal"
+                    );
                 }
             );
         },
@@ -148,10 +268,14 @@
         init() {
 
             this.bindButtons();
+
             this.bindBackdropClose();
+
             this.bindEscapeKey();
 
-            VoucherTaxi.log('Modal Initialized');
+            VoucherTaxi.log(
+                "Modal Initialized"
+            );
         }
     };
 

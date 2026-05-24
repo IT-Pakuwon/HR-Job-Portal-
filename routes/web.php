@@ -1222,7 +1222,8 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/find/{eid}', 'findByHash')->name('find');
                 });
 
-                    Route::get('/purpose-search', 'purposeSearch')->name('purpose-search');
+                Route::get('/purpose-search', 'purposeSearch')->name('purpose-search');
+                Route::get('/employee-by-department', 'employeeByDepartment')->name('employee-by-department');
 
                 Route::get('/print/{hash}', 'printVoucherTaxi')->name('print');
 

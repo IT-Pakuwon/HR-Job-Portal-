@@ -1,159 +1,171 @@
 (function () {
-    'use strict';
+    "use strict";
 
     VoucherTaxi.Calendar = {
-
         calendar: null,
 
         init() {
-
-            const calendarEl =
-                document.getElementById('calendar');
+            const calendarEl = document.getElementById("calendar");
 
             if (!calendarEl) {
                 return;
             }
 
-            this.calendar = new FullCalendar.Calendar(
-                calendarEl,
-                {
-                    initialView: 'dayGridMonth',
+            this.calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: "dayGridMonth",
 
-                    height: 'auto',
+                height: "auto",
 
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,listWeek'
-                    },
+                headerToolbar: {
+                    left: "prev,next today",
+                    center: "title",
+                    right: "dayGridMonth,timeGridWeek,listWeek",
+                },
 
-                    selectable: false,
-                    editable: false,
-                    eventTimeFormat: {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        meridiem: false
-                    },
+                selectable: false,
+                editable: false,
 
-                    events: (
-                        info,
-                        successCallback,
-                        failureCallback
-                    ) => {
+                dateClick: (info) => {
+                    $("#voucherTaxiForm")[0].reset();
 
-                        this.loadEvents(
-                            successCallback,
-                            failureCallback
-                        );
-                    },
+                    $("#date_used").val(info.dateStr);
 
-                    eventClick: (info) => {
+                    VoucherTaxi.Modal.open("#createVoucherModal");
+                },
+                eventTimeFormat: {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    meridiem: false,
+                },
 
-                        info.jsEvent.preventDefault();
+                events: (info, successCallback, failureCallback) => {
+                    this.loadEvents(successCallback, failureCallback);
+                },
 
-                        const eid =
-                            info.event.extendedProps.eid;
+                eventClick: (info) => {
+                    info.jsEvent.preventDefault();
 
-                        if (
-                            eid &&
-                            VoucherTaxi.DetailModal
-                        ) {
-                            VoucherTaxi.DetailModal.open(
-                                eid
-                            );
-                        }
-                    },
+                    const eid = info.event.extendedProps.eid;
 
-                    eventDidMount: (info) => {
-
-                        const purpose =
-                            info.event.extendedProps.purpose || '';
-
-                        const status =
-                            info.event.extendedProps.status || '';
+                    if (eid && VoucherTaxi.DetailModal) {
+                        VoucherTaxi.DetailModal.open(eid);
                     }
-                }
-            );
+                },
+
+                eventContent: function (arg) {
+                    const p = arg.event.extendedProps;
+
+                    return {
+                        html: `
+                            <div class="leading-tight">
+
+                                <div class="truncate text-[11px] font-semibold">
+                                    ${arg.event.title}
+                                </div>
+
+                                <div class="flex items-center justify-between text-[9px] opacity-85">
+
+                                    <span class="truncate">
+                                        ${p.requester ?? "-"}
+                                    </span>
+
+                                    <span>
+                                        ${p.docid ?? ""}
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        `,
+                    };
+                },
+
+                // eventDidMount: (info) => {
+
+                //     const p =
+                //         info.event.extendedProps;
+
+                //     info.el.setAttribute(
+                //         'title',
+                //         `
+                // Document : ${p.docid ?? '-'}
+                // Requester : ${p.requester ?? '-'}
+                // Created By : ${p.createdBy ?? '-'}
+                // Created At : ${p.createdAt ?? '-'}
+                // Purpose : ${p.purpose ?? '-'}
+                // Status : ${p.status ?? '-'}
+                //         `.trim()
+                //     );
+                // }
+            });
 
             this.calendar.render();
 
-            VoucherTaxi.state.calendar =
-                this.calendar;
+            setTimeout(() => {
+                VoucherTaxi.syncPanelHeight();
+            }, 300);
 
-            VoucherTaxi.log(
-                'Calendar Initialized'
-            );
+            VoucherTaxi.state.calendar = this.calendar;
+
+            VoucherTaxi.log("Calendar Initialized");
         },
 
-        loadEvents(
-            successCallback,
-            failureCallback
-        ) {
-
+        loadEvents(successCallback, failureCallback) {
             $.ajax({
-
                 url: VoucherTaxi.Route.json(),
 
-                type: 'GET',
+                type: "GET",
 
                 data: {
                     draw: 1,
                     start: 0,
-                    length: 500
+                    length: 500,
                 },
 
                 success: (res) => {
-
-                    const events =
-                        (res.data || []).map(
-                            row => this.mapEvent(row)
-                        );
+                    const events = (res.data || [])
+                        .filter(
+                            (row) => row.status !== "X" && row.status !== "R",
+                        )
+                        .map((row) => this.mapEvent(row));
 
                     successCallback(events);
                 },
-
                 error: (xhr) => {
-
                     VoucherTaxi.Helper.ajaxError(xhr);
 
                     if (failureCallback) {
                         failureCallback(xhr);
                     }
-                }
+                },
             });
         },
 
         mapEvent(row) {
-
-            let color = '#3b82f6';
+            let color = "#3b82f6";
 
             switch (row.status) {
-
-                case 'C':
-                    color = '#10b981';
+                case "C":
+                    color = "#10b981";
                     break;
 
-                case 'D':
-                    color = '#f59e0b';
+                case "D":
+                    color = "#f59e0b";
                     break;
 
-                case 'R':
-                    color = '#ef4444';
+                case "R":
+                    color = "#ef4444";
                     break;
 
-                case 'X':
-                    color = '#6b7280';
+                case "X":
+                    color = "#6b7280";
                     break;
             }
 
             return {
-
                 id: row.docid,
 
-                title:
-                    row.origin +
-                    ' → ' +
-                    row.destination,
+                title: row.origin + " → " + row.destination,
 
                 start: row.date_used,
 
@@ -163,36 +175,27 @@
                 borderColor: color,
 
                 extendedProps: {
+                    eid: row.eid,
 
-                    eid:
-                        row.eid,
+                    status: VoucherTaxi.Helper.statusText(row.status),
 
-                    status:
-                        VoucherTaxi.Helper
-                            .statusText(
-                                row.status
-                            ),
+                    purpose: row.purpose,
 
-                    purpose:
-                        row.purpose,
+                    docid: row.docid,
 
-                    docid:
-                        row.docid,
+                    requester: row.user_peminta,
 
-                    requester:
-                        row.user_peminta
-                }
+                    createdBy: row.created_by,
+
+                    createdAt: row.created_at,
+                },
             };
         },
 
         reload() {
-
-            if (
-                this.calendar
-            ) {
+            if (this.calendar) {
                 this.calendar.refetchEvents();
             }
-        }
+        },
     };
-
 })();

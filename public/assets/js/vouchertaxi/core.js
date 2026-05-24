@@ -9,7 +9,7 @@ VoucherTaxi.state = {
     selectedDocId: null,
     selectedEid: null,
 
-    currentFilter: 'ALL',
+    currentFilter: 'P',
     currentSearch: '',
 
     calendar: null,

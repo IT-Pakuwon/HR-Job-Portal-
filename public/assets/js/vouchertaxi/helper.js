@@ -198,6 +198,34 @@
             );
         },
 
+        statusTitle(status) {
+
+            switch (status) {
+
+                case 'A':
+                    return 'Approved';
+
+                case 'R':
+                    return 'Rejected';
+
+                case 'D':
+                    return 'Revised';
+
+                case 'P':
+                    return 'Waiting Approval';
+
+                case 'F':
+                    return 'Completed';
+
+                case 'C':
+                    return 'Completed';
+
+                default:
+                    return 'Submitted';
+            }
+
+        },
+
         randomId(prefix = 'vt') {
 
             return (
@@ -208,6 +236,20 @@
                 Math.floor(Math.random() * 1000)
             );
         }
+    };
+
+    VoucherTaxi.syncPanelHeight = function () {
+
+        const calendar =
+            document.getElementById('calendarWrapper');
+
+        const voucher =
+            document.getElementById('voucherListPanel');
+
+        if (!calendar || !voucher) return;
+
+        voucher.style.height =
+            calendar.offsetHeight + 'px';
     };
 
     VoucherTaxi.log('Helper Loaded');

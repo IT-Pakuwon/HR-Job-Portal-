@@ -70,6 +70,13 @@
 
         open(eid) {
 
+            window.history.pushState(
+                {},
+                '',
+                `/showvouchertaxi/${eid}`
+            );
+
+
             VoucherTaxi.state.selectedEid =
                 eid;
 
@@ -129,6 +136,10 @@
             VoucherTaxi.state.selectedDocId =
                 data.docid;
 
+            $("#detailDocIdTitle").text(
+                data.docid || "Voucher Taxi Detail"
+            );
+
             $('#view_user')
                 .text(
                     data.user_name ??
@@ -171,12 +182,27 @@
                     `${data.origin ?? '-'} → ${data.destination ?? '-'}`
                 );
 
-            $('#view_purpose')
-                .html(
-                    VoucherTaxi.Helper.nl2br(
-                        data.purpose ?? '-'
-                    )
-                );
+            $('#view_purpose').html(`
+                <div class="space-y-2">
+                    <div>
+                        <span class="font-semibold">
+                            Purpose :
+                        </span>
+                        ${data.purpose_name ?? data.purpose_id ?? '-'}
+                    </div>
+
+                    <div>
+                        <span class="font-semibold">
+                            Description :
+                        </span>
+                        <div class="mt-1">
+                            ${VoucherTaxi.Helper.nl2br(
+                                data.purpose_descr ?? '-'
+                            )}
+                        </div>
+                    </div>
+                </div>
+            `);
 
             this.renderStatus(
                 data.status
@@ -290,6 +316,18 @@
             const canCancel =
                 data.can_cancel ?? false;
 
+            const canApprove =
+                data.can_approve ?? false;
+
+            const canReject =
+                data.can_reject ?? false;
+
+            const canRevise =
+                data.can_revise ?? false;
+
+            const canProcess =
+                data.can_process ?? false;
+
             $('#openEditFromViewBtn')
                 .toggleClass(
                     'hidden',
@@ -302,13 +340,31 @@
                     !canCancel
                 );
 
+            $('#approveBtn')
+                .toggleClass(
+                    'hidden',
+                    !canApprove
+                );
+
+            $('#rejectBtn')
+                .toggleClass(
+                    'hidden',
+                    !canReject
+                );
+
+            $('#reviseBtn')
+                .toggleClass(
+                    'hidden',
+                    !canRevise
+                );
+
             $('#approvalActions')
                 .toggleClass(
                     'hidden',
                     !(
-                        data.can_approve ||
-                        data.can_reject ||
-                        data.can_revise
+                        canApprove ||
+                        canReject ||
+                        canRevise
                     )
                 );
 
@@ -316,14 +372,14 @@
 
             if (
                 status === 'C' &&
-                data.can_process
+                canProcess
             ) {
 
                 actions.push(`
                     <button
                         type="button"
                         id="openProcessVoucherBtn"
-                        class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500"
+                        class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 flex-1"
                     >
                         Process
                     </button>

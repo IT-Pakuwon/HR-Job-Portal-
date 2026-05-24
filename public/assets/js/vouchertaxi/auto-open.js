@@ -1,4 +1,5 @@
 (function () {
+
     'use strict';
 
     VoucherTaxi.AutoOpen = {
@@ -14,26 +15,66 @@
 
         openVoucherFromRoute() {
 
-            const eid =
-                $('#autoOpenVoucherEid')
-                    .val();
+            const path =
+                window.location.pathname;
 
-            if (!eid) {
+            const showMatch =
+                path.match(
+                    /\/showvouchertaxi\/([^\/]+)$/
+                );
+
+            const editMatch =
+                path.match(
+                    /\/editvouchertaxi\/([^\/]+)$/
+                );
+
+            const processMatch =
+                path.match(
+                    /\/processvouchertaxi\/([^\/]+)$/
+                );
+
+            if (showMatch) {
+
+                setTimeout(() => {
+
+                    VoucherTaxi.DetailModal.open(
+                        showMatch[1]
+                    );
+
+                }, 300);
+
                 return;
             }
 
-            setTimeout(() => {
+            if (
+                editMatch &&
+                VoucherTaxi.EditForm
+            ) {
 
-                if (
-                    VoucherTaxi.DetailModal
-                ) {
+                setTimeout(() => {
 
-                    VoucherTaxi.DetailModal.open(
-                        eid
+                    VoucherTaxi.EditForm.open(
+                        editMatch[1]
                     );
-                }
 
-            }, 500);
+                }, 300);
+
+                return;
+            }
+
+            if (
+                processMatch &&
+                VoucherTaxi.Process
+            ) {
+
+                setTimeout(() => {
+
+                    VoucherTaxi.Process.open(
+                        processMatch[1]
+                    );
+
+                }, 300);
+            }
         }
     };
 

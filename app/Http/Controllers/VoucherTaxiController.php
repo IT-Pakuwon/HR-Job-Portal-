@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\TrApproval;
 use App\Models\TrMessage;
 use App\Models\TrVoucherTaxi;
@@ -74,6 +75,11 @@ class VoucherTaxiController extends Controller
             ->select('cpny_id', 'cpny_name')
             ->get();
 
+         $departments = MsDepartment::query()
+            ->where('status', 'A')
+            ->orderBy('department_id')
+            ->get();
+
         $requesters = User::query()
             ->whereNotNull('username')
             ->where('status', 'A')
@@ -92,7 +98,8 @@ class VoucherTaxiController extends Controller
             'userdept',
             'userdept2',
             'requesters',
-            'company'
+            'company',
+            'departments'
         ));
     }
 
@@ -230,7 +237,7 @@ class VoucherTaxiController extends Controller
                 ->map(function ($item) {
 
                     return [
-                        'id' => $item->categoryid,
+                        'id' => $item->category_name,
                         'text' => $item->category_name,
                         'categoryid' => $item->categoryid,
                         'category_name' => $item->category_name,
@@ -248,6 +255,21 @@ class VoucherTaxiController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function employeeByDepartment(Request $request)
+    {
+        $employees = User::query()
+            ->where('status', 'A')
+            ->where('department_id', $request->department_id)
+            ->select('username', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $employees,
+        ]);
     }
     public function storeVoucher(Request $request)
     {
@@ -279,17 +301,6 @@ class VoucherTaxiController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
-            $purpose = MsCategory::query()
-                ->where('doctype', 'VCR')
-                ->where('groups', 'PURPOSE')
-                ->where('status', 'A')
-                ->where('categoryid', $validated['purpose_id'])
-                ->first();
-
-            if (!$purpose) {
-                throw new \Exception('Purpose category not found.');
-            }
 
             $dt = now();
 
@@ -356,18 +367,23 @@ class VoucherTaxiController extends Controller
             ]);
 
             $ctx = [
-                'ignore_nominal' => true
+                'ignore_nominal'      => true,
+                'approval_condition'  => $validated['cpny_id_expense'] ?? $validated['cpny_id'],
+                'approval_conditions' => [
+                    $validated['cpny_id_expense'] ?? $validated['cpny_id']
+                ],
             ];
 
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $cpny_id,
-                $department_id,
-                $username,
-                $ctx,
-                $dt
-            );
+            [$firstApprovalUsernames, $linesCount] =
+                $approvalCtl->generateForDocument(
+                    $docid,
+                    $doctype,
+                    $cpny_id,
+                    $department_id,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
             $eid = Hashids::encode($voucher->id);
 
@@ -446,16 +462,6 @@ class VoucherTaxiController extends Controller
                 throw new \Exception('Anda tidak berhak edit Voucher Taxi ini.');
             }
 
-            $purpose = MsCategory::query()
-                ->where('doctype', 'VCR')
-                ->where('groups', 'PURPOSE')
-                ->where('status', 'A')
-                ->where('categoryid', $validated['purpose_id'])
-                ->first();
-
-            if (!$purpose) {
-                throw new \Exception('Purpose category not found.');
-            }
 
             $doctype = 'VCR';
             $dt = now();
@@ -499,18 +505,23 @@ class VoucherTaxiController extends Controller
             $voucher->save();
 
             $ctx = [
-                'ignore_nominal' => true,
+                'ignore_nominal'      => true,
+                'approval_condition'  => $validated['cpny_id_expense'] ?? $validated['cpny_id'],
+                'approval_conditions' => [
+                    $validated['cpny_id_expense'] ?? $validated['cpny_id']
+                ],
             ];
 
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $voucher->docid,
-                $doctype,
-                $cpny_id,
-                $department_id,
-                $username,
-                $ctx,
-                $dt
-            );
+            [$firstApprovalUsernames, $linesCount] =
+                $approvalCtl->generateForDocument(
+                    $voucher->docid,
+                    $doctype,
+                    $cpny_id,
+                    $department_id,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
             if ($firstApprovalUsernames) {
 
@@ -626,61 +637,154 @@ class VoucherTaxiController extends Controller
         }
     }
 
-    public function detail($eid)
+    public function detail(string $eid)
     {
-        $id = Hashids::decode($eid)[0] ?? null;
+        try {
 
-        if (!$id) {
+            $id = Hashids::decode($eid)[0] ?? null;
+
+            $voucher = TrVoucherTaxi::findOrFail($id);
+
+            $user = auth()->user();
+
+            $purposeName = $voucher->purpose_id;
+
+            $canEdit = false;
+            $canCancel = false;
+            $canApprove = false;
+            $canReject = false;
+            $canRevise = false;
+            $canProcess = false;
+
+            if (
+                $voucher->status === 'D' &&
+                $voucher->created_by === $user->username
+            ) {
+
+                $canEdit = true;
+                $canCancel = true;
+            }
+
+            $currentApproval = TrApproval::query()
+                ->where('refnbr', $voucher->docid)
+                ->where('status', 'P')
+                ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
+                ->first();
+
+            if ($currentApproval) {
+
+                $approvers = collect(
+                    explode(
+                        ',',
+                        $currentApproval->aprv_username ?? ''
+                    )
+                )
+                    ->map(fn($item) => trim($item))
+                    ->filter()
+                    ->values();
+
+                if (
+                    $approvers->contains(
+                        $user->username
+                    )
+                ) {
+
+                    $canApprove = true;
+                    $canReject = true;
+                    $canRevise = true;
+                }
+            }
+
+            if (
+                $voucher->status === 'C' &&
+                $user->hasRole('GAACCESS') &&
+                empty($voucher->checked_at)
+            ) {
+                $canProcess = true;
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+
+                    'eid' => $eid,
+                    'id' => $voucher->id,
+
+                    'docid' => $voucher->docid,
+                    'status' => $voucher->status,
+
+                    'cpny_id' => $voucher->cpny_id,
+                    'department_id' => $voucher->department_id,
+                    'location_id' => $voucher->location_id,
+
+                    'user_peminta' => $voucher->user_peminta,
+                    'user_name' => optional(
+                        User::where(
+                            'username',
+                            $voucher->user_peminta
+                        )->first()
+                    )->name,
+
+                    'origin' => $voucher->origin,
+                    'destination' => $voucher->destination,
+
+                    'date_used' => $voucher->date_used,
+
+                    'type_trip' => $voucher->type_trip,
+                    'max_trip' => $voucher->max_trip,
+
+                    'purpose_id' => $voucher->purpose_id,
+                    'purpose_name' => $purposeName,
+                    'purpose_descr' => $voucher->purpose_descr,
+
+                    'cpny_id_expense' => $voucher->cpny_id_expense,
+                    'department_id_expense' => $voucher->department_id_expense,
+                    'user_peminta_expense' => $voucher->user_peminta_expense,
+
+                    'user_topup' => $voucher->user_topup,
+
+                    'max_budget' => $voucher->max_budget,
+                    'actual_budget' => $voucher->actual_budget,
+
+                    'checked_by' => $voucher->checked_by,
+                    'checked_at' => $voucher->checked_at,
+
+                    'created_by' => $voucher->created_by,
+                    'created_at' => optional(
+                        $voucher->created_at
+                    )->format('d M Y H:i'),
+
+                    'updated_by' => $voucher->updated_by,
+                    'updated_at' => optional(
+                        $voucher->updated_at
+                    )->format('d M Y H:i'),
+
+                    'completed_by' => $voucher->completed_by,
+                    'completed_at' => optional(
+                        $voucher->completed_at
+                    )->format('d M Y H:i'),
+
+                    'revise_reason' =>
+                    $voucher->revise_reason ?? null,
+
+                    'can_edit' => $canEdit,
+                    'can_cancel' => $canCancel,
+
+                    'can_approve' => $canApprove,
+                    'can_reject' => $canReject,
+                    'can_revise' => $canRevise,
+
+                    'can_process' => $canProcess,
+                ]
+            ]);
+        } catch (\Throwable $e) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid voucher ID',
-            ], 404);
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        $voucher = TrVoucherTaxi::find($id);
-
-        if (!$voucher) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Voucher not found',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'docid' => $voucher->docid,
-                'eid' => $eid,
-
-                'status' => $voucher->status,
-
-                'user_peminta' => $voucher->user_peminta,
-                'created_by' => $voucher->created_by,
-
-                'date_used' => $voucher->date_used,
-
-                'origin' => $voucher->origin,
-                'destination' => $voucher->destination,
-
-                'purpose_id' => $voucher->purpose_id,
-                'purpose_descr' => $voucher->purpose_descr,
-
-                'type_trip' => $voucher->type_trip,
-
-                'cpny_id' => $voucher->cpny_id,
-                'department_id' => $voucher->department_id,
-
-                'cpny_id_expense' => $voucher->cpny_id_expense,
-                'user_topup' => $voucher->user_topup,
-
-                'actual_budget' => $voucher->actual_budget,
-                'max_budget' => $voucher->max_budget,
-
-                'revise_reason' => $voucher->revise_reason,
-            ],
-        ]);
     }
-
     public function updateGaAdvice(Request $request, $docid)
     {
         $request->merge([
@@ -829,7 +933,7 @@ class VoucherTaxiController extends Controller
                     'Voucher Taxi',
                     $docUrl,
                     [
-                         'info' => $voucher->purpose_descr,
+                        'info' => $voucher->purpose_descr,
                         'createdby' => $voucher->created_by,
                         'date' => $now->toDateTimeString(),
                     ]
@@ -1031,7 +1135,30 @@ class VoucherTaxiController extends Controller
 
         $voucher = TrVoucherTaxi::findOrFail($id);
 
-        return response()->json($voucher);
+        $purposeName = $voucher->purpose_id;
+
+        return response()->json([
+            'id' => $voucher->id,
+            'docid' => $voucher->docid,
+            'cpny_id' => $voucher->cpny_id,
+            'department_id' => $voucher->department_id,
+            'user_peminta' => $voucher->user_peminta,
+            'origin' => $voucher->origin,
+            'destination' => $voucher->destination,
+
+            'purpose_id' => $voucher->purpose_id,
+            'purpose_name' => $purposeName,
+
+            'purpose_descr' => $voucher->purpose_descr,
+
+            'date_used' => optional($voucher->date_used)
+                ->format('Y-m-d'),
+
+            'type_trip' => $voucher->type_trip,
+
+            'cpny_id_expense' => $voucher->cpny_id_expense,
+            'user_topup' => $voucher->user_topup,
+        ]);
     }
 
     public function tracking($hash)

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="mb-4 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+    <div class="mb-4 rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm">
 
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -8,7 +8,7 @@
 
                 <!-- ICON -->
                 <div
-                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
+                    class="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 text-lg text-white shadow-sm">
                     🚕
                 </div>
 
@@ -45,7 +45,7 @@
 
                 @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
                     <a href="{{ route('vouchertaxi.setup.index') }}"
-                        class="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20">
+                        class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20">
 
                         <span class="text-base">
                             ⚙️
@@ -76,12 +76,14 @@
 
     </div>
 
-    <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+    <div id="mainGrid" class="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:items-stretch">
 
         <!-- 📅 CALENDAR -->
         <div id="calendarWrapper"
-            class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
-            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/10">
+            class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
+
+            <div
+                class="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/10">
 
                 <div>
 
@@ -98,188 +100,132 @@
                 <div class="hidden items-center gap-2 md:flex">
 
                     <div class="flex items-center gap-2 text-xs text-gray-500">
-
                         <span class="h-2 w-2 rounded-full bg-blue-500"></span>
                         Pending Approval
-
                     </div>
 
                     <div class="flex items-center gap-2 text-xs text-gray-500">
-
                         <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
                         Completed
-
                     </div>
 
                     <div class="flex items-center gap-2 text-xs text-gray-500">
-
                         <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
                         Revise
-
                     </div>
+
                 </div>
 
             </div>
 
-            <div class="p-5">
-
+            <div class="flex-1 p-4">
                 <div id="calendar"></div>
-
             </div>
+
         </div>
 
         <!-- 📋 LIST PANEL -->
-<div id="voucherListPanel"
-    class="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-4">
+        <div id="voucherListPanel"
+            class="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-4">
 
-    <div class="border-b border-slate-100 p-4 dark:border-white/10">
+            <div class="shrink-0 border-b border-slate-100 p-4 dark:border-white/10">
 
-        <div class="flex items-center justify-between">
+                <!-- Header -->
 
-            <div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-900 dark:text-white">
+                            Voucher List
+                        </h3>
 
-                <h3 class="text-base font-semibold text-slate-900 dark:text-white">
-                    Voucher List
-                </h3>
+                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            Latest voucher requests
+                        </p>
+                    </div>
 
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Latest voucher requests
-                </p>
+                    <span id="voucherCount"
+                        class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                        0
+                    </span>
+                </div>
+
+                <!-- Search -->
+
+                <div class="relative mt-4">
+                    <i
+                        class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
+
+                    <input type="text" id="voucherSearch" placeholder="Search document, requester, destination..."
+                        class="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:focus:ring-indigo-500/20">
+                </div>
+
+                <!-- Filter -->
+
+                <div class="mt-4 flex flex-wrap gap-2">
+
+                    @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+                        <button class="voucher-filter" data-filter="C">
+                            Waiting Process
+                        </button>
+                    @endif
+
+                    <button class="voucher-filter active-filter" data-filter="P">Waiting Approval</button>
+                    <button class="voucher-filter" data-filter="D">Revise</button>
+                    <button class="voucher-filter" data-filter="R">Rejected</button>
+                    <button class="voucher-filter" data-filter="C">Completed</button>
+                    <button class="voucher-filter" data-filter="X">Cancelled</button>
+                    <button class="voucher-filter" data-filter="ALL">All</button>
+
+                </div>
 
             </div>
 
-            <span id="voucherCount"
-                class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-                0
-            </span>
+            <!-- Scroll Area -->
+
+            <div class="flex-1 overflow-hidden bg-slate-50 dark:bg-[#0b1220]">
+
+                <div id="voucherListBody" class="h-full space-y-3 overflow-y-auto p-3">
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+
+            <div
+                class="flex shrink-0 items-center justify-between border-t border-slate-100 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#0f172a]">
+
+                <div id="voucherPageInfo" class="text-xs text-slate-500 dark:text-slate-400">
+                    Showing 0 - 0
+                </div>
+
+                <div class="flex items-center gap-2">
+
+                    <button id="prevVoucherPage"
+                        class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200">
+
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                        Prev
+
+                    </button>
+
+                    <button id="nextVoucherPage"
+                        class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200">
+
+                        Next
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
-
-        <div class="relative mt-4">
-
-            <i
-                class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-            </i>
-
-            <input type="text"
-                id="voucherSearch"
-                placeholder="Search document, requester, destination..."
-                class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:focus:ring-indigo-500/20">
-
-        </div>
-
-        <div class="mt-4 flex flex-wrap gap-2">
-
-            @if(auth()->check() && auth()->user()->hasRole('GAACCESS'))
-                <button
-                    class="voucher-filter active-filter"
-                    data-filter="WAITING_PROCESS">
-
-                    Waiting Process
-
-                </button>
-            @endif
-
-            <button
-                class="voucher-filter"
-                data-filter="P">
-
-                Pending
-
-            </button>
-
-            <button
-                class="voucher-filter"
-                data-filter="D">
-
-                Revise
-
-            </button>
-
-            <button
-                class="voucher-filter"
-                data-filter="R">
-
-                Rejected
-
-            </button>
-
-            <button
-                class="voucher-filter"
-                data-filter="F">
-
-                Completed
-
-            </button>
-
-            <button
-                class="voucher-filter"
-                data-filter="X">
-
-                Cancelled
-
-            </button>
-
-            <button
-                class="voucher-filter"
-                data-filter="ALL">
-
-                All
-
-            </button>
-
-        </div>
-
-    </div>
-
-    <div class="flex-1 overflow-y-auto bg-slate-50 p-3 dark:bg-[#0b1220]">
-
-        <div id="voucherListBody"
-            class="space-y-3">
-
-        </div>
-
-    </div>
-
-    <div
-        class="flex items-center justify-between border-t border-slate-100 bg-white px-4 py-3 dark:border-white/10 dark:bg-[#0f172a]">
-
-        <div id="voucherPageInfo"
-            class="text-xs text-slate-500 dark:text-slate-400">
-
-            Showing 0 - 0
-
-        </div>
-
-        <div class="flex items-center gap-2">
-
-            <button id="prevVoucherPage"
-                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200 dark:hover:bg-white/[0.06]">
-
-                <i class="fa-solid fa-chevron-left text-[10px]"></i>
-
-                Prev
-
-            </button>
-
-            <button id="nextVoucherPage"
-                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-200 dark:hover:bg-white/[0.06]">
-
-                Next
-
-                <i class="fa-solid fa-chevron-right text-[10px]"></i>
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
     </div>
 
     {{-- CREATE MODAL --}}
-    <div id="createVoucherModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+    <div id="createVoucherModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
         <div
             class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
         </div>
@@ -325,19 +271,29 @@
                                     Company *
                                 </label>
 
-                                <select id="cpny_id" name="cpny_id"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
-                                    required>
+                                @if (count($usercpny) === 1)
 
-                                    <option value="">Select Company</option>
+                                    <input type="text" value="{{ $usercpny[0]->cpny_id }}" readonly
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
 
-                                    @foreach ($usercpny as $p)
-                                        <option value="{{ $p->cpny_id }}">
-                                            {{ $p->cpny_id }}
-                                        </option>
-                                    @endforeach
+                                    <input type="hidden" id="cpny_id" name="cpny_id"
+                                        value="{{ $usercpny[0]->cpny_id }}">
+                                @else
+                                    <select id="cpny_id" name="cpny_id"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                        required>
 
-                                </select>
+                                        <option value="">Select Company</option>
+
+                                        @foreach ($usercpny as $p)
+                                            <option value="{{ $p->cpny_id }}">
+                                                {{ $p->cpny_id }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                @endif
                             </div>
 
                             <div>
@@ -345,19 +301,29 @@
                                     Department *
                                 </label>
 
-                                <select id="department_id" name="department_id"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
-                                    required>
+                                @if (count($userdept) === 1)
 
-                                    <option value="">Select Department</option>
+                                    <input type="text" value="{{ $userdept[0]->department_id }}" readonly
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
 
-                                    @foreach ($userdept as $p)
-                                        <option value="{{ $p->department_id }}">
-                                            {{ $p->department_id }}
-                                        </option>
-                                    @endforeach
+                                    <input type="hidden" id="department_id" name="department_id"
+                                        value="{{ $userdept[0]->department_id }}">
+                                @else
+                                    <select id="department_id" name="department_id"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                        required>
 
-                                </select>
+                                        <option value="">Select Department</option>
+
+                                        @foreach ($userdept as $p)
+                                            <option value="{{ $p->department_id }}">
+                                                {{ $p->department_id }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                @endif
                             </div>
 
                             <div>
@@ -378,7 +344,6 @@
                                 </label>
 
                                 <input type="date" id="date_used" name="date_used"
-                                    min="{{ now()->toDateString() }}"
                                     class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100"
                                     required>
                             </div>
@@ -449,11 +414,20 @@
                                     Purpose *
                                 </label>
 
-                                <select id="purpose" name="purpose"
+                                <select id="purpose" name="purpose_id"
                                     class="w-full rounded-lg border border-slate-200 dark:border-white/10" required>
                                 </select>
                             </div>
 
+                            <div class="mt-4 md:col-span-2">
+                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Purpose Description *
+                                </label>
+
+                                <textarea id="purpose_desc" name="purpose_descr" rows="2"
+                                    placeholder="Explain the purpose of this voucher request..."
+                                    class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
+                            </div>
                         </div>
 
                     </div>
@@ -500,10 +474,8 @@
                                     required>
 
                                     <option value="">Select User</option>
-
                                     @foreach ($requesters as $p)
-                                        <option value="{{ $p->username }}"
-                                            data-dept="{{ trim($p->department_id) }}">
+                                        <option value="{{ $p->username }}" data-dept="{{ $p->department_id }}">
                                             {{ $p->name }}
                                         </option>
                                     @endforeach
@@ -546,7 +518,7 @@
     </div>
 
     {{-- EDIT MODAL --}}
-    <div id="editVoucherTaxiModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+    <div id="editVoucherTaxiModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
         <div
             class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
@@ -555,83 +527,43 @@
         <div
             class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
-            <form id="editVoucherTaxiForm" class="flex flex-col">
+            <div
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
 
-                @csrf
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900 dark:text-white">
+                        Edit Voucher Taxi
+                    </h2>
 
-                <input type="hidden" id="edit_docid" name="docid">
-
-                <input type="hidden" id="edit_user_peminta" name="user_peminta">
-
-                <input type="hidden" id="edit_eid">
-
-                <!-- HEADER -->
-                <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
-
-                    <div class="flex items-center gap-4">
-
-                        <div
-                            class="flex h-11 w-11 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
-
-                            <i class="fa-solid fa-pen-to-square"></i>
-
-                        </div>
-
-                        <div>
-
-                            <h2 class="text-sm font-bold text-slate-900 dark:text-white">
-                                Edit Voucher Taxi
-                            </h2>
-
-                            <div class="mt-2 flex items-center gap-2">
-
-                                <div id="editStatusBadge"
-                                    class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-white/10 dark:text-slate-300">
-                                    Status
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="flex items-center gap-4">
-
-                        <div class="text-right text-xs text-slate-400 dark:text-slate-500">
-
-                            <div id="editMetaUser"></div>
-
-                            <div id="editMetaDate"></div>
-
-                        </div>
-
-                        <button type="button" id="cancelEditVoucherTaxiBtn"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
-
-                            <i class="fa-solid fa-xmark text-lg"></i>
-
-                        </button>
-
-                    </div>
-
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        Update taxi booking request information.
+                    </p>
                 </div>
 
-                <!-- BODY -->
-                <div class="space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
+                <button type="button" id="closeEditVoucherModal"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
 
-                    <!-- BASIC -->
+            </div>
+
+            <div class="space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
+
+                <form id="editVoucherTaxiForm" method="POST" class="space-y-4">
+
+                    @csrf
+
+                    <input type="hidden" id="edit_docid" name="docid">
+                    <input type="hidden" id="edit_eid">
+                    {{-- BASIC INFORMATION --}}
                     <div
                         class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
-
                             <h3
                                 class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                                 Basic Information
                             </h3>
-
                         </div>
 
                         <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
@@ -639,19 +571,20 @@
                             <div>
 
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Company
+                                    Company *
                                 </label>
 
                                 <select id="edit_cpny_id" name="cpny_id"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                    required>
 
                                     <option value="">
                                         Select Company
                                     </option>
 
-                                    @foreach ($company as $c)
-                                        <option value="{{ $c->cpny_id }}">
-                                            {{ $c->cpny_id }}
+                                    @foreach ($company as $p)
+                                        <option value="{{ $p->cpny_id }}">
+                                            {{ $p->cpny_id }}
                                         </option>
                                     @endforeach
 
@@ -662,11 +595,12 @@
                             <div>
 
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Department
+                                    Department *
                                 </label>
 
                                 <select id="edit_department_id" name="department_id"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                    required>
 
                                     <option value="">
                                         Select Department
@@ -688,19 +622,22 @@
                                     Requester
                                 </label>
 
-                                <input type="text" id="edit_user_peminta" name="user_peminta" readonly
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
+                                <input type="text" id="edit_requester_name" readonly
+                                    class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm text-slate-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+
+                                <input type="hidden" id="edit_user_peminta" name="user_peminta">
 
                             </div>
 
                             <div>
 
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Date Used
+                                    Date Used *
                                 </label>
 
                                 <input type="date" id="edit_date_used" name="date_used"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]">
+                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100"
+                                    required>
 
                             </div>
 
@@ -708,7 +645,7 @@
 
                     </div>
 
-                    <!-- TRIP -->
+                    {{-- TRIP INFORMATION --}}
                     <div
                         class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
@@ -724,6 +661,7 @@
 
                                 <label class="cursor-pointer">
                                     <input type="radio" name="type_trip" value="Return" class="peer hidden">
+
                                     <span
                                         class="rounded-md px-3 py-1 text-xs peer-checked:bg-slate-900 peer-checked:text-white dark:peer-checked:bg-blue-600">
                                         Return
@@ -732,6 +670,7 @@
 
                                 <label class="cursor-pointer">
                                     <input type="radio" name="type_trip" value="One Way" class="peer hidden">
+
                                     <span
                                         class="rounded-md px-3 py-1 text-xs peer-checked:bg-slate-900 peer-checked:text-white dark:peer-checked:bg-blue-600">
                                         One Way
@@ -747,60 +686,73 @@
                             <div>
 
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Origin
+                                    Origin *
                                 </label>
 
                                 <input type="text" id="edit_origin" name="origin"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]">
+                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]"
+                                    required>
 
                             </div>
 
                             <div>
 
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Destination
+                                    Destination *
                                 </label>
 
                                 <input type="text" id="edit_destination" name="destination"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]">
+                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]"
+                                    required>
 
                             </div>
 
                             <div class="md:col-span-2">
 
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Purpose
+                                    Purpose *
                                 </label>
 
-                                <input type="text" id="edit_purpose" name="purpose"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]">
+                                <select id="edit_purpose" name="purpose_id"
+                                    class="w-full rounded-lg border border-slate-200 dark:border-white/10" required>
+                                </select>
+
+                            </div>
+
+                            <div class="md:col-span-2">
+
+                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Purpose Description *
+                                </label>
+
+                                <textarea id="edit_purpose_desc" name="purpose_descr" rows="2"
+                                    class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
 
                             </div>
 
                         </div>
 
                     </div>
-
-                    <!-- REVISE REASON -->
+                    {{-- REVISION REASON --}}
                     <div id="editReviseReasonWrapper"
-                        class="hidden overflow-hidden rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-500/20 dark:bg-yellow-500/10">
+                        class="hidden overflow-hidden rounded-lg border border-amber-200 bg-white dark:border-amber-500/20 dark:bg-[#0f172a]">
 
-                        <div class="border-b border-yellow-200 px-5 py-2 dark:border-yellow-500/20">
+                        <div class="border-b border-amber-200 px-5 py-2 dark:border-amber-500/20">
 
                             <h3
-                                class="text-sm font-semibold uppercase tracking-wider text-yellow-700 dark:text-yellow-300">
+                                class="text-sm font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
                                 Revision Reason
                             </h3>
 
                         </div>
 
                         <div id="edit_revise_reason"
-                            class="p-5 text-sm leading-relaxed text-yellow-900 dark:text-yellow-100">
+                            class="p-5 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
                         </div>
 
                     </div>
 
-                    <!-- FINANCE -->
+                    {{-- FINANCE INFORMATION --}}
                     <div
                         class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
@@ -818,19 +770,20 @@
                             <div>
 
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Company Expense
+                                    Company Expense *
                                 </label>
 
                                 <select id="edit_cpny_id_expense" name="cpny_id_expense"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                    required>
 
                                     <option value="">
                                         Select Company
                                     </option>
 
-                                    @foreach ($company as $c)
-                                        <option value="{{ $c->cpny_id }}">
-                                            {{ $c->cpny_id }} - {{ $c->cpny_name }}
+                                    @foreach ($company as $p)
+                                        <option value="{{ $p->cpny_id }}">
+                                            {{ $p->cpny_name }}
                                         </option>
                                     @endforeach
 
@@ -841,18 +794,19 @@
                             <div>
 
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Topup
+                                    Topup *
                                 </label>
 
                                 <select id="edit_user_topup" name="user_topup"
-                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                    class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                    required>
 
                                     <option value="">
                                         Select User
                                     </option>
 
                                     @foreach ($requesters as $p)
-                                        <option value="{{ $p->username }}">
+                                        <option value="{{ $p->username }}" data-dept="{{ $p->department_id }}">
                                             {{ $p->name }}
                                         </option>
                                     @endforeach
@@ -865,56 +819,58 @@
 
                     </div>
 
+                </form>
+
+            </div>
+
+            {{-- FOOTER --}}
+            <div
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+
+                <div class="flex items-center justify-end gap-3">
+
+                    <button type="button" id="closeEditVoucherModalFooter"
+                        class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+
+                        Cancel
+
+                    </button>
+
+                    <button type="submit" form="editVoucherTaxiForm"
+                        class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+
+                        <i class="fa-solid fa-floppy-disk text-xs"></i>
+
+                        Save Changes
+
+                    </button>
+
                 </div>
 
-                <!-- FOOTER -->
-                <div
-                    class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
-
-                    <div class="flex justify-end gap-3">
-
-                        <button type="button" id="cancelEditVoucherTaxiBtnFooter"
-                            class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
-
-                            Cancel
-
-                        </button>
-
-                        <button type="submit" id="saveEditVoucherTaxiBtn"
-                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
-
-                            <i class="fa-solid fa-floppy-disk text-xs"></i>
-
-                            Save Changes
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </form>
+            </div>
 
         </div>
 
     </div>
-
     {{-- DETAIL MODAL --}}
-    <div id="viewVoucherModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+    <div id="viewVoucherModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
-        <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
+        <div
+            class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
+        </div>
 
-        <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+        <div
+            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <input type="hidden" id="view_eid">
             <input type="hidden" id="view_docid">
 
-            <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+            <div
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
 
                 <div>
 
-                    <h2 class="text-sm font-bold text-slate-900 dark:text-white">
-                        Voucher Taxi Detail
+                    <h2 id="detailDocIdTitle" class="font-semibold text-slate-800">
                     </h2>
 
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -925,9 +881,7 @@
 
                 <div class="flex items-center gap-3">
 
-                    <a id="printVoucherBtn"
-                        href="#"
-                        target="_blank"
+                    <a id="printVoucherBtn" href="#" target="_blank"
                         class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-semibold text-white transition hover:bg-red-500">
 
                         <i class="fa-solid fa-print text-xs"></i>
@@ -936,8 +890,7 @@
 
                     </a>
 
-                    <button type="button"
-                        id="closeViewVoucherModal"
+                    <button type="button" id="closeViewVoucherModal"
                         class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
@@ -952,9 +905,11 @@
 
                 <div class="space-y-4">
 
-                    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div
+                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
-                        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                        <div
+                            class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
                             <div>
 
@@ -1017,34 +972,36 @@
 
                     </div>
 
-                    <div class="overflow-hidden rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10">
+                    <div
+                        class="overflow-hidden rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10">
 
                         <div class="border-b border-blue-100 px-5 py-2 dark:border-blue-500/20">
 
-                            <h3 class="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                            <h3
+                                class="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
                                 Route
                             </h3>
 
                         </div>
 
-                        <div id="view_route"
-                            class="p-5 text-sm font-semibold text-blue-900 dark:text-blue-200">
+                        <div id="view_route" class="p-5 text-sm font-semibold text-blue-900 dark:text-blue-200">
                         </div>
 
                     </div>
 
-                    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                    <div
+                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
-                            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            <h3
+                                class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                                 Purpose
                             </h3>
 
                         </div>
 
-                        <div id="view_purpose"
-                            class="p-5 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                        <div id="view_purpose" class="p-5 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
                         </div>
 
                     </div>
@@ -1054,7 +1011,8 @@
 
                         <div class="border-b border-emerald-100 px-5 py-2 dark:border-emerald-500/20">
 
-                            <h3 class="text-sm font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                            <h3
+                                class="text-sm font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
                                 Actual Expense
                             </h3>
 
@@ -1067,7 +1025,8 @@
                                 Rp 0
                             </div>
 
-                            <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                            <span
+                                class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
                                 Processed
                             </span>
 
@@ -1080,7 +1039,8 @@
 
                         <div class="border-b border-yellow-100 px-5 py-2 dark:border-yellow-500/20">
 
-                            <h3 class="text-sm font-semibold uppercase tracking-wider text-yellow-700 dark:text-yellow-300">
+                            <h3
+                                class="text-sm font-semibold uppercase tracking-wider text-yellow-700 dark:text-yellow-300">
                                 Revision Reason
                             </h3>
 
@@ -1094,65 +1054,55 @@
 
                 </div>
 
-                <div class="space-y-4">
+                <div class="overflow-hidden">
 
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
 
-                        <h3 class="text-sm font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                            Approval Workflow
-                        </h3>
+                        <div id="viewActions" class="mb-4 flex w-full items-center gap-2">
+                        </div>
 
-                        <div class="flex items-center gap-2">
+                        <div id="approvalActions" class="mb-4 flex hidden w-full items-center justify-between gap-2">
 
-                            <div id="approvalActions"
-                                class="hidden flex items-center gap-2">
+                            <button type="button" id="approveBtn"
+                                class="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-400">
 
-                                <button type="button"
-                                    id="approveBtn"
-                                    class="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-400">
-                                    Approve
-                                </button>
+                                <i class="fa-solid fa-check mr-1"></i>
+                                Approve
 
-                                <button type="button"
-                                    id="reviseBtn"
-                                    class="rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black hover:bg-yellow-300">
-                                    Revise
-                                </button>
+                            </button>
 
-                                <button type="button"
-                                    id="rejectBtn"
-                                    class="rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-400">
-                                    Reject
-                                </button>
+                            <button type="button" id="reviseBtn"
+                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300">
 
-                            </div>
+                                <i class="fa-solid fa-rotate-left mr-1"></i>
+                                Revise
 
-                            <div id="viewActions"
-                                class="flex items-center gap-2">
-                            </div>
+                            </button>
+
+                            <button type="button" id="rejectBtn"
+                                class="flex-1 rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
+
+                                <i class="fa-solid fa-xmark mr-1"></i>
+                                Reject
+
+                            </button>
 
                         </div>
 
                     </div>
 
-                    <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-
-                        <div id="approvalFlow"
-                            class="space-y-5 p-5">
-                        </div>
-
+                    <div id="approvalFlow">
                     </div>
 
                 </div>
-
             </div>
 
-            <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+            <div
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-between">
 
-                    <button type="button"
-                        id="closeViewVoucherModalFooter"
+                    <button type="button" id="closeViewVoucherModalFooter"
                         class="text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
 
                         Close
@@ -1161,16 +1111,14 @@
 
                     <div class="flex items-center gap-3">
 
-                        <button type="button"
-                            id="cancelVoucherBtn"
+                        <button type="button" id="cancelVoucherBtn"
                             class="hidden rounded-lg bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-500">
 
                             Cancel Request
 
                         </button>
 
-                        <button type="button"
-                            id="openEditFromViewBtn"
+                        <button type="button" id="openEditFromViewBtn"
                             class="hidden rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
 
                             Edit Voucher
@@ -1188,40 +1136,40 @@
     </div>
 
     {{-- PROCESS MODAL --}}
-    <div id="processVoucherModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+    <div id="processVoucherModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
         <div
             class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70">
         </div>
 
         <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-4xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-xl border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <form id="processVoucherForm">
 
                 <input type="hidden" id="process_docid">
 
-                <!-- HEADER -->
+                {{-- HEADER --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <div class="flex items-center gap-4">
 
                         <div
-                            class="flex h-11 w-11 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                            class="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
 
-                            <i class="fa-solid fa-money-bill-wave"></i>
+                            <i class="fa-solid fa-money-bill-wave text-lg"></i>
 
                         </div>
 
                         <div>
 
-                            <h2 class="text-sm font-bold text-slate-900 dark:text-white">
+                            <h2 class="text-base font-bold text-slate-900 dark:text-white">
                                 Process Voucher Taxi
                             </h2>
 
                             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                Review voucher information and submit actual expense.
+                                Review voucher information and update actual transportation expense.
                             </p>
 
                         </div>
@@ -1237,212 +1185,206 @@
 
                 </div>
 
-                <!-- BODY -->
+                {{-- BODY --}}
                 <div class="space-y-4 bg-slate-50 p-4 dark:bg-[#0b1220]">
 
-                    <!-- INFORMATION -->
+                    {{-- DOCUMENT INFORMATION --}}
                     <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
-                            class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                            class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
                             <div>
 
-                                <h3
-                                    class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                                    Voucher Information
-                                </h3>
-
-                                <div id="process_docno" class="mt-2 text-lg font-bold text-slate-900 dark:text-white">
+                                <div id="process_docno" class="text-lg font-bold text-slate-900 dark:text-white">
                                     -
+                                </div>
+
+                                <div class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                    Voucher approved and ready for processing.
                                 </div>
 
                             </div>
 
-                            <div id="process_status"
-                                class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
-                                Completed
+                            <div id="process_status">
+                                <span
+                                    class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                                    Waiting Process
+                                </span>
                             </div>
 
                         </div>
 
-                        <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 p-4">
 
                             <div>
-                                <label class="text-xs text-slate-500">
-                                    Requester
-                                </label>
-
-                                <div id="process_requester"
-                                    class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                <span class="text-xs text-slate-500">Requester</span>
+                                <div id="process_requester" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-xs text-slate-500">
-                                    Date Used
-                                </label>
-
-                                <div id="process_date"
-                                    class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                <span class="text-xs text-slate-500">Date Used</span>
+                                <div id="process_date" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-xs text-slate-500">
-                                    Company
-                                </label>
-
-                                <div id="process_company"
-                                    class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                <span class="text-xs text-slate-500">Company</span>
+                                <div id="process_company" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-xs text-slate-500">
-                                    Department
-                                </label>
-
-                                <div id="process_department"
-                                    class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                <span class="text-xs text-slate-500">Department</span>
+                                <div id="process_department" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-xs text-slate-500">
-                                    Trip Type
-                                </label>
-
-                                <div id="process_trip"
-                                    class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                <span class="text-xs text-slate-500">Trip Type</span>
+                                <div id="process_trip" class="text-sm font-semibold">
                                     -
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-xs text-slate-500">
-                                    Current Budget
-                                </label>
-
-                                <div id="process_budget" class="mt-1 text-sm font-semibold text-emerald-600">
+                                <span class="text-xs text-slate-500">Route</span>
+                                <div id="process_route" class="text-sm font-bold text-emerald-600">
                                     -
                                 </div>
                             </div>
 
                         </div>
 
-                    </div>
+                        <div class="border-t border-slate-200 px-4 py-3">
 
-                    <!-- ROUTE -->
-                    <div
-                        class="overflow-hidden rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10">
-
-                        <div class="border-b border-blue-100 px-5 py-2 dark:border-blue-500/20">
-
-                            <h3
-                                class="text-sm font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300">
-                                Route
-                            </h3>
-
-                        </div>
-
-                        <div id="process_route" class="p-5 text-sm font-semibold text-blue-800 dark:text-blue-200">
-                            -
-                        </div>
-
-                    </div>
-
-                    <!-- PURPOSE -->
-                    <div
-                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-
-                        <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
-
-                            <h3
-                                class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            <div class="text-xs text-slate-500">
                                 Purpose
-                            </h3>
+                            </div>
 
-                        </div>
+                            <div id="process_purpose" class="mt-1 text-sm text-slate-700">
+                                -
+                            </div>
 
-                        <div id="process_purpose" class="p-5 text-sm text-slate-700 dark:text-slate-200">
-                            -
                         </div>
 
                     </div>
 
-                    <!-- ACTUAL EXPENSE -->
+                    {{-- PROCESS VOUCHER --}}
                     <div
-                        class="overflow-hidden rounded-lg border border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                        class="overflow-hidden rounded-xl border border-emerald-200 bg-white dark:border-emerald-500/20 dark:bg-[#0f172a]">
 
-                        <div class="border-b border-emerald-100 px-5 py-2 dark:border-emerald-500/20">
+                        <div
+                            class="border-b border-emerald-100 bg-emerald-50 px-5 py-3 dark:border-emerald-500/20 dark:bg-emerald-500/10">
 
                             <h3
                                 class="text-sm font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-                                Actual Expense
+                                Process Voucher
                             </h3>
+
+                            <p class="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+                                Input actual transportation expense and optionally update expense ownership.
+                            </p>
 
                         </div>
 
                         <div class="space-y-5 p-5">
 
+                            {{-- ACTUAL BUDGET --}}
                             <div>
 
-                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Actual Budget *
+                                <label class="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+
+                                    Actual Budget
+                                    <span class="text-red-500">*</span>
+
                                 </label>
 
                                 <div class="relative">
 
                                     <span
                                         class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+
                                         Rp
+
                                     </span>
 
                                     <input type="text" id="actual_budget_display" placeholder="0"
-                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white pl-12 pr-4 text-sm font-semibold text-slate-900 dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                                        autocomplete="off"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white pl-12 pr-4 text-sm font-semibold text-slate-900 focus:border-emerald-500 focus:outline-none dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
 
                                     <input type="hidden" id="actual_budget" name="actual_budget">
 
                                 </div>
 
+                                <p class="mt-2 text-xs text-slate-500">
+                                    Actual amount paid for this transportation voucher.
+                                </p>
+
                             </div>
 
-                            <!-- CHANGE EXPENSE OWNER -->
-                            <div>
+                            {{-- UPDATE EXPENSE OWNER --}}
+                            <div
+                                class="rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
 
-                                <label class="inline-flex items-center gap-2">
+                                <label class="flex cursor-pointer items-start gap-3">
 
                                     <input type="checkbox" id="changeExpenseOwner" name="change_expense_owner"
-                                        value="1" class="rounded border-slate-300">
+                                        value="1" class="mt-1 rounded border-slate-300">
 
-                                    <span class="text-sm text-slate-700 dark:text-slate-200">
-                                        Charge Different Employee
-                                    </span>
+                                    <div>
+
+                                        <div class="text-sm font-semibold text-indigo-800 dark:text-indigo-200">
+
+                                            Update Expense Owner
+
+                                        </div>
+
+                                        <div class="mt-1 text-xs text-indigo-600 dark:text-indigo-300">
+
+                                            Enable this option if the expense should be charged to a different company,
+                                            department, or employee.
+
+                                        </div>
+
+                                    </div>
 
                                 </label>
 
                             </div>
 
-                            <!-- EXPENSE OWNER -->
-                            <div id="expenseOwnerSection" class="hidden">
+                            {{-- NEW EXPENSE OWNER --}}
+                            <div id="expenseOwnerSection"
+                                class="hidden rounded-xl border border-indigo-200 bg-indigo-50 p-5 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+
+                                <div
+                                    class="mb-4 text-sm font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+
+                                    New Expense Owner
+
+                                </div>
 
                                 <div class="grid gap-4 md:grid-cols-3">
 
+                                    {{-- COMPANY --}}
                                     <div>
 
                                         <label
                                             class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+
                                             Company
+                                            <span class="text-red-500">*</span>
+
                                         </label>
 
-                                        <select name="cpny_id_expense"
-                                            class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                        <select id="process_cpny_id_expense" name="cpny_id_expense"
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
 
                                             <option value="">
                                                 Select Company
@@ -1458,23 +1400,27 @@
 
                                     </div>
 
+                                    {{-- DEPARTMENT --}}
                                     <div>
 
                                         <label
                                             class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+
                                             Department
+                                            <span class="text-red-500">*</span>
+
                                         </label>
 
-                                        <select name="department_id_expense"
-                                            class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                        <select id="process_department_id_expense" name="department_id_expense"
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
 
                                             <option value="">
                                                 Select Department
                                             </option>
 
-                                            @foreach ($userdept as $d)
+                                            @foreach ($departments as $d)
                                                 <option value="{{ $d->department_id }}">
-                                                    {{ $d->department_id }}
+                                                    {{ $d->department_name }}
                                                 </option>
                                             @endforeach
 
@@ -1482,16 +1428,19 @@
 
                                     </div>
 
+                                    {{-- EMPLOYEE --}}
                                     <div>
 
                                         <label
                                             class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+
                                             Employee
+                                            <span class="text-red-500">*</span>
+
                                         </label>
 
-                                        <select name="user_peminta_expense"
-                                            class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
-
+                                        <select id="process_user_peminta_expense" name="user_peminta_expense"
+                                            class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
                                             <option value="">
                                                 Select Employee
                                             </option>
@@ -1516,7 +1465,7 @@
 
                 </div>
 
-                <!-- FOOTER -->
+                {{-- FOOTER --}}
                 <div
                     class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
 
@@ -1530,7 +1479,7 @@
                         </button>
 
                         <button type="submit" id="submitProcessVoucherBtn"
-                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700">
 
                             <i class="fa-solid fa-floppy-disk text-xs"></i>
 

@@ -100,7 +100,7 @@ window.loadBookingTracking = async function (eid) {
                                 top-1
                                 h-6
                                 w-6
-                                rounded-full
+                                rounded-lg
                                 border
                                 border-gray-300
                                 bg-white
@@ -109,7 +109,7 @@ window.loadBookingTracking = async function (eid) {
 
                         <div
                             class="
-                                rounded-xl
+                                rounded-lg
                                 border
                                 border-gray-100
                                 bg-white
@@ -180,7 +180,7 @@ window.loadBookingTracking = async function (eid) {
 
                                 <span
                                     class="
-                                        rounded-full
+                                        rounded-lg
                                         px-2
                                         py-1
                                         text-[10px]
