@@ -43,6 +43,7 @@ class TicketController extends Controller
 
         'process' => [
             'RESPONSE',
+            'REOPEN',
             'PENDING',
         ],
 
@@ -1426,7 +1427,11 @@ class TicketController extends Controller
 
             'working_start_date' => 'required|date',
 
-            'working_end_date' => 'required|date|after_or_equal:working_start_date',
+            'working_end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:working_start_date',
+            ],
 
             'attachments.*' => [
                 'nullable',
@@ -2634,6 +2639,7 @@ class TicketController extends Controller
                 && in_array($ticket->status_pekerjaan, [
                     'RESPONSE',
                     'PENDING',
+                    'REOPEN',
                 ]),
 
             'can_pending' => $isPIC
