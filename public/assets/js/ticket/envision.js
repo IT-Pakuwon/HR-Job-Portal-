@@ -132,6 +132,9 @@ function resetEnvisionTicketForm() {
     $('#envision_pic_ticket')
         .text('-');
 
+    $('#envision_response_summary')
+        .val('');
+
     $('#envision_descr')
         .val('');
 
@@ -210,8 +213,9 @@ function populateEnvisionTicket(ticket) {
             ticket.pic_ticket || '-'
         );
 
-    $('#envision_summary')
+    $('#envision_response_summary')
         .val(
+            ticket.response_summary ||
             'Ticket Envision'
         );
 
@@ -245,8 +249,21 @@ function populateEnvisionTicket(ticket) {
             );
     }
 }
-
 function submitEnvisionTicket() {
+
+    const summary =
+        $('#envision_response_summary')
+            .val()
+            .trim();
+
+    if (!summary) {
+
+        showError(
+            'Response summary is required.'
+        );
+
+        return;
+    }
 
     const eid =
         $('#envision_ticket_eid')

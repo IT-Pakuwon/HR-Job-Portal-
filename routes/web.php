@@ -75,6 +75,7 @@ use App\Http\Controllers\MsScreenController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\OrgChartController;
+use App\Http\Controllers\ParkingRegistrationController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
@@ -101,8 +102,8 @@ use App\Http\Controllers\SpptController;
 use App\Http\Controllers\StockJobsController;
 use App\Http\Controllers\StrukturOrgController;
 use App\Http\Controllers\SysAccessRightController;
-use App\Http\Controllers\SysApplicationController;
 // INTEGRATION
+use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
 use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysRoleController;
@@ -125,7 +126,6 @@ use App\Http\Controllers\VoucherTaxiSetupController;
 use App\Http\Controllers\WoController;
 use App\Http\Controllers\WorkInstructionController;
 use App\Http\Controllers\WorksCategoryController;
-use App\Http\Controllers\ParkingRegistrationController;
 use App\Models\MsScreen;
 use App\Models\SysMenu;
 use App\Models\SysRoleMenu;
@@ -1203,18 +1203,13 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/parking-kendaraan/{id}/toggle-status', [ParkingRegistrationController::class, 'toggleStatusParkingKendaraan'])->name('parkingkendaraan.toggleStatus');
     Route::put('/parking-kendaraan/{id}/no-kartu', [ParkingRegistrationController::class, 'updateNoKartuParkingKendaraan'])->name('parkingkendaraan.updateNoKartu');
 
-
-
     Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv');
 
     Route::middleware(['auth'])->group(function () {
-
         Route::controller(VoucherTaxiController::class)->group(function () {
-
             Route::get('/vouchertaxi', 'index')->name('vouchertaxi');
 
             Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
-
                 Route::middleware('ajax')->group(function () {
                     Route::get('/json', 'json')->name('json');
                     Route::get('/detail/{eid}', 'detail')->name('detail');
@@ -1245,11 +1240,9 @@ Route::middleware(['auth'])->group(function () {
         ->prefix('vouchertaxi/setup')
         ->name('vouchertaxi.setup.')
         ->group(function () {
-
             Route::get('/', 'index')->name('index');
 
             Route::middleware('ajax')->group(function () {
-
                 Route::get('/category/json', 'jsonCategory')->name('category.json');
                 Route::get('/category/find/{id}', 'findCategory')->name('category.find');
             });
@@ -1259,11 +1252,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
         });
         Route::controller(BookingCarController::class)->group(function () {
-
             Route::get('/bookingcar', 'index')->name('bookingcar');
 
             Route::prefix('bookingcar')->name('bookingcar.')->group(function () {
-
                 Route::middleware('ajax')->group(function () {
                     Route::get('/json', 'json')->name('json');
                     Route::get('/detail/{eid}', 'detail')->name('detail');
@@ -1291,11 +1282,9 @@ Route::middleware(['auth'])->group(function () {
             ->prefix('bookingcar/setup')
             ->name('bookingcar.setup.')
             ->group(function () {
-
                 Route::get('/', 'index')->name('index');
 
                 Route::middleware('ajax')->group(function () {
-
                     Route::get('/driver/json', 'jsonDriver')->name('driver.json');
                     Route::get('/driver/find/{id}', 'findDriver')->name('driver.find');
 
@@ -1319,11 +1308,9 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
             });
 
-
         Route::prefix('ticket')->controller(TicketController::class)->group(function () {
             Route::get('/', 'index')->name('ticket');
             Route::get('/export', 'export')->name('ticket.export');
-
 
             Route::middleware('ajax')->group(function () {
                 Route::get('/json', 'json')->name('ticket.json');
@@ -1373,30 +1360,37 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/subcategory-json', 'subcategoryJson')->name('ticketsetup.subcategoryJson');
                 Route::get('/priority-json', 'priorityJson')->name('ticketsetup.priorityJson');
                 Route::get('/dept-json', 'deptJson')->name('ticketsetup.deptJson');
+
+                Route::get('/wa-setting-json', 'waSettingJson')->name('ticketsetup.waSettingJson');
+
                 Route::get('/category-by-type/{ticket_type}', 'categoryByType')->name('ticketsetup.categoryByType');
                 Route::get('/subcategory-by-category/{ticket_categoryid}', 'subcategoryByCategory')->name('ticketsetup.subcategoryByCategory');
                 Route::get('/priority-by-category/{ticket_categoryid}', 'priorityByCategory')->name('ticketsetup.priorityByCategory');
             });
 
             Route::post('/store-type', 'storeType')->name('ticketsetup.storeType');
-            Route::post('/update-type/{ticket_type}', 'updateType')->name('ticketsetup.updateType');
+            Route::put('/update-type/{ticket_type}', 'updateType')->name('ticketsetup.updateType');
             Route::delete('/destroy-type/{ticket_type}', 'destroyType')->name('ticketsetup.destroyType');
 
             Route::post('/store-category', 'storeCategory')->name('ticketsetup.storeCategory');
-            Route::post('/update-category/{ticket_categoryid}', 'updateCategory')->name('ticketsetup.updateCategory');
+            Route::put('/update-category/{ticket_categoryid}', 'updateCategory')->name('ticketsetup.updateCategory');
             Route::delete('/destroy-category/{ticket_categoryid}', 'destroyCategory')->name('ticketsetup.destroyCategory');
 
             Route::post('/store-subcategory', 'storeSubcategory')->name('ticketsetup.storeSubcategory');
-            Route::post('/update-subcategory/{ticket_subcategoryid}', 'updateSubcategory')->name('ticketsetup.updateSubcategory');
+            Route::put('/update-subcategory/{ticket_subcategoryid}', 'updateSubcategory')->name('ticketsetup.updateSubcategory');
             Route::delete('/destroy-subcategory/{ticket_subcategoryid}', 'destroySubcategory')->name('ticketsetup.destroySubcategory');
 
             Route::post('/store-priority', 'storePriority')->name('ticketsetup.storePriority');
-            Route::post('/update-priority/{id}', 'updatePriority')->name('ticketsetup.updatePriority');
+            Route::put('/update-priority/{id}', 'updatePriority')->name('ticketsetup.updatePriority');
             Route::delete('/destroy-priority/{id}', 'destroyPriority')->name('ticketsetup.destroyPriority');
 
             Route::post('/store-dept', 'storeDept')->name('ticketsetup.storeDept');
-            Route::post('/update-dept/{id}', 'updateDept')->name('ticketsetup.updateDept');
+            Route::put('/update-dept/{id}', 'updateDept')->name('ticketsetup.updateDept');
             Route::delete('/destroy-dept/{id}', 'destroyDept')->name('ticketsetup.destroyDept');
+
+            Route::post('/store-wa-setting', 'storeWaSetting')->name('ticketsetup.storeWaSetting');
+            Route::put('/update-wa-setting/{id}', 'updateWaSetting')->name('ticketsetup.updateWaSetting');
+            Route::delete('/destroy-wa-setting/{id}', 'destroyWaSetting')->name('ticketsetup.destroyWaSetting');
         });
 
         Route::prefix('access-request')->controller(AccessRequestController::class)->group(function () {
@@ -2051,7 +2045,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.ga.export');
 
         Route::get('/view/{type}', function ($type) {
-            return view('pages.report.' . $type);
+            return view('pages.report.'.$type);
         });
     });
 

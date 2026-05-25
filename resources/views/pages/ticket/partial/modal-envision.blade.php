@@ -68,12 +68,25 @@
                                 estimated schedule.</p>
                         </div>
                         <div class="space-y-5">
+
                             <div>
-                                <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">Envision
-                                    Description</div>
+                                <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Response Summary
+                                </div>
+
+                                <input type="text" id="envision_response_summary" name="response_summary"
+                                    class="form-input w-full" placeholder="Enter response summary..." required>
+                            </div>
+
+                            <div>
+                                <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Envision Description
+                                </div>
+
                                 <textarea id="envision_descr" name="response_descr" rows="6" class="form-textarea w-full"
                                     placeholder="Explain issue analysis, next action plan, estimation..." required></textarea>
                             </div>
+
                         </div>
                     </div>
 
@@ -83,7 +96,7 @@
                         <div class="mb-4 flex items-center justify-between gap-4">
                             <div>
                                 <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Estimated Schedule</h3>
-                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Optional estimated start and
+                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Required estimated start and
                                     end.</p>
                             </div>
                             <label
@@ -133,12 +146,10 @@
                         </label>
                         <div class="mt-4 space-y-3">
 
-                            <div id="envision_existing_attachment_list"
-                                class="space-y-3">
+                            <div id="envision_existing_attachment_list" class="space-y-3">
                             </div>
 
-                            <div id="envision_new_attachment_list"
-                                class="space-y-3">
+                            <div id="envision_new_attachment_list" class="space-y-3">
                             </div>
 
                         </div>

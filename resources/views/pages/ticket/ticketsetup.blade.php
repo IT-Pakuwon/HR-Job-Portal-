@@ -61,6 +61,17 @@
 
             </button>
 
+            <button id="tabWaSetting"
+                class="tab-button inline-flex items-center gap-2 rounded-xl border border-transparent bg-transparent px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
+
+                <span class="text-base">📱</span>
+
+                <span>
+                    WhatsApp Setting
+                </span>
+
+            </button>
+
         </div>
 
         {{-- TYPE PANEL --}}
@@ -1152,6 +1163,27 @@
                         <div>
 
                             <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Default Priority
+                            </label>
+
+                            <select name="is_default"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="N">
+                                    No
+                                </option>
+
+                                <option value="Y">
+                                    Yes
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Status
                             </label>
 
@@ -1299,6 +1331,26 @@
 
                             <input type="number" min="0" name="ticket_sla_days" id="edit_ticket_sla_days"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                        </div>
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Default Priority
+                            </label>
+
+                            <select name="is_default" id="edit_is_default"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="N">
+                                    No
+                                </option>
+
+                                <option value="Y">
+                                    Yes
+                                </option>
+
+                            </select>
 
                         </div>
 
@@ -1736,7 +1788,295 @@
 
         </div>
 
+        {{-- WA SETTING PANEL --}}
+        <div id="waSettingPanel" class="hidden">
 
+            <div
+                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+
+                <div
+                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
+
+                    <div>
+
+                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">
+                            WhatsApp Setting
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Manage WhatsApp notification configuration.
+                        </p>
+
+                    </div>
+
+                    <button type="button" onclick="toggleModal('#createWaSettingModal', true)"
+                        class="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700">
+
+                        <span>＋</span>
+
+                        <span>
+                            Add Setting
+                        </span>
+
+                    </button>
+
+                </div>
+
+                <div class="overflow-x-auto p-5">
+
+                    <table id="tableWaSetting" class="display w-full border-collapse text-sm">
+
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Company</th>
+                                <th>Chat ID</th>
+                                <th>Status</th>
+                                <th class="text-right">Action</th>
+                            </tr>
+                        </thead>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {{-- CREATE WA SETTING MODAL --}}
+        <div id="createWaSettingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+
+            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+
+                    <div>
+
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Add WhatsApp Setting
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Configure WhatsApp destination chat.
+                        </p>
+
+                    </div>
+
+                    <button type="button" onclick="toggleModal('#createWaSettingModal', false)"
+                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+
+                        ✕
+
+                    </button>
+
+                </div>
+
+                <form id="createWaSettingForm">
+
+                    @csrf
+
+                    <div class="grid grid-cols-1 gap-5 p-6">
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Company
+                            </label>
+
+                            <select name="cpny_id"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="">
+                                    Select Company
+                                </option>
+
+                                @foreach ($companies as $company)
+                                    <option value="{{ $company->cpny_id }}">
+                                        {{ $company->cpny_name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Chat ID
+                            </label>
+
+                            <input type="text" name="chat_id" placeholder="6287875757227@c.us"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Status
+                            </label>
+
+                            <select name="status"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="A">
+                                    Active
+                                </option>
+
+                                <option value="I">
+                                    Inactive
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+
+                        <button type="button" onclick="toggleModal('#createWaSettingModal', false)"
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700">
+
+                            Cancel
+
+                        </button>
+
+                        <button type="submit"
+                            class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700">
+
+                            Save Setting
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        <div id="editWaSettingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+
+            <div class="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-white/10">
+
+                    <div>
+
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            Edit WhatsApp Setting
+                        </h2>
+
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Update WhatsApp destination chat.
+                        </p>
+
+                    </div>
+
+                    <button type="button" onclick="toggleModal('#editWaSettingModal', false)"
+                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10">
+
+                        ✕
+
+                    </button>
+
+                </div>
+
+                <form id="editWaSettingForm">
+
+                    @csrf
+                    @method('PUT')
+
+                    <input type="hidden" id="edit_wa_setting_id">
+
+                    <div class="grid grid-cols-1 gap-5 p-6">
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Company
+                            </label>
+
+                            <select name="cpny_id" id="edit_cpny_id"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="">
+                                    Select Company
+                                </option>
+
+                                @foreach ($companies as $company)
+                                    <option value="{{ $company->cpny_id }}">
+                                        {{ $company->cpny_name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Chat ID
+                            </label>
+
+                            <input type="text" name="chat_id" id="edit_chat_id"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                        </div>
+
+                        <div>
+
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Status
+                            </label>
+
+                            <select name="status" id="edit_wa_status"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white">
+
+                                <option value="A">
+                                    Active
+                                </option>
+
+                                <option value="I">
+                                    Inactive
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-white/10">
+
+                        <button type="button" onclick="toggleModal('#editWaSettingModal', false)"
+                            class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700">
+
+                            Cancel
+
+                        </button>
+
+                        <button type="submit"
+                            class="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700">
+
+                            Update Setting
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
     </div>
 
     <script>
@@ -1745,7 +2085,7 @@
         let tableSubcategory;
         let tablePriority;
         let tableDept;
-
+        let tableWaSetting;
         $(document).ready(function() {
 
             tableType = $('#tableType').DataTable(baseTableConfig({
@@ -1840,6 +2180,7 @@
                 searchPlaceholder: 'Search category...'
 
             }));
+
             tableSubcategory = $('#tableSubcategory').DataTable(baseTableConfig({
 
                 ajax: routes.subcategory.json,
@@ -1891,6 +2232,7 @@
                 searchPlaceholder: 'Search subcategory...'
 
             }));
+
             tablePriority = $('#tablePriority').DataTable(baseTableConfig({
 
                 ajax: routes.priority.json,
@@ -1946,6 +2288,7 @@
                 searchPlaceholder: 'Search priority...'
 
             }));
+
             tableDept = $('#tableDept').DataTable(baseTableConfig({
 
                 ajax: routes.dept.json,
@@ -1965,8 +2308,8 @@
                         name: 'ticket_category_name'
                     },
                     {
-                        data: 'department_id',
-                        name: 'department_id'
+                        data: 'department_name',
+                        name: 'department_name'
                     },
                     {
                         data: 'username',
@@ -1998,6 +2341,87 @@
 
             }));
 
+            tableWaSetting = $('#tableWaSetting').DataTable(baseTableConfig({
+
+                ajax: routes.waSetting.json,
+
+                columns: [{
+                        data: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false,
+                        width: '5%'
+                    },
+                    {
+                        data: 'cpny_name',
+                        name: 'cpny_name'
+                    },
+                    {
+                        data: 'chat_id',
+                        name: 'chat_id'
+                    },
+                    {
+                        data: 'status_badge',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-right',
+                        render: function(data, type, row) {
+
+                            return actionButton(
+                                'editWaSetting',
+                                'deleteWaSetting',
+                                row.id
+                            );
+
+                        }
+                    }
+                ],
+
+                searchPlaceholder: 'Search WhatsApp setting...'
+
+            }));
+
+        });
+        $(function() {
+
+            const tabs = {
+                tabType: '#typePanel',
+                tabCategory: '#categoryPanel',
+                tabSubcategory: '#subcategoryPanel',
+                tabPriority: '#priorityPanel',
+                tabDept: '#deptPanel',
+                tabWaSetting: '#waSettingPanel'
+            };
+
+            $('.tab-button').on('click', function() {
+
+                $('.tab-button')
+                    .removeClass(
+                        'active-tab border-blue-200 bg-blue-50 text-blue-700'
+                    )
+                    .addClass(
+                        'border-transparent bg-transparent text-gray-600 dark:text-gray-300'
+                    );
+
+                $(this)
+                    .removeClass(
+                        'border-transparent bg-transparent text-gray-600 dark:text-gray-300'
+                    )
+                    .addClass(
+                        'active-tab border-blue-200 bg-blue-50 text-blue-700'
+                    );
+
+                $('#typePanel,#categoryPanel,#subcategoryPanel,#priorityPanel,#deptPanel,#waSettingPanel')
+                    .addClass('hidden');
+
+                $(tabs[$(this).attr('id')])
+                    .removeClass('hidden');
+            });
+
         });
     </script>
     <script>
@@ -2006,40 +2430,48 @@
             type: {
                 json: "{{ route('ticketsetup.typeJson') }}",
                 store: "{{ route('ticketsetup.storeType') }}",
-                update: "{{ url('/ticket-setup/type/update') }}",
-                delete: "{{ url('/ticket-setup/type/delete') }}"
+                update: "{{ url('/ticket-setup/update-type') }}",
+                delete: "{{ url('/ticket-setup/destroy-type') }}"
             },
 
             category: {
                 json: "{{ route('ticketsetup.categoryJson') }}",
                 store: "{{ route('ticketsetup.storeCategory') }}",
-                update: "{{ url('/ticket-setup/category/update') }}",
-                delete: "{{ url('/ticket-setup/category/delete') }}"
+                update: "{{ url('/ticket-setup/update-category') }}",
+                delete: "{{ url('/ticket-setup/destroy-category') }}"
             },
 
             subcategory: {
                 json: "{{ route('ticketsetup.subcategoryJson') }}",
                 store: "{{ route('ticketsetup.storeSubcategory') }}",
-                update: "{{ url('/ticket-setup/subcategory/update') }}",
-                delete: "{{ url('/ticket-setup/subcategory/delete') }}"
+                update: "{{ url('/ticket-setup/update-subcategory') }}",
+                delete: "{{ url('/ticket-setup/destroy-subcategory') }}"
             },
 
             priority: {
                 json: "{{ route('ticketsetup.priorityJson') }}",
                 store: "{{ route('ticketsetup.storePriority') }}",
-                update: "{{ url('/ticket-setup/priority/update') }}",
-                delete: "{{ url('/ticket-setup/priority/delete') }}"
+                update: "{{ url('/ticket-setup/update-priority') }}",
+                delete: "{{ url('/ticket-setup/destroy-priority') }}"
             },
 
             dept: {
                 json: "{{ route('ticketsetup.deptJson') }}",
                 store: "{{ route('ticketsetup.storeDept') }}",
-                update: "{{ url('/ticket-setup/dept/update') }}",
-                delete: "{{ url('/ticket-setup/dept/delete') }}"
+                update: "{{ url('/ticket-setup/update-dept') }}",
+                delete: "{{ url('/ticket-setup/destroy-dept') }}"
+            },
+
+            waSetting: {
+                json: "{{ route('ticketsetup.waSettingJson') }}",
+                store: "{{ route('ticketsetup.storeWaSetting') }}",
+                update: "{{ url('/ticket-setup/update-wa-setting') }}",
+                delete: "{{ url('/ticket-setup/destroy-wa-setting') }}"
             },
 
             categoryByType: "{{ url('/ticket-setup/category-by-type') }}"
         };
+
 
         function toggleModal(modalId, show = true) {
 
@@ -2253,47 +2685,59 @@
             if (!type) {
 
                 $(targetSelector).html(`
-                <option value="">
-                    Select Category
-                </option>
-            `);
-
-                return;
-
-            }
-
-            $(targetSelector).html(`
             <option value="">
-                Loading...
+                Select Category
             </option>
         `);
 
-            $.get(`${routes.categoryByType}/${type}`, function(response) {
+                return;
+            }
 
-                let html = `
+            $(targetSelector).html(`
+        <option value="">
+            Loading...
+        </option>
+    `);
+
+            $.ajax({
+                url: `${routes.categoryByType}/${type}`,
+                type: 'GET',
+
+                success: function(response) {
+
+                    let html = `
                 <option value="">
                     Select Category
                 </option>
             `;
 
-                response.forEach(item => {
+                    response.forEach(item => {
 
-                    html += `
+                        html += `
                     <option value="${item.ticket_categoryid}">
                         ${item.ticket_category_name}
                     </option>
                 `;
+                    });
 
-                });
+                    $(targetSelector).html(html);
 
-                $(targetSelector).html(html);
+                    if (selected) {
+                        $(targetSelector).val(selected);
+                    }
+                },
 
-                if (selected) {
-                    $(targetSelector).val(selected);
+                error: function() {
+
+                    $(targetSelector).html(`
+                <option value="">
+                    Select Category
+                </option>
+            `);
+
+                    showError('Failed to load category data');
                 }
-
             });
-
         }
 
         function baseTableConfig({
@@ -2326,6 +2770,7 @@
 
         }
     </script>
+
     <script>
         function editType(ticket_type) {
 
@@ -2423,6 +2868,7 @@
             $('#edit_ticket_priority_name').val(row.ticket_priority_name);
             $('#edit_priority_ticket_type').val(row.ticket_type);
             $('#edit_ticket_sla_days').val(row.ticket_sla_days);
+            $('#edit_is_default').val(row.is_default);
             $('#edit_priority_status').val(row.status);
 
             loadCategoryOptions(
@@ -2477,9 +2923,32 @@
             });
 
         }
-    </script>
 
-    <script>
+        function editWaSetting(id) {
+
+            let row = tableWaSetting.rows().data().toArray()
+                .find(x => x.id == id);
+
+            if (!row) return;
+
+            $('#edit_wa_setting_id').val(row.id);
+            $('#edit_cpny_id').val(row.cpny_id);
+            $('#edit_chat_id').val(row.chat_id);
+            $('#edit_wa_status').val(row.status);
+
+            toggleModal('#editWaSettingModal', true);
+
+        }
+
+        function deleteWaSetting(id) {
+
+            confirmDelete({
+                url: `${routes.waSetting.delete}/${id}`,
+                table: tableWaSetting,
+                title: 'Delete WhatsApp Setting?'
+            });
+
+        }
         $('#createTypeForm').submit(function(e) {
 
             e.preventDefault();
@@ -2616,6 +3085,35 @@
                 table: tableDept,
                 modal: '#editDeptModal',
                 loadingText: 'Updating PIC...'
+            });
+
+        });
+
+
+        $('#createWaSettingForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: routes.waSetting.store,
+                table: tableWaSetting,
+                modal: '#createWaSettingModal',
+                loadingText: 'Saving WhatsApp Setting...'
+            });
+
+        });
+
+        $('#editWaSettingForm').submit(function(e) {
+
+            e.preventDefault();
+
+            submitForm({
+                form: $(this),
+                url: `${routes.waSetting.update}/${$('#edit_wa_setting_id').val()}`,
+                table: tableWaSetting,
+                modal: '#editWaSettingModal',
+                loadingText: 'Updating WhatsApp Setting...'
             });
 
         });

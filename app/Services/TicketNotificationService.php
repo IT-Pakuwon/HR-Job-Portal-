@@ -8,6 +8,7 @@ use App\Mail\TicketCompletedMail;
 use App\Mail\TicketCreatedMail;
 use App\Mail\TicketReopenMail;
 use App\Mail\TicketTransferMail;
+use App\Models\MsWaSetting;
 use App\Models\SysUserRole;
 use App\Models\TrTicket;
 use App\Models\TrTicketActivity;
@@ -18,6 +19,18 @@ use Illuminate\Support\Facades\Mail;
 
 class TicketNotificationService
 {
+    protected function getCompanyChatId(
+        string $cpnyId
+    ): ?string {
+        return MsWaSetting::query()
+
+            ->where('cpny_id', $cpnyId)
+
+            ->where('status', 'A')
+
+            ->value('chat_id');
+    }
+
     protected function getUserEmail(?User $user): ?string
     {
         if (!$user) {
@@ -376,47 +389,66 @@ class TicketNotificationService
     ) {
         $this->whatsapp = $whatsapp;
     }
-public function ticketEnvision(
-    TrTicket $ticket,
-    string $responseDescr
-): void {
 
-    $ticket->load([
-        'location',
-        'subLocation',
-    ]);
+    public function ticketEnvision(
+        TrTicket $ticket,
+        string $responseSummary,
+        string $responseDescr
+    ): void {
+        $ticket->load([
+            'location',
+            'subLocation',
+        ]);
 
-    $activity = TrTicketActivity::query()
-        ->where('ticketid', $ticket->ticketid)
-        ->where('status_pekerjaan', 'ENVISION')
-        ->latest('id')
-        ->first();
+        $activity = TrTicketActivity::query()
+            ->where('ticketid', $ticket->ticketid)
+            ->where('status_pekerjaan', 'ENVISION')
+            ->latest('id')
+            ->first();
 
-    Log::info('WA ENVISION ACTIVITY', [
-        'ticketid' => $ticket->ticketid,
-        'activity_id' => $activity?->id,
-        'working_start_date' => $activity?->working_start_date,
-        'working_end_date' => $activity?->working_end_date,
-    ]);
+        Log::info('WA ENVISION ACTIVITY', [
+            'ticketid' => $ticket->ticketid,
+            'activity_id' => $activity?->id,
+            'working_start_date' => $activity?->working_start_date,
+            'working_end_date' => $activity?->working_end_date,
+        ]);
 
-    $requestDate = $ticket->ticketdate
-        ? Carbon::parse($ticket->ticketdate)
-            ->format('d-m-Y')
-        : '-';
+        $chatId = MsWaSetting::query()
+            ->where('cpny_id', $ticket->cpny_id)
+            ->where('status', 'A')
+            ->value('chat_id');
 
-    $actionDate = $activity?->working_start_date
-        ? Carbon::parse(
-            $activity->working_start_date
-        )->format('d-m-Y')
-        : '-';
+        if (!$chatId) {
+            Log::warning(
+                'WA Chat Group Not Found',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'cpny_id' => $ticket->cpny_id,
+                ]
+            );
 
-    $actionTime = $activity?->working_start_date
-        ? Carbon::parse(
-            $activity->working_start_date
-        )->format('H:i')
-        : '-';
+            return;
+        }
 
-   $message = "
+        $requestDate = $ticket->ticketdate
+            ? Carbon::parse(
+                $ticket->ticketdate
+            )->format('d-m-Y')
+            : '-';
+
+        $actionDate = $activity?->working_start_date
+            ? Carbon::parse(
+                $activity->working_start_date
+            )->format('d-m-Y')
+            : '-';
+
+        $actionTime = $activity?->working_start_date
+            ? Carbon::parse(
+                $activity->working_start_date
+            )->format('H:i')
+            : '-';
+
+        $message = "
 PAKUWON SYSTEM
 TICKET ORDER
 =================
@@ -427,48 +459,46 @@ SUB LOCATION : {$ticket->subLocation?->sub_location_name}
 REQUEST DATE : {$requestDate}
 ACTION DATE : {$actionDate}
 ACTION TIME : {$actionTime}
-
 PIC REQUEST : {$ticket->pic_ticket}
-
 ----------------------------------
 NO TICKET - PKW : #{$ticket->ticketid}
 USER COMPLAINT : {$ticket->created_by}
 NO-HP USER : -
 DEPARTMENT : {$ticket->department_id}
-
 ----------------------------------
-SUBJECT : {$ticket->issue_summary}
+JOBTYPE  : {$responseSummary}
 
 Dear Team,
 {$responseDescr}
 ----------------------------------
 ORDER/MONTHLY : Monthly
 ";
+        try {
+            $result = $this->whatsapp->sendText(
+                $chatId,
+                $message
+            );
 
-    try {
-
-        $result = $this->whatsapp->sendText(
-            '120363428152916612@g.us',
-            $message
-        );
-
-        Log::info(
-            'Ticket Envision WhatsApp Success',
-            [
-                'ticketid' => $ticket->ticketid,
-                'response' => $result,
-            ]
-        );
-
-    } catch (\Throwable $e) {
-
-        Log::error(
-            'Ticket Envision WhatsApp Failed',
-            [
-                'ticketid' => $ticket->ticketid,
-                'error' => $e->getMessage(),
-            ]
-        );
+            Log::info(
+                'Ticket Envision WhatsApp Success',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'cpny_id' => $ticket->cpny_id,
+                    'chat_id' => $chatId,
+                    'response' => $result,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::error(
+                'Ticket Envision WhatsApp Failed',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'cpny_id' => $ticket->cpny_id,
+                    'chat_id' => $chatId,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
+            );
+        }
     }
-}
 }

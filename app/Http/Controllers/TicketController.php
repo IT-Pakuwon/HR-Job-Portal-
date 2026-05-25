@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\TicketExport;
 use App\Http\Controllers\Traits\HasAutonbr;
-use App\Http\Controllers\TrAttachmentController;
 use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use App\Models\MsTicketCategory;
@@ -11,18 +11,16 @@ use App\Models\MsTicketCategoryDept;
 use App\Models\MsTicketPriority;
 use App\Models\MsTicketSubcategory;
 use App\Models\MsTicketType;
-use App\Models\TrAttachment;
 use App\Models\TrMessage;
 use App\Models\TrTicket;
 use App\Models\TrTicketActivity;
+use App\Services\TicketNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 use Vinkla\Hashids\Facades\Hashids;
 use Yajra\DataTables\Facades\DataTables;
-use App\Services\TicketNotificationService;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\TicketExport;
 
 class TicketController extends Controller
 {
@@ -38,7 +36,6 @@ class TicketController extends Controller
     }
 
     protected array $workflowTransitions = [
-
         'response' => [
             'CREATED',
             'TRANSFER',
@@ -73,14 +70,12 @@ class TicketController extends Controller
         'reopen' => [
             'COMPLETED',
         ],
-
     ];
 
     protected function canTransition(
         string $current,
         string $action
     ): bool {
-
         return in_array(
             $current,
             $this->workflowTransitions[$action] ?? []
@@ -94,7 +89,6 @@ class TicketController extends Controller
         if (!$user) {
             return redirect()->route('login');
         }
-
 
         $companies = collect(
             explode(',', $user->cpny_id)
@@ -187,16 +181,13 @@ class TicketController extends Controller
         ])->whereNull('deleted_at');
 
         if (!$isIT) {
-
             $query->where(function ($q) use ($user) {
-
                 $q->where('created_by', $user->username)
                     ->orWhere('pic_ticket', $user->username);
             });
         }
 
         if ($request->filled('status')) {
-
             $query->where(
                 'status_pekerjaan',
                 $request->status
@@ -204,7 +195,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('status_filter')) {
-
             $query->where(
                 'status',
                 $request->status_filter
@@ -212,7 +202,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('status_pekerjaan')) {
-
             $query->where(
                 'status_pekerjaan',
                 $request->status_pekerjaan
@@ -220,12 +209,10 @@ class TicketController extends Controller
         }
 
         if ($request->filled('search')) {
-
             $search =
                 $request->search;
 
             $query->where(function ($q) use ($search) {
-
                 $q->where(
                     'ticketid',
                     'ilike',
@@ -245,7 +232,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('ticket_type')) {
-
             $query->where(
                 'ticket_type',
                 $request->ticket_type
@@ -253,7 +239,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('cpny_id')) {
-
             $query->where(
                 'cpny_id',
                 $request->cpny_id
@@ -261,7 +246,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('department_id')) {
-
             $query->where(
                 'department_id',
                 $request->department_id
@@ -269,7 +253,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('date_from')) {
-
             $query->whereDate(
                 'ticketdate',
                 '>=',
@@ -278,7 +261,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('date_to')) {
-
             $query->whereDate(
                 'ticketdate',
                 '<=',
@@ -289,49 +271,42 @@ class TicketController extends Controller
         return DataTables::of($query)
 
             ->addColumn('eid', function ($row) {
-
                 return Hashids::encode(
                     $row->id
                 );
             })
 
             ->addColumn('ticket_category', function ($row) {
-
                 return optional(
                     $row->category
                 )->ticket_category_name;
             })
 
             ->addColumn('ticket_subcategory', function ($row) {
-
                 return optional(
                     $row->subcategory
                 )->ticket_subcategory_name;
             })
 
             ->addColumn('priority_name', function ($row) {
-
                 return optional(
                     $row->priority
                 )->ticket_priority_name;
             })
 
             ->addColumn('location_name', function ($row) {
-
                 return optional(
                     $row->location
                 )->location_name;
             })
 
             ->addColumn('sub_location_name', function ($row) {
-
                 return optional(
                     $row->subLocation
                 )->sub_location_name;
             })
 
             ->addColumn('actions', function ($row) {
-
                 return $this->buildActions($row);
             })
 
@@ -341,6 +316,7 @@ class TicketController extends Controller
 
             ->make(true);
     }
+
     protected function isITRole()
     {
         return MsTicketCategoryDept::query()
@@ -388,7 +364,7 @@ class TicketController extends Controller
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
             ],
         ]);
 
@@ -405,9 +381,9 @@ class TicketController extends Controller
 
             $urutan = (int) $auto['next'];
 
-            $tglbln = substr((string) $year, 2) . $month;
+            $tglbln = substr((string) $year, 2).$month;
 
-            $ticketid = $doctype . $tglbln . sprintf('%04d', $urutan);
+            $ticketid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             $defaultPriority = MsTicketPriority::where(
                 'ticket_priority',
@@ -464,9 +440,7 @@ class TicketController extends Controller
             $uploadResult = null;
 
             if ($request->hasFile('attachments')) {
-
                 $meta = [
-
                     'refnbr' => $ticket->ticketid,
 
                     'doctype' => 'TIC',
@@ -483,7 +457,6 @@ class TicketController extends Controller
                 $files = (array) $request->file('attachments');
 
                 try {
-
                     $uploader = app(
                         TrAttachmentController::class
                     );
@@ -494,12 +467,10 @@ class TicketController extends Controller
                             $files
                         );
                 } catch (\Throwable $e) {
-
                     DB::connection('pgsql5')
                         ->rollBack();
 
                     return response()->json([
-
                         'success' => false,
 
                         'message' => 'Failed upload attachment',
@@ -507,24 +478,20 @@ class TicketController extends Controller
                         'error' => config('app.debug')
                             ? $e->getMessage()
                             : null,
-
                     ], 500);
                 }
             }
-
 
             DB::connection('pgsql5')->commit();
 
             $this->notificationService
                 ->ticketCreated($ticket);
 
-
             return response()->json([
                 'success' => true,
                 'message' => 'Ticket created successfully.',
             ]);
         } catch (\Throwable $th) {
-
             DB::connection('pgsql5')->rollBack();
 
             dd([
@@ -592,13 +559,10 @@ class TicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
-
             $uploadResult = null;
 
             if ($request->hasFile('attachments')) {
-
                 $meta = [
-
                     'refnbr' => $ticket->ticketid,
 
                     'doctype' => 'TIC',
@@ -615,7 +579,6 @@ class TicketController extends Controller
                 $files = (array) $request->file('attachments');
 
                 try {
-
                     $uploader = app(
                         TrAttachmentController::class
                     );
@@ -626,12 +589,10 @@ class TicketController extends Controller
                             $files
                         );
                 } catch (\Throwable $e) {
-
                     DB::connection('pgsql5')
                         ->rollBack();
 
                     return response()->json([
-
                         'success' => false,
 
                         'message' => 'Failed upload attachment',
@@ -639,7 +600,6 @@ class TicketController extends Controller
                         'error' => config('app.debug')
                             ? $e->getMessage()
                             : null,
-
                     ], 500);
                 }
             }
@@ -672,16 +632,12 @@ class TicketController extends Controller
             !(
                 (
                     $ticket->created_by === auth()->user()->username
-                    &&
-                    $ticket->status === 'P'
-                    &&
-                    $ticket->status_pekerjaan === 'CREATED'
+                    && $ticket->status === 'P'
+                    && $ticket->status_pekerjaan === 'CREATED'
                 )
-                ||
-                (
+                || (
                     $this->isITRole()
-                    &&
-                    $ticket->status_pekerjaan !== 'COMPLETED'
+                    && $ticket->status_pekerjaan !== 'COMPLETED'
                 )
             ),
             403
@@ -709,15 +665,12 @@ class TicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
-
             $ticket->refresh();
 
             DB::connection('pgsql5')->commit();
 
             $this->notificationService
                 ->ticketCancelled($ticket);
-
-
 
             return response()->json([
                 'success' => true,
@@ -787,9 +740,7 @@ class TicketController extends Controller
             ->orderBy('created_at')
             ->get()
             ->map(function ($comment) {
-
                 return [
-
                     'id' => $comment->id,
 
                     'message' => $comment->message,
@@ -799,7 +750,6 @@ class TicketController extends Controller
                     'created_at' => optional(
                         $comment->created_at
                     )->format('Y-m-d H:i:s'),
-
                 ];
             });
 
@@ -810,7 +760,6 @@ class TicketController extends Controller
         */
 
         $tracking = $this->buildTracking(
-
             TrTicketActivity::where(
                 'ticketid',
                 $ticket->ticketid
@@ -822,154 +771,111 @@ class TicketController extends Controller
         );
 
         return response()->json([
-
             'success' => true,
 
             'data' => [
-
                 'ticket' => [
+                    'id' => $ticket->id,
 
-                    'id' =>
-                    $ticket->id,
+                    'eid' => Hashids::encode($ticket->id),
 
-                    'eid' =>
-                    Hashids::encode($ticket->id),
+                    'ticketid' => $ticket->ticketid,
 
-                    'ticketid' =>
-                    $ticket->ticketid,
-
-                    'ticketdate' =>
-                    optional(
+                    'ticketdate' => optional(
                         $ticket->ticketdate
                     )->format('Y-m-d H:i:s'),
 
-                    'cpny_id' =>
-                    $ticket->cpny_id,
+                    'cpny_id' => $ticket->cpny_id,
 
-                    'department_id' =>
-                    $ticket->department_id,
+                    'department_id' => $ticket->department_id,
 
-                    'ticket_type' =>
-                    $ticket->ticket_type,
+                    'ticket_type' => $ticket->ticket_type,
 
-                    'ticket_categoryid' =>
-                    $ticket->ticket_categoryid,
+                    'ticket_categoryid' => $ticket->ticket_categoryid,
 
-                    'ticket_category' =>
-                    optional(
+                    'ticket_category' => optional(
                         $ticket->category
                     )->ticket_category_name,
 
-                    'ticket_category_name' =>
-                    optional(
+                    'ticket_category_name' => optional(
                         $ticket->category
                     )->ticket_category_name,
 
-                    'ticket_subcategoryid' =>
-                    $ticket->ticket_subcategoryid,
+                    'ticket_subcategoryid' => $ticket->ticket_subcategoryid,
 
-                    'ticket_subcategory' =>
-                    optional(
+                    'ticket_subcategory' => optional(
                         $ticket->subcategory
                     )->ticket_subcategory_name,
 
-                    'ticket_subcategory_name' =>
-                    optional(
+                    'ticket_subcategory_name' => optional(
                         $ticket->subcategory
                     )->ticket_subcategory_name,
 
-                    'location_id' =>
-                    $ticket->location_id,
+                    'location_id' => $ticket->location_id,
 
-                    'location_name' =>
-                    optional(
+                    'location_name' => optional(
                         $ticket->location
                     )->location_name,
 
-                    'sub_location_id' =>
-                    $ticket->sub_location_id,
+                    'sub_location_id' => $ticket->sub_location_id,
 
-                    'sub_location_name' =>
-                    optional(
+                    'sub_location_name' => optional(
                         $ticket->subLocation
                     )->sub_location_name,
 
-                    'ticket_priority' =>
-                    $ticket->ticket_priority,
+                    'ticket_priority' => $ticket->ticket_priority,
 
-                    'priority_name' =>
-                    optional(
+                    'priority_name' => optional(
                         $ticket->priority
                     )->ticket_priority_name,
 
-                    'ticket_priority_name' =>
-                    optional(
+                    'ticket_priority_name' => optional(
                         $ticket->priority
                     )->ticket_priority_name,
 
-                    'ticket_duedate' =>
-                    optional(
+                    'ticket_duedate' => optional(
                         $ticket->ticket_duedate
                     )->format('Y-m-d H:i:s'),
 
-                    'issue_summary' =>
-                    $ticket->issue_summary,
+                    'issue_summary' => $ticket->issue_summary,
 
-                    'issue_descr' =>
-                    $ticket->issue_descr,
+                    'issue_descr' => $ticket->issue_descr,
 
-                    'solution_descr' =>
-                    $ticket->solution_descr,
+                    'solution_descr' => $ticket->solution_descr,
 
-                    'status' =>
-                    $ticket->status,
+                    'status' => $ticket->status,
 
-                    'working_start_date' =>
-                    optional(
+                    'working_start_date' => optional(
                         $ticket->working_start_date
                     )->format('Y-m-d H:i:s'),
 
-                    'working_end_date' =>
-                    optional(
+                    'working_end_date' => optional(
                         $ticket->working_end_date
                     )->format('Y-m-d H:i:s'),
 
-                    'status_pekerjaan' =>
-                    $ticket->status_pekerjaan,
+                    'status_pekerjaan' => $ticket->status_pekerjaan,
 
-                    'created_by' =>
-                    $ticket->created_by,
+                    'created_by' => $ticket->created_by,
 
-                    'user_peminta' =>
-                    $ticket->user_peminta,
+                    'user_peminta' => $ticket->user_peminta,
 
-                    'pic_ticket' =>
-                    $ticket->pic_ticket,
+                    'pic_ticket' => $ticket->pic_ticket,
 
-                    'completed_by' =>
-                    $ticket->completed_by,
+                    'completed_by' => $ticket->completed_by,
 
-                    'completed_at' =>
-                    optional(
+                    'completed_at' => optional(
                         $ticket->completed_at
                     )->format('Y-m-d H:i:s'),
-
                 ],
 
-                'attachments' =>
-                $attachments,
+                'attachments' => $attachments,
 
-                'comments' =>
-                $comments,
+                'comments' => $comments,
 
-                'tracking' =>
-                $tracking,
+                'tracking' => $tracking,
 
-                'actions' =>
-                $this->buildActions($ticket),
-
+                'actions' => $this->buildActions($ticket),
             ],
-
         ]);
     }
 
@@ -1031,7 +937,6 @@ class TicketController extends Controller
         );
 
         $request->validate([
-
             'pic_ticket' => 'required',
 
             'ticket_priority' => 'required',
@@ -1041,7 +946,6 @@ class TicketController extends Controller
             'working_start_date' => 'nullable|date',
 
             'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
-
         ]);
 
         abort_if(
@@ -1057,7 +961,6 @@ class TicketController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             $priority = MsTicketPriority::where(
                 'ticket_priority',
                 $request->ticket_priority
@@ -1076,70 +979,49 @@ class TicketController extends Controller
                 ?? $dueDate;
 
             $ticket->update([
+                'pic_ticket' => $request->pic_ticket,
 
-                'pic_ticket' =>
-                $request->pic_ticket,
+                'ticket_priority' => $request->ticket_priority,
 
-                'ticket_priority' =>
-                $request->ticket_priority,
+                'ticket_sla_days' => $priority?->ticket_sla_days,
 
-                'ticket_sla_days' =>
-                $priority?->ticket_sla_days,
+                'ticket_duedate' => $dueDate,
 
-                'ticket_duedate' =>
-                $dueDate,
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
-
-                'working_end_date' =>
-                $workingEnd,
+                'working_end_date' => $workingEnd,
 
                 'status' => 'P',
 
-                'status_pekerjaan' =>
-                'RESPONSE',
+                'status_pekerjaan' => 'RESPONSE',
 
-                'updated_by' =>
-                auth()->user()->username,
+                'updated_by' => auth()->user()->username,
             ]);
 
             $this->createActivity([
+                'ticketid' => $ticket->ticketid,
 
-                'ticketid' =>
-                $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
 
-                'cpny_id' =>
-                $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
 
-                'department_id' =>
-                $ticket->department_id,
+                'pic_ticket' => $request->pic_ticket,
 
-                'pic_ticket' =>
-                $request->pic_ticket,
+                'response_date' => now(),
 
-                'response_date' =>
-                now(),
+                'response_summary' => 'Ticket Response',
 
-                'response_summary' =>
-                'Ticket Response',
+                'response_descr' => $request->response_descr,
 
-                'response_descr' =>
-                $request->response_descr,
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
+                'working_end_date' => $workingEnd,
 
-                'working_end_date' =>
-                $workingEnd,
-
-                'status_pekerjaan' =>
-                'RESPONSE',
+                'status_pekerjaan' => 'RESPONSE',
 
                 'status' => 'A',
 
-                'created_by' =>
-                auth()->user()->username,
+                'created_by' => auth()->user()->username,
             ]);
 
             $ticket->refresh();
@@ -1150,23 +1032,17 @@ class TicketController extends Controller
                 ->ticketAssigned($ticket);
 
             return response()->json([
-
                 'success' => true,
 
-                'message' =>
-                'Ticket responded successfully.',
+                'message' => 'Ticket responded successfully.',
             ]);
         } catch (\Throwable $th) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-
                 'success' => false,
 
-                'message' =>
-                $th->getMessage(),
-
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
@@ -1197,28 +1073,23 @@ class TicketController extends Controller
             403
         );
         $request->validate([
-
             'response_descr' => 'nullable',
 
-            'working_start_date' =>
-            'nullable|date',
+            'working_start_date' => 'nullable|date',
 
-            'working_end_date' =>
-            'nullable|date|after_or_equal:working_start_date',
+            'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
 
             'attachments.*' => [
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
             ],
-
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             /*
         |--------------------------------------------------------------------------
         | Working Schedule
@@ -1243,20 +1114,15 @@ class TicketController extends Controller
         */
 
             $ticket->update([
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
-
-                'working_end_date' =>
-                $workingEnd,
+                'working_end_date' => $workingEnd,
 
                 'status' => 'P',
 
-                'status_pekerjaan' =>
-                'PROCESS',
+                'status_pekerjaan' => 'PROCESS',
 
-                'updated_by' =>
-                auth()->user()->username,
+                'updated_by' => auth()->user()->username,
             ]);
 
             /*
@@ -1266,49 +1132,35 @@ class TicketController extends Controller
         */
 
             $this->createActivity([
+                'ticketid' => $ticket->ticketid,
 
-                'ticketid' =>
-                $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
 
-                'cpny_id' =>
-                $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
 
-                'department_id' =>
-                $ticket->department_id,
+                'pic_ticket' => auth()->user()->username,
 
-                'pic_ticket' =>
-                auth()->user()->username,
+                'response_date' => now(),
 
-                'response_date' =>
-                now(),
+                'response_summary' => 'Ticket Process',
 
-                'response_summary' =>
-                'Ticket Process',
+                'response_descr' => $request->response_descr,
 
-                'response_descr' =>
-                $request->response_descr,
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
+                'working_end_date' => $workingEnd,
 
-                'working_end_date' =>
-                $workingEnd,
-
-                'status_pekerjaan' =>
-                'PROCESS',
+                'status_pekerjaan' => 'PROCESS',
 
                 'status' => 'A',
 
-                'created_by' =>
-                auth()->user()->username,
+                'created_by' => auth()->user()->username,
             ]);
 
             $uploadResult = null;
 
             if ($request->hasFile('attachments')) {
-
                 $meta = [
-
                     'refnbr' => $ticket->ticketid,
 
                     'doctype' => 'TIC',
@@ -1325,7 +1177,6 @@ class TicketController extends Controller
                 $files = (array) $request->file('attachments');
 
                 try {
-
                     $uploader = app(
                         TrAttachmentController::class
                     );
@@ -1336,12 +1187,10 @@ class TicketController extends Controller
                             $files
                         );
                 } catch (\Throwable $e) {
-
                     DB::connection('pgsql5')
                         ->rollBack();
 
                     return response()->json([
-
                         'success' => false,
 
                         'message' => 'Failed upload attachment',
@@ -1349,7 +1198,6 @@ class TicketController extends Controller
                         'error' => config('app.debug')
                             ? $e->getMessage()
                             : null,
-
                     ], 500);
                 }
             }
@@ -1357,27 +1205,21 @@ class TicketController extends Controller
             DB::connection('pgsql5')->commit();
 
             return response()->json([
-
                 'success' => true,
 
-                'message' =>
-                'Ticket processed successfully.',
-
+                'message' => 'Ticket processed successfully.',
             ]);
         } catch (\Throwable $th) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-
                 'success' => false,
 
-                'message' =>
-                $th->getMessage(),
-
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
+
     public function pendingTicket(Request $request, $hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -1405,28 +1247,23 @@ class TicketController extends Controller
         );
 
         $request->validate([
-
             'response_descr' => 'required',
 
-            'working_start_date' =>
-            'nullable|date',
+            'working_start_date' => 'nullable|date',
 
-            'working_end_date' =>
-            'nullable|date|after_or_equal:working_start_date',
+            'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
 
             'attachments.*' => [
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
             ],
-
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             /*
         |--------------------------------------------------------------------------
         | Working Schedule
@@ -1451,20 +1288,15 @@ class TicketController extends Controller
         */
 
             $ticket->update([
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
-
-                'working_end_date' =>
-                $workingEnd,
+                'working_end_date' => $workingEnd,
 
                 'status' => 'P',
 
-                'status_pekerjaan' =>
-                'PENDING',
+                'status_pekerjaan' => 'PENDING',
 
-                'updated_by' =>
-                auth()->user()->username,
+                'updated_by' => auth()->user()->username,
             ]);
 
             /*
@@ -1474,49 +1306,35 @@ class TicketController extends Controller
         */
 
             $this->createActivity([
+                'ticketid' => $ticket->ticketid,
 
-                'ticketid' =>
-                $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
 
-                'cpny_id' =>
-                $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
 
-                'department_id' =>
-                $ticket->department_id,
+                'pic_ticket' => auth()->user()->username,
 
-                'pic_ticket' =>
-                auth()->user()->username,
+                'response_date' => now(),
 
-                'response_date' =>
-                now(),
+                'response_summary' => 'Ticket Pending',
 
-                'response_summary' =>
-                'Ticket Pending',
+                'response_descr' => $request->response_descr,
 
-                'response_descr' =>
-                $request->response_descr,
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
+                'working_end_date' => $workingEnd,
 
-                'working_end_date' =>
-                $workingEnd,
-
-                'status_pekerjaan' =>
-                'PENDING',
+                'status_pekerjaan' => 'PENDING',
 
                 'status' => 'A',
 
-                'created_by' =>
-                auth()->user()->username,
+                'created_by' => auth()->user()->username,
             ]);
 
             $uploadResult = null;
 
             if ($request->hasFile('attachments')) {
-
                 $meta = [
-
                     'refnbr' => $ticket->ticketid,
 
                     'doctype' => 'TIC',
@@ -1533,7 +1351,6 @@ class TicketController extends Controller
                 $files = (array) $request->file('attachments');
 
                 try {
-
                     $uploader = app(
                         TrAttachmentController::class
                     );
@@ -1544,12 +1361,10 @@ class TicketController extends Controller
                             $files
                         );
                 } catch (\Throwable $e) {
-
                     DB::connection('pgsql5')
                         ->rollBack();
 
                     return response()->json([
-
                         'success' => false,
 
                         'message' => 'Failed upload attachment',
@@ -1557,7 +1372,6 @@ class TicketController extends Controller
                         'error' => config('app.debug')
                             ? $e->getMessage()
                             : null,
-
                     ], 500);
                 }
             }
@@ -1565,24 +1379,17 @@ class TicketController extends Controller
             DB::connection('pgsql5')->commit();
 
             return response()->json([
-
                 'success' => true,
 
-                'message' =>
-                'Ticket pending updated successfully.',
-
+                'message' => 'Ticket pending updated successfully.',
             ]);
         } catch (\Throwable $th) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-
                 'success' => false,
 
-                'message' =>
-                $th->getMessage(),
-
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
@@ -1614,28 +1421,24 @@ class TicketController extends Controller
         );
 
         $request->validate([
-
+            'response_summary' => 'required|string|max:255',
             'response_descr' => 'required',
 
-            'working_start_date' =>
-            'required|date',
+            'working_start_date' => 'required|date',
 
-            'working_end_date' =>
-            'required|date|after_or_equal:working_start_date',
+            'working_end_date' => 'required|date|after_or_equal:working_start_date',
 
             'attachments.*' => [
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
             ],
-
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             /*
         |--------------------------------------------------------------------------
         | Working Schedule
@@ -1655,20 +1458,15 @@ class TicketController extends Controller
         */
 
             $ticket->update([
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
-
-                'working_end_date' =>
-                $workingEnd,
+                'working_end_date' => $workingEnd,
 
                 'status' => 'P',
 
-                'status_pekerjaan' =>
-                'ENVISION',
+                'status_pekerjaan' => 'ENVISION',
 
-                'updated_by' =>
-                auth()->user()->username,
+                'updated_by' => auth()->user()->username,
             ]);
 
             /*
@@ -1678,49 +1476,34 @@ class TicketController extends Controller
         */
 
             $this->createActivity([
+                'ticketid' => $ticket->ticketid,
 
-                'ticketid' =>
-                $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
 
-                'cpny_id' =>
-                $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
 
-                'department_id' =>
-                $ticket->department_id,
+                'pic_ticket' => auth()->user()->username,
 
-                'pic_ticket' =>
-                auth()->user()->username,
+                'response_date' => now(),
 
-                'response_date' =>
-                now(),
+                'response_summary' => $request->response_summary,
 
-                'response_summary' =>
-                'Ticket Envision',
+                'response_descr' => $request->response_descr,
 
-                'response_descr' =>
-                $request->response_descr,
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
+                'working_end_date' => $workingEnd,
 
-                'working_end_date' =>
-                $workingEnd,
-
-                'status_pekerjaan' =>
-                'ENVISION',
+                'status_pekerjaan' => 'ENVISION',
 
                 'status' => 'A',
 
-                'created_by' =>
-                auth()->user()->username,
+                'created_by' => auth()->user()->username,
             ]);
-
             $uploadResult = null;
 
             if ($request->hasFile('attachments')) {
-
                 $meta = [
-
                     'refnbr' => $ticket->ticketid,
 
                     'doctype' => 'TIC',
@@ -1737,7 +1520,6 @@ class TicketController extends Controller
                 $files = (array) $request->file('attachments');
 
                 try {
-
                     $uploader = app(
                         TrAttachmentController::class
                     );
@@ -1748,12 +1530,10 @@ class TicketController extends Controller
                             $files
                         );
                 } catch (\Throwable $e) {
-
                     DB::connection('pgsql5')
                         ->rollBack();
 
                     return response()->json([
-
                         'success' => false,
 
                         'message' => 'Failed upload attachment',
@@ -1761,7 +1541,6 @@ class TicketController extends Controller
                         'error' => config('app.debug')
                             ? $e->getMessage()
                             : null,
-
                     ], 500);
                 }
             }
@@ -1772,6 +1551,7 @@ class TicketController extends Controller
 
             $this->notificationService->ticketEnvision(
                 $ticket,
+                $request->response_summary,
                 $request->response_descr
             );
 
@@ -1780,23 +1560,18 @@ class TicketController extends Controller
                 'message' => 'Ticket envision updated successfully.',
             ]);
         } catch (\Throwable $th) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-
                 'success' => false,
 
-                'message' =>
-                $th->getMessage(),
-
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
 
     public function transferTicket(Request $request, $hash)
     {
-
         $id = Hashids::decode($hash)[0] ?? null;
 
         abort_if(!$id, 404);
@@ -1805,11 +1580,9 @@ class TicketController extends Controller
 
         abort_if(
             !$this->isITRole()
-                &&
-                $ticket->pic_ticket !== auth()->user()->username,
+                && $ticket->pic_ticket !== auth()->user()->username,
             403
         );
-
 
         abort_if(
             !$this->canTransition(
@@ -1820,23 +1593,16 @@ class TicketController extends Controller
         );
 
         $request->validate([
+            'ticket_type' => 'required',
 
-            'ticket_type' =>
-            'required',
+            'ticket_categoryid' => 'required',
 
-            'ticket_categoryid' =>
-            'required',
+            'ticket_subcategoryid' => 'required',
 
-            'ticket_subcategoryid' =>
-            'required',
-
-            'pic_ticket' =>
-            'nullable',
-
+            'pic_ticket' => 'nullable',
         ]);
 
         if ($request->filled('pic_ticket')) {
-
             abort_if(
                 !$this->validatePIC(
                     $request->pic_ticket,
@@ -1850,7 +1616,6 @@ class TicketController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             /*
         |--------------------------------------------------------------------------
         | Transfer Note
@@ -1863,7 +1628,6 @@ class TicketController extends Controller
                 $ticket->ticket_categoryid != $request->ticket_categoryid
                 || $ticket->ticket_subcategoryid != $request->ticket_subcategoryid
             ) {
-
                 $oldCategory = optional(
                     MsTicketCategory::where(
                         'ticket_categoryid',
@@ -1913,18 +1677,13 @@ class TicketController extends Controller
         */
 
             $ticket->update([
+                'ticket_type' => $request->ticket_type,
 
-                'ticket_type' =>
-                $request->ticket_type,
+                'ticket_categoryid' => $request->ticket_categoryid,
 
-                'ticket_categoryid' =>
-                $request->ticket_categoryid,
+                'ticket_subcategoryid' => $request->ticket_subcategoryid,
 
-                'ticket_subcategoryid' =>
-                $request->ticket_subcategoryid,
-
-                'pic_ticket' =>
-                $request->pic_ticket,
+                'pic_ticket' => $request->pic_ticket,
 
                 /*
             |--------------------------------------------------------------------------
@@ -1932,14 +1691,11 @@ class TicketController extends Controller
             |--------------------------------------------------------------------------
             */
 
-                'ticket_priority' =>
-                null,
+                'ticket_priority' => null,
 
-                'ticket_sla_days' =>
-                null,
+                'ticket_sla_days' => null,
 
-                'ticket_duedate' =>
-                null,
+                'ticket_duedate' => null,
 
                 /*
             |--------------------------------------------------------------------------
@@ -1947,11 +1703,9 @@ class TicketController extends Controller
             |--------------------------------------------------------------------------
             */
 
-                'working_start_date' =>
-                $workingStart,
+                'working_start_date' => $workingStart,
 
-                'working_end_date' =>
-                $workingEnd,
+                'working_end_date' => $workingEnd,
 
                 /*
             |--------------------------------------------------------------------------
@@ -1961,11 +1715,9 @@ class TicketController extends Controller
 
                 'status' => 'P',
 
-                'status_pekerjaan' =>
-                'TRANSFER',
+                'status_pekerjaan' => 'TRANSFER',
 
-                'updated_by' =>
-                auth()->user()->username,
+                'updated_by' => auth()->user()->username,
             ]);
 
             /*
@@ -1975,41 +1727,29 @@ class TicketController extends Controller
         */
 
             $this->createActivity([
+                'ticketid' => $ticket->ticketid,
 
-                'ticketid' =>
-                $ticket->ticketid,
+                'cpny_id' => $ticket->cpny_id,
 
-                'cpny_id' =>
-                $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
 
-                'department_id' =>
-                $ticket->department_id,
+                'pic_ticket' => $request->pic_ticket,
 
-                'pic_ticket' =>
-                $request->pic_ticket,
+                'response_date' => now(),
 
-                'response_date' =>
-                now(),
+                'response_summary' => 'Ticket Transfer',
 
-                'response_summary' =>
-                'Ticket Transfer',
+                'response_descr' => $transferNote,
 
-                'response_descr' =>
-                $transferNote,
+                'working_start_date' => $workingStart,
 
-                'working_start_date' =>
-                $workingStart,
+                'working_end_date' => $workingEnd,
 
-                'working_end_date' =>
-                $workingEnd,
-
-                'status_pekerjaan' =>
-                'TRANSFER',
+                'status_pekerjaan' => 'TRANSFER',
 
                 'status' => 'A',
 
-                'created_by' =>
-                auth()->user()->username,
+                'created_by' => auth()->user()->username,
             ]);
 
             /*
@@ -2020,32 +1760,23 @@ class TicketController extends Controller
 
             $ticket->refresh();
 
-
-
             DB::connection('pgsql5')->commit();
 
             $this->notificationService
                 ->ticketTransferred($ticket);
 
             return response()->json([
-
                 'success' => true,
 
-                'message' =>
-                'Ticket transferred successfully.',
-
+                'message' => 'Ticket transferred successfully.',
             ]);
         } catch (\Throwable $th) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-
                 'success' => false,
 
-                'message' =>
-                $th->getMessage(),
-
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
@@ -2078,11 +1809,9 @@ class TicketController extends Controller
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
             ],
         ]);
-
-
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -2113,9 +1842,7 @@ class TicketController extends Controller
             $uploadResult = null;
 
             if ($request->hasFile('attachments')) {
-
                 $meta = [
-
                     'refnbr' => $ticket->ticketid,
 
                     'doctype' => 'TIC',
@@ -2132,7 +1859,6 @@ class TicketController extends Controller
                 $files = (array) $request->file('attachments');
 
                 try {
-
                     $uploader = app(
                         TrAttachmentController::class
                     );
@@ -2143,12 +1869,10 @@ class TicketController extends Controller
                             $files
                         );
                 } catch (\Throwable $e) {
-
                     DB::connection('pgsql5')
                         ->rollBack();
 
                     return response()->json([
-
                         'success' => false,
 
                         'message' => 'Failed upload attachment',
@@ -2156,7 +1880,6 @@ class TicketController extends Controller
                         'error' => config('app.debug')
                             ? $e->getMessage()
                             : null,
-
                     ], 500);
                 }
             }
@@ -2167,7 +1890,6 @@ class TicketController extends Controller
 
             $this->notificationService
                 ->ticketCompleted($ticket);
-
 
             return response()->json([
                 'success' => true,
@@ -2203,22 +1925,16 @@ class TicketController extends Controller
         );
 
         $request->validate([
+            'response_descr' => 'required',
 
-            'response_descr' =>
-            'required',
+            'working_start_date' => 'nullable|date',
 
-            'working_start_date' =>
-            'nullable|date',
-
-            'working_end_date' =>
-            'nullable|date|after_or_equal:working_start_date',
-
+            'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
             /*
         |--------------------------------------------------------------------------
         | Working Schedule
@@ -2241,12 +1957,9 @@ class TicketController extends Controller
         */
 
             $ticket->update([
-
                 'reopen_ticket' => now(),
 
-                'reopen_descr' =>
-
-                $request->response_descr,
+                'reopen_descr' => $request->response_descr,
 
                 /*
             |--------------------------------------------------------------------------
@@ -2254,13 +1967,9 @@ class TicketController extends Controller
             |--------------------------------------------------------------------------
             */
 
-                'working_start_date' =>
+                'working_start_date' => $workingStart,
 
-                $workingStart,
-
-                'working_end_date' =>
-
-                $workingEnd,
+                'working_end_date' => $workingEnd,
 
                 /*
             |--------------------------------------------------------------------------
@@ -2270,14 +1979,9 @@ class TicketController extends Controller
 
                 'status' => 'P',
 
-                'status_pekerjaan' =>
+                'status_pekerjaan' => 'REOPEN',
 
-                'REOPEN',
-
-                'updated_by' =>
-
-                auth()->user()->username,
-
+                'updated_by' => auth()->user()->username,
             ]);
 
             /*
@@ -2287,53 +1991,29 @@ class TicketController extends Controller
         */
 
             $this->createActivity([
+                'ticketid' => $ticket->ticketid,
 
-                'ticketid' =>
+                'cpny_id' => $ticket->cpny_id,
 
-                $ticket->ticketid,
+                'department_id' => $ticket->department_id,
 
-                'cpny_id' =>
+                'pic_ticket' => auth()->user()->username,
 
-                $ticket->cpny_id,
+                'response_date' => now(),
 
-                'department_id' =>
+                'response_summary' => 'Ticket Reopen',
 
-                $ticket->department_id,
+                'response_descr' => $request->response_descr,
 
-                'pic_ticket' =>
+                'working_start_date' => $workingStart,
 
-                auth()->user()->username,
+                'working_end_date' => $workingEnd,
 
-                'response_date' =>
-
-                now(),
-
-                'response_summary' =>
-
-                'Ticket Reopen',
-
-                'response_descr' =>
-
-                $request->response_descr,
-
-                'working_start_date' =>
-
-                $workingStart,
-
-                'working_end_date' =>
-
-                $workingEnd,
-
-                'status_pekerjaan' =>
-
-                'REOPEN',
+                'status_pekerjaan' => 'REOPEN',
 
                 'status' => 'A',
 
-                'created_by' =>
-
-                auth()->user()->username,
-
+                'created_by' => auth()->user()->username,
             ]);
 
             /*
@@ -2350,26 +2030,17 @@ class TicketController extends Controller
                 ->ticketReopened($ticket);
 
             return response()->json([
-
                 'success' => true,
 
-                'message' =>
-
-                'Ticket reopened successfully.',
-
+                'message' => 'Ticket reopened successfully.',
             ]);
         } catch (\Throwable $th) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-
                 'success' => false,
 
-                'message' =>
-
-                $th->getMessage(),
-
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
@@ -2413,27 +2084,20 @@ class TicketController extends Controller
         );
 
         $request->validate([
-
             'message' => 'required',
 
             'attachments.*' => [
-
                 'nullable',
                 'file',
                 'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx'
-
+                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
             ],
-
         ]);
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-
-
             $this->createActivity([
-
                 'ticketid' => $ticket->ticketid,
 
                 'cpny_id' => $ticket->cpny_id,
@@ -2453,50 +2117,35 @@ class TicketController extends Controller
                 'status' => 'A',
 
                 'created_by' => auth()->user()->username,
-
             ]);
 
             TrMessage::create([
+                'refnbr' => $ticket->ticketid,
 
-                'refnbr' =>
-                $ticket->ticketid,
+                'doctype' => 'TIC',
 
-                'doctype' =>
-                'TIC',
+                'message_date' => now(),
 
-                'message_date' =>
-                now(),
+                'cpny_id' => $ticket->cpny_id,
 
-                'cpny_id' =>
-                $ticket->cpny_id,
+                'department_id' => $ticket->department_id,
 
-                'department_id' =>
-                $ticket->department_id,
+                'username' => auth()->user()->username,
 
-                'username' =>
-                auth()->user()->username,
-
-                'name' =>
-                auth()->user()->name
+                'name' => auth()->user()->name
                     ?? auth()->user()->username,
 
-                'message' =>
-                $request->message,
+                'message' => $request->message,
 
-                'status' =>
-                'A',
+                'status' => 'A',
 
-                'created_by' =>
-                auth()->user()->username,
-
+                'created_by' => auth()->user()->username,
             ]);
 
             $uploadResult = null;
 
             if ($request->hasFile('attachments')) {
-
                 $meta = [
-
                     'refnbr' => $ticket->ticketid,
 
                     'doctype' => 'TIC',
@@ -2508,13 +2157,11 @@ class TicketController extends Controller
                     'base_folder' => 'att-ticket/tic-comment',
 
                     'created_by' => auth()->user()->username,
-
                 ];
 
                 $files = (array) $request->file('attachments');
 
                 try {
-
                     $uploader = app(
                         TrAttachmentController::class
                     );
@@ -2525,12 +2172,10 @@ class TicketController extends Controller
                             $files
                         );
                 } catch (\Throwable $e) {
-
                     DB::connection('pgsql5')
                         ->rollBack();
 
                     return response()->json([
-
                         'success' => false,
 
                         'message' => 'Failed upload attachment',
@@ -2538,7 +2183,6 @@ class TicketController extends Controller
                         'error' => config('app.debug')
                             ? $e->getMessage()
                             : null,
-
                     ], 500);
                 }
             }
@@ -2550,7 +2194,6 @@ class TicketController extends Controller
         */
 
             try {
-
                 $ticket->refresh();
 
                 if (
@@ -2559,7 +2202,6 @@ class TicketController extends Controller
                         'ticketCommented'
                     )
                 ) {
-
                     $this->notificationService
                         ->ticketCommented(
                             $ticket,
@@ -2568,7 +2210,6 @@ class TicketController extends Controller
                         );
                 }
             } catch (\Throwable $e) {
-
                 \Log::warning(
                     'Ticket comment notification failed',
                     [
@@ -2581,25 +2222,21 @@ class TicketController extends Controller
             DB::connection('pgsql5')->commit();
 
             return response()->json([
-
                 'success' => true,
 
                 'message' => 'Comment sent successfully.',
-
             ]);
         } catch (\Throwable $th) {
-
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
-
                 'success' => false,
 
                 'message' => $th->getMessage(),
-
             ], 500);
         }
     }
+
     public function createDropdown()
     {
         $user = auth()->user();
@@ -2636,10 +2273,8 @@ class TicketController extends Controller
         $locations = MsLocation::query()
             ->where('status', 'A')
             ->where(function ($q) use ($userCompanies) {
-
                 $q->whereIn('cpny_id', $userCompanies)
                 ->orWhere('cpny_id', 'ALL');
-
             })
             ->orderBy('location_name')
             ->get([
@@ -2716,7 +2351,6 @@ class TicketController extends Controller
             ->where('status', 'A');
 
         if ($request->filled('ticket_type')) {
-
             $query->where(
                 'ticket_type',
                 $request->ticket_type
@@ -2724,7 +2358,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('ticket_categoryid')) {
-
             $query->where(
                 'ticket_categoryid',
                 $request->ticket_categoryid
@@ -2732,23 +2365,18 @@ class TicketController extends Controller
         }
 
         return response()->json([
-
             'results' => $query
                 ->orderBy('ticket_priority_name')
                 ->get()
                 ->map(function ($row) {
-
                     return [
-
                         'id' => $row->ticket_priority,
 
                         'text' => $row->ticket_priority_name,
 
                         'sla_days' => $row->ticket_sla_days,
-
                     ];
                 }),
-
         ]);
     }
 
@@ -2759,7 +2387,7 @@ class TicketController extends Controller
         $userCompanies = collect(
             explode(',', $user->cpny_id)
         )
-            ->map(fn($item) => trim($item))
+            ->map(fn ($item) => trim($item))
             ->filter()
             ->values()
             ->toArray();
@@ -2767,7 +2395,6 @@ class TicketController extends Controller
         $query = MsLocation::query()
             ->where('status', 'A')
             ->where(function ($q) use ($userCompanies) {
-
                 $q->whereIn(
                     'cpny_id',
                     $userCompanies
@@ -2776,37 +2403,28 @@ class TicketController extends Controller
                     'cpny_id',
                     'all'
                 );
-
             });
 
         return response()->json([
-
             'results' => $query
                 ->orderBy('location_name')
                 ->get()
                 ->map(function ($row) {
-
                     return [
-
                         'id' => $row->location_id,
 
                         'text' => $row->location_name,
-
                     ];
-
                 }),
-
         ]);
     }
 
     public function subLocationSearch(Request $request)
     {
-
         $query = MsSubLocation::query()
             ->where('status', 'A');
 
         if ($request->filled('location_id')) {
-
             $query->where(
                 'location_id',
                 $request->location_id
@@ -2814,21 +2432,16 @@ class TicketController extends Controller
         }
 
         return response()->json([
-
             'results' => $query
                 ->orderBy('sub_location_name')
                 ->get()
                 ->map(function ($row) {
-
                     return [
-
                         'id' => $row->sub_location_id,
 
                         'text' => $row->sub_location_name,
-
                     ];
                 }),
-
         ]);
     }
 
@@ -2838,7 +2451,6 @@ class TicketController extends Controller
             ->where('status', 'A');
 
         if ($request->filled('ticket_type')) {
-
             $query->where(
                 'ticket_type',
                 $request->ticket_type
@@ -2846,7 +2458,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('ticket_categoryid')) {
-
             $query->where(
                 'ticket_categoryid',
                 $request->ticket_categoryid
@@ -2854,7 +2465,6 @@ class TicketController extends Controller
         }
 
         if ($request->filled('department_id')) {
-
             $query->where(
                 'department_id',
                 $request->department_id
@@ -2862,22 +2472,17 @@ class TicketController extends Controller
         }
 
         return response()->json([
-
             'results' => $query
                 ->distinct()
                 ->orderBy('username')
                 ->get()
                 ->map(function ($row) {
-
                     return [
-
                         'id' => $row->username,
 
                         'text' => $row->username,
-
                     ];
                 }),
-
         ]);
     }
 
@@ -2910,45 +2515,36 @@ class TicketController extends Controller
     */
 
         foreach ($activities as $activity) {
-
             $timeline->push([
-
                 'type' => 'activity',
 
-                'title' =>
-                $activity->response_summary
+                'title' => $activity->response_summary
                     ?: 'Ticket Activity',
 
-                'description' =>
-                $activity->response_descr
+                'description' => $activity->response_descr
                     ?: '-',
 
-                'status' =>
-                $activity->status_pekerjaan
+                'status' => $activity->status_pekerjaan
                     ?: '-',
 
-                'pic' =>
-                $activity->pic_ticket
+                'pic' => $activity->pic_ticket
                     ?: $activity->created_by
                     ?: 'System',
 
-                'datetime' =>
-                $activity->response_date
-                    ? \Carbon\Carbon::parse(
+                'datetime' => $activity->response_date
+                    ? Carbon::parse(
                         $activity->response_date
                     )->format('Y-m-d H:i:s')
                     : null,
 
-                'working_start_date' =>
-                $activity->working_start_date
-                    ? \Carbon\Carbon::parse(
+                'working_start_date' => $activity->working_start_date
+                    ? Carbon::parse(
                         $activity->working_start_date
                     )->format('Y-m-d H:i:s')
                     : null,
 
-                'working_end_date' =>
-                $activity->working_end_date
-                    ? \Carbon\Carbon::parse(
+                'working_end_date' => $activity->working_end_date
+                    ? Carbon::parse(
                         $activity->working_end_date
                     )->format('Y-m-d H:i:s')
                     : null,
@@ -2962,28 +2558,20 @@ class TicketController extends Controller
     */
 
         foreach ($comments as $comment) {
-
             $timeline->push([
-
                 'type' => 'comment',
 
-                'title' =>
-                'Ticket Comment',
+                'title' => 'Ticket Comment',
 
-                'description' =>
-                $comment['message'] ?? '-',
+                'description' => $comment['message'] ?? '-',
 
-                'status' =>
-                'COMMENT',
+                'status' => 'COMMENT',
 
-                'pic' =>
-                $comment['created_by']
+                'pic' => $comment['created_by']
                     ?? 'User',
 
-                'datetime' =>
-                $comment['created_at']
+                'datetime' => $comment['created_at']
                     ?? now()->format('Y-m-d H:i:s'),
-
             ]);
         }
 
@@ -2994,11 +2582,9 @@ class TicketController extends Controller
     */
 
         $timeline = $timeline->reject(function ($item) {
-
             return
                 $item['type'] === 'activity'
-                &&
-                $item['title'] === 'Ticket Comment';
+                && $item['title'] === 'Ticket Comment';
         });
 
         return $timeline
@@ -3024,20 +2610,16 @@ class TicketController extends Controller
                 && $ticket->status_pekerjaan === 'CREATED',
 
             'can_cancel' => (
-
                 (
                     $isRequester
                     && $ticket->status === 'P'
                     && $ticket->status_pekerjaan === 'CREATED'
                 )
 
-                ||
-
-                (
+                || (
                     $isIT
                     && $ticket->status_pekerjaan !== 'COMPLETED'
                 )
-
             ),
 
             'can_response' => $isIT
@@ -3113,7 +2695,7 @@ class TicketController extends Controller
 
         return Excel::download(
             new TicketExport($request),
-            'ticket-export-' . now()->format('YmdHis') . '.xlsx'
+            'ticket-export-'.now()->format('YmdHis').'.xlsx'
         );
     }
 }
