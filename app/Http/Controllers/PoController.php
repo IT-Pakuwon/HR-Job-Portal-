@@ -599,7 +599,21 @@ class PoController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | 5) Simpan komentar
+            | 5) Cancel RFCA yang masih Holding dari PO ini
+            |--------------------------------------------------------------------------
+            */
+            $cancelledRfcaCount = TrRfca::where('ponbr', $po->ponbr)
+                ->where('cpny_id', $po->cpny_id)
+                ->where('status', 'H')
+                ->update([
+                    'status' => 'X',
+                    'updated_by' => $username,
+                    'updated_at' => $now,
+                ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | 6) Simpan komentar
             |--------------------------------------------------------------------------
             */
             $fakeReq = new \Illuminate\Http\Request([
@@ -612,7 +626,7 @@ class PoController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | 6) Proses budget reuse
+            | 7) Proses budget reuse
             |--------------------------------------------------------------------------
             */
             DB::connection('pgsql')->statement(
@@ -634,6 +648,7 @@ class PoController extends Controller
                 'ponbr' => $po->ponbr,
                 'status' => $newStatus,
                 'has_received' => $hasReceived,
+                'cancelled_rfca_count' => $cancelledRfcaCount,
             ]);
         });
     }

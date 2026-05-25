@@ -2255,6 +2255,7 @@
                     params.woid = coaState.woid;
                     params.deptid = coaState.deptid;
                     params.cpnyid = coaState.cpnyid;
+                    params.business_unit_id = coaState.business_unit_id;
                 } else {
                     params.cpnyid = coaState.cpnyid;
                     params.deptid = coaState.deptid;

@@ -2041,8 +2041,8 @@
                     coaState.woid = woid;
                     coaState.cpnyid = cpny;
                     coaState.deptid = dept;
-                    coaState.perpost = null;
-                    coaState.business_unit_id = null;
+                    coaState.perpost = perpost;
+                    coaState.business_unit_id = bu;
                 } else {
                     // ==== Mode pakai cpnyid + deptid biasa ====
                     if (!cpny) {
@@ -2130,6 +2130,7 @@
                     // optional: kalau backend butuh context
                     cpnyid: coaState.cpnyid,
                     deptid: coaState.deptid,
+                    business_unit_id: coaState.business_unit_id, // kalau backend butuh
                 } : {
                     cpnyid: coaState.cpnyid,
                     deptid: coaState.deptid,

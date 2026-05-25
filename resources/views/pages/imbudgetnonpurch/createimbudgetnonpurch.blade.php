@@ -1153,6 +1153,7 @@
                     params.woid = coaState.woid;
                     params.cpnyid = coaState.cpnyid;
                     params.deptid = coaState.deptid;
+                    params.business_unit_id = coaState.business_unit_id;
                 } else {
                     params.cpnyid = coaState.cpnyid;
                     params.deptid = coaState.deptid;

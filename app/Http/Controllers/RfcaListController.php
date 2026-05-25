@@ -64,7 +64,7 @@ class RfcaListController extends Controller
         $financeReceived = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
-                ->where('status', 'H')
+                ->where('status', 'P')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -82,7 +82,7 @@ class RfcaListController extends Controller
         $treasuryPayment = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
-                ->where('status', 'H')
+                ->where('status', 'P')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -100,7 +100,7 @@ class RfcaListController extends Controller
         $completed = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
-                ->where('status', 'H')
+                ->where('status', 'C')
                 ->whereExists(function ($q) {
                     $q->select(DB::raw(1))
                         ->from('tr_rfca_step as step')
@@ -151,35 +151,38 @@ class RfcaListController extends Controller
             })
             ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
                 $q->whereIn('tr_rfca.cpny_id', $cpnyList);
-            })
-            ->where('tr_rfca.status', 'H');
+            });
 
         // Scope filter
         switch ($scope) {
             case 'rfcajobs':
-                $base->where(function ($q) {
+                $base->where('tr_rfca.status', 'H')
+                    ->where(function ($q) {
                         $q->whereNull('tr_rfca.rfca_type')
-                        ->orWhere('tr_rfca.rfca_type', '');
+                            ->orWhere('tr_rfca.rfca_type', '');
                     })
                     ->whereNull('step.id')
                     ->where('tr_rfca.created_by', $u);
                 break;
 
             case 'financereceived':
-                $base->where('step.rfca_step_id', 'FR');
+                $base->where('tr_rfca.status', 'P')
+                    ->where('step.rfca_step_id', 'FR');
                 break;
 
             case 'treasurypayment':
-                $base->where('step.rfca_step_id', 'TP');
+                $base->where('tr_rfca.status', 'P')
+                    ->where('step.rfca_step_id', 'TP');
                 break;
 
             case 'completed':
-                $base->where('step.rfca_step_id', 'PC');
+                $base->where('tr_rfca.status', 'C')
+                    ->where('step.rfca_step_id', 'PC');
                 break;
 
             case 'all':
             default:
-                // no extra filter
+                $base->whereNot('tr_rfca.status', 'X');
                 break;
         }
 
@@ -399,6 +402,41 @@ class RfcaListController extends Controller
             }
         }
 
+        $prevRfcaid = trim((string) ($rfca->prev_rfcaid ?? ''));
+
+        // ===== Link ke Previous RFCA
+        $prevRfcaUrl = null;
+
+        if ($prevRfcaid !== '') {
+            $prevRfcaQuery = TrRfca::query()
+                ->whereRaw('TRIM(rfcaid) = ?', [$prevRfcaid]);
+
+            $prevRfcaId = null;
+
+            if ($cpnyId !== '') {
+                $prevRfcaId = (clone $prevRfcaQuery)
+                    ->whereRaw('TRIM(cpny_id) = ?', [$cpnyId])
+                    ->orderByDesc('id')
+                    ->value('id');
+
+                // fallback kalau tidak ketemu dengan company
+                if (!$prevRfcaId) {
+                    $prevRfcaId = (clone $prevRfcaQuery)
+                        ->orderByDesc('id')
+                        ->value('id');
+                }
+            } else {
+                $prevRfcaId = (clone $prevRfcaQuery)
+                    ->orderByDesc('id')
+                    ->value('id');
+            }
+
+            if ($prevRfcaId) {
+                $prevRfcaHash = Hashids::encode($prevRfcaId);
+                $prevRfcaUrl  = url("/showrfca/{$prevRfcaHash}");
+            }
+        }
+
         // ===== Link ke CALR
         $calrUrl = null;
         if ($calrid !== '') {
@@ -461,6 +499,7 @@ class RfcaListController extends Controller
             'sppbUrl'            => $sppbUrl,
             'csUrl'              => $csUrl,
             'calrUrl'            => $calrUrl,
+            'prevRfcaUrl'        => $prevRfcaUrl,
             'rfcaSteps'          => $rfcaSteps,
             'currentStep'        => $currentStep,
             'canSubmit'          => $canSubmit,
@@ -568,6 +607,7 @@ class RfcaListController extends Controller
                 $rfca->rfca_step_id    = $firstStep->rfca_step_id;
                 $rfca->status_rfca     = $firstStep->status_rfca; // 'A'
                 $rfca->updated_by      = $username;
+                $rfca->status            = 'P';
                 $rfca->save();
             });
 
@@ -801,6 +841,278 @@ class RfcaListController extends Controller
 
         $hasil = trim(preg_replace('/\s+/', ' ', $fn($angka)));
         return ($isMinus ? 'minus ' : '').$hasil;
+    }
+
+    public function getMatchingRfcaList(Request $request)
+    {
+        $search = trim($request->get('search', ''));
+
+        $query = TrRfca::query()
+            ->from('tr_rfca as rfca')
+            ->join('tr_po as po', function ($join) {
+                $join->on('po.ponbr', '=', 'rfca.ponbr')
+                    ->on('po.cpny_id', '=', 'rfca.cpny_id');
+            })
+            ->where('rfca.status', 'P')
+            ->where('po.status', 'D')
+            ->select([
+                'rfca.id',
+                'rfca.rfcaid',
+                'rfca.rfcadate',
+                'rfca.ponbr',
+                'rfca.cpny_id',
+                'rfca.department_id',
+                'rfca.vendorid',
+                'rfca.vendorname',
+                'rfca.po_amount',
+                'rfca.rfca_amount',
+                'rfca.payment_pct',
+                'rfca.status',
+                'po.status as po_status',
+            ]);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('rfca.rfcaid', 'ILIKE', "%{$search}%")
+                    ->orWhere('rfca.ponbr', 'ILIKE', "%{$search}%")
+                    ->orWhere('rfca.cpny_id', 'ILIKE', "%{$search}%")
+                    ->orWhere('rfca.vendorid', 'ILIKE', "%{$search}%")
+                    ->orWhere('rfca.vendorname', 'ILIKE', "%{$search}%")
+                    ->orWhere('rfca.department_id', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        $rows = $query
+            ->orderByDesc('rfca.rfcadate')
+            ->orderByDesc('rfca.id')
+            ->limit(100)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $rows,
+        ]);
+    }
+
+    public function selectMatchingRfca(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated',
+            ], 401);
+        }
+
+        $request->validate([
+            'selected_rfca_id' => ['required', 'integer'],
+        ]);
+
+        $username = $user->username ?? 'system';
+        $now = Carbon::now();
+
+        try {
+            DB::connection('pgsql')->transaction(function () use ($id, $request, $username, $now) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | 1) Current RFCA yang sedang dibuka
+                |--------------------------------------------------------------------------
+                */
+                $currentRfca = TrRfca::where('id', $id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                /*
+                |--------------------------------------------------------------------------
+                | 2) RFCA selected dari modal
+                |    Syarat:
+                |    - TrRfca selected status = P
+                |    - PO dari selected status = D
+                |--------------------------------------------------------------------------
+                */
+                $selectedRfca = TrRfca::where('id', $request->selected_rfca_id)
+                    ->where('status', 'P')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$selectedRfca) {
+                    throw ValidationException::withMessages([
+                        'selected_rfca_id' => ['RFCA selected tidak ditemukan atau status RFCA bukan P.'],
+                    ]);
+                }
+
+                if ((int) $selectedRfca->id === (int) $currentRfca->id) {
+                    throw ValidationException::withMessages([
+                        'selected_rfca_id' => ['RFCA tidak boleh matching dengan dirinya sendiri.'],
+                    ]);
+                }
+
+                $selectedPo = TrPO::where('ponbr', $selectedRfca->ponbr)
+                    ->where('cpny_id', $selectedRfca->cpny_id)
+                    ->where('status', 'D')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$selectedPo) {
+                    throw ValidationException::withMessages([
+                        'selected_rfca_id' => ['PO dari RFCA selected tidak ditemukan atau status PO bukan D.'],
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | 3) Tentukan RFCA Type
+                |--------------------------------------------------------------------------
+                | Ambil dari RFCA selected.
+                | Jika RFCA selected belum punya rfca_type, fallback ke RFCA.
+                |--------------------------------------------------------------------------
+                */
+                $rfcaType = $selectedRfca->rfca_type ?: 'RFCA';
+
+                /*
+                |--------------------------------------------------------------------------
+                | 4) Ambil master step seperti submitType()
+                |--------------------------------------------------------------------------
+                */
+                $steps = MsRfcaStep::where('rfca_type', $rfcaType)
+                    ->where('status', 'A')
+                    ->orderBy('rfca_step_order')
+                    ->get();
+
+                if ($steps->isEmpty()) {
+                    throw ValidationException::withMessages([
+                        'rfca_type' => ['Master RFCA Step tidak ditemukan untuk tipe: ' . $rfcaType],
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | 5) Hindari duplicate step current RFCA
+                |--------------------------------------------------------------------------
+                */
+                TrRfcaStep::where('rfcaid', $currentRfca->rfcaid)->delete();
+
+                /*
+                |--------------------------------------------------------------------------
+                | 6) Insert RFCA Step untuk current RFCA
+                |    Polanya sama seperti submitType()
+                |--------------------------------------------------------------------------
+                */
+                foreach ($steps as $step) {
+                    TrRfcaStep::create([
+                        'rfcaid'                  => $currentRfca->rfcaid,
+                        'ponbr'                   => $currentRfca->ponbr,
+                        'cpny_id'                 => $currentRfca->cpny_id,
+                        'rfca_step_order'         => $step->rfca_step_order,
+                        'rfca_step_id'            => $step->rfca_step_id,
+                        'rfca_step_descr'         => $step->rfca_step_descr,
+                        'rfca_step_department_id' => $step->rfca_step_department_id,
+                        'rfca_type'               => $step->rfca_type,
+                        'calr_gen'                => $step->calr_gen,
+                        'rfca_step_user'          => null,
+                        'rfca_step_date'          => null,
+                        'progress_approval'       => false,
+                        'status_rfca'             => 'P',
+                        'created_by'              => $username,
+                        'updated_by'              => null,
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | 7) First step PS otomatis completed
+                |--------------------------------------------------------------------------
+                */
+                $firstStep = TrRfcaStep::where('rfcaid', $currentRfca->rfcaid)
+                    ->where('rfca_step_id', 'PS')
+                    ->first();
+
+                if (!$firstStep) {
+                    throw new \RuntimeException('RFCA first step PS tidak ditemukan.');
+                }
+
+                $firstStep->rfca_step_user    = $username;
+                $firstStep->rfca_step_date    = $now;
+                $firstStep->progress_approval = false;
+                $firstStep->status_rfca       = 'C';
+                $firstStep->updated_by        = $username;
+                $firstStep->save();
+
+                /*
+                |--------------------------------------------------------------------------
+                | 8) Next step menjadi active
+                |--------------------------------------------------------------------------
+                */
+                $nextStep = TrRfcaStep::where('rfcaid', $currentRfca->rfcaid)
+                    ->where('rfca_step_order', '>', $firstStep->rfca_step_order)
+                    ->orderBy('rfca_step_order')
+                    ->first();
+
+                if ($nextStep) {
+                    $nextStep->progress_approval = true;
+                    $nextStep->status_rfca       = 'P';
+                    $nextStep->updated_by        = $username;
+                    $nextStep->save();
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | 9) Update current RFCA dari data selected RFCA
+                |--------------------------------------------------------------------------
+                | Field model Anda:
+                | - prev_rfcaid
+                | - prev_ponbr
+                | - prev_csid
+                | - prev_rfca_amount
+                |--------------------------------------------------------------------------
+                */
+                $prevRfcaAmount = (float) ($selectedRfca->rfca_amount ?? 0);
+                $currentRfcaAmount = (float) ($currentRfca->rfca_amount ?? 0);
+
+                $currentRfca->status           = 'P';
+                $currentRfca->rfca_type        = $rfcaType;
+                $currentRfca->rfca_step_order  = $firstStep->rfca_step_order;
+                $currentRfca->rfca_step_id     = $firstStep->rfca_step_id;
+                $currentRfca->status_rfca      = $firstStep->status_rfca;
+
+                $currentRfca->prev_rfcaid      = $selectedRfca->rfcaid;
+                $currentRfca->prev_ponbr       = $selectedRfca->ponbr;
+                $currentRfca->prev_csid        = $selectedRfca->csid;
+                $currentRfca->prev_rfca_amount = $prevRfcaAmount;
+                $currentRfca->add_rfca_amount  = $prevRfcaAmount - $currentRfcaAmount;
+
+                $currentRfca->updated_by       = $username;
+                $currentRfca->updated_at       = $now;
+                $currentRfca->save();
+
+                /*
+                |--------------------------------------------------------------------------
+                | 10) Update RFCA selected menjadi L
+                |--------------------------------------------------------------------------
+                */
+                $selectedRfca->status     = 'L';
+                $selectedRfca->updated_by = $username;
+                $selectedRfca->updated_at = $now;
+                $selectedRfca->save();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Matching RFCA berhasil diproses.',
+            ]);
+
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal proses Matching RFCA: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
 }

@@ -7,7 +7,13 @@
 
     @php
         $fmtMoney = fn($v) => is_null($v) || $v === '' ? 0 : (float) $v;
-        $rfcaAmount = $fmtMoney($rfca->rfca_amount ?? 0);
+
+        $prevRfcaAmount = $fmtMoney($rfca->prev_rfca_amount ?? 0);
+        $normalRfcaAmount = $fmtMoney($rfca->rfca_amount ?? 0);
+
+        // Jika prev_rfca_amount ada dan tidak 0, pakai prev_rfca_amount.
+        // Jika prev_rfca_amount null / 0, pakai rfca_amount.
+        $rfcaAmount = $prevRfcaAmount != 0 ? $prevRfcaAmount : $normalRfcaAmount;
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
@@ -20,7 +26,7 @@
                     <input type="hidden" name="rfcaid" value="{{ $rfca->rfcaid }}">
                     <input type="hidden" name="ponbr" value="{{ $rfca->ponbr }}">
                     <input type="hidden" name="cpny_id" value="{{ $rfca->cpny_id }}">
-                    <input type="hidden" id="rfca_amount_raw" value="{{ $rfcaAmount }}">
+                    <input type="hidden" id="rfca_amount_raw" value="{{ round($rfcaAmount) }}">
 
                     {{-- ===== HEADER RFCA ===== --}}
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
@@ -234,55 +240,56 @@
     {{-- ===== Hitung Balance (RFCA - CALR) ===== --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const rfcaAmountRaw = parseInt(document.getElementById('rfca_amount_raw').value || '0', 10);
+            const rfcaAmountRaw = parseFloat(document.getElementById('rfca_amount_raw').value || '0');
 
-            const calrDisplay = document.getElementById('calr_amount_display'); // input yg terlihat
-            const calrHidden = document.getElementById('calr_amount'); // nilai murni utk submit
+            const calrDisplay = document.getElementById('calr_amount_display');
+            const calrHidden = document.getElementById('calr_amount');
             const balanceInput = document.getElementById('balance_amount');
 
             function formatRupiah(num) {
                 if (isNaN(num)) num = 0;
-                return 'Rp ' + num.toLocaleString('id-ID', {
-                    maximumFractionDigits: 2
+
+                return 'Rp ' + Math.round(num).toLocaleString('id-ID', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
                 });
             }
 
             function formatNumberID(num) {
                 if (isNaN(num)) num = 0;
-                return num.toLocaleString('id-ID'); // 1.234.567
+
+                return Math.round(num).toLocaleString('id-ID', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                });
             }
 
             function parseInteger(value) {
-                // buang semua karakter selain angka
                 const digits = (value || '').replace(/[^0-9]/g, '');
                 if (!digits) return 0;
-                return parseInt(digits, 10);
+                return parseFloat(digits);
             }
 
             function updateBalance(rawVal) {
-                const balance = rfcaAmountRaw - (rawVal || 0); // boleh minus
+                const balance = rfcaAmountRaw - (rawVal || 0);
                 balanceInput.value = formatRupiah(balance);
             }
 
             function syncFromDisplay() {
                 const raw = parseInteger(calrDisplay.value);
-                // isi hidden utk dikirim ke server
+
                 calrHidden.value = raw;
-                // format tampilan ribuan
                 calrDisplay.value = raw ? formatNumberID(raw) : '';
+
                 updateBalance(raw);
             }
 
             if (calrDisplay) {
                 calrDisplay.addEventListener('input', function() {
-                    // simpan posisi kursor kira-kira
-                    const start = this.selectionStart;
                     syncFromDisplay();
-                    // tidak selalu 100% sama, tapi cukup nyaman dipakai
                     this.setSelectionRange(this.value.length, this.value.length);
                 });
 
-                // inisialisasi awal: 0
                 calrDisplay.value = '';
                 calrHidden.value = '';
                 updateBalance(0);

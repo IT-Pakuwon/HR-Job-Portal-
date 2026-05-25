@@ -988,6 +988,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/showrfca/{hash}', [RfcaListController::class, 'showRfca']);
         // PDF
         Route::get('/pdf_rfca/{hash}', [RfcaListController::class, 'printRfca'])->name('rfca.print');
+        Route::get('/po/matching-rfca/list', [RfcaListController::class, 'getMatchingRfcaList'])->name('po.matching-rfca.list');
+        Route::post('/rfca/{hash}/matching-rfca/select', [RfcaListController::class, 'selectMatchingRfca'])->name('rfca.matching-rfca.select');
     });
 
     Route::middleware('access:RFCALIST,EDIT')->group(function () {

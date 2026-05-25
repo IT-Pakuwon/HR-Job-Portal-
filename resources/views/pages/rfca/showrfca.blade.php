@@ -26,11 +26,15 @@
 
 
     <div class="max-w-9xl mx-auto p-2">
-        <div class="mb-4 flex items-center justify-end">
-
+        <div class="mb-4 flex items-center justify-end">          
 
             @if (!empty($canSubmit) && $canSubmit)
                 <div class="flex gap-3">
+                    <button type="button"
+                        id="btnMatchingRfca"
+                        class="inline-flex items-center gap-1 rounded-md bg-purple-100 px-3 py-2 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-200">
+                        Matching RFCA
+                    </button>
                     <button id="submitBtn"
                         class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -200,7 +204,15 @@
                                 [
                                     'icon' => 'arrow-uturn-left',
                                     'label' => 'Previous RFCA ID',
-                                    'value' => $rfca->prev_rfcaid ? e($rfca->prev_rfcaid) : '-',
+                                    'value' => $rfca->prev_rfcaid
+                                        ? (!empty($prevRfcaUrl)
+                                            ? '<a href="' .
+                                                e($prevRfcaUrl) .
+                                                '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                                e($rfca->prev_rfcaid) .
+                                                '</a>'
+                                            : e($rfca->prev_rfcaid))
+                                        : '-',
                                 ],
                                 [
                                     'icon' => 'currency-dollar',
@@ -589,6 +601,72 @@
                                 class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                 Confirm
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="matchingRfcaModal"
+                    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+
+                    <div class="w-full max-w-6xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
+                        <div class="flex items-center justify-between border-b px-5 py-4 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                                Matching RFCA
+                            </h3>
+
+                            <button type="button"
+                                id="closeMatchingRfcaModal"
+                                class="rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div class="p-5">
+                            <div class="mb-4 flex items-center gap-3">
+                                <input type="text"
+                                    id="searchMatchingRfca"
+                                    class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                    placeholder="Search RFCA ID, PO Number, Vendor, Company, Department...">
+
+                                <button type="button"
+                                    id="btnSearchMatchingRfca"
+                                    class="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">
+                                    Search
+                                </button>
+                            </div>
+
+                            <div class="max-h-[500px] overflow-auto rounded-md border dark:border-gray-700">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                                    <thead class="sticky top-0 bg-gray-100 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-3 py-2 text-left">Action</th>
+                                            <th class="px-3 py-2 text-left">RFCA ID</th>
+                                            <th class="px-3 py-2 text-left">RFCA Date</th>
+                                            <th class="px-3 py-2 text-left">PO Number</th>
+                                            <th class="px-3 py-2 text-left">Company</th>
+                                            <th class="px-3 py-2 text-left">Department</th>
+                                            <th class="px-3 py-2 text-left">Vendor</th>
+                                            <th class="px-3 py-2 text-right">PO Amount</th>
+                                            <th class="px-3 py-2 text-right">RFCA Amount</th>
+                                            <th class="px-3 py-2 text-center">RFCA Status</th>
+                                            <th class="px-3 py-2 text-center">PO Status</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody id="matchingRfcaTableBody"
+                                        class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                                        <tr>
+                                            <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                                                Klik Search untuk menampilkan data.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 text-xs text-gray-500">
+                                Data yang tampil hanya RFCA status <b>P</b> dan PO status <b>D</b>.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1001,6 +1079,218 @@
                         }
                     });
                 });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            const matchingRfcaModal = $('#matchingRfcaModal');
+            const matchingRfcaTableBody = $('#matchingRfcaTableBody');
+
+            const matchingSelectUrl = @json(route('rfca.matching-rfca.select', ['hash' => $hash]));
+            const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+            function formatNumber(value) {
+                let number = parseFloat(value || 0);
+                return number.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function formatDate(value) {
+                if (!value) return '-';
+
+                let date = new Date(value);
+                if (isNaN(date.getTime())) {
+                    return value;
+                }
+
+                return date.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+            }
+
+            function openMatchingRfcaModal() {
+                matchingRfcaModal.removeClass('hidden').addClass('flex');
+                $('#searchMatchingRfca').val('');
+                loadMatchingRfca('');
+            }
+
+            function closeMatchingRfcaModal() {
+                matchingRfcaModal.addClass('hidden').removeClass('flex');
+            }
+
+            function loadMatchingRfca(search = '') {
+                matchingRfcaTableBody.html(`
+                    <tr>
+                        <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                            Loading data...
+                        </td>
+                    </tr>
+                `);
+
+                $.ajax({
+                    url: "{{ route('po.matching-rfca.list') }}",
+                    type: "GET",
+                    data: {
+                        search: search
+                    },
+                    success: function (res) {
+                        if (!res.success || !res.data || res.data.length === 0) {
+                            matchingRfcaTableBody.html(`
+                                <tr>
+                                    <td colspan="11" class="px-3 py-4 text-center text-gray-500">
+                                        Data RFCA tidak ditemukan.
+                                    </td>
+                                </tr>
+                            `);
+                            return;
+                        }
+
+                        let html = '';
+
+                        res.data.forEach(function (row) {
+                            html += `
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td class="whitespace-nowrap px-3 py-2">
+                                        <button type="button"
+                                            class="btnSelectRfca rounded-md bg-green-100 px-3 py-1 text-xs font-medium text-green-700 hover:bg-green-200"
+                                            data-id="${row.id ?? ''}"
+                                            data-rfcaid="${row.rfcaid ?? ''}"
+                                            data-ponbr="${row.ponbr ?? ''}">
+                                            Selected
+                                        </button>
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-2">${row.rfcaid ?? '-'}</td>
+                                    <td class="whitespace-nowrap px-3 py-2">${formatDate(row.rfcadate)}</td>
+                                    <td class="whitespace-nowrap px-3 py-2">${row.ponbr ?? '-'}</td>
+                                    <td class="whitespace-nowrap px-3 py-2">${row.cpny_id ?? '-'}</td>
+                                    <td class="whitespace-nowrap px-3 py-2">${row.department_id ?? '-'}</td>
+                                    <td class="whitespace-nowrap px-3 py-2">
+                                        <div class="font-medium">${row.vendorname ?? '-'}</div>
+                                        <div class="text-xs text-gray-500">${row.vendorid ?? '-'}</div>
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.po_amount)}</td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.rfca_amount)}</td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-center">
+                                        <span class="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-700">
+                                            ${row.status ?? '-'}
+                                        </span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-2 text-center">
+                                        <span class="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700">
+                                            ${row.po_status ?? '-'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        matchingRfcaTableBody.html(html);
+                    },
+                    error: function (xhr) {
+                        console.error(xhr.responseText);
+
+                        matchingRfcaTableBody.html(`
+                            <tr>
+                                <td colspan="11" class="px-3 py-4 text-center text-red-500">
+                                    Gagal mengambil data RFCA.
+                                </td>
+                            </tr>
+                        `);
+                    }
+                });
+            }
+
+            $('#btnMatchingRfca').on('click', function () {
+                openMatchingRfcaModal();
+            });
+
+            $('#closeMatchingRfcaModal').on('click', function () {
+                closeMatchingRfcaModal();
+            });
+
+            $('#btnSearchMatchingRfca').on('click', function () {
+                loadMatchingRfca($('#searchMatchingRfca').val());
+            });
+
+            $('#searchMatchingRfca').on('keyup', function (e) {
+                if (e.key === 'Enter') {
+                    loadMatchingRfca($(this).val());
+                }
+            });
+
+            $(document).on('click', '.btnSelectRfca', function () {
+                let selectedRfcaId = $(this).data('id');
+                let selectedRfcaNo = $(this).data('rfcaid');
+                let selectedPonbr = $(this).data('ponbr');
+
+                Swal.fire({
+                    title: 'Matching RFCA?',
+                    html: `
+                        <div class="text-left text-sm">
+                            <div>RFCA Selected: <b>${selectedRfcaNo}</b></div>
+                            <div>PO Number: <b>${selectedPonbr}</b></div>
+                            <div class="mt-2 text-red-600">
+                                RFCA selected akan berubah status menjadi <b>L</b>.
+                            </div>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Process',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#16a34a',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $spinner.fadeIn();
+
+                    $.ajax({
+                        url: matchingSelectUrl,
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        data: {
+                            selected_rfca_id: selectedRfcaId
+                        },
+                        success: function (res) {
+                            if (res.success) {
+                                closeMatchingRfcaModal();
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: res.message || 'Matching RFCA berhasil diproses.',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+
+                                setTimeout(() => window.location.reload(), 800);
+                            } else {
+                                toastr.error(res.message || 'Matching RFCA gagal.');
+                            }
+                        },
+                        error: function (xhr) {
+                            let msg = xhr.responseJSON?.message || 'Matching RFCA gagal.';
+                            toastr.error(msg);
+                        },
+                        complete: function () {
+                            $spinner.fadeOut();
+                        }
+                    });
+                });
+            });
+
+            matchingRfcaModal.on('click', function (e) {
+                if (e.target === this) {
+                    closeMatchingRfcaModal();
+                }
             });
         });
     </script>

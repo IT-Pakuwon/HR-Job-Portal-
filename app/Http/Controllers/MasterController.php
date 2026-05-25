@@ -1081,7 +1081,8 @@ class MasterController extends Controller
         $woid    = trim((string) $request->get('woid', ''));
         $cpnyid  = $request->get('cpnyid');
         $deptid  = $request->get('deptid');
-        // dd($cpnyid, $deptid);
+        $businessUnitId = trim((string) $request->get('business_unit_id', ''));
+        // dd("woid: {$woid}, cpnyid: {$cpnyid}, deptid: {$deptid}, business_unit_id: {$businessUnitId}");
         $search  = trim((string) $request->get('search', ''));
         $page    = max((int) $request->get('page', 1), 1);
         $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
@@ -1133,6 +1134,7 @@ class MasterController extends Controller
             'deptid'     => $wo->department_id,
             'perpost'    => $wo->budget_perpost,
             'budget_use' => $wo->budget_use,
+            'business_unit_id' => $businessUnitId,
         ];
 
         $budgetUse = strtoupper(trim((string) ($wo->budget_use ?? '')));
@@ -1222,10 +1224,13 @@ class MasterController extends Controller
         $budgetExists = Budget::query()
             ->where('status', 'C')
             ->where('cpny_id', $cpnyid)
-            ->where('department_fin_id', $departmentFinId) // ✅ sekarang single
+            ->where('department_fin_id', $departmentFinId)
+            ->when($businessUnitId !== '', function ($q) use ($businessUnitId) {
+                $q->where('business_unit_id', $businessUnitId);
+            })
             ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
             ->exists();
-
+                        // dd("budgetExists: {$budgetExists} untuk cpnyid: {$cpnyid}, department_fin_id: {$departmentFinId}, business_unit_id: {$businessUnitId}, perpost: {$perpost}");
         if (!$budgetExists) {
             return response()->json([
                 'meta'     => $meta,
@@ -1237,20 +1242,51 @@ class MasterController extends Controller
             ]);
         }
 
+        // $q = BudgetDetail::query()
+        //     ->from('ms_budget as b')
+        //     ->join('ms_coa as c', function ($j) {
+        //         $j->on('c.account_id', '=', 'b.account_id')
+        //         ->on('c.cpny_id', '=', 'b.cpny_id');
+        //     })
+        //     ->leftJoin('ms_activity as a', function ($j) {
+        //         $j->on('a.activity_id', '=', 'b.activity_id')
+        //         ->on('a.cpny_id', '=', 'b.cpny_id');
+        //     })
+        //     ->where('b.status', 'C')
+        //     ->where('b.cpny_id', $cpnyid)
+        //     ->where('b.department_fin_id', $departmentFinId) // ✅ sekarang single
+        //     ->where('b.business_unit_id', $businessUnitId)
+        //     ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
         $q = BudgetDetail::query()
             ->from('ms_budget as b')
             ->join('ms_coa as c', function ($j) {
                 $j->on('c.account_id', '=', 'b.account_id')
-                ->on('c.cpny_id', '=', 'b.cpny_id');
+                    ->on('c.cpny_id', '=', 'b.cpny_id');
             })
             ->leftJoin('ms_activity as a', function ($j) {
                 $j->on('a.activity_id', '=', 'b.activity_id')
-                ->on('a.cpny_id', '=', 'b.cpny_id');
+                    ->on('a.cpny_id', '=', 'b.cpny_id');
             })
             ->where('b.status', 'C')
             ->where('b.cpny_id', $cpnyid)
-            ->where('b.department_fin_id', $departmentFinId) // ✅ sekarang single
-            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));
+            ->where('b.department_fin_id', $departmentFinId)
+            ->when($businessUnitId !== '', function ($qq) use ($businessUnitId) {
+                $qq->where('b.business_unit_id', $businessUnitId);
+            })
+            ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost))
+            ->when($search !== '', function ($qq) use ($search) {
+                $like = '%' . $search . '%';
+
+                $qq->where(function ($w) use ($like) {
+                    $w->where('b.account_id', 'ilike', $like)
+                        ->orWhere('c.account_descr', 'ilike', $like)
+                        ->orWhere('b.activity_id', 'ilike', $like)
+                        ->orWhere('b.activity_descr', 'ilike', $like)
+                        ->orWhere('a.activity_descr', 'ilike', $like)
+                        ->orWhere('b.business_unit_id', 'ilike', $like)
+                        ->orWhere('b.department_fin_id', 'ilike', $like);
+                });
+            });
 
         $total = (clone $q)->count();
 
@@ -1294,7 +1330,7 @@ class MasterController extends Controller
         $search  = trim((string) $request->get('search', ''));
         $page    = max((int) $request->get('page', 1), 1);
         $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
-
+        // dd("woid: {$woid}, cpnyid: {$cpnyid}, deptid: {$deptid}, business_unit_id: {$buId}");                
         if ($woid === '') {
             return response()->json(['message' => 'WOID is required.'], 422);
         }
@@ -1416,7 +1452,7 @@ class MasterController extends Controller
             ->where('department_id', $dept)    // dept dari header SPB (request)
             ->where('status', 'A')
             ->exists();
-
+                        
         if (!$mappingOk) {
             return response()->json([
                 'meta'     => $meta,
@@ -1455,7 +1491,7 @@ class MasterController extends Controller
             ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
             ->when($buId !== '', fn ($q) => $q->where('business_unit_id', $buId)) // ✅ filter BU (optional)
             ->exists();
-
+        // dd("budgetExists: {$budgetExists} untuk cpny: {$cpny}, department_fin_id: {$departmentFinId}, business_unit_id: {$buId}, perpost: {$perpost}");                
         if (!$budgetExists) {
             return response()->json([
                 'meta'     => $meta,
