@@ -47,6 +47,44 @@ class BastController extends Controller
         // ambil term
         $term = TrPOterm::findOrFail($termId);
 
+        // cek 2 digit kiri sppbjktid
+        $docPrefix = strtoupper(substr(trim((string) $term->sppbjktid), 0, 2));
+        $isPkRequest = $docPrefix === 'PK';
+
+        // ambil PO by ponbr + cpny_id
+        $po = TrPO::query()
+            ->where('ponbr', $term->ponbr)
+            ->where('cpny_id', $term->cpny_id)
+            ->select(['ponbr', 'cpny_id', 'spkstartworkingdate', 'spkendtworkingdate'])
+            ->first();
+
+        return view('pages.bast.createbast', [
+            'term' => $term,
+            'term_eid' => $termHash,
+            'po' => $po,
+            'docPrefix' => $docPrefix,
+            'isPkRequest' => $isPkRequest,
+        ]);
+    }
+
+    public function createBast_xxx(Request $request)
+    {
+        // Expect: /bast/create?term=<hashid-of-TrPOterm.id>
+        $termHash = (string) $request->query('term', '');
+        if (!$termHash) {
+            abort(404, 'Parameter term tidak ditemukan.');
+        }
+
+        $decoded = Hashids::decode($termHash);
+        if (empty($decoded)) {
+            abort(404, 'Parameter term tidak valid.');
+        }
+
+        $termId = (int) $decoded[0];
+
+        // ambil term
+        $term = TrPOterm::findOrFail($termId);
+
         // ✅ ambil PO by ponbr + cpny_id (penting!)
         $po = TrPO::query()
             ->where('ponbr', $term->ponbr)
@@ -702,15 +740,17 @@ class BastController extends Controller
         $doctype = 'BA';
 
         $bast = TrBast::with('creator')->where('bastid', $docid)->first();
+
         if (!$bast) {
-            return response()->json(['success' => false, 'message' => 'BAST not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'BAST not found'
+            ], 404);
         }
 
         $eid = Hashids::encode($bast->id);
-        $docUrl = url('/showbast/'.$eid);
+        $docUrl = url('/showbast/' . $eid);
         $fullname = data_get($bast, 'creator.name') ?: $bast->created_by;
-        $term = TrPOterm::where('bastid', $bast->bastid)
-            ->first();
 
         $result = app(ApprovalController::class)->rejectStep(
             $bast->bastid,
@@ -718,16 +758,17 @@ class BastController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, Carbon $now) use ($bast, $fullname, $docUrl, $term) {
-                $bast->status = 'R';
-                $bast->completed_by = auth()->user()->username;
+            function (string $refnbr, Carbon $now) use ($bast, $fullname, $docUrl, $user) {
+                // update status BAST
+                $bast->status       = 'R';
+                $bast->completed_by = $user->username;
                 $bast->completed_at = $now;
+                $bast->updated_by   = $user->username;
+                $bast->updated_at   = $now;
                 $bast->save();
 
-                $term->bastid = '';
-                $term->updated_by = auth()->user()->username;
-                $term->updated_at = $now;
-                $term->save();
+                // release PO Term supaya BAST bisa dibuat ulang
+                $this->releasePoTermBast($bast, $user->username, $now);
 
                 // optional: tandai detail R
                 // \App\Models\TrBastdetail::where('bastid', $bast->bastid)->update(['status' => 'R']);
@@ -739,29 +780,37 @@ class BastController extends Controller
                     $bast->created_by,
                     $docUrl,
                     [
-                        'cpnyid' => $bast->cpny_id ?? $bast->cpnyid ?? '',
-                        'deptname' => $bast->department_id ?? $bast->departementid ?? '',
-                        'date' => $now->toDateString(),
-                        'info' => $bast->keperluan,
-                        'fullname' => $fullname,
-                        'name' => $fullname,
+                        'cpnyid'    => $bast->cpny_id ?? $bast->cpnyid ?? '',
+                        'deptname'  => $bast->department_id ?? $bast->departementid ?? '',
+                        'date'      => $now->toDateString(),
+                        'info'      => $bast->keperluan,
+                        'fullname'  => $fullname,
+                        'name'      => $fullname,
                         'createdby' => $fullname,
                     ]
                 );
 
-                // simpan komentar (jika ada)
+                // simpan komentar jika ada
                 try {
-                    app('App\Http\Controllers\SendCommentController')->sendmsg($bast->id, 'BA', request());
+                    app('App\Http\Controllers\SendCommentController')
+                        ->sendmsg($bast->id, 'BA', request());
                 } catch (\Throwable $e) {
+                    // sengaja diabaikan
                 }
             }
         );
 
         if (!$result['ok']) {
-            return response()->json(['success' => false, 'message' => $result['message'] ?? 'Reject failed'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Reject failed'
+            ], 403);
         }
 
-        return response()->json(['success' => true, 'message' => 'BAST rejected successfully']);
+        return response()->json([
+            'success' => true,
+            'message' => 'BAST rejected successfully'
+        ]);
     }
 
     public function reviseBast(Request $request, $docid)
@@ -1558,6 +1607,109 @@ class BastController extends Controller
             return response()->json([
                 'message' => 'Gagal update BAST.',
                 'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function releasePoTermBast(TrBast $bast, string $username, Carbon $dt): void
+    {
+        TrPOterm::query()
+            ->where('bastid', $bast->bastid)
+            ->update([
+                'bastid'     => null,
+                'updated_by' => $username,
+                'updated_at' => $dt,
+            ]);
+    }
+
+    public function cancelBast(Request $request, string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+
+        if (empty($decoded)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hash BAST tidak valid.',
+            ], 422);
+        }
+
+        $bastId = (int) $decoded[0];
+
+        $user = $request->user() ?: Auth::user();
+        $username = $user->username ?? 'system';
+        $dt = Carbon::now('Asia/Jakarta');
+
+        DB::beginTransaction();
+
+        try {
+            $bast = TrBast::query()
+                ->where('id', $bastId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bast) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data BAST tidak ditemukan.',
+                ], 404);
+            }
+
+            if (in_array($bast->status, ['X', 'C'], true)) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $bast->status === 'X'
+                        ? 'BAST ini sudah di-cancel.'
+                        : 'BAST yang sudah completed tidak bisa di-cancel.',
+                ], 422);
+            }
+
+            // 1) Update status BAST menjadi Cancel
+            $bast->status = 'X';
+            $bast->updated_by = $username;
+            $bast->updated_at = $dt;
+
+            // kalau kolom ini memang ada di tr_bast, boleh diisi
+            if (isset($bast->completed_by)) {
+                $bast->completed_by = $username;
+            }
+
+            if (isset($bast->completed_at)) {
+                $bast->completed_at = $dt;
+            }
+
+            $bast->save();
+
+            // 2) Release PO Term supaya BAST bisa dibuat ulang
+            $this->releasePoTermBast($bast, $username, $dt);
+
+            // 3) Tutup approval BAST yang masih pending
+            TrApproval::query()
+                ->where('refnbr', $bast->bastid)
+                ->where('status', 'P')
+                ->update([
+                    'status'     => 'X',
+                    'updated_by' => $username,
+                    'updated_at' => $dt,
+                ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'BAST berhasil di-cancel.',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal cancel BAST.',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }

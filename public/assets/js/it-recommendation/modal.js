@@ -154,17 +154,27 @@ function openShowModal() {
 }
 
 async function closeShowModal(force = false) {
+
+    currentDiscussionHash = null;
+
+    $("#discussionPanel")
+        .addClass("hidden");
+
+    $("#discussionFab")
+        .addClass("hidden");
+
     animateCloseModal(
         "#showModal",
 
         function () {
+
             resetShowModal();
 
             resetUrl();
-        },
+
+        }
     );
 }
-
 function openProcessModal() {
     animateOpenModal("#processModal");
 }

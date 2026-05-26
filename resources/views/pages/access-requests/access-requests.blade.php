@@ -93,9 +93,11 @@
         </div>
 
         {{-- Init Datatble --}}
-        <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div
+            class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+            <div
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
                 <div>
 
@@ -107,8 +109,7 @@
 
                 <div class="flex items-center gap-3">
 
-                    <button id="btnCreate"
-                        type="button"
+                    <button id="btnCreate" type="button"
                         class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
 
                         <i class="fa-solid fa-plus mr-2 text-xs"></i>
@@ -125,21 +126,12 @@
 
                 <div class="overflow-x-auto overflow-y-visible">
 
-                    <table id="accessRequestTable"
-                        class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <table id="accessRequestTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
                         <thead>
 
                             <tr
-                                class="
-                                    border-b border-gray-100
-                                    bg-gray-50/70
-                                    text-[11px] uppercase tracking-[0.08em]
-                                    text-gray-500
-                                    dark:border-white/[0.06]
-                                    dark:bg-white/[0.02]
-                                    dark:text-gray-400
-                                ">
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
 
                                 <th class="w-10 px-4 py-3"></th>
 
@@ -579,24 +571,34 @@
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
+                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
+                {{-- HEADER --}}
                 <div
                     class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
 
-                    <div class="flex items-center gap-3">
+                    <div class="min-w-0">
 
-                        <h2 id="detailModalDocId" class="text-xl font-bold text-slate-900 dark:text-white">
-                            -
-                        </h2>
+                        <div class="flex flex-wrap items-center gap-3">
 
-                        <div id="detailModalStatus"></div>
+                            <h2 id="detailModalDocId"
+                                class="truncate text-xl font-bold text-slate-900 dark:text-white">
+                                -
+                            </h2>
+
+                            <div id="detailModalStatus"></div>
+
+                        </div>
+
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            Access Request Detail
+                        </p>
 
                     </div>
 
                     <div class="flex items-center gap-2">
 
-                        <button type="button" id="btnPrintAccess" title="Print"
+                        <button type="button" id="btnPrintAccess"
                             class="btn-print-access inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-800 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
                             <i class="fa-solid fa-print text-sm"></i>
@@ -614,28 +616,122 @@
 
                 </div>
 
-                <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-3">
+                <div class="flex-1 overflow-y-auto">
 
-                    <div class="space-y-5 lg:col-span-2">
+                    <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-4">
 
-                        <div id="detailInfoContainer"></div>
+                        {{-- LEFT CONTENT --}}
+                        <div class="space-y-5 lg:col-span-3">
 
-                        <div id="detailItemsContainer"></div>
+                            {{-- REQUEST INFORMATION --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                        <div id="detailAttachmentContainer"></div>
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                    </div>
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 
-                    <div class="space-y-4">
+                                        Request Information
 
-                        <div id="detailActionContainer"></div>
+                                    </h3>
 
-                        <div id="detailActivityContainer"></div>
+                                </div>
+
+                                <div id="detailInfoContainer">
+                                </div>
+
+                            </div>
+
+                            {{-- ACCESS ITEMS --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                        Access Request Items
+
+                                    </h3>
+
+                                </div>
+
+                                <div id="detailItemsContainer">
+                                </div>
+
+                            </div>
+
+                            {{-- ATTACHMENTS --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                        Attachments
+
+                                    </h3>
+
+                                </div>
+
+                                <div id="detailAttachmentContainer">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        {{-- RIGHT SIDEBAR --}}
+                        <div class="space-y-5 lg:col-span-1">
+
+                            {{-- ACTIONS --}}
+                            <div id="detailActionCard"
+                                class="hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                        Actions
+                                    </h3>
+
+                                </div>
+
+                                <div id="detailActionContainer"></div>
+
+                            </div>
+
+                            {{-- TIMELINE --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                        Approval Timeline
+
+                                    </h3>
+
+                                </div>
+
+                                <div id="detailActivityContainer">
+                                </div>
+
+                            </div>
+
+                        </div>
 
                     </div>
 
                 </div>
 
+                {{-- DISCUSSION FAB --}}
                 <div id="discussionFab" class="fixed bottom-6 right-6 z-[10001] hidden">
 
                     <button type="button"
@@ -652,6 +748,7 @@
 
                 </div>
 
+                {{-- DISCUSSION PANEL --}}
                 <div id="discussionPanel"
                     class="fixed bottom-24 right-6 z-[10001] hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
 
@@ -680,7 +777,8 @@
                     </div>
 
                     <div id="discussionMessages"
-                        class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]"></div>
+                        class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]">
+                    </div>
 
                     <div class="border-t border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-[#0f172a]">
 
@@ -690,7 +788,7 @@
                                 class="min-h-[46px] flex-1 resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500"></textarea>
 
                             <button type="button" id="btnSendDiscussion"
-                                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                                class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
 
                                 <i class="fa-solid fa-paper-plane text-sm"></i>
 

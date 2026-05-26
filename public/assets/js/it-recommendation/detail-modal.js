@@ -1,4 +1,5 @@
 let currentDetailHash = null;
+let currentDiscussionHash = null;
 
 async function loadDetail(hash) {
     currentDetailHash = hash;
@@ -30,7 +31,13 @@ async function loadDetail(hash) {
 
         renderTimeline(tracking || []);
 
-        await renderCommentSection(header);
+        currentDiscussionHash = hash;
+
+        $("#discussionFab").removeClass("hidden");
+
+        $("#discussionPanel").addClass("hidden");
+
+        await loadDiscussion();
 
         renderActions(header, res.permissions || {}, hash);
 
@@ -46,27 +53,29 @@ async function loadDetail(hash) {
     }
 }
 
-async function renderCommentSection(header) {
-    if (["X"].includes(header.status)) {
-        $("#commentSection").addClass("hidden");
+// async function renderCommentSection(header) {
+//     if (["X"].includes(header.status)) {
+//         $("#commentSection").addClass("hidden");
 
-        $("#show_comments").html("");
+//         $("#show_comments").html("");
 
-        return;
-    }
+//         return;
+//     }
 
-    $("#commentSection").removeClass("hidden");
+//     $("#commentSection").removeClass("hidden");
 
-    const comments = await $.ajax({
-        url: `/it-recommendation/comments/${header.docid}`,
+//     const comments = await $.ajax({
+//         url: `/it-recommendation/comments/${header.docid}`,
 
-        type: "GET",
-    });
+//         type: "GET",
+//     });
 
-    renderComments(comments || []);
-}
+//     renderComments(comments || []);
+// }
 
 function renderHeaderInfo(header) {
+
+     console.log(header);
     $("#show_docid").text(header.docid || "-");
 
     $("#show_status_badge").html(statusBadge(header.status));
@@ -93,7 +102,25 @@ function renderHeaderInfo(header) {
 
         ${infoItem("Requester", header.user_peminta)}
 
-        ${infoItem("Ticket Number", header.ticketnbr)}
+        ${infoItem(
+            "Ticket Number",
+            header.ticket_hash
+                ? `
+                    <a
+                        href="/showticket/${header.ticket_hash}"
+                        target="_blank"
+                        class="
+                            font-medium
+                            text-blue-600
+                            hover:text-blue-700
+                            hover:underline
+                        "
+                    >
+                        ${header.ticketnbr}
+                    </a>
+                `
+                : (header.ticketnbr || "-")
+        )}
 
         ${infoItem("Asset Number", header.assetnbr || "-")}
 
@@ -274,112 +301,112 @@ function renderTimeline(tracking = []) {
     $("#show_tracking").html(html);
 }
 
-function renderComments(comments = []) {
-    let html = "";
+// function renderComments(comments = []) {
+//     let html = "";
 
-    if (comments.length === 0) {
-        html = `
-            <div class="
-                rounded-lg
+//     if (comments.length === 0) {
+//         html = `
+//             <div class="
+//                 rounded-lg
 
-                border border-dashed border-slate-200
-                dark:border-white/10
+//                 border border-dashed border-slate-200
+//                 dark:border-white/10
 
-                px-4 py-6
+//                 px-4 py-6
 
-                text-center
-                text-sm
+//                 text-center
+//                 text-sm
 
-                text-slate-400
-            ">
-                No comments yet
-            </div>
-        `;
-    } else {
-        comments.forEach((row) => {
-            html += `
+//                 text-slate-400
+//             ">
+//                 No comments yet
+//             </div>
+//         `;
+//     } else {
+//         comments.forEach((row) => {
+//             html += `
 
-                <div class="
-                    rounded-lg
+//                 <div class="
+//                     rounded-lg
 
-                    bg-slate-50
-                    dark:bg-white/[0.02]
+//                     bg-slate-50
+//                     dark:bg-white/[0.02]
 
-                    px-3 py-2
-                ">
+//                     px-3 py-2
+//                 ">
 
-                    <div class="
-                        flex
-                        items-center
-                        justify-between
-                        gap-3
-                    ">
+//                     <div class="
+//                         flex
+//                         items-center
+//                         justify-between
+//                         gap-3
+//                     ">
 
-                        <div class="min-w-0">
+//                         <div class="min-w-0">
 
-                            <div class="
-                                truncate
+//                             <div class="
+//                                 truncate
 
-                                text-[11px]
-                                font-semibold
-                                uppercase
-                                tracking-wide
+//                                 text-[11px]
+//                                 font-semibold
+//                                 uppercase
+//                                 tracking-wide
 
-                                text-slate-500
-                                dark:text-slate-400
-                            ">
-                                ${row.name || row.username || "-"}
-                            </div>
+//                                 text-slate-500
+//                                 dark:text-slate-400
+//                             ">
+//                                 ${row.name || row.username || "-"}
+//                             </div>
 
-                        </div>
+//                         </div>
 
-                        <div class="
-                            shrink-0
+//                         <div class="
+//                             shrink-0
 
-                            text-[10px]
+//                             text-[10px]
 
-                            text-slate-400
-                        ">
-                            ${
-                                row.message_date
-                                    ? new Date(row.message_date).toLocaleString(
-                                          "en-GB",
-                                          {
-                                              day: "2-digit",
-                                              month: "short",
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                          },
-                                      )
-                                    : "-"
-                            }
-                        </div>
+//                             text-slate-400
+//                         ">
+//                             ${
+//                                 row.message_date
+//                                     ? new Date(row.message_date).toLocaleString(
+//                                           "en-GB",
+//                                           {
+//                                               day: "2-digit",
+//                                               month: "short",
+//                                               hour: "2-digit",
+//                                               minute: "2-digit",
+//                                           },
+//                                       )
+//                                     : "-"
+//                             }
+//                         </div>
 
-                    </div>
+//                     </div>
 
-                    <div class="
-                        mt-1
+//                     <div class="
+//                         mt-1
 
-                        whitespace-pre-wrap
-                        break-words
+//                         whitespace-pre-wrap
+//                         break-words
 
-                        text-sm
-                        leading-relaxed
+//                         text-sm
+//                         leading-relaxed
 
-                        text-slate-700
-                        dark:text-slate-300
-                    ">
-                        ${row.message || "-"}
-                    </div>
+//                         text-slate-700
+//                         dark:text-slate-300
+//                     ">
+//                         ${row.message || "-"}
+//                     </div>
 
-                </div>
+//                 </div>
 
-            `;
-        });
-    }
+//             `;
+//         });
+//     }
 
-    $("#show_comments").html(html);
-}
+//     $("#show_comments").html(html);
+// }
 
 function renderProcessActionButton({ hash, className, icon, label }) {
     return `
@@ -767,86 +794,86 @@ $(document).on("click", 'a[href*="/showitrecommendation/"]', function (e) {
     loadDetail(hash);
 });
 
-$(document).on("click", "#btnSubmitComment", async function () {
-    const hash = currentDetailHash;
+// $(document).on("click", "#btnSubmitComment", async function () {
+//     const hash = currentDetailHash;
 
-    const message = $("#comment_message").val().trim();
+//     const message = $("#comment_message").val().trim();
 
-    if (!message) {
-        Swal.fire({
-            icon: "warning",
+//     if (!message) {
+//         Swal.fire({
+//             icon: "warning",
 
-            title: "Validation",
+//             title: "Validation",
 
-            text: "Comment cannot be empty",
-        });
+//             text: "Comment cannot be empty",
+//         });
 
-        return;
-    }
+//         return;
+//     }
 
-    const btn = $(this);
+//     const btn = $(this);
 
-    btn.prop("disabled", true).html(`
-            <i class="
-                fa-solid
-                fa-spinner
-                fa-spin
-                text-xs
-            "></i>
+//     btn.prop("disabled", true).html(`
+//             <i class="
+//                 fa-solid
+//                 fa-spinner
+//                 fa-spin
+//                 text-xs
+//             "></i>
 
-            Sending...
-        `);
+//             Sending...
+//         `);
 
-    try {
-        await $.ajax({
-            url: `/it-recommendation/comment/${hash}`,
+//     try {
+//         await $.ajax({
+//             url: `/it-recommendation/comment/${hash}`,
 
-            type: "POST",
+//             type: "POST",
 
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            },
+//             headers: {
+//                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+//             },
 
-            data: {
-                message,
-            },
-        });
+//             data: {
+//                 message,
+//             },
+//         });
 
-        $("#comment_message").val("");
+//         $("#comment_message").val("");
 
-        Swal.fire({
-            icon: "success",
+//         Swal.fire({
+//             icon: "success",
 
-            title: "Success",
+//             title: "Success",
 
-            text: "Comment submitted",
+//             text: "Comment submitted",
 
-            timer: 1500,
+//             timer: 1500,
 
-            showConfirmButton: false,
-        });
+//             showConfirmButton: false,
+//         });
 
-        loadDetail(hash);
-    } catch (err) {
-        Swal.fire({
-            icon: "error",
+//         loadDetail(hash);
+//     } catch (err) {
+//         Swal.fire({
+//             icon: "error",
 
-            title: "Error",
+//             title: "Error",
 
-            text: err.responseJSON?.message || "Failed submit comment",
-        });
-    } finally {
-        btn.prop("disabled", false).html(`
-                <i class="
-                    fa-solid
-                    fa-paper-plane
-                    text-xs
-                "></i>
+//             text: err.responseJSON?.message || "Failed submit comment",
+//         });
+//     } finally {
+//         btn.prop("disabled", false).html(`
+//                 <i class="
+//                     fa-solid
+//                     fa-paper-plane
+//                     text-xs
+//                 "></i>
 
-                Submit Comment
-            `);
-    }
-});
+//                 Submit Comment
+//             `);
+//     }
+// });
 
 const detailPath = window.location.pathname;
 
@@ -855,3 +882,208 @@ if (detailPath.includes("/showitrecommendation/")) {
 
     loadDetail(hash);
 }
+
+async function loadDiscussion() {
+    const res = await $.ajax({
+        url: `/it-recommendation/comments/${currentDiscussionHash}`,
+        type: "GET",
+    });
+
+    let messages = [];
+
+    if (Array.isArray(res)) {
+        messages = res;
+    } else {
+        messages = res.data ?? res.comments ?? [];
+    }
+
+    renderDiscussionMessages(messages);
+}
+async function sendDiscussion() {
+    const message = $("#discussionInput").val().trim();
+
+    if (!message) {
+        return;
+    }
+
+    await $.ajax({
+        url: `/it-recommendation/comment/${currentDiscussionHash}`,
+
+        type: "POST",
+
+        headers: {
+            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+        },
+
+        data: {
+            message,
+        },
+    });
+
+    $("#discussionInput").val("");
+
+    await loadDiscussion();
+}
+function renderDiscussionMessages(messages = []) {
+    let html = "";
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+        $("#discussionMessages").html(`
+            <div class="
+                flex
+                h-full
+                items-center
+                justify-center
+            ">
+                <div class="
+                    text-center
+                    text-sm
+                    text-slate-400
+                ">
+                    No discussion yet
+                </div>
+            </div>
+        `);
+
+        return;
+    }
+
+    messages.forEach((row) => {
+        const mine =
+            String(row.username || "").toUpperCase() ===
+            String(window.currentUser || "").toUpperCase();
+
+        html += `
+            <div class="
+                flex
+                ${mine ? "justify-end" : "justify-start"}
+            ">
+
+                <div class="max-w-[85%]">
+
+                    <div class="
+                        mb-1
+                        px-1
+
+                        text-[10px]
+                        font-semibold
+                        uppercase
+                        tracking-wide
+
+                        ${mine ? "text-right text-blue-500" : "text-slate-500"}
+                    ">
+                        ${row.name || row.username || "-"}
+                    </div>
+
+                    <div class="
+                        rounded-2xl
+
+                        px-4 py-2.5
+
+                        text-sm
+                        leading-relaxed
+
+                        ${
+                            mine
+                                ? `
+                                    bg-blue-600
+                                    text-white
+                                `
+                                : `
+                                    border border-slate-200
+                                    bg-white
+                                    text-slate-700
+
+                                    dark:border-white/10
+                                    dark:bg-[#111827]
+                                    dark:text-slate-200
+                                `
+                        }
+                    ">
+                        ${row.message || "-"}
+                    </div>
+
+                    <div class="
+                        mt-1
+                        px-1
+
+                        text-[10px]
+                        text-slate-400
+
+                        ${mine ? "text-right" : ""}
+                    ">
+                        ${
+                            row.message_date
+                                ? new Date(row.message_date).toLocaleString(
+                                      "en-GB",
+                                      {
+                                          day: "2-digit",
+                                          month: "short",
+                                          year: "numeric",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                      },
+                                  )
+                                : "-"
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    });
+
+    $("#discussionMessages").html(html);
+
+    const container = document.getElementById("discussionMessages");
+
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+$(document).on("click", "#discussionFab button", function () {
+    $("#discussionPanel").removeClass("hidden");
+
+    setTimeout(() => {
+        $("#discussionInput").trigger("focus");
+    }, 100);
+});
+
+$(document).on("click", "#btnCloseDiscussion", function () {
+    $("#discussionPanel").addClass("hidden");
+});
+
+$(document).on("click", "#btnSendDiscussion", async function () {
+    const btn = $(this);
+
+    btn.prop("disabled", true);
+
+    try {
+        await sendDiscussion();
+    } catch (err) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: err.responseJSON?.message || "Failed submit discussion",
+        });
+    } finally {
+        btn.prop("disabled", false);
+    }
+});
+
+$(document).on("keydown", "#discussionInput", async function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+
+        try {
+            await sendDiscussion();
+        } catch (err) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: err.responseJSON?.message || "Failed submit discussion",
+            });
+        }
+    }
+});

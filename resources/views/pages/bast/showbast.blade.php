@@ -1405,7 +1405,7 @@
                 : null;
 
             const afterUrl = afterRefnbr
-                ? `/attachments/BA/${encodeURIComponent(afterRefnbr)}`
+                ? `/attachments/BQ/${encodeURIComponent(afterRefnbr)}`
                 : null;
 
             const $before = $('#photoBeforeGrid');

@@ -55,211 +55,103 @@ async function fetchDetail(id) {
         type: "GET",
     });
 }
-
 function renderDetailInfo(access) {
 
     $("#detailInfoContainer").html(`
 
         <div class="
-            rounded-2xl
-            border border-slate-200
-            dark:border-white/[0.06]
-
-            bg-white
-            dark:bg-[#111c2d]
-
-            shadow-sm
-            dark:shadow-[0_10px_40px_rgba(0,0,0,.25)]
-
-            overflow-hidden
+            grid grid-cols-1
+            gap-x-10 gap-y-1
+            p-5
+            sm:grid-cols-2
         ">
 
-            <div class="
-                grid grid-cols-1
-                gap-x-10 gap-y-5
-                px-6 py-5
-                sm:grid-cols-2
-            ">
+            <div class="flex items-center gap-2">
 
-                <div class="flex items-center gap-2">
+                <p class="min-w-[110px] text-[11px] font-bold uppercase tracking-[.16em] text-slate-500 dark:text-slate-500">
+                    Company
+                </p>
 
-                    <p class="
-                        min-w-[110px]
-                        text-[11px] font-bold uppercase
-                        tracking-[.16em]
+                <span class="text-slate-400">:</span>
 
-                        text-slate-500
-                        dark:text-slate-500
-                    ">
-                        Company
-                    </p>
-
-                    <span class="
-                        text-slate-400
-                        dark:text-slate-600
-                    ">
-                        :
-                    </span>
-
-                    <p class="
-                        text-sm font-semibold
-
-                        text-slate-700
-                        dark:text-slate-100
-                    ">
-                        ${access.cpny_id ?? "-"}
-                    </p>
-
-                </div>
-
-                <div class="flex items-center gap-2">
-
-                    <p class="
-                        min-w-[110px]
-                        text-[11px] font-bold uppercase
-                        tracking-[.16em]
-
-                        text-slate-500
-                        dark:text-slate-500
-                    ">
-                        Date
-                    </p>
-
-                    <span class="
-                        text-slate-400
-                        dark:text-slate-600
-                    ">
-                        :
-                    </span>
-
-                    <p class="
-                        text-sm
-
-                        text-slate-600
-                        dark:text-slate-300
-                    ">
-                        ${formatDate(access.created_at)}
-                    </p>
-
-                </div>
-
-                <div class="flex items-center gap-2">
-
-                    <p class="
-                        min-w-[110px]
-                        text-[11px] font-bold uppercase
-                        tracking-[.16em]
-
-                        text-slate-500
-                        dark:text-slate-500
-                    ">
-                        Requester
-                    </p>
-
-                    <span class="
-                        text-slate-400
-                        dark:text-slate-600
-                    ">
-                        :
-                    </span>
-
-                    <p class="
-                        text-sm font-semibold
-
-                        text-slate-700
-                        dark:text-slate-100
-                    ">
-                        ${access.user_peminta ?? "-"}
-                    </p>
-
-                </div>
-
-                <div class="flex items-center gap-2">
-
-                    <p class="
-                        min-w-[110px]
-                        text-[11px] font-bold uppercase
-                        tracking-[.16em]
-
-                        text-slate-500
-                        dark:text-slate-500
-                    ">
-                        Department
-                    </p>
-
-                    <span class="
-                        text-slate-400
-                        dark:text-slate-600
-                    ">
-                        :
-                    </span>
-
-                    <p class="
-                        text-sm font-semibold
-
-                        text-slate-700
-                        dark:text-slate-100
-                    ">
-                        ${access.department_id ?? "-"}
-                    </p>
-
-                </div>
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-100">
+                    ${access.cpny_id ?? "-"}
+                </p>
 
             </div>
 
-            <div class="
-                flex items-start justify-between gap-4
+            <div class="flex items-center gap-2">
 
-                border-t border-slate-200
-                dark:border-white/[0.06]
+                <p class="min-w-[110px] text-[11px] font-bold uppercase tracking-[.16em] text-slate-500 dark:text-slate-500">
+                    Date
+                </p>
 
-                px-6 py-5
-            ">
+                <span class="text-slate-400">:</span>
 
-                <div class="min-w-0 flex-1">
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                    ${formatDate(access.created_at)}
+                </p>
 
-                    <p class="
-                        text-[11px] font-bold uppercase
-                        tracking-[.16em]
+            </div>
 
-                        text-slate-500
-                        dark:text-slate-500
-                    ">
-                        Purpose / Notes
-                    </p>
+            <div class="flex items-center gap-2">
 
-                    <p class="
-                        mt-2
-                        whitespace-normal
-                        break-words
+                <p class="min-w-[110px] text-[11px] font-bold uppercase tracking-[.16em] text-slate-500 dark:text-slate-500">
+                    Requester
+                </p>
 
-                        text-sm leading-7
+                <span class="text-slate-400">:</span>
 
-                        text-slate-700
-                        dark:text-slate-200
-                    ">
-                        ${access.keperluan ?? "-"}
-                    </p>
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-100">
+                    ${access.user_peminta ?? "-"}
+                </p>
 
-                </div>
+            </div>
 
-                <div class="shrink-0">
+            <div class="flex items-center gap-2">
 
-                    <div class="flex items-center gap-2">
+                <p class="min-w-[110px] text-[11px] font-bold uppercase tracking-[.16em] text-slate-500 dark:text-slate-500">
+                    Department
+                </p>
 
-                        <span class="
-                            text-[11px] font-bold uppercase
-                            tracking-[.16em]
+                <span class="text-slate-400">:</span>
 
-                            text-slate-500
-                            dark:text-slate-500
-                        ">
-                            Request Type :
-                        </span>
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-100">
+                    ${access.department_id ?? "-"}
+                </p>
 
-                        ${renderTypeBadge(access.access_type)}
+            </div>
 
-                    </div>
+        </div>
+
+        <div class="
+            flex items-start justify-between gap-4
+            border-t border-slate-200
+            dark:border-white/10
+            p-5
+        ">
+
+            <div class="min-w-0 flex-1">
+
+                <p class="text-[11px] font-bold uppercase tracking-[.16em] text-slate-500">
+                    Purpose / Notes
+                </p>
+
+                <p class="mt-2 whitespace-normal break-words text-sm leading-7 text-slate-700 dark:text-slate-200">
+                    ${access.keperluan ?? "-"}
+                </p>
+
+            </div>
+
+            <div class="shrink-0">
+
+                <div class="flex items-center gap-2">
+
+                    <span class="text-[11px] font-bold uppercase tracking-[.16em] text-slate-500">
+                        Request Type :
+                    </span>
+
+                    ${renderTypeBadge(access.access_type)}
 
                 </div>
 
@@ -268,14 +160,12 @@ function renderDetailInfo(access) {
         </div>
 
     `);
+
 }
 function renderDetailItems(details = []) {
 
-    const currentUsername =
-        window.authUsername ?? '';
-
-    const currentRole =
-        window.authRole ?? '';
+    const currentUsername = window.authUsername ?? '';
+    const currentRole = window.authRole ?? '';
 
     let rows = "";
 
@@ -283,44 +173,26 @@ function renderDetailItems(details = []) {
 
         const canSeePassword =
             currentUsername === item.created_by ||
-            ['ITHARDWARE', 'ITSOFTWARE']
-                .includes(currentRole);
+            ['ITHARDWARE', 'ITSOFTWARE'].includes(currentRole);
 
         rows += `
 
-            <tr class="
-                border-b border-slate-100
-                dark:border-white/[0.06]
-                align-top
-            ">
+            <tr class="border-b border-slate-100 dark:border-white/10 align-top">
 
-                <td class="px-5 py-4 w-[26%]">
+                <td class="px-4 py-4">
 
                     <div class="space-y-2">
 
-                        <p class="
-                            text-sm font-semibold
-
-                            text-slate-700
-                            dark:text-slate-100
-                        ">
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-100">
                             ${item.access_descr ?? "-"}
                         </p>
 
                         <span class="
-                            inline-flex rounded-lg px-2.5 py-1
-                            text-[11px] font-semibold
-
+                            inline-flex rounded-lg px-2.5 py-1 text-[11px] font-semibold
                             ${
                                 item.group_category === "HARDWARE"
-                                    ? `
-                                        bg-blue-100 text-blue-700
-                                        dark:bg-blue-500/15 dark:text-blue-300
-                                    `
-                                    : `
-                                        bg-emerald-100 text-emerald-700
-                                        dark:bg-emerald-500/15 dark:text-emerald-300
-                                    `
+                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
+                                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
                             }
                         ">
                             ${item.group_category ?? "-"}
@@ -330,101 +202,59 @@ function renderDetailItems(details = []) {
 
                 </td>
 
-                <td class="px-5 py-4 w-[12%]">
-
+                <td class="px-4 py-4">
                     ${buildStatusPill(item.status)}
-
                 </td>
 
-                <td class="px-5 py-4 w-[24%]">
+                <td class="px-4 py-4">
 
                     <div class="
-                        min-h-[72px]
-                        rounded-xl
-
+                        rounded-lg
                         border border-slate-200
-                        dark:border-white/[0.06]
-
+                        dark:border-white/10
                         bg-slate-50
                         dark:bg-white/[0.03]
-
-                        px-4 py-3
+                        px-3 py-2
                     ">
-
-                        <p class="
-                            whitespace-normal
-                            break-words
-
-                            text-sm
-
-                            text-slate-700
-                            dark:text-slate-200
-                        ">
-                            ${item.access_response ?? "-"}
-                        </p>
-
+                        ${item.access_response ?? "-"}
                     </div>
 
                 </td>
 
-                <td class="px-5 py-4 w-[18%]">
+                <td class="px-4 py-4">
 
                     <div class="
-                        rounded-xl
-
+                        rounded-lg
                         border border-slate-200
-                        dark:border-white/[0.06]
-
+                        dark:border-white/10
                         bg-slate-50
                         dark:bg-white/[0.03]
-
-                        px-4 py-3
-
-                        text-sm
-
-                        text-slate-700
-                        dark:text-slate-200
-
+                        px-3 py-2
                         break-all
                     ">
-
                         ${item.access_username ?? "-"}
-
                     </div>
 
                 </td>
 
-                <td class="px-5 py-4 w-[20%]">
+                <td class="px-4 py-4">
 
                     <div class="
-                        rounded-xl
-
+                        rounded-lg
                         border border-slate-200
-                        dark:border-white/[0.06]
-
+                        dark:border-white/10
                         bg-slate-50
                         dark:bg-white/[0.03]
-
-                        px-4 py-3
-
-                        text-sm
-
-                        text-slate-700
-                        dark:text-slate-200
-
+                        px-3 py-2
                         break-all
                     ">
-
                         ${
                             item.access_password
-                                ? (
-                                    canSeePassword
-                                        ? item.access_password
-                                        : '••••••••'
-                                )
-                                : '-'
+                                ? (canSeePassword
+                                    ? item.access_password
+                                    : "••••••••")
+                                : "-"
                         }
-
                     </div>
 
                 </td>
@@ -440,18 +270,8 @@ function renderDetailItems(details = []) {
 
             <tr>
 
-                <td
-                    colspan="5"
-                    class="
-                        px-4 py-10
-                        text-center
-
-                        text-sm
-
-                        text-slate-500
-                        dark:text-slate-400
-                    "
-                >
+                <td colspan="5"
+                    class="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
 
                     No detail item available
 
@@ -464,313 +284,145 @@ function renderDetailItems(details = []) {
 
     $("#detailItemsContainer").html(`
 
-        <div class="
-            overflow-hidden
-            rounded-2xl
+        <div class="overflow-x-auto">
 
-            border border-slate-200
-            dark:border-white/[0.06]
+            <table class="w-full text-sm">
 
-            bg-white
-            dark:bg-[#111c2d]
-
-            shadow-sm
-            dark:shadow-[0_10px_40px_rgba(0,0,0,.25)]
-        ">
-
-            <div class="
-                border-b border-slate-200
-                dark:border-white/[0.06]
-
-                px-5 py-4
-            ">
-
-                <h3 class="
-                    text-sm font-bold uppercase
-                    tracking-wider
-
-                    text-slate-700
-                    dark:text-slate-200
-                ">
-                    Request Detail
-                </h3>
-
-            </div>
-
-            <div class="overflow-x-auto">
-
-                <table class="min-w-full">
-
-                    <thead class="
+                <thead
+                    class="
+                        border-b border-slate-200
                         bg-slate-50
-                        dark:bg-white/[0.02]
+                        text-[11px]
+                        uppercase
+                        tracking-[0.15em]
+                        text-slate-500
+                        dark:border-white/10
+                        dark:bg-white/[0.03]
+                        dark:text-slate-400
                     ">
 
-                        <tr>
+                    <tr>
 
-                            <th class="
-                                px-5 py-3 text-left
-                                text-xs font-semibold uppercase
-                                tracking-wider
+                        <th class="px-4 py-3 text-left font-semibold">
+                            Access Item
+                        </th>
 
-                                text-slate-500
-                                dark:text-slate-500
-                            ">
-                                Access Item
-                            </th>
+                        <th class="px-4 py-3 text-left font-semibold">
+                            Status
+                        </th>
 
-                            <th class="
-                                px-5 py-3 text-left
-                                text-xs font-semibold uppercase
-                                tracking-wider
+                        <th class="px-4 py-3 text-left font-semibold">
+                            Response
+                        </th>
 
-                                text-slate-500
-                                dark:text-slate-500
-                            ">
-                                Status
-                            </th>
+                        <th class="px-4 py-3 text-left font-semibold">
+                            Username
+                        </th>
 
-                            <th class="
-                                px-5 py-3 text-left
-                                text-xs font-semibold uppercase
-                                tracking-wider
+                        <th class="px-4 py-3 text-left font-semibold">
+                            Password
+                        </th>
 
-                                text-slate-500
-                                dark:text-slate-500
-                            ">
-                                Response
-                            </th>
+                    </tr>
 
-                            <th class="
-                                px-5 py-3 text-left
-                                text-xs font-semibold uppercase
-                                tracking-wider
+                </thead>
 
-                                text-slate-500
-                                dark:text-slate-500
-                            ">
-                                Username
-                            </th>
+                <tbody>
 
-                            <th class="
-                                px-5 py-3 text-left
-                                text-xs font-semibold uppercase
-                                tracking-wider
+                    ${rows}
 
-                                text-slate-500
-                                dark:text-slate-500
-                            ">
-                                Password
-                            </th>
+                </tbody>
 
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        ${rows}
-
-                    </tbody>
-
-                </table>
-
-            </div>
+            </table>
 
         </div>
 
     `);
-}
 
+}
 
 function renderDetailAttachments(files = []) {
 
-    let html = `
+    if (!files.length) {
 
-        <div class="
-            rounded-2xl
+        $("#detailAttachmentContainer").html(`
 
-            border border-slate-200
-            dark:border-white/[0.06]
+            <div class="p-5">
 
-            bg-white
-            dark:bg-[#111c2d]
-
-            overflow-hidden
-
-            shadow-sm
-            dark:shadow-[0_10px_40px_rgba(0,0,0,.25)]
-        ">
-
-            <div class="
-                border-b border-slate-200
-                dark:border-white/[0.06]
-
-                px-5 py-4
-            ">
-
-                <h3 class="
-                    text-sm font-bold uppercase
-                    tracking-[.16em]
-
-                    text-slate-700
-                    dark:text-slate-300
+                <div class="
+                    rounded-lg
+                    border border-slate-200
+                    dark:border-white/10
+                    bg-slate-50
+                    dark:bg-white/[0.03]
+                    px-4 py-4
+                    text-sm text-slate-500
+                    dark:text-slate-400
                 ">
-                    Attachment
-                </h3>
+                    No attachment available
+                </div>
 
             </div>
 
-            <div class="space-y-3 p-5">
+        `);
 
-    `;
+        return;
+    }
 
-    if (!files.length) {
+    let html = `<div class="grid grid-cols-1 gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">`;
+
+    files.forEach((file) => {
 
         html += `
 
             <div class="
-                rounded-xl
-
+                flex items-center justify-between gap-3
+                rounded-lg
                 border border-slate-200
-                dark:border-white/[0.06]
-
+                dark:border-white/10
                 bg-slate-50
-                dark:bg-white/[0.02]
-
-                px-4 py-4
-
-                text-sm
-
-                text-slate-500
-                dark:text-slate-400
+                dark:bg-white/[0.03]
+                px-4 py-3
             ">
 
-                No attachment available
+                <div class="flex min-w-0 flex-1 items-center gap-3">
+
+                    <div class="
+                        flex h-10 w-10 items-center justify-center
+                        rounded-lg
+                        border border-slate-200
+                        dark:border-white/10
+                    ">
+                        <i class="fa-regular fa-file"></i>
+                    </div>
+
+                    <div class="truncate text-sm">
+                        ${file.display_name ?? file.filename ?? "-"}
+                    </div>
+
+                </div>
+
+                <a href="${file.url}"
+                   target="_blank"
+                   class="
+                        inline-flex h-9 w-9 items-center justify-center
+                        rounded-lg
+                        border border-slate-200
+                        dark:border-white/10
+                   ">
+                    <i class="fa-solid fa-eye"></i>
+                </a>
 
             </div>
 
         `;
+    });
 
-    } else {
-
-        files.forEach((file) => {
-
-            html += `
-
-                <div class="
-                    flex items-center justify-between
-                    gap-3
-
-                    rounded-xl
-
-                    border border-slate-200
-                    dark:border-white/[0.06]
-
-                    bg-slate-50
-                    dark:bg-white/[0.02]
-
-                    px-4 py-3
-
-                    transition
-                    hover:bg-slate-100
-                    dark:hover:bg-white/[0.04]
-                ">
-
-                    <div class="
-                        flex items-center gap-3
-                        min-w-0 flex-1
-                    ">
-
-                        <div class="
-                            flex h-10 w-10 shrink-0
-                            items-center justify-center
-
-                            rounded-xl
-
-                            border border-slate-200
-                            dark:border-white/[0.06]
-
-                            bg-white
-                            dark:bg-[#0b1525]
-                        ">
-
-                            <i class="
-                                fa-regular fa-file
-
-                                text-slate-500
-                                dark:text-slate-300
-                            "></i>
-
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-
-                            <p class="
-                                truncate
-
-                                text-sm font-medium
-
-                                text-slate-700
-                                dark:text-slate-200
-                            ">
-
-                                ${file.display_name ?? file.filename ?? "-"}
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    <a
-                        href="${file.url}"
-                        target="_blank"
-                        class="
-                            inline-flex h-9 w-9 shrink-0
-                            items-center justify-center
-
-                            rounded-xl
-
-                            border border-slate-200
-                            dark:border-white/[0.06]
-
-                            bg-white
-                            dark:bg-[#0b1525]
-
-                            text-slate-600
-                            dark:text-slate-300
-
-                            transition
-
-                            hover:bg-slate-100
-                            dark:hover:bg-white/[0.06]
-                        "
-                    >
-
-                        <i class="
-                            fa-solid fa-eye text-xs
-                        "></i>
-
-                    </a>
-
-                </div>
-
-            `;
-        });
-    }
-
-    html += `
-
-            </div>
-
-        </div>
-
-    `;
+    html += `</div>`;
 
     $("#detailAttachmentContainer").html(html);
-}
 
+}
 // function renderDiscussionSection(access) {
 
 //     $("#detailDiscussionContainer").html(`
@@ -1346,128 +998,125 @@ function formatActivityType(type) {
     }
 }
 function renderDetailActivity(activities = []) {
-    let html = `
-        <div class="rounded-lg border border-slate-200 bg-white">
-
-            <div class="border-b border-slate-200 px-5 py-4">
-
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700">
-                    Activity Timeline
-                </h3>
-
-            </div>
-
-            <div class="space-y-4 p-5">
-    `;
 
     if (!activities.length) {
-        html += `
-            <div class="
-                rounded-lg border border-slate-200
-                bg-slate-50 px-4 py-5
-                text-center text-sm text-slate-500
-            ">
-                No activity available
-            </div>
-        `;
-    } else {
-        activities.forEach((activity, index) => {
-            html += `
-                <div class="relative flex gap-4">
 
-                    <div class="flex flex-col items-center">
+        $("#detailActivityContainer").html(`
 
-                        <div class="
-                            flex h-9 w-9 items-center justify-center
-                            rounded-full
-                            ${
-                                activity.status === "A"
-                                    ? "bg-emerald-100 text-emerald-600"
-                                    : activity.status === "R"
-                                    ? "bg-red-100 text-red-600"
-                                    : activity.status === "D"
-                                        ? "bg-amber-100 text-amber-600"
-                                        : "bg-slate-100 text-slate-500"
-                            }
-                        ">
-                            <i class="fa-solid fa-user-check text-xs"></i>
-                        </div>
+            <div class="p-5">
 
-                        ${
-                            index !== activities.length - 1
-                                ? `
-                                    <div class="
-                                        mt-1 min-h-[42px]
-                                        w-px bg-slate-200
-                                    "></div>
-                                `
-                                : ""
-                        }
-
-                    </div>
-
-                    <div class="min-w-0 flex-1 pb-2">
-
-                        <p class="
-                            mb-1 text-[11px]
-                            font-bold uppercase tracking-wider
-                            text-slate-400
-                        ">
-                            ${formatActivityType(activity.type)}
-                        </p>
-
-                        <div class="
-                            flex items-start justify-between gap-3
-                        ">
-
-                            <div>
-
-                                <p class="
-                                    text-sm font-semibold text-slate-700
-                                ">
-                                    ${activity.user ?? "-"}
-                                </p>
-
-                                <p class="
-                                    mt-1 text-xs text-slate-400
-                                ">
-                                    ${formatDate(activity.date)}
-                                </p>
-
-                            </div>
-
-                            ${buildStatusPill(activity.status)}
-
-                        </div>
-
-                        ${
-                            activity.remark
-                                ? `
-                                    <div class="
-                                        mt-3 rounded-lg
-                                        border border-slate-200
-                                        bg-slate-50 px-3 py-2
-                                        text-sm text-slate-600
-                                    ">
-                                        ${activity.remark}
-                                    </div>
-                                `
-                                : ""
-                        }
-
-                    </div>
-
+                <div class="
+                    rounded-lg
+                    border border-slate-200
+                    dark:border-white/10
+                    bg-slate-50
+                    dark:bg-white/[0.03]
+                    px-4 py-5
+                    text-center
+                    text-sm
+                    text-slate-500
+                ">
+                    No activity available
                 </div>
-            `;
-        });
+
+            </div>
+
+        `);
+
+        return;
     }
 
-    html += `
+    let html = `<div class="space-y-4 p-5">`;
+
+    activities.forEach((activity, index) => {
+
+        html += `
+
+            <div class="relative flex gap-4">
+
+                <div class="flex flex-col items-center">
+
+                    <div class="
+                        flex h-9 w-9 items-center justify-center rounded-full
+                        ${
+                            activity.status === "A"
+                                ? "bg-emerald-100 text-emerald-600"
+                                : activity.status === "R"
+                                ? "bg-red-100 text-red-600"
+                                : activity.status === "D"
+                                ? "bg-amber-100 text-amber-600"
+                                : "bg-slate-100 text-slate-500"
+                        }
+                    ">
+                        <i class="fa-solid fa-user-check text-xs"></i>
+                    </div>
+
+                    ${
+                        index !== activities.length - 1
+                            ? `<div class="mt-1 min-h-[42px] w-px bg-slate-200 dark:bg-white/10"></div>`
+                            : ""
+                    }
+
+                </div>
+
+                <div class="min-w-0 flex-1 pb-2">
+
+                    <p class="
+                        mb-1 text-[11px]
+                        font-bold uppercase tracking-wider
+                        text-slate-400
+                    ">
+                        ${formatActivityType(activity.type)}
+                    </p>
+
+                    <div class="flex items-start justify-between gap-3">
+
+                        <div>
+
+                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-100">
+                                ${activity.user ?? "-"}
+                            </p>
+
+                            <p class="mt-1 text-xs text-slate-400">
+                                ${formatDate(activity.date)}
+                            </p>
+
+                        </div>
+
+                        ${buildStatusPill(activity.status)}
+
+                    </div>
+
+                    ${
+                        activity.remark
+                            ? `
+                                <div class="
+                                    mt-3
+                                    rounded-lg
+                                    border border-slate-200
+                                    dark:border-white/10
+                                    bg-slate-50
+                                    dark:bg-white/[0.03]
+                                    px-3 py-2
+                                    text-sm
+                                ">
+                                    ${activity.remark}
+                                </div>
+                            `
+                            : ""
+                    }
+
+                </div>
+
             </div>
-        </div>
-    `;
+
+        `;
+    });
+
+    html += `</div>`;
 
     $("#detailActivityContainer").html(html);
+
 }
 function renderDetailLoading() {
 
@@ -1500,11 +1149,21 @@ function renderDetailActions(access) {
 
     if (!access.can_approve) {
 
-        $("#detailActionContainer").html("");
+            $("#detailActionCard").addClass("hidden");
+            $("#detailActionContainer").html("");
 
-        return;
+            return;
+        }
 
-    }
+        $("#detailActionCard").removeClass("hidden");
+
+        $("#detailActionContainer").html(`
+            <div class="grid grid-cols-3 gap-2">
+
+                ...
+
+            </div>
+        `);
 
     let html = `
         <div class="grid grid-cols-3 gap-2">

@@ -655,7 +655,8 @@ function buildTicketActions(row) {
         row.status === 'P' &&
         [
             'RESPONSE',
-            'PENDING'
+            'PENDING',
+            'REOPEN',
         ].includes(row.status_pekerjaan) &&
         row.pic_ticket === window.currentUser
     ) {

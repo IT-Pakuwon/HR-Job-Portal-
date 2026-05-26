@@ -502,7 +502,7 @@
                 class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
 
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 bdark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="bdark:border-white/10 sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:bg-[#0f172a]/90">
 
                     <div class="min-w-0">
 
@@ -687,40 +687,59 @@
                             </div>
 
                             {{-- COMMENTS --}}
-                            <div id="commentSection"
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            <div id="discussionFab" class="fixed bottom-6 right-6 z-[10001] hidden">
 
-                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                                <button type="button"
+                                    class="relative flex h-14 w-14 items-center justify-center rounded-lg bg-slate-900 text-white shadow-2xl transition hover:scale-105 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
 
-                                    <h3
-                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                    <i class="fa-solid fa-comments text-lg"></i>
 
-                                        Comments
+                                </button>
 
-                                    </h3>
+                            </div>
+
+                            <div id="discussionPanel"
+                                class="fixed bottom-24 right-6 z-[10001] hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div
+                                    class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
+
+                                    <div>
+
+                                        <h3
+                                            class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                            Discussion
+                                        </h3>
+
+                                    </div>
+
+                                    <button type="button" id="btnCloseDiscussion">
+
+                                        <i class="fa-solid fa-xmark"></i>
+
+                                    </button>
 
                                 </div>
 
-                                <div class="p-5">
+                                <div id="discussionMessages"
+                                    class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]">
+                                </div>
 
-                                    <div id="show_comments" class="max-h-[260px] space-y-3 overflow-y-auto pr-1">
+                                <div class="border-t border-slate-200 p-3 dark:border-white/10">
+
+                                    <div class="flex items-end gap-2">
+
+                                        <textarea id="discussionInput" rows="1" placeholder="Write message..." class="flex-1 rounded-lg">
+                                        </textarea>
+
+                                        <button type="button" id="btnSendDiscussion"
+                                            class="h-11 w-11 rounded-lg bg-slate-900 text-white">
+
+                                            <i class="fa-solid fa-paper-plane"></i>
+
+                                        </button>
+
                                     </div>
-
-                                    <div class="mt-4">
-
-                                        <textarea id="comment_message" rows="2" placeholder="Write comment..."
-                                            class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-white dark:focus:border-blue-500"></textarea>
-
-                                    </div>
-
-                                    <button type="button" id="btnSubmitComment"
-                                        class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
-
-                                        <i class="fa-solid fa-paper-plane text-xs"></i>
-
-                                        Submit Comment
-
-                                    </button>
 
                                 </div>
 

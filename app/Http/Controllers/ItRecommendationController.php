@@ -1337,8 +1337,21 @@ public function deleteAttachment(TrAttachment $attachment)
 
         $header = TrItrecommend::findOrFail($id);
 
-        $user = auth()->user();
+        $ticketHash = null;
 
+        if ($header->ticketnbr) {
+            $ticket = TrTicket::query()
+                ->where('ticketid', $header->ticketnbr)
+                ->first();
+
+            if ($ticket) {
+                $ticketHash = Hashids::encode($ticket->id);
+            }
+        }
+
+        $header->ticket_hash = $ticketHash;
+
+        $user = auth()->user();
         /*
         |--------------------------------------------------------------------------
         | ACCESS VALIDATION
@@ -1915,10 +1928,13 @@ public function deleteAttachment(TrAttachment $attachment)
         }
     }
 
-    public function comments($docid)
+    public function comments($hash)
     {
-        $header = TrItrecommend::where('docid', $docid)
-            ->firstOrFail();
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $header = TrItrecommend::findOrFail($id);
 
         $comments = TrMessage::query()
             ->where('refnbr', $header->docid)
