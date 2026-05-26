@@ -531,7 +531,7 @@ class IFCAAPIPOController extends Controller
                 $divDeptMap = collect();
                 if (!empty($needOverrideKeys)) {
                     $divDeptMap = StagingIfcaMappingDivDept::query()
-                        ->select(['id', 'entity_cd', 'acct_type', 'div_cd', 'dept_cd'])
+                        ->select(['id', 'entity_cd', 'acct_type', 'acct_cd', 'div_cd', 'dept_cd']) // ← tambah acct_cd
                         ->where('status', 'A')
                         ->whereIn(DB::raw("(entity_cd || '||' || acct_type)"), $needOverrideKeys)
                         ->orderByDesc('id')
@@ -586,6 +586,7 @@ class IFCAAPIPOController extends Controller
                             if ($override) {
                                 $divCd  = $this->s($override->div_cd ?? $divCd, 20);
                                 $deptCd = $this->s($override->dept_cd ?? $deptCd, 8);
+                                $acctCd = $this->s($override->acct_cd ?? $acctCd, 20);                             
                             }
                         }
 
