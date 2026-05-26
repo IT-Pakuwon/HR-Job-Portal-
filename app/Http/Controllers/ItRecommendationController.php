@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Mail;
 use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\TrAttachmentController;
+use Carbon\Carbon;
 class ItRecommendationController extends Controller
 {
     use HasAutonbr;
@@ -1215,6 +1216,19 @@ public function deleteAttachment(TrAttachment $attachment)
 
             $header->save();
 
+            TrMessage::create([
+                'refnbr'         => $header->docid,
+                'doctype'        => $this->doctype,
+                'message_date'   => now(),
+                'cpny_id'        => $header->cpny_id,
+                'department_id'  => $header->department_id,
+                'username'       => auth()->user()->username,
+                'name'           => auth()->user()->name,
+                'message'        => $request->note,
+                'status'         => 'I',
+                'created_by'     => auth()->user()->username,
+            ]);
+
             DB::connection('pgsql5')->commit();
 
             $this->notifyRequester(
@@ -1640,19 +1654,18 @@ public function deleteAttachment(TrAttachment $attachment)
         */
 
         if ($header->recommend_pic) {
+
             $processDate = TrApproval::query()
                 ->where('refnbr', $header->docid)
                 ->where('status', '!=', 'X')
-                ->min('created_at');
-
-            $processDate = $processDate
-                ? \Carbon\Carbon::parse($processDate)
-                : $header->updated_at;
+                ->min('aprv_datebefore');
 
             $push(
                 'IT Review',
                 $header->recommend_pic,
-                $processDate,
+                $processDate
+                    ? Carbon::parse($processDate)
+                    : $header->updated_at,
                 'IT',
                 'Processed',
                 null,
@@ -1666,64 +1679,56 @@ public function deleteAttachment(TrAttachment $attachment)
         |--------------------------------------------------------------------------
         */
 
-        $approvals = TrApproval::query()
+       $approvals = TrApproval::query()
             ->where('refnbr', $header->docid)
             ->where('status', '!=', 'X')
-            ->orderBy('id')
+            ->orderByRaw('CAST(aprv_leveling AS NUMERIC)')
             ->get();
 
         foreach ($approvals as $row) {
-            /*
-            |--------------------------------------------------------------------------
-            | WAITING APPROVAL
-            |--------------------------------------------------------------------------
-            */
 
-            if ($row->status === 'P') {
+            if ($row->status === 'A') {
+
                 $push(
-                    'Waiting Approval',
+                    'Approved',
                     $row->aprv_username,
-                    $row->created_at,
-                    'P',
-                    'Waiting Approval',
-                    null,
+                    $row->aprv_dateafter
+                        ? Carbon::parse($row->aprv_dateafter)
+                        : null,
+                    'A',
+                    'Approved',
+                    $row->aprv_purpose,
                     5
                 );
 
                 continue;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | APPROVED
-            |--------------------------------------------------------------------------
-            */
+            if ($row->status === 'P') {
 
-            if ($row->status === 'A') {
                 $push(
-                    'Approved',
+                    'Waiting Approval',
                     $row->aprv_username,
-                    $row->updated_at,
-                    'A',
-                    'Approved',
-                    $row->aprv_purpose,
+                    $row->aprv_datebefore
+                        ? Carbon::parse($row->aprv_datebefore)
+                        : null,
+                    'P',
+                    'Waiting Approval',
+                    null,
                     6
                 );
 
                 continue;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | REVISION REQUESTED
-            |--------------------------------------------------------------------------
-            */
-
             if ($row->status === 'D') {
+
                 $push(
                     'Revision Requested',
                     $row->aprv_username,
-                    $row->updated_at,
+                    $row->aprv_dateafter
+                        ? Carbon::parse($row->aprv_dateafter)
+                        : $row->updated_at,
                     'D',
                     'Revision Requested',
                     $row->aprv_purpose,
@@ -1733,17 +1738,14 @@ public function deleteAttachment(TrAttachment $attachment)
                 continue;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | REJECTED
-            |--------------------------------------------------------------------------
-            */
-
             if ($row->status === 'R') {
+
                 $push(
                     'Rejected',
                     $row->aprv_username,
-                    $row->updated_at,
+                    $row->aprv_dateafter
+                        ? Carbon::parse($row->aprv_dateafter)
+                        : $row->updated_at,
                     'R',
                     'Rejected',
                     $row->aprv_purpose,
@@ -1837,7 +1839,6 @@ public function deleteAttachment(TrAttachment $attachment)
             ->map(function ($row) {
                 unset($row['raw_date']);
                 unset($row['sort_order']);
-
                 return $row;
             })
             ->toArray();

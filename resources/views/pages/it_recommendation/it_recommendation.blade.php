@@ -524,9 +524,6 @@
 
                     <div class="flex items-center gap-2">
 
-                        <div id="show_header_actions" class="flex flex-wrap items-center gap-2">
-                        </div>
-
                         <button id="btnCloseShowModal" type="button"
                             class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
@@ -540,7 +537,7 @@
 
                 <div class="flex-1 overflow-y-auto">
 
-                    <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-4">
+                    <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-5">
 
                         <div class="space-y-5 lg:col-span-3">
 
@@ -664,7 +661,19 @@
 
                         </div>
 
-                        <div class="space-y-5 lg:col-span-1">
+                        <div class="space-y-5 lg:col-span-2">
+                            <div id="show_actions_card"
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                                    <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                        Actions
+                                    </h3>
+                                </div>
+
+                                <div id="show_header_actions" class=" p-2"></div>
+                            </div>
+
 
                             {{-- TIMELINE --}}
                             <div
@@ -1372,414 +1381,106 @@
 
         </div>
 
-<div
-    id="attachmentModal"
-    class="
-        fixed inset-0
+        <div id="attachmentModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
-        z-[9999]
-
-        hidden
-
-        items-center
-        justify-center
-
-        p-4
-    "
->
-
-    <div
-        class="
-            modal-backdrop
-
-            absolute inset-0
-
-            bg-slate-900/60
-        "
-    ></div>
-
-    <div
-        class="
-            relative z-10
-
-            flex
-            max-h-[90vh]
-            w-full
-            max-w-3xl
-            flex-col
-
-            overflow-hidden
-
-            rounded-2xl
-
-            border border-slate-200
-            dark:border-white/10
-
-            bg-white
-            dark:bg-[#0f172a]
-
-            shadow-[0_30px_80px_rgba(0,0,0,0.35)]
-        "
-    >
-
-        <div
-            class="
-                flex
-                items-center
-                justify-between
-
-                border-b
-                border-slate-200
-                dark:border-white/10
-
-                px-6 py-4
-            "
-        >
-
-            <div>
-
-                <h3
-                    class="
-                        text-lg
-                        font-semibold
-
-                        text-slate-800
-                        dark:text-white
-                    "
-                >
-                    Upload Attachment
-                </h3>
-
-                <p
-                    class="
-                        mt-1
-
-                        text-sm
-
-                        text-slate-500
-                        dark:text-slate-400
-                    "
-                >
-                    Upload supporting documents, photos or files
-                    (maximum 5 MB per file)
-                </p>
-
-            </div>
-
-            <button
-                type="button"
-
-                class="
-                    btn-close-attachment-modal
-
-                    inline-flex
-                    h-9 w-9
-
-                    items-center
-                    justify-center
-
-                    rounded-lg
-
-                    text-slate-500
-
-                    transition-all
-                    duration-200
-
-                    hover:bg-slate-100
-                    dark:hover:bg-white/10
-                "
-            >
-
-                <i class="fa-solid fa-xmark"></i>
-
-            </button>
-
-        </div>
-
-        <div
-            class="
-                flex-1
-
-                overflow-y-auto
-
-                p-6
-            "
-        >
-
-            <input
-                type="hidden"
-                id="attachment_hash"
-            >
-
-            <label
-                for="attachment_files"
-
-                class="
-                    group
-
-                    relative
-
-                    flex
-                    cursor-pointer
-                    flex-col
-
-                    items-center
-                    justify-center
-
-                    overflow-hidden
-
-                    rounded-2xl
-
-                    border-2
-                    border-dashed
-
-                    border-indigo-200
-                    dark:border-indigo-500/30
-
-                    bg-gradient-to-br
-                    from-indigo-50
-                    via-white
-                    to-slate-50
-
-                    dark:from-indigo-500/10
-                    dark:via-[#0f172a]
-                    dark:to-[#111827]
-
-                    px-6 py-12
-
-                    transition-all
-                    duration-300
-
-                    hover:border-indigo-400
-                    hover:shadow-lg
-                    hover:shadow-indigo-500/10
-                "
-            >
-
-                <div
-                    class="
-                        mb-5
-
-                        flex
-                        h-16 w-16
-
-                        items-center
-                        justify-center
-
-                        rounded-2xl
-
-                        bg-indigo-100
-                        dark:bg-indigo-500/15
-
-                        text-indigo-600
-                        dark:text-indigo-300
-
-                        transition-transform
-                        duration-300
-
-                        group-hover:scale-110
-                    "
-                >
-
-                    <i
-                        class="
-                            fa-solid
-                            fa-cloud-arrow-up
-
-                            text-2xl
-                        "
-                    ></i>
-
-                </div>
-
-                <p
-                    class="
-                        text-base
-                        font-semibold
-
-                        text-slate-800
-                        dark:text-white
-                    "
-                >
-                    Upload Attachment
-                </p>
-
-                <p
-                    class="
-                        mt-2
-
-                        text-sm
-
-                        text-slate-500
-                        dark:text-slate-400
-                    "
-                >
-                    Click here to browse files
-                </p>
-
-                <p
-                    class="
-                        mt-1
-
-                        text-xs
-
-                        text-slate-400
-                    "
-                >
-                    Maximum 5 MB per file
-                </p>
-
-            </label>
-
-            <input
-                type="file"
-
-                id="attachment_files"
-
-                multiple
-
-                class="hidden"
-            >
+            <div class="modal-backdrop absolute inset-0 bg-slate-900/60"></div>
 
             <div
-                id="attachmentPreview"
-
-                class="
-                    mt-6
-
-                    grid
-                    gap-3
-
-                    rounded-xl
-
-                    bg-slate-50/70
-                    dark:bg-white/[0.02]
-
-                    p-3
-                "
-            >
+                class="relative z-10 flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.35)] dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="
-                        rounded-xl
+                    class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-white/10">
 
-                        border border-dashed
-                        border-slate-200
-                        dark:border-white/10
+                    <div>
 
-                        px-4 py-8
+                        <h3 class="text-lg font-semibold text-slate-800 dark:text-white">
+                            Upload Attachment
+                        </h3>
 
-                        text-center
-                        text-sm
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            Upload supporting documents, photos or files
+                            (maximum 5 MB per file)
+                        </p>
 
-                        text-slate-400
-                    "
-                >
-                    No attachments
+                    </div>
+
+                    <button type="button"
+                        class="btn-close-attachment-modal inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-white/10">
+
+                        <i class="fa-solid fa-xmark"></i>
+
+                    </button>
+
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-6">
+
+                    <input type="hidden" id="attachment_hash">
+
+                    <label for="attachment_files"
+                        class="group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-slate-50 px-6 py-12 transition-all duration-300 hover:border-indigo-400 hover:shadow-lg hover:shadow-indigo-500/10 dark:border-indigo-500/30 dark:from-indigo-500/10 dark:via-[#0f172a] dark:to-[#111827]">
+
+                        <div
+                            class="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 transition-transform duration-300 group-hover:scale-110 dark:bg-indigo-500/15 dark:text-indigo-300">
+
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+
+                        </div>
+
+                        <p class="text-base font-semibold text-slate-800 dark:text-white">
+                            Upload Attachment
+                        </p>
+
+                        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                            Click here to browse files
+                        </p>
+
+                        <p class="mt-1 text-xs text-slate-400">
+                            Maximum 5 MB per file
+                        </p>
+
+                    </label>
+
+                    <input type="file" id="attachment_files" multiple class="hidden">
+
+                    <div id="attachmentPreview"
+                        class="mt-6 grid gap-3 rounded-xl bg-slate-50/70 p-3 dark:bg-white/[0.02]">
+
+                        <div
+                            class="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-400 dark:border-white/10">
+                            No attachments
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.02]">
+
+                    <button type="button"
+                        class="btn-close-attachment-modal inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition-all hover:bg-slate-100 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">
+
+                        <i class="fa-solid fa-xmark"></i>
+
+                        Cancel
+
+                    </button>
+
+                    <button type="button" id="btnUploadAttachment"
+                        class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/30">
+
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+
+                        Upload Attachment
+
+                    </button>
+
                 </div>
 
             </div>
 
         </div>
-
-        <div
-            class="
-                flex
-                items-center
-                justify-end
-                gap-3
-
-                border-t
-                border-slate-200
-                dark:border-white/10
-
-                bg-slate-50
-                dark:bg-white/[0.02]
-
-                px-6 py-4
-            "
-        >
-
-            <button
-                type="button"
-
-                class="
-                    btn-close-attachment-modal
-
-                    inline-flex
-                    items-center
-                    gap-2
-
-                    rounded-xl
-
-                    border
-                    border-slate-200
-                    dark:border-white/10
-
-                    px-4 py-2.5
-
-                    text-sm
-                    font-medium
-
-                    text-slate-700
-                    dark:text-slate-300
-
-                    transition-all
-
-                    hover:bg-slate-100
-                    dark:hover:bg-white/5
-                "
-            >
-
-                <i class="fa-solid fa-xmark"></i>
-
-                Cancel
-
-            </button>
-
-            <button
-                type="button"
-
-                id="btnUploadAttachment"
-
-                class="
-                    inline-flex
-                    items-center
-                    gap-2
-
-                    rounded-xl
-
-                    bg-indigo-600
-
-                    px-5 py-2.5
-
-                    text-sm
-                    font-semibold
-
-                    text-white
-
-                    shadow-sm
-
-                    transition-all
-                    duration-200
-
-                    hover:bg-indigo-700
-                    hover:shadow-lg
-                    hover:shadow-indigo-500/30
-                "
-            >
-
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-
-                Upload Attachment
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
 
     </div>
 

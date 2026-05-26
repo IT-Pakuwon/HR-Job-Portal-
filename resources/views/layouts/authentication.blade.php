@@ -7,45 +7,80 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Pakuwon System') }}</title>
-    <!-- Favicon icon -->
+
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/Logo Pakuwon.png') }}">
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" rel="stylesheet" />
 
-    <!-- Scripts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Styles -->
     @livewireStyles
 
     <script>
         if (localStorage.getItem('dark-mode') === 'false' || !('dark-mode' in localStorage)) {
-            document.querySelector('html').classList.remove('dark');
-            document.querySelector('html').style.colorScheme = 'light';
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
         } else {
-            document.querySelector('html').classList.add('dark');
-            document.querySelector('html').style.colorScheme = 'dark';
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
         }
     </script>
 </head>
 
-<body class="font-inter bg-gray-100 text-gray-600 antialiased dark:bg-gray-900 dark:text-gray-400">
-    <main class="bg-gray/50 dark:bg-gray-900">
-        <div class="relative flex">
-            <div class="w-full">
-                <div class="flex h-full min-h-[100dvh] flex-col items-center justify-center">
-                    <div class="mx-auto w-full max-w-2xl px-4 py-8">
-                        {{ $slot }}
-                    </div>
-                </div>
-            </div>
+<body class="font-inter antialiased">
+
+    <main
+        class="relative min-h-screen overflow-hidden"
+        style="
+            background:
+            radial-gradient(circle at center,
+                rgba(255,255,255,.28) 0%,
+                rgba(255,255,255,.12) 20%,
+                rgba(255,255,255,.04) 35%,
+                rgba(0,0,0,0) 60%),
+            linear-gradient(
+                135deg,
+                #8b1d17 0%,
+                #7a1714 35%,
+                #6b1312 100%
+            );
+        ">
+
+        {{-- Top glow --}}
+        <div
+            class="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-white/15 blur-[180px]">
         </div>
+
+        {{-- Left glow --}}
+        <div
+            class="pointer-events-none absolute left-0 top-1/2 h-[900px] w-[900px] -translate-y-1/2 rounded-full bg-white/10 blur-[220px]">
+        </div>
+
+        {{-- Right glow --}}
+        <div
+            class="pointer-events-none absolute right-0 top-1/2 h-[900px] w-[900px] -translate-y-1/2 rounded-full bg-white/10 blur-[220px]">
+        </div>
+
+        {{-- Bottom glow --}}
+        <div
+            class="pointer-events-none absolute bottom-0 left-1/2 h-[400px] w-[800px] -translate-x-1/2 rounded-full bg-white/5 blur-[180px]">
+        </div>
+
+        {{-- Main Content --}}
+        <div class="relative flex min-h-screen items-center justify-center p-3 md:p-6 lg:p-8">
+
+            {{ $slot }}
+
+        </div>
+
     </main>
 
     @livewireScriptConfig
+
 </body>
 
 </html>
