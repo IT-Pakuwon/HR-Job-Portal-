@@ -2123,6 +2123,7 @@ class MasterController extends Controller
         // Ambil semua vendor (atau tambahkan where status = 'A' dll.)
         return response()->json(
             MsVendor::select('id','vendor_id', 'vendor_name', 'contact_person', 'phone_number', 'vendor_addr1')
+                  ->where('status', 'A') // hilangkan baris ini kalau tak perlu filter      
                   ->orderBy('vendor_name')
                   ->get()
         );

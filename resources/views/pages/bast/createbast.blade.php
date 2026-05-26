@@ -164,6 +164,7 @@
                     </div>
 
                     {{-- ===== Photo After ===== --}}
+                    {{-- @if (empty($isPkRequest)) --}}
                     <div class="flex w-full flex-col gap-2 rounded-xl border-b bg-white dark:bg-gray-800">
                         <div class="flex w-1/2 w-full flex-col border-b p-4">
                             <details class="group mb-4" open>
@@ -201,6 +202,7 @@
                             </details>
                         </div>
                     </div>
+                    {{-- @endif --}}
 
                     <!-- Modal Lokasi -->
                     <div id="modalLokasi" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
@@ -320,6 +322,8 @@
     {{-- ===== Submit (tanpa validasi qty) ===== --}}
     <script>
         $(function() {
+            const isPkRequest = @json($isPkRequest);
+
             function clearFormErrors() {
                 $('#bastForm .is-invalid').removeClass('is-invalid').removeAttr('aria-invalid');
                 $('#bastForm .error-feedback').remove();
@@ -364,12 +368,14 @@
 
                 // === VALIDASI PHOTO AFTER minimal 1 foto ===
                 const photoCount = $('#hiddenInputs input[type="file"][name="attachments[]"]').length;
-                if (photoCount < 1) {
+
+                if (!isPkRequest && photoCount < 1) {
                     toastr.error('Minimal 1 Photo After wajib diupload.');
-                    // tampilkan error visual pada tile Add Photo
+
                     $('#addAttachmentTile')
                         .addClass('is-invalid')
                         .after('<small class="error-feedback">Minimal 1 foto wajib diupload.</small>');
+
                     return;
                 }
 

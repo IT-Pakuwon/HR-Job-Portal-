@@ -28,6 +28,8 @@ use App\Models\TrPOdetail;
 use App\Models\TrRfca;
 use App\Models\TrRfcaStep;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\MsPurchSetting;
+use Illuminate\Support\Facades\Schema;
 
 
 class CalrController extends Controller
@@ -207,6 +209,8 @@ class CalrController extends Controller
                 $ctx,
                 $dt
             );
+
+            $this->applyFastApproveForCalr($header->calrid, $username, $dt);
 
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -647,8 +651,12 @@ class CalrController extends Controller
         $doctype = 'CA';
 
         $calr = \App\Models\TrCalr::with('creator')->where('calrid', $docid)->first();
+
         if (!$calr) {
-            return response()->json(['success' => false, 'message' => 'CALR not found'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'CALR not found'
+            ], 404);
         }
 
         $eid      = \Vinkla\Hashids\Facades\Hashids::encode($calr->id);
@@ -661,13 +669,18 @@ class CalrController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl, $user) {
 
-                // update status CALR
+                // update status CALR menjadi Reject
                 $calr->status       = 'R';
-                $calr->completed_by = auth()->user()->username;
+                $calr->completed_by = $user->username;
                 $calr->completed_at = $now;
+                $calr->updated_by   = $user->username;
+                $calr->updated_at   = $now;
                 $calr->save();
+
+                // release RFCA supaya bisa create CALR ulang
+                $this->releaseRfcaCalr($calr, $user->username, $now);
 
                 // optional: tandai detail R
                 // \App\Models\TrCalrdetail::where('calrid', $calr->calrid)->update(['status' => 'R']);
@@ -690,7 +703,7 @@ class CalrController extends Controller
                     ]
                 );
 
-                // simpan komentar (jika ada)
+                // simpan komentar jika ada
                 try {
                     app(\App\Http\Controllers\SendCommentController::class)
                         ->sendmsg($calr->id, 'CA', request());
@@ -1049,6 +1062,8 @@ class CalrController extends Controller
                 $dt
             );
 
+            $this->applyFastApproveForCalr($calr->calrid, $username, $dt);
+
             // === upload attachment baru (opsional) ===
             if ($request->hasFile('attachments')) {
                 $meta = [
@@ -1084,6 +1099,182 @@ class CalrController extends Controller
         }
     }
 
+    private function applyFastApproveForCalr(string $calrid, string $username, \Carbon\Carbon $dt): bool
+    {
+        // 1) Ambil setting fast approve CALR
+        $setting = MsPurchSetting::query()
+            ->where('setting_id', 'FASTAPPROVCALR')
+            ->where('status', 'A')
+            ->first([
+                'setting_value_string',
+                'setting_value_int',
+            ]);
+
+        if (!$setting) {
+            return false;
+        }
+
+        $fastApproveRfcaType = trim((string) ($setting->setting_value_string ?? ''));
+
+        if ($fastApproveRfcaType === '') {
+            return false;
+        }
+
+        $fastApproveLevel = $setting->setting_value_int;
+
+        if ($fastApproveLevel === null || $fastApproveLevel === '') {
+            return false;
+        }
+
+        $fastApproveLevel = (float) $fastApproveLevel;
+
+        // 2) Ambil CALR
+        $calr = TrCalr::query()
+            ->where('calrid', $calrid)
+            ->first([
+                'calrid',
+                'rfca_type',
+            ]);
+
+        if (!$calr) {
+            return false;
+        }
+
+        // 3) Cek rfca_type CALR harus sama dengan setting_value_string
+        // Contoh: rfca_type = RFP dan setting_value_string = RFP
+        if (strtoupper((string) $calr->rfca_type) !== strtoupper($fastApproveRfcaType)) {
+            return false;
+        }
+
+        // 4) Update approval level >= setting_value_int menjadi X
+        $q = TrApproval::query()
+            ->where('refnbr', $calrid)
+            ->whereRaw('CAST(aprv_leveling AS numeric) >= ?', [$fastApproveLevel]);
+
+        $payload = [
+            'status' => 'X',
+        ];
+
+        $approvalTable = (new TrApproval())->getTable();
+
+        if (Schema::connection('pgsql')->hasColumn($approvalTable, 'updated_by')) {
+            $payload['updated_by'] = $username;
+        }
+
+        if (Schema::connection('pgsql')->hasColumn($approvalTable, 'updated_at')) {
+            $payload['updated_at'] = $dt;
+        }
+
+        $q->update($payload);
+
+        return true;
+    }
+
+    public function cancelCalr(Request $request, string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+
+        if (empty($decoded)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hash CALR tidak valid.',
+            ], 422);
+        }
+
+        $calrId = (int) $decoded[0];
+
+        $user = Auth::user();
+        $username = $user->username ?? 'system';
+        $dt = Carbon::now('Asia/Jakarta');
+
+        DB::beginTransaction();
+
+        try {
+            $calr = TrCalr::query()
+                ->where('id', $calrId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$calr) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data CALR tidak ditemukan.',
+                ], 404);
+            }
+
+            if (in_array($calr->status, ['X', 'C'], true)) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $calr->status === 'X'
+                        ? 'CALR ini sudah di-cancel.'
+                        : 'CALR yang sudah completed tidak bisa di-cancel.',
+                ], 422);
+            }
+
+            // 1) Update CALR menjadi Cancel
+            $calr->status = 'X';
+            $calr->updated_by = $username;
+            $calr->updated_at = $dt;
+            $calr->save();
+
+            // 2) Kosongkan calrid di RFCA supaya bisa create CALR ulang
+            TrRfca::query()
+                ->where('rfcaid', $calr->rfcaid)
+                ->where('ponbr', $calr->ponbr)
+                ->where('calrid', $calr->calrid)
+                ->update([
+                    'calrid'     => null,
+                    'calr_date'  => null,
+                    'updated_by' => $username,
+                    'updated_at' => $dt,
+                ]);
+
+            // 3) Tutup approval CALR yang masih pending
+            TrApproval::query()
+                ->where('refnbr', $calr->calrid)
+                ->where('status', 'P')
+                ->update([
+                    'status'     => 'X',
+                    'updated_by' => $username,
+                    'updated_at' => $dt,
+                ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'CALR berhasil di-cancel dan RFCA sudah bisa dibuat CALR kembali.',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal cancel CALR.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function releaseRfcaCalr(TrCalr $calr, string $username, \Carbon\Carbon $dt): void
+    {
+        // Kosongkan calrid di RFCA supaya bisa create CALR ulang
+        TrRfca::query()
+            ->where('rfcaid', $calr->rfcaid)
+            ->where('ponbr', $calr->ponbr)
+            ->where('calrid', $calr->calrid)
+            ->update([
+                'calrid'     => null,
+                'calr_date'  => null,
+                'updated_by' => $username,
+                'updated_at' => $dt,
+            ]);
+    }
     
 
     

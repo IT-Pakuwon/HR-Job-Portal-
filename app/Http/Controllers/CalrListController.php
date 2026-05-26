@@ -40,36 +40,18 @@ class CalrListController extends Controller
             })
             ->leftJoin('tr_calr as c', function ($q) {
                 $q->on('c.rfcaid', 'tr_rfca.rfcaid')
-                ->on('c.ponbr',  'tr_rfca.ponbr');
+                ->on('c.ponbr',  'tr_rfca.ponbr')
+                ->whereNotIn('c.status', ['X', 'R']);
             })
             ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
-            ->where('s.calr_gen', true)      // hanya step yang generate CALR
+            ->where('s.calr_gen', true)
             ->where('s.status_rfca', 'C')
-            ->whereNull('c.calrid')          // belum ada CALR
+            ->whereNull('tr_rfca.calrid')
+            ->whereNull('c.calrid')
             ->where('s.created_by', $u)
             ->count();
 
-        // Stat CALR existing dari TrCalr
-        // $onProgress = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-        //     ->where('created_by', $u)
-        //     ->where('status','P')
-        //     ->count();
-
-        // $completed  = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-        //     ->where('created_by', $u)
-        //     ->where('status','C')
-        //     ->count();
-
-        // $rejected   = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-        //     ->where('created_by', $u)
-        //     ->where('status','R')
-        //     ->count();
-
-        // $revise     = TrCalr::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-        //     ->where('created_by', $u)
-        //     ->where('status','D')
-        //     ->count();
-
+        
         // Helper closure untuk created_by filtering
         $filterCreator = function ($q) use ($isFinanceAccess, $u) {
             return $isFinanceAccess ? $q : $q->where('created_by', $u);
@@ -134,11 +116,13 @@ class CalrListController extends Controller
                 })
                 ->leftJoin('tr_calr as c', function ($q) {
                     $q->on('c.rfcaid', 'tr_rfca.rfcaid')
-                    ->on('c.ponbr',  'tr_rfca.ponbr');
+                    ->on('c.ponbr',  'tr_rfca.ponbr')
+                    ->whereNotIn('c.status', ['X', 'R']);
                 })
                 ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
                 ->where('s.calr_gen', 't')
                 ->where('s.status_rfca', 'C')
+                ->whereNull('tr_rfca.calrid')
                 ->whereNull('c.calrid')
                 ->where('s.created_by', $u)
                 ->select([
