@@ -84,4 +84,13 @@ class TrTicket extends Model
     {
         return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id');
     }
+
+    public function serviceOrders()
+    {
+        return $this->hasMany(
+            TrServiceorderEnvision::class,
+            'ticketid',
+            'ticketid'
+        );
+    }
 }

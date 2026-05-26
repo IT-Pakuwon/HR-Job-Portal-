@@ -25,7 +25,7 @@
                                     <label class="mb-1 block w-40 text-base font-semibold">Department</label>
                                     <select id="selectdeptname"
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                        name="departementid" required>                                   
+                                        name="departementid" required>
                                         @foreach ($departements as $p)
                                             <option value="{{ $p->deptname }}" {{ $p->deptname == 'IT' ? 'selected' : '' }}>
                                                 {{ $p->deptname }}
@@ -35,22 +35,22 @@
                                     </select>
                                 </div>
                             </div>
-                           
+
                             <div
                                 class="flex w-full flex-col rounded-b-2xl border-b bg-white p-4 shadow-sm dark:bg-gray-800">
-                                <div class="flex flex-col items-center justify-between gap-4 sm:flex-row"> 
+                                <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
                                     {{-- <button class="rounded-lg bg-indigo-500 px-5 py-2 text-white" onclick="chart.exportImg()">Export Image</button> --}}
                                     <button type="button" class="rounded-lg bg-indigo-500 px-5 py-2 text-white" onclick="exportOrgChartImage()">Export Image</button>
 
                                 </div>
                                 <div class="chart-container h-[80vh]" style="width: 100%;"></div>
-                                
+
                             </div>
 
                         </form>
                     </div>
                     <div id="modalForm"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                         <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                             <div class="border-gray-200s mb-4 flex justify-between border-b">
                                 <ul class="  flex flex-wrap text-center text-xs font-medium" id="tabs">
@@ -58,7 +58,7 @@
                                         <button type="button"
                                             class="tab-button border-blue-600 px-4 py-2 text-sm text-blue-600"
                                             onclick="switchTab('view')">View Employee</button>
-                                    </li>                                    
+                                    </li>
                                 </ul>
                                 <button onclick="closeModal()" class="text-sm text-gray-500">close</button>
 
@@ -71,7 +71,7 @@
                                     <div class="mb-4 flex items-center justify-between">
                                         <h4 id="departmentLabel" class="text-sm font-semibold text-gray-800">
                                             Dept: <!-- Dynamic text will be inserted via JS -->
-                                        </h4>                                       
+                                        </h4>
                                     </div>
                                 </div>
                                 <table class="w-full border   text-xs text-black">
@@ -91,7 +91,7 @@
                                 </table>
                             </div>
 
-                            <div id="modalJobProfile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10 backdrop-blur-md">
+                            <div id="modalJobProfile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10   ">
                                 <div class="w-full max-w-4xl rounded-lg bg-white p-6    overflow-y-auto max-h-[90vh]">
                                     <div class="flex justify-between items-center mb-4">
                                         <h3 class="text-sm font-semibold">
@@ -104,8 +104,8 @@
                                         <table class="w-full border   text-xs">
                                             <thead class="bg-gray-100">
                                                 <tr>
-                                                    <th class="border   px-2 py-1">No</th>                                           
-                                                    <th class="border   px-2 py-1">Job Purpose</th>   
+                                                    <th class="border   px-2 py-1">No</th>
+                                                    <th class="border   px-2 py-1">Job Purpose</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="jobProfileBody"></tbody>
@@ -131,7 +131,7 @@
     <!-- D3 Org Chart Dependencies -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
 
@@ -151,7 +151,7 @@
             });
         });
     </script>
-  
+
     <script>
         function openModal(id) {
             currentDeptId = id;
@@ -194,7 +194,7 @@
                                         </svg>
                                         <span>Job Profile</span>
                                     </button>
-                                   
+
                                 </div>
                             </td>
                         </tr>
@@ -220,9 +220,9 @@
         }
     </script>
 
-    
 
-    <script>     
+
+    <script>
 
 
         function switchTab(tab) {
@@ -251,13 +251,13 @@
             }
         }
     </script>
-       
+
     <script>
         var chart = null;
         $('select[name="departementid"], #selectCompany').on('change', function() {
             const deptname = encodeURIComponent($('#selectdeptname').val());
             const company = encodeURIComponent($('#selectCompany').val());
-      
+
             $('.chart-container').html(
                 '<div class="text-center text-gray-400 mt-10 animate-pulse">Loading...</div>');
 
@@ -300,8 +300,8 @@
                                         padding:15px;
                                         overflow:visible;
                                     ">
-                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>                           
-                                        <div style="font-size:12px;color:#333">                                    
+                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>
+                                        <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
                                                     <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -326,7 +326,7 @@
                     // Tambahkan garis tambahan
                     chart.connections(connections).render();
 
-                    
+
                 },
 
                 error: function(xhr) {
@@ -347,7 +347,7 @@
     </script>
     <script>
         $(document).ready(function() {
-           
+
             $('#selectdeptname').select2({
                 placeholder: "Pilih Departement Name...",
                 allowClear: true,
@@ -356,7 +356,7 @@
         });
     </script>
 
-     <script>   
+     <script>
         $(document).ready(function () {
             // Tombol Add Purpose
             $('#addJobPurpose').on('click', function () {
@@ -401,8 +401,8 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border   px-2 py-1">${i + 1}</td>                                
-                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>                                                                                    
+                                <td class="border   px-2 py-1">${i + 1}</td>
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>
                             </tr>
                         `;
                     });
@@ -412,7 +412,7 @@
 
 
                     $('#jobSpecInfo').html(`
-                        <h4 class="font-semibold">Job Spec Detail:</h4>                       
+                        <h4 class="font-semibold">Job Spec Detail:</h4>
                         <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
                         <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
                     `);

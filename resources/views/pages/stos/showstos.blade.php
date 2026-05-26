@@ -65,7 +65,7 @@
                         </div>
 
                         <div
-                            class="absolute bottom-4 right-7 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl backdrop-blur-sm">
+                            class="absolute bottom-4 right-7 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 shadow-xl  ">
                             <button
                                 onclick="window.open('{{ route('orgchart.fullscreen', ['sto' => $sto->id]) }}', '_blank')"
                                 class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
@@ -78,7 +78,7 @@
                             </button>
                         </div>
                         <div id="modalForm"
-                            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
                             <div
                                 class="card-container relative w-full max-w-2xl transform overflow-hidden rounded-md bg-white dark:bg-gray-800">
                                 <div
@@ -448,7 +448,7 @@
         </div>
     </div>
     <div id="modalJobProfile"
-        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
         <div
             class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
             <div class="mb-4 flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
@@ -545,7 +545,7 @@
 
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class=" text-sm  font-semibold">${comment.username} 
+                                        <p class=" text-sm  font-semibold">${comment.username}
                                             <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -616,7 +616,7 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal        
+            let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal
             approveSto(docid);
         });
 
@@ -693,7 +693,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -760,7 +760,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -985,7 +985,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
                                         </svg>
                                         <span>Job Profile</span>
-                                    </button>                               
+                                    </button>
                                 </div>
                             </td>
 
@@ -1096,8 +1096,8 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border dark:border-gray-700 px-2 py-1">${i + 1}</td>                                
-                                <td class="border dark:border-gray-700 px-2 py-1">${p.job_purpose || ''}</td>                                                                                       
+                                <td class="border dark:border-gray-700 px-2 py-1">${i + 1}</td>
+                                <td class="border dark:border-gray-700 px-2 py-1">${p.job_purpose || ''}</td>
                             </tr>
                         `;
                     });
@@ -1106,7 +1106,7 @@
                     $('#jobLevelLabel').text(spec.subgrade_name || '');
 
                     $('#jobSpecInfo').html(`
-                        <h4 class="font-semibold">Job Spec Detail:</h4>                       
+                        <h4 class="font-semibold">Job Spec Detail:</h4>
                         <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
                         <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
                     `);

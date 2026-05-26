@@ -58,10 +58,10 @@
                                         </select>
                                     </div>
                                 </div>
-                                
+
                                 <div class="chart-container" style="width: 100%; height: 800px;"></div>
 
-                                
+
 
                             </div>
 
@@ -99,7 +99,7 @@
                                 </div>
                             </details>
                         </div>
-                        <div class="flex h-auto w-full flex-row justify-end gap-4 pl-4 pr-4">                            
+                        <div class="flex h-auto w-full flex-row justify-end gap-4 pl-4 pr-4">
                             <div class="w-1/8 flex flex-col justify-start">
                                 <button type="submit" id="cancelBtn"
                                     class="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
@@ -127,7 +127,7 @@
                 </form>
             </div>
             <div id="modalForm"
-                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                 <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                     <div class="border-gray-200s mb-4 flex justify-between border-b">
                         <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
@@ -224,7 +224,7 @@
                             <input type="hidden" name="full_name" id="hiddenFullName" value="VACANT">
 
                             <div class="mb-4" id="fullNameGroup">
-                                <label class="block text-xs font-medium text-gray-700">Name</label>                    
+                                <label class="block text-xs font-medium text-gray-700">Name</label>
                                 <select id="selectFullName" name="full_name" class="mt-1 block w-full rounded-md border border-gray-300 p-2">
                                     <option value="" disabled selected>Pilih nama karyawan...</option>
                                     @foreach ($users as $p)
@@ -273,7 +273,7 @@
                                 <input type="text" name="departement_name"
                                     class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
                             </div>
-                          
+
                             <div class="mt-4">
                                 <button type="submit"
                                     class="rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700">Simpan</button>
@@ -288,7 +288,7 @@
                             <input type="hidden" name="approval_line" id="modalApprovalLine">
                             <input type="hidden" name="sto_id" value="{{ $sto->sto_id }}">
                             <div class="mb-4">
-                                <label class="block text-xs font-medium text-gray-700">Position</label>                                    
+                                <label class="block text-xs font-medium text-gray-700">Position</label>
                                 <select name="job_level" class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
                                     @foreach ($joblevel as $p)
                                         <option value="{{ $p->title_level }}">{{ $p->title_level }}</option>
@@ -312,7 +312,7 @@
 
                             <div class="mb-4 grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-700">Education Level</label>                               
+                                    <label class="block text-xs font-medium text-gray-700">Education Level</label>
                                      <select name="education_level" class="mt-1 block w-full rounded-md border border-gray-300 p-2" required>
                                         <option value="" disabled selected>-- Pilih --</option>
                                         <option value="SMP">SMP</option>
@@ -348,8 +348,8 @@
                             </div>
                         </form>
                     </div>
-                    
-                    <div id="editModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10 backdrop-blur-md">
+
+                    <div id="editModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10   ">
                         <div class="relative w-full max-w-lg rounded-lg bg-white p-6">
                             <button onclick="closeEditModal()"
                                 class="absolute right-2 top-2 text-lg text-gray-500">&times;</button>
@@ -361,7 +361,7 @@
                                 <div class="mb-3">
                                     <label>Name</label>
                                     <select name="employee_name" id="edit_name" class="w-full select2">
-                                        <option value="" disabled selected>-- Select Employee --</option>                                       
+                                        <option value="" disabled selected>-- Select Employee --</option>
                                         @foreach ($users as $p)
                                             <option value="{{ $p->name }}">{{ $p->name }}</option>
                                         @endforeach
@@ -369,7 +369,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label>Company</label>                                    
+                                    <label>Company</label>
                                     <select
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="employee_company" id="edit_company">
@@ -381,7 +381,7 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label>Position</label>                                    
+                                    <label>Position</label>
                                     <select
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="employee_level" id="edit_position">
@@ -401,7 +401,7 @@
                     </div>
 
                     <div id="modalChangeDept"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                         <div class="w-full max-w-md rounded-lg bg-white p-6  ">
                             <h3 class="mb-4 text-sm font-semibold">Change Department</h3>
 
@@ -422,8 +422,8 @@
                         </div>
                     </div>
 
-                    
-                    <div id="modalJobProfile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10 backdrop-blur-md">
+
+                    <div id="modalJobProfile" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-gray-500/10   ">
                         <div class="w-full max-w-4xl rounded-lg bg-white p-6    overflow-y-auto max-h-[90vh]">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-sm font-semibold">
@@ -436,9 +436,9 @@
                                 <table class="w-full border   text-xs">
                                     <thead class="bg-gray-100">
                                         <tr>
-                                            <th class="border   px-2 py-1">No</th>                                           
-                                            <th class="border   px-2 py-1">Job Purpose</th>   
-                                            <th class="border   px-2 py-1">Action</th>                                        
+                                            <th class="border   px-2 py-1">No</th>
+                                            <th class="border   px-2 py-1">Job Purpose</th>
+                                            <th class="border   px-2 py-1">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="jobProfileBody"></tbody>
@@ -466,7 +466,7 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
-    
+
 
     <!-- Tambahkan di bagian <head> atau sebelum script -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -523,8 +523,8 @@
                                 padding:15px;
                                 overflow:visible;
                             ">
-                                <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>                           
-                                <div style="font-size:12px;color:#333">                                    
+                                <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>
+                                <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
                                             <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -559,14 +559,14 @@
             //         .attr('stroke-width', 2);
             // });
 
-            
+
         });
 
         function openModal(id) {
             alert('Clicked node ID: ' + id);
         }
     </script>
-  
+
     <script>
         function openModal(id) {
             currentDeptId = id;
@@ -872,16 +872,16 @@
         $(document).on('click', '.btn-edit', function() {
             const id = $(this).data('id');
             $('#edit_id').val(id);
-             $('#edit_name').val($(this).data('name')).trigger('change'); 
+             $('#edit_name').val($(this).data('name')).trigger('change');
             $('#edit_company').val($(this).data('company'));
             $('#edit_position').val($(this).data('position'));
             $('#editModal').removeClass('hidden');
         });
 
         function closeEditModal() {
-            $('#editModal').addClass('hidden');             
+            $('#editModal').addClass('hidden');
             $('#editEmployeeForm')[0].reset();
-            $('#edit_name').val(null).trigger('change'); 
+            $('#edit_name').val(null).trigger('change');
         }
 
         // Submit Update
@@ -918,7 +918,7 @@
     <script>
         $(document).on('click', '.btn-delete', function() {
             // const id = $('#edit_id').val();
-            const id = $(this).data('id');            
+            const id = $(this).data('id');
             if (confirm('Yakin ingin menghapus employee ini?')) {
                 $.ajax({
                     url: `/orgchart/employee/delete/${id}`,
@@ -994,7 +994,7 @@
         });
     </script>
 
-    <script>   
+    <script>
         $(document).ready(function () {
             // Tombol Add Purpose
             $('#addJobPurpose').on('click', function () {
@@ -1070,14 +1070,14 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border   px-2 py-1">${i + 1}</td>                                
-                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border   px-2 py-1">${i + 1}</td>
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>
                                 <td class="border   px-2 py-1 text-center">
                                     <button class="btn-delete-jobpurpose bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
                                         data-id="${p.id}">
                                         🗑️ Delete
                                     </button>
-                                </td>                                                             
+                                </td>
                             </tr>
                         `;
                     });
@@ -1087,7 +1087,7 @@
 
 
                     $('#jobSpecInfo').html(`
-                        <h4 class="font-semibold">Job Spec Detail:</h4>                       
+                        <h4 class="font-semibold">Job Spec Detail:</h4>
                         <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
                         <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
                     `);

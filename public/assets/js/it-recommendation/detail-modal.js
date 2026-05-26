@@ -11,6 +11,8 @@ async function loadDetail(hash) {
             type: "GET",
         });
 
+        console.log("DETAIL RESPONSE", res);
+
         const header = res.header;
 
         renderHeaderInfo(header);

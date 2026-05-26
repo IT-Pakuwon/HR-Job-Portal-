@@ -1,5 +1,3 @@
-let selectedCreateFiles = [];
-
 function initCreateSelect2() {
     $(".select2").select2({
         width: "100%",
@@ -37,46 +35,6 @@ function initCreateSelect2() {
         },
     });
 }
-
-function syncCreateAttachmentInput() {
-    const dataTransfer = new DataTransfer();
-
-    selectedCreateFiles.forEach((file) => {
-        dataTransfer.items.add(file);
-    });
-
-    $("#create_attachments")[0].files = dataTransfer.files;
-}
-
-function renderCreateAttachments() {
-    renderAttachmentList(
-        "#createAttachmentPreview",
-        selectedCreateFiles,
-        "upload",
-    );
-}
-
-$("#create_attachments").on("change", function (e) {
-    selectedCreateFiles = [
-        ...selectedCreateFiles,
-        ...Array.from(e.target.files),
-    ];
-
-    syncCreateAttachmentInput();
-
-    renderCreateAttachments();
-});
-
-$(document).on("click", ".btn-remove-create-attachment", function () {
-    const index = $(this).data("index");
-
-    selectedCreateFiles.splice(index, 1);
-
-    syncCreateAttachmentInput();
-
-    renderCreateAttachments();
-});
-
 function resetCreateForm() {
     $("#createForm")[0].reset();
 
@@ -96,11 +54,11 @@ function resetCreateForm() {
             .trigger("change");
     }
 
-    selectedCreateFiles = [];
+    resetCreateAttachments();
 
-    $("#create_attachments").val("");
+    existingAttachments = [];
 
-    renderCreateAttachments();
+    deletedAttachmentIds = [];
 }
 
 function updateCreateModalContent() {
@@ -165,6 +123,7 @@ async function closeCreateModal(force = false) {
 
 async function openEditModal(hash) {
     try {
+
         const res = await $.ajax({
             url: `/it-recommendation/detail/${hash}`,
             type: "GET",
@@ -172,33 +131,41 @@ async function openEditModal(hash) {
 
         const header = res.header;
 
+        existingAttachments =
+            res.attachments || [];
+
+        createSelectedFiles = [];
+
+        renderCreateAttachmentPreview();
+
         editMode = true;
-
         editHash = hash;
-
         editStatus = header.status;
 
         $("#create_cpny_id").val(header.cpny_id).trigger("change");
-
         $("#create_department_id").val(header.department_id).trigger("change");
 
         if (header.ticketnbr) {
+
             const option = new Option(
                 header.ticketnbr,
                 header.ticketnbr,
                 true,
-                true,
+                true
             );
 
-            $("#ticketnbr").append(option).trigger("change");
+            $("#ticketnbr")
+                .append(option)
+                .trigger("change");
         }
 
         $("#create_assetnbr").val(header.assetnbr);
-
         $("#create_keperluan").val(header.keperluan);
 
         openCreateModal();
+
     } catch (err) {
+
         Swal.fire({
             icon: "error",
             title: "Error",

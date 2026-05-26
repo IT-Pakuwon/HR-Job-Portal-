@@ -12,7 +12,7 @@
                                 <div>
                                     <div class="chart-container"></div>
                                     <div id="modalForm"
-                                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                                         <div class="relative w-[95vw] max-w-6xl rounded-lg bg-white p-4 md:w-auto">
                                             <div class="border-gray-200s mb-4 flex justify-between border-b">
                                                 <ul class="text-md flex flex-wrap text-center font-medium"
@@ -113,7 +113,7 @@
             </div>
 
             <div id="modalJobProfile"
-                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
                 <div
                     class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                     <div
@@ -379,7 +379,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
                                                 </svg>
                                                 <span>Job Profile</span>
-                                            </button>                               
+                                            </button>
                                         </div>
                                     </td>
 
@@ -496,8 +496,8 @@
                             profiles.forEach((p, i) => {
                                 rows += `
                             <tr>
-                                <td class="border   px-2 py-1">${i + 1}</td>                                
-                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>                                                                                       
+                                <td class="border   px-2 py-1">${i + 1}</td>
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>
                             </tr>
                         `;
                             });
@@ -506,7 +506,7 @@
                             $('#jobLevelLabel').text(spec.subgrade_name || '');
 
                             $('#jobSpecInfo').html(`
-                        <h4 class="font-semibold">Job Spec Detail:</h4>                       
+                        <h4 class="font-semibold">Job Spec Detail:</h4>
                         <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
                         <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
                     `);

@@ -13,7 +13,7 @@
 
         {{-- Status Filter --}}
         <div
-            class="{{ $isIT ? '2xl:grid-cols-10' : '2xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            class="{{ $isIT ? '2xl:grid-cols-11' : '2xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
 
             {{-- All --}}
             <button type="button" class="text-left">
@@ -29,7 +29,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                            <p class="break-words text-sm font-medium">
+                           <p class="break-words text-sm font-medium whitespace-normal ">
                                 All
                             </p>
 
@@ -60,7 +60,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                                <p class="break-words text-sm font-medium">
+                               <p class="break-words text-sm font-medium whitespace-normal ">
                                     Created
                                 </p>
 
@@ -90,7 +90,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                                <p class="break-words text-sm font-medium">
+                               <p class="break-words text-sm font-medium whitespace-normal ">
                                     Response
                                 </p>
 
@@ -121,7 +121,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                            <p class="break-words text-sm font-medium">
+                           <p class="break-words text-sm font-medium whitespace-normal ">
                                 Process
                             </p>
 
@@ -151,7 +151,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                            <p class="break-words text-sm font-medium">
+                           <p class="break-words text-sm font-medium whitespace-normal ">
                                 Pending
                             </p>
 
@@ -182,7 +182,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                                <p class="break-words text-sm font-medium">
+                               <p class="break-words text-sm font-medium whitespace-normal ">
                                     Envision
                                 </p>
 
@@ -190,6 +190,36 @@
 
                             <p class="shrink-0 text-base font-bold">
                                 {{ $counts['envision'] ?? 0 }}
+                            </p>
+
+                        </div>
+
+                    </a>
+
+                </button>
+
+                {{-- Envision Solved --}}
+                <button type="button" class="text-left">
+
+                    <a href="#" class="ticket-status-filter group block h-full" data-status="ENVISION CHECKED / SOLVED">
+
+                        <div
+                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-md active:scale-95">
+
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                                ✅
+                            </div>
+
+                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
+
+                                <p class="break-words text-sm font-medium whitespace-normal ">
+                                    Envision Solved
+                                </p>
+
+                            </div>
+
+                            <p class="shrink-0 text-base font-bold">
+                                {{ $counts['ENVISION CHECKED / SOLVED'] ?? 0 }}
                             </p>
 
                         </div>
@@ -212,7 +242,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                                <p class="break-words text-sm font-medium">
+                               <p class="break-words text-sm font-medium whitespace-normal ">
                                     Transfer
                                 </p>
 
@@ -243,7 +273,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                            <p class="break-words text-sm font-medium">
+                           <p class="break-words text-sm font-medium whitespace-normal ">
                                 Completed
                             </p>
 
@@ -273,7 +303,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                            <p class="break-words text-sm font-medium">
+                           <p class="break-words text-sm font-medium whitespace-normal ">
                                 Reopen
                             </p>
 
@@ -303,7 +333,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                            <p class="break-words text-sm font-medium">
+                           <p class="break-words text-sm font-medium whitespace-normal ">
                                 Cancel
                             </p>
 
@@ -490,20 +520,13 @@
                         <a href="{{ route('ticketsetup') }}"
                             class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-indigo-300 bg-indigo-50 px-4 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200 dark:hover:bg-indigo-900/50">
 
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4 flex-shrink-0"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
 
-                                <path stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" />
 
-                                <path stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19.5 12a7.5 7.5 0 01-.14 1.44l2.11 1.65-2 3.46-2.52-1a7.53 7.53 0 01-2.5 1.45L14 21h-4l-.45-2a7.53 7.53 0 01-2.5-1.45l-2.52 1-2-3.46 2.11-1.65A7.5 7.5 0 014.5 12c0-.49.05-.97.14-1.44L2.53 8.91l2-3.46 2.52 1A7.53 7.53 0 019.55 5L10 3h4l.45 2a7.53 7.53 0 012.5 1.45l2.52-1 2 3.46-2.11 1.65c.09.47.14.95.14 1.44z" />
 
                             </svg>
@@ -633,7 +656,7 @@
 
                 {{-- Header --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
                         <h2 class="modal-title text-xl font-bold text-slate-900 dark:text-white">
@@ -978,7 +1001,7 @@
 
                         {{-- Footer --}}
                         <div
-                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2     dark:border-white/10 dark:bg-[#0f172a]/95">
 
                             <div class="flex items-center justify-end gap-3">
 
@@ -1068,7 +1091,7 @@
                                 </button>
 
                                 <div id="ticketActionDropdown"
-                                    class="absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[280px] overflow-hidden rounded-lg border border-gray-200/80 bg-white/95 shadow-gray-200/70 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#111827]/95 dark:shadow-black/40">
+                                    class="absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[280px] overflow-hidden rounded-lg border border-gray-200/80 bg-white/95 shadow-gray-200/70     dark:border-white/[0.06] dark:bg-[#111827]/95 dark:shadow-black/40">
 
                                     <div id="ticketActionList" class="max-h-[320px] overflow-y-auto p-2"></div>
 
@@ -1103,10 +1126,10 @@
 
                         {{-- Left Panel --}}
                         <div
-                            class="min-h-0 overflow-y-auto border-b border-gray-200 p-6 dark:border-gray-800 xl:col-span-5 xl:border-b-0 xl:border-r">
+                            class="min-h-0 overflow-y-auto border-b border-gray-200 p-6 dark:border-gray-800 xl:col-span-7 lg:col-span-7  xl:border-b-0 xl:border-r">
 
                             {{-- Information --}}
-                            <div class="space-y-5">
+                            <div class="space-y-4">
 
                                 <div>
 
@@ -1332,7 +1355,7 @@
                         </div>
 
                         {{-- Right Panel --}}
-                        <div class="flex min-h-0 flex-col xl:col-span-7">
+                        <div class="flex min-h-0 flex-col xl:col-span-5 lg:col-span-5">
 
                             {{-- Tabs --}}
                             <div

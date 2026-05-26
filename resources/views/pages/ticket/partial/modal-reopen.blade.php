@@ -1,6 +1,6 @@
 <div id="reopenTicketModal" class="ticket-modal fixed inset-0 z-[80] hidden overflow-y-auto p-3 sm:p-5">
 
-    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div class="modal-backdrop absolute inset-0 bg-slate-900/60  "></div>
 
     <div class="modal-panel relative z-10 mx-auto flex min-h-screen w-full items-center justify-center">
 
@@ -8,7 +8,7 @@
             class="modal-scroll flex max-h-[95vh] w-full max-w-[95vw] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/[0.06] dark:bg-[#0f172a] sm:max-w-4xl">
 
             <div
-                class="sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:px-6 sm:py-5">
+                class="sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-4 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:px-6 sm:py-5">
 
                 <div class="min-w-0">
 
@@ -172,7 +172,7 @@
                 </div>
 
                 <div
-                    class="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-5">
+                    class="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-slate-200 bg-white/95 px-4 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-5">
 
                     <button type="button"
                         onclick="closeModal('#reopenTicketModal')"

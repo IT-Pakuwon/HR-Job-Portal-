@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Vinkla\Hashids\Facades\Hashids;
-
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\TrAttachmentController;
 class ItRecommendationController extends Controller
 {
     use HasAutonbr;
@@ -60,7 +61,7 @@ class ItRecommendationController extends Controller
         $tickets = TrTicket::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
-            ->whereIn('status', ['P', 'C'])
+            ->whereIn('status', ['P'])
             ->orderByDesc('ticketdate')
             ->limit(50)
             ->get([
@@ -98,6 +99,8 @@ class ItRecommendationController extends Controller
             ? array_map('trim', explode(',', $user->department_id))
             : (array) $user->department_id;
 
+
+
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -132,6 +135,7 @@ class ItRecommendationController extends Controller
             $base->where('status', $status);
         }
 
+
         $recordsTotal = (clone $base)->count();
 
         if ($search !== '') {
@@ -158,19 +162,16 @@ class ItRecommendationController extends Controller
             ->where('role_id', 'ITHARDWARE')
             ->exists();
 
+
+
         $data->transform(function ($row) use ($isITHardware, $user) {
+
             $row->eid = Hashids::encode($row->id);
 
             $row->can_process = (
                 $isITHardware
                 && in_array($row->status, ['W', 'I'])
             );
-
-            $row->process_label = match ($row->status) {
-                'W' => 'Process',
-                'I' => 'Edit Recommendation',
-                default => 'Process',
-            };
 
             $row->can_edit = (
                 $row->created_by === $user->username
@@ -180,6 +181,16 @@ class ItRecommendationController extends Controller
             $row->can_cancel = (
                 $row->created_by === $user->username
                 && in_array($row->status, ['D'])
+            );
+
+            $row->can_upload_attachment =
+            (
+                $row->created_by === $user->username
+                || $row->recommend_pic === $user->username
+            )
+            && !in_array(
+                $row->status,
+                ['C', 'R', 'X']
             );
 
             return $row;
@@ -210,7 +221,7 @@ class ItRecommendationController extends Controller
         $data = TrTicket::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
-            ->whereIn('status', ['P', 'C'])
+            ->whereIn('status', ['P'])
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('ticketid', 'ilike', "%{$q}%")
@@ -255,9 +266,9 @@ class ItRecommendationController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string) $dt->year, 2)
-                .str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+                . str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
-            $docid = $this->doctype.$tglbln.sprintf('%04d', $urutan);
+            $docid = $this->doctype . $tglbln . sprintf('%04d', $urutan);
 
             $header = new TrItrecommend();
 
@@ -275,6 +286,7 @@ class ItRecommendationController extends Controller
             $header->status = 'W';
 
             $header->created_by = $user->username;
+
 
             $header->save();
 
@@ -301,7 +313,7 @@ class ItRecommendationController extends Controller
             $this->notifyITHardware(
                 $header->docid,
                 'Waiting IT Review',
-                url('/processitrecommendation/'.$eid),
+                url('/processitrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -367,6 +379,24 @@ class ItRecommendationController extends Controller
             $header->recommendation = null;
             $header->recommend_pic = null;
 
+            if ($request->hasFile('attachments')) {
+
+                $meta = [
+                    'refnbr'        => $header->docid,
+                    'doctype'       => $this->doctype,
+                    'cpnyid'        => $header->cpny_id,
+                    'departementid' => $header->department_id,
+                    'base_folder'   => 'att-it-recommendation',
+                    'created_by'    => auth()->user()->username,
+                ];
+
+                app(TrAttachmentController::class)
+                    ->uploadInternal(
+                        $meta,
+                        (array) $request->file('attachments')
+                    );
+            }
+
             $header->save();
 
             TrApproval::where('refnbr', $header->docid)->delete();
@@ -380,7 +410,7 @@ class ItRecommendationController extends Controller
             $this->notifyITHardware(
                 $header->docid,
                 'Waiting IT Review',
-                url('/processitrecommendation/'.$eid),
+                url('/processitrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -435,8 +465,9 @@ class ItRecommendationController extends Controller
             'recommendation' => 'required|string|min:5',
             'waranty' => 'nullable|string',
             'details' => 'required|array|min:1',
-        ]);
 
+            'attachments.*' => 'nullable|file|max:5120',
+        ]);
         DB::connection('pgsql5')->beginTransaction();
 
         try {
@@ -494,6 +525,22 @@ class ItRecommendationController extends Controller
                 throw new \Exception('No valid inventory selected');
             }
 
+            if ($request->hasFile('attachments')) {
+
+                app(TrAttachmentController::class)
+                    ->uploadInternal(
+                        [
+                            'refnbr'        => $header->docid,
+                            'doctype'       => $this->doctype,
+                            'cpny_id'       => $header->cpny_id,
+                            'department_id' => $header->department_id,
+                            'base_folder'   => 'att-it-recommendation',
+                            'created_by'    => $user->username,
+                        ],
+                        (array) $request->file('attachments')
+                    );
+            }
+
             $approvalCtl = app(ApprovalController::class);
 
             $approvalCtl->loadLines(
@@ -531,7 +578,7 @@ class ItRecommendationController extends Controller
                 $this->doctype,
                 'P',
                 'IT Recommendation',
-                url('/showitrecommendation/'.$eid),
+                url('/showitrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -554,6 +601,112 @@ class ItRecommendationController extends Controller
             ], 500);
         }
     }
+
+public function uploadAttachment(Request $request, $hash)
+{
+    $id = Hashids::decode($hash)[0] ?? null;
+
+    abort_if(!$id, 404);
+
+    $header = TrItrecommend::findOrFail($id);
+
+    abort_if(
+        in_array($header->status, ['C', 'R', 'X']),
+        403,
+        'Document already closed.'
+    );
+
+    $user = auth()->user();
+
+    $canManageAttachment =
+        $header->created_by === $user->username
+        || $header->recommend_pic === $user->username;
+
+    abort_unless(
+        $canManageAttachment,
+        403,
+        'You are not allowed to manage attachments.'
+    );
+
+    $request->validate([
+        'attachments' => ['required', 'array'],
+        'attachments.*' => [
+            'file',
+            'max:5120',
+        ],
+    ]);
+
+    $meta = [
+        'refnbr'        => $header->docid,
+        'doctype'       => $this->doctype,
+        'cpnyid'        => $header->cpny_id,
+        'departementid' => $header->department_id,
+        'base_folder'   => 'att-it-recommendation',
+        'created_by'    => $user->username,
+    ];
+
+    app(TrAttachmentController::class)
+        ->uploadInternal(
+            $meta,
+            (array) $request->file('attachments')
+        );
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Attachment uploaded successfully.',
+    ]);
+}
+public function deleteAttachment(TrAttachment $attachment)
+{
+    $header = TrItrecommend::where(
+        'docid',
+        $attachment->refnbr
+    )->firstOrFail();
+
+    abort_if(
+        in_array($header->status, ['C', 'R', 'X']),
+        403,
+        'Document already closed.'
+    );
+
+    $user = auth()->user();
+
+    $canManageAttachment =
+        $header->created_by === $user->username
+        || $header->recommend_pic === $user->username;
+
+    abort_unless(
+        $canManageAttachment,
+        403,
+        'You are not allowed to manage attachments.'
+    );
+
+    DB::transaction(function () use ($attachment) {
+
+        try {
+
+            if ($attachment->filename_stored) {
+
+                Storage::disk('gcs')->delete(
+                    $attachment->filename_stored
+                );
+            }
+
+        } catch (\Throwable $e) {
+            Log::warning(
+                'Failed delete attachment file : '
+                . $e->getMessage()
+            );
+        }
+
+        $attachment->delete();
+    });
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Attachment deleted successfully.',
+    ]);
+}
 
     private function notifyITHardware(
         string $docid,
@@ -675,6 +828,8 @@ class ItRecommendationController extends Controller
             ->where('role_id', 'ITHARDWARE')
             ->exists();
 
+
+
         if (!$isITHardware) {
             return response()->json([
                 'success' => false,
@@ -728,7 +883,7 @@ class ItRecommendationController extends Controller
                 $header->created_by,
                 $header->docid,
                 'Revise Request',
-                url('/edititrecommendation/'.$eid),
+                url('/edititrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -822,7 +977,7 @@ class ItRecommendationController extends Controller
                 $header->created_by,
                 $header->docid,
                 'Rejected',
-                url('/showitrecommendation/'.$eid),
+                url('/showitrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -975,7 +1130,7 @@ class ItRecommendationController extends Controller
                 $header->created_by,
                 $header->docid,
                 'Rejected',
-                url('/showitrecommendation/'.$eid),
+                url('/showitrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -986,7 +1141,7 @@ class ItRecommendationController extends Controller
             $this->notifyITHardware(
                 $header->docid,
                 'Rejected',
-                url('/showitrecommendation/'.$eid),
+                url('/showitrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -1066,7 +1221,7 @@ class ItRecommendationController extends Controller
                 $header->created_by,
                 $header->docid,
                 'Waiting IT Revision',
-                url('/showitrecommendation/'.$eid),
+                url('/showitrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -1077,7 +1232,7 @@ class ItRecommendationController extends Controller
             $this->notifyITHardware(
                 $header->docid,
                 'Waiting IT Revision',
-                url('/processitrecommendation/'.$eid),
+                url('/processitrecommendation/' . $eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -1103,16 +1258,43 @@ class ItRecommendationController extends Controller
     {
         $q = trim($request->q ?? '');
 
+        $keywords = [
+            'perbaikan laptop',
+            'perbaikan printer',
+            'material perbaikan',
+            'material pekerjaan',
+            'installasi kabel jaringan',
+            'jasa perbaikan',
+            'jasa pekerjaan',
+        ];
+
         $data = MsInventory::query()
-            ->whereIn('item_type', ['NS', 'SE'])
             ->where('status', 'A')
+            ->where(function ($query) use ($keywords) {
+
+                $query->where(function ($ns) {
+                    $ns->where('item_type', 'NS')
+                        ->where('item_category', 'Komputer');
+                });
+
+                $query->orWhere(function ($se) use ($keywords) {
+
+                    $se->where('item_type', 'SE')
+                        ->whereIn('item_category', ['Komputer', 'Jasa'])
+                        ->where(function ($desc) use ($keywords) {
+
+                            foreach ($keywords as $keyword) {
+                                $desc->orWhere('inventory_descr', 'ilike', "%{$keyword}%");
+                            }
+                        });
+                });
+            })
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('inventoryid', 'ilike', "%{$q}%")
                         ->orWhere('inventory_descr', 'ilike', "%{$q}%");
                 });
             })
-            ->limit(20)
             ->get();
 
         return response()->json($data);
@@ -1196,8 +1378,8 @@ class ItRecommendationController extends Controller
             || $header->created_by === $user->username
             || $isITHardware
             || TrApproval::where('refnbr', $header->docid)
-                ->where('aprv_username', $user->username)
-                ->exists()
+            ->where('aprv_username', $user->username)
+            ->exists()
         );
 
         if (!$canAccess) {
@@ -1222,7 +1404,7 @@ class ItRecommendationController extends Controller
 
         $attachments->transform(function ($row) {
             try {
-                $filepath = trim($row->folder, '/').'/'.$row->filename;
+                $filepath = trim($row->folder, '/') . '/' . $row->filename;
 
                 $row->signed_url = app(TrAttachmentController::class)
                     ->getSignedUrl($filepath);
@@ -1240,10 +1422,19 @@ class ItRecommendationController extends Controller
 
         $canApprove = TrApproval::query()
             ->where('refnbr', $header->docid)
-            ->where('aprv_username', $user->username)
             ->where('status', 'P')
-            ->exists();
+            ->get()
+            ->contains(function ($row) use ($user) {
 
+                $users = collect(
+                    preg_split('/[,;|]/', $row->aprv_username)
+                )
+                ->map(fn($x) => strtolower(trim($x)));
+
+                return $users->contains(
+                    strtolower($user->username)
+                );
+            });
         $messages = TrMessage::query()
             ->where('refnbr', $header->docid)
             ->where('doctype', $this->doctype)
@@ -1339,8 +1530,8 @@ class ItRecommendationController extends Controller
             || $header->created_by === $user->username
             || $isITHardware
             || TrApproval::where('refnbr', $header->docid)
-                ->where('aprv_username', $user->username)
-                ->exists()
+            ->where('aprv_username', $user->username)
+            ->exists()
         );
 
         if (!$canAccess) {
@@ -1694,8 +1885,8 @@ class ItRecommendationController extends Controller
             || $header->created_by === $user->username
             || $isITHardware
             || TrApproval::where('refnbr', $header->docid)
-                ->where('aprv_username', $user->username)
-                ->exists()
+            ->where('aprv_username', $user->username)
+            ->exists()
         );
 
         if (!$canAccess) {

@@ -234,7 +234,7 @@
         }
     </style>
 
-    <div id="loadingOverlay" class="fixed inset-0 z-[9999] hidden bg-black/40 backdrop-blur-[2px]">
+    <div id="loadingOverlay" class="fixed inset-0 z-[9999] hidden bg-black/40">
         <div class="flex h-full w-full items-center justify-center">
             <div class="rounded-xl bg-white px-6 py-4 shadow-xl dark:bg-gray-800">
                 <div class="flex items-center gap-3">

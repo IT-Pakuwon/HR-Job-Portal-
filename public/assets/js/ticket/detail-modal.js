@@ -615,9 +615,19 @@ function renderTicketTimeline(timelines = []) {
               ? formatDateTime(item.created_at)
               : "No timestamp";
 
-        const description = item.description || item.response_descr || "-";
+        const workflow =
+            item.status ||
+            item.status_pekerjaan ||
+            'CREATED';
 
-        const workflow = item.status || item.status_pekerjaan || "CREATED";
+        const description =
+            workflow === 'ENVISION CHECKED / SOLVED'
+                ? (
+                    item.description ||
+                    item.response_descr ||
+                    ''
+                )
+                : '';
 
         // container.append(`
 
@@ -701,7 +711,7 @@ function renderTicketTimeline(timelines = []) {
 
         //             px-3 py-2.5
 
-        //             backdrop-blur-xl
+        //
 
         //             transition-all
         //             duration-300
@@ -1031,7 +1041,10 @@ container.append(`
 
                             </div>
 
+
+
                         </div>
+
 
                     </div>
 
@@ -1046,6 +1059,37 @@ container.append(`
                 </div>
 
             </div>
+
+                        ${
+                                workflow === 'ENVISION CHECKED / SOLVED' &&
+                                description
+                                    ? `
+                                        <div class="
+                                            mt-3
+
+                                            rounded-lg
+
+                                            border border-emerald-200
+                                            dark:border-emerald-500/20
+
+                                            bg-emerald-50
+                                            dark:bg-emerald-500/10
+
+                                            px-3 py-2
+
+                                            text-xs
+                                            leading-6
+
+                                            text-emerald-700
+                                            dark:text-emerald-300
+                                        ">
+
+                                            ${nl2br(description)}
+
+                                        </div>
+                                    `
+                                    : ''
+                            }
 
         </div>
 

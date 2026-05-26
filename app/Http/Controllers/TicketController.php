@@ -12,6 +12,7 @@ use App\Models\MsTicketPriority;
 use App\Models\MsTicketSubcategory;
 use App\Models\MsTicketType;
 use App\Models\TrMessage;
+use App\Models\TrServiceorderEnvision;
 use App\Models\TrTicket;
 use App\Models\TrTicketActivity;
 use App\Services\TicketNotificationService;
@@ -35,43 +36,48 @@ class TicketController extends Controller
             $notificationService;
     }
 
-    protected array $workflowTransitions = [
-        'response' => [
-            'CREATED',
-            'TRANSFER',
-        ],
+protected array $workflowTransitions = [
 
-        'process' => [
-            'RESPONSE',
-            'REOPEN',
-            'PENDING',
-        ],
+    'response' => [
+        'CREATED',
+        'TRANSFER',
+    ],
 
-        'pending' => [
-            'PROCESS',
-        ],
+    'process' => [
+        'RESPONSE',
+        'REOPEN',
+        'PENDING',
+    ],
 
-        'envision' => [
-            'PENDING',
-            'PROCESS',
-        ],
+    'pending' => [
+        'PROCESS',
+    ],
 
-        'complete' => [
-            'PROCESS',
-            'PENDING',
-            'ENVISION',
-        ],
+    'envision' => [
+        'PENDING',
+        'PROCESS',
+    ],
 
-        'transfer' => [
-            'CREATED',
-            'TRANSFER',
-            'REOPEN',
-        ],
+    'ENVISION CHECKED / SOLVED' => [
+        'ENVISION',
+    ],
 
-        'reopen' => [
-            'COMPLETED',
-        ],
-    ];
+    'complete' => [
+        'PROCESS',
+        'PENDING',
+        'ENVISION CHECKED / SOLVED',
+    ],
+
+    'transfer' => [
+        'CREATED',
+        'TRANSFER',
+        'REOPEN',
+    ],
+
+    'reopen' => [
+        'COMPLETED',
+    ],
+];
 
     protected function canTransition(
         string $current,
@@ -155,6 +161,11 @@ class TicketController extends Controller
             'cancel' => TrTicket::where(
                 'status_pekerjaan',
                 'CANCEL'
+            )->count(),
+
+            'ENVISION CHECKED / SOLVED' => TrTicket::where(
+                'status_pekerjaan',
+                'ENVISION CHECKED / SOLVED'
             )->count(),
         ];
 
@@ -268,6 +279,13 @@ class TicketController extends Controller
                 $request->date_to
             );
         }
+
+        TrTicket::query()
+            ->where('status_pekerjaan', 'ENVISION')
+            ->get()
+            ->each(function ($ticket) {
+                $this->syncEnvisionSolved($ticket);
+            });
 
         return DataTables::of($query)
 
@@ -702,6 +720,10 @@ class TicketController extends Controller
             'subLocation',
         ])->findOrFail($id);
 
+        $this->syncEnvisionSolved($ticket);
+
+        $ticket->refresh();
+
         abort_unless(
             $this->canAccessTicket($ticket),
             403
@@ -770,6 +792,14 @@ class TicketController extends Controller
 
             $comments
         );
+
+        $serviceOrder = TrServiceorderEnvision::query()
+            ->where(
+                'ticketid',
+                $ticket->ticketid
+            )
+            ->latest('serviceorderdate')
+            ->first();
 
         return response()->json([
             'success' => true,
@@ -863,6 +893,8 @@ class TicketController extends Controller
                     'pic_ticket' => $ticket->pic_ticket,
 
                     'completed_by' => $ticket->completed_by,
+
+                    'serviceorder_action' =>$serviceOrder?->serviceorder_action,
 
                     'completed_at' => optional(
                         $ticket->completed_at
@@ -1794,6 +1826,10 @@ class TicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
+        $this->syncEnvisionSolved($ticket);
+
+        $ticket->refresh();
+
         abort_if(
             $ticket->pic_ticket !== auth()->user()->username,
             403
@@ -2652,6 +2688,7 @@ class TicketController extends Controller
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
                     'PENDING',
+                    'PROCESS',
                 ]),
 
             'can_transfer' => (
@@ -2670,7 +2707,7 @@ class TicketController extends Controller
                 && in_array($ticket->status_pekerjaan, [
                     'PROCESS',
                     'PENDING',
-                    'ENVISION',
+                    'ENVISION CHECKED / SOLVED',
                 ]),
 
             'can_reopen' => $isIT
@@ -2704,4 +2741,78 @@ class TicketController extends Controller
             'ticket-export-'.now()->format('YmdHis').'.xlsx'
         );
     }
+
+    protected function hasEnvisionSO(TrTicket $ticket): bool
+    {
+        return TrServiceorderEnvision::query()
+            ->where('ticketid', $ticket->ticketid)
+            ->exists();
+    }
+
+  protected function syncEnvisionSolved(
+    TrTicket $ticket
+): void {
+
+    if (
+        $ticket->status_pekerjaan !== 'ENVISION'
+    ) {
+        return;
+    }
+
+    if (
+        !$this->hasEnvisionSO($ticket)
+    ) {
+        return;
+    }
+
+    $so = TrServiceorderEnvision::query()
+        ->where(
+            'ticketid',
+            $ticket->ticketid
+        )
+        ->latest('serviceorderdate')
+        ->first();
+
+    $ticket->update([
+        'status_pekerjaan' => 'ENVISION CHECKED / SOLVED',
+        'updated_by'       => 'SYSTEM',
+    ]);
+
+    $existsActivity =
+        TrTicketActivity::query()
+            ->where(
+                'ticketid',
+                $ticket->ticketid
+            )
+            ->where(
+                'status_pekerjaan',
+                'ENVISION CHECKED / SOLVED'
+            )
+            ->exists();
+
+    if (!$existsActivity) {
+
+        $this->createActivity([
+            'ticketid'          => $ticket->ticketid,
+            'cpny_id'           => $ticket->cpny_id,
+            'department_id'     => $ticket->department_id,
+            'pic_ticket'        => $ticket->pic_ticket,
+            'response_date'     => now(),
+
+            'response_summary'  => 'Envision Solved',
+
+            'response_descr'    =>
+                'Note: ' .
+                ($so->serviceorder_descr ?? '-'),
+
+            'status_pekerjaan'  =>
+                'ENVISION CHECKED / SOLVED',
+
+            'status'            => 'A',
+
+            'created_by'        => 'SYSTEM',
+        ]);
+    }
+}
+
 }

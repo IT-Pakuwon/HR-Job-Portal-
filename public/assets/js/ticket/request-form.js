@@ -193,11 +193,11 @@ function submitCreateTicket() {
 
         error: function(xhr){
 
-            console.log(xhr);
+            // console.log(xhr);
 
-            console.log(xhr.responseJSON);
+            // console.log(xhr.responseJSON);
 
-            console.log(xhr.responseText);
+            // console.log(xhr.responseText);
 
             showError(
                 xhr.responseJSON?.message ||

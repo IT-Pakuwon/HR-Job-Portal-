@@ -70,7 +70,7 @@
 
     <!-- MODAL -->
     <div x-show="showModal" x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-md">
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4   ">
 
         <div @click.stop class="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
 
@@ -173,7 +173,7 @@
 
     <!-- EVENT DETAIL POPUP -->
     <div x-show="selectedEvent" x-cloak x-transition.opacity @click.self="selectedEvent = null"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40  ">
         <div @click.stop x-transition.scale
             class="w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5 dark:bg-gray-900 dark:ring-white/10">
 
@@ -324,7 +324,7 @@
         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0" class="fixed left-1/2 top-6 z-50 -translate-x-1/2">
         <div
-            class="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-[0_10px_25px_-10px_rgba(0,0,0,0.25)] backdrop-blur-md dark:bg-gray-900">
+            class="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-[0_10px_25px_-10px_rgba(0,0,0,0.25)]    dark:bg-gray-900">
             <!-- ACCENT -->
             <div class="h-4 w-1 rounded-full"
                 :class="{

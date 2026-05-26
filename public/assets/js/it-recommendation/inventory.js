@@ -24,7 +24,7 @@ async function searchInventory({ keyword, container, selectClass }) {
             selectClass,
         });
     } catch (err) {
-        console.log(err);
+        // console.log(err);
     }
 }
 
@@ -126,7 +126,14 @@ function renderInventoryResult({ container, rows = [], selectClass }) {
     container.removeClass("hidden").html(html);
 }
 
-function selectInventory({ btn, searchClass, idClass, uomClass, resultClass }) {
+function selectInventory({
+    btn,
+    searchClass,
+    idClass,
+    uomClass,
+    resultClass
+}) {
+
     const row = btn.closest("tr");
 
     row.find(searchClass).val(btn.data("name"));
@@ -135,8 +142,21 @@ function selectInventory({ btn, searchClass, idClass, uomClass, resultClass }) {
 
     row.find(uomClass).val(btn.data("uom") || "");
 
-    row.find(resultClass).addClass("hidden").html("");
+    const result = btn.closest(resultClass);
+
+    result.hide();
+    result.empty();
 }
+$(document).on("focus", ".inventory-search", function () {
+
+    const result = $(this)
+        .closest("td")
+        .find(".inventory-result");
+
+    if (!result.children().length) {
+        result.addClass("hidden");
+    }
+});
 
 $(document).on("keyup", ".inventory-search", async function () {
     const input = $(this);
@@ -162,7 +182,10 @@ $(document).on("keyup", ".edit-inventory-search", async function () {
     });
 });
 
-$(document).on("click", ".inventory-select", function () {
+$(document).on("click", ".inventory-select", function (e) {
+
+    e.preventDefault();
+
     selectInventory({
         btn: $(this),
 

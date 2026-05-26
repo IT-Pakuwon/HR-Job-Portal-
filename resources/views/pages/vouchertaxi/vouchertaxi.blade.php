@@ -234,7 +234,7 @@
             class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white">
                         Create Voucher Taxi
@@ -492,7 +492,7 @@
             </div>
 
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3     dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-end gap-3">
 
@@ -528,7 +528,7 @@
             class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
 
                 <div>
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white">
@@ -825,7 +825,7 @@
 
             {{-- FOOTER --}}
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3     dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-end gap-3">
 
@@ -866,7 +866,7 @@
             <input type="hidden" id="view_docid">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
 
                 <div>
 
@@ -1098,7 +1098,7 @@
             </div>
 
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3     dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-between">
 
@@ -1151,7 +1151,7 @@
 
                 {{-- HEADER --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4     dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <div class="flex items-center gap-4">
 
@@ -1467,7 +1467,7 @@
 
                 {{-- FOOTER --}}
                 <div
-                    class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3     dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <div class="flex items-center justify-end gap-3">
 
