@@ -540,9 +540,7 @@ function renderActions(header, permissions, hash) {
         html += `
 
             <div class="
-                flex
-                flex-wrap
-                gap-2
+              w-full flex justify-between gap-2
             ">
 
                 <button
@@ -553,26 +551,11 @@ function renderActions(header, permissions, hash) {
                     class="
                         approve-btn
 
-                        inline-flex
-                        items-center
-                        justify-center
-                        gap-2
-
-                        rounded-lg
-
-                        bg-green-600
-
-                        px-4 py-2.5
-
-                        text-sm
-                        font-semibold
-
-                        text-white
-
-                        transition-all
-                        duration-200
-
-                        hover:bg-green-700
+                         inline-flex flex-1 items-center justify-center gap-2
+                            rounded-lg bg-emerald-600
+                            px-4 py-3
+                            text-sm font-semibold text-white
+                            transition hover:bg-emerald-700
                     "
                 >
 
@@ -595,31 +578,11 @@ function renderActions(header, permissions, hash) {
                     class="
                         revise-approval-btn
 
-                        inline-flex
-                        items-center
-                        justify-center
-                        gap-2
-
-                        rounded-lg
-
-                        border border-amber-200
-                        dark:border-amber-500/20
-
-                        bg-amber-50
-                        dark:bg-amber-500/10
-
-                        px-4 py-2.5
-
-                        text-sm
-                        font-semibold
-
-                        text-amber-700
-                        dark:text-amber-300
-
-                        transition-all
-                        duration-200
-
-                        hover:bg-amber-100
+                         inline-flex flex-1 items-center justify-center gap-2
+                    rounded-lg bg-amber-500
+                    px-4 py-3
+                    text-sm font-semibold text-white
+                    transition hover:bg-amber-600
                     "
                 >
 
@@ -642,31 +605,11 @@ function renderActions(header, permissions, hash) {
                     class="
                         reject-approval-btn
 
-                        inline-flex
-                        items-center
-                        justify-center
-                        gap-2
-
-                        rounded-lg
-
-                        border border-red-200
-                        dark:border-red-500/20
-
-                        bg-red-50
-                        dark:bg-red-500/10
-
-                        px-4 py-2.5
-
-                        text-sm
-                        font-semibold
-
-                        text-red-700
-                        dark:text-red-300
-
-                        transition-all
-                        duration-200
-
-                        hover:bg-red-100
+                       inline-flex flex-1 items-center justify-center gap-2
+                    rounded-lg bg-red-500
+                    px-4 py-3
+                    text-sm font-semibold text-white
+                    transition hover:bg-red-600
                     "
                 >
 
@@ -687,12 +630,13 @@ function renderActions(header, permissions, hash) {
     }
 
     if (!html) {
-        $("#show_header_actions").addClass("hidden").html("");
-
+        $("#show_header_actions").html("");
+        $("#show_actions_card").addClass("hidden");
         return;
     }
 
-    $("#show_header_actions").removeClass("hidden").html(html);
+    $("#show_header_actions").html(html);
+    $("#show_actions_card").removeClass("hidden");
 }
 
 function renderDetailItems(details = []) {

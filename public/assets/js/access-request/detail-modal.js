@@ -1166,7 +1166,7 @@ function renderDetailActions(access) {
         `);
 
     let html = `
-        <div class="grid grid-cols-3 gap-2">
+        <div class="w-full grid grid-cols-3 gap-2">
 
             <button
                 type="button"
