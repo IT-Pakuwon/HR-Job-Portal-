@@ -184,7 +184,9 @@ function populateCompleteTicket(ticket) {
 
     $('#complete_solution_descr')
         .val(
-            ticket.solution_descr || ''
+            ticket.serviceorder_action ||
+            ticket.solution_descr ||
+            ''
         );
 }
 

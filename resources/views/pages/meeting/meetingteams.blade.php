@@ -59,7 +59,7 @@
     <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
 
         {{-- HEADER --}}
-        <div class="mb-4 rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+        <div class="mb-4 rounded-2xl border border-gray-200 bg-white/70      p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
 
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -298,7 +298,7 @@
 
         <!-- MODAL -->
         <div id="viewMeetingModal"
-            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40  ">
 
             <div class="w-full max-w-2xl rounded-2xl border bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
 

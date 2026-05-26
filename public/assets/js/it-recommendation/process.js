@@ -1,3 +1,5 @@
+window.processAttachments = [];
+
 function processInfoContent(header) {
     return `
 
@@ -31,85 +33,95 @@ function processInfoContent(header) {
 }
 
 function renderProcessAttachments(attachments = []) {
+
     if (attachments.length === 0) {
         return `
             <div class="
                 w-full
-
                 rounded-lg
-
-                border border-dashed
-                border-slate-200
+                border border-dashed border-slate-200
                 dark:border-white/10
-
                 px-4 py-6
-
-                text-center
-                text-sm
-
-                text-slate-400
+                text-center text-sm text-slate-400
             ">
                 No attachments
             </div>
         `;
     }
 
-    return attachments
-        .map((file) => {
-            return `
+    return attachments.map(file => `
 
-                <a
-                    href="${file.signed_url || "#"}"
+        <button
+            type="button"
 
-                    target="_blank"
+            class="
+                preview-attachment
 
-                    class="
-                        inline-flex
-                        items-center
-                        gap-2
+                inline-flex
+                items-center
+                gap-2
 
-                        rounded-lg
+                rounded-lg
 
-                        border border-slate-200
-                        dark:border-white/10
+                border border-slate-200
+                dark:border-white/10
 
-                        bg-slate-50
-                        dark:bg-white/[0.03]
+                bg-slate-50
+                dark:bg-white/[0.03]
 
-                        px-3 py-2
+                px-3 py-2
 
-                        text-xs
+                text-xs
 
-                        text-slate-700
-                        dark:text-slate-300
+                text-slate-700
+                dark:text-slate-300
 
-                        transition-all
-                        duration-150
+                transition-all
+                duration-150
 
-                        hover:bg-slate-100
-                        dark:hover:bg-white/[0.05]
-                    "
-                >
+                hover:bg-slate-100
+                dark:hover:bg-white/[0.05]
+            "
 
-                    <i class="
-                        fa-solid
-                        fa-paperclip
+            data-url="${file.signed_url}"
+            data-name="${file.filename}"
+        >
 
-                        text-slate-400
-                    "></i>
+            <i class="
+                fa-solid
+                fa-paperclip
 
-                    <div class="
-                        max-w-[220px]
-                        truncate
-                    ">
-                        ${file.filename || "Attachment"}
-                    </div>
+                text-slate-400
+            "></i>
 
-                </a>
+            <div class="
+                max-w-[220px]
+                truncate
+            ">
+                ${file.filename || "Attachment"}
+            </div>
 
-            `;
-        })
-        .join("");
+        </button>
+
+    `).join('');
+}
+
+$(document).on(
+    "click",
+    ".preview-attachment",
+    function ()
+    {
+        previewAttachment({
+            signed_url: $(this).data("url"),
+            filename: $(this).data("name")
+        });
+    }
+);
+function removeProcessAttachment(index)
+{
+    window.processAttachments.splice(index, 1);
+
+    renderProcessAttachmentPreview();
 }
 
 function addDetailRow(data = {}) {
@@ -427,6 +439,10 @@ async function loadProcessDetail(hash) {
 
         const header = res.header;
 
+        window.processAttachments = [];
+
+        $("#processAttachmentPreview").html("");
+
         $("#process_hash").val(hash);
 
         $("#process_docid").text(header.docid || "-");
@@ -506,61 +522,127 @@ function collectProcessDetails() {
     return details;
 }
 
-async function submitProcessAction({ url, successText, note = null }) {
+async function submitProcessAction({ url, successText, note = null })
+{
     try {
+
+        let data;
+        let processData = true;
+        let contentType =
+            "application/x-www-form-urlencoded; charset=UTF-8";
+
+        if (note) {
+
+            data = {
+                note,
+            };
+
+        } else {
+
+            data = new FormData();
+
+            data.append(
+                "recommend_type",
+                $("#recommend_type").val()
+            );
+
+            data.append(
+                "waranty",
+                $("#waranty").val()
+            );
+
+            data.append(
+                "recommendation",
+                $("#recommendation").val()
+            );
+
+            collectProcessDetails().forEach(
+                (row, index) => {
+
+                    data.append(
+                        `details[${index}][recommend_descr]`,
+                        row.recommend_descr
+                    );
+
+                    data.append(
+                        `details[${index}][qty]`,
+                        row.qty
+                    );
+
+                    data.append(
+                        `details[${index}][uom]`,
+                        row.uom
+                    );
+
+                    data.append(
+                        `details[${index}][recommend_note]`,
+                        row.recommend_note || ""
+                    );
+                }
+            );
+
+            window.processAttachments.forEach(file => {
+
+                data.append(
+                    "attachments[]",
+                    file
+                );
+            });
+
+            processData = false;
+            contentType = false;
+        }
+
         await $.ajax({
+
             url,
 
             type: "POST",
 
             headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+                "X-CSRF-TOKEN":
+                    $('meta[name="csrf-token"]').attr("content"),
             },
 
-            data: note
-                ? {
-                      note,
-                  }
-                : {
-                      recommend_type: $("#recommend_type").val(),
+            data,
 
-                      waranty: $("#waranty").val(),
+            processData,
 
-                      recommendation: $("#recommendation").val(),
-
-                      details: collectProcessDetails(),
-                  },
+            contentType
         });
 
         Swal.fire({
             icon: "success",
-
             title: "Success",
-
             text: successText,
-
             timer: 1800,
-
             showConfirmButton: false,
         });
 
         closeProcessModal(true);
-
         closeShowModal(true);
 
         table.ajax.reload(null, false);
-    } catch (err) {
-        let msg = err.responseJSON?.message || "Process failed";
 
-        if (err.status === 422 && err.responseJSON?.errors) {
-            msg = Object.values(err.responseJSON.errors).flat().join("<br>");
+    } catch (err) {
+
+        let msg =
+            err.responseJSON?.message ||
+            "Process failed";
+
+        if (
+            err.status === 422 &&
+            err.responseJSON?.errors
+        ) {
+            msg = Object
+                .values(err.responseJSON.errors)
+                .flat()
+                .join("<br>");
         }
 
         Swal.fire({
             icon: "error",
-
             title: "Error",
-
             html: msg,
         });
     }
@@ -593,6 +675,81 @@ $(document).on("click", ".btn-remove-item", function () {
         addDetailRow();
     }
 });
+
+$(document).on(
+    "change",
+    "#process_attachments_input",
+    function () {
+
+        const files = Array.from(this.files);
+
+        files.forEach(file => {
+
+            if (file.size > 5 * 1024 * 1024) {
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "File too large",
+                    text: `${file.name} exceeds 5 MB`
+                });
+
+                return;
+            }
+
+            window.processAttachments.push(file);
+        });
+
+        renderProcessAttachmentPreview();
+
+        $(this).val("");
+    }
+);
+
+function renderProcessAttachmentPreview()
+{
+    let html = "";
+
+    window.processAttachments.forEach(
+        (file, index) => {
+
+            html += `
+                <div
+                    class="
+                        inline-flex
+                        items-center
+                        gap-2
+
+                        rounded-lg
+
+                        border border-indigo-200
+
+                        bg-indigo-50
+
+                        px-3 py-2
+
+                        text-xs
+                    "
+                >
+
+                    <i class="fa-solid fa-file"></i>
+
+                    <span>${file.name}</span>
+
+                    <button
+                        type="button"
+                        onclick="removeProcessAttachment(${index})"
+                        class="text-red-500"
+                    >
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+
+                </div>
+            `;
+        }
+    );
+
+    $("#processAttachmentPreview").html(html);
+}
 
 $("#processForm").on("submit", async function (e) {
     e.preventDefault();

@@ -50,7 +50,7 @@
 
     {{-- Modal --}}
     <div x-show="showModal" x-transition
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4  "
         style="display: none">
         <div class="relative w-full max-w-2xl rounded-xl bg-white p-4 dark:bg-gray-800">
             {{-- Close Button --}}

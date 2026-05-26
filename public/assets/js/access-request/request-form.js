@@ -620,10 +620,10 @@ function openEditModal(id) {
 
         success: function (res) {
 
-            console.log(
-                "edit response",
-                res
-            );
+            // console.log(
+            //     "edit response",
+            //     res
+            // );
 
             const access =
                 res.access ?? {};

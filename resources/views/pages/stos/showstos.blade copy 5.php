@@ -98,7 +98,7 @@
                             </div>
 
                             <div
-                                class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-lg bg-gray-900/60 p-2   backdrop-blur-sm">
+                                class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-lg bg-gray-900/60 p-2    ">
                                 <button onclick="window.open('{{ route('orgchart.fullscreen') }}', '_blank')"
                                     class="flex h-10 w-10 items-center justify-center rounded-md bg-blue-600 text-white   transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -125,7 +125,7 @@
                             </div>
 
                             <div id="modalForm"
-                                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                                 <div
                                     class="relative w-full max-w-xl rounded-lg bg-white p-6   dark:bg-gray-800">
                                     <div
@@ -476,7 +476,7 @@
             </div>
 
             <div id="loadingSpinnerContainer"
-                class="fixed inset-0 z-[60] flex hidden items-center justify-center bg-gray-500/10 backdrop-blur-sm">
+                class="fixed inset-0 z-[60] flex hidden items-center justify-center bg-gray-500/10  ">
                 <div
                     class="flex flex-col items-center justify-center rounded-xl bg-white p-8 shadow-2xl dark:bg-gray-800">
                     <svg class="h-16 w-16 animate-spin text-indigo-600" xmlns="http://www.w3.org/2000/svg"
@@ -490,7 +490,7 @@
             </div>
 
             <div id="rejectTaskModal"
-                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50  ">
                 <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-800">
                     <h2 class="mb-4 text-lg font-bold text-gray-800 dark:text-white">Reject Task</h2>
                     <p class="mb-4 text-gray-600 dark:text-gray-300">Please provide a reason for rejecting this
@@ -513,7 +513,7 @@
             </div>
 
             <div id="reviseTaskModal"
-                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50  ">
                 <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-gray-800">
                     <h2 class="mb-4 text-lg font-bold text-gray-800 dark:text-white">Revise Task</h2>
                     <p class="mb-4 text-gray-600 dark:text-gray-300">Please provide details for the revision.</p>
@@ -569,7 +569,7 @@
 
                                     commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-xs font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username}
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -640,7 +640,7 @@
         </script>
         <script>
             $(document).on("click", "#approveBtn", function() {
-                let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal        
+                let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal
                 approveSto(docid);
             });
 
@@ -717,7 +717,7 @@
                         return;
                     }
 
-                    let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                    let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                     // Tampilkan spinner di kanan bawah
                     $spinner.fadeIn();
 
@@ -784,7 +784,7 @@
                         toastr.error("Please provide a reason for revise.");
                         return;
                     }
-                    let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                    let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                     // Tampilkan spinner di kanan bawah
                     $spinner.fadeIn();
 
@@ -946,8 +946,8 @@
                                         ${d.data.position
                                         ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
                                         : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
-                                        }                           
-                                        <div style="font-size:12px;color:#333">                                    
+                                        }
+                                        <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -1018,7 +1018,7 @@
                                         <td class="border   px-2 py-1">${emp.employee_level}</td>
                                         <td class="border   px-2 py-1 text-center">
                                             ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
-                                        </td>                                       
+                                        </td>
                                     </tr>
                                 `;
                         });

@@ -551,7 +551,7 @@
     </div>
 
     <!-- VIEW BOOKING MODAL -->
-    <div id="viewBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm">
+    <div id="viewBookingModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60  ">
 
         <div class="flex min-h-screen items-center justify-center p-4 lg:p-6">
 
@@ -563,7 +563,7 @@
                 <!-- ===================================================== -->
 
                 <div
-                    class="flex flex-col gap-5 border-b border-gray-200 bg-white/80 px-8 py-6 backdrop-blur dark:border-white/10 dark:bg-white/5 lg:flex-row lg:items-start lg:justify-between">
+                    class="flex flex-col gap-5 border-b border-gray-200 bg-white/80 px-8 py-6      dark:border-white/10 dark:bg-white/5 lg:flex-row lg:items-start lg:justify-between">
 
                     <div class="flex items-start gap-4">
 

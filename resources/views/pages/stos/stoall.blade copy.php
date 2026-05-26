@@ -26,27 +26,27 @@
                                     </select>
                                 </div>
                             </div>
-{{-- 
-                             <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">                 
+{{--
+                             <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
                                 <button class="rounded-lg bg-indigo-500 px-5 py-2 text-white" onclick="chart.exportImg()">Export Image</button>
                                 <button class="rounded-lg bg-indigo-500 px-5 py-2 text-white" onclick="chart.exportImg({full:true})">Export Full</button>
                                 <button class="rounded-lg bg-indigo-500 px-5 py-2 text-white" onclick="chart.exportSvg()">Export SVG</button>
                                 <button class="rounded-lg bg-indigo-500 px-5 py-2 text-white" onclick="downloadPdf(chart)">Export PDF</button>
                             </div> --}}
-                           
+
                             <div
                                 class="flex w-full flex-col rounded-b-2xl border-b bg-white p-4 shadow-sm dark:bg-gray-800">
-                                <div class="flex flex-col items-center justify-between gap-4 sm:flex-row"> 
+                                <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
                                     <button class="rounded-lg bg-indigo-500 px-5 py-2 text-white" onclick="chart.exportImg()">Export Image</button>
                                 </div>
                                 <div class="chart-container h-[80vh]" style="width: 100%;"></div>
-                                
+
                             </div>
 
                         </form>
                     </div>
                     <div id="modalForm"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                         <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                             <div class="border-gray-200s mb-4 flex justify-between border-b">
                                 <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
@@ -272,7 +272,7 @@
     <!-- D3 Org Chart Dependencies -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
 
@@ -323,7 +323,7 @@
                             padding:15px;
                             overflow:visible;
                         ">
-                            <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>                           
+                            <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>
                             <div style="font-size:12px;color:#333">
                                 <strong>Employee:</strong>
                                 <div style="margin-top:10px;">
@@ -815,7 +815,7 @@
                                     padding:15px;
                                     overflow:visible;
                                 ">
-                                    <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>                           
+                                    <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>
                                     <div style="font-size:12px;color:#333">
                                         <strong>Employee:</strong>
                                         <div style="margin-top:10px;">
@@ -861,7 +861,7 @@
     </script>
     <script>
         $(document).ready(function() {
-           
+
             $('#selectdeptname').select2({
                 placeholder: "Pilih Departement Name...",
                 allowClear: true,

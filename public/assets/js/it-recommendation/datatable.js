@@ -164,24 +164,24 @@ function renderITRDocButton(row) {
     `;
 }
 
-function renderITRProcessButton(row) {
-    if (!row.can_process) {
-        return "-";
-    }
+function renderITRProcessButton(row)
+{
+    let html = '';
 
-    const isRevision = row.status === "I";
+    if (row.can_process) {
 
-    return `
-        <div class="flex items-center justify-center">
+        const isRevision =
+            row.status === 'I';
 
+        html += `
             <button
                 type="button"
 
                 class="
                     ${
                         isRevision
-                            ? "edit-recommendation-btn bg-orange-500 hover:bg-orange-600"
-                            : "process-btn bg-indigo-600 hover:bg-indigo-700"
+                            ? 'edit-recommendation-btn bg-orange-500 hover:bg-orange-600'
+                            : 'process-btn bg-indigo-600 hover:bg-indigo-700'
                     }
 
                     inline-flex
@@ -207,13 +207,73 @@ function renderITRProcessButton(row) {
             >
 
                 <i class="fa-solid ${
-                    isRevision ? "fa-rotate-left" : "fa-gears"
+                    isRevision
+                        ? 'fa-rotate-left'
+                        : 'fa-gears'
                 }"></i>
 
-                ${isRevision ? "Edit Recommendation" : "Process"}
+                ${
+                    isRevision
+                        ? 'Edit Recommendation'
+                        : 'Process'
+                }
 
             </button>
+        `;
+    }
 
+    if (row.can_upload_attachment) {
+
+        html += `
+            <button
+                type="button"
+
+                class="
+                    attachment-btn
+
+                    inline-flex
+                    items-center
+                    gap-2
+
+                    rounded-lg
+
+                    bg-slate-600
+                    hover:bg-slate-700
+
+                    px-3 py-1.5
+
+                    text-sm
+                    font-semibold
+
+                    text-white
+
+                    transition-all
+                    duration-200
+                "
+
+                data-id="${row.eid}"
+            >
+
+                <i class="fa-solid fa-paperclip"></i>
+
+                Attachment
+
+            </button>
+        `;
+    }
+
+    if (!html) {
+        return '-';
+    }
+
+    return `
+        <div class="
+            flex
+            items-center
+            justify-center
+            gap-2
+        ">
+            ${html}
         </div>
     `;
 }
@@ -359,24 +419,17 @@ table = $("#itrTable").DataTable({
             },
         },
 
-        ...(isITHardware
-            ? [
-                  {
-                      data: null,
+            {
+            data: null,
+            orderable: false,
+            searchable: false,
+            className:
+                "px-5 py-4 text-center whitespace-nowrap align-middle",
 
-                      orderable: false,
-
-                      searchable: false,
-
-                      className:
-                          "px-5 py-4 text-center whitespace-nowrap align-middle",
-
-                      render: function (data, type, row) {
-                          return renderITRProcessButton(row);
-                      },
-                  },
-              ]
-            : []),
+            render: function (data, type, row) {
+                return renderITRProcessButton(row);
+            },
+        },
     ],
 
     drawCallback: function () {

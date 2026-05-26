@@ -27,6 +27,6 @@ VoucherTaxi.debug = false;
 
 VoucherTaxi.log = function (...args) {
     if (VoucherTaxi.debug) {
-        console.log('[VoucherTaxi]', ...args);
+        // console.log('[VoucherTaxi]', ...args);
     }
 };

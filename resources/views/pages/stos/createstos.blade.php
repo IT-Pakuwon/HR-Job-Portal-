@@ -137,7 +137,7 @@
             </div>
         </div>
         <div id="modalForm"
-            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
             <div class="relative w-full max-w-5xl rounded-lg bg-white shadow-xl dark:bg-gray-800">
                 <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
                     <ul class="flex flex-wrap text-center text-xs font-medium" id="tabs">
@@ -489,7 +489,7 @@
                 </div>
 
                 <div id="editModal"
-                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
                     <div class="relative w-full max-w-lg rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                         <button onclick="closeEditModal()"
                             class="absolute right-3 top-3 text-lg leading-none text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
@@ -547,7 +547,7 @@
                 </div>
 
                 <div id="modalChangeDept"
-                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
                     <div class="relative w-full max-w-md rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                         <h3 class="mb-6 text-base font-bold text-gray-800 dark:text-white">Change Department</h3>
 
@@ -579,7 +579,7 @@
                 </div>
 
                 <div id="modalChangeParent"
-                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
                     <div class="relative w-full max-w-md rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                         <h3 class="mb-6 text-base font-bold text-gray-800 dark:text-white">Change Parent
                             Department
@@ -613,7 +613,7 @@
                 </div>
 
                 <div id="modalJobProfile"
-                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
                     <div
                         class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-4 shadow-xl dark:bg-gray-800">
                         <div
@@ -798,8 +798,8 @@
                                         ${d.data.position
                                             ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px;"><strong>${d.data.name} ${d.data.position}</strong></div>`
                                             : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
-                                        }                           
-                                        <div style="font-size:12px;color:#333">                                    
+                                        }
+                                        <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
                                                                                                                                                                                                                                                                                     <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -1102,7 +1102,7 @@
                                             ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
                                             : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
                                         }
-                                        <div style="font-size:12px;color:#333">                                    
+                                        <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
                                                                                                                                                                                                                                                                                     <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -1458,14 +1458,14 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border   px-2 py-1">${i + 1}</td>                                
-                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border   px-2 py-1">${i + 1}</td>
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>
                                 <td class="border   px-2 py-1 text-center">
                                     <button class="btn-delete-jobpurpose bg-red-200/30 text-red-600 p-2 rounded border border-red-600 hover:text-white hover:bg-red-600 transition"
                                         data-id="${p.id}">
                                         Delete
                                     </button>
-                                </td>                                                             
+                                </td>
                             </tr>
                         `;
                     });
@@ -1474,7 +1474,7 @@
                     $('#jobLevelLabel').text(spec.subgrade_name || '');
 
                     $('#jobSpecInfo').html(`
-                        <h4 class="font-semibold">Job Spec Detail:</h4>                       
+                        <h4 class="font-semibold">Job Spec Detail:</h4>
                         <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
                         <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
                     `);

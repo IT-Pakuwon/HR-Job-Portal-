@@ -866,7 +866,7 @@
                                 @if ($po->status === 'H')
                                     {{-- Upload (status HOLD saja yang boleh) --}}
                                     <form id="poAttachmentUploadForm" enctype="multipart/form-data"
-                                        class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">
+                                        class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm   dark:border-gray-700 dark:bg-gray-700">
                                         @csrf
                                         {{-- opsional kalau mau kirim meta tambahan --}}
                                         <input type="hidden" name="cpnyid" value="{{ $po->cpny_id }}">
@@ -1323,7 +1323,7 @@
                                 let timeAgo = dayjs(comment.created_at).fromNow();
                                 commentList.append(`
                                         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2        -gray-300 dark:   -gray-700">
-                                            <p class="text-xs font-semibold">${comment.username} 
+                                            <p class="text-xs font-semibold">${comment.username}
                                                 <span class="text-xs text-gray-500">(${timeAgo})</span>
                                             </p>
                                             <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -1648,7 +1648,7 @@
                 rows.forEach(at => {
                     const dateStr = at.created_at ? dayjs(at.created_at).format('DD MMM YYYY') : '-';
                     const actionTd = isHold ?
-                        `<td class="p-3 text-center">                            
+                        `<td class="p-3 text-center">
                             <button type="button"
                                 class="btn-del-attachment mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
                                 data-id="${at.id}">🗑️

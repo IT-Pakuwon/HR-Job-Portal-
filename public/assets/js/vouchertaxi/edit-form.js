@@ -59,11 +59,11 @@
 
                     VoucherTaxi.Helper.closeLoading();
 
-                    console.log("EDIT RESPONSE", res);
+                    // console.log("EDIT RESPONSE", res);
 
                     const data = res.data || res;
 
-                    console.log("EDIT DATA", data);
+                    // console.log("EDIT DATA", data);
 
                     this.populate(data);
 
@@ -81,7 +81,7 @@
 
         populate(data) {
 
-            console.log("Populate Edit Form", data);
+            // console.log("Populate Edit Form", data);
 
             this.currentDocId = data.docid;
 

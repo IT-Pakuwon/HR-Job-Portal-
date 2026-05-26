@@ -1127,7 +1127,7 @@
                                 @if ($po->status === 'H' || $po->send_email === false)
                                     {{-- Upload (status HOLD saja yang boleh) --}}
                                     <form id="poAttachmentUploadForm" enctype="multipart/form-data"
-                                        class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">
+                                        class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm   dark:border-gray-700 dark:bg-gray-700">
                                         @csrf
                                         {{-- opsional kalau mau kirim meta tambahan --}}
                                         <input type="hidden" name="cpnyid" value="{{ $po->cpny_id }}">

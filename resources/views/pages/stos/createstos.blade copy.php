@@ -130,7 +130,7 @@
                 </form>
             </div>
             <div id="modalForm"
-                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                 <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                     <div class="border-gray-200s mb-4 flex justify-between border-b">
                         <ul class="-mb-px flex flex-wrap text-center text-xs font-medium" id="tabs">
@@ -393,7 +393,7 @@
                     </div>
 
                     <div id="editModal"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 backdrop-blur-md">
+                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10   ">
                         <div class="relative w-full max-w-lg rounded-lg bg-white p-6">
                             <button onclick="closeEditModal()"
                                 class="absolute right-2 top-2 text-lg text-gray-500">&times;</button>
@@ -425,7 +425,7 @@
                                     </select>
                                 </div>
                                 {{-- <div class="mb-3">
-                                    <label>Position</label>                                    
+                                    <label>Position</label>
                                     <select
                                         class="w-full rounded-sm border border-gray-200/50 bg-gray-200/10 p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
                                         name="employee_level" id="edit_position">
@@ -445,7 +445,7 @@
                     </div>
 
                     <div id="modalChangeDept"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                         <div class="w-full max-w-md rounded-lg bg-white p-6  ">
                             <h3 class="mb-4 text-sm font-semibold">Change Department</h3>
 
@@ -468,7 +468,7 @@
                     </div>
 
                     <div id="modalChangeParent"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                         <div class="w-full max-w-md rounded-lg bg-white p-6  ">
                             <h3 class="mb-4 text-sm font-semibold">Change Parent Department</h3>
 
@@ -493,7 +493,7 @@
 
 
                     <div id="modalJobProfile"
-                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 backdrop-blur-md">
+                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10   ">
                         <div class="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6   ">
                             <div class="mb-4 flex items-center justify-between">
                                 <h3 class="text-sm font-semibold">
@@ -593,8 +593,8 @@
                                 ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
                                 : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
                                 }
-                          
-                                <div style="font-size:12px;color:#333">                                    
+
+                                <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
                                                 <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -860,8 +860,8 @@
                                         padding:15px;
                                         overflow:visible;
                                     ">
-                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}  ${d.data.position}</div>                           
-                                        <div style="font-size:12px;color:#333">                                    
+                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}  ${d.data.position}</div>
+                                        <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
                                                         <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -1212,14 +1212,14 @@
                     profiles.forEach((p, i) => {
                         rows += `
                             <tr>
-                                <td class="border   px-2 py-1">${i + 1}</td>                                
-                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border   px-2 py-1">${i + 1}</td>
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>
                                 <td class="border   px-2 py-1 text-center">
                                     <button class="btn-delete-jobpurpose bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
                                         data-id="${p.id}">
                                         🗑️ Delete
                                     </button>
-                                </td>                                                             
+                                </td>
                             </tr>
                         `;
                     });
@@ -1228,7 +1228,7 @@
                     $('#jobLevelLabel').text(spec.subgrade_name || '');
 
                     $('#jobSpecInfo').html(`
-                        <h4 class="font-semibold">Job Spec Detail:</h4>                       
+                        <h4 class="font-semibold">Job Spec Detail:</h4>
                         <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
                         <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
                     `);

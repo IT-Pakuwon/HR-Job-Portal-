@@ -516,6 +516,15 @@ function workflowBadgeClass(status) {
                 dark:text-cyan-300
             `;
 
+        case 'ENVISION CHECKED / SOLVED':
+            return `
+                bg-emerald-100
+                text-emerald-700
+
+                dark:bg-emerald-900/30
+                dark:text-emerald-300
+            `;
+
         case 'TRANSFER':
             return `
                 bg-purple-100

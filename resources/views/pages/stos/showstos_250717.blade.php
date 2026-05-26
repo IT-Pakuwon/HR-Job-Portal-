@@ -65,7 +65,7 @@
                         </div>
 
                         <div
-                            class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2 backdrop-blur-sm">
+                            class="absolute bottom-4 right-4 flex items-center space-x-2 rounded-xl bg-gray-900/60 p-2  ">
                             <button onclick="window.open('{{ route('orgchart.fullscreen') }}', '_blank')"
                                 class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -78,7 +78,7 @@
                         </div>
 
                         <div id="modalForm"
-                            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
                             <div
                                 class="card-container relative w-full max-w-2xl transform overflow-hidden rounded-md bg-white">
                                 <div class="card-header border-b border-gray-200 p-4 dark:border-gray-700">
@@ -484,7 +484,7 @@
 
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-xs font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username}
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -555,7 +555,7 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal        
+            let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal
             approveSto(docid);
         });
 
@@ -632,7 +632,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -699,7 +699,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -952,7 +952,7 @@
                                         <td class="border   px-2 py-1">${emp.employee_level}</td>
                                         <td class="border   px-2 py-1 text-center">
                                             ${emp.image ? `<img src="${emp.image}" class="w-15 h-15 rounded-full mx-auto">` : '-'}
-                                        </td>                                       
+                                        </td>
                                     </tr>
                                 `;
                     });

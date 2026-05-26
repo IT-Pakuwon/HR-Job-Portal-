@@ -133,6 +133,11 @@
                                     'is_raw' => true, // to render {!! !!}
                                 ],
                                 [
+                                    'icon' => 'calendar-days',
+                                    'label' => 'CS Date',
+                                    'value' => \Carbon\Carbon::parse($cs->csdate)->format('d M Y'),
+                                ],
+                                [
                                     'icon' => 'building-office',
                                     'label' => 'Company',
                                     'value' => $srcHeader->cpny_id,
@@ -547,8 +552,10 @@
                                                                     $budgetData = $row->budget_data;
 
                                                                     $budget = (float) ($budgetData->totalbudget ?? 0);
-                                                                    $additional = (float) ($budgetData->totalbudget_add ?? 0);
-                                                                    $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                                    $additional =
+                                                                        (float) ($budgetData->totalbudget_add ?? 0);
+                                                                    $reserved =
+                                                                        (float) ($budgetData->total_reserve ?? 0);
                                                                     $used = (float) ($budgetData->total_used ?? 0);
 
                                                                     $totalBudget = $budget + $additional;
@@ -566,18 +573,21 @@
                                                                     data-coa="{{ optional($row->budget_data)->account_descr }}"
                                                                     data-bu="{{ $row->budget_business_unit_id }}">
 
-                                                                    <div class="flex flex-wrap items-start gap-2 text-sm leading-tight">
+                                                                    <div
+                                                                        class="flex flex-wrap items-start gap-2 text-sm leading-tight">
 
                                                                         {{-- Department --}}
                                                                         @if (!empty($row->budget_department_fin_id))
-                                                                            <span class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                                                                            <span
+                                                                                class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
                                                                                 {{ $row->budget_department_fin_id }}
                                                                             </span>
                                                                         @endif
 
                                                                         {{-- Business Unit --}}
                                                                         @if (!empty($row->budget_business_unit_id))
-                                                                            <span class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
+                                                                            <span
+                                                                                class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700">
                                                                                 {{ $row->budget_business_unit_id }}
                                                                             </span>
                                                                         @endif
@@ -590,7 +600,8 @@
                                                                         <span class="text-gray-400">•</span>
 
                                                                         {{-- Activity --}}
-                                                                        <span class="max-w-[200px] whitespace-normal break-words text-gray-500">
+                                                                        <span
+                                                                            class="max-w-[200px] whitespace-normal break-words text-gray-500">
                                                                             {{ $row->budget_activity_descr ?? '-' }}
                                                                         </span>
 
@@ -598,50 +609,52 @@
                                                                 </div>
 
                                                                 <div id="budgetTooltip"
-                                                                class="fixed hidden z-[9999] w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-xl text-sm">
+                                                                    class="fixed z-[9999] hidden w-80 rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-xl">
 
-                                                                <!-- HEADER -->
-                                                                <div class="mb-2 border-b pb-2">
-                                                                    <div id="ttDesc" class="font-semibold text-gray-800"></div>
-                                                                    <div class="text-xs text-gray-500">
-                                                                        <span id="ttAccount"></span> •
-                                                                        <span id="ttCoa"></span>
+                                                                    <!-- HEADER -->
+                                                                    <div class="mb-2 border-b pb-2">
+                                                                        <div id="ttDesc"
+                                                                            class="font-semibold text-gray-800"></div>
+                                                                        <div class="text-xs text-gray-500">
+                                                                            <span id="ttAccount"></span> •
+                                                                            <span id="ttCoa"></span>
+                                                                        </div>
+                                                                        <div class="text-xs text-gray-400">
+                                                                            BU: <span id="ttBU"></span>
+                                                                        </div>
                                                                     </div>
-                                                                    <div class="text-xs text-gray-400">
-                                                                        BU: <span id="ttBU"></span>
+
+                                                                    <!-- BODY -->
+                                                                    <div class="space-y-1 text-sm">
+
+                                                                        <div class="flex justify-between">
+                                                                            <span>Budget</span>
+                                                                            <span id="ttBudget"></span>
+                                                                        </div>
+
+                                                                        <div class="flex justify-between">
+                                                                            <span>Additional</span>
+                                                                            <span id="ttAdditional"></span>
+                                                                        </div>
+
+                                                                        <div class="flex justify-between">
+                                                                            <span>Reserved</span>
+                                                                            <span id="ttReserved"></span>
+                                                                        </div>
+
+                                                                        <div class="flex justify-between">
+                                                                            <span>Used</span>
+                                                                            <span id="ttUsed"></span>
+                                                                        </div>
+
+                                                                        <div
+                                                                            class="flex justify-between border-t pt-2 font-semibold">
+                                                                            <span>Available</span>
+                                                                            <span id="ttAvailable"></span>
+                                                                        </div>
+
                                                                     </div>
                                                                 </div>
-
-                                                                <!-- BODY -->
-                                                                <div class="space-y-1 text-sm">
-
-                                                                    <div class="flex justify-between">
-                                                                        <span>Budget</span>
-                                                                        <span id="ttBudget"></span>
-                                                                    </div>
-
-                                                                    <div class="flex justify-between">
-                                                                        <span>Additional</span>
-                                                                        <span id="ttAdditional"></span>
-                                                                    </div>
-
-                                                                    <div class="flex justify-between">
-                                                                        <span>Reserved</span>
-                                                                        <span id="ttReserved"></span>
-                                                                    </div>
-
-                                                                    <div class="flex justify-between">
-                                                                        <span>Used</span>
-                                                                        <span id="ttUsed"></span>
-                                                                    </div>
-
-                                                                    <div class="flex justify-between font-semibold border-t pt-2">
-                                                                        <span>Available</span>
-                                                                        <span id="ttAvailable"></span>
-                                                                    </div>
-
-                                                                </div>
-                                                            </div>
 
                                                             </div>
 
@@ -745,7 +758,7 @@
 
             {{-- Modal Last Price History --}}
             <div id="lastPriceModal" class="fixed inset-0 z-[4000] hidden">
-                <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50  "></div>
 
                 <div
                     class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
@@ -894,7 +907,8 @@
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject</h2>
 
             @if (!empty($showImBudgetCancelInfo))
-                <div class="mt-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300">
+                <div
+                    class="mt-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300">
                     <div class="flex items-start gap-2">
                         <span class="mt-0.5">⚠️</span>
                         <div>
@@ -905,9 +919,8 @@
                 </div>
             @endif
 
-            <textarea id="rejectReason"
-                class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
-                placeholder="Enter rejection reason..."></textarea>            
+            <textarea id="rejectReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+                placeholder="Enter rejection reason..."></textarea>
 
             <div class="mt-4 flex justify-between">
                 <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
@@ -923,8 +936,9 @@
         <div class="w-full max-w-md rounded-lg bg-white p-4 dark:bg-gray-700">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Revise Task</h2>
 
-             @if (!empty($showImBudgetCancelInfo))
-                <div class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+            @if (!empty($showImBudgetCancelInfo))
+                <div
+                    class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
                     <div class="flex items-start gap-2">
                         <span class="mt-0.5">⚠️</span>
                         <div>
@@ -936,10 +950,9 @@
             @endif
 
 
-            <textarea id="reviseReason"
-                class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
+            <textarea id="reviseReason" class="mt-2 w-full rounded-lg p-3 focus:outline-none dark:bg-gray-800 dark:text-white"
                 placeholder="Enter revise reason..."></textarea>
-           
+
             <div class="mt-4 flex justify-between">
                 <button id="cancelReviseBtn" class="rounded-lg bg-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-400">
                     Cancel
@@ -1637,10 +1650,10 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </a>`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                target="_blank"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
@@ -1678,110 +1691,110 @@
     </script>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
 
-        const tooltip = document.getElementById("budgetTooltip");
+            const tooltip = document.getElementById("budgetTooltip");
 
-        if (!tooltip) return;
+            if (!tooltip) return;
 
-        // FORMAT NUMBER (IDR style)
-        function formatNumber(num) {
-            return Number(num || 0).toLocaleString("id-ID");
-        }
-
-        // SHOW TOOLTIP
-        function showTooltip(el, e) {
-
-            const data = el.dataset;
-
-            // Header
-            document.getElementById("ttDesc").innerText = data.desc || "-";
-            document.getElementById("ttAccount").innerText = data.account || "-";
-            document.getElementById("ttCoa").innerText = data.coa || "-";
-            document.getElementById("ttBU").innerText = data.bu || "-";
-
-            // Numbers
-            const budget = Number(data.budget || 0);
-            const additional = Number(data.additional || 0);
-            const reserved = Number(data.reserved || 0);
-            const used = Number(data.used || 0);
-            const available = Number(data.available || 0);
-
-            document.getElementById("ttBudget").innerText = formatNumber(budget);
-            document.getElementById("ttAdditional").innerText = formatNumber(additional);
-            document.getElementById("ttReserved").innerText = formatNumber(reserved);
-            document.getElementById("ttUsed").innerText = formatNumber(used);
-
-            const availableEl = document.getElementById("ttAvailable");
-            availableEl.innerText = formatNumber(available);
-
-            // COLOR LOGIC
-            availableEl.classList.remove("text-emerald-500", "text-red-500");
-
-            if (available < 0) {
-                availableEl.classList.add("text-red-500");
-            } else {
-                availableEl.classList.add("text-emerald-500");
+            // FORMAT NUMBER (IDR style)
+            function formatNumber(num) {
+                return Number(num || 0).toLocaleString("id-ID");
             }
 
-            tooltip.classList.remove("hidden");
-            moveTooltip(e);
-        }
+            // SHOW TOOLTIP
+            function showTooltip(el, e) {
 
-        // MOVE TOOLTIP
-        function moveTooltip(e) {
+                const data = el.dataset;
 
-            const padding = 16;
-            const tooltipWidth = tooltip.offsetWidth;
-            const tooltipHeight = tooltip.offsetHeight;
+                // Header
+                document.getElementById("ttDesc").innerText = data.desc || "-";
+                document.getElementById("ttAccount").innerText = data.account || "-";
+                document.getElementById("ttCoa").innerText = data.coa || "-";
+                document.getElementById("ttBU").innerText = data.bu || "-";
 
-            let left = e.pageX + 15;
-            let top = e.pageY + 15;
+                // Numbers
+                const budget = Number(data.budget || 0);
+                const additional = Number(data.additional || 0);
+                const reserved = Number(data.reserved || 0);
+                const used = Number(data.used || 0);
+                const available = Number(data.available || 0);
 
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
+                document.getElementById("ttBudget").innerText = formatNumber(budget);
+                document.getElementById("ttAdditional").innerText = formatNumber(additional);
+                document.getElementById("ttReserved").innerText = formatNumber(reserved);
+                document.getElementById("ttUsed").innerText = formatNumber(used);
 
-            // Prevent overflow RIGHT
-            if (left + tooltipWidth + padding > viewportWidth) {
-                left = e.pageX - tooltipWidth - 15;
+                const availableEl = document.getElementById("ttAvailable");
+                availableEl.innerText = formatNumber(available);
+
+                // COLOR LOGIC
+                availableEl.classList.remove("text-emerald-500", "text-red-500");
+
+                if (available < 0) {
+                    availableEl.classList.add("text-red-500");
+                } else {
+                    availableEl.classList.add("text-emerald-500");
+                }
+
+                tooltip.classList.remove("hidden");
+                moveTooltip(e);
             }
 
-            // Prevent overflow BOTTOM
-            if (top + tooltipHeight + padding > viewportHeight) {
-                top = e.pageY - tooltipHeight - 15;
+            // MOVE TOOLTIP
+            function moveTooltip(e) {
+
+                const padding = 16;
+                const tooltipWidth = tooltip.offsetWidth;
+                const tooltipHeight = tooltip.offsetHeight;
+
+                let left = e.pageX + 15;
+                let top = e.pageY + 15;
+
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                // Prevent overflow RIGHT
+                if (left + tooltipWidth + padding > viewportWidth) {
+                    left = e.pageX - tooltipWidth - 15;
+                }
+
+                // Prevent overflow BOTTOM
+                if (top + tooltipHeight + padding > viewportHeight) {
+                    top = e.pageY - tooltipHeight - 15;
+                }
+
+                tooltip.style.left = left + "px";
+                tooltip.style.top = top + "px";
             }
 
-            tooltip.style.left = left + "px";
-            tooltip.style.top = top + "px";
-        }
+            // HIDE TOOLTIP
+            function hideTooltip() {
+                tooltip.classList.add("hidden");
+            }
 
-        // HIDE TOOLTIP
-        function hideTooltip() {
-            tooltip.classList.add("hidden");
-        }
+            // EVENT DELEGATION (IMPORTANT for dynamic tables)
+            document.addEventListener("mouseover", function(e) {
+                const el = e.target.closest(".budget-trigger");
+                if (!el) return;
 
-        // EVENT DELEGATION (IMPORTANT for dynamic tables)
-        document.addEventListener("mouseover", function (e) {
-            const el = e.target.closest(".budget-trigger");
-            if (!el) return;
+                showTooltip(el, e);
+            });
 
-            showTooltip(el, e);
+            document.addEventListener("mousemove", function(e) {
+                const el = e.target.closest(".budget-trigger");
+                if (!el) return;
+
+                moveTooltip(e);
+            });
+
+            document.addEventListener("mouseout", function(e) {
+                if (!e.target.closest(".budget-trigger")) return;
+
+                hideTooltip();
+            });
+
         });
-
-        document.addEventListener("mousemove", function (e) {
-            const el = e.target.closest(".budget-trigger");
-            if (!el) return;
-
-            moveTooltip(e);
-        });
-
-        document.addEventListener("mouseout", function (e) {
-            if (!e.target.closest(".budget-trigger")) return;
-
-            hideTooltip();
-        });
-
-    });
     </script>
 
 

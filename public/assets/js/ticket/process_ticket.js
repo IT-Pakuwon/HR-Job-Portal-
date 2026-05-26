@@ -115,30 +115,6 @@ function bindProcessAttachment() {
         });
 }
 
-function renderProcessAttachment() {
-    const container = $("#process_new_attachment_list");
-    container.empty();
-
-    Ticket.state.processAttachments.forEach((file, index) => {
-        const html = `
-            <div class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-white/[0.03] px-4 py-3">
-                <div class="min-w-0 flex-1">
-                    <div class="truncate text-sm font-medium text-slate-700 dark:text-slate-200">${file.name}</div>
-                    <div class="mt-1 text-xs text-slate-400 dark:text-slate-500">${formatFileSize(file.size)}</div>
-                </div>
-                <button type="button" onclick="removeProcessAttachment(${index})" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all duration-200">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            </div>
-        `;
-        container.append(html);
-    });
-}
-
-function removeProcessAttachment(index) {
-    Ticket.state.processAttachments.splice(index, 1);
-    renderProcessAttachment();
-}
 
 function renderExistingProcessAttachments(files = []) {
     const container = $("#process_existing_attachment_list");

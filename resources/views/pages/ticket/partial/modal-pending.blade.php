@@ -12,7 +12,7 @@
             class="modal-scroll flex max-h-[95vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
-                class="sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#0f172a]/95">
+                class="sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 px-5 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95">
 
                 <div>
 
@@ -327,7 +327,7 @@
                 </div>
 
                 <div
-                    class="sticky bottom-0 z-20 flex items-center justify-end gap-3 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur-xl dark:border-white/[0.06] dark:bg-[#0f172a]/95">
+                    class="sticky bottom-0 z-20 flex items-center justify-end gap-3 border-t border-slate-200 bg-white/95 px-5 py-4     dark:border-white/[0.06] dark:bg-[#0f172a]/95">
 
                     <button type="button"
                         onclick="closeModal('#pendingTicketModal')"

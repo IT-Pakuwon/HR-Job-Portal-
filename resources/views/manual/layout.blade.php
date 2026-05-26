@@ -4,7 +4,7 @@
 
         <!-- ================= SIDEBAR ================= -->
         <aside
-            class="w-72 shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50/80 px-6 py-8 backdrop-blur dark:border-gray-800 dark:bg-gray-900">
+            class="w-72 shrink-0 overflow-y-auto border-r border-gray-200 bg-gray-50/80 px-6 py-8      dark:border-gray-800 dark:bg-gray-900">
 
             <div class="mb-8">
                 <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400">

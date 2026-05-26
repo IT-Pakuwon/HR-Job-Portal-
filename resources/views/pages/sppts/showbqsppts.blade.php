@@ -137,7 +137,7 @@
                     @if (!empty($canEdit) && $canEdit)
                         {{-- form upload ke service GCS --}}
                         <form id="bqAttachmentUploadForm" enctype="multipart/form-data"
-                            class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-700">
+                            class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm   dark:border-gray-700 dark:bg-gray-700">
                             @csrf
                             <input type="hidden" name="cpnyid" value="{{ $bq->cpny_id }}">
                             <input type="hidden" name="departementid" value="{{ $bq->department_id }}">
