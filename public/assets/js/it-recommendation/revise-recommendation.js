@@ -307,24 +307,17 @@ function addEditRecommendationRow(data = {}) {
 }
 
 function renderEditAttachments(files = []) {
+
     if (files.length === 0) {
+
         $("#edit_recommendation_attachments").html(`
             <div class="
                 w-full
-
                 rounded-lg
-
-                border
-                border-dashed
-                border-slate-200
+                border border-dashed border-slate-200
                 dark:border-white/10
-
                 px-4 py-6
-
-                text-center
-                text-sm
-
-                text-slate-400
+                text-center text-sm text-slate-400
             ">
                 No attachments
             </div>
@@ -333,65 +326,65 @@ function renderEditAttachments(files = []) {
         return;
     }
 
-    const html = files
-        .map((file) => {
-            return `
+    const html = files.map(file => `
 
-                <a
-                    href="${file.signed_url || "#"}"
+        <button
+            type="button"
 
-                    target="_blank"
+            class="
+                preview-attachment
 
-                    class="
-                        inline-flex
-                        items-center
-                        gap-2
+                inline-flex
+                items-center
+                gap-2
 
-                        rounded-lg
+                rounded-lg
 
-                        border border-slate-200
-                        dark:border-white/10
+                border border-slate-200
+                dark:border-white/10
 
-                        bg-slate-50
-                        dark:bg-white/[0.03]
+                bg-slate-50
+                dark:bg-white/[0.03]
 
-                        px-3 py-2
+                px-3 py-2
 
-                        text-xs
-                        text-slate-700
-                        dark:text-slate-300
+                text-xs
+                text-slate-700
+                dark:text-slate-300
 
-                        transition-all
-                        duration-200
+                transition-all
+                duration-200
 
-                        hover:bg-slate-100
-                        dark:hover:bg-white/[0.05]
-                    "
-                >
+                hover:bg-slate-100
+                dark:hover:bg-white/[0.05]
+            "
 
-                    <i class="
-                        fa-solid
-                        fa-paperclip
+            data-url="${file.signed_url || ''}"
+            data-name="${file.filename || 'Attachment'}"
+        >
 
-                        text-slate-400
-                    "></i>
+            <i class="
+                fa-solid
+                fa-paperclip
 
-                    <div class="
-                        max-w-[220px]
+                text-slate-400
+            "></i>
 
-                        truncate
-                    ">
-                        ${file.filename || "Attachment"}
-                    </div>
+            <div class="
+                max-w-[220px]
+                truncate
+            ">
+                ${file.filename || "Attachment"}
+            </div>
 
-                </a>
+        </button>
 
-            `;
-        })
-        .join("");
+    `).join("");
 
     $("#edit_recommendation_attachments").html(html);
 }
+
+
 
 function renderRevisionNote(tracking = []) {
     const reviseTimeline = tracking.find((row) => row.status === "D");

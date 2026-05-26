@@ -311,7 +311,7 @@
                                 <div class="p-4">
                                     <div class="chart-container h-[80vh]" style="width: 100%;"></div>
                                     <div id="modalForm"
-                                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                                        class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                                         <div class="relative w-full max-w-xl rounded-lg bg-white p-6">
                                             <button onclick="closeModal()"
                                                 class="absolute right-2 top-2 text-lg text-gray-500">&times;</button>
@@ -441,7 +441,7 @@
 
                                         commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class="text-xs font-semibold">${comment.username} 
+                                        <p class="text-xs font-semibold">${comment.username}
                                             <span class="text-xs text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -512,7 +512,7 @@
             </script>
             <script>
                 $(document).on("click", "#approveBtn", function() {
-                    let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal        
+                    let docid = "{{ $sto->sto_id }}"; // Ambil Task ID dari modal
                     approveSto(docid);
                 });
 
@@ -589,7 +589,7 @@
                             return;
                         }
 
-                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                         // Tampilkan spinner di kanan bawah
                         $spinner.fadeIn();
 
@@ -656,7 +656,7 @@
                             toastr.error("Please provide a reason for revise.");
                             return;
                         }
-                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                        let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                         // Tampilkan spinner di kanan bawah
                         $spinner.fadeIn();
 
@@ -809,7 +809,7 @@
                                         padding:15px;
                                         overflow:visible;
                                     ">
-                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>                           
+                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}</div>
                                         <div style="font-size:12px;color:#333">
                                             <strong>Employee:</strong>
                                             <div style="margin-top:10px;">

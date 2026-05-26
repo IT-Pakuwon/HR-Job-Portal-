@@ -210,7 +210,7 @@
                     </div>
 
                     <div id="lastPriceModal" class="fixed inset-0 z-[4000] hidden">
-                        <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                        <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50  "></div>
 
                         <div
                             class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
@@ -378,7 +378,7 @@
             </div>
 
             <div id="taxModal" class="fixed inset-0 z-[3000] hidden">
-                <div id="taxModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                <div id="taxModalOverlay" class="absolute inset-0 bg-black/50  "></div>
                 <div
                     class="absolute left-1/2 top-1/2 w-[90vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">

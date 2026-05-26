@@ -30,6 +30,7 @@ use App\Http\Controllers\CsListController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
+use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\IMBudgetController;
@@ -1239,20 +1240,20 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::controller(VoucherTaxiSetupController::class)
-        ->prefix('vouchertaxi/setup')
-        ->name('vouchertaxi.setup.')
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
+            ->prefix('vouchertaxi/setup')
+            ->name('vouchertaxi.setup.')
+            ->group(function () {
+                Route::get('/', 'index')->name('index');
 
-            Route::middleware('ajax')->group(function () {
-                Route::get('/category/json', 'jsonCategory')->name('category.json');
-                Route::get('/category/find/{id}', 'findCategory')->name('category.find');
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/category/json', 'jsonCategory')->name('category.json');
+                    Route::get('/category/find/{id}', 'findCategory')->name('category.find');
+                });
+
+                Route::post('/category/store', 'storeCategory')->name('category.store');
+                Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
+                Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
             });
-
-            Route::post('/category/store', 'storeCategory')->name('category.store');
-            Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
-            Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
-        });
         Route::controller(BookingCarController::class)->group(function () {
             Route::get('/bookingcar', 'index')->name('bookingcar');
 
@@ -1487,9 +1488,14 @@ Route::middleware(['auth'])->group(function () {
             });
 
             Route::post('/store', 'store')->name('it-recommendation.store');
-            Route::post('/update/{hash}', 'update')->name('it-recommendation.update');
+            Route::put('/update/{hash}', 'update')->name('it-recommendation.update');
             Route::post('/cancel/{hash}', 'cancel')->name('it-recommendation.cancel');
             Route::post('/process/{hash}', 'process')->name('it-recommendation.process');
+            Route::post('/upload-attachment/{hash}', 'uploadAttachment')
+                ->name('it-recommendation.upload-attachment');
+
+            Route::post('/delete-attachment/{attachment}', 'deleteAttachment')
+                ->name('it-recommendation.delete-attachment');
             Route::post('/it-revise/{hash}', 'itRevise')->name('it-recommendation.it-revise');
             Route::post('/it-reject/{hash}', 'itReject')->name('it-recommendation.it-reject');
             Route::post('/approve/{docid}', 'approve')->name('it-recommendation.approve');
@@ -1506,6 +1512,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/edit-processitrecommendation/{eid}', 'index');
             Route::get('/createitrecommendation', 'index');
         });
+
+        Route::prefix('gm-report')
+            ->controller(GmReportController::class)
+            ->group(function () {
+                Route::get('/dashboard', 'dashboard')
+                    ->name('report');
+            });
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');

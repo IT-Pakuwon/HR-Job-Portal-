@@ -182,7 +182,7 @@
             </div>
         </div>
         <div id="modalForm"
-            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+            class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
 <<<<<<< Updated upstream
             <div class="relative w-full max-w-5xl rounded-lg bg-white    dark:bg-gray-800">
 =======
@@ -250,11 +250,11 @@
                 </div>
 
                 <div class="max-h-[80vh] overflow-y-auto p-6">
-                    <div id="tab-view" class="tab-content hidden">                        
+                    <div id="tab-view" class="tab-content hidden">
                         <div class="flex justify-between">
                             {{-- <h3 class="text-sm font-semibold">Employee List</h3> --}}
                             <div class="mb-4 flex items-center justify-between">
-                                <h4 class="text-sm font-semibold">Parent Department: <span id="parentDeptLabel" class="text-sm font-semibold text-gray-800"></span></h4>                             
+                                <h4 class="text-sm font-semibold">Parent Department: <span id="parentDeptLabel" class="text-sm font-semibold text-gray-800"></span></h4>
                                 <button id="btnChangeParentDept"
                                     class="flex items-center gap-1 rounded px-3 py-1.5 text-xs text-black">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -446,7 +446,7 @@
                                         <option value="{{ $p->subgrade_id }}">{{ $p->subgrade_id }} -
                                             {{ $p->subgrade_name }}</option>
                                     @endforeach
-                                </select> --}}                               
+                                </select> --}}
                                 <input type="text" id="position" name="position" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-200 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:text-gray-400" readonly>
 
 
@@ -534,7 +534,7 @@
                 </div>
 
                 <div id="editModal"
-                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
 <<<<<<< Updated upstream
                     <div class="relative w-full max-w-lg rounded-lg bg-white p-6    dark:bg-gray-800">
 =======
@@ -594,7 +594,7 @@
                 </div>
 
                 <div id="modalChangeDept"
-                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
 <<<<<<< Updated upstream
                     <div class="relative w-full max-w-md rounded-lg bg-white p-6    dark:bg-gray-800">
 =======
@@ -630,7 +630,7 @@
                 </div>
 
                 <div id="modalChangeParent"
-                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
 <<<<<<< Updated upstream
                     <div class="relative w-full max-w-md rounded-lg bg-white p-6    dark:bg-gray-800">
 =======
@@ -668,7 +668,7 @@
                 </div>
 
                 <div id="modalJobProfile"
-                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+                    class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-900/40  ">
                     <div
 <<<<<<< Updated upstream
                         class="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white p-6    dark:bg-gray-800">
@@ -783,8 +783,8 @@
                                 ? `<div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name} ${d.data.position}</div>`
                                 : `<div style="font-size:18px;color:#08011E;text-align:center;margin-top:10px;">${d.data.name}</div>`
                                 }
-                          
-                                <div style="font-size:12px;color:#333">                                    
+
+                                <div style="font-size:12px;color:#333">
                                     <div style="margin-top:10px;">
                                         ${members.map(m => `
                                                                                                                                                                                                                                                                                                                                                                                 <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -815,8 +815,8 @@
         function openModal(id) {
             alert('Clicked node ID: ' + id);
         }
-    </script> 
-    
+    </script>
+
 
     <script>
         function openModal(id) {
@@ -1068,8 +1068,8 @@
                                         padding:15px;
                                         overflow:visible;
                                     ">
-                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}  ${d.data.position}</div>                           
-                                        <div style="font-size:12px;color:#333">                                    
+                                        <div style="font-size:18px;color:#08011E;margin-bottom:5px">${d.data.name}  ${d.data.position}</div>
+                                        <div style="font-size:12px;color:#333">
                                             <div style="margin-top:10px;">
                                                 ${members.map(m => `
                                                                                                                                                                                                                                                                                                                                                                                         <div style="display:flex;align-items:center;margin-bottom:6px;">
@@ -1441,19 +1441,19 @@
                         rows += `
                             <tr>
 <<<<<<< Updated upstream
-                                <td class="border   px-2 py-1">${i + 1}</td>                                
-                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border   px-2 py-1">${i + 1}</td>
+                                <td class="border   px-2 py-1">${p.job_purpose || ''}</td>
                                 <td class="border   px-2 py-1 text-center">
 =======
-                                <td class="border border-black px-2 py-1">${i + 1}</td>                                
-                                <td class="border border-black px-2 py-1">${p.job_purpose || ''}</td>  
+                                <td class="border border-black px-2 py-1">${i + 1}</td>
+                                <td class="border border-black px-2 py-1">${p.job_purpose || ''}</td>
                                 <td class="border border-black px-2 py-1 text-center">
 >>>>>>> Stashed changes
                                     <button class="btn-delete-jobpurpose bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-700"
                                         data-id="${p.id}">
                                         🗑️ Delete
                                     </button>
-                                </td>                                                             
+                                </td>
                             </tr>
                         `;
                     });
@@ -1462,7 +1462,7 @@
                     $('#jobLevelLabel').text(spec.subgrade_name || '');
 
                     $('#jobSpecInfo').html(`
-                        <h4 class="font-semibold">Job Spec Detail:</h4>                       
+                        <h4 class="font-semibold">Job Spec Detail:</h4>
                         <p><strong>Education:</strong> ${spec.education_min || ''} - ${spec.education_jurusan || ''}</p>
                         <p><strong>Experience:</strong> ${spec.experience_min || ''} years as ${spec.experience_position || ''}</p>
                     `);

@@ -155,7 +155,7 @@
                 </form>
             </div>
             <div id="modalForm"
-                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50 backdrop-blur-md">
+                class="fixed inset-0 z-50 flex hidden items-center justify-center bg-gray-500/10 bg-opacity-50   ">
                 <div class="relative w-full max-w-5xl rounded-lg bg-white p-4">
                     <div class="flex justify-end p-1">
                         <button onclick="closeModal()" class="text-sm text-gray-500">close</button>

@@ -760,19 +760,15 @@ function buildTicketActions(row) {
         [
             'PROCESS',
             'PENDING',
-            'ENVISION'
+            'ENVISION CHECKED / SOLVED',
         ].includes(row.status_pekerjaan) &&
         row.pic_ticket === window.currentUser
-    ) {
-
+    )
+    {
         actions.push({
-
             label: 'Complete Ticket',
-
             icon: 'ti ti-check',
-
-            onclick:
-                `openCompleteTicketModal('${row.eid}')`
+            onclick: `openCompleteTicketModal('${row.eid}')`
         });
     }
 

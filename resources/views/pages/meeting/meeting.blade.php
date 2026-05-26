@@ -59,7 +59,7 @@
     <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
         {{-- HEADER --}}
         <div
-            class="mb-4 shrink-0 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
+            class="mb-4 shrink-0 rounded-2xl border border-gray-200 bg-white/70 p-5 shadow-sm      dark:border-white/10 dark:bg-white/5">
 
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
@@ -385,7 +385,7 @@
 
         <!-- 🔥 VIEW / EDIT MODAL -->
         <div id="event-show"
-            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4  ">
 
             <div class="w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
 

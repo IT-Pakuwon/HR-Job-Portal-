@@ -115,7 +115,7 @@
 
         <!-- Modal -->
         <div x-show="showModal" x-transition
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4  "
             style="display: none">
             <div
                 class="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -142,7 +142,7 @@
     </div>
 </div>
 
-{{-- 
+{{--
 <script>
     function carousel(newsData) {
         return {
@@ -180,7 +180,7 @@
             }
         }
     }
-</script> 
+</script>
 
  --}}
 <script>

@@ -87,7 +87,7 @@
         </div>
         <!-- Mapping Modal -->
         <div id="mappingModal"
-            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+            class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40  ">
 
             <div
                 class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0"
