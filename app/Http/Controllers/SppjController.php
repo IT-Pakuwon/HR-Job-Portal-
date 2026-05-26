@@ -2480,8 +2480,14 @@ class SppjController extends Controller
 
         // $bqdetail = BqDetail::where('bqid', $bq->bqid)->get();
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
-            ->orderByRaw('bq_line_no::int ASC')
-            ->get();
+    ->orderByRaw("
+        CASE 
+            WHEN bq_line_no ~ '^[0-9]+$' THEN bq_line_no::int
+            ELSE 999999999
+        END ASC
+    ")
+    ->orderBy('bq_line_no', 'ASC')
+    ->get();
 
         return view('pages.sppjs.showbqsppjs', compact('bq', 'bqdetail', 'canEdit', 'hash'));
     }
@@ -3223,8 +3229,14 @@ class SppjController extends Controller
         // $bqdetail = BqDetail::where('bqid', $bq->bqid)
         //     ->get();
         $bqdetail = BqDetail::where('bqid', $bq->bqid)
-            ->orderByRaw('bq_line_no::int ASC')
-            ->get();
+    ->orderByRaw("
+        CASE 
+            WHEN bq_line_no ~ '^[0-9]+$' THEN bq_line_no::int
+            ELSE 999999999
+        END ASC
+    ")
+    ->orderBy('bq_line_no', 'ASC')
+    ->get();
 
         $sppj = TrSPPJ::where('sppjid', $bq->sppjtid)
             ->first();

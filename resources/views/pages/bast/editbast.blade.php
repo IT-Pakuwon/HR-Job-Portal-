@@ -220,7 +220,7 @@
 
                             <div class="mt-6 flex justify-end gap-3">
                                 <button type="button" id="cancelLokasi"
-                                    class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>
+                                    class="rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700">Cancel</button>                                
                                 <button type="button" id="saveLokasi"
                                     class="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">Save</button>
                             </div>
@@ -270,8 +270,12 @@
                         </details>
 
                         <div class="flex w-full justify-end gap-4 pt-4">
-                            <a href="{{ url()->previous() }}"
-                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Cancel</a>
+                            {{-- <a href="{{ url()->previous() }}"
+                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Cancel</a> --}}
+                            <button type="button" id="cancelBastBtn"
+                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                Cancel
+                            </button>
                             <button type="submit" id="submitBtn"
                                 class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                 <span id="btnText">Update</span>
@@ -707,6 +711,53 @@
                 $('#sub_location_id').val(subVal);
                 $('#lokasi_display').text(`${locTxt} — ${subTxt}`);
                 closeLokasiModal();
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            $('#cancelBastBtn').on('click', function () {
+                const $btn = $(this);
+
+                if (!confirm('Apakah Anda yakin ingin cancel BAST ini? Status BAST akan menjadi Cancel dan PO Term bisa dibuat BAST kembali.')) {
+                    return;
+                }
+
+                $btn.prop('disabled', true).text('Cancelling...');
+                showOverlay('Cancelling');
+
+                $.ajax({
+                    url: "{{ route('bast.cancel', ['hash' => $hash]) }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}"
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                    }
+                })
+                .done(function (res) {
+                    if (res && res.success) {
+                        toastr.success(res.message || 'BAST berhasil di-cancel.');
+                        window.location.href = "/bastlist";
+                    } else {
+                        toastr.error(res?.message || 'Gagal cancel BAST.');
+                        $btn.prop('disabled', false).text('Cancel');
+                    }
+                })
+                .fail(function (xhr) {
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        toastr.error(xhr.responseJSON.message);
+                    } else {
+                        toastr.error('Error! Gagal cancel BAST.');
+                    }
+
+                    console.error(xhr.responseText);
+                    $btn.prop('disabled', false).text('Cancel');
+                })
+                .always(function () {
+                    hideOverlay();
+                });
             });
         });
     </script>

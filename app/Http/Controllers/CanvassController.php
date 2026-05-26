@@ -8663,6 +8663,163 @@ class CanvassController extends Controller
 
     private function applyFastApproveForCS(string $csid, string $username, \Carbon\Carbon $dt): bool
     {
+        // 0) Ambil leveling fast approve dari ms_purch_setting
+        $fastApproveSetting = MsPurchSetting::query()
+            ->where('setting_id', 'FASTAPPROVE')
+            ->where('status', 'A')
+            ->first([
+                'setting_value_int',
+                'setting_value_string',
+            ]);
+
+        if (!$fastApproveSetting) {
+            return false;
+        }
+
+        $fastApproveLevel = $fastApproveSetting->setting_value_int;
+
+        // fallback kalau suatu saat setting_value_int kosong
+        if ($fastApproveLevel === null || $fastApproveLevel === '') {
+            $fastApproveLevel = $fastApproveSetting->setting_value_string;
+        }
+
+        if ($fastApproveLevel === null || $fastApproveLevel === '') {
+            return false;
+        }
+
+        $fastApproveLevel = (float) $fastApproveLevel;
+
+        // 1) ambil semua TOP yang fast approve
+        $fastTopIds = MsTop::query()
+            ->where('is_fastapprove', true)
+            ->where('status', 'A')
+            ->pluck('topid')
+            ->filter()
+            ->values()
+            ->all();
+
+        if (empty($fastTopIds)) {
+            return false;
+        }
+
+        // 2) ambil CS header untuk mapping vendorid -> vendortop
+        $cs = TrCS::query()
+            ->where('csid', $csid)
+            ->first([
+                'csid',
+                'vendorid1', 'vendortop1',
+                'vendorid2', 'vendortop2',
+                'vendorid3', 'vendortop3',
+                'vendorid4', 'vendortop4',
+                'vendorid5', 'vendortop5',
+                'vendorid6', 'vendortop6',
+            ]);
+
+        if (!$cs) {
+            return false;
+        }
+
+        $vendorTopMap = [];
+
+        for ($i = 1; $i <= 6; ++$i) {
+            $vid = $cs->{"vendorid{$i}"} ?? null;
+            $top = $cs->{"vendortop{$i}"} ?? null;
+
+            if ($vid && $top) {
+                $vendorTopMap[(string) $vid] = (string) $top;
+            }
+        }
+
+        // 3) ambil semua detail & kumpulkan vendor yang selected
+        $details = TrCSdetail::query()
+            ->where('csid', $csid)
+            ->get([
+                'vendorid1', 'vendor1selected',
+                'vendorid2', 'vendor2selected',
+                'vendorid3', 'vendor3selected',
+                'vendorid4', 'vendor4selected',
+                'vendorid5', 'vendor5selected',
+                'vendorid6', 'vendor6selected',
+            ]);
+
+        if ($details->isEmpty()) {
+            return false;
+        }
+
+        $selectedVendorIds = [];
+
+        foreach ($details as $row) {
+            for ($i = 1; $i <= 6; ++$i) {
+                $isSel = (bool) ($row->{"vendor{$i}selected"} ?? false);
+
+                if ($isSel) {
+                    $vid = $row->{"vendorid{$i}"} ?? null;
+
+                    if ($vid) {
+                        $selectedVendorIds[] = (string) $vid;
+                    }
+                }
+            }
+        }
+
+        $selectedVendorIds = array_values(array_unique($selectedVendorIds));
+
+        if (empty($selectedVendorIds)) {
+            return false;
+        }
+
+        // 4) validasi: semua selected vendor harus punya TOP yang sama
+        $selectedTopIds = [];
+
+        foreach ($selectedVendorIds as $vid) {
+            $topId = $vendorTopMap[$vid] ?? null;
+
+            if (!$topId) {
+                return false;
+            }
+
+            $selectedTopIds[] = (string) $topId;
+        }
+
+        $selectedTopIds = array_values(array_unique($selectedTopIds));
+
+        if (count($selectedTopIds) !== 1) {
+            return false;
+        }
+
+        $topIdFinal = $selectedTopIds[0];
+
+        // 5) TOP final harus termasuk TOP yang fastapprove
+        if (!in_array($topIdFinal, $fastTopIds, true)) {
+            return false;
+        }
+
+        // 6) Kalau lolos -> update TrApproval status X untuk leveling >= setting ms_purch_setting
+        $q = TrApproval::query()
+            ->where('refnbr', $csid)
+            ->whereRaw('CAST(aprv_leveling AS numeric) >= ?', [$fastApproveLevel]);
+
+        $payload = [
+            'status' => 'X',
+        ];
+
+        $approvalTable = (new TrApproval())->getTable();
+
+        if (Schema::connection('pgsql')->hasColumn($approvalTable, 'updated_by')) {
+            $payload['updated_by'] = $username;
+        }
+
+        if (Schema::connection('pgsql')->hasColumn($approvalTable, 'updated_at')) {
+            $payload['updated_at'] = $dt;
+        }
+
+        $q->update($payload);
+
+        return true;
+    }
+
+    private function applyFastApproveForCS_xxx(string $csid, string $username, \Carbon\Carbon $dt): bool
+    {
         // 1) ambil semua TOP yang fast approve
         $fastTopIds = MsTop::query()
             ->where('is_fastapprove', true)

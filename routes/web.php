@@ -980,6 +980,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/bast/{id}/approve', [BastController::class, 'approveBast']);
         Route::post('/bast/{id}/reject', [BastController::class, 'rejectBast']);
         Route::post('/bast/{id}/revise', [BastController::class, 'reviseBast']);
+        Route::post('/bast/{hash}/cancel', [BastController::class, 'cancelBast'])->name('bast.cancel');
     });
 
     Route::middleware('access:RFCALIST,VIEW')->group(function () {
@@ -1017,6 +1018,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/calr/{id}/approve', [CalrController::class, 'approveCalr']);
         Route::post('/calr/{id}/reject', [CalrController::class, 'rejectCalr']);
         Route::post('/calr/{id}/revise', [CalrController::class, 'reviseCalr']);
+        Route::post('/calr/{hash}/cancel', [CalrController::class, 'cancelCalr'])->name('calr.cancel');
     });
 
     // 👀 VIEW ITEMREQ
