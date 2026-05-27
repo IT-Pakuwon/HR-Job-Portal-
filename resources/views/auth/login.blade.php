@@ -1,67 +1,342 @@
 <x-authentication-layout>
+<div class="h-full w-full overflow-hidden rounded-[36px] bg-white shadow-[0_20px_80px_rgba(0,0,0,.12)] dark:border dark:border-slate-800 dark:bg-slate-900">
 
-    <div
-        class="min-h-[95vh] w-full overflow-hidden rounded-[32px] bg-white shadow-2xl dark:border dark:border-slate-800 dark:bg-slate-900">
+    <div class="grid h-full lg:grid-cols-[58%_42%]">
 
-        <div class="grid min-h-[95vh] lg:grid-cols-[1.25fr_0.9fr]">
+        {{-- LEFT HERO --}}
+        <div class="relative hidden p-6 lg:block">
 
-            {{-- LEFT PANEL --}}
-            <div class="relative hidden p-6 lg:block">
+            <div
+                class="relative h-full overflow-hidden rounded-[30px]"
+                x-data="loginHero()">
 
-                <div class="relative h-full overflow-hidden rounded-[28px]" x-data="{
-                    current: 0,
-                    images: [
-                        '{{ asset('images/login/Background 1.png') }}',
-                        '{{ asset('images/login/Background 2.png') }}',
-                        '{{ asset('images/login/Background 3.png') }}',
-                        '{{ asset('images/login/Background 4.png') }}'
-                    ],
-                    init() {
-                        setInterval(() => {
-                            this.current = (this.current + 1) % this.images.length;
-                        }, 5000);
-                    }
-                }">
+                {{-- Background Slider --}}
+                <template x-for="(image,index) in images" :key="index">
+                    <img
+                        :src="image"
+                        x-show="current === index"
+                        x-transition:enter="transition-opacity duration-1000"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition-opacity duration-1000"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="absolute inset-0 h-full w-full object-cover"
+                        alt="">
+                </template>
 
-                    <template x-for="(image,index) in images" :key="index">
-                        <img :src="image" x-show="current === index"
-                            x-transition:enter="transition-opacity duration-1000" x-transition:enter-start="opacity-0"
-                            x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity duration-1000"
-                            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                            class="absolute inset-0 h-full w-full object-cover" alt="">
-                    </template>
+                {{-- Overlay --}}
+                <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/80"></div>
 
-                    <div class="absolute inset-0 bg-gradient-to-br from-slate-900/30 via-slate-900/10 to-slate-900/80">
-                    </div>
+                {{-- Top Bar --}}
+                <div class="absolute inset-x-0 top-0 z-20 flex items-center justify-between p-8">
 
-                    {{-- Your Logo --}}
-                    <div class="absolute left-8 top-8 z-20">
-                        <img src="{{ asset('images/Logo Pakuwon.png') }}" alt="Logo" class="h-12">
-                    </div>
+                    <img
+                        src="{{ asset('images/Logo Pakuwon.png') }}"
+                        alt="Logo"
+                        class="h-12 w-auto">
 
-                    {{-- Your content --}}
-                    <div class="absolute bottom-12 left-12 z-20 max-w-xl text-white">
 
-                        <div class="mb-6 flex flex-wrap gap-3">
-                            <span class="rounded-full bg-white/15 px-4 py-2 text-sm backdrop-blur">
-                                Approval
-                            </span>
+                    {{-- Clock --}}
+                    <div
+                        class="rounded-2xl border border-white/15 bg-white/10 px-5 py-3 backdrop-blur-xl shadow-lg shadow-black/10">
 
-                            <span class="rounded-full bg-white/15 px-4 py-2 text-sm backdrop-blur">
-                                Ticketing
-                            </span>
+                        <div class="flex items-center gap-3">
 
-                            <span class="rounded-full bg-white/15 px-4 py-2 text-sm backdrop-blur">
-                                Workflow
-                            </span>
+                            <div class="flex items-center gap-2 text-white">
+
+                                <span
+                                    x-text="time"
+                                    class="text-lg font-semibold tracking-tight">
+                                </span>
+
+                                <span class="text-white/40">
+                                    •
+                                </span>
+
+                                <span
+                                    x-text="date"
+                                    class="text-md text-white/70">
+                                </span>
+
+                            </div>
+
                         </div>
 
-                        <h2 class="text-5xl font-bold">
-                            APP System
-                        </h2>
+                    </div>
+
+                </div>
+
+                {{-- Bottom Content --}}
+                <div class="absolute bottom-12 left-12 z-20 max-w-xl text-white">
+
+
+
+                    {{-- Modules --}}
+                    <div class="mb-6 flex flex-wrap gap-3">
+
+                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
+                            Job Portal
+                        </span>
+
+                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
+                            IT Support
+                        </span>
+
+                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
+                            Purchasing
+                        </span>
+
+                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
+                            GA Service
+                        </span>
+
+                    </div>
+
+                    <h2 class="text-5xl font-bold leading-tight">
+                        APP System
+                    </h2>
 
                         <p class="mt-4 text-lg text-white/80">
                             Centralized enterprise workflow platform.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {{-- RIGHT PANEL --}}
+        <div class="relative flex items-center justify-center px-8 py-16 lg:px-20">
+
+            <div class="w-full max-w-2xl">
+
+                {{-- Theme Toggle --}}
+                <div class="absolute right-10 top-10">
+
+                    <button
+                        x-data="{ dark: document.documentElement.classList.contains('dark') }"
+                        @click="
+                            dark = !dark;
+
+                            if(dark){
+                                document.documentElement.classList.add('dark');
+                                document.documentElement.style.colorScheme='dark';
+                                localStorage.setItem('dark-mode', true);
+                            }else{
+                                document.documentElement.classList.remove('dark');
+                                document.documentElement.style.colorScheme='light';
+                                localStorage.setItem('dark-mode', false);
+                            }
+                        "
+                        class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:scale-105 dark:border-slate-700 dark:bg-slate-800">
+
+                        <svg
+                            x-show="!dark"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-slate-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor">
+
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 3v2.25M12 18.75V21M4.22 4.22l1.59 1.59M18.19 18.19l1.59 1.59M3 12h2.25M18.75 12H21M4.22 19.78l1.59-1.59M18.19 5.81l1.59-1.59M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/>
+
+                        </svg>
+
+                        <svg
+                            x-show="dark"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-slate-200"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor">
+
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M21.752 15.002A9.718 9.718 0 0112 22a10 10 0 010-20c.34 0 .678.017 1.01.05A8 8 0 0021.752 15z"/>
+
+                        </svg>
+
+                    </button>
+
+                </div>
+
+                {{-- Mobile Logo --}}
+                <div class="mb-12 lg:hidden">
+                    <img
+                        src="{{ asset('images/Logo Pakuwon.png') }}"
+                        class="h-14">
+                </div>
+
+                {{-- Header --}}
+                <div>
+
+                    <h1 class="mt-6 text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        Welcome Back
+                    </h1>
+
+                    <p class="mt-4 text-lg text-slate-500 dark:text-slate-400">
+                        Sign in to continue accessing APP System.
+                    </p>
+
+                </div>
+
+                @if(session('status'))
+                    <div class="mt-8 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-md text-green-700 dark:border-green-900 dark:bg-green-900/20 dark:text-green-300">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                {{-- Login Form --}}
+                <form
+                    method="POST"
+                    action="{{ route('login') }}"
+                    class="mt-10 space-y-6">
+
+                    @csrf
+
+                    <div>
+
+                        <label class="mb-2 block text-md font-semibold text-slate-700 dark:text-slate-300">
+                            Email Address
+                        </label>
+
+                        <input
+                            type="text"
+                            name="login"
+                            value="{{ old('login') }}"
+                            required
+                            autofocus
+                            placeholder="john.doe@pakuwon.com"
+                            class="h-14 w-full rounded-2xl border border-slate-300 bg-white px-5 text-slate-900 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+
+                    </div>
+
+                    <div x-data="{ show:false }">
+
+                        <label class="mb-2 block text-md font-semibold text-slate-700 dark:text-slate-300">
+                            Password
+                        </label>
+
+                        <div class="relative">
+
+                            <input
+                                x-bind:type="show ? 'text' : 'password'"
+                                name="password"
+                                required
+                                placeholder="Enter password"
+                                class="h-14 w-full rounded-2xl border border-slate-300 bg-white px-5 pr-14 text-slate-900 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+
+                            <button
+                                type="button"
+                                @click="show = !show"
+                                class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-300">
+
+                                <!-- Eye -->
+                                <svg
+                                    x-show="!show"
+                                    x-cloak
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="h-5 w-5">
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5
+                                        c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431
+                                        0 .639C20.577 16.49 16.64 19.5 12 19.5
+                                        c-4.638 0-8.573-3.007-9.964-7.178z" />
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+
+                                </svg>
+
+                                <!-- Eye Off -->
+                                <svg
+                                    x-show="show"
+                                    x-cloak
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="h-5 w-5">
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M3 3l18 18" />
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M10.477 10.484a3 3 0 104.243 4.243" />
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M9.88 5.09A10.94 10.94 0 0112 4.5
+                                        c4.638 0 8.573 3.007 9.963 7.178
+                                        .07.207.07.431 0 .639a10.964 10.964 0 01-4.043 5.154M6.228
+                                        6.228A10.965 10.965 0 001.935 12.5
+                                        C3.227 16.838 7.244 19.5 12 19.5
+                                        a10.96 10.96 0 004.71-1.074" />
+
+                                </svg>
+
+                            </button>
+                        </div>
+
+                        <div class="mt-3 flex justify-end">
+
+                            <a
+                                href="{{ route('password.request') }}"
+                                class="text-md font-medium text-indigo-600 hover:text-indigo-700">
+                                Forgot password?
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="h-14 w-full rounded-2xl bg-slate-900 text-base font-semibold text-white transition hover:bg-black dark:bg-white dark:text-slate-900">
+
+                        Sign In
+
+                    </button>
+
+                </form>
+
+                {{-- Footer Help --}}
+                <div class="mt-10">
+
+                    <div class="flex items-center gap-4">
+
+                        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+
+                        <span class="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                            Support
+                        </span>
+
+                        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+
+                    </div>
+
+                    <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+
+                        <p class="text-center text-md text-slate-600 dark:text-slate-400">
+                            For account activation, or access requests,
+                            please contact the IT Department.
                         </p>
 
                     </div>
@@ -70,131 +345,36 @@
 
             </div>
 
-            {{-- RIGHT PANEL --}}
-            <div class="flex items-center justify-center px-8 py-12 lg:px-16 xl:px-20">
-
-                <div class="w-full max-w-xl">
-
-                    {{-- Mobile Logo --}}
-                    <div class="mb-10 flex items-center gap-3 lg:hidden">
-
-                        <img src="{{ asset('images/Logo Pakuwon.png') }}" alt="Logo" class="h-12">
-
-                        <div>
-                            <div class="font-semibold text-slate-900 dark:text-white">
-                                APP System
-                            </div>
-
-                            <div class="text-sm text-slate-500">
-                                Enterprise Platform
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <h1 class="text-5xl font-semibold tracking-tight text-slate-900 xl:text-6xl dark:text-white">
-                        Welcome Back
-                    </h1>
-
-                    <p class="mt-4 text-lg text-slate-500 dark:text-slate-400">
-                        Sign in to continue your work and access the APP System dashboard.
-                    </p>
-
-                    @if (session('status'))
-                        <div
-                            class="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('login') }}" class="mt-10 space-y-6">
-
-                        @csrf
-
-                        {{-- Username --}}
-                        <div>
-
-                            <label for="login"
-                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Email or Username
-                            </label>
-
-                            <input id="login" name="login" type="text" required autofocus
-                                value="{{ old('login') }}" placeholder="Enter your username"
-                                class="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 text-base text-slate-900 outline-none transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-
-                        </div>
-
-                        {{-- Password --}}
-                        <div x-data="{ show: false }">
-
-                            <label for="password"
-                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Password
-                            </label>
-
-                            <div class="relative">
-
-                                <input :type="show ? 'text' : 'password'" id="password" name="password" required
-                                    placeholder="Enter your password"
-                                    class="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 px-5 pr-14 text-base text-slate-900 outline-none transition-all duration-200 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
-
-                                <button type="button" @click="show=!show"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                            d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.5a10.522 10.522 0 01-4.293 5.774" />
-                                    </svg>
-
-                                </button>
-
-                            </div>
-
-                            <div class="mt-3 flex justify-end">
-
-                                <a href="{{ route('password.request') }}"
-                                    class="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
-
-                                    Forgot password?
-
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                        {{-- Remember Me --}}
-                        <label class="flex items-center gap-3">
-
-                            <input type="checkbox" name="remember"
-                                class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-
-                            <span class="text-sm text-slate-600 dark:text-slate-400">
-                                Keep me signed in
-                            </span>
-
-                        </label>
-
-                        {{-- Submit --}}
-                        <button type="submit"
-                            class="h-14 w-full rounded-2xl bg-indigo-600 text-base font-semibold text-white transition-all duration-200 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-500/25">
-
-                            Sign In
-
-                        </button>
-
-                    </form>
-
-                    <x-validation-errors class="mt-6" />
-
-                </div>
-
-            </div>
-
         </div>
 
     </div>
+
+</div>
+
+@if ($errors->any())
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Unable to sign in',
+        text: 'Invalid username or password.',
+        timer: 5000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        showCloseButton: true,
+        background: document.documentElement.classList.contains('dark')
+            ? '#111827'
+            : '#ffffff',
+        color: document.documentElement.classList.contains('dark')
+            ? '#f8fafc'
+            : '#111827'
+    });
+
+});
+</script>
+@endif
 
 </x-authentication-layout>

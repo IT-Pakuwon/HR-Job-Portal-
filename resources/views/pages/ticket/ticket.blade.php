@@ -21,7 +21,7 @@
                 <a href="#" class="ticket-status-filter group block h-full" data-status="">
 
                     <div
-                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95">
+                        class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-700  dark:text-slate-400 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95">
 
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
                             🎫
@@ -29,7 +29,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                           <p class="break-words text-sm font-medium whitespace-normal ">
+                            <p class="whitespace-normal break-words text-sm font-medium">
                                 All
                             </p>
 
@@ -60,7 +60,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                               <p class="break-words text-sm font-medium whitespace-normal ">
+                                <p class="whitespace-normal break-words text-sm font-medium">
                                     Created
                                 </p>
 
@@ -90,7 +90,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                               <p class="break-words text-sm font-medium whitespace-normal ">
+                                <p class="whitespace-normal break-words text-sm font-medium">
                                     Response
                                 </p>
 
@@ -121,7 +121,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                           <p class="break-words text-sm font-medium whitespace-normal ">
+                            <p class="whitespace-normal break-words text-sm font-medium">
                                 Process
                             </p>
 
@@ -151,7 +151,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                           <p class="break-words text-sm font-medium whitespace-normal ">
+                            <p class="whitespace-normal break-words text-sm font-medium">
                                 Pending
                             </p>
 
@@ -182,7 +182,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                               <p class="break-words text-sm font-medium whitespace-normal ">
+                                <p class="whitespace-normal break-words text-sm font-medium">
                                     Envision
                                 </p>
 
@@ -201,7 +201,8 @@
                 {{-- Envision Solved --}}
                 <button type="button" class="text-left">
 
-                    <a href="#" class="ticket-status-filter group block h-full" data-status="ENVISION CHECKED / SOLVED">
+                    <a href="#" class="ticket-status-filter group block h-full"
+                        data-status="ENVISION CHECKED / SOLVED">
 
                         <div
                             class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-md active:scale-95">
@@ -212,7 +213,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                                <p class="break-words text-sm font-medium whitespace-normal ">
+                                <p class="whitespace-normal break-words text-sm font-medium">
                                     Envision Solved
                                 </p>
 
@@ -242,7 +243,7 @@
 
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                               <p class="break-words text-sm font-medium whitespace-normal ">
+                                <p class="whitespace-normal break-words text-sm font-medium">
                                     Transfer
                                 </p>
 
@@ -273,7 +274,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                           <p class="break-words text-sm font-medium whitespace-normal ">
+                            <p class="whitespace-normal break-words text-sm font-medium">
                                 Completed
                             </p>
 
@@ -303,7 +304,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                           <p class="break-words text-sm font-medium whitespace-normal ">
+                            <p class="whitespace-normal break-words text-sm font-medium">
                                 Reopen
                             </p>
 
@@ -333,7 +334,7 @@
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
 
-                           <p class="break-words text-sm font-medium whitespace-normal ">
+                            <p class="whitespace-normal break-words text-sm font-medium">
                                 Cancel
                             </p>
 
@@ -504,7 +505,7 @@
             class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
 
                 <div>
 
@@ -567,76 +568,73 @@
 
             </div>
 
-            <div class="overflow-hidden">
+            <div class="relative overflow-hidden">
 
-                <div class="overflow-x-auto overflow-y-visible">
+                <table id="ticketTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
-                    <table id="ticketTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
 
-                        <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
 
-                            <tr
-                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="px-4 py-3 text-left font-medium">
+                                No
+                            </th>
 
+                            <th class="px-4 py-3 text-left font-medium">
+                                Ticket
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
+                                Date
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
+                                Type
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
+                                Category
+                            </th>
+
+                            <th class="min-w-[260px] px-4 py-3 text-left font-medium">
+                                Summary
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
+                                PIC
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
+                                Priority
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
+                                Status
+                            </th>
+
+                            @if ($isIT)
                                 <th class="px-4 py-3 text-left font-medium">
-                                    No
+                                    Workflow
                                 </th>
+                            @endif
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Ticket
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                SLA
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Date
-                                </th>
+                            <th class="px-4 py-3 text-center font-semibold">
+                                Action
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Type
-                                </th>
+                        </tr>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Category
-                                </th>
+                    </thead>
 
-                                <th class="min-w-[260px] px-4 py-3 text-left font-medium">
-                                    Summary
-                                </th>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    PIC
-                                </th>
+                </table>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Priority
-                                </th>
-
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Status
-                                </th>
-
-                                @if ($isIT)
-                                    <th class="px-4 py-3 text-left font-medium">
-                                        Workflow
-                                    </th>
-                                @endif
-
-                                <th class="px-4 py-3 text-left font-medium">
-                                    SLA
-                                </th>
-
-                                <th class="px-4 py-3 text-center font-semibold">
-                                    Action
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
-
-                    </table>
-
-                </div>
 
             </div>
 
@@ -656,7 +654,7 @@
 
                 {{-- Header --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div>
                         <h2 class="modal-title text-xl font-bold text-slate-900 dark:text-white">
@@ -1001,7 +999,7 @@
 
                         {{-- Footer --}}
                         <div
-                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2     dark:border-white/10 dark:bg-[#0f172a]/95">
+                            class="sticky bottom-0 z-20 mt-4 border-t border-slate-200 bg-white/95 px-5 py-2 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                             <div class="flex items-center justify-end gap-3">
 
@@ -1048,7 +1046,7 @@
 
                     {{-- Header --}}
                     <div
-                        class="sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-800 dark:bg-gray-900 xl:flex-row xl:items-start xl:justify-between">
+                        class="sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white px-6 py-4 xl:flex-row xl:items-start xl:justify-between dark:border-gray-800 dark:bg-gray-900">
 
                         <div>
 
@@ -1091,7 +1089,7 @@
                                 </button>
 
                                 <div id="ticketActionDropdown"
-                                    class="absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[280px] overflow-hidden rounded-lg border border-gray-200/80 bg-white/95 shadow-gray-200/70     dark:border-white/[0.06] dark:bg-[#111827]/95 dark:shadow-black/40">
+                                    class="absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[280px] overflow-hidden rounded-lg border border-gray-200/80 bg-white/95 shadow-gray-200/70 dark:border-white/[0.06] dark:bg-[#111827]/95 dark:shadow-black/40">
 
                                     <div id="ticketActionList" class="max-h-[320px] overflow-y-auto p-2"></div>
 
@@ -1126,7 +1124,7 @@
 
                         {{-- Left Panel --}}
                         <div
-                            class="min-h-0 overflow-y-auto border-b border-gray-200 p-6 dark:border-gray-800 xl:col-span-7 lg:col-span-7  xl:border-b-0 xl:border-r">
+                            class="min-h-0 overflow-y-auto border-b border-gray-200 p-6 lg:col-span-7 xl:col-span-7 xl:border-b-0 xl:border-r dark:border-gray-800">
 
                             {{-- Information --}}
                             <div class="space-y-4">
@@ -1355,7 +1353,7 @@
                         </div>
 
                         {{-- Right Panel --}}
-                        <div class="flex min-h-0 flex-col xl:col-span-5 lg:col-span-5">
+                        <div class="flex min-h-0 flex-col lg:col-span-5 xl:col-span-5">
 
                             {{-- Tabs --}}
                             <div
@@ -1441,7 +1439,7 @@
                                                     class="w-full resize-none border-0 bg-transparent px-5 py-2 text-sm leading-7 text-gray-700 outline-none ring-0 placeholder:text-gray-400 dark:text-gray-200 dark:placeholder:text-gray-500"></textarea>
 
                                                 <div
-                                                    class="flex flex-col gap-3 border-t border-gray-100 bg-gray-50/70 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/40 sm:flex-row sm:items-center sm:justify-between">
+                                                    class="flex flex-col gap-3 border-t border-gray-100 bg-gray-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-gray-800 dark:bg-gray-800/40">
 
                                                     <div class="flex items-center gap-3">
 
