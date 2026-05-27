@@ -83,20 +83,7 @@
     }
 
     .status-card::before {
-        content: '';
-
-        position: absolute;
-
-        inset: 0;
-
-        pointer-events: none;
-
-        opacity: .45;
-
-        background:
-            radial-gradient(circle at top right,
-                rgba(255, 255, 255, .65),
-                transparent 60%);
+        display: none;
     }
 
     .status-card:hover {

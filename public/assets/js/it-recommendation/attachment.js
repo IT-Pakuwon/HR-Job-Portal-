@@ -148,16 +148,14 @@ function attachmentCard({
     }
 
     return `
-    <button
-        type="button"
-        class="attachment-preview block"
-
+    <div
+        class="attachment-preview block cursor-pointer"
         data-url="${url}"
         data-filename="${name}"
     >
         ${content}
-    </button>
-`;
+    </div>
+    `;
 }
 
 $(document).on("keydown", function (e) {
@@ -228,7 +226,10 @@ function renderAttachments(files = []) {
 function previewAttachment(file) {
     const url = file.signed_url;
 
-    const ext = (file.filename || "").split(".").pop().toLowerCase();
+    const ext = (file.filename || "")
+        .split(".")
+        .pop()
+        .toLowerCase();
 
     const imageTypes = ["jpg", "jpeg", "png", "webp", "gif"];
 
@@ -240,7 +241,9 @@ function previewAttachment(file) {
             >
         `);
 
-        $("#attachmentPreviewModal").removeClass("hidden").addClass("flex");
+        $("#attachmentPreviewModal")
+            .removeClass("hidden")
+            .addClass("flex");
 
         return;
     }
@@ -253,7 +256,9 @@ function previewAttachment(file) {
             ></iframe>
         `);
 
-        $("#attachmentPreviewModal").removeClass("hidden").addClass("flex");
+        $("#attachmentPreviewModal")
+            .removeClass("hidden")
+            .addClass("flex");
 
         return;
     }
@@ -269,6 +274,8 @@ function previewAttachment(file) {
 
     document.body.removeChild(a);
 }
+
+
 function closeAttachmentPreview() {
     $("#attachmentPreviewModal").removeClass("flex").addClass("hidden");
 
