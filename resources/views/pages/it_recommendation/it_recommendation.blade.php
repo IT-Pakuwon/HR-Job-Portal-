@@ -8,146 +8,113 @@
 
             {{-- All --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-500/10 text-sm text-slate-400">
                         📄
                     </div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <span class="text-xs font-medium text-slate-400">
                             All
-                        </p>
+                        </span>
                     </div>
-
-                    <p class="shrink-0 text-base font-bold">
+                    <span class="text-lg font-bold text-slate-400">
                         {{ $all }}
-                    </p>
-
+                    </span>
                 </div>
             </a>
 
-
             {{-- Waiting IT --}}
-            <a href="#" class="status-filter group block h-full text-left" data-status="W, I">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-amber-700 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+            <a href="#" class="status-filter group block h-full text-left" data-status="W,I">
+                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-sm text-blue-400">
                         🛠️
                     </div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <span class="text-xs font-medium text-blue-400">
                             Waiting IT
-                        </p>
+                        </span>
                     </div>
-
-                    <p class="shrink-0 text-base font-bold">
+                    <span class="text-lg font-bold text-blue-400">
                         {{ $waitingIT }}
-                    </p>
-
+                    </span>
                 </div>
             </a>
 
             {{-- Waiting Approval --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="P">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 text-sm text-orange-400">
                         ⏳
                     </div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <span class="text-xs font-medium text-orange-400">
                             Waiting Approval
-                        </p>
+                        </span>
                     </div>
-
-                    <p class="shrink-0 text-base font-bold">
+                    <span class="text-lg font-bold text-orange-400">
                         {{ $waitingApproval }}
-                    </p>
-
+                    </span>
                 </div>
             </a>
 
             {{-- Revise --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="D">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-sm text-amber-400">
                         ✏️
                     </div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <span class="text-xs font-medium text-amber-400">
                             Revise
-                        </p>
+                        </span>
                     </div>
-
-                    <p class="shrink-0 text-base font-bold">
+                    <span class="text-lg font-bold text-amber-400">
                         {{ $revise }}
-                    </p>
-
+                    </span>
                 </div>
             </a>
 
-
             {{-- Rejected --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="R">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
-                        ⛔️
+                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-sm text-rose-400">
+                        ⛔
                     </div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <span class="text-xs font-medium text-rose-400">
                             Rejected
-                        </p>
+                        </span>
                     </div>
-
-                    <p class="shrink-0 text-base font-bold">
+                    <span class="text-lg font-bold text-rose-400">
                         {{ $reject }}
-                    </p>
-
+                    </span>
                 </div>
             </a>
 
             {{-- Completed --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="C">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-sm text-emerald-400">
                         ✅
                     </div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <span class="text-xs font-medium text-emerald-400">
                             Completed
-                        </p>
+                        </span>
                     </div>
-
-                    <p class="shrink-0 text-base font-bold">
+                    <span class="text-lg font-bold text-emerald-400">
                         {{ $completed }}
-                    </p>
-
+                    </span>
                 </div>
             </a>
 
         </div>
-
         {{-- Table --}}
         <div
             class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
 
                 <div>
 
@@ -171,68 +138,65 @@
 
             </div>
 
-            <div class="overflow-hidden">
+            <div class="relative overflow-hidden">
 
-                <div class="overflow-x-auto">
+                <table id="itrTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
-                    <table id="itrTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
 
-                        <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
 
-                            <tr
-                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
 
-                                <th class="w-10 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Doc ID
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Doc ID
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Date
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Date
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Ticket
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Ticket
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Company
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Company
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Department
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Department
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Requester
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Requester
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Purpose
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Purpose
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                IT PIC
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    IT PIC
-                                </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Status
+                            </th>
 
-                                <th class="px-4 py-3 text-left font-medium">
-                                    Status
-                                </th>
+                            <th class="px-4 py-3 text-center font-semibold">
+                                Action
+                            </th>
 
-                                <th class="px-4 py-3 text-center font-semibold">
-                                    Action
-                                </th>
+                        </tr>
 
-                            </tr>
+                    </thead>
 
-                        </thead>
+                    <tbody></tbody>
 
-                        <tbody></tbody>
+                </table>
 
-                    </table>
-
-                </div>
 
             </div>
 
@@ -666,12 +630,13 @@
                                 class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
                                 <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
-                                    <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                                         Actions
                                     </h3>
                                 </div>
 
-                                <div id="show_header_actions" class=" p-2"></div>
+                                <div id="show_header_actions" class="p-2"></div>
                             </div>
 
 

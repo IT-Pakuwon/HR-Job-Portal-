@@ -122,9 +122,7 @@
 
             </div>
 
-            <div class="overflow-hidden">
-
-                <div class="overflow-x-auto overflow-y-visible">
+            <div class="relative overflow-hidden">
 
                     <table id="accessRequestTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
 
@@ -179,7 +177,6 @@
 
                     </table>
 
-                </div>
 
             </div>
 

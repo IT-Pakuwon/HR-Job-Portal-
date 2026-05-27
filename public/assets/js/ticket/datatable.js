@@ -39,7 +39,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
     ordering: true,
 
-    order: [[2, "desc"]],
+    order: [[1, "desc"]],
 
     ajax: {
         url: "/ticket/json",

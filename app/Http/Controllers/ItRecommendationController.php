@@ -14,15 +14,15 @@ use App\Models\TrTicket;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Vinkla\Hashids\Facades\Hashids;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\TrAttachmentController;
-use Carbon\Carbon;
+use Vinkla\Hashids\Facades\Hashids;
+
 class ItRecommendationController extends Controller
 {
     use HasAutonbr;
@@ -100,8 +100,6 @@ class ItRecommendationController extends Controller
             ? array_map('trim', explode(',', $user->department_id))
             : (array) $user->department_id;
 
-
-
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -133,9 +131,12 @@ class ItRecommendationController extends Controller
             ->whereIn('department_id', $deptIds);
 
         if ($status !== '') {
-            $base->where('status', $status);
-        }
+            $statuses = array_filter(
+                array_map('trim', explode(',', $status))
+            );
 
+            $base->whereIn('status', $statuses);
+        }
 
         $recordsTotal = (clone $base)->count();
 
@@ -163,10 +164,7 @@ class ItRecommendationController extends Controller
             ->where('role_id', 'ITHARDWARE')
             ->exists();
 
-
-
         $data->transform(function ($row) use ($isITHardware, $user) {
-
             $row->eid = Hashids::encode($row->id);
 
             $row->can_process = (
@@ -267,9 +265,9 @@ class ItRecommendationController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string) $dt->year, 2)
-                . str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+                .str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
-            $docid = $this->doctype . $tglbln . sprintf('%04d', $urutan);
+            $docid = $this->doctype.$tglbln.sprintf('%04d', $urutan);
 
             $header = new TrItrecommend();
 
@@ -287,7 +285,6 @@ class ItRecommendationController extends Controller
             $header->status = 'W';
 
             $header->created_by = $user->username;
-
 
             $header->save();
 
@@ -314,7 +311,7 @@ class ItRecommendationController extends Controller
             $this->notifyITHardware(
                 $header->docid,
                 'Waiting IT Review',
-                url('/processitrecommendation/' . $eid),
+                url('/processitrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -381,14 +378,13 @@ class ItRecommendationController extends Controller
             $header->recommend_pic = null;
 
             if ($request->hasFile('attachments')) {
-
                 $meta = [
-                    'refnbr'        => $header->docid,
-                    'doctype'       => $this->doctype,
-                    'cpnyid'        => $header->cpny_id,
+                    'refnbr' => $header->docid,
+                    'doctype' => $this->doctype,
+                    'cpnyid' => $header->cpny_id,
                     'departementid' => $header->department_id,
-                    'base_folder'   => 'att-it-recommendation',
-                    'created_by'    => auth()->user()->username,
+                    'base_folder' => 'att-it-recommendation',
+                    'created_by' => auth()->user()->username,
                 ];
 
                 app(TrAttachmentController::class)
@@ -411,7 +407,7 @@ class ItRecommendationController extends Controller
             $this->notifyITHardware(
                 $header->docid,
                 'Waiting IT Review',
-                url('/processitrecommendation/' . $eid),
+                url('/processitrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -527,16 +523,15 @@ class ItRecommendationController extends Controller
             }
 
             if ($request->hasFile('attachments')) {
-
                 app(TrAttachmentController::class)
                     ->uploadInternal(
                         [
-                            'refnbr'        => $header->docid,
-                            'doctype'       => $this->doctype,
-                            'cpny_id'       => $header->cpny_id,
+                            'refnbr' => $header->docid,
+                            'doctype' => $this->doctype,
+                            'cpny_id' => $header->cpny_id,
                             'department_id' => $header->department_id,
-                            'base_folder'   => 'att-it-recommendation',
-                            'created_by'    => $user->username,
+                            'base_folder' => 'att-it-recommendation',
+                            'created_by' => $user->username,
                         ],
                         (array) $request->file('attachments')
                     );
@@ -579,7 +574,7 @@ class ItRecommendationController extends Controller
                 $this->doctype,
                 'P',
                 'IT Recommendation',
-                url('/showitrecommendation/' . $eid),
+                url('/showitrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -603,111 +598,108 @@ class ItRecommendationController extends Controller
         }
     }
 
-public function uploadAttachment(Request $request, $hash)
-{
-    $id = Hashids::decode($hash)[0] ?? null;
+    public function uploadAttachment(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
 
-    abort_if(!$id, 404);
+        abort_if(!$id, 404);
 
-    $header = TrItrecommend::findOrFail($id);
+        $header = TrItrecommend::findOrFail($id);
 
-    abort_if(
-        in_array($header->status, ['C', 'R', 'X']),
-        403,
-        'Document already closed.'
-    );
-
-    $user = auth()->user();
-
-    $canManageAttachment =
-        $header->created_by === $user->username
-        || $header->recommend_pic === $user->username;
-
-    abort_unless(
-        $canManageAttachment,
-        403,
-        'You are not allowed to manage attachments.'
-    );
-
-    $request->validate([
-        'attachments' => ['required', 'array'],
-        'attachments.*' => [
-            'file',
-            'max:5120',
-        ],
-    ]);
-
-    $meta = [
-        'refnbr'        => $header->docid,
-        'doctype'       => $this->doctype,
-        'cpnyid'        => $header->cpny_id,
-        'departementid' => $header->department_id,
-        'base_folder'   => 'att-it-recommendation',
-        'created_by'    => $user->username,
-    ];
-
-    app(TrAttachmentController::class)
-        ->uploadInternal(
-            $meta,
-            (array) $request->file('attachments')
+        abort_if(
+            in_array($header->status, ['C', 'R', 'X']),
+            403,
+            'Document already closed.'
         );
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Attachment uploaded successfully.',
-    ]);
-}
-public function deleteAttachment(TrAttachment $attachment)
-{
-    $header = TrItrecommend::where(
-        'docid',
-        $attachment->refnbr
-    )->firstOrFail();
+        $user = auth()->user();
 
-    abort_if(
-        in_array($header->status, ['C', 'R', 'X']),
-        403,
-        'Document already closed.'
-    );
+        $canManageAttachment =
+            $header->created_by === $user->username
+            || $header->recommend_pic === $user->username;
 
-    $user = auth()->user();
+        abort_unless(
+            $canManageAttachment,
+            403,
+            'You are not allowed to manage attachments.'
+        );
 
-    $canManageAttachment =
-        $header->created_by === $user->username
-        || $header->recommend_pic === $user->username;
+        $request->validate([
+            'attachments' => ['required', 'array'],
+            'attachments.*' => [
+                'file',
+                'max:5120',
+            ],
+        ]);
 
-    abort_unless(
-        $canManageAttachment,
-        403,
-        'You are not allowed to manage attachments.'
-    );
+        $meta = [
+            'refnbr' => $header->docid,
+            'doctype' => $this->doctype,
+            'cpnyid' => $header->cpny_id,
+            'departementid' => $header->department_id,
+            'base_folder' => 'att-it-recommendation',
+            'created_by' => $user->username,
+        ];
 
-    DB::transaction(function () use ($attachment) {
+        app(TrAttachmentController::class)
+            ->uploadInternal(
+                $meta,
+                (array) $request->file('attachments')
+            );
 
-        try {
+        return response()->json([
+            'success' => true,
+            'message' => 'Attachment uploaded successfully.',
+        ]);
+    }
 
-            if ($attachment->filename_stored) {
+    public function deleteAttachment(TrAttachment $attachment)
+    {
+        $header = TrItrecommend::where(
+            'docid',
+            $attachment->refnbr
+        )->firstOrFail();
 
-                Storage::disk('gcs')->delete(
-                    $attachment->filename_stored
+        abort_if(
+            in_array($header->status, ['C', 'R', 'X']),
+            403,
+            'Document already closed.'
+        );
+
+        $user = auth()->user();
+
+        $canManageAttachment =
+            $header->created_by === $user->username
+            || $header->recommend_pic === $user->username;
+
+        abort_unless(
+            $canManageAttachment,
+            403,
+            'You are not allowed to manage attachments.'
+        );
+
+        DB::transaction(function () use ($attachment) {
+            try {
+                if ($attachment->filename_stored) {
+                    Storage::disk('gcs')->delete(
+                        $attachment->filename_stored
+                    );
+                }
+            } catch (\Throwable $e) {
+                Log::warning(
+                    'Failed delete attachment file : '
+                    .$e->getMessage()
                 );
             }
 
-        } catch (\Throwable $e) {
-            Log::warning(
-                'Failed delete attachment file : '
-                . $e->getMessage()
-            );
-        }
+            $attachment->delete();
+        });
 
-        $attachment->delete();
-    });
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Attachment deleted successfully.',
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Attachment deleted successfully.',
+        ]);
+    }
 
     private function notifyITHardware(
         string $docid,
@@ -829,8 +821,6 @@ public function deleteAttachment(TrAttachment $attachment)
             ->where('role_id', 'ITHARDWARE')
             ->exists();
 
-
-
         if (!$isITHardware) {
             return response()->json([
                 'success' => false,
@@ -884,7 +874,7 @@ public function deleteAttachment(TrAttachment $attachment)
                 $header->created_by,
                 $header->docid,
                 'Revise Request',
-                url('/edititrecommendation/' . $eid),
+                url('/edititrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -978,7 +968,7 @@ public function deleteAttachment(TrAttachment $attachment)
                 $header->created_by,
                 $header->docid,
                 'Rejected',
-                url('/showitrecommendation/' . $eid),
+                url('/showitrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -1131,7 +1121,7 @@ public function deleteAttachment(TrAttachment $attachment)
                 $header->created_by,
                 $header->docid,
                 'Rejected',
-                url('/showitrecommendation/' . $eid),
+                url('/showitrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -1142,7 +1132,7 @@ public function deleteAttachment(TrAttachment $attachment)
             $this->notifyITHardware(
                 $header->docid,
                 'Rejected',
-                url('/showitrecommendation/' . $eid),
+                url('/showitrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -1217,16 +1207,16 @@ public function deleteAttachment(TrAttachment $attachment)
             $header->save();
 
             TrMessage::create([
-                'refnbr'         => $header->docid,
-                'doctype'        => $this->doctype,
-                'message_date'   => now(),
-                'cpny_id'        => $header->cpny_id,
-                'department_id'  => $header->department_id,
-                'username'       => auth()->user()->username,
-                'name'           => auth()->user()->name,
-                'message'        => $request->note,
-                'status'         => 'I',
-                'created_by'     => auth()->user()->username,
+                'refnbr' => $header->docid,
+                'doctype' => $this->doctype,
+                'message_date' => now(),
+                'cpny_id' => $header->cpny_id,
+                'department_id' => $header->department_id,
+                'username' => auth()->user()->username,
+                'name' => auth()->user()->name,
+                'message' => $request->note,
+                'status' => 'I',
+                'created_by' => auth()->user()->username,
             ]);
 
             DB::connection('pgsql5')->commit();
@@ -1235,7 +1225,7 @@ public function deleteAttachment(TrAttachment $attachment)
                 $header->created_by,
                 $header->docid,
                 'Waiting IT Revision',
-                url('/showitrecommendation/' . $eid),
+                url('/showitrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -1246,7 +1236,7 @@ public function deleteAttachment(TrAttachment $attachment)
             $this->notifyITHardware(
                 $header->docid,
                 'Waiting IT Revision',
-                url('/processitrecommendation/' . $eid),
+                url('/processitrecommendation/'.$eid),
                 [
                     'info' => $header->keperluan,
                     'createdby' => $header->created_by,
@@ -1285,18 +1275,15 @@ public function deleteAttachment(TrAttachment $attachment)
         $data = MsInventory::query()
             ->where('status', 'A')
             ->where(function ($query) use ($keywords) {
-
                 $query->where(function ($ns) {
                     $ns->where('item_type', 'NS')
                         ->where('item_category', 'Komputer');
                 });
 
                 $query->orWhere(function ($se) use ($keywords) {
-
                     $se->where('item_type', 'SE')
                         ->whereIn('item_category', ['Komputer', 'Jasa'])
                         ->where(function ($desc) use ($keywords) {
-
                             foreach ($keywords as $keyword) {
                                 $desc->orWhere('inventory_descr', 'ilike', "%{$keyword}%");
                             }
@@ -1418,7 +1405,7 @@ public function deleteAttachment(TrAttachment $attachment)
 
         $attachments->transform(function ($row) {
             try {
-                $filepath = trim($row->folder, '/') . '/' . $row->filename;
+                $filepath = trim($row->folder, '/').'/'.$row->filename;
 
                 $row->signed_url = app(TrAttachmentController::class)
                     ->getSignedUrl($filepath);
@@ -1439,11 +1426,10 @@ public function deleteAttachment(TrAttachment $attachment)
             ->where('status', 'P')
             ->get()
             ->contains(function ($row) use ($user) {
-
                 $users = collect(
                     preg_split('/[,;|]/', $row->aprv_username)
                 )
-                ->map(fn($x) => strtolower(trim($x)));
+                ->map(fn ($x) => strtolower(trim($x)));
 
                 return $users->contains(
                     strtolower($user->username)
@@ -1654,7 +1640,6 @@ public function deleteAttachment(TrAttachment $attachment)
         */
 
         if ($header->recommend_pic) {
-
             $processDate = TrApproval::query()
                 ->where('refnbr', $header->docid)
                 ->where('status', '!=', 'X')
@@ -1679,16 +1664,14 @@ public function deleteAttachment(TrAttachment $attachment)
         |--------------------------------------------------------------------------
         */
 
-       $approvals = TrApproval::query()
-            ->where('refnbr', $header->docid)
-            ->where('status', '!=', 'X')
-            ->orderByRaw('CAST(aprv_leveling AS NUMERIC)')
-            ->get();
+        $approvals = TrApproval::query()
+             ->where('refnbr', $header->docid)
+             ->where('status', '!=', 'X')
+             ->orderByRaw('CAST(aprv_leveling AS NUMERIC)')
+             ->get();
 
         foreach ($approvals as $row) {
-
             if ($row->status === 'A') {
-
                 $push(
                     'Approved',
                     $row->aprv_username,
@@ -1705,7 +1688,6 @@ public function deleteAttachment(TrAttachment $attachment)
             }
 
             if ($row->status === 'P') {
-
                 $push(
                     'Waiting Approval',
                     $row->aprv_username,
@@ -1722,7 +1704,6 @@ public function deleteAttachment(TrAttachment $attachment)
             }
 
             if ($row->status === 'D') {
-
                 $push(
                     'Revision Requested',
                     $row->aprv_username,
@@ -1739,7 +1720,6 @@ public function deleteAttachment(TrAttachment $attachment)
             }
 
             if ($row->status === 'R') {
-
                 $push(
                     'Rejected',
                     $row->aprv_username,
@@ -1839,6 +1819,7 @@ public function deleteAttachment(TrAttachment $attachment)
             ->map(function ($row) {
                 unset($row['raw_date']);
                 unset($row['sort_order']);
+
                 return $row;
             })
             ->toArray();
