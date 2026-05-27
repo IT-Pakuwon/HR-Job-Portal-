@@ -9,7 +9,8 @@
             {{-- All --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="">
                 <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-500/10 text-sm text-slate-400">
+                    <div
+                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-500/10 text-sm text-slate-400">
                         📄
                     </div>
                     <div class="flex min-w-0 flex-grow flex-col">
@@ -26,7 +27,8 @@
             {{-- Waiting IT --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="W,I">
                 <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-sm text-blue-400">
+                    <div
+                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-sm text-blue-400">
                         🛠️
                     </div>
                     <div class="flex min-w-0 flex-grow flex-col">
@@ -43,7 +45,8 @@
             {{-- Waiting Approval --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="P">
                 <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 text-sm text-orange-400">
+                    <div
+                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 text-sm text-orange-400">
                         ⏳
                     </div>
                     <div class="flex min-w-0 flex-grow flex-col">
@@ -60,7 +63,8 @@
             {{-- Revise --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="D">
                 <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-sm text-amber-400">
+                    <div
+                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-sm text-amber-400">
                         ✏️
                     </div>
                     <div class="flex min-w-0 flex-grow flex-col">
@@ -77,7 +81,8 @@
             {{-- Rejected --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="R">
                 <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-sm text-rose-400">
+                    <div
+                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-sm text-rose-400">
                         ⛔
                     </div>
                     <div class="flex min-w-0 flex-grow flex-col">
@@ -94,7 +99,8 @@
             {{-- Completed --}}
             <a href="#" class="status-filter group block h-full text-left" data-status="C">
                 <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-sm text-emerald-400">
+                    <div
+                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-sm text-emerald-400">
                         ✅
                     </div>
                     <div class="flex min-w-0 flex-grow flex-col">
@@ -1022,7 +1028,7 @@
                                                 </p>
 
                                                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                                                    JPG, PNG, PDF (Max 5 MB)
+                                                      (Max 5 MB)
                                                 </p>
 
                                             </div>
@@ -1302,10 +1308,40 @@
                                         </h3>
 
                                     </div>
+                                    <div class="space-y-4 p-5">
 
-                                    <div id="edit_recommendation_attachments" class="flex flex-wrap gap-3 p-5">
+                                        <label for="edit_recommendation_attachments_input"
+                                            class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
+
+                                            <div
+                                                class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+
+                                                <i class="fa-solid fa-cloud-arrow-up"></i>
+
+                                            </div>
+
+                                            <div>
+
+                                                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                                    Upload Attachment
+                                                </p>
+
+                                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                                    (Max 5 MB)
+                                                </p>
+
+                                            </div>
+
+                                            <input type="file" id="edit_recommendation_attachments_input" multiple
+                                                class="hidden">
+
+                                        </label>
+
+                                        <div id="editRecommendationAttachmentPreview" class="flex flex-wrap gap-3">
+                                        </div>
+
+
                                     </div>
-
                                 </div>
 
                             </div>
