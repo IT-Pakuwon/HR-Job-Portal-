@@ -1,274 +1,298 @@
 window.BookingCar = window.BookingCar || {};
 
-// =====================================================
-// GLOBAL MODAL STATE
-// =====================================================
+BookingCar.openCreateModal = () => {
 
-window.currentReasonAction = null;
-window.currentBookingDocid = null;
+    BookingCar.resetCreateForm();
 
-// =====================================================
-// CREATE BOOKING
-// =====================================================
+    BookingCar.openModal(BookingCar.el.createModal);
 
-window.openBookingModal = function () {
-    const modal = document.getElementById("createBookingModal");
+    BookingCar.scrollTopModal('#createBookingModal');
+};
 
-    const routeBody = document.getElementById("createRouteTableBody");
+BookingCar.closeCreateModal = () => {
 
-    modal?.classList.remove("hidden");
+    BookingCar.closeModal(BookingCar.el.createModal);
 
-    document.body.classList.add("overflow-hidden");
+    BookingCar.resetCreateForm();
+};
 
-    if (routeBody && !routeBody.querySelector("tr")) {
-        if (typeof window.createRouteRow === "function") {
-            routeBody.innerHTML = window.createRouteRow(1);
+BookingCar.openEditModal = () => {
+
+    BookingCar.openModal(BookingCar.el.editModal);
+
+    BookingCar.scrollTopModal('#editBookingModal');
+};
+
+BookingCar.closeEditModal = () => {
+
+    BookingCar.closeModal(BookingCar.el.editModal);
+
+    BookingCar.resetEditForm();
+};
+
+BookingCar.openDetailModal = () => {
+
+    BookingCar.openModal(BookingCar.el.viewModal);
+
+    BookingCar.scrollTopModal('#viewBookingModal');
+};
+
+window.closeBookingDetailModal = () => {
+
+    BookingCar.closeModal(BookingCar.el.viewModal);
+
+    BookingCar.resetState();
+};
+
+BookingCar.openGaProcessModal = () => {
+
+    BookingCar.openModal(BookingCar.el.gaProcessModal);
+
+    BookingCar.scrollTopModal('#gaProcessModal');
+};
+
+BookingCar.closeGaProcessModal = () => {
+
+    BookingCar.closeModal(BookingCar.el.gaProcessModal);
+
+    if (BookingCar.el.gaProcessForm) {
+        BookingCar.el.gaProcessForm.reset();
+    }
+
+    BookingCar.toggleDriverAssignment(false);
+    BookingCar.toggleVehicleAssignment(false);
+};
+
+BookingCar.addCreateRouteRow = ({
+    pickup = '',
+    destination = '',
+} = {}) => {
+
+    const index = BookingCar.state.routeIndex;
+
+    const html = BookingCar.generateRouteRow({
+        index,
+        pickup,
+        destination,
+        type: 'create',
+    });
+
+    BookingCar.el.createRouteTableBody.insertAdjacentHTML(
+        'beforeend',
+        html
+    );
+
+    BookingCar.state.routeIndex++;
+};
+
+BookingCar.addEditRouteRow = ({
+    pickup = '',
+    destination = '',
+} = {}) => {
+
+    const index = BookingCar.state.editRouteIndex;
+
+    const html = BookingCar.generateRouteRow({
+        index,
+        pickup,
+        destination,
+        type: 'edit',
+    });
+
+    BookingCar.el.editRouteTableBody.insertAdjacentHTML(
+        'beforeend',
+        html
+    );
+
+    BookingCar.state.editRouteIndex++;
+};
+
+BookingCar.reorderRouteTable = (tbodySelector) => {
+
+    const rows = document.querySelectorAll(
+        `${tbodySelector} tr`
+    );
+
+    rows.forEach((row, index) => {
+
+        const noCell = row.querySelector('td:first-child');
+
+        if (noCell) {
+            noCell.innerText = index + 1;
         }
-    }
+    });
 };
 
-window.closeBookingModal = function () {
-    const modal = document.getElementById("createBookingModal");
+BookingCar.toggleDriverAssignment = (show = true) => {
 
-    const form = document.getElementById("bookingCarForm");
+    if (!BookingCar.el.driverAssignmentWrapper) return;
 
-    const purposeWrapper = document.getElementById("purposeDescrWrapper");
-
-    const purposeDescr = document.getElementById("purpose_descr");
-
-    modal?.classList.add("hidden");
-
-    document.body.classList.remove("overflow-hidden");
-
-    form?.reset();
-
-    purposeWrapper?.classList.add("hidden");
-
-    if (purposeDescr) {
-        purposeDescr.required = false;
-
-        purposeDescr.value = "";
-    }
-
-    const routeBody = document.getElementById("createRouteTableBody");
-
-    if (routeBody) {
-        routeBody.innerHTML = "";
-    }
-};
-
-// =====================================================
-// DETAIL
-// =====================================================
-
-window.closeBookingDetailModal = function () {
-    const modal = document.getElementById("viewBookingModal");
-
-    modal?.classList.add("hidden");
-
-    document.body.classList.remove("overflow-hidden");
-
-    BookingCar.currentEid = null;
-
-    BookingCar.currentDocid = null;
-
-    window.history.pushState({}, "", "/bookingcar");
-};
-
-// =====================================================
-// EDIT
-// =====================================================
-
-window.closeEditBookingModal = function () {
-    const editModal = document.getElementById("editBookingModal");
-
-    const viewModal = document.getElementById("viewBookingModal");
-
-    const form = document.getElementById("editBookingForm");
-
-    editModal?.classList.add("hidden");
-
-    viewModal?.classList.remove("hidden");
-
-    document.body.classList.add("overflow-hidden");
-
-    form?.reset();
-};
-
-// =====================================================
-// REASON MODAL
-// =====================================================
-
-window.openReasonModal = function (type, docid) {
-    window.currentReasonAction = type;
-
-    window.currentBookingDocid = docid;
-
-    const modal = document.getElementById("reasonModal");
-
-    const title = document.getElementById("reasonModalTitle");
-
-    const input = document.getElementById("reasonInput");
-
-    const error = document.getElementById("reasonError");
-
-    if (input) {
-        input.value = "";
-    }
-
-    error?.classList.add("hidden");
-
-    if (title) {
-        title.innerText =
-            type === "revise" ? "Revision Reason" : "Reject Reason";
-    }
-
-    modal?.classList.remove("hidden");
-
-    modal?.classList.add("flex");
-
-    document.body.classList.add("overflow-hidden");
-
-    setTimeout(() => {
-        input?.focus();
-    }, 100);
-};
-
-window.closeReasonModal = function () {
-    const modal = document.getElementById("reasonModal");
-
-    modal?.classList.add("hidden");
-
-    modal?.classList.remove("flex");
-
-    const viewModal = document.getElementById("viewBookingModal");
-
-    const editModal = document.getElementById("editBookingModal");
-
-    if (
-        !viewModal?.classList.contains("hidden") ||
-        !editModal?.classList.contains("hidden")
-    ) {
-        document.body.classList.add("overflow-hidden");
+    if (show) {
+        BookingCar.el.driverAssignmentWrapper.classList.remove('hidden');
     } else {
-        document.body.classList.remove("overflow-hidden");
+        BookingCar.el.driverAssignmentWrapper.classList.add('hidden');
     }
-
-    window.currentReasonAction = null;
-
-    window.currentBookingDocid = null;
 };
 
-// =====================================================
-// GA PROCESS
-// =====================================================
+BookingCar.toggleVehicleAssignment = (show = true) => {
 
-window.closeGaProcessModal = function () {
-    const modal = document.getElementById("gaProcessModal");
+    if (!BookingCar.el.vehicleAssignmentWrapper) return;
 
-    const form = document.getElementById("gaProcessForm");
-
-    modal?.classList.add("hidden");
-
-    form?.reset();
-
-    const viewModal = document.getElementById("viewBookingModal");
-
-    if (viewModal && !viewModal.classList.contains("hidden")) {
-        document.body.classList.add("overflow-hidden");
+    if (show) {
+        BookingCar.el.vehicleAssignmentWrapper.classList.remove('hidden');
     } else {
-        document.body.classList.remove("overflow-hidden");
+        BookingCar.el.vehicleAssignmentWrapper.classList.add('hidden');
     }
 };
 
-// =====================================================
-// ESCAPE KEY
-// =====================================================
+BookingCar.handleTravelStatusVisibility = () => {
 
-window.handleBookingModalEscape = function (event) {
-    if (event.key !== "Escape") {
-        return;
-    }
+    const status =
+        BookingCar.el.gaStatusPerjalanan?.value || '';
 
-    if (!document.getElementById("reasonModal")?.classList.contains("hidden")) {
-        closeReasonModal();
+    const needDriverStatuses = [
+        'DIJEMPUT',
+        'DROP',
+        'DIANTAR',
+        'SELESAI',
+        'ON DUTY',
+    ];
 
-        return;
-    }
+    const shouldShow =
+        needDriverStatuses.includes(status.toUpperCase());
 
-    if (
-        !document.getElementById("gaProcessModal")?.classList.contains("hidden")
-    ) {
-        closeGaProcessModal();
-
-        return;
-    }
-
-    if (
-        !document
-            .getElementById("editBookingModal")
-            ?.classList.contains("hidden")
-    ) {
-        closeEditBookingModal();
-
-        return;
-    }
-
-    if (
-        !document
-            .getElementById("viewBookingModal")
-            ?.classList.contains("hidden")
-    ) {
-        closeBookingDetailModal();
-
-        return;
-    }
-
-    if (
-        !document
-            .getElementById("createBookingModal")
-            ?.classList.contains("hidden")
-    ) {
-        closeBookingModal();
-    }
+    BookingCar.toggleDriverAssignment(shouldShow);
+    BookingCar.toggleVehicleAssignment(shouldShow);
 };
 
-// =====================================================
-// EVENTS
-// =====================================================
+BookingCar.bindModalEvents = () => {
 
-document.addEventListener("DOMContentLoaded", function () {
-    document
-        .getElementById("closeBookingModal")
-        ?.addEventListener("click", window.closeBookingModal);
+    BookingCar.el.openCreateModalBtn?.addEventListener(
+        'click',
+        BookingCar.openCreateModal
+    );
 
-    document
-        .getElementById("cancelBookingBtn")
-        ?.addEventListener("click", window.closeBookingModal);
+    BookingCar.el.closeCreateModalBtn?.addEventListener(
+        'click',
+        BookingCar.closeCreateModal
+    );
 
-    document
-        .getElementById("closeBookingDetailModal")
-        ?.addEventListener("click", window.closeBookingDetailModal);
+    BookingCar.el.closeCreateModalFooterBtn?.addEventListener(
+        'click',
+        BookingCar.closeCreateModal
+    );
 
-    document
-        .getElementById("closeEditBookingModal")
-        ?.addEventListener("click", window.closeEditBookingModal);
+    BookingCar.el.closeEditBookingModal?.addEventListener(
+        'click',
+        BookingCar.closeEditModal
+    );
 
-    document
-        .getElementById("cancelEditBookingBtn")
-        ?.addEventListener("click", window.closeEditBookingModal);
+    BookingCar.el.cancelEditBookingBtn?.addEventListener(
+        'click',
+        BookingCar.closeEditModal
+    );
 
-    document
-        .getElementById("cancelReasonBtn")
-        ?.addEventListener("click", window.closeReasonModal);
+    BookingCar.el.closeGaProcessModal?.addEventListener(
+        'click',
+        BookingCar.closeGaProcessModal
+    );
 
-    document
-        .getElementById("closeGaProcessModal")
-        ?.addEventListener("click", window.closeGaProcessModal);
+    BookingCar.el.cancelGaProcessBtn?.addEventListener(
+        'click',
+        BookingCar.closeGaProcessModal
+    );
 
-    document
-        .getElementById("cancelGaProcessBtn")
-        ?.addEventListener("click", window.closeGaProcessModal);
+    BookingCar.el.editAddRouteBtn?.addEventListener(
+        'click',
+        () => {
+            BookingCar.addEditRouteRow();
+        }
+    );
 
-    document.addEventListener("keydown", window.handleBookingModalEscape);
-});
+    document.addEventListener('click', (e) => {
+
+        if (e.target.classList.contains('remove-route-btn')) {
+
+            const row = e.target.closest('tr');
+
+            const tbody = row.closest('tbody');
+
+            row.remove();
+
+            if (tbody.id === 'createRouteTableBody') {
+
+                BookingCar.reorderRouteTable(
+                    '#createRouteTableBody'
+                );
+
+            } else {
+
+                BookingCar.reorderRouteTable(
+                    '#editRouteTableBody'
+                );
+            }
+        }
+    });
+
+    BookingCar.el.gaStatusPerjalanan?.addEventListener(
+        'change',
+        BookingCar.handleTravelStatusVisibility
+    );
+
+    BookingCar.el.gaDriver?.addEventListener(
+        'change',
+        function () {
+
+            const selected =
+                this.options[this.selectedIndex];
+
+            const hp =
+                selected.getAttribute('data-hp') || '-';
+
+            BookingCar.el.gaHandphone.value = hp;
+        }
+    );
+
+    BookingCar.el.gaVehicle?.addEventListener(
+        'change',
+        function () {
+
+            const selected =
+                this.options[this.selectedIndex];
+
+            const noPolisi =
+                selected.value || '-';
+
+            BookingCar.el.gaNoPolisi.value = noPolisi;
+        }
+    );
+
+    window.addEventListener('keydown', (e) => {
+
+        if (e.key !== 'Escape') return;
+
+        if (
+            !BookingCar.el.createModal.classList.contains('hidden')
+        ) {
+            BookingCar.closeCreateModal();
+        }
+
+        if (
+            !BookingCar.el.editModal.classList.contains('hidden')
+        ) {
+            BookingCar.closeEditModal();
+        }
+
+        if (
+            !BookingCar.el.viewModal.classList.contains('hidden')
+        ) {
+            closeBookingDetailModal();
+        }
+
+        if (
+            !BookingCar.el.gaProcessModal.classList.contains('hidden')
+        ) {
+            BookingCar.closeGaProcessModal();
+        }
+    });
+};

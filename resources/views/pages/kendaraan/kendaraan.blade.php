@@ -45,6 +45,7 @@
                             <th class="px-4 py-3 text-left">Company</th>
                             <th class="px-4 py-3 text-left">No Polisi</th>
                             <th class="px-4 py-3 text-left">Nama Kendaraan</th>
+                            <th class="px-4 py-3 text-left">Kategori Kendaraan</th>
                             <th class="px-4 py-3 text-left">Type Kendaraan</th>
                             <th class="px-4 py-3 text-left">Merk Kendaraan</th>
                             <th class="px-4 py-3 text-left">Pemilik Kendaraan</th>
@@ -85,6 +86,13 @@
                             <input type="text" id="namakendaraan" name="namakendaraan" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                         </div>
 
+                        <div>
+                            <label class="block text-gray-700 dark:text-white">Kategori Kendaraan</label>
+                            <input type="text"
+                                id="kategori_kendaraan"
+                                name="kategori_kendaraan"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
                         <div>
                             <label class="block text-gray-700 dark:text-white">Type Kendaraan</label>
                             <input type="text" id="typekendaraan" name="typekendaraan" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
@@ -157,6 +165,7 @@
                     { data: 'cpny_id', defaultContent: '-' },
                     { data: 'no_polisi' },
                     { data: 'namakendaraan' },
+                    { data: 'kategori_kendaraan', defaultContent: '-' },
                     { data: 'typekendaraan', defaultContent: '-' },
                     { data: 'merk_kendaraan', defaultContent: '-' },
                     { data: 'pemilikkendaraan', defaultContent: '-' },
@@ -197,6 +206,7 @@
                     $('#cpny_id').val(c.cpny_id);
                     $('#no_polisi').val(c.no_polisi);
                     $('#namakendaraan').val(c.namakendaraan);
+                    $('#kategori_kendaraan').val(c.kategori_kendaraan);
                     $('#typekendaraan').val(c.typekendaraan);
                     $('#merk_kendaraan').val(c.merk_kendaraan);
                     $('#pemilikkendaraan').val(c.pemilikkendaraan);

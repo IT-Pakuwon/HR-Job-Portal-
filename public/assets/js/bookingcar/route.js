@@ -1,192 +1,539 @@
-window.BookingCar = window.BookingCar || {};
+(function () {
 
-// =====================================================
-// CREATE ROUTE
-// =====================================================
+    'use strict';
 
-window.createRouteRow = function (index, from = "", destination = "") {
-    return `
-        <tr>
+    window.BookingCar =
+        window.BookingCar || {};
 
-            <td class="px-4 py-3 text-sm font-medium text-gray-500">
-                ${index}
-            </td>
+    /*
+    |--------------------------------------------------------------------------
+    | ROUTES
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.config =
+        BookingCar.config || {};
 
-            <td class="px-4 py-3">
-                <input
-                    type="text"
-                    name="location_from[]"
-                    value="${BookingCar.escapeHtml(from)}"
-                    placeholder="Pickup location"
-                    class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                    required
-                >
-            </td>
+    BookingCar.config.routes = {
 
-            <td class="px-4 py-3">
-                <input
-                    type="text"
-                    name="destination[]"
-                    value="${BookingCar.escapeHtml(destination)}"
-                    placeholder="Destination"
-                    class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                    required
-                >
-            </td>
+        /*
+        |--------------------------------------------------------------------------
+        | MAIN
+        |--------------------------------------------------------------------------
+        */
+        json:
+            '/bookingcar/json',
 
-            <td class="px-4 py-3 text-right">
-                <button
-                    type="button"
-                    onclick="window.removeRouteRow(this)"
-                    class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100"
-                >
-                    Remove
-                </button>
-            </td>
+        store:
+            '/bookingcar/store',
 
-        </tr>
-    `;
-};
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+        detail: (hash) =>
+            `/bookingcar/detail/${hash}`,
 
-window.refreshRouteNumber = function () {
-    document
-        .querySelectorAll("#createRouteTableBody tr")
-        .forEach((tr, index) => {
-            const firstCell = tr.querySelector("td");
+        tracking: (hash) =>
+            `/bookingcar/tracking/${hash}`,
 
-            if (firstCell) {
-                firstCell.innerText = index + 1;
+        find: (hash) =>
+            `/bookingcar/find/${hash}`,
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE
+        |--------------------------------------------------------------------------
+        */
+        update: (hash) =>
+            `/bookingcar/update/${hash}`,
+
+        /*
+        |--------------------------------------------------------------------------
+        | WORKFLOW
+        |--------------------------------------------------------------------------
+        */
+        cancel: (docid) =>
+            `/bookingcar/cancel/${docid}`,
+
+        approve: (docid) =>
+            `/bookingcar/approve/${docid}`,
+
+        reject: (docid) =>
+            `/bookingcar/reject/${docid}`,
+
+        revise: (docid) =>
+            `/bookingcar/revise/${docid}`,
+
+        /*
+        |--------------------------------------------------------------------------
+        | PROCESS
+        |--------------------------------------------------------------------------
+        */
+        process: (hash) =>
+            `/bookingcar/process/${hash}`,
+
+        /*
+        |--------------------------------------------------------------------------
+        | PRINT
+        |--------------------------------------------------------------------------
+        */
+        print: (hash) =>
+            `/bookingcar/print/${hash}`,
+
+        /*
+        |--------------------------------------------------------------------------
+        | AUTO OPEN
+        |--------------------------------------------------------------------------
+        */
+        showModal: (eid) =>
+            `/showbookingcar/${eid}`,
+
+        editModal: (eid) =>
+            `/editbookingcar/${eid}`,
+
+        processModal: (eid) =>
+            `/processbookingcar/${eid}`,
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | LEGACY COMPATIBILITY
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.Route = {
+
+        detail: (hash) =>
+            BookingCar.config.routes.detail(hash),
+
+        tracking: (hash) =>
+            BookingCar.config.routes.tracking(hash),
+
+        update: (hash) =>
+            BookingCar.config.routes.update(hash),
+
+        cancel: (docid) =>
+            BookingCar.config.routes.cancel(docid),
+
+        approve: (docid) =>
+            BookingCar.config.routes.approve(docid),
+
+        reject: (docid) =>
+            BookingCar.config.routes.reject(docid),
+
+        revise: (docid) =>
+            BookingCar.config.routes.revise(docid),
+
+        process: (hash) =>
+            BookingCar.config.routes.process(hash),
+
+        print: (hash) =>
+            BookingCar.config.routes.print(hash),
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | GLOBAL AJAX WRAPPER
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.ajax = ({
+        url,
+        method = 'GET',
+        data = {},
+        showLoading = false,
+        loadingText = 'Loading...',
+    }) => {
+
+        return new Promise(
+            (resolve, reject) => {
+
+                if (showLoading) {
+
+                    Swal.fire({
+                        title: loadingText,
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                }
+
+                $.ajax({
+
+                    url,
+                    method,
+                    data,
+
+                    success: (response) => {
+
+                        if (showLoading) {
+                            Swal.close();
+                        }
+
+                        resolve(response);
+                    },
+
+                    error: (xhr) => {
+
+                        if (showLoading) {
+                            Swal.close();
+                        }
+
+                        let message =
+                            'Something went wrong';
+
+                        if (
+                            xhr.responseJSON?.message
+                        ) {
+
+                            message =
+                                xhr.responseJSON.message;
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | VALIDATION ERROR
+                        |--------------------------------------------------------------------------
+                        */
+                        if (
+                            xhr.status === 422 &&
+                            xhr.responseJSON?.errors
+                        ) {
+
+                            const errors =
+                                Object.values(
+                                    xhr.responseJSON.errors
+                                )
+                                    .flat()
+                                    .join('<br>');
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Validation Error',
+                                html: errors,
+                            });
+
+                        } else {
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: message,
+                            });
+                        }
+
+                        reject(xhr);
+                    }
+                });
             }
-        });
-};
+        );
+    };
 
-window.removeRouteRow = function (btn) {
-    const tbody = document.getElementById("createRouteTableBody");
+    /*
+    |--------------------------------------------------------------------------
+    | FETCH LIST
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.fetchBookingData =
+        async () => {
 
-    if (!tbody) {
-        return;
-    }
+            try {
 
-    if (tbody.querySelectorAll("tr").length <= 1) {
-        BookingCar.warning("At least one route is required");
+                const response =
+                    await BookingCar.ajax({
 
-        return;
-    }
+                        url:
+                            BookingCar.config.routes.json,
 
-    btn.closest("tr")?.remove();
+                        method: 'GET',
+                    });
 
-    window.refreshRouteNumber();
-};
+                BookingCar.setBookingData(
+                    response.data || []
+                );
 
-// =====================================================
-// EDIT ROUTE
-// =====================================================
+                return response;
 
-window.createEditRouteRow = function (index, from = "", destination = "") {
-    return `
-        <tr>
+            } catch (error) {
 
-            <td class="px-4 py-3 text-sm font-medium text-gray-500">
-                ${index}
-            </td>
+                console.error(
+                    'Fetch booking failed:',
+                    error
+                );
 
-            <td class="px-4 py-3">
-                <input
-                    type="text"
-                    name="location_from[]"
-                    value="${BookingCar.escapeHtml(from)}"
-                    placeholder="Pickup location"
-                    class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                    required
-                >
-            </td>
-
-            <td class="px-4 py-3">
-                <input
-                    type="text"
-                    name="destination[]"
-                    value="${BookingCar.escapeHtml(destination)}"
-                    placeholder="Destination"
-                    class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                    required
-                >
-            </td>
-
-            <td class="px-4 py-3 text-right">
-                <button
-                    type="button"
-                    onclick="window.removeEditRouteRow(this)"
-                    class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100"
-                >
-                    Remove
-                </button>
-            </td>
-
-        </tr>
-    `;
-};
-
-window.refreshEditRouteNumber = function () {
-    document.querySelectorAll("#editRouteTableBody tr").forEach((tr, index) => {
-        const firstCell = tr.querySelector("td");
-
-        if (firstCell) {
-            firstCell.innerText = index + 1;
-        }
-    });
-};
-
-window.removeEditRouteRow = function (btn) {
-    const tbody = document.getElementById("editRouteTableBody");
-
-    if (!tbody) {
-        return;
-    }
-
-    if (tbody.querySelectorAll("tr").length <= 1) {
-        BookingCar.warning("At least one route is required");
-
-        return;
-    }
-
-    btn.closest("tr")?.remove();
-
-    window.refreshEditRouteNumber();
-};
-
-// =====================================================
-// EVENTS
-// =====================================================
-
-document.addEventListener("DOMContentLoaded", function () {
-    document
-        .getElementById("createAddRouteBtn")
-        ?.addEventListener("click", function () {
-            const tbody = document.getElementById("createRouteTableBody");
-
-            if (!tbody) {
-                return;
+                return [];
             }
+        };
 
-            const index = tbody.querySelectorAll("tr").length + 1;
+    /*
+    |--------------------------------------------------------------------------
+    | FETCH DETAIL
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.fetchBookingDetail =
+        async (hash) => {
 
-            tbody.insertAdjacentHTML("beforeend", window.createRouteRow(index));
-        });
+            try {
 
-    document
-        .getElementById("editAddRouteBtnEdit")
-        ?.addEventListener("click", function () {
-            const tbody = document.getElementById("editRouteTableBody");
+                return await BookingCar.ajax({
 
-            if (!tbody) {
-                return;
+                    url:
+                        BookingCar.config.routes.detail(
+                            hash
+                        ),
+
+                    method: 'GET',
+
+                    showLoading: true,
+
+                    loadingText:
+                        'Loading booking detail...',
+                });
+
+            } catch (error) {
+
+                console.error(error);
+
+                return null;
             }
+        };
 
-            const index = tbody.querySelectorAll("tr").length + 1;
+    /*
+    |--------------------------------------------------------------------------
+    | FETCH TRACKING
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.fetchBookingTracking =
+        async (hash) => {
 
-            tbody.insertAdjacentHTML(
-                "beforeend",
-                window.createEditRouteRow(index),
-            );
-        });
-});
+            try {
+
+                return await BookingCar.ajax({
+
+                    url:
+                        BookingCar.config.routes.tracking(
+                            hash
+                        ),
+
+                    method: 'GET',
+                });
+
+            } catch (error) {
+
+                console.error(error);
+
+                return [];
+            }
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.submitCreateBooking =
+        async (formData) => {
+
+            return await BookingCar.ajax({
+
+                url:
+                    BookingCar.config.routes.store,
+
+                method: 'POST',
+
+                data: formData,
+
+                showLoading: true,
+
+                loadingText:
+                    'Submitting booking...',
+            });
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.submitEditBooking =
+        async (hash, formData) => {
+
+            return await BookingCar.ajax({
+
+                url:
+                    BookingCar.config.routes.update(
+                        hash
+                    ),
+
+                method: 'POST',
+
+                data: formData,
+
+                showLoading: true,
+
+                loadingText:
+                    'Saving changes...',
+            });
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | APPROVE
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.submitApproveBooking =
+        async (docid) => {
+
+            return await BookingCar.ajax({
+
+                url:
+                    BookingCar.config.routes.approve(
+                        docid
+                    ),
+
+                method: 'POST',
+
+                data: {
+                    _token:
+                        $('meta[name="csrf-token"]')
+                            .attr('content'),
+                },
+
+                showLoading: true,
+
+                loadingText:
+                    'Approving booking...',
+            });
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | REJECT
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.submitRejectBooking =
+        async ({
+            docid,
+            reason,
+        }) => {
+
+            return await BookingCar.ajax({
+
+                url:
+                    BookingCar.config.routes.reject(
+                        docid
+                    ),
+
+                method: 'POST',
+
+                data: {
+                    reason,
+
+                    _token:
+                        $('meta[name="csrf-token"]')
+                            .attr('content'),
+                },
+
+                showLoading: true,
+
+                loadingText:
+                    'Rejecting booking...',
+            });
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | REVISE
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.submitReviseBooking =
+        async ({
+            docid,
+            reason,
+        }) => {
+
+            return await BookingCar.ajax({
+
+                url:
+                    BookingCar.config.routes.revise(
+                        docid
+                    ),
+
+                method: 'POST',
+
+                data: {
+                    reason,
+
+                    _token:
+                        $('meta[name="csrf-token"]')
+                            .attr('content'),
+                },
+
+                showLoading: true,
+
+                loadingText:
+                    'Sending revision...',
+            });
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | CANCEL
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.submitCancelBooking =
+        async (hash) => {
+
+            return await BookingCar.ajax({
+
+                url:
+                    BookingCar.config.routes.cancel(
+                        hash
+                    ),
+
+                method: 'POST',
+
+                data: {
+                    _token:
+                        $('meta[name="csrf-token"]')
+                            .attr('content'),
+                },
+
+                showLoading: true,
+
+                loadingText:
+                    'Cancelling booking...',
+            });
+        };
+
+    /*
+    |--------------------------------------------------------------------------
+    | PROCESS
+    |--------------------------------------------------------------------------
+    */
+    BookingCar.submitGaProcess =
+        async ({
+            hash,
+            formData,
+        }) => {
+
+            return await BookingCar.ajax({
+
+                url:
+                    BookingCar.config.routes.process(
+                        hash
+                    ),
+
+                method: 'POST',
+
+                data: formData,
+
+                showLoading: true,
+
+                loadingText:
+                    'Processing booking...',
+            });
+        };
+
+
+})();

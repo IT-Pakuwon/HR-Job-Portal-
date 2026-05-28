@@ -33,7 +33,7 @@
 
                 <!-- LIST -->
                 <button id="toggleList"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white">
 
                     <span>📋</span>
 
@@ -80,37 +80,41 @@
 
         <!-- 📅 CALENDAR -->
         <div id="calendarWrapper"
-            class="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-8">
+            class="overflow-hidden  rounded-lg border border-gray-200 bg-white shadow-sm lg:col-span-8 dark:border-white/10 dark:bg-[#0f172a]">
 
             <div
-                class="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/10">
+                class="flex flex-col gap-4 border-b border-gray-100 px-6 py-5 lg:flex-row lg:items-center lg:justify-between dark:border-white/10">
 
                 <div>
 
                     <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
-                        Calendar View
+                        Calendar Schedule
                     </div>
 
-                    <div class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                        Voucher Taxi request schedule overview
-                    </div>
+                    <h3 class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                        Voucher Taxi Schedule Overview
+                    </h3>
+
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Monitor upcoming taxi requests and approved schedules
+                    </p>
 
                 </div>
 
                 <div class="hidden items-center gap-2 md:flex">
 
                     <div class="flex items-center gap-2 text-xs text-gray-500">
-                        <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+                        <span class="h-2 w-2  rounded-lg bg-blue-500"></span>
                         Pending Approval
                     </div>
 
                     <div class="flex items-center gap-2 text-xs text-gray-500">
-                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        <span class="h-2 w-2  rounded-lg bg-emerald-500"></span>
                         Completed
                     </div>
 
                     <div class="flex items-center gap-2 text-xs text-gray-500">
-                        <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                        <span class="h-2 w-2  rounded-lg bg-yellow-400"></span>
                         Revise
                     </div>
 
@@ -126,27 +130,35 @@
 
         <!-- 📋 LIST PANEL -->
         <div id="voucherListPanel"
-            class="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a] lg:col-span-4">
+            class="flex flex-col overflow-hidden  rounded-lg border border-gray-200 bg-white shadow-sm lg:col-span-4 dark:border-white/10 dark:bg-[#0f172a]">
 
-            <div class="shrink-0 border-b border-slate-100 p-4 dark:border-white/10">
+            <div class="border-b border-gray-100 px-5 py-5 dark:border-white/10">
 
-                <!-- Header -->
+                <div class="flex items-start justify-between gap-3">
 
-                <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-semibold text-slate-900 dark:text-white">
-                            Voucher List
+
+                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                            Request Queue
+                        </div>
+
+                        <h3 class="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                            Taxi Requests
                         </h3>
 
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            Latest voucher requests
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Latest taxi requests and approval status
                         </p>
+
                     </div>
 
-                    <span id="voucherCount"
-                        class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-                        0
-                    </span>
+
+                    <div
+                        class="flex h-10 min-w-[42px] items-center justify-center  rounded-lg bg-indigo-50 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                        <span id="voucherCount">
+                            0
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Search -->
@@ -162,17 +174,15 @@
                 <!-- Filter -->
 
                 <div class="mt-4 flex flex-wrap gap-2">
-
+                    <button class="voucher-filter active-filter" data-filter="P">Waiting Approval</button>
+                    <button class="voucher-filter" data-filter="D">Revise</button>
+                    <button class="voucher-filter" data-filter="R">Rejected</button>
+                    <button class="voucher-filter" data-filter="C">Completed</button>
                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
                         <button class="voucher-filter" data-filter="C">
                             Waiting Process
                         </button>
                     @endif
-
-                    <button class="voucher-filter active-filter" data-filter="P">Waiting Approval</button>
-                    <button class="voucher-filter" data-filter="D">Revise</button>
-                    <button class="voucher-filter" data-filter="R">Rejected</button>
-                    <button class="voucher-filter" data-filter="C">Completed</button>
                     <button class="voucher-filter" data-filter="X">Cancelled</button>
                     <button class="voucher-filter" data-filter="ALL">All</button>
 
@@ -234,7 +244,7 @@
             class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white">
                         Create Voucher Taxi
@@ -492,7 +502,7 @@
             </div>
 
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3     dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-end gap-3">
 
@@ -528,7 +538,7 @@
             class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                 <div>
                     <h2 class="text-sm font-bold text-slate-900 dark:text-white">
@@ -825,7 +835,7 @@
 
             {{-- FOOTER --}}
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3     dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-end gap-3">
 
@@ -852,6 +862,7 @@
         </div>
 
     </div>
+
     {{-- DETAIL MODAL --}}
     <div id="viewVoucherModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
@@ -866,7 +877,7 @@
             <input type="hidden" id="view_docid">
 
             <div
-                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
+                class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                 <div>
 
@@ -901,7 +912,7 @@
 
             </div>
 
-            <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-[1.1fr_.9fr]">
+            <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 lg:grid-cols-[1.1fr_.9fr] dark:bg-[#0b1220]">
 
                 <div class="space-y-4">
 
@@ -924,7 +935,7 @@
                             </div>
 
                             <div id="view_status_badge"
-                                class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-white/10 dark:text-slate-200">
+                               >
                                 Pending
                             </div>
 
@@ -1026,7 +1037,7 @@
                             </div>
 
                             <span
-                                class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                                class=" rounded-lg bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
                                 Processed
                             </span>
 
@@ -1098,7 +1109,7 @@
             </div>
 
             <div
-                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3     dark:border-white/10 dark:bg-[#0f172a]/95">
+                class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                 <div class="flex items-center justify-between">
 
@@ -1143,7 +1154,7 @@
         </div>
 
         <div
-            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-xl border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+            class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-5xl translate-y-4 scale-[0.98] flex-col overflow-y-auto  rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
             <form id="processVoucherForm">
 
@@ -1151,12 +1162,12 @@
 
                 {{-- HEADER --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4     dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-4 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <div class="flex items-center gap-4">
 
                         <div
-                            class="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                            class="flex h-12 w-12 items-center justify-center  rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
 
                             <i class="fa-solid fa-money-bill-wave text-lg"></i>
 
@@ -1190,7 +1201,7 @@
 
                     {{-- DOCUMENT INFORMATION --}}
                     <div
-                        class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="overflow-hidden  rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
                             class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
@@ -1209,7 +1220,7 @@
 
                             <div id="process_status">
                                 <span
-                                    class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                                    class=" rounded-lg bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
                                     Waiting Process
                                 </span>
                             </div>
@@ -1278,7 +1289,7 @@
 
                     {{-- PROCESS VOUCHER --}}
                     <div
-                        class="overflow-hidden rounded-xl border border-emerald-200 bg-white dark:border-emerald-500/20 dark:bg-[#0f172a]">
+                        class="overflow-hidden  rounded-lg border border-emerald-200 bg-white dark:border-emerald-500/20 dark:bg-[#0f172a]">
 
                         <div
                             class="border-b border-emerald-100 bg-emerald-50 px-5 py-3 dark:border-emerald-500/20 dark:bg-emerald-500/10">
@@ -1331,7 +1342,7 @@
 
                             {{-- UPDATE EXPENSE OWNER --}}
                             <div
-                                class="rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+                                class=" rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
 
                                 <label class="flex cursor-pointer items-start gap-3">
 
@@ -1361,7 +1372,7 @@
 
                             {{-- NEW EXPENSE OWNER --}}
                             <div id="expenseOwnerSection"
-                                class="hidden rounded-xl border border-indigo-200 bg-indigo-50 p-5 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+                                class="hidden  rounded-lg border border-indigo-200 bg-indigo-50 p-5 dark:border-indigo-500/20 dark:bg-indigo-500/10">
 
                                 <div
                                     class="mb-4 text-sm font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
@@ -1467,7 +1478,7 @@
 
                 {{-- FOOTER --}}
                 <div
-                    class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3     dark:border-white/10 dark:bg-[#0f172a]/95">
+                    class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
 
                     <div class="flex items-center justify-end gap-3">
 

@@ -1,266 +1,264 @@
 window.BookingCar = window.BookingCar || {};
 
-BookingCar.calendar = null;
+BookingCar.getCalendarEventColor = (status) => {
 
-// =====================================================
-// REFRESH SIZE
-// =====================================================
+    const map = {
+        P: '#3b82f6',
+        C: '#10b981',
+        D: '#f59e0b',
+        R: '#ef4444',
+        X: '#6b7280',
+        WAITING_PROCESS: '#6366f1',
+    };
 
-window.refreshCalendarSize = function () {
-    BookingCar.calendar?.updateSize();
+    return map[status] || '#64748b';
 };
 
-// =====================================================
-// EVENT COLOR
-// =====================================================
+BookingCar.transformCalendarEvents = () => {
 
-BookingCar.getEventColor = function (status) {
-    switch (status) {
-        case "C":
-            return "#10b981";
-
-        case "D":
-            return "#f59e0b";
-
-        case "R":
-            return "#ef4444";
-
-        default:
-            return "#3b82f6";
+    if (!Array.isArray(BookingCar.state.bookingData)) {
+        return [];
     }
-};
 
-// =====================================================
-// BUILD EVENTS
-// =====================================================
+    return BookingCar.state.bookingData
+        .filter(item =>
+            item.booking_date &&
+            item.start_time &&
+            item.end_time
+        )
+        .map(item => {
 
-BookingCar.buildCalendarEvents = function () {
-    return (BookingCar.rows || [])
-        .filter((row) => row.status !== "X" && row.start_time)
-        .map((row) => {
-            const color = BookingCar.getEventColor(row.status);
+            const start =
+                item.start_time.replace(' ', 'T');
 
+            const end =
+                item.end_time.replace(' ', 'T');
             return {
-                title: row.user_request || row.user_peminta || "-",
+              id: item.eid,
 
-                start: row.start_time,
+                title: item.docid,
 
-                end: row.end_time,
+                start: start,
 
-                backgroundColor: color,
+                end: end,
 
-                borderColor: color,
+                backgroundColor:
+                    BookingCar.getCalendarEventColor(
+                        item.status
+                    ),
 
-                textColor: "#ffffff",
+                borderColor:
+                    BookingCar.getCalendarEventColor(
+                        item.status
+                    ),
+
+                textColor: '#ffffff',
 
                 extendedProps: {
-                    eid: row.eid,
+                    docid: item.docid,
+                    requester: item.user_request,
+                    route: (() => {
 
-                    docid: row.docid,
+                        if (
+                            Array.isArray(item.details) &&
+                            item.details.length > 1
+                        ) {
+                            return 'Multiple Route';
+                        }
 
-                    status: row.status,
+                        if (
+                            Array.isArray(item.details) &&
+                            item.details.length === 1
+                        ) {
 
-                    purpose: row.purpose_descr || row.purpose_id || "",
+                            return (
+                                item.details[0].tujuan ||
+                                item.details[0].route ||
+                                item.details[0].destination ||
+                                '-'
+                            );
+                        }
 
-                    routes: row.routes || [],
-                },
+                        return (
+                            item.keperluan ||
+                            '-'
+                        );
+                    })(),
+                    rawData: item,
+                }
             };
         });
 };
 
-// =====================================================
-// RENDER CALENDAR
-// =====================================================
+BookingCar.initializeCalendar = () => {
 
-window.renderBookingCalendar = function () {
-    const calendarEl = document.getElementById("calendar");
+    if (!BookingCar.el.calendar) return;
 
-    if (!calendarEl) {
-        return;
+    const calendarEl = BookingCar.el.calendar;
+
+    if (BookingCar.state.calendar) {
+        BookingCar.state.calendar.destroy();
     }
 
-    if (BookingCar.calendar) {
-        BookingCar.calendar.destroy();
-    }
+    const firstBookingDate =
+        BookingCar.state.bookingData?.length
+            ? BookingCar.state.bookingData[0].booking_date
+            : new Date();
 
-    BookingCar.calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "timeGridWeek",
+    const calendar = new FullCalendar.Calendar(calendarEl, {
 
-        height: 720,
+        initialView: 'timeGridWeek',
+
+        initialDate: firstBookingDate,
+
+        height: 'auto',
 
         selectable: true,
+        selectMirror: false,
+        editable: false,
 
         nowIndicator: true,
 
         allDaySlot: false,
 
-        slotDuration: "00:30:00",
-
-        slotMinTime: "06:00:00",
-
-        slotMaxTime: "22:00:00",
-
-        scrollTime: "07:00:00",
-
         expandRows: true,
 
+        slotMinTime: '06:00:00',
+
+        slotMaxTime: '23:00:00',
+
+        slotDuration: '00:30:00',
+
+select: function(info) {
+
+    if (BookingCar.state.calendar) {
+
+        BookingCar.state.calendar.unselect();
+    }
+
+    const pad = (num) => {
+        return String(num).padStart(2, '0');
+    };
+
+    const formatDate = (date) => {
+
+        return [
+            date.getFullYear(),
+            pad(date.getMonth() + 1),
+            pad(date.getDate())
+        ].join('-');
+    };
+
+    const formatTime = (date) => {
+
+        return [
+            pad(date.getHours()),
+            pad(date.getMinutes())
+        ].join(':');
+    };
+
+    const payload = {
+
+        booking_date:
+            formatDate(info.start),
+
+        start_time:
+            formatTime(info.start),
+
+        end_time:
+            formatTime(info.end),
+    };
+
+    console.log(
+        'Calendar Payload:',
+        payload
+    );
+
+    BookingCar.openCreateBookingModal(payload);
+},
+
         headerToolbar: {
-            left: "prev,next today",
-
-            center: "title",
-
-            right: "timeGridWeek,dayGridMonth",
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay',
         },
 
-        // =====================================
-        // EVENT CARD
-        // =====================================
+        events: BookingCar.transformCalendarEvents(),
 
-        eventContent(arg) {
-            const props = arg.event.extendedProps;
+        eventContent: (arg) => {
 
-            const routeHtml = props.routes?.length
-                ? props.routes
-                      .map(
-                          (route) => `
-                                        <div>
-                                            📌
-                                            ${BookingCar.escapeHtml(
-                                                route.origin || "-",
-                                            )}
-                                            →
-                                            ${BookingCar.escapeHtml(
-                                                route.destination || "-",
-                                            )}
-                                        </div>
-                                    `,
-                      )
-                      .join("")
-                : "";
+            const props =
+                arg.event.extendedProps;
 
             return {
                 html: `
-                                <div class="px-1 py-0.5 leading-tight">
+                    <div class="flex h-full flex-col justify-between overflow-hidden rounded-xl p-1">
 
-                                    <div class="
-                                        text-[10px]
-                                        font-semibold
-                                        opacity-90
-                                    ">
-                                        ${arg.timeText}
-                                    </div>
+                        <div>
 
-                                    <div class="
-                                        mt-1
-                                        text-[11px]
-                                        font-bold
-                                    ">
-                                        ${BookingCar.escapeHtml(
-                                            arg.event.title || "-",
-                                        )}
-                                    </div>
+                            <div class="truncate text-[11px] font-bold">
+                                ${props.docid ?? '-'}
+                            </div>
 
-                                    ${
-                                        routeHtml
-                                            ? `
-                                                <div class="
-                                                    mt-1
-                                                    space-y-0.5
-                                                    text-[10px]
-                                                    opacity-90
-                                                ">
-                                                    ${routeHtml}
-                                                </div>
-                                            `
-                                            : ""
-                                    }
+                            <div class="truncate text-[10px] opacity-90">
+                                ${props.requester ?? '-'}
+                            </div>
 
-                                    ${
-                                        props.purpose
-                                            ? `
-                                                <div class="
-                                                    mt-1
-                                                    text-[10px]
-                                                    opacity-90
-                                                ">
-                                                    📋
-                                                    ${BookingCar.escapeHtml(
-                                                        props.purpose,
-                                                    )}
-                                                </div>
-                                            `
-                                            : ""
-                                    }
+                        </div>
 
-                                </div>
-                            `,
+                        <div class="mt-1 truncate text-[9px] opacity-80">
+                            📍 ${props.route ?? '-'}
+                        </div>
+
+                    </div>
+                `
             };
         },
 
-        // =====================================
-        // TOOLTIP
-        // =====================================
+        eventClick: async (info) => {
 
-        eventDidMount(info) {
-            const props = info.event.extendedProps;
+            const hash = info.event.id;
 
-            info.el.title = [props.docid, info.event.title, props.purpose]
-                .filter(Boolean)
-                .join("\n");
-        },
+            if (
+                typeof BookingCar.openBookingDetail === 'function'
+            ) {
 
-        // =====================================
-        // SELECT
-        // =====================================
-
-        select(info) {
-            if (typeof window.openBookingModal !== "function") {
-                return;
-            }
-
-            window.openBookingModal();
-
-            const bookingDate = document.querySelector('[name="booking_date"]');
-
-            const startTime = document.querySelector('[name="start_time"]');
-
-            const endTime = document.querySelector('[name="end_time"]');
-
-            if (bookingDate) {
-                bookingDate.value = info.startStr.split("T")[0];
-            }
-
-            if (startTime) {
-                startTime.value = BookingCar.timeOnly(info.startStr);
-            }
-
-            if (endTime) {
-                endTime.value = BookingCar.timeOnly(info.endStr);
-            }
-        },
-
-        // =====================================
-        // EVENTS
-        // =====================================
-
-        events: BookingCar.buildCalendarEvents(),
-
-        // =====================================
-        // EVENT CLICK
-        // =====================================
-
-        eventClick(info) {
-            const eid = info.event.extendedProps.eid;
-
-            if (eid && typeof window.showBookingDetail === "function") {
-                window.showBookingDetail(eid);
+                await BookingCar.openBookingDetail(hash);
             }
         },
     });
 
-    BookingCar.calendar.render();
+    calendar.render();
 
-    setTimeout(() => {
-        window.refreshCalendarSize?.();
-    }, 200);
+    BookingCar.state.calendar = calendar;
+
+};
+
+BookingCar.refreshCalendarEvents = () => {
+
+    if (!BookingCar.state.calendar) return;
+
+    BookingCar.state.calendar.removeAllEvents();
+
+    const events =
+        BookingCar.transformCalendarEvents();
+
+    events.forEach(event => {
+        BookingCar.state.calendar.addEvent(event);
+    });
+
+};
+
+BookingCar.bindCalendarResize = () => {
+
+    window.addEventListener(
+        'resize',
+        BookingCar.debounce(() => {
+
+            if (BookingCar.state.calendar) {
+                BookingCar.state.calendar.updateSize();
+            }
+
+        }, 300)
+    );
 };

@@ -86,7 +86,7 @@
                 </h3>
             </div>
 
-            <div class="space-y-4 p-5">
+            <div class="space-y-2 p-4">
     `;
 
             rows.forEach((item, index) => {
@@ -184,19 +184,32 @@
         </div>
     `;
         },
-        timelineItem(item, isLast) {
-            const status = (item.status || "").toUpperCase();
+timelineItem(item, isLast) {
 
-            const title =
-                item.title || item.status_label || this.statusTitle(status);
+    const status = (item.status || "").toUpperCase();
 
-            const user = item.by || item.user || item.username || "-";
+    const level = item.aprv_leveling || "-";
 
-            const date = item.at || item.date || item.created_at || "-";
+    const user =
+        item.aprv_name ||
+        item.by ||
+        item.user ||
+        item.username ||
+        "-";
 
-            const remark = item.reason || item.comment || item.message || "";
+    const date =
+        item.at ||
+        item.date ||
+        item.created_at ||
+        "-";
 
-            return `
+    const remark =
+        item.reason ||
+        item.comment ||
+        item.message ||
+        "";
+
+    return `
         <div class="relative flex gap-4">
 
             <div class="flex flex-col items-center">
@@ -215,10 +228,9 @@
                         ? `
                             <div class="
                                 mt-1 w-px flex-1
-                                min-h-[50px]
+                                min-h-[24px]
                                 bg-slate-200
-                            ">
-                            </div>
+                            "></div>
                         `
                         : ""
                 }
@@ -240,7 +252,11 @@
                             tracking-wider
                             text-slate-400
                         ">
-                            ${VoucherTaxi.Helper.escapeHtml(title)}
+                            ${
+                                !level || level === "-"
+                                    ? "Submitted"
+                                    : `Approval ${parseInt(level)}`
+                            }
                         </p>
 
                         <p class="
@@ -264,30 +280,29 @@
 
                 </div>
 
-                ${
-                    remark
-                        ? `
-                            <div class="
-                                mt-3 rounded-lg
-                                border border-slate-200
-                                bg-slate-50
-                                px-3 py-2
-                                text-sm text-slate-600
-                            ">
-                                ${VoucherTaxi.Helper.nl2br(
-                                    VoucherTaxi.Helper.escapeHtml(remark),
-                                )}
-                            </div>
-                        `
-                        : ""
-                }
+              ${
+    (status === "D" || status === "R") && remark
+        ? `
+            <div class="
+                mt-3 rounded-lg
+                border border-slate-200
+                bg-slate-50
+                px-3 py-2
+                text-sm text-slate-600
+            ">
+                ${VoucherTaxi.Helper.nl2br(
+                    VoucherTaxi.Helper.escapeHtml(remark)
+                )}
+            </div>
+        `
+        : ""
+}
 
             </div>
 
         </div>
     `;
-        },
-
+},
         statusPill(status) {
             switch (status) {
                 case "A":

@@ -14,8 +14,8 @@ export default function loginHero(images = []) {
                   ],
 
         init() {
-            console.log('Login Hero Initialized');
-            console.log('Images:', this.images);
+            // console.log('Login Hero Initialized');
+            // console.log('Images:', this.images);
 
             this.updateClock();
 

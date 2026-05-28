@@ -1,69 +1,205 @@
-window.BookingCar = window.BookingCar || {};
+(function () {
 
-// =====================================================
-// STATE
-// =====================================================
+    'use strict';
 
-BookingCar.autoOpened = false;
+    window.BookingCar =
+        window.BookingCar || {};
 
-// =====================================================
-// OPEN ROUTE
-// =====================================================
+    BookingCar.AutoOpen = {
 
-window.executeBookingAutoOpen = function (handler, eid) {
-    if (typeof handler !== "function") {
-        return;
-    }
+        init() {
 
-    handler(eid);
-};
+            const path =
+                window.location.pathname;
 
-// =====================================================
-// AUTO OPEN
-// =====================================================
+            this.handleDetail(path);
 
-window.handleBookingAutoOpen = function () {
-    if (BookingCar.autoOpened) {
-        return;
-    }
+            this.handleEdit(path);
 
-    const path = window.location.pathname;
-
-    const routes = [
-        {
-            regex: /\/showbookingcar\/([^\/]+)$/,
-
-            handler: window.showBookingDetail,
+            this.handleProcess(path);
         },
 
-        {
-            regex: /\/editbookingcar\/([^\/]+)$/,
+        handleDetail(path) {
 
-            handler: window.openEditBookingModal,
+            const match =
+                path.match(
+                    /\/showbookingcar\/([^\/]+)/i
+                );
+
+            if (
+                !match ||
+                !match[1]
+            ) {
+                return;
+            }
+
+            const eid =
+                decodeURIComponent(
+                    match[1]
+                );
+
+            setTimeout(() => {
+
+                if (
+                    BookingCar.DetailModal &&
+                    typeof BookingCar.DetailModal.open ===
+                    'function'
+                ) {
+
+                    BookingCar.DetailModal.open(
+                        eid
+                    );
+
+                } else {
+
+                    console.error(
+                        '[BookingCar] DetailModal.open not found'
+                    );
+                }
+
+            }, 300);
         },
 
-        {
-            regex: /\/processbookingcar\/([^\/]+)$/,
+        handleEdit(path) {
 
-            handler: window.openGaProcessModal,
+            const match =
+                path.match(
+                    /\/editbookingcar\/([^\/]+)/i
+                );
+
+            if (
+                !match ||
+                !match[1]
+            ) {
+                return;
+            }
+
+            const eid =
+                decodeURIComponent(
+                    match[1]
+                );
+
+            setTimeout(() => {
+
+                if (
+                    BookingCar.EditForm &&
+                    typeof BookingCar.EditForm.open ===
+                    'function'
+                ) {
+
+                    BookingCar.EditForm.open(
+                        eid
+                    );
+
+                } else {
+
+                    console.error(
+                        '[BookingCar] EditForm.open not found'
+                    );
+                }
+
+            }, 300);
         },
-    ];
 
-    for (const route of routes) {
-        const match = path.match(route.regex);
+        handleProcess(path) {
 
-        if (!match || !match[1]) {
-            continue;
+            const match =
+                path.match(
+                    /\/processbookingcar\/([^\/]+)/i
+                );
+
+            if (
+                !match ||
+                !match[1]
+            ) {
+                return;
+            }
+
+            const eid =
+                decodeURIComponent(
+                    match[1]
+                );
+
+            setTimeout(() => {
+
+                if (
+                    BookingCar.Process &&
+                    typeof BookingCar.Process.open ===
+                    'function'
+                ) {
+
+                    BookingCar.Process.open(
+                        eid
+                    );
+
+                } else {
+
+                    console.error(
+                        '[BookingCar] Process.open not found'
+                    );
+                }
+
+            }, 300);
+        },
+
+        resetUrl() {
+
+            window.history.pushState(
+                {},
+                '',
+                '/bookingcar'
+            );
         }
+    };
 
-        BookingCar.autoOpened = true;
+    /*
+    |--------------------------------------------------------------------------
+    | INIT
+    |--------------------------------------------------------------------------
+    */
+    $(document).ready(function () {
 
-        const eid = match[1];
+        BookingCar.AutoOpen.init();
 
-        setTimeout(() => {
-            window.executeBookingAutoOpen(route.handler, eid);
-        }, 300);
+    });
 
-        return;
-    }
-};
+    /*
+    |--------------------------------------------------------------------------
+    | HANDLE BROWSER BACK/FORWARD
+    |--------------------------------------------------------------------------
+    */
+    window.addEventListener(
+        'popstate',
+        function () {
+
+            const path =
+                window.location.pathname;
+
+            if (
+                path === '/bookingcar' ||
+                path === '/booking-car'
+            ) {
+
+                if (
+                    BookingCar.Modal &&
+                    typeof BookingCar.Modal.close ===
+                    'function'
+                ) {
+
+                    BookingCar.Modal.close(
+                        '#viewBookingModal'
+                    );
+
+                    BookingCar.Modal.close(
+                        '#editBookingModal'
+                    );
+
+                    BookingCar.Modal.close(
+                        '#processBookingModal'
+                    );
+                }
+            }
+        }
+    );
+
+})();

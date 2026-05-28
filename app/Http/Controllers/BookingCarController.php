@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Vinkla\Hashids\Facades\Hashids;
+use Illuminate\Support\Facades\Log;
 
 class BookingCarController extends Controller
 {
@@ -30,10 +31,6 @@ class BookingCarController extends Controller
             return redirect()->route('login');
         }
 
-        // =========================================
-        // NORMALIZE COMPANY & DEPARTMENT
-        // =========================================
-
         $cpnyIds = is_string($user->cpny_id)
             ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
             : (array) $user->cpny_id;
@@ -42,21 +39,9 @@ class BookingCarController extends Controller
             ? array_filter(array_map('trim', explode(',', $user->department_id)))
             : (array) $user->department_id;
 
-        // =========================================
-        // ROLE CHECK
-        // =========================================
-
         $isGA = $user->hasRole('GAACCESS');
 
-        // =========================================
-        // BASE QUERY
-        // =========================================
-
         $q = TrBookingCar::query();
-
-        // =========================================
-        // ROLE FILTER
-        // =========================================
 
         if (!$isGA) {
             $q->where(function ($sub) use (
@@ -93,19 +78,10 @@ class BookingCarController extends Controller
                 });
             });
         }
-
-        // =========================================
-        // ONLY ACTIVE STATUS
-        // =========================================
-
         $q->whereIn(
             'status',
             ['P', 'C', 'D', 'R']
         );
-
-        // =========================================
-        // COUNTS
-        // =========================================
 
         $all = (clone $q)->count();
 
@@ -125,10 +101,6 @@ class BookingCarController extends Controller
             ->where('status', 'C')
             ->count();
 
-        // =========================================
-        // USER COMPANY
-        // =========================================
-
         $usercpny = Usercpny::where(
             'username',
             $user->username
@@ -138,10 +110,6 @@ class BookingCarController extends Controller
             'username',
             $user->username
         )->first();
-
-        // =========================================
-        // USER DEPARTMENT
-        // =========================================
 
         $userdept = Userdept::where(
             'username',
@@ -153,10 +121,6 @@ class BookingCarController extends Controller
             $user->username
         )->first();
 
-        // =========================================
-        // COMPANY
-        // =========================================
-
         $company = MsCompany::where('status', 'A')
             ->select(
                 'cpny_id',
@@ -164,10 +128,6 @@ class BookingCarController extends Controller
             )
             ->orderBy('cpny_name')
             ->get();
-
-        // =========================================
-        // REQUESTERS
-        // =========================================
 
         $requesters = User::query()
             ->whereNotNull('username')
@@ -180,29 +140,19 @@ class BookingCarController extends Controller
             ->orderBy('name')
             ->get();
 
-        // =========================================
-        // DRIVER
-        // =========================================
-
         $drivers = DB::connection('pgsql5')
             ->table('ms_driver_opr')
             ->where('status', 'A')
             ->orderBy('drivername')
             ->get();
 
-        // =========================================
-        // VEHICLE
-        // =========================================
 
-        $kendaraan = DB::connection('pgsql5')
-            ->table('ms_kendaraan_opr')
+        $kendaraan = DB::connection('pgsql')
+            ->table('ms_kendaraan')
             ->where('status', 'A')
-            ->orderBy('nopol_kendaraan')
+            ->where('kategori_kendaraan', 'Operational')
+            ->orderBy('no_polisi')
             ->get();
-
-        // =========================================
-        // PURPOSE
-        // =========================================
 
         $purposes = MsCategory::query()
             ->where('doctype', 'BCR')
@@ -214,9 +164,15 @@ class BookingCarController extends Controller
                 'category_name',
             ]);
 
-        // =========================================
-        // VIEW
-        // =========================================
+        $statusPerjalanan = MsCategory::query()
+            ->where('doctype', 'BCR')
+            ->where('groups', 'STATUS')
+            ->where('status', 'A')
+            ->orderBy('category_name')
+            ->get([
+                'categoryid',
+                'category_name',
+            ]);
 
         return view(
             'pages.bookingcar.bookingcar',
@@ -234,7 +190,9 @@ class BookingCarController extends Controller
                 'company',
                 'drivers',
                 'kendaraan',
-                'purposes'
+                'purposes',
+                'statusPerjalanan'
+
             )
         );
     }
@@ -249,10 +207,6 @@ class BookingCarController extends Controller
             ], 401);
         }
 
-        // =========================================
-        // NORMALIZE COMPANY & DEPARTMENT
-        // =========================================
-
         $cpnyIds = is_string($user->cpny_id)
             ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
             : (array) $user->cpny_id;
@@ -261,15 +215,8 @@ class BookingCarController extends Controller
             ? array_filter(array_map('trim', explode(',', $user->department_id)))
             : (array) $user->department_id;
 
-        // =========================================
-        // ROLE CHECK
-        // =========================================
 
         $isGA = $user->hasRole('GAACCESS');
-
-        // =========================================
-        // DATATABLE PARAMS
-        // =========================================
 
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
@@ -278,10 +225,6 @@ class BookingCarController extends Controller
         $search = trim((string) $request->input('search.value', ''));
 
         $status = trim((string) $request->query('status', ''));
-
-        // =========================================
-        // COLUMN MAP
-        // =========================================
 
         $columns = [
             0 => 'bc.docid',
@@ -305,21 +248,10 @@ class BookingCarController extends Controller
 
         $orderCol = $columns[$orderIdx] ?? 'bc.docid';
 
-        // =========================================
-        // BASE QUERY
-        // =========================================
 
         $base = TrBookingCar::from('tr_booking_car as bc');
 
-        // =========================================
-        // STATUS FILTER
-        // =========================================
-
         $base->whereIn('bc.status', ['P', 'C', 'D', 'R', 'X']);
-
-        // =========================================
-        // ROLE FILTER
-        // =========================================
 
         if (!$isGA) {
             $base->where(function ($q) use ($user, $cpnyIds, $deptIds) {
@@ -350,23 +282,11 @@ class BookingCarController extends Controller
             });
         }
 
-        // =========================================
-        // EXTRA STATUS FILTER
-        // =========================================
-
         if ($status !== '') {
             $base->where('bc.status', $status);
         }
 
-        // =========================================
-        // TOTAL BEFORE SEARCH
-        // =========================================
-
         $recordsTotal = (clone $base)->count();
-
-        // =========================================
-        // SEARCH
-        // =========================================
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
@@ -385,15 +305,7 @@ class BookingCarController extends Controller
             });
         }
 
-        // =========================================
-        // TOTAL AFTER SEARCH
-        // =========================================
-
         $recordsFiltered = (clone $base)->count();
-
-        // =========================================
-        // FETCH DATA
-        // =========================================
 
         $data = $base
             ->select([
@@ -425,16 +337,9 @@ class BookingCarController extends Controller
             ->take($length)
             ->get();
 
-        // =========================================
-        // TRANSFORM DATA
-        // =========================================
-
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
 
-            // =====================================
-            // ROUTES
-            // =====================================
 
             $routes = TrBookingCarDetail::where(
                 'docid',
@@ -447,25 +352,15 @@ class BookingCarController extends Controller
                     'booking_order',
                 ]);
 
-            // =====================================
-            // ROUTE SUMMARY
-            // =====================================
 
             $firstRoute = $routes->first();
 
             $row->route_summary = $firstRoute
-                ? $firstRoute->origin.' → '.$firstRoute->destination
+                ? $firstRoute->origin . ' → ' . $firstRoute->destination
                 : '-';
 
-            // =====================================
-            // FULL ROUTES
-            // =====================================
 
             $row->routes = $routes;
-
-            // =====================================
-            // EXTENDED PROPS
-            // =====================================
 
             $row->extendedProps = [
                 'eid' => $row->eid,
@@ -476,10 +371,6 @@ class BookingCarController extends Controller
 
             return $row;
         });
-
-        // =========================================
-        // RESPONSE
-        // =========================================
 
         return response()->json([
             'draw' => $draw,
@@ -547,7 +438,7 @@ class BookingCarController extends Controller
             ->where('doctype', 'BCR')
             ->where('groups', 'PURPOSE')
             ->where('status', 'A')
-            ->where('category_id', $validated['purpose_id'])
+            ->where('categoryid', $validated['purpose_id'])
             ->first();
 
         if (!$purpose) {
@@ -599,10 +490,10 @@ class BookingCarController extends Controller
             $tglbln = substr(
                 (string) $year,
                 2
-            ).$month;
+            ) . $month;
 
-            $docid = $doctype.
-                $tglbln.
+            $docid = $doctype .
+                $tglbln .
                 sprintf('%03d', $urutan);
 
             $booking = TrBookingCar::create([
@@ -622,13 +513,13 @@ class BookingCarController extends Controller
 
                 'cpny_id_site' => $validated['cpny_id_site'],
 
-                'purpose_id' => $purpose->category_id,
+                'purpose_id' => $purpose->categoryid,
 
                 'purpose_descr' => $validated['purpose_descr'],
 
-                'start_time' => $validated['booking_date'].' '.$validated['start_time'],
+                'start_time' => $validated['booking_date'] . ' ' . $validated['start_time'],
 
-                'end_time' => $validated['booking_date'].' '.$validated['end_time'],
+                'end_time' => $validated['booking_date'] . ' ' . $validated['end_time'],
 
                 'user_request' => $validated['user_request'] ?? null,
 
@@ -673,8 +564,11 @@ class BookingCarController extends Controller
 
             $ctx = [
                 'ignore_nominal' => true,
-            ];
 
+                'condition' => $validated['cpny_id_site'] ?? $validated['cpny_id'],
+
+                'purpose' => $validated['purpose_id'],
+            ];
             [
                 $firstApprovalUsernames,
                 $linesCount
@@ -695,7 +589,7 @@ class BookingCarController extends Controller
                 $doctype,
                 $booking->status,
                 'Booking Car',
-                url('/showbookingcar/'.$eid),
+                url('/showbookingcar/' . $eid),
                 [
                     'info' => $booking->purpose_descr,
 
@@ -787,7 +681,7 @@ class BookingCarController extends Controller
             ->where('doctype', 'BCR')
             ->where('groups', 'PURPOSE')
             ->where('status', 'A')
-            ->where('category_id', $validated['purpose_id'])
+            ->where('categoryid', $validated['purpose_id'])
             ->first();
 
         if (!$purpose) {
@@ -853,16 +747,16 @@ class BookingCarController extends Controller
                 $validated['cpny_id_site'];
 
             $booking->purpose_id =
-                $purpose->category_id;
+                $purpose->categoryid;
 
             $booking->purpose_descr =
                 $validated['purpose_descr'];
 
             $booking->start_time =
-                $validated['booking_date'].' '.$validated['start_time'];
+                $validated['booking_date'] . ' ' . $validated['start_time'];
 
             $booking->end_time =
-                $validated['booking_date'].' '.$validated['end_time'];
+                $validated['booking_date'] . ' ' . $validated['end_time'];
 
             $booking->user_request =
                 $validated['user_request'] ?? null;
@@ -961,7 +855,7 @@ class BookingCarController extends Controller
                 $doctype,
                 $booking->status,
                 'Booking Car',
-                url('/showbookingcar/'.$eid),
+                url('/showbookingcar/' . $eid),
                 [
                     'info' => $booking->purpose_descr,
 
@@ -1008,18 +902,12 @@ class BookingCarController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            // =========================================
-            // FIND DOCUMENT
-            // =========================================
 
             $booking = TrBookingCar::where(
                 'docid',
                 $docid
             )->firstOrFail();
 
-            // =========================================
-            // ONLY CREATOR
-            // =========================================
 
             if (
                 strtolower(trim($booking->created_by))
@@ -1032,10 +920,6 @@ class BookingCarController extends Controller
                 ], 403);
             }
 
-            // =========================================
-            // ONLY REVISE DOCUMENT
-            // =========================================
-
             if ($booking->status !== 'D') {
                 return response()->json([
                     'success' => false,
@@ -1044,9 +928,6 @@ class BookingCarController extends Controller
                 ], 400);
             }
 
-            // =========================================
-            // CANCEL HEADER
-            // =========================================
 
             $booking->status = 'X';
 
@@ -1061,10 +942,6 @@ class BookingCarController extends Controller
             $booking->completed_at = now();
 
             $booking->save();
-
-            // =========================================
-            // CANCEL REMAINING APPROVALS
-            // =========================================
 
             TrApproval::where(
                 'refnbr',
@@ -1100,10 +977,6 @@ class BookingCarController extends Controller
     {
         $id = Hashids::decode($eid)[0] ?? null;
 
-        // =========================================
-        // INVALID HASH
-        // =========================================
-
         if (!$id) {
             return response()->json([
                 'success' => false,
@@ -1111,12 +984,9 @@ class BookingCarController extends Controller
             ], 404);
         }
 
-        // =========================================
-        // FIND DOCUMENT
-        // =========================================
-
-        $booking = TrBookingCar::with('routes')
-            ->find($id);
+        $booking = TrBookingCar::with([
+            'routes',
+        ])->find($id);
 
         if (!$booking) {
             return response()->json([
@@ -1125,39 +995,38 @@ class BookingCarController extends Controller
             ], 404);
         }
 
-        // =========================================
-        // RESPONSE
-        // =========================================
+        $approvals = TrApproval::query()
+            ->where('refnbr', $booking->docid)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
+            ->get();
+
+        $tracking = TrMessage::query()
+            ->where('doctype', 'BCR')
+            ->where('refnbr', $booking->docid)
+            ->orderByDesc('message_date')
+            ->get();
 
         return response()->json([
             'success' => true,
 
             'data' => [
+
                 'docid' => $booking->docid,
 
                 'eid' => $eid,
 
                 'status' => $booking->status,
 
-                // =====================================
-                // REQUESTER
-                // =====================================
-
                 'user_peminta' => $booking->user_peminta,
 
-                'created_by' => $booking->created_by,
+                'user_request' => $booking->user_request,
 
-                // =====================================
-                // COMPANY / DEPARTMENT
-                // =====================================
+                'created_by' => $booking->created_by,
 
                 'cpny_id' => $booking->cpny_id,
 
                 'department_id' => $booking->department_id,
-
-                // =====================================
-                // LOCATION
-                // =====================================
 
                 'location_id' => $booking->location_id,
 
@@ -1165,17 +1034,9 @@ class BookingCarController extends Controller
 
                 'cpny_id_site' => $booking->cpny_id_site,
 
-                // =====================================
-                // PURPOSE
-                // =====================================
-
                 'purpose_id' => $booking->purpose_id,
 
                 'purpose_descr' => $booking->purpose_descr,
-
-                // =====================================
-                // DATE & TIME
-                // =====================================
 
                 'booking_date' => $booking->booking_date,
 
@@ -1183,39 +1044,13 @@ class BookingCarController extends Controller
 
                 'end_time' => $booking->end_time,
 
-                // =====================================
-                // ROUTE
-                // =====================================
-
-                'routes' => $booking->routes
-                    ->map(function ($route) {
-                        return [
-                            'origin' => $route->origin,
-                            'destination' => $route->destination,
-                        ];
-                    })->values(),
-
-                // =====================================
-                // REQUEST DETAIL
-                // =====================================
-
-                'user_request' => $booking->user_request,
-
-                // =====================================
-                // DRIVER INFO
-                // =====================================
-
-                'driver' => $booking->driver,
+                'driver_name' => $booking->driver,
 
                 'handphone' => $booking->handphone,
 
-                'no_polisi' => $booking->no_polisi,
+                'nopol' => $booking->no_polisi,
 
                 'passenger' => $booking->passenger,
-
-                // =====================================
-                // APPROVAL INFO
-                // =====================================
 
                 'checked_by' => $booking->checked_by,
 
@@ -1225,178 +1060,360 @@ class BookingCarController extends Controller
 
                 'completed_at' => $booking->completed_at,
 
-                // =====================================
-                // REVISE
-                // =====================================
-
                 'revise_reason' => $booking->revise_reason,
+
+                'details' => $booking->routes
+                    ->map(function ($route) {
+
+                        return [
+
+                            'origin' => $route->origin,
+
+                            'destination' => $route->destination,
+
+                            'booking_order' => $route->booking_order,
+                        ];
+                    })->values(),
+
+                'approvals' => $approvals
+                    ->map(function ($approval) {
+
+                        return [
+
+                            'aprv_name' => $approval->aprv_name,
+
+                            'aprv_leveling' => $approval->aprv_leveling,
+
+                            'status' => $approval->status,
+
+                            'remarks' => $approval->remarks,
+
+                            'aprv_dateafter' => $approval->aprv_dateafter,
+
+                            'approval_label' => $approval->aprv_leveling
+                                ? 'APPROVAL ' . $approval->aprv_leveling . '.00'
+                                : 'APPROVAL',
+                        ];
+
+                    })->values(),
+
+                'tracking' => $tracking
+                    ->map(function ($track) {
+
+                        return [
+
+                            'title' => $track->name
+                                ?: $track->username,
+
+                            'description' => $track->message,
+
+                            'created_at' => $track->message_date
+                                ? \Carbon\Carbon::parse(
+                                    $track->message_date
+                                )->format('d M Y H:i')
+                                : null,
+                        ];
+                    })->values(),
+
+                'can_edit' => (
+                    $booking->status === 'D'
+                    && strtolower(trim($booking->created_by))
+                        === strtolower(trim(Auth::user()->username))
+                ),
+
+                'can_cancel' => (
+                    $booking->status === 'D'
+                    && strtolower(trim($booking->created_by))
+                        === strtolower(trim(Auth::user()->username))
+                ),
+
+                'can_approve' => TrApproval::query()
+                    ->where('refnbr', $booking->docid)
+                    ->where('status', 'P')
+                    ->get()
+                    ->contains(function ($approval) {
+
+                        $usernames = collect(
+                            explode(',', strtolower($approval->aprv_username))
+                        )->map(fn ($x) => trim($x));
+
+                        return $usernames->contains(
+                            strtolower(trim(Auth::user()->username))
+                        );
+                    }),
+
+                'can_reject' => TrApproval::query()
+                    ->where('refnbr', $booking->docid)
+                    ->where('status', 'P')
+                    ->get()
+                    ->contains(function ($approval) {
+
+                        $usernames = collect(
+                            explode(',', strtolower($approval->aprv_username))
+                        )->map(fn ($x) => trim($x));
+
+                        return $usernames->contains(
+                            strtolower(trim(Auth::user()->username))
+                        );
+                    }),
+
+                'can_revise' => TrApproval::query()
+                    ->where('refnbr', $booking->docid)
+                    ->where('status', 'P')
+                    ->get()
+                    ->contains(function ($approval) {
+
+                        $usernames = collect(
+                            explode(',', strtolower($approval->aprv_username))
+                        )->map(fn ($x) => trim($x));
+
+                        return $usernames->contains(
+                            strtolower(trim(Auth::user()->username))
+                        );
+                    }),
             ],
         ]);
     }
 
-    public function updateGaAdvice(Request $request, $docid)
+    public function updateGaAdvice(Request $request, string $hash)
     {
-        $user = auth()->user();
+        try {
 
-        if (!$user) {
+            $bookingId = Hashids::decode($hash)[0] ?? null;
+
+            if (!$bookingId) {
+                throw new \Exception('Invalid booking reference.');
+            }
+
+            $booking = TrBookingCar::findOrFail($bookingId);
+
+            if (!Auth::user()->hasRole('GAACCESS')) {
+                throw new \Exception('You are not authorized to process this booking.');
+            }
+
+            if (!in_array($booking->status, ['C', 'X'])) {
+                throw new \Exception(
+                    'Booking cannot be processed. Only completed or previously processed bookings are allowed.'
+                );
+            }
+
+            $expiredDate = Carbon::parse($booking->booking_date)
+                ->addDays(3)
+                ->endOfDay();
+
+            if (now()->gt($expiredDate)) {
+                throw new \Exception(
+                    'Booking can only be processed until H+3 from booking date.'
+                );
+            }
+
+            $validated = $request->validate([
+                'status_perjalanan' => ['required'],
+                'driver'            => ['nullable', 'string', 'max:255'],
+                'handphone'         => ['nullable', 'string', 'max:100'],
+                'no_polisi'         => ['nullable', 'string', 'max:100'],
+            ]);
+
+            $statusPerjalanan = MsCategory::query()
+                ->where('doctype', 'BCR')
+                ->where('groups', 'STATUS')
+                ->where('status', 'A')
+                ->where('category_name', $validated['status_perjalanan'])
+                ->first();
+
+            if (!$statusPerjalanan) {
+                throw ValidationException::withMessages([
+                    'status_perjalanan' => 'Status perjalanan tidak valid.'
+                ]);
+            }
+
+            if ($validated['status_perjalanan'] === 'Handle by Taxi') {
+
+                if (empty($validated['driver'])) {
+                    throw ValidationException::withMessages([
+                        'driver' => 'Driver wajib dipilih untuk Handle by Taxi.'
+                    ]);
+                }
+
+                if (empty($validated['no_polisi'])) {
+                    throw ValidationException::withMessages([
+                        'no_polisi' => 'Kendaraan wajib dipilih untuk Handle by Taxi.'
+                    ]);
+                }
+            }
+
+            DB::connection('pgsql5')->transaction(function () use (
+                $booking,
+                $validated
+            ) {
+
+                $booking->status_perjalanan =
+                    $validated['status_perjalanan'];
+
+                $booking->driver =
+                    $validated['driver'] ?? null;
+
+                $booking->handphone =
+                    $validated['handphone'] ?? null;
+
+                $booking->no_polisi =
+                    $validated['no_polisi'] ?? null;
+
+                $booking->status = 'X';
+
+                $booking->completed_by = Auth::user()->username;
+
+                $booking->completed_at = now();
+
+                $booking->updated_by = Auth::user()->username;
+
+                $booking->save();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking Car processed successfully.',
+            ]);
+
+        } catch (ValidationException $e) {
+
+            throw $e;
+
+        } catch (\Throwable $e) {
+
+            Log::error('BookingCar GA Process Error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized',
-            ], 401);
+                'message' => $e->getMessage(),
+            ], 422);
         }
+    }
 
-        if (!$user->hasRole('GAACCESS')) {
+    public function changeCompanyExpense(Request $request, string $hash)
+    {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('GAACCESS')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Forbidden',
+                'message' => 'Unauthorized'
             ], 403);
         }
 
         $validated = $request->validate([
-            'purpose_id' => ['required'],
-
-            'purpose_descr' => [
-                'required',
-                'string',
-            ],
-
-            'start_time' => ['required'],
-            'end_time' => ['required'],
-
-            'user_request' => ['nullable'],
-
-            'driver' => ['required'],
-            'handphone' => ['nullable'],
-            'no_polisi' => ['required'],
-
-            'status_perjalanan' => [
-                'nullable',
-                'in:Cancel by user,Unserved request,Handle by taxi,Pribadi',
-            ],
-
-            'routes' => ['required', 'array', 'min:1'],
-
-            'routes.*.origin' => ['required', 'string'],
-            'routes.*.destination' => ['required', 'string'],
+            'cpny_id_site' => ['required']
         ]);
 
-        $purpose = MsCategory::query()
-            ->where('doctype', 'BCR')
-            ->where('groups', 'PURPOSE')
-            ->where('status', 'A')
-            ->where('category_id', $validated['purpose_id'])
-            ->first();
+        $decoded = Hashids::decode($hash);
 
-        if (!$purpose) {
-            throw ValidationException::withMessages(['purpose_id' => 'Purpose tidak valid.']);
+        if (empty($decoded)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid document'
+            ], 404);
         }
 
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            $booking = TrBookingCar::where(
-                'docid',
-                $docid
-            )->firstOrFail();
 
-            if ($booking->status !== 'C') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Booking Car not completed yet',
-                ], 400);
+            $booking = TrBookingCar::findOrFail($decoded[0]);
+
+            if (in_array($booking->status, ['C', 'R', 'X'])) {
+                throw new \Exception(
+                    'Company expense cannot be changed because the document has been completed, rejected, or cancelled.'
+                );
             }
 
-            $booking->purpose_id =
-                $purpose->category_id;
-
-            $booking->purpose_descr =
-                $validated['purpose_descr'];
-
-            $booking->start_time =
-                $booking->booking_date.' '.$validated['start_time'];
-
-            $booking->end_time =
-                $booking->booking_date.' '.$validated['end_time'];
-
-            $booking->user_request =
-                $validated['user_request'] ?? null;
-
-            $booking->driver =
-                $validated['driver'];
-
-            $booking->handphone =
-                $validated['handphone'] ?? null;
-
-            $booking->no_polisi =
-                $validated['no_polisi'];
-
-            $booking->status_perjalanan =
-                $validated['status_perjalanan'] ?? null;
-
-            $booking->checked_by =
-                $user->username;
-
-            $booking->checked_at =
-                now();
-
-            $booking->updated_by =
-                $user->username;
-
-            $booking->updated_at =
-                now();
-
-            if (!empty($validated['status_perjalanan'])) {
-                $booking->status = 'X';
-
-                $booking->completed_by =
-                    $user->username;
-
-                $booking->completed_at =
-                    now();
+            if (
+                trim($booking->cpny_id_site) ===
+                trim($validated['cpny_id_site'])
+            ) {
+                throw new \Exception(
+                    'Selected company expense is the same as current company expense.'
+                );
             }
-
+            $booking->cpny_id_site = $validated['cpny_id_site'];
+            $booking->updated_by = $user->username;
+            $booking->updated_at = now();
             $booking->save();
 
-            TrBookingCarDetail::where(
-                'docid',
-                $booking->docid
-            )->delete();
 
-            foreach ($validated['routes'] as $index => $route) {
-                TrBookingCarDetail::create([
-                    'docid' => $booking->docid,
+            TrApproval::query()
+                ->where('refnbr', $booking->docid)
+                ->whereRaw(
+                    'UPPER(TRIM(aprv_type)) = ?',
+                    ['CONDITION']
+                )
+                ->whereIn('status', ['P', 'D'])
+                ->delete();
 
-                    'cpny_id' => $booking->cpny_id,
 
-                    'booking_order' => $index + 1,
+            $doctype = 'BCR';
 
-                    'origin' => $route['origin'],
+            $dt = now();
 
-                    'destination' => $route['destination'],
+            $approvalCtl = app(
+                ApprovalController::class
+            );
 
-                    'status' => 'A',
+            $approvalCtl->loadLines(
+                $doctype,
+                $validated['cpny_id_site'],
+                $booking->department_id
+            );
 
-                    'created_by' => $booking->created_by,
-                    'created_at' => now(),
+            $ctx = [
+                'ignore_nominal' => true,
+            ];
 
-                    'updated_by' => $user->username,
-                    'updated_at' => now(),
-                ]);
-            }
+            [
+                $firstApprovalUsernames,
+                $linesCount
+            ] = $approvalCtl->generateForDocument(
+                $booking->docid,
+                $doctype,
+                $validated['cpny_id_site'],
+                $booking->department_id,
+                $user->username,
+                $ctx,
+                $dt
+            );
+
+
+            $eid = Hashids::encode($booking->id);
+
+            $approvalCtl->notifyFirstApprover(
+                $booking->docid,
+                $doctype,
+                $booking->status,
+                'Booking Car',
+                url('/showbookingcar/' . $eid),
+                [
+                    'info' => $booking->purpose_descr,
+                    'createdby' => $booking->created_by,
+                    'date' => $dt->toDateTimeString(),
+                ]
+            );
 
             DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Booking Car updated successfully',
+                'message' => 'Company expense updated successfully. Approval has been regenerated.'
             ]);
         } catch (\Throwable $e) {
+
             DB::connection('pgsql5')->rollBack();
 
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], 500);
+            ], 422);
         }
     }
 
@@ -1419,7 +1436,7 @@ class BookingCarController extends Controller
 
         $eid = Hashids::encode($booking->id);
 
-        $docUrl = url('/showbookingcar/'.$eid);
+        $docUrl = url('/showbookingcar/' . $eid);
 
         $fullname = data_get(
             $booking,
@@ -1435,9 +1452,6 @@ class BookingCarController extends Controller
 
             $user->name,
 
-            // =====================================
-            // COMPLETE
-            // =====================================
 
             function (
                 string $refnbr,
@@ -1488,9 +1502,6 @@ class BookingCarController extends Controller
                     );
             },
 
-            // =====================================
-            // NEXT APPROVER
-            // =====================================
 
             function (
                 $next,
@@ -1568,7 +1579,7 @@ class BookingCarController extends Controller
 
         $eid = Hashids::encode($booking->id);
 
-        $docUrl = url('/showbookingcar/'.$eid);
+        $docUrl = url('/showbookingcar/' . $eid);
 
         $fullname = data_get(
             $booking,
@@ -1592,9 +1603,6 @@ class BookingCarController extends Controller
                 $fullname,
                 $docUrl
             ) {
-                // =================================
-                // UPDATE HEADER
-                // =================================
 
                 $booking->status = 'R';
 
@@ -1609,10 +1617,6 @@ class BookingCarController extends Controller
                 $booking->updated_at = $now;
 
                 $booking->save();
-
-                // =================================
-                // NOTIFY REQUESTER
-                // =================================
 
                 app(ApprovalController::class)
                     ->notifyRequesterOnStatus(
@@ -1638,10 +1642,6 @@ class BookingCarController extends Controller
                             'createdby' => $fullname,
                         ]
                     );
-
-                // =================================
-                // SAVE COMMENT
-                // =================================
 
                 try {
                     request()->merge([
@@ -1706,7 +1706,7 @@ class BookingCarController extends Controller
 
         $eid = Hashids::encode($booking->id);
 
-        $docUrl = url('/showbookingcar/'.$eid);
+        $docUrl = url('/showbookingcar/' . $eid);
 
         $fullname = data_get(
             $booking,
@@ -1836,24 +1836,15 @@ class BookingCarController extends Controller
     public function tracking($hash)
     {
         try {
-            // =========================================
-            // DECODE HASH
-            // =========================================
 
             $id = Hashids::decode($hash)[0] ?? null;
 
             abort_if(!$id, 404);
 
-            // =========================================
-            // FIND DOCUMENT
-            // =========================================
+
 
             $booking = TrBookingCar::with('routes')
                 ->findOrFail($id);
-
-            // =========================================
-            // GET USER NAME
-            // =========================================
 
             $getName = function (?string $username) {
                 if (!$username) {
@@ -1866,38 +1857,15 @@ class BookingCarController extends Controller
                 )->value('name') ?? $username;
             };
 
-            // =========================================
-            // STEPS
-            // =========================================
-
             $steps = [];
-
-            // =========================================
-            // SUBMITTED
-            // =========================================
 
             $steps[] = [
                 'key' => 'submitted',
-
-                'title' => 'Booking Car',
-
                 'status' => 'C',
-
                 'status_label' => 'Submitted',
-
-                'by' => $getName(
-                    $booking->created_by
-                ),
-
-                'at' => optional(
-                    $booking->created_at
-                )->format('Y-m-d H:i'),
+                'by' => $booking->createdBy?->name ?? $booking->created_by,
+                'at' => optional($booking->created_at)->format('Y-m-d H:i'),
             ];
-
-            // =========================================
-            // APPROVALS
-            // =========================================
-
             $approvals = TrApproval::query()
                 ->where(
                     'refnbr',
@@ -1912,10 +1880,6 @@ class BookingCarController extends Controller
                     'CAST(aprv_leveling AS INTEGER)'
                 )
                 ->get();
-
-            // =========================================
-            // OPTIONAL COMMENT TABLE
-            // =========================================
 
             $comment = null;
 
@@ -1935,10 +1899,6 @@ class BookingCarController extends Controller
                 // ignore if table not exists
             }
 
-            // =========================================
-            // MESSAGE COMMENTS
-            // =========================================
-
             $comments = TrMessage::where(
                 'doctype',
                 'BCR'
@@ -1957,14 +1917,7 @@ class BookingCarController extends Controller
                     'message_date',
                 ]);
 
-            // =========================================
-            // APPROVAL STEPS
-            // =========================================
-
             foreach ($approvals as $aprv) {
-                // =====================================
-                // FIND COMMENT FOR THIS APPROVER
-                // =====================================
 
                 $stepComment = $comments->first(
                     function ($msg) use ($aprv) {
@@ -1979,17 +1932,13 @@ class BookingCarController extends Controller
                     }
                 );
 
-                // =====================================
-                // STEP
-                // =====================================
-
                 $steps[] = [
-                    'key' => 'approval_'.
+                    'key' => 'approval_' .
                         $aprv->aprv_leveling,
 
                     'title' => $aprv->aprv_name
                         ?: (
-                            'Approval Level '.
+                            'Approval Level ' .
                             $aprv->aprv_leveling
                         ),
 
@@ -2030,10 +1979,6 @@ class BookingCarController extends Controller
                 ];
             }
 
-            // =========================================
-            // LATEST COMMENT
-            // =========================================
-
             $latestComment = TrMessage::where(
                 'doctype',
                 'BCR'
@@ -2044,10 +1989,6 @@ class BookingCarController extends Controller
                 )
                 ->latest('message_date')
                 ->first();
-
-            // =========================================
-            // RESPONSE
-            // =========================================
 
             return response()->json([
                 'success' => true,
@@ -2089,17 +2030,11 @@ class BookingCarController extends Controller
 
     public function printBookingCar($hash)
     {
-        // =========================================
-        // DECODE HASH
-        // =========================================
 
         $id = Hashids::decode($hash)[0] ?? null;
 
         abort_if(!$id, 404);
 
-        // =========================================
-        // AUTH
-        // =========================================
 
         $user = Auth::user();
 
@@ -2107,17 +2042,12 @@ class BookingCarController extends Controller
             return redirect()->route('login');
         }
 
-        // =========================================
-        // FIND DOCUMENT
-        // =========================================
 
         $booking = TrBookingCar::with([
             'creator:username,name',
             'routes',
         ])->findOrFail($id);
-        // =========================================
-        // APPROVALS
-        // =========================================
+
 
         $approvals = TrApproval::query()
             ->where('refnbr', $booking->docid)
@@ -2127,18 +2057,12 @@ class BookingCarController extends Controller
             )
             ->get();
 
-        // =========================================
-        // COMPANY
-        // =========================================
 
         $company = MsCompany::where(
             'cpny_id',
             $booking->cpny_id
         )->first();
 
-        // =========================================
-        // STATUS LABEL
-        // =========================================
 
         $status_doc = match ($booking->status) {
             'P' => 'On Progress',
@@ -2148,10 +2072,6 @@ class BookingCarController extends Controller
             'X' => 'Cancelled',
             default => '-',
         };
-
-        // =========================================
-        // PDF
-        // =========================================
 
         $pdf = \PDF::loadView(
             'pages.bookingcar.pdf_bookingcar',
@@ -2168,13 +2088,9 @@ class BookingCarController extends Controller
 
         $pdf->setPaper('A4', 'portrait');
 
-        // =========================================
-        // STREAM
-        // =========================================
-
         return $pdf->stream(
-            'booking_car_'.
-                $booking->docid.
+            'booking_car_' .
+                $booking->docid .
                 '.pdf'
         );
     }

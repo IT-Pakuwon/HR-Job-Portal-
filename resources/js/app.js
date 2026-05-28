@@ -1,28 +1,42 @@
-import { Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
+import { Livewire, Alpine } from '../../vendor/livewire/livewire/dist/livewire.esm';
+
 import './bootstrap';
 
-import Alpine from 'alpinejs';
+import collapse from '@alpinejs/collapse';
+
 import loginHero from './login';
 
 import Swal from 'sweetalert2';
 
 window.Swal = Swal;
 
-// Register Alpine
+/* --------------------------------------------------------------------------
+| Alpine
+|--------------------------------------------------------------------------
+*/
 window.Alpine = Alpine;
 
-// Register Login Hero Component
+Alpine.plugin(collapse);
+
+// Register Alpine Components
 Alpine.data('loginHero', loginHero);
 
-// Import Chart.js
+/* --------------------------------------------------------------------------
+| Chart.js
+|--------------------------------------------------------------------------
+*/
 import { Chart } from 'chart.js';
 
-// Import flatpickr
+/* --------------------------------------------------------------------------
+| Flatpickr
+|--------------------------------------------------------------------------
+*/
 import flatpickr from 'flatpickr';
 
-
-
-// Dashboard Components
+/* --------------------------------------------------------------------------
+| Dashboard Components
+|--------------------------------------------------------------------------
+*/
 import dashboardCard01 from './components/dashboard-card-01';
 import dashboardCard02 from './components/dashboard-card-02';
 import dashboardCard03 from './components/dashboard-card-03';
@@ -54,6 +68,7 @@ Chart.defaults.plugins.tooltip.padding = 8;
 |--------------------------------------------------------------------------
 */
 export const chartAreaGradient = (ctx, chartArea, colorStops) => {
+
     if (!ctx || !chartArea || !colorStops?.length) {
         return 'transparent';
     }
@@ -77,13 +92,16 @@ export const chartAreaGradient = (ctx, chartArea, colorStops) => {
 |--------------------------------------------------------------------------
 */
 Chart.register({
+
     id: 'chartAreaPlugin',
 
     beforeDraw(chart) {
+
         if (
             chart.config.options.chartArea &&
             chart.config.options.chartArea.backgroundColor
         ) {
+
             const ctx = chart.canvas.getContext('2d');
             const { chartArea } = chart;
 
@@ -110,12 +128,10 @@ Chart.register({
 */
 document.addEventListener('DOMContentLoaded', () => {
 
-    /* ---------------------------------------
-    | Light / Dark Switch
-    --------------------------------------- */
     const lightSwitches = document.querySelectorAll('.light-switch');
 
     if (lightSwitches.length > 0) {
+
         lightSwitches.forEach((lightSwitch, i) => {
 
             if (localStorage.getItem('dark-mode') === 'true') {
@@ -143,9 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     document.dispatchEvent(
                         new CustomEvent('darkMode', {
-                            detail: {
-                                mode: 'on'
-                            }
+                            detail: { mode: 'on' }
                         })
                     );
 
@@ -158,12 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     document.dispatchEvent(
                         new CustomEvent('darkMode', {
-                            detail: {
-                                mode: 'off'
-                            }
+                            detail: { mode: 'off' }
                         })
                     );
-
                 }
 
                 setTimeout(() => {
@@ -173,12 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         });
+
     }
 
-    /* ---------------------------------------
-    | Flatpickr
-    --------------------------------------- */
     flatpickr('.datepicker', {
+
         mode: 'range',
         static: true,
         monthSelectorType: 'static',
@@ -196,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '<svg class="fill-current" width="7" height="11" viewBox="0 0 7 11"><path d="M1.4 10.8L0 9.4l4-4-4-4L1.4 0l5.4 5.4z" /></svg>',
 
         onReady(selectedDates, dateStr, instance) {
+
             instance.element.value = dateStr.replace('to', '-');
 
             const customClass =
@@ -211,9 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    /* ---------------------------------------
-    | Dashboard Widgets
-    --------------------------------------- */
     dashboardCard01();
     dashboardCard02();
     dashboardCard03();
@@ -227,8 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* --------------------------------------------------------------------------
-| Start Alpine & Livewire
+| Start Livewire
 |--------------------------------------------------------------------------
 */
-Alpine.start();
 Livewire.start();

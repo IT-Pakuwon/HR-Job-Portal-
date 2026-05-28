@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MsDriverOpr;
 use App\Models\MsKendaraanOpr;
+use App\Models\MsKendaraan;
 use App\Models\MsCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -104,7 +105,8 @@ class BookingCarSetupController extends Controller
 
     public function jsonVehicle(Request $request)
     {
-        $query = MsKendaraanOpr::query()
+        $query = MsKendaraan::query()
+            ->where('kategori_kendaraan', 'Operational')
             ->orderByDesc('id');
 
         return DataTables::of($query)
@@ -116,17 +118,17 @@ class BookingCarSetupController extends Controller
                 if ($row->status == 'A') {
 
                     return '
-                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                            Active
-                        </span>
-                    ';
+                    <span class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                        Active
+                    </span>
+                ';
                 }
 
                 return '
-                    <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-                        Inactive
-                    </span>
-                ';
+                <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                    Inactive
+                </span>
+            ';
             })
 
             ->addColumn('action', function ($row) {
@@ -136,41 +138,32 @@ class BookingCarSetupController extends Controller
                     : '';
 
                 return '
-                    <div class="flex items-center justify-end gap-3">
+                <div class="flex items-center justify-end">
 
-                        <button
-                            type="button"
-                            onclick="editVehicle(' . $row->id . ')"
-                            class="rounded-lg bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-200">
+                    <label class="relative inline-flex cursor-pointer items-center">
 
-                            Edit
+                        <input
+                            type="checkbox"
+                            class="peer sr-only"
+                            ' . $checked . '
+                            onchange="updateVehicleStatus(' . $row->id . ', this.checked ? \'A\' : \'X\', this)">
 
-                        </button>
+                        <div class="peer h-6 w-11 rounded-full bg-gray-300 transition
+                            after:absolute after:left-[2px]
+                            after:top-[2px]
+                            after:h-5 after:w-5
+                            after:rounded-full
+                            after:bg-white
+                            after:transition-all
+                            after:content-[\'\']
+                            peer-checked:bg-emerald-500
+                            peer-checked:after:translate-x-full">
+                        </div>
 
-                        <label class="relative inline-flex cursor-pointer items-center">
+                    </label>
 
-                            <input
-                                type="checkbox"
-                                class="peer sr-only"
-                                ' . $checked . '
-                                onchange="updateVehicleStatus(' . $row->id . ', this.checked ? \'A\' : \'X\', this)">
-
-                            <div class="peer h-6 w-11 rounded-full bg-gray-300 transition
-                                after:absolute after:left-[2px]
-                                after:top-[2px]
-                                after:h-5 after:w-5
-                                after:rounded-full
-                                after:bg-white
-                                after:transition-all
-                                after:content-[\'\']
-                                peer-checked:bg-emerald-500
-                                peer-checked:after:translate-x-full">
-                            </div>
-
-                        </label>
-
-                    </div>
-                ';
+                </div>
+            ';
             })
 
             ->rawColumns([
@@ -272,7 +265,8 @@ class BookingCarSetupController extends Controller
 
     public function findVehicle($id)
     {
-        $vehicle = MsKendaraanOpr::findOrFail($id);
+        $vehicle = MsKendaraan::where('kategori_kendaraan', 'Operational')
+            ->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -400,23 +394,30 @@ class BookingCarSetupController extends Controller
     public function storeVehicle(Request $request)
     {
         $request->validate([
-            'nopol_kendaraan' => 'required|string|max:50',
-            'kendaraan_descr' => 'required|string|max:255',
+            'no_polisi'        => 'required|string|max:50',
+            'namakendaraan'    => 'required|string|max:255',
+            'typekendaraan'    => 'nullable|string|max:100',
+            'merk_kendaraan'   => 'nullable|string|max:100',
+            'pemilikkendaraan' => 'nullable|string|max:255',
         ]);
 
-        DB::connection('pgsql5')->beginTransaction();
+        DB::beginTransaction();
 
         try {
 
-            MsKendaraanOpr::create([
-                'nopol_kendaraan' => strtoupper($request->nopol_kendaraan),
-                'kendaraan_descr' => strtoupper($request->kendaraan_descr),
-                'status'          => 'A',
-                'created_by'      => Auth::user()->username ?? Auth::user()->name,
-                'updated_by'      => Auth::user()->username ?? Auth::user()->name,
+            MsKendaraan::create([
+                'no_polisi'          => strtoupper(trim($request->no_polisi)),
+                'namakendaraan'      => strtoupper(trim($request->namakendaraan)),
+                'typekendaraan'      => $request->typekendaraan ? strtoupper(trim($request->typekendaraan)) : null,
+                'merk_kendaraan'     => $request->merk_kendaraan ? strtoupper(trim($request->merk_kendaraan)) : null,
+                'pemilikkendaraan'   => $request->pemilikkendaraan ? strtoupper(trim($request->pemilikkendaraan)) : null,
+                'kategori_kendaraan' => 'Operational',
+                'status'             => 'A',
+                'created_by'         => Auth::user()->username ?? Auth::user()->name,
+                'updated_by'         => Auth::user()->username ?? Auth::user()->name,
             ]);
 
-            DB::connection('pgsql5')->commit();
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -424,7 +425,7 @@ class BookingCarSetupController extends Controller
             ]);
         } catch (\Throwable $th) {
 
-            DB::connection('pgsql5')->rollBack();
+            DB::rollBack();
 
             return response()->json([
                 'success' => false,
@@ -436,23 +437,31 @@ class BookingCarSetupController extends Controller
     public function updateVehicle(Request $request, $id)
     {
         $request->validate([
-            'nopol_kendaraan' => 'required|string|max:50',
-            'kendaraan_descr' => 'required|string|max:255',
+            'no_polisi'        => 'required|string|max:50',
+            'namakendaraan'    => 'required|string|max:255',
+            'typekendaraan'    => 'nullable|string|max:100',
+            'merk_kendaraan'   => 'nullable|string|max:100',
+            'pemilikkendaraan' => 'nullable|string|max:255',
         ]);
 
-        DB::connection('pgsql5')->beginTransaction();
+        DB::beginTransaction();
 
         try {
 
-            $vehicle = MsKendaraanOpr::findOrFail($id);
+            $vehicle = MsKendaraan::where('kategori_kendaraan', 'Operational')
+                ->findOrFail($id);
 
             $vehicle->update([
-                'nopol_kendaraan' => strtoupper($request->nopol_kendaraan),
-                'kendaraan_descr' => strtoupper($request->kendaraan_descr),
-                'updated_by'      => Auth::user()->username ?? Auth::user()->name,
+                'no_polisi'          => strtoupper(trim($request->no_polisi)),
+                'namakendaraan'      => strtoupper(trim($request->namakendaraan)),
+                'typekendaraan'      => $request->typekendaraan ? strtoupper(trim($request->typekendaraan)) : null,
+                'merk_kendaraan'     => $request->merk_kendaraan ? strtoupper(trim($request->merk_kendaraan)) : null,
+                'pemilikkendaraan'   => $request->pemilikkendaraan ? strtoupper(trim($request->pemilikkendaraan)) : null,
+                'kategori_kendaraan' => 'Operational',
+                'updated_by'         => Auth::user()->username ?? Auth::user()->name,
             ]);
 
-            DB::connection('pgsql5')->commit();
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -460,7 +469,7 @@ class BookingCarSetupController extends Controller
             ]);
         } catch (\Throwable $th) {
 
-            DB::connection('pgsql5')->rollBack();
+            DB::rollBack();
 
             return response()->json([
                 'success' => false,
@@ -468,25 +477,24 @@ class BookingCarSetupController extends Controller
             ], 500);
         }
     }
-
     public function updateVehicleStatus(Request $request, $id)
     {
         $request->validate([
             'status' => 'required|in:A,X',
         ]);
 
-        DB::connection('pgsql5')->beginTransaction();
+        DB::beginTransaction();
 
         try {
 
-            $vehicle = MsKendaraanOpr::findOrFail($id);
+            $vehicle = MsKendaraan::findOrFail($id);
 
             $vehicle->update([
                 'status'     => $request->status,
                 'updated_by' => Auth::user()->username ?? Auth::user()->name,
             ]);
 
-            DB::connection('pgsql5')->commit();
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -494,7 +502,47 @@ class BookingCarSetupController extends Controller
             ]);
         } catch (\Throwable $th) {
 
-            DB::connection('pgsql5')->rollBack();
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
+    }
+    public function storeCategory(Request $request)
+    {
+        $request->validate([
+            'categoryid'   => 'required|string|max:50',
+            'category_name' => 'required|string|max:255',
+            'groups'       => 'nullable|string|max:100',
+            'type'         => 'nullable|string|max:100',
+        ]);
+
+        DB::connection('pgsql2')->beginTransaction();
+
+        try {
+
+            MsCategory::create([
+                'doctype'       => 'BCR',
+                'categoryid'    => strtoupper($request->categoryid),
+                'category_name' => strtoupper($request->category_name),
+                'groups'        => strtoupper($request->groups),
+                'username'      => Auth::user()->username ?? Auth::user()->name,
+                'status'        => 'A',
+                'created_by'    => Auth::user()->username ?? Auth::user()->name,
+                'updated_by'    => Auth::user()->username ?? Auth::user()->name,
+            ]);
+
+            DB::connection('pgsql2')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category successfully created.',
+            ]);
+        } catch (\Throwable $th) {
+
+            DB::connection('pgsql2')->rollBack();
 
             return response()->json([
                 'success' => false,
@@ -503,120 +551,79 @@ class BookingCarSetupController extends Controller
         }
     }
 
-    public function storeCategory(Request $request)
-{
-    $request->validate([
-        'categoryid'   => 'required|string|max:50',
-        'category_name'=> 'required|string|max:255',
-        'groups'       => 'nullable|string|max:100',
-        'type'         => 'nullable|string|max:100',
-    ]);
-
-    DB::connection('pgsql2')->beginTransaction();
-
-    try {
-
-        MsCategory::create([
-            'doctype'       => 'BCR',
-            'categoryid'    => strtoupper($request->categoryid),
-            'category_name' => strtoupper($request->category_name),
-            'groups'        => strtoupper($request->groups),
-            'username'      => Auth::user()->username ?? Auth::user()->name,
-            'status'        => 'A',
-            'created_by'    => Auth::user()->username ?? Auth::user()->name,
-            'updated_by'    => Auth::user()->username ?? Auth::user()->name,
+    public function updateCategory(Request $request, $id)
+    {
+        $request->validate([
+            'categoryid'   => 'required|string|max:50',
+            'category_name' => 'required|string|max:255',
+            'groups'       => 'nullable|string|max:100',
+            'type'         => 'nullable|string|max:100',
         ]);
 
-        DB::connection('pgsql2')->commit();
+        DB::connection('pgsql2')->beginTransaction();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Category successfully created.',
-        ]);
-    } catch (\Throwable $th) {
+        try {
 
-        DB::connection('pgsql2')->rollBack();
+            $category = MsCategory::where('doctype', 'BCR')
+                ->findOrFail($id);
 
-        return response()->json([
-            'success' => false,
-            'message' => $th->getMessage(),
-        ], 500);
+            $category->update([
+                'categoryid'    => strtoupper($request->categoryid),
+                'category_name' => strtoupper($request->category_name),
+                'groups'        => strtoupper($request->groups),
+                'type'          => strtoupper($request->type),
+                'updated_by'    => Auth::user()->username ?? Auth::user()->name,
+            ]);
+
+            DB::connection('pgsql2')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category successfully updated.',
+            ]);
+        } catch (\Throwable $th) {
+
+            DB::connection('pgsql2')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
     }
-}
 
-public function updateCategory(Request $request, $id)
-{
-    $request->validate([
-        'categoryid'   => 'required|string|max:50',
-        'category_name'=> 'required|string|max:255',
-        'groups'       => 'nullable|string|max:100',
-        'type'         => 'nullable|string|max:100',
-    ]);
-
-    DB::connection('pgsql2')->beginTransaction();
-
-    try {
-
-        $category = MsCategory::where('doctype', 'BCR')
-    ->findOrFail($id);
-
-        $category->update([
-            'categoryid'    => strtoupper($request->categoryid),
-            'category_name' => strtoupper($request->category_name),
-            'groups'        => strtoupper($request->groups),
-            'type'          => strtoupper($request->type),
-            'updated_by'    => Auth::user()->username ?? Auth::user()->name,
+    public function updateCategoryStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:A,X',
         ]);
 
-        DB::connection('pgsql2')->commit();
+        DB::connection('pgsql2')->beginTransaction();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Category successfully updated.',
-        ]);
-    } catch (\Throwable $th) {
+        try {
 
-        DB::connection('pgsql2')->rollBack();
+            $category = MsCategory::where('doctype', 'BCR')
+                ->findOrFail($id);
 
-        return response()->json([
-            'success' => false,
-            'message' => $th->getMessage(),
-        ], 500);
+            $category->update([
+                'status'     => $request->status,
+                'updated_by' => Auth::user()->username ?? Auth::user()->name,
+            ]);
+
+            DB::connection('pgsql2')->commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Category status successfully updated.',
+            ]);
+        } catch (\Throwable $th) {
+
+            DB::connection('pgsql2')->rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+            ], 500);
+        }
     }
-}
-
-public function updateCategoryStatus(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|in:A,X',
-    ]);
-
-    DB::connection('pgsql2')->beginTransaction();
-
-    try {
-
-        $category = MsCategory::where('doctype', 'BCR')
-            ->findOrFail($id);
-
-        $category->update([
-            'status'     => $request->status,
-            'updated_by' => Auth::user()->username ?? Auth::user()->name,
-        ]);
-
-        DB::connection('pgsql2')->commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Category status successfully updated.',
-        ]);
-    } catch (\Throwable $th) {
-
-        DB::connection('pgsql2')->rollBack();
-
-        return response()->json([
-            'success' => false,
-            'message' => $th->getMessage(),
-        ], 500);
-    }
-}
 }
