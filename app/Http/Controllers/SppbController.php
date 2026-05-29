@@ -479,6 +479,10 @@ class SppbController extends Controller
             $header->keperluan = $request->input('keperluan');
             $header->budget_perpost = $request->input('perpost');
             $header->woid = $request->input('woid');
+
+            $header->itrecommendid = $request->input('itrecommendid');
+            $header->ticketid = $request->input('ticketid');
+
             $header->is_urgent = $request->input('is_urgent');
             $header->spbid = null;
             $header->totalopenordered = 0;
@@ -888,14 +892,20 @@ class SppbController extends Controller
         };
 
         $header = TrSPPB::findOrFail($id);
+
         // update header
         $header->cpny_id = $request->cpnyid;
         $header->department_id = $request->departementid;
         $header->requesttypeid = $request->requesttypeid;
         $header->keperluan = $request->keperluan;
         $header->budget_perpost = $request->perpost;
-        $header->woid = $request->woid;
-        $header->is_urgent = $request->is_urgent;
+        $header->woid = $request->woid ?: null;
+
+        // tambahan ITR
+        $header->itrecommendid = $request->itrecommendid ?: null;
+        $header->ticketid = $request->ticketid ?: null;
+
+        $header->is_urgent = $request->is_urgent ? 1 : 0;
         $header->status = 'P';
         $header->updated_by = $username;
         $header->save();

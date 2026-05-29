@@ -138,7 +138,7 @@
 
 
                         {{-- Description --}}
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
                             <div class="flex flex-row justify-between gap-2 xl:flex-col xl:justify-start">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     SPPJ Emergency
@@ -163,6 +163,32 @@
                                         readonly>
 
                                     <button type="button" id="btnSearchWo"
+                                        class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M8.5 3a5.5 5.5 0 014.384 8.832l3.147 3.147a.75.75 0 11-1.06 1.06l-3.147-3.146A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            {{-- ITR ID --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    ITR ID
+                                </label>
+
+                                <div class="flex">
+                                    <input type="text" name="itrecommendid" id="itrecommendid" readonly
+                                        value="{{ old('itrecommendid', $sppj->itrecommendid ?? '') }}"
+                                        class="w-full rounded-l-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                        placeholder="Select ITR...">
+
+                                    <input type="hidden" name="ticketid" id="ticketid"
+                                        value="{{ old('ticketid', $sppj->ticketid ?? '') }}">
+
+                                    <button type="button" id="btnSearchItr"
                                         class="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-gray-100 px-3 text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
                                             fill="currentColor">
@@ -852,6 +878,61 @@
                                     <button id="woPrev" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
                                     <button id="woNext" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- MODAL PILIH ITR --}}
+                    <div id="itrModal"
+                        class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
+                        <div class="w-full max-w-6xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                            <div class="mb-3 flex items-center justify-between border-b pb-2">
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white">
+                                    Select ITR Recommendation
+                                </h3>
+                                <button type="button" id="closeItrModal"
+                                    class="rounded px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                            </div>
+
+                            <div class="mb-3 flex items-center gap-2 text-sm">
+                                <input id="itrSearch" type="text"
+                                    placeholder="Search ITR ID / Ticket / Keperluan / Created By..."
+                                    class="rounded border border-gray-300 bg-white px-3 py-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+
+                                <button id="itrRefresh" type="button"
+                                    class="rounded border px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-700">↻</button>
+
+                                <div class="ml-auto flex flex-wrap items-center gap-3">
+                                    <span>Company: <b id="itrCpnyBadge"></b></span>
+                                    <span>Dept: <b id="itrDeptBadge"></b></span>
+                                </div>
+                            </div>
+
+                            <div class="max-h-[60vh] overflow-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="sticky top-0 bg-gray-50 dark:bg-gray-900">
+                                        <tr>
+                                            <th class="border p-2">ITR ID</th>
+                                            <th class="border p-2">ITR Date</th>
+                                            <th class="border p-2">Ticket Nbr</th>
+                                            <th class="border p-2">Department</th>
+                                            <th class="border p-2">Keperluan</th>
+                                            <th class="border p-2">Created By</th>
+                                            <th class="w-24 border p-2 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itrTableBody" class="text-sm"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-3 flex items-center justify-between text-sm">
+                                <span id="itrCount" class="opacity-80"></span>
+                                <div class="space-x-2">
+                                    <button id="itrPrev" type="button"
+                                        class="rounded border px-3 py-1 disabled:opacity-40">Prev</button>
+                                    <button id="itrNext" type="button"
                                         class="rounded border px-3 py-1 disabled:opacity-40">Next</button>
                                 </div>
                             </div>
@@ -3305,6 +3386,193 @@
             $bu.on('change', function() {
                 const $opt = $(this).find('option:selected');
                 $buName.val($opt.data('name') || '');
+            });
+        });
+    </script>
+
+    <script>
+        $(function() {
+            const $itrModal = $('#itrModal');
+            const $itrTbody = $('#itrTableBody');
+            const $itrCount = $('#itrCount');
+            const $itrCpny = $('#itrCpnyBadge');
+            const $itrDept = $('#itrDeptBadge');
+
+            let itrState = {
+                search: '',
+                page: 1,
+                per_page: 10,
+                total: 0,
+                cpnyid: null,
+                deptid: null,
+            };
+
+            function escapeHtml(value) {
+                return $('<div>').text(value ?? '').html();
+            }
+
+            function openItrModal() {
+                const cpny = $('select[name="cpnyid"]').val();
+                const dept = $('select[name="departementid"]').val();
+
+                if (!cpny) {
+                    toastr.warning('Pilih Company terlebih dahulu.');
+                    return;
+                }
+
+                if (!dept) {
+                    toastr.warning('Pilih Department terlebih dahulu.');
+                    return;
+                }
+
+                itrState.cpnyid = cpny;
+                itrState.deptid = dept;
+                itrState.page = 1;
+                itrState.search = '';
+
+                $itrCpny.text(itrState.cpnyid);
+                $itrDept.text(itrState.deptid);
+                $('#itrSearch').val('');
+
+                $itrModal.removeClass('hidden').addClass('flex');
+                loadItr();
+            }
+
+            function closeItrModal() {
+                $itrModal.addClass('hidden').removeClass('flex');
+            }
+
+            $('#btnSearchItr').on('click', function() {
+                openItrModal();
+            });
+
+            $('#closeItrModal').on('click', closeItrModal);
+
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' && $itrModal.is(':visible')) {
+                    closeItrModal();
+                }
+            });
+
+            $('#itrSearch').on('input', function() {
+                itrState.search = $(this).val().trim();
+                itrState.page = 1;
+                loadItr();
+            });
+
+            $('#itrRefresh').on('click', function() {
+                $('#itrSearch').val('');
+                itrState.search = '';
+                itrState.page = 1;
+                loadItr();
+            });
+
+            $('#itrPrev').on('click', function() {
+                if (itrState.page > 1) {
+                    itrState.page--;
+                    loadItr();
+                }
+            });
+
+            $('#itrNext').on('click', function() {
+                const maxPage = Math.ceil((itrState.total || 0) / itrState.per_page) || 1;
+
+                if (itrState.page < maxPage) {
+                    itrState.page++;
+                    loadItr();
+                }
+            });
+
+            function loadItr() {
+                $itrTbody.html('<tr><td colspan="7" class="p-3 text-center">Loading...</td></tr>');
+
+                $.getJSON("{{ route('itrecommend.ajax.completed') }}", {
+                        cpnyid: itrState.cpnyid,
+                        deptid: itrState.deptid,
+                        search: itrState.search,
+                        page: itrState.page,
+                        per_page: itrState.per_page
+                    })
+                    .done(function(res) {
+                        const rowsArr = (res.data || []).map(item => {
+                            const docid = item.docid ?? '';
+                            const itDate = item.itrecommend_date ?? '';
+                            const ticket = item.ticketnbr ?? '';
+                            const department = item.department_id ?? '';
+                            const keperluan = item.keperluan ?? '';
+                            const createdBy = item.created_by ?? '';
+
+                            return `
+                                <tr>
+                                    <td class="border p-2">${escapeHtml(docid)}</td>
+                                    <td class="border p-2">${escapeHtml(itDate)}</td>
+                                    <td class="border p-2">${escapeHtml(ticket)}</td>
+                                    <td class="border p-2">${escapeHtml(department)}</td>
+                                    <td class="border p-2">${escapeHtml(keperluan)}</td>
+                                    <td class="border p-2">${escapeHtml(createdBy)}</td>
+                                    <td class="border p-2 text-center">
+                                        <button type="button"
+                                            class="chooseItr rounded border px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-docid="${escapeHtml(docid)}"
+                                            data-ticketnbr="${escapeHtml(ticket)}"
+                                            data-keperluan="${escapeHtml(keperluan)}">
+                                            Choose
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        $itrTbody.html(rowsArr.join('') ||
+                            '<tr><td colspan="7" class="p-3 text-center">No data</td></tr>');
+
+                        itrState.total = res.total || 0;
+                        $itrCount.text(`Showing ${rowsArr.length} of ${itrState.total} items`);
+
+                        const maxPage = Math.ceil((itrState.total || 0) / itrState.per_page) || 1;
+
+                        $('#itrPrev').prop('disabled', itrState.page <= 1);
+                        $('#itrNext').prop('disabled', itrState.page >= maxPage);
+                    })
+                    .fail(function() {
+                        $itrTbody.html(
+                            '<tr><td colspan="7" class="p-3 text-center text-red-600">Failed to load</td></tr>'
+                        );
+
+                        $itrCount.text('');
+                        $('#itrPrev, #itrNext').prop('disabled', true);
+                    });
+            }
+
+            $(document).on('click', '.chooseItr', function() {
+                const docid = $(this).data('docid');
+                const ticketnbr = $(this).data('ticketnbr');
+                const keperluan = $(this).data('keperluan');
+
+                $('#itrecommendid').val(docid);
+                $('#ticketid').val(ticketnbr);
+
+                $('#itrecommendid').removeClass('is-invalid').removeAttr('aria-invalid');
+                $('#itrecommendid').next('.error-feedback').remove();
+
+                // if (!($('#keperluan').val() || '').trim() && keperluan) {
+                //     $('#keperluan').val(keperluan);
+                // }
+
+                closeItrModal();
+            });
+
+            $('select[name="cpnyid"], select[name="departementid"]').on('change', function() {
+                if ($itrModal.is(':visible')) {
+                    itrState.cpnyid = $('select[name="cpnyid"]').val();
+                    itrState.deptid = $('select[name="departementid"]').val();
+
+                    $itrCpny.text(itrState.cpnyid || '-');
+                    $itrDept.text(itrState.deptid || '-');
+
+                    itrState.page = 1;
+                    loadItr();
+                }
             });
         });
     </script>

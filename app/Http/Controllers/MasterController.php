@@ -55,6 +55,7 @@ use App\Models\ViewInventoryAWIfca;
 use App\Models\ViewInventoryEPHIfca;
 use App\Models\ViewInventoryO8Ifca;
 use App\Models\ViewInventoryPSAIfca;
+use App\Models\TrItrecommend;
 
 
 class MasterController extends Controller
@@ -3190,6 +3191,70 @@ class MasterController extends Controller
         return response()->json(['data' => $rows]);
     }
 
+    public function ajaxCompletedItr(Request $request)
+    {
+        $search   = trim((string) $request->get('search', ''));
+        $page     = max((int) $request->get('page', 1), 1);
+        $perPage  = max((int) $request->get('per_page', 10), 1);
+
+        $cpnyid = trim((string) $request->get('cpnyid', ''));
+        $deptid = trim((string) $request->get('deptid', ''));
+
+        $query = TrItrecommend::query()
+            ->where('status', 'C');
+
+        if ($cpnyid !== '') {
+            $query->where('cpny_id', $cpnyid);
+        }
+
+        if ($deptid !== '') {
+            $query->where('department_id', $deptid);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('docid', 'ILIKE', "%{$search}%")
+                    ->orWhere('ticketnbr', 'ILIKE', "%{$search}%")
+                    ->orWhere('department_id', 'ILIKE', "%{$search}%")
+                    ->orWhere('keperluan', 'ILIKE', "%{$search}%")
+                    ->orWhere('created_by', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = $query
+            ->select([
+                'docid',
+                'itrecommend_date',
+                'ticketnbr',
+                'department_id',
+                'keperluan',
+                'created_by',
+            ])
+            ->orderByDesc('itrecommend_date')
+            ->orderByDesc('docid')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'docid'            => $row->docid,
+                    'itrecommend_date' => optional($row->itrecommend_date)->format('Y-m-d'),
+                    'ticketnbr'        => $row->ticketnbr,
+                    'department_id'    => $row->department_id,
+                    'keperluan'        => $row->keperluan,
+                    'created_by'       => $row->created_by,
+                ];
+            });
+
+        return response()->json([
+            'data'     => $rows,
+            'total'    => $total,
+            'page'     => $page,
+            'per_page' => $perPage,
+        ]);
+    }
 
 
 

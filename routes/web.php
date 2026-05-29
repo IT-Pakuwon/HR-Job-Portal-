@@ -1086,6 +1086,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/users/businessunits/by-cpny', [MasterController::class, 'businessUnitsByCpny'])->name('businessunits.byCpny');
     Route::get('/coa/by-deptwo', [MasterController::class, 'CoaBudgetbyDept'])->name('coa.byDeptWo');
+    Route::get('/itrecommend/ajax/completed', [MasterController::class, 'ajaxCompletedItr'])->name('itrecommend.ajax.completed');
 
     Route::post('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
     Route::get('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');

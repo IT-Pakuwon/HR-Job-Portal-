@@ -32,11 +32,11 @@ class Kernel extends ConsoleKernel
             ->at('07:05')
             ->withoutOverlapping();
 
-        // Sync user DAS ke PostgreSQL tiap 5 menit
-        $schedule->command('sync:users-das-to-pg --chunk=500')
-            ->everyFiveMinutes()
-            ->withoutOverlapping()
-            ->runInBackground();
+        // // Sync user DAS ke PostgreSQL tiap 5 menit
+        // $schedule->command('sync:users-das-to-pg --chunk=500')
+        //     ->everyFiveMinutes()
+        //     ->withoutOverlapping()
+        //     ->runInBackground();
 
         // Restart PostgreSQL setiap hari jam 04:00
         // $schedule->exec('sudo /usr/bin/systemctl restart postgresql')
