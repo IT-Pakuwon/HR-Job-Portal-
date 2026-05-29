@@ -1,0 +1,402 @@
+(function () {
+    let activeTab = "approval";
+    let summaryRequest = null;
+    let dataRequest = null;
+    let dashboardTable = null;
+
+    const urls = {
+        summary: "/it-dashboard/summary-json",
+        ticket: "/it-dashboard/ticket-json",
+        access: "/it-dashboard/access-request-json",
+        recommendation: "/it-dashboard/recommendation-json",
+        approval: "/it-dashboard/waiting-approval-json",
+        approvalHistory: "/it-dashboard/approval-history-json",
+    };
+
+    function updateRefreshTime() {
+        const el = document.getElementById("dashboardRefreshTime");
+        if (!el) return;
+        el.innerText = new Date().toLocaleTimeString();
+    }
+
+    function loadSummary() {
+        if (summaryRequest) {
+            summaryRequest.abort();
+        }
+
+        summaryRequest = new AbortController();
+
+        fetch(urls.summary, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                Accept: "application/json",
+            },
+            signal: summaryRequest.signal,
+        })
+            .then((r) => r.json())
+            .then((res) => {
+                const data = res.data || {};
+
+                $("#openTicketCount").text(data.open_ticket || 0);
+                $("#accessCount").text(data.access_request || 0);
+                $("#recommendationCount").text(data.recommendation || 0);
+                $("#approvalCount").text(data.waiting_approval || 0);
+
+                updateRefreshTime();
+            })
+            .catch((err) => {
+                if (err.name !== "AbortError") {
+                    console.error(err);
+                }
+            });
+    }
+
+    function buildDataTable(data, tab) {
+        if (!$("#dashboardTable").length) {
+            return;
+        }
+
+        if ($.fn.DataTable.isDataTable("#dashboardTable")) {
+            $("#dashboardTable").DataTable().clear().destroy();
+            $("#dashboardTable").empty();
+        }
+
+        let columns = [];
+
+        switch (tab) {
+            case "ticket":
+                columns = [
+                    {
+                        data: "ticketid",
+                        title: "Ticket ID",
+                        render: function (data, type, row) {
+                            return `
+                    <a href="/showticket/${row.eid}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="group inline-flex items-center gap-2
+                              px-3 py-1.5 rounded-lg
+                              bg-white border border-slate-200
+                              hover:border-gray-300 hover:bg-gray-50
+                              transition-all duration-200">
+                        <span class="font-medium text-slate-700 group-hover:text-gray-700">
+                            ${data}
+                        </span>
+                        <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400 group-hover:text-gray-600"></i>
+                    </a>
+                `;
+                        },
+                    },
+                    { data: "ticketdate", title: "Date" },
+                    { data: "ticket_priority", title: "Priority" },
+                    { data: "user_peminta", title: "Requester" },
+                    { data: "issue_summary", title: "Issue" },
+                    { data: "pic_ticket", title: "PIC" },
+                   {
+                    data: "status_pekerjaan",
+                    title: "Status Ticket",
+                    render: function (data) {
+                        const status = (data || "-").toUpperCase();
+
+                        const styles = {
+                            CREATED: "bg-slate-100 text-slate-700 border-slate-200",
+
+                            RESPONSE: "bg-blue-100 text-blue-700 border-blue-200",
+
+                            PROCESS: "bg-amber-100 text-amber-700 border-amber-200",
+
+                            PENDING: "bg-orange-100 text-orange-700 border-orange-200",
+
+                            ENVISION: "bg-violet-100 text-violet-700 border-violet-200",
+
+                            "ENVISION CHECKED / SOLVED":
+                                "bg-purple-100 text-purple-700 border-purple-200",
+
+                            COMPLETED: "bg-emerald-100 text-emerald-700 border-emerald-200",
+
+                            TRANSFER: "bg-cyan-100 text-cyan-700 border-cyan-200",
+
+                            REOPEN: "bg-red-100 text-red-700 border-red-200",
+
+                            CANCEL: "bg-slate-200 text-slate-700 border-slate-300",
+                        };
+
+                        const badgeClass =
+                            styles[status] ??
+                            "bg-slate-100 text-slate-700 border-slate-200";
+
+                        return `
+                            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${badgeClass}">
+                                ${status}
+                            </span>
+                        `;
+                    },
+                },
+                ];
+                break;
+
+            case "access":
+                columns = [
+                    {
+                        data: "docid",
+                        title: "Document",
+                        render: function (data, type, row) {
+                            return `
+                    <a href="/showaccessrequest/${row.eid}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="group inline-flex items-center gap-2
+                              px-3 py-1.5 rounded-lg
+                              bg-white border border-slate-200
+                              hover:border-gray-300 hover:bg-gray-50
+                              transition-all duration-200">
+                        <span class="font-medium text-slate-700 group-hover:text-gray-700">
+                            ${data}
+                        </span>
+                        <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400 group-hover:text-gray-600"></i>
+                    </a>
+                `;
+                        },
+                    },
+                    { data: "user_peminta", title: "Requester" },
+                    { data: "user_assign", title: "Assign To" },
+                    { data: "access_type", title: "Type" },
+                    { data: "keperluan", title: "Purpose" },
+                ];
+                break;
+
+            case "recommendation":
+                columns = [
+                    {
+                        data: "docid",
+                        title: "Document",
+                        render: function (data, type, row) {
+                            return `
+                    <a href="/showitrecommendation/${row.eid}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="group inline-flex items-center gap-2
+                              px-3 py-1.5 rounded-lg
+                              bg-white border border-slate-200
+                              hover:border-gray-300 hover:bg-gray-50
+                              transition-all duration-200">
+                        <span class="font-medium text-slate-700 group-hover:text-gray-700">
+                            ${data}
+                        </span>
+                        <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400 group-hover:text-gray-600"></i>
+                    </a>
+                `;
+                        },
+                    },
+                    { data: "itrecommend_date", title: "Date" },
+                    { data: "user_peminta", title: "Requester" },
+                    { data: "ticketnbr", title: "Ticket" },
+                    { data: "recommend_type", title: "Type" },
+                    { data: "recommend_pic", title: "PIC" },
+                ];
+                break;
+            case "approval":
+                columns = [
+                    {
+                        data: "docid",
+                        title: "Document",
+                        render: function (data, type, row) {
+                            return `
+                    <a href="${row.url}/${row.hid}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="group inline-flex items-center gap-2
+                              px-3 py-1.5 rounded-lg
+                              bg-white border border-slate-200
+                              hover:border-gray-300 hover:bg-gray-50
+                              transition-all duration-200">
+                        <span class="font-medium text-slate-700 group-hover:text-gray-700">
+                            ${data}
+                        </span>
+                        <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400 group-hover:text-gray-600"></i>
+                    </a>
+                `;
+                        },
+                    },
+                    { data: "docdate", title: "Date" },
+                    { data: "cpnyid", title: "Company" },
+                    { data: "departementid", title: "Department" },
+                    { data: "infohd", title: "Description" },
+                ];
+                break;
+
+            case "approval-history":
+                columns = [
+                    {
+                        data: "docid",
+                        title: "Document",
+                        render: function (data, type, row) {
+                            return `
+                                <a href="${row.url}/${row.hid}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="group inline-flex items-center gap-2
+                                        px-3 py-1.5 rounded-lg
+                                        bg-white border border-slate-200
+                                        hover:border-gray-300 hover:bg-gray-50
+                                        transition-all duration-200">
+                                    <span class="font-medium text-slate-700 group-hover:text-gray-700">
+                                        ${data}
+                                    </span>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400 group-hover:text-gray-600"></i>
+                                </a>
+                            `;
+                        },
+                    },
+                    { data: "docdate", title: "Approval Date" },
+                    { data: "cpnyid", title: "Company" },
+                    { data: "departementid", title: "Department" },
+                    { data: "infohd", title: "Description" },
+                ];
+                break;
+        }
+
+        dashboardTable = $("#dashboardTable").DataTable({
+            data: data,
+            columns: columns,
+            pageLength: 10,
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100],
+            ],
+            responsive: true,
+            searching: true,
+            ordering: true,
+            paging: true,
+            info: true,
+            autoWidth: false,
+            destroy: true,
+            order: [],
+            language: {
+                search: "",
+                searchPlaceholder: "Search...",
+                lengthMenu: "Show _MENU_",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                emptyTable: "No data available",
+            },
+        });
+    }
+
+    function loadTab(tab) {
+        if (dataRequest) {
+            dataRequest.abort();
+        }
+
+        dataRequest = new AbortController();
+
+        let url = urls.ticket;
+
+        switch (tab) {
+            case "access":
+                url = urls.access;
+                break;
+
+            case "recommendation":
+                url = urls.recommendation;
+                break;
+
+            case "approval":
+                url = urls.approval;
+                break;
+
+            case "approval-history":
+                url = urls.approvalHistory;
+                break;
+        }
+
+        fetch(url, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                Accept: "application/json",
+            },
+            signal: dataRequest.signal,
+        })
+            .then((r) => {
+                if (!r.ok) {
+                    throw new Error(`HTTP ${r.status}`);
+                }
+
+                return r.json();
+            })
+            .then((res) => {
+                buildDataTable(res.data || [], tab);
+                updateRefreshTime();
+            })
+            .catch((err) => {
+                if (err.name !== "AbortError") {
+                    console.error(err);
+                }
+            });
+    }
+
+function activateTab(tab) {
+    activeTab = tab;
+
+    [
+        "ticket",
+        "access",
+        "recommendation",
+        "approval",
+        "approval-history",
+    ].forEach((name) => {
+        const btn = document.getElementById(`tab-${name}`);
+
+        if (!btn) return;
+
+        if (name === tab) {
+            btn.className =
+                "rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 bg-slate-800 text-white shadow-sm";
+        } else {
+            btn.className =
+                "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:border-slate-400";
+        }
+    });
+
+    loadTab(tab);
+}
+    function bindEvents() {
+        $("#tab-ticket").on("click", () => activateTab("ticket"));
+        $("#tab-access").on("click", () => activateTab("access"));
+        $("#tab-recommendation").on("click", () =>
+            activateTab("recommendation"),
+        );
+        $("#tab-approval").on("click", () => activateTab("approval"));
+
+        if ($("#tab-approval-history").length) {
+            $("#tab-approval-history").on("click", () => {
+                activateTab("approval-history");
+            });
+        }
+    }
+
+    function autoRefresh() {
+        setInterval(() => {
+            if (document.hidden) {
+                return;
+            }
+
+            loadSummary();
+            loadTab(activeTab);
+        }, 20000);
+    }
+
+    function init() {
+        if (!$("#openTicketCount").length) {
+            return;
+        }
+
+        bindEvents();
+        loadSummary();
+        activateTab("approval");
+        autoRefresh();
+    }
+
+    $(document).ready(function () {
+        init();
+    });
+})();

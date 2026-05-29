@@ -22,34 +22,14 @@ class MultiDashboardController extends Controller
             ->orderBy('doctype')
             ->get();
 
-        $homepage = $user->homepage ?? null;
-
-        if (!$homepage) {
-            return view('components.multidashboard.index', [
-                'dashboardComponent' => 'dashboard-approval',
-                'menu'              => null,
-                'dataFeed'          => $dataFeed,
-                'tr_approval'       => collect(),
-                'doctypes'          => $doctypes,
-            ]);
-        }
+        $homepage = strtoupper($user->homepage ?? 'DASHAPPROVAL');
 
         $menu = SysMenu::where('screen_id', $homepage)
             ->where('status', 'A')
             ->first();
 
-        if (!$menu) {
-            return view('components.multidashboard.index', [
-                'dashboardComponent' => 'dashboard-approval',
-                'menu'              => null,
-                'dataFeed'          => $dataFeed,
-                'tr_approval'       => collect(),
-                'doctypes'          => $doctypes,
-            ]);
-        }
-
         return view('components.multidashboard.index', [
-            'dashboardComponent' => $this->resolveComponent($menu->screen_id),
+            'dashboardComponent' => $this->resolveComponent($homepage),
             'menu'              => $menu,
             'dataFeed'          => $dataFeed,
             'tr_approval'       => collect(),
@@ -60,13 +40,13 @@ class MultiDashboardController extends Controller
     protected function resolveComponent(string $screenId): string
     {
         return match (strtoupper($screenId)) {
-            'DASHAPPROVAL'    => 'dashboard-approval',
-            'DASHIT'          => 'dashboard-it',
-            'DASHWAREHOUSE'   => 'dashboard-warehouse',
-            'DASHOPERATIONAL' => 'dashboard-operational',
-            'DASHCOSTCONTROL' => 'dashboard-costcontrol',
-            'DASHPURCHASING'  => 'purchasing-dashboard',
-            default           => 'dashboard-approval',
+            'DASHAPPROVAL' => 'dashboard-approval',
+            'DASHIT'       => 'dashboard-it',
+            'DASHWH'       => 'dashboard-warehouse',
+            'DASHOPR'      => 'dashboard-operational',
+            'DASHCC'       => 'dashboard-costcontrol',
+            'DASHPURCH'    => 'purchasing-dashboard',
+            default        => 'dashboard-approval',
         };
     }
 }

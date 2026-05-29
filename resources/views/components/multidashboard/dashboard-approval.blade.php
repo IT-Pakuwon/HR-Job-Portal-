@@ -28,7 +28,8 @@
 
     <!-- Tab Content: Waiting -->
     <div id="content-waiting" class="tab-content">
-        <div class="rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div
+            class="rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
             <div class="grid grid-cols-1 items-center gap-4 lg:grid-cols-3">
 
@@ -36,8 +37,8 @@
                 <div class="flex items-center gap-4">
 
                     <!-- Icon -->
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg
-                        bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
+                    <div
+                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
                         📝
                     </div>
 
@@ -52,8 +53,7 @@
 
                             <!-- Total Badge -->
                             <span id="waitingTotal"
-                                class="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700
-                                dark:bg-indigo-900/40 dark:text-indigo-300">
+                                class="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
                                 0 documents
                             </span>
                         </div>
@@ -66,18 +66,15 @@
                     </div>
 
                     <button id="openAllWaiting"
-                        class="ml-2 inline-flex items-center gap-2 rounded-lg
-                        bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600
-                        px-3 py-2 text-xs font-semibold text-white
-                        shadow transition hover:scale-[1.03]">
+                        class="ml-2 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 px-3 py-2 text-xs font-semibold text-white shadow transition hover:scale-[1.03]">
                         🚀 Open All Document
                     </button>
                 </div>
 
                 <!-- CENTER (REAL CENTERED + PROMINENT) -->
                 <div class="flex justify-center">
-                    <div class="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-1.5
-                        text-xs font-medium text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
+                    <div
+                        class="flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-1.5 text-xs font-medium text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
 
                         ⏱ Refresh in
                         <span id="waitingCountdown" class="font-bold">
@@ -94,21 +91,17 @@
                 <div class="flex items-center justify-end gap-2">
 
                     <select id="waitingDoctype"
-                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs
-                        text-gray-700 shadow-sm focus:ring-1 focus:ring-indigo-400
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 shadow-sm focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                         <option value="ALL">All Doctype</option>
-                        @foreach(($doctypes ?? collect()) as $dt)
+                        @foreach ($doctypes ?? collect() as $dt)
                             <option value="{{ $dt->doctype }}">
-                                {{ $dt->doctype }}{{ $dt->doctype_descr ? ' - '.$dt->doctype_descr : '' }}
+                                {{ $dt->doctype }}{{ $dt->doctype_descr ? ' - ' . $dt->doctype_descr : '' }}
                             </option>
                         @endforeach
                     </select>
 
                     <input id="waitingSearch" type="text" placeholder="Search..."
-                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs
-                        text-gray-700 shadow-sm focus:ring-1 focus:ring-indigo-400
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 shadow-sm focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
 
                 </div>
 
@@ -121,7 +114,8 @@
 
     <!-- Tab Content: Approved -->
     <div id="content-approved" class="tab-content hidden">
-        <div class="rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div
+            class="rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
             <div class="grid grid-cols-1 items-center gap-4 lg:grid-cols-3">
 
@@ -129,8 +123,8 @@
                 <div class="flex items-center gap-4">
 
                     <!-- Icon -->
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg
-                        bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-300">
+                    <div
+                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-300">
                         ✅
                     </div>
 
@@ -145,8 +139,7 @@
 
                             <!-- Total Badge -->
                             <span id="approvedTotal"
-                                class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700
-                                dark:bg-green-900/40 dark:text-green-300">
+                                class="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-300">
                                 0 documents
                             </span>
                         </div>
@@ -162,8 +155,8 @@
 
                 <!-- CENTER (TIMER) -->
                 <div class="flex justify-center">
-                    <div class="flex items-center gap-2 rounded-full bg-green-50 px-4 py-1.5
-                        text-xs font-medium text-green-600 dark:bg-green-900/40 dark:text-green-300">
+                    <div
+                        class="flex items-center gap-2 rounded-full bg-green-50 px-4 py-1.5 text-xs font-medium text-green-600 dark:bg-green-900/40 dark:text-green-300">
 
                         ⏱ Refresh in
                         <span id="approvedCountdown" class="font-bold">
@@ -180,22 +173,18 @@
                 <div class="flex items-center justify-end gap-2">
 
                     <select id="approvedDoctype"
-                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs
-                        text-gray-700 shadow-sm focus:ring-1 focus:ring-green-400
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 shadow-sm focus:ring-1 focus:ring-green-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
 
                         <option value="ALL">All Doctype</option>
-                        @foreach(($doctypes ?? collect()) as $dt)
+                        @foreach ($doctypes ?? collect() as $dt)
                             <option value="{{ $dt->doctype }}">
-                                {{ $dt->doctype }}{{ $dt->doctype_descr ? ' - '.$dt->doctype_descr : '' }}
+                                {{ $dt->doctype }}{{ $dt->doctype_descr ? ' - ' . $dt->doctype_descr : '' }}
                             </option>
                         @endforeach
                     </select>
 
                     <input id="approvedSearch" type="text" placeholder="Search..."
-                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs
-                        text-gray-700 shadow-sm focus:ring-1 focus:ring-green-400
-                        dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700 shadow-sm focus:ring-1 focus:ring-green-400 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
 
                 </div>
 
@@ -208,94 +197,98 @@
     </div>
 </div>
 <script>
+    let waitingAbortController = null;
+    let approvedAbortController = null;
+    const WAITING_URL = "{{ route('dashboard.waitingjson') }}";
+    const APPROVED_URL = "{{ route('dashboard.approvejson') }}";
     class DataTable {
-    constructor(config) {
-        this.el = document.querySelector(config.selector);
-        this.columns = config.columns;
-        this.data = config.data || [];
-        this.perPage = config.perPage || 10;
+        constructor(config) {
+            this.el = document.querySelector(config.selector);
+            this.columns = config.columns;
+            this.data = config.data || [];
+            this.perPage = config.perPage || 10;
 
-        this.currentPage = 1;
-        this.search = '';
-        this.sortColumn = 'docdate';
-        this.sortDirection = 'desc'; // 🔥 newest first
+            this.currentPage = 1;
+            this.search = '';
+            this.sortColumn = 'docdate';
+            this.sortDirection = 'desc'; // 🔥 newest first
 
-        this.id = config.id; // 🔥 unique id per table
+            this.id = config.id; // 🔥 unique id per table
 
-        this.init();
-    }
-
-    init() {
-        this.render();
-    }
-
-    setData(data) {
-        this.data = data;
-        this.currentPage = 1;
-        this.render();
-    }
-
-    handleSort(column) {
-        if (this.sortColumn === column) {
-            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            this.sortColumn = column;
-            this.sortDirection = 'asc';
-        }
-        this.render();
-    }
-
-    handleSearch(val) {
-        this.search = val.toLowerCase();
-        this.currentPage = 1;
-        this.render();
-    }
-
-    getProcessedData() {
-        let filtered = [...this.data];
-
-        if (this.search) {
-            filtered = filtered.filter(row =>
-                this.columns.some(col => {
-                    const val = row[col.key];
-                    return val && val.toString().toLowerCase().includes(this.search);
-                })
-            );
+            this.init();
         }
 
-        if (this.sortColumn) {
-            filtered.sort((a, b) => {
-                let valA = a[this.sortColumn] ?? '';
-                let valB = b[this.sortColumn] ?? '';
-
-                if (this.sortColumn.toLowerCase().includes('date')) {
-                    valA = new Date(valA);
-                    valB = new Date(valB);
-                } else {
-                    valA = valA.toString().toLowerCase();
-                    valB = valB.toString().toLowerCase();
-                }
-
-                if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
-                if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
-                return 0;
-            });
+        init() {
+            this.render();
         }
 
-        return filtered;
-    }
+        setData(data) {
+            this.data = data;
+            this.currentPage = 1;
+            this.render();
+        }
 
-    paginate(data) {
-        const start = (this.currentPage - 1) * this.perPage;
-        return data.slice(start, start + this.perPage);
-    }
+        handleSort(column) {
+            if (this.sortColumn === column) {
+                this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                this.sortColumn = column;
+                this.sortDirection = 'asc';
+            }
+            this.render();
+        }
 
-    render() {
-        const processed = this.getProcessedData();
-        const paged = this.paginate(processed);
-        const totalPages = Math.ceil(processed.length / this.perPage) || 1;
+        handleSearch(val) {
+            this.search = val.toLowerCase();
+            this.currentPage = 1;
+            this.render();
+        }
 
-        this.el.innerHTML = `
+        getProcessedData() {
+            let filtered = [...this.data];
+
+            if (this.search) {
+                filtered = filtered.filter(row =>
+                    this.columns.some(col => {
+                        const val = row[col.key];
+                        return val && val.toString().toLowerCase().includes(this.search);
+                    })
+                );
+            }
+
+            if (this.sortColumn) {
+                filtered.sort((a, b) => {
+                    let valA = a[this.sortColumn] ?? '';
+                    let valB = b[this.sortColumn] ?? '';
+
+                    if (this.sortColumn.toLowerCase().includes('date')) {
+                        valA = new Date(valA);
+                        valB = new Date(valB);
+                    } else {
+                        valA = valA.toString().toLowerCase();
+                        valB = valB.toString().toLowerCase();
+                    }
+
+                    if (valA < valB) return this.sortDirection === 'asc' ? -1 : 1;
+                    if (valA > valB) return this.sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            return filtered;
+        }
+
+        paginate(data) {
+            const start = (this.currentPage - 1) * this.perPage;
+            return data.slice(start, start + this.perPage);
+        }
+
+        render() {
+            const processed = this.getProcessedData();
+            const paged = this.paginate(processed);
+            const totalPages = Math.ceil(processed.length / this.perPage) || 1;
+
+            this.el.innerHTML = `
 
             <table class="w-full text-xs border">
                 <thead class="bg-gray-200">
@@ -360,21 +353,21 @@
 
             </div>
         `;
-    }
-    nextPage(total) {
-        if (this.currentPage < total) {
-            this.currentPage++;
-            this.render();
         }
-    }
+        nextPage(total) {
+            if (this.currentPage < total) {
+                this.currentPage++;
+                this.render();
+            }
+        }
 
-    prevPage() {
-        if (this.currentPage > 1) {
-            this.currentPage--;
-            this.render();
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.render();
+            }
         }
     }
-}
 
     function switchTab(tab) {
         const tabs = ['waiting', 'approved'];
@@ -388,20 +381,28 @@
             if (name === tab) {
                 // active tab
                 btn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
-                btn.classList.add('border-violet-600', 'text-violet-600', 'dark:border-violet-400', 'dark:text-violet-400');
+                btn.classList.add('border-violet-600', 'text-violet-600', 'dark:border-violet-400',
+                    'dark:text-violet-400');
 
                 content.classList.remove('hidden');
             } else {
                 // inactive tab
-                btn.classList.remove('border-violet-600', 'text-violet-600', 'dark:border-violet-400', 'dark:text-violet-400');
+                btn.classList.remove('border-violet-600', 'text-violet-600', 'dark:border-violet-400',
+                    'dark:text-violet-400');
                 btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
 
                 content.classList.add('hidden');
             }
         });
+
+        if (tab === 'waiting') {
+            refreshWaitingNow();
+        } else {
+            refreshApprovedNow();
+        }
     }
 
-    document.getElementById('openAllWaiting')?.addEventListener('click', function () {
+    document.getElementById('openAllWaiting')?.addEventListener('click', function() {
 
         const data = waitingTable.data || [];
 
@@ -421,7 +422,7 @@
 
     });
 
-        // ===============================
+    // ===============================
     // AUTO REFRESH + COUNTDOWN (20s)
     // ===============================
     const REFRESH_INTERVAL_SEC = 20; // 20 detik
@@ -444,12 +445,16 @@
         if (a) a.innerText = formatMMSS(secLeft);
     }
 
-    async function fetchJsonSafe(url) {
+    async function fetchJsonSafe(url, signal = null) {
         const resp = await fetch(url, {
             method: 'GET',
             credentials: 'same-origin',
             cache: 'no-store',
-            headers: { 'Accept': 'application/json' }
+            signal,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
         });
 
         const ct = (resp.headers.get('content-type') || '').toLowerCase();
@@ -489,30 +494,83 @@
     }
 
     async function refreshWaitingNow() {
-        const dt = (document.getElementById('waitingDoctype')?.value) || 'ALL';
-        const url = `/waitingjson?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`;
 
-        const json = await fetchJsonSafe(url);
+        if (
+            waitingAbortController &&
+            !waitingAbortController.signal.aborted
+        ) {
+            waitingAbortController.abort();
+        }
 
-        const data = json.data || [];
+        waitingAbortController = new AbortController();
 
-        waitingTable.setData(data);
-        setLastUpdated('waiting');
-        setTotal('waiting', data.length); // ✅ ADD
+        const dt = document.getElementById('waitingDoctype')?.value || 'ALL';
+
+        const url =
+            `${WAITING_URL}?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`;
+
+        try {
+
+            const json = await fetchJsonSafe(
+                url,
+                waitingAbortController.signal
+            );
+
+            const data = json.data || [];
+
+            waitingTable.setData(data);
+            setLastUpdated('waiting');
+            setTotal('waiting', data.length);
+
+        } catch (e) {
+
+            if (e.name === 'AbortError') {
+                console.log('Waiting request aborted');
+                return;
+            }
+
+            throw e;
+        }
     }
 
     async function refreshApprovedNow() {
-        const dt = (document.getElementById('approvedDoctype')?.value) || 'ALL';
-        const url = `/approvejson?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`;
 
-        const json = await fetchJsonSafe(url);
-        const data = json.data || [];
+        if (
+            approvedAbortController &&
+            !approvedAbortController.signal.aborted
+        ) {
+            approvedAbortController.abort();
+        }
+        approvedAbortController = new AbortController();
 
-        approvedTable.setData(data);
-        setLastUpdated('approved');
-        setTotal('approved', data.length); // ✅ ADD THIS
+        const dt = document.getElementById('approvedDoctype')?.value || 'ALL';
+
+        const url =
+            `${APPROVED_URL}?doctype=${encodeURIComponent(dt)}&t=${Date.now()}`;
+
+        try {
+
+            const json = await fetchJsonSafe(
+                url,
+                approvedAbortController.signal
+            );
+
+            const data = json.data || [];
+
+            approvedTable.setData(data);
+            setLastUpdated('approved');
+            setTotal('approved', data.length);
+
+        } catch (e) {
+
+            if (e.name === 'AbortError') {
+                console.log('Approved request aborted');
+                return;
+            }
+
+            throw e;
+        }
     }
-
     async function refreshActiveTabNow() {
         if (document.hidden) return;
         if (refreshing) return;
@@ -523,10 +581,8 @@
         refreshing = true;
         try {
             if (activeTab.id === 'content-waiting') {
-                console.log('🔄 Auto refresh: Waiting');
                 await refreshWaitingNow();
             } else if (activeTab.id === 'content-approved') {
-                console.log('🔄 Auto refresh: Approved');
                 await refreshApprovedNow();
             }
         } catch (e) {
@@ -580,8 +636,7 @@
         id: 'waitingTable',
         selector: '#waitingTableContainer',
         perPage: 10,
-        columns: [
-            {
+        columns: [{
                 key: 'docid',
                 label: 'DocID',
                 align: 'center',
@@ -599,19 +654,32 @@
                     `;
                 }
             },
-            { key: 'docdate', label: 'Date', align: 'center' },
-            { key: 'cpnyid', label: 'Company', align: 'center' },
-            { key: 'departementid', label: 'Department' },
-            { key: 'infohd', label: 'Info' }
+            {
+                key: 'docdate',
+                label: 'Date',
+                align: 'center'
+            },
+            {
+                key: 'cpnyid',
+                label: 'Company',
+                align: 'center'
+            },
+            {
+                key: 'departementid',
+                label: 'Department'
+            },
+            {
+                key: 'infohd',
+                label: 'Info'
+            }
         ]
     });
 
     const approvedTable = new DataTable({
         id: 'approvedTable',
-    selector: '#approvedTableContainer',// 🔥 using existing table
+        selector: '#approvedTableContainer', // 🔥 using existing table
         perPage: 10,
-        columns: [
-            {
+        columns: [{
                 key: 'docid',
                 label: 'DocID',
                 align: 'center',
@@ -629,31 +697,32 @@
                     `;
                 }
             },
-            { key: 'docdate', label: 'Date', align: 'center' },
-            { key: 'cpnyid', label: 'Company', align: 'center' },
-            { key: 'departementid', label: 'Department' },
-            { key: 'infohd', label: 'Info' }
+            {
+                key: 'docdate',
+                label: 'Date',
+                align: 'center'
+            },
+            {
+                key: 'cpnyid',
+                label: 'Company',
+                align: 'center'
+            },
+            {
+                key: 'departementid',
+                label: 'Department'
+            },
+            {
+                key: 'infohd',
+                label: 'Info'
+            }
         ]
     });
 
     window.waitingTable = waitingTable;
     window.approvedTable = approvedTable;
 
-    fetch('/waitingjson')
-        .then(res => res.json())
-        .then(res => {
-            const data = res.data || [];
-            waitingTable.setData(data);
-            setTotal('waiting', data.length); // ✅ ADD THIS
-        });
-
-    fetch('/approvejson')
-        .then(res => res.json())
-        .then(res => {
-            const data = res.data || [];
-            approvedTable.setData(data);
-            setTotal('approved', data.length); // ✅ ADD
-        });
+    refreshWaitingNow();
+    refreshApprovedNow();
 
     document.getElementById('waitingSearch')?.addEventListener('input', function(e) {
         waitingTable.handleSearch(e.target.value);
@@ -662,4 +731,14 @@
     document.getElementById('approvedSearch')?.addEventListener('input', function(e) {
         approvedTable.handleSearch(e.target.value);
     });
+
+    document.getElementById('waitingDoctype')
+        ?.addEventListener('change', () => {
+            refreshWaitingNow();
+        });
+
+    document.getElementById('approvedDoctype')
+        ?.addEventListener('change', () => {
+            refreshApprovedNow();
+        });
 </script>

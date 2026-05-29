@@ -52,6 +52,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryUserController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\IssueListController;
+use App\Http\Controllers\ItDashboardController;
 use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\ItRecommendationController;
 use App\Http\Controllers\JobapplicantController;
@@ -1481,14 +1482,25 @@ Route::middleware(['auth'])->group(function () {
                     ->name('report');
             });
 
+
+        Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/settings/account', [ProfileController::class, 'show'])->name('profile.showx');
+
         Route::controller(ApprovalDashboardController::class)->group(function () {
             Route::get('/waitingjson', 'waitingJson')->name('dashboard.waitingjson');
             Route::get('/approvejson', 'approveJson')->name('dashboard.approvejson');
         });
 
-        Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
 
-        Route::get('/settings/account',[ProfileController::class, 'show'])->name('profile.showx');
+        Route::prefix('it-dashboard')->controller(ItDashboardController::class)->name('it-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/ticket-json', 'ticketJson')->name('ticket-json');
+            Route::get('/access-request-json', 'accessRequestJson')->name('access-request-json');
+            Route::get('/recommendation-json', 'recommendationJson')->name('recommendation-json');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
+        });
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
@@ -2030,7 +2042,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.ga.export');
 
         Route::get('/view/{type}', function ($type) {
-            return view('pages.report.'.$type);
+            return view('pages.report.' . $type);
         });
     });
 

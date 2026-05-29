@@ -16,16 +16,19 @@ class ApprovalDashboardController extends Controller
 {
     public function waitingJson(Request $request)
     {
+        abort_unless($request->ajax(), 404);
         return $this->approvalJson($request, 'P');
     }
 
     public function approveJson(Request $request)
     {
+        abort_unless($request->ajax(), 404);
         return $this->approvalJson($request, 'A');
     }
 
     private function approvalJson(Request $request, string $status)
     {
+        abort_unless($request->ajax(), 404);
         $user = $request->user();
 
         if (!$user) {

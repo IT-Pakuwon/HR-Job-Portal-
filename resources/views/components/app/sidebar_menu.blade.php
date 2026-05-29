@@ -30,7 +30,7 @@
             <ul class="space-y-1">
 
                 <!-- DASHBOARD -->
-                <li
+                {{-- <li
                     class="{{ Request::segment(1) === 'dashboard'
                         ? 'bg-violet-500/10 text-violet-600'
                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
@@ -41,7 +41,141 @@
                         </svg>
                         Dashboard
                     </a>
-                </li>
+                </li> --}}
+
+                @php
+                    $dashMenu = $rootMenus->firstWhere('menu_id', 'DASHBOARD');
+                    $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
+
+                    $visibleMenus = collect();
+
+                    if ($dashMenu) {
+                        $visibleMenus = $dashMenu->children->filter(function ($menu) use ($allowedIds) {
+
+                            $children = $menu->children->whereIn('menu_id', $allowedIds);
+
+                            return $children->isNotEmpty()
+                                || (
+                                    in_array($menu->menu_id, $allowedIds)
+                                    && !empty($menu->menu_route)
+                                );
+                        });
+                    }
+                @endphp
+
+                @if ($dashMenu && $visibleMenus->isNotEmpty())
+
+                    <li
+                        class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
+                        {{ $dashMenu->menu_name }}
+                    </li>
+
+                    @foreach ($visibleMenus as $menu)
+
+                        @php
+                            $children = $menu->children->whereIn('menu_id', $allowedIds);
+                            $isDirectMenu = !empty($menu->menu_route);
+                        @endphp
+
+                        {{-- SINGLE MENU --}}
+                        @if ($children->isEmpty() && $isDirectMenu)
+
+                            <li
+                                class="{{ Route::is($menu->menu_route . '*')
+                                    ? 'bg-violet-500/10 text-violet-600'
+                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
+
+                                <a href="{{ route($menu->menu_route) }}"
+                                    class="flex items-center gap-3 px-3 py-2 text-sm">
+
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d="{{ $menu->menu_icon }}" />
+                                    </svg>
+
+                                    {{ $menu->menu_name }}
+                                </a>
+
+                            </li>
+
+                        {{-- MENU WITH SUB --}}
+                        @elseif ($children->isNotEmpty())
+
+                            @php
+                                $isActive = $children->contains(
+                                    fn ($c) => $c->menu_route && Route::is($c->menu_route . '*')
+                                );
+                            @endphp
+
+                            <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
+
+                                <button @click="open = !open"
+                                    class="{{ $isActive
+                                        ? 'bg-violet-500/10 text-violet-600'
+                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
+                                    flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
+
+                                    <div class="flex items-center gap-3">
+
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="1.5"
+                                                d="{{ $menu->menu_icon }}" />
+                                        </svg>
+
+                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                            {{ $menu->menu_name }}
+                                        </span>
+
+                                    </div>
+
+                                    <svg class="chevron h-4 w-4 transition-transform"
+                                        :class="open ? 'rotate-180' : ''"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round">
+
+                                        <path d="M6 9l6 6 6-6" />
+
+                                    </svg>
+
+                                </button>
+
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+
+                                    @foreach ($children as $child)
+
+                                        <li>
+
+                                            <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
+                                                class="{{ Route::is($child->menu_route . '*')
+                                                    ? 'text-violet-600'
+                                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
+                                                block rounded-md px-3 py-1.5 text-sm">
+
+                                                {{ $child->menu_name }}
+
+                                            </a>
+
+                                        </li>
+
+                                    @endforeach
+
+                                </ul>
+
+                            </li>
+
+                        @endif
+
+                    @endforeach
+
+                @endif
 
                 <!-- ================= MODUL Report ================= -->
                 @php

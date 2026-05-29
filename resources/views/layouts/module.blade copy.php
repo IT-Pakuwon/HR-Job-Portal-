@@ -1,5 +1,4 @@
 @php $noBack = true; @endphp
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 {{-- ================= ALPINE LOGIC ================= --}}
 <script>
     function todoApp() {
@@ -424,11 +423,11 @@
                         url: '#'
                     }
                 ],
-            
+
                 openNotification(id) {
                     this.notifications = this.notifications.filter(n => n.id !== id)
                 },
-            
+
                 formatDate(date) {
                     return new Date(date).toLocaleDateString('en-GB', {
                         day: '2-digit',
