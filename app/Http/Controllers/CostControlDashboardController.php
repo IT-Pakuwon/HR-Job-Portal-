@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MsAutonbr;
 use App\Models\BudgetDetail;
 use App\Models\StagingIfcaIcStkIssue;
 use App\Models\StagingIfcaPoApprove;
@@ -280,4 +281,22 @@ class CostControlDashboardController extends Controller
             'data' => $data,
         ]);
     }
+
+    public function approvalDocTypes(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $rows = MsAutonbr::query()
+            ->select('doctype')
+            ->where('status', 'A')
+            ->distinct()
+            ->orderBy('doctype')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $rows,
+        ]);
+    }
+
 }

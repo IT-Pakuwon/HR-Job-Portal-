@@ -12,6 +12,7 @@
         issue: "/cost-control-dashboard/pending-issue-json",
         budget: "/cost-control-dashboard/budget-json",
         imbudget: "/cost-control-dashboard/im-budget-json",
+        approvalDocTypes: "/cost-control-dashboard/approval-doctypes-json",
     };
 
     function updateRefreshTime() {
@@ -43,8 +44,8 @@
                 $("#approvalCount").text(data.waiting_approval || 0);
                 $("#poCount").text(data.pending_po || 0);
                 $("#issueCount").text(data.pending_issue || 0);
-                $('#budgetCount').text(
-                    Number(data.budget || 0).toLocaleString('id-ID')
+                $("#budgetCount").text(
+                    Number(data.budget || 0).toLocaleString("id-ID"),
                 );
                 $("#imBudgetCount").text(data.im_budget || 0);
 
@@ -156,10 +157,10 @@
                     {
                         data: "remaining_budget",
                         title: "Budget Remaining",
-                        render: function(data){
+                        render: function (data) {
                             return Number(data || 0).toLocaleString();
-                        }
-                    }
+                        },
+                    },
                 ];
                 break;
 
@@ -235,10 +236,25 @@
         let url = urls.approval;
 
         switch (tab) {
-            case "approval-history":
-                url = urls.approvalHistory;
-                break;
+            case "approval":
+                const doctype = $("#approvalDocFilter").val();
 
+                if (doctype) {
+                    url += "?doctype=" + encodeURIComponent(doctype);
+                }
+
+                break;
+            case "approval-history":
+
+                url = urls.approvalHistory;
+
+                const historyDoctype = $("#approvalDocFilter").val();
+
+                if (historyDoctype) {
+                    url += "?doctype=" + encodeURIComponent(historyDoctype);
+                }
+
+                break;
             case "po":
                 url = urls.po;
                 break;
@@ -304,6 +320,18 @@
                     "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:border-slate-400";
             }
         });
+        const filterContainer = document.getElementById(
+            "approvalFilterContainer"
+        );
+
+        if (filterContainer) {
+            filterContainer.style.display =
+                tab === "approval" ||
+                tab === "approval-history"
+                    ? "flex"
+                    : "none";
+        }
+
 
         loadTab(tab);
     }
@@ -312,7 +340,7 @@
         $("#tab-approval").on("click", () => activateTab("approval"));
 
         $("#tab-approval-history").on("click", () =>
-            activateTab("approval-history")
+            activateTab("approval-history"),
         );
 
         $("#tab-po").on("click", () => activateTab("po"));
@@ -322,8 +350,30 @@
         $("#tab-budget").on("click", () => activateTab("budget"));
 
         $("#tab-imbudget").on("click", () => activateTab("imbudget"));
+
+        $("#approvalDocFilter").on("change", function () {
+
+            if (
+                activeTab === "approval" ||
+                activeTab === "approval-history"
+            ) {
+                loadTab(activeTab);
+            }
+
+        });
     }
 
+    function loadApprovalDocTypes() {
+        $.get(urls.approvalDocTypes, function (res) {
+            let html = '<option value="">All Documents</option>';
+
+            (res.data || []).forEach((row) => {
+                html += `<option value="${row.doctype}">${row.doctype}</option>`;
+            });
+
+            $("#approvalDocFilter").html(html);
+        });
+    }
     function autoRefresh() {
         setInterval(() => {
             if (document.hidden) {
@@ -341,11 +391,15 @@
         }
 
         bindEvents();
+
+        loadApprovalDocTypes();
+
         loadSummary();
+
         activateTab("approval");
+
         autoRefresh();
     }
-
     $(document).ready(function () {
         init();
     });

@@ -97,10 +97,6 @@
                         APP System
                     </h2>
 
-                        <p class="mt-4 text-lg text-white/80">
-                            Centralized enterprise workflow platform.
-                    </p>
-
                 </div>
 
             </div>

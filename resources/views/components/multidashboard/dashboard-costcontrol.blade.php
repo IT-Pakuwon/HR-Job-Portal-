@@ -115,45 +115,59 @@
     </div>
 
     <div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-<div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-        <div class="flex flex-wrap gap-3">
+        <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+            <div class="flex flex-wrap items-center justify-between gap-3">
 
-            <button id="tab-approval">
-                ✅ Waiting Approval
-            </button>
+                <div class="flex flex-wrap gap-3">
 
-            <button id="tab-approval-history">
-                📋 Approval History
-            </button>
+                    <button id="tab-approval">
+                        ✅ Waiting Approval
+                    </button>
 
+                    <button id="tab-approval-history">
+                        📋 Approval History
+                    </button>
 
-            <button id="tab-po">
-                📦 Pending PO Mapping
-            </button>
+                    <button id="tab-po">
+                        📦 Pending PO Mapping
+                    </button>
 
-            <button id="tab-issue">
-                🚚 Pending Issue Mapping
-            </button>
+                    <button id="tab-issue">
+                        🚚 Pending Issue Mapping
+                    </button>
 
-            <button id="tab-budget">
-                💰 Search Budget
-            </button>
+                    <button id="tab-budget">
+                        💰 Search Budget
+                    </button>
 
-            <button id="tab-imbudget">
-                📊 IM Budget
-            </button>
+                    <button id="tab-imbudget">
+                        📊 IM Budget
+                    </button>
 
-        </div>
-</div>
+                </div>
 
-        <div class="p-4">
-            <div id="dashboardTableContainer">
-                <table id="dashboardTable" class="display w-full text-xs"></table>
+                <div id="approvalFilterContainer" class="flex items-center gap-2">
+
+                    <label class="text-sm font-medium text-slate-600 dark:text-slate-400">
+                        Document Type
+                    </label>
+
+                    <select id="approvalDocFilter"
+                        class="rounded-lg border border-slate-300 bg-white px-10 py-2 text-sm text-slate-700 shadow-sm focus:border-slate-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                        <option value="">All Documents</option>
+                    </select>
+
+                </div>
+
             </div>
+            <div class="p-4">
+                <div id="dashboardTableContainer">
+                    <table id="dashboardTable" class="display w-full text-xs"></table>
+                </div>
+            </div>
+
         </div>
 
     </div>
 
-</div>
-
-<script src="{{ asset('assets/js/multidashboard/dashcost.js') }}"></script>
+    <script src="{{ asset('assets/js/multidashboard/dashcost.js') }}"></script>

@@ -21,12 +21,12 @@ use App\Http\Controllers\BusinessUnitController;
 use App\Http\Controllers\CalrController;
 use App\Http\Controllers\CalrListController;
 use App\Http\Controllers\CalrNonPurchController;
-use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\CanvassxController;
 use App\Http\Controllers\CareerController;
 use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\DashboardController;
@@ -136,7 +136,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
-
 
 Route::get('/avatar/{filename}', function ($filename) {
     return response($filename, 200, [
@@ -1086,7 +1085,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/users/businessunits/by-cpny', [MasterController::class, 'businessUnitsByCpny'])->name('businessunits.byCpny');
     Route::get('/coa/by-deptwo', [MasterController::class, 'CoaBudgetbyDept'])->name('coa.byDeptWo');
-    Route::get('/itrecommend/ajax/completed', [MasterController::class, 'ajaxCompletedItr'])->name('itrecommend.ajax.completed');
 
     Route::post('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
     Route::get('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
@@ -1511,6 +1509,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/pending-issue-json', 'pendingIssueJson')->name('costdashboard.issue');
             Route::get('/budget-json', 'budgetJson')->name('costdashboard.budget');
             Route::get('/im-budget-json', 'imBudgetJson')->name('costdashboard.imbudget');
+            Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('costdashboard.approval-doctypes');
         });
     });
 
