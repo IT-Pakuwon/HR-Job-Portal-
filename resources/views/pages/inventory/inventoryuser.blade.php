@@ -176,7 +176,13 @@
                                 return '0';
                             }
 
-                            const n = Number(v);
+                            let value = v;
+
+                            if (typeof value === 'string') {
+                                value = value.replace(/\./g, '').replace(',', '.');
+                            }
+
+                            const n = Number(value);
 
                             if (Number.isNaN(n)) {
                                 return v;

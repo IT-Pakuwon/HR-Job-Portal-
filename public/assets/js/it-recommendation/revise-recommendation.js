@@ -1,3 +1,6 @@
+let editRecommendationFiles = [];
+let editRecommendationExistingAttachments = [];
+
 function createEditRecommendationRow(data = {}) {
     return `
 
@@ -306,85 +309,128 @@ function addEditRecommendationRow(data = {}) {
     );
 }
 
-function renderEditAttachments(files = []) {
 
-    if (files.length === 0) {
+function renderEditRecommendationAttachmentPreview() {
 
-        $("#edit_recommendation_attachments").html(`
-            <div class="
-                w-full
-                rounded-lg
-                border border-dashed border-slate-200
-                dark:border-white/10
-                px-4 py-6
-                text-center text-sm text-slate-400
-            ">
-                No attachments
-            </div>
-        `);
+    let html = "";
 
-        return;
-    }
+    editRecommendationExistingAttachments.forEach(file => {
 
-    const html = files.map(file => `
+        html += attachmentCard({
+            name: file.filename || "Attachment",
+            url: file.signed_url || "#",
+            removable: true,
+            index: file.id,
+            removeClass: "btn-remove-existing-edit-attachment"
+        });
 
-        <button
-            type="button"
+    });
 
-            class="
-                preview-attachment
+    editRecommendationFiles.forEach((file, index) => {
 
-                inline-flex
-                items-center
-                gap-2
+        const size = (file.size / 1024 / 1024).toFixed(2);
 
-                rounded-lg
+        html += attachmentCard({
+            name: file.name,
+            size: `${size} MB`,
+            removable: true,
+            index,
+            removeClass: "btn-remove-edit-recommendation-attachment"
+        });
 
-                border border-slate-200
-                dark:border-white/10
+    });
 
-                bg-slate-50
-                dark:bg-white/[0.03]
-
-                px-3 py-2
-
-                text-xs
-                text-slate-700
-                dark:text-slate-300
-
-                transition-all
-                duration-200
-
-                hover:bg-slate-100
-                dark:hover:bg-white/[0.05]
-            "
-
-            data-url="${file.signed_url || ''}"
-            data-name="${file.filename || 'Attachment'}"
-        >
-
-            <i class="
-                fa-solid
-                fa-paperclip
-
-                text-slate-400
-            "></i>
-
-            <div class="
-                max-w-[220px]
-                truncate
-            ">
-                ${file.filename || "Attachment"}
-            </div>
-
-        </button>
-
-    `).join("");
-
-    $("#edit_recommendation_attachments").html(html);
+    $("#editRecommendationAttachmentPreview")
+        .html(html || attachmentEmptyState());
 }
 
+$("#edit_recommendation_attachments_input").on(
+    "change",
+    function ()
+    {
+        const files = Array.from(this.files || []);
 
+        files.forEach(file => {
+
+            if (file.size > 5 * 1024 * 1024) {
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "File too large",
+                    text: `${file.name} exceeds 5 MB`
+                });
+
+                return;
+            }
+
+            editRecommendationFiles.push(file);
+
+        });
+
+        renderEditRecommendationAttachmentPreview();
+
+        $(this).val("");
+    }
+);
+$(document).on(
+    "click",
+    ".btn-remove-existing-edit-attachment",
+    async function (e)
+    {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const attachmentId = $(this).data("index");
+
+        const result = await Swal.fire({
+            icon: "warning",
+            title: "Delete Attachment?",
+            text: "This attachment will be removed.",
+            showCancelButton: true,
+            confirmButtonText: "Delete"
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+
+            await $.ajax({
+
+                url: window.ITRecommendationRoutes
+                    .deleteAttachment
+                    .replace("__ID__", attachmentId),
+
+                type: "DELETE",
+
+                headers: {
+                    "X-CSRF-TOKEN":
+                        $('meta[name="csrf-token"]').attr("content")
+                }
+
+            });
+
+            editRecommendationExistingAttachments =
+                editRecommendationExistingAttachments.filter(
+                    row => row.id != attachmentId
+                );
+
+            renderEditRecommendationAttachmentPreview();
+
+        } catch (err) {
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text:
+                    err.responseJSON?.message ||
+                    "Failed delete attachment"
+            });
+
+        }
+    }
+);
 
 function renderRevisionNote(tracking = []) {
     const reviseTimeline = tracking.find((row) => row.status === "D");
@@ -521,7 +567,12 @@ async function loadEditRecommendation(hash) {
 
         $("#edit_recommendation").val(header.recommendation || "");
 
-        renderEditAttachments(res.attachments || []);
+        editRecommendationFiles = [];
+
+        editRecommendationExistingAttachments =
+            res.attachments || [];
+
+        renderEditRecommendationAttachmentPreview();
 
         const tracking = await $.ajax({
             url: `/it-recommendation/tracking/${header.docid}`,
@@ -577,40 +628,88 @@ function collectEditRecommendationDetails() {
 }
 
 async function submitEditRecommendation() {
+
     const hash = $("#edit_recommendation_hash").val();
 
     const details = collectEditRecommendationDetails();
 
     if (details.length === 0) {
+
         Swal.fire({
             icon: "warning",
-
             title: "Validation",
-
             text: "Please select inventory item",
         });
 
         return false;
     }
 
+    const formData = new FormData();
+
+    formData.append(
+        "recommend_type",
+        $("#edit_recommend_type").val()
+    );
+
+    formData.append(
+        "waranty",
+        $("#edit_waranty").val()
+    );
+
+    formData.append(
+        "recommendation",
+        $("#edit_recommendation").val()
+    );
+
+    details.forEach((row, index) => {
+
+        formData.append(
+            `details[${index}][recommend_descr]`,
+            row.recommend_descr || ""
+        );
+
+        formData.append(
+            `details[${index}][qty]`,
+            row.qty || 1
+        );
+
+        formData.append(
+            `details[${index}][uom]`,
+            row.uom || ""
+        );
+
+        formData.append(
+            `details[${index}][recommend_note]`,
+            row.recommend_note || ""
+        );
+
+    });
+    editRecommendationFiles.forEach(file => {
+
+        formData.append(
+            "attachments[]",
+            file
+        );
+
+    });
+
     await $.ajax({
+
         url: `/it-recommendation/process/${hash}`,
 
         type: "POST",
 
         headers: {
-            "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            "X-CSRF-TOKEN":
+                $('meta[name="csrf-token"]').attr("content"),
         },
 
-        data: {
-            recommend_type: $("#edit_recommend_type").val(),
+        data: formData,
 
-            waranty: $("#edit_waranty").val(),
+        processData: false,
 
-            recommendation: $("#edit_recommendation").val(),
+        contentType: false,
 
-            details,
-        },
     });
 
     return true;

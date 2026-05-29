@@ -13,12 +13,12 @@ use App\Models\User;
 use App\Models\MsCategory;
 use App\Models\Usercpny;
 use App\Models\Userdept;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Vinkla\Hashids\Facades\Hashids;
-
 class VoucherTaxiController extends Controller
 {
     use HasAutonbr;
@@ -1151,8 +1151,9 @@ class VoucherTaxiController extends Controller
 
             'purpose_descr' => $voucher->purpose_descr,
 
-            'date_used' => optional($voucher->date_used)
-                ->format('Y-m-d'),
+            'date_used' => $voucher->date_used
+                ? \Carbon\Carbon::parse($voucher->date_used)->format('Y-m-d')
+                : null,
 
             'type_trip' => $voucher->type_trip,
 
@@ -1230,6 +1231,9 @@ class VoucherTaxiController extends Controller
             foreach ($approvals as $aprv) {
                 $steps[] = [
                     'key' => 'approval_' . $aprv->aprv_leveling,
+
+                    'aprv_name' => $aprv->aprv_name,
+                    'aprv_leveling' => $aprv->aprv_leveling,
 
                     'title' => $aprv->aprv_name
                         ?: ('Approval Level ' . $aprv->aprv_leveling),

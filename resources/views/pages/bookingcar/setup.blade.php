@@ -99,8 +99,10 @@
                             <tr>
 
                                 <th>No</th>
-                                <th>License Plate</th>
-                                <th>Description</th>
+                                <th>Vehicle License Plate</th>
+                                <th>Vehicle Name</th>
+                                <th>Vehicle Type</th>
+                                <th>Vehicle Brand</th>
                                 <th>Status</th>
                                 <th class="text-right">Action</th>
 
@@ -878,7 +880,8 @@
                     }
                 ],
 
-                columns: [{
+                columns: [
+                    {
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
                         orderable: false,
@@ -886,12 +889,20 @@
                         width: '5%'
                     },
                     {
-                        data: 'nopol_kendaraan',
-                        name: 'nopol_kendaraan'
+                        data: 'no_polisi',
+                        name: 'no_polisi'
                     },
                     {
-                        data: 'kendaraan_descr',
-                        name: 'kendaraan_descr'
+                        data: 'namakendaraan',
+                        name: 'namakendaraan'
+                    },
+                    {
+                        data: 'typekendaraan',
+                        name: 'typekendaraan'
+                    },
+                    {
+                        data: 'merk_kendaraan',
+                        name: 'merk_kendaraan'
                     },
                     {
                         data: 'status',

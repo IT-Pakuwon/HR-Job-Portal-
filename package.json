@@ -21,12 +21,11 @@
     },
     "dependencies": {
         "@alpinejs/anchor": "^3.14.8",
-        "@alpinejs/collapse": "^3.14.8",
+        "@alpinejs/collapse": "^3.15.12",
         "@alpinejs/focus": "^3.14.8",
         "@alpinejs/intersect": "^3.14.8",
         "@alpinejs/mask": "^3.14.8",
         "@alpinejs/morph": "^3.14.8",
-        "@alpinejs/persist": "^3.14.8",
         "@fullcalendar/core": "^6.1.20",
         "@fullcalendar/daygrid": "^6.1.20",
         "@fullcalendar/interaction": "^6.1.20",

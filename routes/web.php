@@ -4,6 +4,7 @@ use App\Http\Controllers\AccessRequestController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\ApplicantController;
 use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\ApprovalDashboardController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssetsLocationController;
 use App\Http\Controllers\AssignListController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\BusinessUnitController;
 use App\Http\Controllers\CalrController;
 use App\Http\Controllers\CalrListController;
 use App\Http\Controllers\CalrNonPurchController;
+use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\CanvassxController;
 use App\Http\Controllers\CareerController;
@@ -51,6 +53,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryUserController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\IssueListController;
+use App\Http\Controllers\ItDashboardController;
 use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\ItRecommendationController;
 use App\Http\Controllers\JobapplicantController;
@@ -66,13 +69,11 @@ use App\Http\Controllers\MasterController;
 use App\Http\Controllers\MasterTrainingController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MeetingRoomSetupController;
-use App\Http\Controllers\MsApplicationController;
 use App\Http\Controllers\MsApprovalController;
 use App\Http\Controllers\MsApprovalGroupBiayaController;
 use App\Http\Controllers\MsCategoryController;
 use App\Http\Controllers\MsGroupbiayaNonPurchController;
-use App\Http\Controllers\MsGroupController;
-use App\Http\Controllers\MsScreenController;
+use App\Http\Controllers\MultiDashboardController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\OrgChartController;
@@ -80,6 +81,7 @@ use App\Http\Controllers\ParkingRegistrationController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
@@ -127,7 +129,6 @@ use App\Http\Controllers\VoucherTaxiSetupController;
 use App\Http\Controllers\WoController;
 use App\Http\Controllers\WorkInstructionController;
 use App\Http\Controllers\WorksCategoryController;
-use App\Models\MsScreen;
 use App\Models\SysMenu;
 use App\Models\SysRoleMenu;
 use App\Models\User;
@@ -135,6 +136,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+
 
 Route::get('/avatar/{filename}', function ($filename) {
     return response($filename, 200, [
@@ -193,47 +195,6 @@ Route::post('/logout', function () {
 // Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     // Dashboard Approval JSON endpoints
-    Route::get('/waitingjson', [DashboardController::class, 'Waitingjson'])->name('dashboard.waitingjson');
-    Route::get('/approvejson', [DashboardController::class, 'Approvejson'])->name('dashboard.approvejson');
-
-    // Ambil semua screens dan buat route otomatis
-    // $screens = MsScreen::all();
-    // foreach ($screens as $screen) {
-    //     Route::get($screen->screen_name, function () use ($screen) {
-    //         return view($screen->screen_name); // Load view sesuai database
-    //     })->name($screen->screen_name);
-    // }
-
-    // Route::get('/screens', [MsScreenController::class, 'index'])->name('screens');
-    // Route::get('/screens/json', [MsScreenController::class, 'json'])->name('screens.json'); // Untuk Fetch API
-    // Route::post('/screens', [MsScreenController::class, 'store'])->name('screens.store');
-    // Route::get('/screens/{id}/edit', [MsScreenController::class, 'edit'])->name('screens.edit');
-    // Route::put('/screens/{post}', [MsScreenController::class, 'update'])->name('screens.update');
-    // Route::put('/screens/{id}/toggle-status', [MsScreenController::class, 'toggleStatus']);
-
-    // Route::get('/applications', [MsApplicationController::class, 'index'])->name('applications');
-    // Route::get('/applications/json', [MsApplicationController::class, 'json'])->name('applications.json'); // Untuk Fetch API
-    // Route::post('/applications', [MsApplicationController::class, 'store'])->name('applications.store');
-    // Route::get('/applications/{id}/edit', [MsApplicationController::class, 'edit'])->name('applications.edit');
-    // Route::put('/applications/{post}', [MsApplicationController::class, 'update'])->name('applications.update');
-    // Route::put('/applications/{id}/toggle-status', [MsApplicationController::class, 'toggleStatus']);
-
-    // Route::get('/groups', [MsGroupController::class, 'index'])->name('groups');
-    // Route::get('/groups/json', [MsGroupController::class, 'json'])->name('groups.json'); // Untuk Fetch API
-    // Route::post('/groups', [MsGroupController::class, 'store'])->name('groups.store');
-    // Route::get('/groups/{id}/edit', [MsGroupController::class, 'edit'])->name('groups.edit');
-    // Route::put('/groups/{post}', [MsGroupController::class, 'update'])->name('groups.update');
-    // Route::put('/groups/{id}/toggle-status', [MsGroupController::class, 'toggleStatus']);
-
-    // Route::get('/agendas', [AgendaController::class, 'index']);
-    // Route::post('/agendas/store', [AgendaController::class, 'store']);
-    // Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas');
-    // Route::get('/agendas/json', [AgendaController::class, 'json'])->name('agendas.json');
-    // Route::post('/agendas', [AgendaController::class, 'store'])->name('agendas.store');
-    // Route::get('/api/agendas/today', [AgendaController::class, 'getAgendas'])->name('agendas.today');
-    // Route::get('/api/agendas/{id}', [AgendaController::class, 'show'])->name('agendas.show');
-    // Route::put('/api/agendas/{id}', [AgendaController::class, 'update'])->name('agendas.update');
-    // Route::get('/api/agendas/month', [AgendaController::class, 'getMonthlyAgendas']);
 
     Route::get('/news', [NewsController::class, 'index'])->name('news');
     Route::get('/news/json', [NewsController::class, 'json'])->name('news.json');
@@ -1125,6 +1086,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/users/businessunits/by-cpny', [MasterController::class, 'businessUnitsByCpny'])->name('businessunits.byCpny');
     Route::get('/coa/by-deptwo', [MasterController::class, 'CoaBudgetbyDept'])->name('coa.byDeptWo');
+    Route::get('/itrecommend/ajax/completed', [MasterController::class, 'ajaxCompletedItr'])->name('itrecommend.ajax.completed');
 
     Route::post('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'uploadAttachments'])->name('attachments.upload');
     Route::get('/attachments/{doctype}/{refnbr}', [TrAttachmentController::class, 'listAttachments'])->name('attachments.list');
@@ -1256,6 +1218,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
                 Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
             });
+
         Route::controller(BookingCarController::class)->group(function () {
             Route::get('/bookingcar', 'index')->name('bookingcar');
 
@@ -1521,6 +1484,34 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/dashboard', 'dashboard')
                     ->name('report');
             });
+
+        Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/settings/account', [ProfileController::class, 'show'])->name('profile.showx');
+
+        Route::controller(ApprovalDashboardController::class)->group(function () {
+            Route::get('/waitingjson', 'waitingJson')->name('dashboard.waitingjson');
+            Route::get('/approvejson', 'approveJson')->name('dashboard.approvejson');
+        });
+
+        Route::prefix('it-dashboard')->controller(ItDashboardController::class)->name('it-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/ticket-json', 'ticketJson')->name('ticket-json');
+            Route::get('/access-request-json', 'accessRequestJson')->name('access-request-json');
+            Route::get('/recommendation-json', 'recommendationJson')->name('recommendation-json');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
+        });
+
+        Route::prefix('cost-control-dashboard')->controller(CostControlDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('costdashboard.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('costdashboard.waiting');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('costdashboard.history');
+            Route::get('/pending-po-json', 'pendingPoJson')->name('costdashboard.po');
+            Route::get('/pending-issue-json', 'pendingIssueJson')->name('costdashboard.issue');
+            Route::get('/budget-json', 'budgetJson')->name('costdashboard.budget');
+            Route::get('/im-budget-json', 'imBudgetJson')->name('costdashboard.imbudget');
+        });
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
@@ -1565,15 +1556,15 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/vendors', [VendorController::class, 'index']);
 
     // Route for the getting the data feed
-    Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
+    // Route::get('/json-data-feed', [DataFeedController::class, 'getDataFeed'])->name('json_data_feed');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/waitingapproval', [DashboardController::class, 'waitingApproval'])->name('waitingapproval');
-    Route::get('/waitingapproval/json', [DashboardController::class, 'Waitingjson'])->name('waitingapproval.json');
-    Route::get('/dashapproval/json', [DashboardController::class, 'Approvejson'])->name('dashapproval.json');
-    Route::get('/mastercard', [DashboardController::class, 'analytics'])->name('mastercard');
+    // Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Route::get('/waitingapproval', [DashboardController::class, 'waitingApproval'])->name('waitingapproval');
+    // Route::get('/waitingapproval/json', [DashboardController::class, 'Waitingjson'])->name('waitingapproval.json');
+    // Route::get('/dashapproval/json', [DashboardController::class, 'Approvejson'])->name('dashapproval.json');
+    // Route::get('/mastercard', [DashboardController::class, 'analytics'])->name('mastercard');
 
-    Route::get('/test', [DashboardController::class, 'test'])->name('test');
+    // Route::get('/test', [DashboardController::class, 'test'])->name('test');
 
     Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
     Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
@@ -1581,7 +1572,7 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/settings/account', function () {
     //     return view('profile/show');
     // })->name('account');
-    Route::get('/settings/account', [DashboardController::class, 'showProfile'])->name('profile.showx');
+    // Route::get('/settings/account', [DashboardController::class, 'showProfile'])->name('profile.showx');
 
     Route::get('/settings/notifications', function () {
         return view('pages/settings/notifications');
