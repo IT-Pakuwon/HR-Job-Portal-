@@ -18,15 +18,16 @@ use App\Models\BusinessUnit;
 use App\Models\MsDivision;
 use App\Models\Userdivision;
 use App\Models\UserDas;
+use App\Models\SysScreen;
 
 class UsersController extends Controller
 {
-   
+
     public function index()
     {
         $user = Auth::user();
         if (!$user) return redirect()->route('login');
-        
+
         $company = MsCompany::select(['cpny_id', 'cpny_name'])->where('status', 'A')->get();
         $department = MsDepartment::select(['department_id', 'department_name'])->where('status', 'A')->get();
         // $businessUnits = BusinessUnit::select('business_unit_id')->where('status', 'A')->get();
@@ -40,36 +41,71 @@ class UsersController extends Controller
             ->orderBy('division_name')
             ->get();
 
-        $roles = SysRole::where('status', 'A')->orderBy('role_id')->get();
+        $roles = SysRole::where('status', 'A')
+            ->orderBy('role_id')
+            ->get();
 
-        return view('pages.users.users', compact('company', 'department', 'businessUnits', 'divisions', 'roles'));
+        $screens = SysScreen::query()
+            ->where('status', 'A')
+            ->where('application_id', 'DASHBOARD')
+            ->orderBy('screen_name')
+
+            ->get([
+                'screen_id',
+                'screen_name'
+            ]);
+
+        return view(
+            'pages.users.users',
+            compact(
+                'company',
+                'department',
+                'businessUnits',
+                'divisions',
+                'roles',
+                'screens'
+            )
+        );
     }
 
 
     public function json()
     {
-        $users = User::select(['id','name','username','email','cpny_id','department_id','business_unit_id','division_id','jabatan','npk','status'])
+        $users = User::select([
+            'id',
+            'name',
+            'username',
+            'email',
+            'cpny_id',
+            'department_id',
+            'business_unit_id',
+            'division_id',
+            'jabatan',
+            'npk',
+            'homepage',
+            'status'
+        ])
             ->orderByDesc('id')
             ->get();
 
         return response()->json(['data' => $users]);
     }
-   
+
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'          => 'required',
-            'email'         => 'required',
-            'cpny_id'       => 'required|array',
+            'name' => 'required',
+            'email' => 'required',
+            'cpny_id' => 'required|array',
             'department_id' => 'required|array',
-            'division_id'   => 'required|array',
+            'division_id' => 'required|array',
             'business_unit_id' => 'required|array',
-            'jabatan'       => 'required',            
-            'role'          => 'required',          // user/admin (yang lama)
-            'role_ids'      => 'nullable|array',    // ⬅️ daftar role RBAC (sys_user_role)
+            'homepage' => 'nullable|string',
+            'jabatan' => 'required',
+            'role' => 'required',
+            'role_ids' => 'nullable|array',
         ]);
-
         DB::beginTransaction();
         try {
 
@@ -93,6 +129,7 @@ class UsersController extends Controller
                 'department_id'      => $deptIdsString,
                 'division_id'        => $divisionIdsString,
                 'business_unit_id'   => $businessUnitIdsString,
+                'homepage' => $request->homepage,
                 'jabatan'            => $request->jabatan,
                 'password'           => $password,
                 'user_role'          => $request->role, // user/admin (level UI)
@@ -187,20 +224,21 @@ class UsersController extends Controller
             ->toArray();
 
         return response()->json([
-            'id'            => $user->id,
-            'name'          => $user->name,
-            'email'         => $user->email,
-            'npk'           => $user->npk,
-            'jabatan'       => $user->jabatan,
-            'role'          => $user->user_role, // user/admin
-            'cpny_id'       => explode(',', $user->cpny_id),
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'npk' => $user->npk,
+            'jabatan' => $user->jabatan,
+            'role' => $user->user_role,
+            'homepage' => $user->homepage,
+            'cpny_id' => explode(',', $user->cpny_id),
             'department_id' => explode(',', $user->department_id),
-            'division_id'     => explode(',', (string) $user->division_id),
+            'division_id' => explode(',', (string) $user->division_id),
             'business_unit_id' => explode(',', $user->business_unit_id),
-            'role_ids'      => $userRoles,       // ⬅️ untuk di-set di select2
+            'role_ids' => $userRoles,
         ]);
     }
-   
+
 
     public function update(Request $request, $id)
     {
@@ -211,6 +249,7 @@ class UsersController extends Controller
             'department_id' => 'required|array',
             'division_id'   => 'required|array',
             'business_unit_id' => 'required|array',
+            'homepage'      => 'nullable|string',
             'jabatan'       => 'required',
             'role'          => 'required',
             'role_ids'      => 'nullable|array',
@@ -229,16 +268,17 @@ class UsersController extends Controller
             $businessUnitIdsString = implode(',', $request->business_unit_id);
 
             $user->update([
-                'name'          => strtoupper($request->name),
-                'email'         => $request->email,
-                'cpny_id'       => $companyIdsString,
+                'name' => strtoupper($request->name),
+                'email' => $request->email,
+                'cpny_id' => $companyIdsString,
                 'department_id' => $deptIdsString,
-                'division_id'      => $divisionIdsString,
+                'division_id' => $divisionIdsString,
                 'business_unit_id' => $businessUnitIdsString,
-                'user_role'     => $request->role,
-                'npk'           => $request->npk,
-                'jabatan'       => $request->jabatan,
-                'updated_by'    => $loginUser->username,
+                'homepage' => $request->homepage,
+                'user_role' => $request->role,
+                'npk' => $request->npk,
+                'jabatan' => $request->jabatan,
+                'updated_by' => $loginUser->username,
             ]);
 
             // DELETE OLD ACCESS (company / dept)
@@ -423,8 +463,8 @@ class UsersController extends Controller
 
         return response()->json([
             'success'  => true,
-            'message'  => 'Now logged in as ' . $targetUser->username,           
-            'redirect' => route('users'),           
+            'message'  => 'Now logged in as ' . $targetUser->username,
+            'redirect' => route('users'),
         ]);
     }
 

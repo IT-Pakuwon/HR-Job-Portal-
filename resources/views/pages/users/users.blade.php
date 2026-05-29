@@ -2,8 +2,34 @@
     @php
         $currentPage = Route::currentRouteName() == 'users' ? 'Users' : '';
     @endphp
+    <style>
+        .select2-container--default .select2-selection--multiple {
+            min-height: 44px !important;
+            border-radius: 8px !important;
+            border: 1px solid #d0d7de !important;
+            padding: 4px !important;
+        }
+
+        .select2-container--default .select2-selection--single {
+            height: 44px !important;
+            border-radius: 8px !important;
+            border: 1px solid #d0d7de !important;
+        }
+
+        .select2-container--default .select2-selection__rendered {
+            line-height: 34px !important;
+        }
+
+        .select2-container--default .select2-selection__choice {
+            background: #f6f8fa !important;
+            border: 1px solid #d0d7de !important;
+            border-radius: 6px !important;
+            padding: 2px 8px !important;
+            color: #24292f !important;
+        }
+    </style>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="mt-4 flex flex-col gap-4 rounded-lg bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Users List</h1>
                 <button id="addAppBtn"
@@ -11,6 +37,7 @@
                     + Add User
                 </button>
             </div>
+
             {{-- Filter Company & Department --}}
             <div class="mb-3 flex flex-wrap items-end gap-3">
                 <div class="min-w-[200px] flex-1">
@@ -73,6 +100,7 @@
                     </button>
                 </div>
             </div>
+
             {{-- Table --}}
             <div class="rounded-base relative overflow-x-auto">
                 <table id="usersTable" class="text-body w-full text-left text-sm rtl:text-right">
@@ -98,128 +126,268 @@
         </div>
 
         <!-- Modal -->
-        <div id="appModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
-            <div class="relative w-1/3 rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 id="modalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add User</h2>
-                <form id="appForm">
-                    <input type="hidden" id="id">
-                    <div class="mb-4 grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Name</label>
-                            <input type="text" id="name" name="name"
-                                class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:bg-gray-700" required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Email</label>
-                            <input type="text" id="email" name="email"
-                                class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                                required>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Company</label>
-                            <select name="cpny_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
-                                required>
-                                @foreach ($company as $p)
-                                    <option value="{{ $p->cpny_id }}">{{ $p->cpny_id }}</option>
-                                @endforeach
-                            </select>
+        <div id="appModal" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-slate-900/50"></div>
 
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Departement</label>
-                            <select name="department_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
-                                required>
-                                @foreach ($department as $p)
-                                    <option value="{{ $p->department_id }}">{{ $p->department_id }}</option>
-                                @endforeach
-                            </select>
+            <div class="relative flex h-full items-center justify-center p-4">
+                <div
+                    class="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-slate-800">
 
-                        </div>
+                    <!-- HEADER -->
+                    <div
+                        class="flex items-start justify-between border-b border-slate-200 px-8 py-6 dark:border-slate-700">
                         <div>
-                            <label class="block text-gray-700 dark:text-white">Division</label>
-                            <select name="division_id[]" class="select2 w-full rounded-lg border px-3 py-2" multiple
-                                required>
-                                @foreach ($divisions as $d)
-                                    <option value="{{ $d->division_id }}">
-                                        {{ $d->division_id }} - {{ $d->division_name }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <h2 id="modalTitle" class="text-2xl font-semibold text-slate-900 dark:text-white">
+                                Add User
+                            </h2>
+                            <p class="mt-1 text-sm text-slate-500">
+                                Create and manage user permissions and access scopes.
+                            </p>
                         </div>
 
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Business Unit</label>
-                            <select name="business_unit_id[]" class="select2 w-full rounded-lg border px-3 py-2"
-                                multiple required>
-                                @foreach ($businessUnits as $p)
-                                    <option value="{{ $p->business_unit_id }}">{{ $p->business_unit_id }} -
-                                        {{ $p->business_unit_name }}</option>
-                                @endforeach
-                            </select>
-
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Jabatan</label>
-                            <select name="jabatan"
-                                class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                                required>
-                                <option value="">Select Option</option>
-                                <option value="staff">Staff</option>
-                                <option value="manager">Manager</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Role</label>
-                            <select name="role"
-                                class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
-                                required>
-                                <option value="">Select Option</option>
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">App Roles </label>
-                            <select name="role_ids[]" class="select2 w-full rounded-lg border px-3 py-2" multiple>
-                                @foreach ($roles as $r)
-                                    <option value="{{ $r->role_id }}">
-                                        {{ $r->role_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">NPK</label>
-                            <input type="text" name="npk" id="npk"
-                                class="w-full rounded-lg border border-gray-400 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
-                        </div>
+                        <button id="closeModal" type="button"
+                            class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
 
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" id="closeModal"
-                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
-                        <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
-                    </div>
-                </form>
+                    <form id="appForm" class="flex min-h-0 flex-1 flex-col">
+                        <input type="hidden" id="id">
+
+                        <div class="flex-1 overflow-y-auto overflow-x-visible bg-slate-50/40 p-4">
+
+                            <div class="space-y-6">
+
+                                <!-- USER INFORMATION -->
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                                    <div class="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+                                        <h3 class="font-semibold text-slate-900 dark:text-white">
+                                            User Information
+                                        </h3>
+                                        <p class="mt-1 text-sm text-slate-500">
+                                            Basic profile information.
+                                        </p>
+                                    </div>
+
+                                    <div class="grid gap-5 p-6 md:grid-cols-2">
+
+                                        <div>
+                                            <label
+                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                Full Name
+                                            </label>
+                                            <input id="name" name="name" type="text" placeholder="John Doe"
+                                                required
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                Email Address
+                                            </label>
+                                            <input id="email" name="email" type="email"
+                                                placeholder="john.doe@example.com" required
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                NPK
+                                            </label>
+                                            <input id="npk" name="npk" type="text" placeholder="123456"
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                Position
+                                            </label>
+                                            <select name="jabatan" required
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                                <option value="">Select Position</option>
+                                                <option value="staff">Staff</option>
+                                                <option value="manager">Manager</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- ACCESS SCOPE -->
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                                    <div class="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+                                        <h3 class="font-semibold text-slate-900 dark:text-white">
+                                            Access Scope
+                                        </h3>
+                                        <p class="mt-1 text-sm text-slate-500">
+                                            Configure organization access.
+                                        </p>
+                                    </div>
+
+                                    <div class="grid gap-5 p-6 md:grid-cols-2">
+
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">Company</label>
+                                            <select name="cpny_id[]" class="select2 w-full" multiple
+                                                data-placeholder="Search and select company access" required>
+                                                <option></option>
+                                                @foreach ($company as $c)
+                                                    <option value="{{ $c->cpny_id }}">
+                                                        {{ $c->cpny_id }} - {{ $c->cpny_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">Department</label>
+                                            <select name="department_id[]" class="select2 w-full" multiple
+                                                data-placeholder="Search and select department access" required>
+                                                <option></option>
+                                                @foreach ($department as $d)
+                                                    <option value="{{ $d->department_id }}">
+                                                        {{ $d->department_id }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">Division</label>
+                                            <select name="division_id[]" class="select2 w-full" multiple
+                                                data-placeholder="Search and select division access" required>
+                                                <option></option>
+                                                @foreach ($divisions as $d)
+                                                    <option value="{{ $d->division_id }}">
+                                                        {{ $d->division_id }} - {{ $d->division_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">Business Unit</label>
+                                            <select name="business_unit_id[]" class="select2 w-full" multiple
+                                                data-placeholder="Search and select business unit access" required>
+                                                <option></option>
+                                                @foreach ($businessUnits as $bu)
+                                                    <option value="{{ $bu->business_unit_id }}">
+                                                        {{ $bu->business_unit_id }} - {{ $bu->business_unit_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- SECURITY -->
+                                <div
+                                    class="rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                                    <div class="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+                                        <h3 class="font-semibold text-slate-900 dark:text-white">
+                                            Security & Permissions
+                                        </h3>
+                                        <p class="mt-1 text-sm text-slate-500">
+                                            Configure roles and dashboard access.
+                                        </p>
+                                    </div>
+
+                                    <div class="grid gap-5 p-6 md:grid-cols-2">
+
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">
+                                                Homepage Dashboard
+                                            </label>
+
+                                            <select id="homepage" name="homepage"
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                                                data-placeholder="Search and select homepage">
+
+                                                <option value="">Select Homepage</option>
+
+                                                @foreach ($screens as $screen)
+                                                    <option value="{{ $screen->screen_id }}">
+                                                        {{ $screen->screen_name }}
+                                                    </option>
+                                                @endforeach
+
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="mb-2 block text-sm font-medium">
+                                                User Type
+                                            </label>
+
+                                            <select name="role" required
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                                <option value="">Select Type</option>
+                                                <option value="user">User</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="md:col-span-2">
+                                            <label class="mb-2 block text-sm font-medium">
+                                                Application Roles
+                                            </label>
+
+                                            <select name="role_ids[]" class="select2 w-full" multiple  data-placeholder="Search and assign application roles">
+                                                <option></option>
+                                                @foreach ($roles as $role)
+                                                    <option value="{{ $role->role_id }}">
+                                                        {{ $role->role_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- FOOTER -->
+                        <div
+                            class="flex items-center justify-end gap-3 border-t border-slate-200 bg-white px-8 py-4 dark:border-slate-700 dark:bg-slate-800">
+
+                            <button id="closeModalFooter" type="button"
+                                class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700">
+                                Cancel
+                            </button>
+
+                            <button type="submit"
+                                class="rounded-lg bg-slate-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700">
+                                Save User
+                            </button>
+
+                        </div>
+                    </form>
+
+                </div>
             </div>
         </div>
     </div>
+
     <div id="saveOverlay" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40">
-        <div class="flex items-center gap-3 rounded-xl bg-white px-5 py-4 shadow-lg dark:bg-gray-800">
+        <div class="flex items-center gap-3 rounded-lg bg-white px-5 py-4 shadow-lg dark:bg-gray-800">
             <svg class="h-6 w-6 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                    stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
             <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Saving user...</span>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         $(document).ready(function() {
@@ -412,16 +580,31 @@
 
 
             $('#addAppBtn').click(function() {
-                $('#modalTitle').text("Add User");
+
+                $('#modalTitle').text('Add User');
+
                 $('#appForm')[0].reset();
+
                 $('#id').val('');
-                $('.select2').val(null).trigger('change');
+
+                $('#homepage').val(null).trigger('change');
+
+                $('select[name="role"]').val('').trigger('change');
+                $('select[name="jabatan"]').val('').trigger('change');
+
+                $('select[name="cpny_id[]"]').val(null).trigger('change');
+                $('select[name="department_id[]"]').val(null).trigger('change');
+                $('select[name="division_id[]"]').val(null).trigger('change');
+                $('select[name="business_unit_id[]"]').val(null).trigger('change');
+                $('select[name="role_ids[]"]').val(null).trigger('change');
 
                 const $submitBtn = $('#appForm').find('button[type="submit"]');
+
                 $submitBtn.data('loading', false);
-                $submitBtn.prop('disabled', false).text('Save');
+                $submitBtn.prop('disabled', false).text('Save User');
 
                 $('#closeModal').prop('disabled', false);
+
                 $('#appModal').removeClass('hidden');
             });
 
@@ -432,23 +615,30 @@
 
                 const $submitBtn = $('#appForm').find('button[type="submit"]');
                 $submitBtn.data('loading', false);
-                $submitBtn.prop('disabled', false).text('Save');
+                $submitBtn.prop('disabled', false).text('Save User');
 
                 $('#closeModal').prop('disabled', false);
 
                 $.get(`/users/${appId}/edit`, function(app) {
-                    $('#modalTitle').text("Edit User");
+
+                    $('#modalTitle').text('Edit User');
+
                     $('#id').val(app.id);
                     $('#name').val(app.name);
                     $('#email').val(app.email);
                     $('#npk').val(app.npk);
 
+                    $('#homepage').val(app.homepage).trigger('change');
+
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
+                    $('select[name="role"]').val(app.role).trigger('change');
+
                     $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
                     $('select[name="division_id[]"]').val(app.division_id).trigger('change');
-                    $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger('change');
-                    $('select[name="role"]').val(app.role).trigger('change');
+                    $('select[name="business_unit_id[]"]').val(app.business_unit_id).trigger(
+                        'change');
+
                     $('select[name="role_ids[]"]').val(app.role_ids).trigger('change');
 
                     $('#appModal').removeClass('hidden');
@@ -500,7 +690,7 @@
                 }
 
                 $submitBtn.data('loading', true);
-                $submitBtn.prop('disabled', true).text('Saving...');
+                $submitBtn.prop('disabled', true).text('Saving User...');
                 $closeBtn.prop('disabled', true);
                 $overlay.removeClass('hidden').addClass('flex');
 
@@ -520,7 +710,8 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Successfully!',
-                            text: appId ? 'User berhasil diupdate.' : 'User berhasil ditambahkan.',
+                            text: appId ? 'User berhasil diupdate.' :
+                                'User berhasil ditambahkan.',
                             timer: 1500,
                             showConfirmButton: false
                         });
@@ -544,26 +735,67 @@
                     },
                     complete: function() {
                         $submitBtn.data('loading', false);
-                        $submitBtn.prop('disabled', false).text('Save');
+                        $submitBtn.prop('disabled', false).text('Save User');
                         $closeBtn.prop('disabled', false);
                         $overlay.removeClass('flex').addClass('hidden');
                     }
                 });
             });
 
-            $('#closeModal').click(function() {
+            $('#closeModal, #closeModalFooter').on('click', function() {
+
                 const $submitBtn = $('#appForm').find('button[type="submit"]');
+
                 if ($submitBtn.data('loading') === true) return;
+
                 $('#appModal').addClass('hidden');
             });
         });
 
+
         $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: "Select Option",
+
+            $('.select2').each(function () {
+                $(this).select2({
+                    width: '100%',
+                    allowClear: true,
+                    closeOnSelect: false,
+                    dropdownParent: $('#appModal'),
+                    placeholder: $(this).data('placeholder') || 'Search and select'
+                });
+            });
+
+            $('#homepage').select2({
+                width: '100%',
+                allowClear: true,
+                dropdownParent: $('#appModal'),
+                placeholder: 'Search and select homepage'
+            });
+
+            $('#filterCompany').select2({
+                placeholder: 'All Company',
                 allowClear: true,
                 width: '100%'
             });
+
+            $('#filterDepartment').select2({
+                placeholder: 'All Department',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#filterBusinessUnit').select2({
+                placeholder: 'All Business Unit',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#filterJabatan').select2({
+                placeholder: 'All Position',
+                allowClear: true,
+                width: '100%'
+            });
+
         });
 
         // 🔑 Login As (SweetAlert)
@@ -618,7 +850,7 @@
 
             });
         });
-        // 🔁 Reset Password ke default: pakuwon1234#               
+        // 🔁 Reset Password ke default: pakuwon1234#
         $(document).on('click', '.resetPwdBtn', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -668,38 +900,6 @@
                 }
 
             });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-
-            // 🔍 Filter Company
-            $('#filterCompany').select2({
-                placeholder: 'All Company',
-                allowClear: true,
-                width: '100%'
-            });
-
-            // 🔍 Filter Department (SEARCHABLE)
-            $('#filterDepartment').select2({
-                placeholder: 'All Department',
-                allowClear: true,
-                width: '100%'
-            });
-
-            // 🔍 Filter Business Unit (SEARCHABLE)
-            $('#filterBusinessUnit').select2({
-                placeholder: 'All Business Unit',
-                allowClear: true,
-                width: '100%'
-            });
-
-            $('#filterJabatan').select2({
-                placeholder: 'All Jabatan',
-                allowClear: true,
-                width: '100%'
-            });
-
         });
     </script>
 

@@ -411,6 +411,8 @@ class SppjController extends Controller
             $header->keperluan = $request->input('keperluan');
             $header->budget_perpost = $request->input('perpost');
             $header->woid = $request->input('woid');
+            $header->itrecommendid = $request->input('itrecommendid');
+            $header->ticketid = $request->input('ticketid');
             $header->is_urgent = $request->input('is_urgent');
             $header->bqtype = $request->input('bqtype');
             $header->bqid = '';
@@ -959,6 +961,8 @@ class SppjController extends Controller
         $header->budget_perpost = $request->perpost;
         $header->bqtype = $request->bqtype;
         $header->woid = $request->woid;
+        $header->itrecommendid = $request->itrecommendid ?: null;
+        $header->ticketid = $request->ticketid ?: null;
         $header->is_urgent = $request->is_urgent;
         $header->status = 'P';
         $header->updated_by = $username;

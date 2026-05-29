@@ -8,34 +8,75 @@ use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
 use App\Models\Viewtrxall;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
 
 class ApprovalDashboardController extends Controller
 {
+    public function summaryJson(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $waiting = $this->getApprovalCollection($request, 'P');
+
+        $approved = $this->getApprovalCollection($request, 'A');
+
+        $today = now()->toDateString();
+
+        return response()->json([
+            'data' => [
+                'waiting' => $waiting->count(),
+
+                'approved_today' => $approved
+                    ->filter(fn ($row) => !empty($row['docdate'])
+                        && substr($row['docdate'], 0, 10) === $today
+                    )
+                    ->count(),
+
+                'approved_month' => $approved
+                    ->filter(fn ($row) => !empty($row['docdate'])
+                        && date('Y-m', strtotime($row['docdate'])) === now()->format('Y-m')
+                    )
+                    ->count(),
+            ],
+        ]);
+    }
+
     public function waitingJson(Request $request)
     {
-        return $this->approvalJson($request, 'P');
+        abort_unless($request->ajax(), 404);
+
+        return response()->json([
+            'data' => $this->getApprovalCollection($request, 'P'),
+        ]);
     }
 
     public function approveJson(Request $request)
     {
-        return $this->approvalJson($request, 'A');
+        abort_unless($request->ajax(), 404);
+
+        return response()->json([
+            'data' => $this->getApprovalCollection($request, 'A'),
+        ]);
     }
 
-    private function approvalJson(Request $request, string $status)
+    private function getApprovalCollection(Request $request, string $status): Collection
     {
         $user = $request->user();
 
         if (!$user) {
-            return response()->json([
-                'data' => [],
-            ], 401);
+            return collect();
         }
 
-        $doctype = strtoupper(trim((string) $request->get('doctype', '')));
-        $doctype = ($doctype === 'ALL') ? '' : $doctype;
+        $doctype = strtoupper(
+            trim((string) $request->get('doctype', ''))
+        );
+
+        $doctype = $doctype === 'ALL'
+            ? ''
+            : $doctype;
 
         $trxM = new Viewtrxall();
         $appM = new ViewJobApply();
@@ -55,11 +96,16 @@ class ApprovalDashboardController extends Controller
         $tblPurch = $purchM->getTable();
         $tblDas = $dasM->getTable();
 
-        $username = strtolower(trim((string) $user->username));
+        $username = strtolower(
+            trim((string) $user->username)
+        );
 
         $approvalRows = DB::connection($aprConn)
             ->table($tblApr)
-            ->select('refnbr', 'aprv_datebefore')
+            ->select(
+                'refnbr',
+                'aprv_datebefore'
+            )
             ->whereRaw(
                 "(',' || lower(regexp_replace(coalesce(aprv_username,''), '\s+', '', 'g')) || ',') like ?",
                 ['%,'.$username.',%']
@@ -69,9 +115,7 @@ class ApprovalDashboardController extends Controller
             ->get();
 
         if ($approvalRows->isEmpty()) {
-            return response()->json([
-                'data' => [],
-            ]);
+            return collect();
         }
 
         $approvalMap = $approvalRows
@@ -102,9 +146,7 @@ class ApprovalDashboardController extends Controller
         }
 
         if ($docids->isEmpty()) {
-            return response()->json([
-                'data' => [],
-            ]);
+            return collect();
         }
 
         $selectCols = [
@@ -117,7 +159,13 @@ class ApprovalDashboardController extends Controller
             'docid',
         ];
 
-        $fetch = function (string $conn, string $table) use ($docids, $selectCols) {
+        $fetch = function (
+            string $conn,
+            string $table
+        ) use (
+            $docids,
+            $selectCols
+        ) {
             $out = collect();
 
             foreach ($docids->chunk(1200) as $chunk) {
@@ -144,7 +192,7 @@ class ApprovalDashboardController extends Controller
                 $fetch($purchConn, $tblPurch)
             );
         } catch (\Throwable $e) {
-            Log::warning('approvalJson: purchasing fetch failed', [
+            Log::warning('approvalJson purchasing failed', [
                 'err' => $e->getMessage(),
             ]);
         }
@@ -154,14 +202,16 @@ class ApprovalDashboardController extends Controller
                 $fetch($dasConn, $tblDas)
             );
         } catch (\Throwable $e) {
-            Log::warning('approvalJson: DAS fetch failed', [
+            Log::warning('approvalJson das failed', [
                 'err' => $e->getMessage(),
             ]);
         }
 
         $data = $data
             ->map(function ($r) use ($approvalMap) {
-                $docidKey = strtoupper(trim($r->docid));
+                $docidKey = strtoupper(
+                    trim($r->docid)
+                );
 
                 $approval = $approvalMap->get($docidKey);
 
@@ -178,17 +228,14 @@ class ApprovalDashboardController extends Controller
             ->sortByDesc(fn ($r) => $r['docdate'] ?? '')
             ->values();
 
-        Log::info('approvalJson perf', [
+        Log::info('approvalDashboard', [
             'user' => $user->username,
             'status' => $status,
             'doctype' => $doctype ?: 'ALL',
-            'docids' => $docids->count(),
             'rows' => $data->count(),
             'ms' => (int) ((microtime(true) - $t0) * 1000),
         ]);
 
-        return response()->json([
-            'data' => $data,
-        ]);
+        return $data;
     }
 }

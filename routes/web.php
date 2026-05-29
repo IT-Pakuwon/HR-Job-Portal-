@@ -26,11 +26,13 @@ use App\Http\Controllers\CanvassxController;
 use App\Http\Controllers\CareerController;
 use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
+use App\Http\Controllers\GaDashboardController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
@@ -52,6 +54,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryUserController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\IssueListController;
+use App\Http\Controllers\ItDashboardController;
 use App\Http\Controllers\ItemRequestController;
 use App\Http\Controllers\ItRecommendationController;
 use App\Http\Controllers\JobapplicantController;
@@ -74,6 +77,7 @@ use App\Http\Controllers\MsGroupbiayaNonPurchController;
 use App\Http\Controllers\MultiDashboardController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NonstockJobsController;
+use App\Http\Controllers\OperationalDashboardController;
 use App\Http\Controllers\OrgChartController;
 use App\Http\Controllers\ParkingRegistrationController;
 use App\Http\Controllers\PersonnelController;
@@ -134,6 +138,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\HrDashboardController;
+
 
 Route::get('/avatar/{filename}', function ($filename) {
     return response($filename, 200, [
@@ -1481,14 +1487,64 @@ Route::middleware(['auth'])->group(function () {
                     ->name('report');
             });
 
-        Route::controller(ApprovalDashboardController::class)->group(function () {
-            Route::get('/waitingjson', 'waitingJson')->name('dashboard.waitingjson');
-            Route::get('/approvejson', 'approveJson')->name('dashboard.approvejson');
-        });
-
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
 
-        Route::get('/settings/account',[ProfileController::class, 'show'])->name('profile.showx');
+        Route::get('/settings/account', [ProfileController::class, 'show'])->name('profile.showx');
+
+        Route::prefix('approval-dashboard')->controller(ApprovalDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson');
+            Route::get('/waiting-json', 'waitingJson');
+            Route::get('/approve-json', 'approveJson');
+        });
+
+        Route::prefix('it-dashboard')->controller(ItDashboardController::class)->name('it-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/ticket-json', 'ticketJson')->name('ticket-json');
+            Route::get('/access-request-json', 'accessRequestJson')->name('access-request-json');
+            Route::get('/recommendation-json', 'recommendationJson')->name('recommendation-json');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
+             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
+        });
+
+        Route::prefix('cost-control-dashboard')->controller(CostControlDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('costdashboard.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('costdashboard.waiting');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('costdashboard.history');
+            Route::get('/pending-po-json', 'pendingPoJson')->name('costdashboard.po');
+            Route::get('/pending-issue-json', 'pendingIssueJson')->name('costdashboard.issue');
+            Route::get('/budget-json', 'budgetJson')->name('costdashboard.budget');
+            Route::get('/im-budget-json', 'imBudgetJson')->name('costdashboard.imbudget');
+            Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('costdashboard.approval-doctypes');
+        });
+
+        Route::prefix('operational-dashboard')->controller(OperationalDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('operational.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('operational.waiting');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('operational.history');
+            Route::get('/work-order-json', 'workOrderJson')->name('operational.work-order');
+            Route::get('/approval-doctypes', 'approvalDocTypes')->name('operational.doctypes');
+        });
+
+        Route::prefix('ga-dashboard')->controller(GaDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('ga.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('ga.approval');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('ga.approval-history');
+            Route::get('/voucher-taxi-json', 'voucherTaxiJson')->name('ga.voucher-taxi');
+            Route::get('/booking-car-json', 'bookingCarJson')->name('ga.booking-car');
+            Route::get('/parking-json', 'parkingJson')->name('ga.parking');
+            Route::get('/approval-doctypes', 'approvalDocTypes')->name('ga.approval-doctypes');
+        });
+
+        Route::prefix('hr-dashboard')->controller(HrDashboardController::class)->name('hr-dashboard.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary-json');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
+            Route::get('/prf-json', 'prfJson')->name('prf-json');
+            Route::get('/applicant-json', 'applicantJson')->name('applicant-json');
+            Route::get('/self-register-json', 'selfRegisterJson')->name('self-register-json');
+            Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
+        });
     });
 
     Route::get('/imbudgetnonpurch', [IMBudgetNonPurchController::class, 'index'])->name('imbudgetnonpurch');
