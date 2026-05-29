@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MsAutonbr;
+use App\Models\Autonbr;
 use App\Models\BudgetDetail;
 use App\Models\StagingIfcaIcStkIssue;
 use App\Models\StagingIfcaPoApprove;
@@ -14,6 +14,14 @@ use Vinkla\Hashids\Facades\Hashids;
 
 class CostControlDashboardController extends Controller
 {
+    protected ApprovalDashboardController $approvalController;
+
+    public function __construct(
+        ApprovalDashboardController $approvalController
+    ) {
+        $this->approvalController = $approvalController;
+    }
+
     public function summaryJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
@@ -282,15 +290,37 @@ class CostControlDashboardController extends Controller
         ]);
     }
 
-    public function approvalDocTypes(Request $request)
+     public function approvalDocTypes(Request $request)
     {
         abort_unless($request->ajax(), 404);
 
-        $rows = MsAutonbr::query()
-            ->select('doctype')
-            ->where('status', 'A')
-            ->distinct()
+        $data = collect(
+            $this->approvalController
+                ->waitingJson($request)
+                ->getData(true)['data'] ?? []
+        )->merge(
+            collect(
+                $this->approvalController
+                    ->approveJson($request)
+                    ->getData(true)['data'] ?? []
+            )
+        );
+
+        $docids = $data
+            ->pluck('docid')
+            ->map(function ($docid) {
+                preg_match('/^[A-Z]+/', $docid, $match);
+                return $match[0] ?? null;
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        $rows = Autonbr::query()
+            ->select('doctype', 'doctype_descr')
+            ->whereIn('doctype', $docids)
             ->orderBy('doctype')
+            ->distinct()
             ->get();
 
         return response()->json([

@@ -1,16 +1,22 @@
 (function () {
     let activeTab = "approval";
-
     let summaryRequest = null;
     let dataRequest = null;
     let dashboardTable = null;
 
     const urls = {
-        summary: "/operational-dashboard/summary-json",
-        approval: "/operational-dashboard/waiting-approval-json",
-        approvalHistory: "/operational-dashboard/approval-history-json",
-        workOrder: "/operational-dashboard/work-order-json",
-        doctypes: "/operational-dashboard/approval-doctypes",
+        summary: "/hr-dashboard/summary-json",
+
+        approval: "/hr-dashboard/waiting-approval-json",
+        approvalHistory: "/hr-dashboard/approval-history-json",
+
+        prf: "/hr-dashboard/prf-json",
+
+        applicant: "/hr-dashboard/applicant-json",
+
+        selfRegister: "/hr-dashboard/self-register-json",
+
+        doctypes: "/hr-dashboard/approval-doctypes-json",
     };
 
     function updateRefreshTime() {
@@ -40,8 +46,14 @@
                 const data = res.data || {};
 
                 $("#waitingApprovalCount").text(data.waiting_approval || 0);
+
                 $("#approvalHistoryCount").text(data.approval_history || 0);
-                $("#workOrderCount").text(data.work_order || 0);
+
+                $("#prfCount").text(data.waiting_prf || 0);
+
+                $("#applicantCount").text(data.unchecked_applicant || 0);
+
+                $("#selfRegisterCount").text(data.self_register || 0);
 
                 updateRefreshTime();
             })
@@ -52,13 +64,75 @@
             });
     }
 
-    function buildDataTable(data, tab) {
-        if (!$("#dashboardTable").length) {
-            return;
-        }
+    function loadDocTypes() {
+        fetch(urls.doctypes, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                Accept: "application/json",
+            },
+        })
+            .then((r) => r.json())
+            .then((res) => {
+                const select = $("#dashboardFilter");
 
+                select.empty();
+
+                select.append(`
+                <option value="ALL">
+                    All
+                </option>
+            `);
+
+                (res.data || []).forEach((row) => {
+                    select.append(`
+                    <option value="${row.doctype}">
+                        ${row.doctype}
+                        -
+                        ${row.doctype_descr ?? ""}
+                    </option>
+                `);
+                });
+            });
+    }
+
+function statusBadge(status) {
+
+    status = (status || "").toUpperCase();
+
+    const styles = {
+        P: "bg-amber-100 text-amber-700 border-amber-200",
+        C: "bg-emerald-100 text-emerald-700 border-emerald-200",
+        R: "bg-red-100 text-red-700 border-red-200",
+        D: "bg-orange-100 text-orange-700 border-orange-200",
+        X: "bg-slate-200 text-slate-700 border-slate-300",
+    };
+
+    const labels = {
+        P: "Waiting Approval",
+        C: "Completed",
+        R: "Rejected",
+        D: "Revised",
+        X: "Cancelled",
+    };
+
+    const badgeClass =
+        styles[status] ??
+        "bg-slate-100 text-slate-700 border-slate-200";
+
+    const label =
+        labels[status] ??
+        status;
+
+    return `
+        <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${badgeClass}">
+            ${label}
+        </span>
+    `;
+}
+    function buildDataTable(data, tab) {
         if ($.fn.DataTable.isDataTable("#dashboardTable")) {
             $("#dashboardTable").DataTable().clear().destroy();
+
             $("#dashboardTable").empty();
         }
 
@@ -70,35 +144,40 @@
                     {
                         data: "docid",
                         title: "Document",
+
                         render: function (data, type, row) {
                             return `
-                                <a href="${row.url}/${row.hid}"
+                                <a href="${row.url}/${row.eid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
 
                                     <span class="font-medium text-slate-700">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
 
                                 </a>
                             `;
                         },
                     },
+
                     {
                         data: "docdate",
                         title: "Waiting Since",
                     },
+
                     {
                         data: "cpnyid",
                         title: "Company",
                     },
+
                     {
                         data: "departementid",
                         title: "Department",
                     },
+
                     {
                         data: "infohd",
                         title: "Description",
@@ -112,35 +191,40 @@
                     {
                         data: "docid",
                         title: "Document",
+
                         render: function (data, type, row) {
                             return `
-                                <a href="${row.url}/${row.hid}"
+                                <a href="${row.url}/${row.eid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
 
                                     <span class="font-medium text-slate-700">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
 
                                 </a>
                             `;
                         },
                     },
+
                     {
                         data: "docdate",
                         title: "Approval Date",
                     },
+
                     {
                         data: "cpnyid",
                         title: "Company",
                     },
+
                     {
                         data: "departementid",
                         title: "Department",
                     },
+
                     {
                         data: "infohd",
                         title: "Description",
@@ -148,76 +232,181 @@
                 ];
 
                 break;
-
-            case "workorder":
+            case "prf":
                 columns = [
                     {
-                        data: "woid",
-                        title: "WO Number",
+                        data: "docid",
+                        title: "PRF Number",
+
                         render: function (data, type, row) {
                             return `
                                 <a href="${row.url}/${row.eid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
 
                                     <span class="font-medium text-slate-700">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
 
                                 </a>
                             `;
                         },
                     },
+
                     {
-                        data: "wodate",
-                        title: "Date",
+                        data: "date",
+                        title: "Request Date",
                     },
+
                     {
-                        data: "wotype",
-                        title: "Type",
+                        data: "cpnyid",
+                        title: "Company",
                     },
+
                     {
-                        data: "picrequester",
-                        title: "Requester",
+                        data: "departementid",
+                        title: "Department",
                     },
+
                     {
-                        data: "pic_wo",
-                        title: "PIC WO",
+                        data: "job_title",
+                        title: "Position",
                     },
+
                     {
-                        data: "keperluan",
-                        title: "Purpose",
+                        data: "required",
+                        title: "Required",
                     },
+
                     {
-                        data: "status_pekerjaan",
-                        title: "WO Status",
+                        data: "actual",
+                        title: "Actual",
+                    },
+
+                    {
+                        data: "status",
+                        title: "Status",
+
                         render: function (data) {
-                            const status = (data || "-").toUpperCase();
+                            return statusBadge(data || "-");
+                        },
+                    },
+                ];
 
-                            const styles = {
-                                P: "bg-amber-100 text-amber-700 border-amber-200",
-                                H: "bg-red-100 text-red-700 border-red-200",
-                            };
+                break;
+            case "applicant":
+                columns = [
+                    {
+                        data: "docid",
+                        title: "Document",
 
-                            const labels = {
-                                P: "ON PROGRESS",
-                                H: "HOLD",
-                            };
-
-                            const badgeClass =
-                                styles[status] ??
-                                "bg-slate-100 text-slate-700 border-slate-200";
-
-                            const label = labels[status] ?? status;
-
+                        render: function (data, type, row) {
                             return `
-                                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${badgeClass}">
-                                    ${label}
-                                </span>
+                                <a href="${row.url}/${row.eid}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
+
+                                    <span class="font-medium text-slate-700">
+                                        ${data}
+                                    </span>
+
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+
+                                </a>
                             `;
+                        },
+                    },
+
+                    {
+                        data: "fullname",
+                        title: "Applicant",
+                    },
+
+                    {
+                        data: "apply_date",
+                        title: "Apply Date",
+                    },
+
+                    {
+                        data: "job_title",
+                        title: "Position",
+                    },
+
+                    {
+                        data: "cpnyid",
+                        title: "Company",
+                    },
+
+                    {
+                        data: "apply_step",
+                        title: "Stage",
+                    },
+
+                    {
+                        data: "status",
+                        title: "Status",
+
+                        render: function (data) {
+                            return statusBadge(data || "-");
+                        },
+                    },
+                ];
+
+                break;
+            case "self-register":
+                columns = [
+                    {
+                        data: "docid",
+                        title: "Document",
+
+                        render: function (data, type, row) {
+                            return `
+                                <a href="${row.url}/${row.eid}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
+
+                                    <span class="font-medium text-slate-700">
+                                        ${data}
+                                    </span>
+
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+
+                                </a>
+                            `;
+                        },
+                    },
+
+                    {
+                        data: "fullname",
+                        title: "Applicant",
+                    },
+
+                    {
+                        data: "apply_date",
+                        title: "Apply Date",
+                    },
+
+                    {
+                        data: "job_title",
+                        title: "Position",
+                    },
+
+                    {
+                        data: "cpnyid",
+                        title: "Company",
+                    },
+
+                    {
+                        data: "status",
+                        title: "Status",
+
+                        render: function (data) {
+                            return statusBadge(data || "-");
                         },
                     },
                 ];
@@ -244,7 +433,7 @@
             info: true,
             autoWidth: false,
             destroy: true,
-            order: [],
+            order: [[1, "desc"]],
 
             language: {
                 search: "",
@@ -261,41 +450,6 @@
             dashboardTable.search(search).draw();
         }
     }
-
-    function loadDocTypes() {
-        fetch(urls.doctypes, {
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                Accept: "application/json",
-            },
-        })
-            .then((r) => r.json())
-            .then((res) => {
-                const select = $("#dashboardFilter");
-
-                const current = select.val() || "ALL";
-
-                select.empty();
-
-                select.append(`
-                    <option value="ALL">
-                        All Doctype
-                    </option>
-                `);
-
-                (res.data || []).forEach((row) => {
-                    select.append(`
-                        <option value="${row.doctype}">
-                            ${row.doctype} - ${row.doctype_descr ?? ""}
-                        </option>
-                    `);
-                });
-
-                select.val(current);
-            })
-            .catch(console.error);
-    }
-
     function loadTab(tab) {
         if (dataRequest) {
             dataRequest.abort();
@@ -310,8 +464,16 @@
                 url = urls.approvalHistory;
                 break;
 
-            case "workorder":
-                url = urls.workOrder;
+            case "prf":
+                url = urls.prf;
+                break;
+
+            case "applicant":
+                url = urls.applicant;
+                break;
+
+            case "self-register":
+                url = urls.selfRegister;
                 break;
         }
 
@@ -354,11 +516,16 @@
                 }
             });
     }
-
     function activateTab(tab) {
         activeTab = tab;
 
-        ["approval", "approval-history", "workorder"].forEach((name) => {
+        [
+            "approval",
+            "approval-history",
+            "prf",
+            "applicant",
+            "self-register",
+        ].forEach((name) => {
             const btn = document.getElementById(`tab-${name}`);
 
             if (!btn) return;
@@ -374,13 +541,14 @@
 
         if (tab === "approval" || tab === "approval-history") {
             $("#dashboardFilter").closest(".lg\\:col-span-5").show();
+
         } else {
             $("#dashboardFilter").closest(".lg\\:col-span-5").hide();
+
         }
 
         loadTab(tab);
     }
-
     function bindEvents() {
         $("#tab-approval").on("click", () => activateTab("approval"));
 
@@ -388,7 +556,11 @@
             activateTab("approval-history"),
         );
 
-        $("#tab-workorder").on("click", () => activateTab("workorder"));
+        $("#tab-prf").on("click", () => activateTab("prf"));
+
+        $("#tab-applicant").on("click", () => activateTab("applicant"));
+
+        $("#tab-self-register").on("click", () => activateTab("self-register"));
 
         $("#dashboardFilter").on("change", function () {
             if (activeTab === "approval" || activeTab === "approval-history") {
@@ -406,26 +578,28 @@
 
         $("#refreshDashboard").on("click", () => {
             loadSummary();
+
             loadTab(activeTab);
         });
 
         $("#openAllDocument").on("click", function () {
-            if (activeTab === "workorder") {
+            if (activeTab !== "approval" && activeTab !== "approval-history") {
                 return;
             }
 
             const rows = dashboardTable?.rows()?.data()?.toArray() || [];
 
-            rows.forEach((row) => {
-                const key = row.hid || row.eid;
+            if (!rows.length) {
+                return;
+            }
 
-                if (row.url && key) {
-                    window.open(`${row.url}/${key}`, "_blank");
+            rows.forEach((row) => {
+                if (row.url && row.hid) {
+                    window.open(`${row.url}/${row.hid}`, "_blank");
                 }
             });
         });
     }
-
     function autoRefresh() {
         setInterval(() => {
             if (document.hidden) {
@@ -433,6 +607,7 @@
             }
 
             loadSummary();
+
             loadTab(activeTab);
         }, 20000);
     }
@@ -444,11 +619,11 @@
 
         bindEvents();
 
-        loadDocTypes();
-
         loadSummary();
 
-        $("#dashboardFilter").closest(".lg\\:col-span-5").hide();
+        loadDocTypes();
+
+        $("#dashboardFilter").closest(".lg\\:col-span-5").show();
 
         activateTab("approval");
 

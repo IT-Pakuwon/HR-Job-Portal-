@@ -99,8 +99,8 @@
     <div class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
         <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-            <div class="flex flex-wrap gap-3">
 
+            <div class="flex flex-wrap gap-3">
                 <button id="tab-ticket">
                     🎫 Ticket
                 </button>
@@ -122,6 +122,62 @@
                 </button>
 
             </div>
+        </div>
+
+        <div class="border-b border-slate-200 p-4 dark:border-slate-700">
+
+            <div class="grid gap-3 lg:grid-cols-12">
+
+
+                <div class="lg:col-span-5">
+
+                    <select id="dashboardFilter"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+
+                        <option value="ALL">
+                            All
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="lg:col-span-5">
+
+                    <input
+                        id="dashboardSearch"
+                        type="text"
+                        placeholder="Search..."
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+
+                </div>
+
+                <div class="lg:col-span-2">
+
+                    <div class="flex justify-end gap-2">
+
+                        <button
+                            id="openAllDocument"
+                            class="rounded-lg w-full flex-1 bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">
+
+                            🚀 Open All
+
+                        </button>
+
+                        <button
+                            id="refreshDashboard"
+                            class="rounded-lg w-full flex-1  border border-slate-300 px-4 py-2 text-xs font-semibold hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
+
+                            🔄 Refresh
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
 
         <div class="p-4">

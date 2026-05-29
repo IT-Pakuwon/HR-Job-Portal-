@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Autonbr;
 use App\Models\TrAccess;
 use App\Models\TrItrecommend;
 use App\Models\TrTicket;
@@ -12,6 +13,14 @@ use Vinkla\Hashids\Facades\Hashids;
 
 class ItDashboardController extends Controller
 {
+    protected ApprovalDashboardController $approvalController;
+
+    public function __construct(
+        ApprovalDashboardController $approvalController
+    ) {
+        $this->approvalController = $approvalController;
+    }
+
     public function summaryJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
@@ -221,5 +230,44 @@ class ItDashboardController extends Controller
 
         return app(ApprovalDashboardController::class)
             ->approveJson($request);
+    }
+
+    public function approvalDocTypes(Request $request)
+    {
+        abort_unless($request->ajax(), 404);
+
+        $data = collect(
+            $this->approvalController
+                ->waitingJson($request)
+                ->getData(true)['data'] ?? []
+        )->merge(
+            collect(
+                $this->approvalController
+                    ->approveJson($request)
+                    ->getData(true)['data'] ?? []
+            )
+        );
+
+        $docids = $data
+            ->pluck('docid')
+            ->map(function ($docid) {
+                preg_match('/^[A-Z]+/', $docid, $match);
+                return $match[0] ?? null;
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        $rows = Autonbr::query()
+            ->select('doctype', 'doctype_descr')
+            ->whereIn('doctype', $docids)
+            ->orderBy('doctype')
+            ->distinct()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $rows,
+        ]);
     }
 }

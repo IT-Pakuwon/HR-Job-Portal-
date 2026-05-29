@@ -30,10 +30,10 @@ class MultiDashboardController extends Controller
 
         return view('components.multidashboard.index', [
             'dashboardComponent' => $this->resolveComponent($homepage),
-            'menu'              => $menu,
-            'dataFeed'          => $dataFeed,
-            'tr_approval'       => collect(),
-            'doctypes'          => $doctypes,
+            'menu' => $menu,
+            'dataFeed' => $dataFeed,
+            'tr_approval' => collect(),
+            'doctypes' => $doctypes,
         ]);
     }
 
@@ -41,12 +41,14 @@ class MultiDashboardController extends Controller
     {
         return match (strtoupper($screenId)) {
             'DASHAPPROVAL' => 'dashboard-approval',
-            'DASHIT'       => 'dashboard-it',
-            'DASHWH'       => 'dashboard-warehouse',
-            'DASHOPR'      => 'dashboard-operational',
-            'DASHCC'       => 'dashboard-costcontrol',
-            'DASHPURCH'    => 'purchasing-dashboard',
-            default        => 'dashboard-approval',
+            'DASHIT' => 'dashboard-it',
+            'DASHWH' => 'dashboard-warehouse',
+            'DASHOPR' => 'dashboard-operational',
+            'DASHCC' => 'dashboard-costcontrol',
+            'DASHPURCH' => 'purchasing-dashboard',
+            'DASHHR' => 'dashboard-hr',
+            'DASHGA' => 'dashboard-ga',
+            default => 'dashboard-approval',
         };
     }
 }

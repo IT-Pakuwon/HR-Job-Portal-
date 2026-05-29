@@ -40,7 +40,9 @@
                 const data = res.data || {};
 
                 $("#waitingApprovalCount").text(data.waiting_approval || 0);
+
                 $("#approvalHistoryCount").text(data.approval_history || 0);
+
                 $("#workOrderCount").text(data.work_order || 0);
 
                 updateRefreshTime();
@@ -59,6 +61,7 @@
 
         if ($.fn.DataTable.isDataTable("#dashboardTable")) {
             $("#dashboardTable").DataTable().clear().destroy();
+
             $("#dashboardTable").empty();
         }
 
@@ -87,18 +90,22 @@
                             `;
                         },
                     },
+
                     {
                         data: "docdate",
                         title: "Waiting Since",
                     },
+
                     {
                         data: "cpnyid",
                         title: "Company",
                     },
+
                     {
                         data: "departementid",
                         title: "Department",
                     },
+
                     {
                         data: "infohd",
                         title: "Description",
@@ -129,18 +136,22 @@
                             `;
                         },
                     },
+
                     {
                         data: "docdate",
                         title: "Approval Date",
                     },
+
                     {
                         data: "cpnyid",
                         title: "Company",
                     },
+
                     {
                         data: "departementid",
                         title: "Department",
                     },
+
                     {
                         data: "infohd",
                         title: "Description",
@@ -171,22 +182,27 @@
                             `;
                         },
                     },
+
                     {
                         data: "wodate",
                         title: "Date",
                     },
+
                     {
                         data: "wotype",
                         title: "Type",
                     },
+
                     {
                         data: "picrequester",
                         title: "Requester",
                     },
+
                     {
                         data: "pic_wo",
                         title: "PIC WO",
                     },
+
                     {
                         data: "keperluan",
                         title: "Purpose",
@@ -254,12 +270,6 @@
                 emptyTable: "No data available",
             },
         });
-
-        const search = $("#dashboardSearch").val();
-
-        if (search) {
-            dashboardTable.search(search).draw();
-        }
     }
 
     function loadDocTypes() {
@@ -278,25 +288,25 @@
                 select.empty();
 
                 select.append(`
-                    <option value="ALL">
-                        All Doctype
-                    </option>
-                `);
+                <option value="ALL">
+                    All Doctype
+                </option>
+            `);
 
                 (res.data || []).forEach((row) => {
                     select.append(`
-                        <option value="${row.doctype}">
-                            ${row.doctype} - ${row.doctype_descr ?? ""}
-                        </option>
-                    `);
+                    <option value="${row.doctype}">
+                        ${row.doctype} - ${row.doctype_descr ?? ""}
+                    </option>
+                `);
                 });
 
                 select.val(current);
             })
             .catch(console.error);
     }
-
     function loadTab(tab) {
+
         if (dataRequest) {
             dataRequest.abort();
         }
@@ -354,7 +364,6 @@
                 }
             });
     }
-
     function activateTab(tab) {
         activeTab = tab;
 
@@ -408,22 +417,6 @@
             loadSummary();
             loadTab(activeTab);
         });
-
-        $("#openAllDocument").on("click", function () {
-            if (activeTab === "workorder") {
-                return;
-            }
-
-            const rows = dashboardTable?.rows()?.data()?.toArray() || [];
-
-            rows.forEach((row) => {
-                const key = row.hid || row.eid;
-
-                if (row.url && key) {
-                    window.open(`${row.url}/${key}`, "_blank");
-                }
-            });
-        });
     }
 
     function autoRefresh() {
@@ -454,7 +447,6 @@
 
         autoRefresh();
     }
-
     $(document).ready(function () {
         init();
     });

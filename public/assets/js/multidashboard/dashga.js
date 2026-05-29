@@ -6,11 +6,13 @@
     let dashboardTable = null;
 
     const urls = {
-        summary: "/operational-dashboard/summary-json",
-        approval: "/operational-dashboard/waiting-approval-json",
-        approvalHistory: "/operational-dashboard/approval-history-json",
-        workOrder: "/operational-dashboard/work-order-json",
-        doctypes: "/operational-dashboard/approval-doctypes",
+        summary: "/ga-dashboard/summary-json",
+        approval: "/ga-dashboard/waiting-approval-json",
+        approvalHistory: "/ga-dashboard/approval-history-json",
+        voucherTaxi: "/ga-dashboard/voucher-taxi-json",
+        bookingCar: "/ga-dashboard/booking-car-json",
+        parking: "/ga-dashboard/parking-json",
+        doctypes: "/ga-dashboard/approval-doctypes",
     };
 
     function updateRefreshTime() {
@@ -40,8 +42,9 @@
                 const data = res.data || {};
 
                 $("#waitingApprovalCount").text(data.waiting_approval || 0);
-                $("#approvalHistoryCount").text(data.approval_history || 0);
-                $("#workOrderCount").text(data.work_order || 0);
+                $("#voucherTaxiCount").text(data.voucher_taxi || 0);
+                $("#bookingCarCount").text(data.booking_car || 0);
+                $("#freeParkingCount").text(data.free_parking || 0);
 
                 updateRefreshTime();
             })
@@ -52,13 +55,37 @@
             });
     }
 
-    function buildDataTable(data, tab) {
-        if (!$("#dashboardTable").length) {
-            return;
-        }
+    function statusBadge(status) {
+        const styles = {
+            P: "bg-amber-100 text-amber-700 border-amber-200",
+            H: "bg-red-100 text-red-700 border-red-200",
+            C: "bg-emerald-100 text-emerald-700 border-emerald-200",
+            X: "bg-slate-200 text-slate-700 border-slate-300",
+        };
 
+        const labels = {
+            P: "PROCESS",
+            H: "HOLD",
+            C: "COMPLETED",
+            X: "CANCELLED",
+        };
+
+        const badgeClass =
+            styles[status] ?? "bg-slate-100 text-slate-700 border-slate-200";
+
+        const label = labels[status] ?? status;
+
+        return `
+            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${badgeClass}">
+                ${label}
+            </span>
+        `;
+    }
+
+    function buildDataTable(data, tab) {
         if ($.fn.DataTable.isDataTable("#dashboardTable")) {
             $("#dashboardTable").DataTable().clear().destroy();
+
             $("#dashboardTable").empty();
         }
 
@@ -75,30 +102,34 @@
                                 <a href="${row.url}/${row.hid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
 
                                     <span class="font-medium text-slate-700">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
 
                                 </a>
                             `;
                         },
                     },
+
                     {
                         data: "docdate",
                         title: "Waiting Since",
                     },
+
                     {
                         data: "cpnyid",
                         title: "Company",
                     },
+
                     {
                         data: "departementid",
                         title: "Department",
                     },
+
                     {
                         data: "infohd",
                         title: "Description",
@@ -117,30 +148,34 @@
                                 <a href="${row.url}/${row.hid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
 
                                     <span class="font-medium text-slate-700">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
 
                                 </a>
                             `;
                         },
                     },
+
                     {
                         data: "docdate",
                         title: "Approval Date",
                     },
+
                     {
                         data: "cpnyid",
                         title: "Company",
                     },
+
                     {
                         data: "departementid",
                         title: "Department",
                     },
+
                     {
                         data: "infohd",
                         title: "Description",
@@ -149,75 +184,160 @@
 
                 break;
 
-            case "workorder":
+            case "voucher-taxi":
                 columns = [
                     {
-                        data: "woid",
-                        title: "WO Number",
+                        data: "docid",
+                        title: "Voucher Taxi",
                         render: function (data, type, row) {
                             return `
                                 <a href="${row.url}/${row.eid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
 
                                     <span class="font-medium text-slate-700">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
 
                                 </a>
                             `;
                         },
                     },
+
                     {
-                        data: "wodate",
+                        data: "voucher_date",
                         title: "Date",
                     },
+
                     {
-                        data: "wotype",
-                        title: "Type",
-                    },
-                    {
-                        data: "picrequester",
+                        data: "user_peminta",
                         title: "Requester",
                     },
+
                     {
-                        data: "pic_wo",
-                        title: "PIC WO",
+                        data: "user_peminta_expense",
+                        title: "Expense Owner",
                     },
+
                     {
-                        data: "keperluan",
+                        data: "origin",
+                        title: "Origin",
+                    },
+
+                    {
+                        data: "destination",
+                        title: "Destination",
+                    },
+
+                    {
+                        data: "purpose_descr",
                         title: "Purpose",
                     },
+                ];
+
+                break;
+
+            case "booking-car":
+                columns = [
                     {
-                        data: "status_pekerjaan",
-                        title: "WO Status",
-                        render: function (data) {
-                            const status = (data || "-").toUpperCase();
-
-                            const styles = {
-                                P: "bg-amber-100 text-amber-700 border-amber-200",
-                                H: "bg-red-100 text-red-700 border-red-200",
-                            };
-
-                            const labels = {
-                                P: "ON PROGRESS",
-                                H: "HOLD",
-                            };
-
-                            const badgeClass =
-                                styles[status] ??
-                                "bg-slate-100 text-slate-700 border-slate-200";
-
-                            const label = labels[status] ?? status;
-
+                        data: "docid",
+                        title: "Booking Car",
+                        render: function (data, type, row) {
                             return `
-                                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${badgeClass}">
-                                    ${label}
-                                </span>
+                    <a href="${row.url}/${row.eid}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
+
+                        <span class="font-medium text-slate-700">
+                            ${data}
+                        </span>
+
+                        <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+
+                    </a>
+                `;
+                        },
+                    },
+
+                    {
+                        data: "booking_date",
+                        title: "Date",
+                    },
+
+                    {
+                        data: "user_peminta",
+                        title: "Requester",
+                    },
+
+                    {
+                        data: "driver",
+                        title: "Driver",
+                    },
+
+                    {
+                        data: "purpose_descr",
+                        title: "Purpose",
+                    },
+                ];
+
+                break;
+            case "parking":
+                columns = [
+                    {
+                        data: "docid",
+                        title: "Registration",
+                        render: function (data, type, row) {
+                            return `
+                                <a href="${row.url}/${row.eid}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all">
+
+                                    <span class="font-medium text-slate-700">
+                                        ${data}
+                                    </span>
+
+                                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+
+                                </a>
                             `;
+                        },
+                    },
+
+                    {
+                        data: "parking_regist_date",
+                        title: "Date",
+                    },
+
+                    {
+                        data: "user_peminta",
+                        title: "Requester",
+                    },
+
+                    {
+                        data: "parking_type",
+                        title: "Parking Type",
+                    },
+
+                    {
+                        data: "worker_type",
+                        title: "Worker Type",
+                    },
+
+                    {
+                        data: "perpost",
+                        title: "Perpost",
+                    },
+
+                    {
+                        data: "status",
+                        title: "Status",
+                        render: function (data) {
+                            return statusBadge(data);
                         },
                     },
                 ];
@@ -232,25 +352,25 @@
 
             pageLength: 10,
 
-            lengthMenu: [
-                [10, 25, 50, 100],
-                [10, 25, 50, 100],
-            ],
-
             responsive: true,
+
             searching: true,
+
             ordering: true,
+
             paging: true,
+
             info: true,
+
             autoWidth: false,
+
             destroy: true,
-            order: [],
+
+            order: [[1, "desc"]],
 
             language: {
                 search: "",
                 searchPlaceholder: "Search...",
-                lengthMenu: "Show _MENU_",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
                 emptyTable: "No data available",
             },
         });
@@ -273,29 +393,23 @@
             .then((res) => {
                 const select = $("#dashboardFilter");
 
-                const current = select.val() || "ALL";
-
                 select.empty();
 
                 select.append(`
-                    <option value="ALL">
-                        All Doctype
-                    </option>
-                `);
+            <option value="ALL">
+                All Doctype
+            </option>
+        `);
 
                 (res.data || []).forEach((row) => {
                     select.append(`
-                        <option value="${row.doctype}">
-                            ${row.doctype} - ${row.doctype_descr ?? ""}
-                        </option>
-                    `);
+                <option value="${row.doctype}">
+                    ${row.doctype} - ${row.doctype_descr ?? ""}
+                </option>
+            `);
                 });
-
-                select.val(current);
-            })
-            .catch(console.error);
+            });
     }
-
     function loadTab(tab) {
         if (dataRequest) {
             dataRequest.abort();
@@ -310,8 +424,16 @@
                 url = urls.approvalHistory;
                 break;
 
-            case "workorder":
-                url = urls.workOrder;
+            case "voucher-taxi":
+                url = urls.voucherTaxi;
+                break;
+
+            case "booking-car":
+                url = urls.bookingCar;
+                break;
+
+            case "parking":
+                url = urls.parking;
                 break;
         }
 
@@ -343,10 +465,7 @@
                         });
                     }
                 }
-
                 buildDataTable(rows, tab);
-
-                updateRefreshTime();
             })
             .catch((err) => {
                 if (err.name !== "AbortError") {
@@ -358,7 +477,13 @@
     function activateTab(tab) {
         activeTab = tab;
 
-        ["approval", "approval-history", "workorder"].forEach((name) => {
+        [
+            "approval",
+            "approval-history",
+            "voucher-taxi",
+            "booking-car",
+            "parking",
+        ].forEach((name) => {
             const btn = document.getElementById(`tab-${name}`);
 
             if (!btn) return;
@@ -388,7 +513,11 @@
             activateTab("approval-history"),
         );
 
-        $("#tab-workorder").on("click", () => activateTab("workorder"));
+        $("#tab-voucher-taxi").on("click", () => activateTab("voucher-taxi"));
+
+        $("#tab-booking-car").on("click", () => activateTab("booking-car"));
+
+        $("#tab-parking").on("click", () => activateTab("parking"));
 
         $("#dashboardFilter").on("change", function () {
             if (activeTab === "approval" || activeTab === "approval-history") {
@@ -397,9 +526,7 @@
         });
 
         $("#dashboardSearch").on("keyup", function () {
-            if (!dashboardTable) {
-                return;
-            }
+            if (!dashboardTable) return;
 
             dashboardTable.search(this.value).draw();
         });
@@ -410,7 +537,7 @@
         });
 
         $("#openAllDocument").on("click", function () {
-            if (activeTab === "workorder") {
+            if (activeTab === "parking") {
                 return;
             }
 
@@ -444,11 +571,11 @@
 
         bindEvents();
 
-        loadDocTypes();
-
         loadSummary();
 
         $("#dashboardFilter").closest(".lg\\:col-span-5").hide();
+
+        loadDocTypes();
 
         activateTab("approval");
 
