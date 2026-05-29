@@ -1,342 +1,442 @@
-window.BookingCar = window.BookingCar || {};
+(function () {
 
-// =====================================================
-// TRACKING
-// =====================================================
+    "use strict";
 
-window.loadBookingTracking = async function (eid) {
+    window.BookingCar = window.BookingCar || {};
 
-    const wrapper =
-        document.getElementById(
-            "bookingApprovalFlow"
-        );
+    BookingCar.Approval = {
 
-    if (!wrapper) {
-        return;
-    }
+        approve(docid) {
 
-    wrapper.innerHTML = `
-        <div class="py-8 text-center text-sm text-gray-400">
-            Loading approval workflow...
-        </div>
-    `;
+            if (!docid) {
+                return;
+            }
 
-    try {
+            Swal.fire({
 
-        const result =
-            await BookingCar.fetchJson(
-                `/bookingcar/tracking/${eid}`
-            );
+                title: "Approve Booking?",
+                text: "This booking will be approved",
+                icon: "question",
 
-        const items =
-            result.steps || [];
+                showCancelButton: true,
 
-        if (!items.length) {
+                confirmButtonText: "Yes, Approve",
+                cancelButtonText: "Cancel",
 
-            wrapper.innerHTML = `
-                <div class="py-8 text-center text-sm text-gray-400">
-                    No approval history
-                </div>
-            `;
+                reverseButtons: true,
 
-            return;
-        }
+                customClass: {
+                    confirmButton: `
+                        inline-flex items-center rounded-lg
+                        bg-emerald-600 px-4 py-2
+                        text-sm font-semibold text-white
+                    `,
+                    cancelButton: `
+                        inline-flex items-center rounded-lg
+                        bg-slate-200 px-4 py-2
+                        text-sm font-semibold text-slate-700
+                    `,
+                },
 
-        wrapper.innerHTML =
-            items.map((item, index) => {
+                buttonsStyling: false,
 
-                let badgeClass =
-                    "bg-blue-100 text-blue-700";
+            }).then((result) => {
 
-                if (
-                    item.status === "A" ||
-                    item.status === "C"
-                ) {
-
-                    badgeClass =
-                        "bg-green-100 text-green-700";
+                if (!result.isConfirmed) {
+                    return;
                 }
 
-                if (
-                    item.status === "R"
-                ) {
+                Swal.fire({
+                    title: "Processing...",
+                    text: "Approving booking",
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading(),
+                });
 
-                    badgeClass =
-                        "bg-red-100 text-red-700";
+                $.ajax({
+
+                    url: BookingCar.config.routes.approve(docid),
+
+                    method: "POST",
+
+                    data: {
+                        _token: BookingCar.csrf,
+                    },
+
+                    success: (res) => {
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text:
+                                res.message ||
+                                "Booking approved successfully",
+                        });
+
+                        BookingCar.Approval.refreshAfterAction();
+
+                    },
+
+                    error: (xhr) => {
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Failed",
+                            text:
+                                xhr.responseJSON?.message ||
+                                "Failed approve booking",
+                        });
+
+                    },
+
+                });
+
+            });
+
+        },
+
+        reject(docid) {
+
+            if (!docid) {
+                return;
+            }
+
+            Swal.fire({
+
+                title: "Reject Booking",
+
+                input: "textarea",
+
+                inputLabel: "Reject Reason",
+
+                inputPlaceholder: "Input reject reason...",
+
+                inputAttributes: {
+                    autocapitalize: "off",
+                },
+
+                showCancelButton: true,
+
+                confirmButtonText: "Reject",
+                cancelButtonText: "Cancel",
+
+                reverseButtons: true,
+
+                customClass: {
+                    confirmButton: `
+                        inline-flex items-center rounded-lg
+                        bg-red-600 px-4 py-2
+                        text-sm font-semibold text-white
+                    `,
+                    cancelButton: `
+                        inline-flex items-center rounded-lg
+                        bg-slate-200 px-4 py-2
+                        text-sm font-semibold text-slate-700
+                    `,
+                },
+
+                buttonsStyling: false,
+
+                inputValidator: (value) => {
+
+                    if (!value) {
+                        return "Reject reason is required";
+                    }
+
+                },
+
+            }).then((result) => {
+
+                if (!result.isConfirmed) {
+                    return;
                 }
 
-                if (
-                    item.status === "D"
-                ) {
+                Swal.fire({
+                    title: "Processing...",
+                    text: "Rejecting booking",
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading(),
+                });
 
-                    badgeClass =
-                        "bg-yellow-100 text-yellow-700";
+                $.ajax({
+
+                    url: BookingCar.config.routes.reject(docid),
+
+                    method: "POST",
+
+                    data: {
+                        _token: BookingCar.csrf,
+                        reason: result.value,
+                    },
+
+                    success: (res) => {
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text:
+                                res.message ||
+                                "Booking rejected successfully",
+                        });
+
+                        BookingCar.Approval.refreshAfterAction();
+
+                    },
+
+                    error: (xhr) => {
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Failed",
+                            text:
+                                xhr.responseJSON?.message ||
+                                "Failed reject booking",
+                        });
+
+                    },
+
+                });
+
+            });
+
+        },
+
+        revise(docid) {
+
+            if (!docid) {
+                return;
+            }
+
+            Swal.fire({
+
+                title: "Revise Booking",
+
+                input: "textarea",
+
+                inputLabel: "Revise Reason",
+
+                inputPlaceholder: "Input revise reason...",
+
+                inputAttributes: {
+                    autocapitalize: "off",
+                },
+
+                showCancelButton: true,
+
+                confirmButtonText: "Send Revise",
+                cancelButtonText: "Cancel",
+
+                reverseButtons: true,
+
+                customClass: {
+                    confirmButton: `
+                        inline-flex items-center rounded-lg
+                        bg-amber-500 px-4 py-2
+                        text-sm font-semibold text-white
+                    `,
+                    cancelButton: `
+                        inline-flex items-center rounded-lg
+                        bg-slate-200 px-4 py-2
+                        text-sm font-semibold text-slate-700
+                    `,
+                },
+
+                buttonsStyling: false,
+
+                inputValidator: (value) => {
+
+                    if (!value) {
+                        return "Revise reason is required";
+                    }
+
+                },
+
+            }).then((result) => {
+
+                if (!result.isConfirmed) {
+                    return;
                 }
 
-                return `
-                    <div class="relative pl-8 pb-6">
+                Swal.fire({
+                    title: "Processing...",
+                    text: "Sending revise",
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading(),
+                });
 
-                        ${
-                            index < items.length - 1
-                                ? `
-                                    <div
-                                        class="
-                                            absolute
-                                            left-3
-                                            top-6
-                                            bottom-0
-                                            w-px
-                                            bg-gray-200
-                                        "
-                                    ></div>
-                                `
-                                : ""
-                        }
+                $.ajax({
 
-                        <div
-                            class="
-                                absolute
-                                left-0
-                                top-1
-                                h-6
-                                w-6
-                                rounded-lg
-                                border
-                                border-gray-300
-                                bg-white
-                            "
-                        ></div>
+                    url: BookingCar.config.routes.revise(docid),
 
-                        <div
-                            class="
-                                rounded-lg
-                                border
-                                border-gray-100
-                                bg-white
-                                p-4
-                            "
-                        >
+                    method: "POST",
 
-                            <div
-                                class="
-                                    flex
-                                    items-start
-                                    justify-between
-                                    gap-3
-                                "
-                            >
+                    data: {
+                        _token: BookingCar.csrf,
+                        reason: result.value,
+                    },
 
-                                <div>
+                    success: (res) => {
 
-                                    <div
-                                        class="
-                                            text-sm
-                                            font-semibold
-                                            text-gray-900
-                                        "
-                                    >
-                                        ${BookingCar.escapeHtml(
-                                            item.title || "-"
-                                        )}
-                                    </div>
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text:
+                                res.message ||
+                                "Booking revised successfully",
+                        });
 
-                                    ${
-                                        item.by
-                                            ? `
-                                                <div
-                                                    class="
-                                                        mt-1
-                                                        text-xs
-                                                        text-gray-500
-                                                    "
-                                                >
-                                                    By :
-                                                    ${BookingCar.escapeHtml(
-                                                        item.by
-                                                    )}
-                                                </div>
-                                            `
-                                            : ""
-                                    }
+                        BookingCar.Approval.refreshAfterAction();
 
-                                    ${
-                                        item.at
-                                            ? `
-                                                <div
-                                                    class="
-                                                        text-xs
-                                                        text-gray-400
-                                                    "
-                                                >
-                                                    ${BookingCar.escapeHtml(
-                                                        item.at
-                                                    )}
-                                                </div>
-                                            `
-                                            : ""
-                                    }
+                    },
 
-                                </div>
+                    error: (xhr) => {
 
-                                <span
-                                    class="
-                                        rounded-lg
-                                        px-2
-                                        py-1
-                                        text-[10px]
-                                        font-semibold
-                                        ${badgeClass}
-                                    "
-                                >
-                                    ${BookingCar.escapeHtml(
-                                        item.status_label ||
-                                        item.status ||
-                                        "-"
-                                    )}
-                                </span>
+                        Swal.fire({
+                            icon: "error",
+                            title: "Failed",
+                            text:
+                                xhr.responseJSON?.message ||
+                                "Failed revise booking",
+                        });
 
-                            </div>
+                    },
 
-                            ${
-                                item.comment
-                                    ? `
-                                        <div
-                                            class="
-                                                mt-3
-                                                rounded-lg
-                                                bg-gray-50
-                                                p-3
-                                                text-xs
-                                                text-gray-600
-                                            "
-                                        >
-                                            ${BookingCar.escapeHtml(
-                                                item.comment
-                                            )}
-                                        </div>
-                                    `
-                                    : ""
-                            }
+                });
 
-                        </div>
+            });
 
-                    </div>
-                `;
-            }).join("");
+        },
 
-    } catch (err) {
+        cancel(eid) {
 
-        console.error(err);
+            if (!eid) {
+                return;
+            }
 
-        wrapper.innerHTML = `
-            <div class="py-8 text-center text-sm text-red-500">
-                Failed to load approval workflow
-            </div>
-        `;
-    }
-};
-// =====================================================
-// APPROVE
-// =====================================================
+            Swal.fire({
 
-window.approveBooking = async function (docid) {
-    const confirm = await BookingCar.confirm(
-        "Approve Booking",
-        "Continue approval?",
-        "Approve",
-    );
+                title: "Cancel Booking?",
+                text: "This booking will be cancelled",
+                icon: "warning",
 
-    if (!confirm.isConfirmed) {
-        return;
-    }
+                showCancelButton: true,
 
-    try {
-        const result = await BookingCar.postJson(
-            `/bookingcar/approve/${docid}`,
-        );
+                confirmButtonText: "Yes, Cancel",
+                cancelButtonText: "Back",
 
-        await BookingCar.success(result.message);
+                reverseButtons: true,
 
-        if (BookingCar.currentEid) {
-            showBookingDetail(BookingCar.currentEid);
-        }
+                customClass: {
+                    confirmButton: `
+                        inline-flex items-center rounded-lg
+                        bg-red-600 px-4 py-2
+                        text-sm font-semibold text-white
+                    `,
+                    cancelButton: `
+                        inline-flex items-center rounded-lg
+                        bg-slate-200 px-4 py-2
+                        text-sm font-semibold text-slate-700
+                    `,
+                },
 
-        fetchBookingList?.();
-    } catch (err) {
-        BookingCar.error(err.message);
-    }
-};
+                buttonsStyling: false,
 
-// =====================================================
-// OPEN REVISE
-// =====================================================
+            }).then((result) => {
 
-window.openReviseBooking = function (docid) {
-    window.openReasonModal?.("revise", docid);
-};
+                if (!result.isConfirmed) {
+                    return;
+                }
 
-// =====================================================
-// OPEN REJECT
-// =====================================================
+                Swal.fire({
+                    title: "Processing...",
+                    text: "Cancelling booking",
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading(),
+                });
 
-window.openRejectBooking = function (docid) {
-    window.openReasonModal?.("reject", docid);
-};
+                $.ajax({
 
-// =====================================================
-// SUBMIT REASON
-// =====================================================
+                    url: BookingCar.config.routes.cancel(eid),
 
-window.submitReasonAction = async function () {
-    const reasonInput = document.getElementById("reasonInput");
+                    method: "POST",
 
-    const errorText = document.getElementById("reasonError");
+                    data: {
+                        _token: BookingCar.csrf,
+                    },
 
-    if (!reasonInput || !window.currentBookingDocid) {
-        return;
-    }
+                    success: (res) => {
 
-    const reason = reasonInput.value.trim();
+                        Swal.fire({
+                            icon: "success",
+                            title: "Success",
+                            text:
+                                res.message ||
+                                "Booking cancelled successfully",
+                        });
 
-    if (!reason) {
-        errorText?.classList.remove("hidden");
+                        BookingCar.DetailModal.close();
 
-        return;
-    }
+                        BookingCar.Approval.reloadList();
 
-    try {
-        let url = "";
+                    },
 
-        if (window.currentReasonAction === "revise") {
-            url = `/bookingcar/revise/${window.currentBookingDocid}`;
-        } else {
-            url = `/bookingcar/reject/${window.currentBookingDocid}`;
-        }
+                    error: (xhr) => {
 
-        const result = await BookingCar.postJson(url, {
-            reason,
-        });
+                        Swal.fire({
+                            icon: "error",
+                            title: "Failed",
+                            text:
+                                xhr.responseJSON?.message ||
+                                "Failed cancel booking",
+                        });
 
-        await BookingCar.success(result.message);
+                    },
 
-        closeReasonModal?.();
+                });
 
-        if (BookingCar.currentEid) {
-            showBookingDetail(BookingCar.currentEid);
-        }
+            });
 
-        fetchBookingList?.();
-    } catch (err) {
-        BookingCar.error(err.message);
-    }
-};
+        },
 
-// =====================================================
-// EVENTS
-// =====================================================
+        refreshAfterAction() {
 
-document.addEventListener("DOMContentLoaded", function () {
-    document
-        .getElementById("submitReasonBtn")
-        ?.addEventListener("click", window.submitReasonAction);
-});
+            const eid =
+                BookingCar.state?.selectedEid;
+
+            BookingCar.DetailModal.close();
+
+            if (eid) {
+
+                setTimeout(() => {
+
+                    BookingCar.DetailModal.open(eid);
+
+                }, 300);
+
+            }
+
+            BookingCar.Approval.reloadList();
+
+        },
+
+        reloadList() {
+
+            if (
+                BookingCar.DataList &&
+                typeof BookingCar.DataList.reload === "function"
+            ) {
+                BookingCar.DataList.reload();
+            }
+
+            if (
+                BookingCar.Calendar &&
+                typeof BookingCar.Calendar.refetch === "function"
+            ) {
+                BookingCar.Calendar.refetch();
+            }
+
+        },
+
+    };
+
+})();

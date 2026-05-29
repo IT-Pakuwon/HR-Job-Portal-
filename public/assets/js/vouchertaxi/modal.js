@@ -269,9 +269,9 @@
 
             this.bindButtons();
 
-            this.bindBackdropClose();
+            // this.bindBackdropClose();
 
-            this.bindEscapeKey();
+            // this.bindEscapeKey();
 
             VoucherTaxi.log(
                 "Modal Initialized"
