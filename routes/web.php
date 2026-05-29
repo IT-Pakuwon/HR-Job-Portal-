@@ -21,6 +21,7 @@ use App\Http\Controllers\BusinessUnitController;
 use App\Http\Controllers\CalrController;
 use App\Http\Controllers\CalrListController;
 use App\Http\Controllers\CalrNonPurchController;
+use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\CanvassxController;
 use App\Http\Controllers\CareerController;
@@ -135,6 +136,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+
 
 Route::get('/avatar/{filename}', function ($filename) {
     return response($filename, 200, [
@@ -1482,7 +1484,6 @@ Route::middleware(['auth'])->group(function () {
                     ->name('report');
             });
 
-
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/settings/account', [ProfileController::class, 'show'])->name('profile.showx');
@@ -1492,7 +1493,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approvejson', 'approveJson')->name('dashboard.approvejson');
         });
 
-
         Route::prefix('it-dashboard')->controller(ItDashboardController::class)->name('it-dashboard.')->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('summary-json');
             Route::get('/ticket-json', 'ticketJson')->name('ticket-json');
@@ -1500,6 +1500,16 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/recommendation-json', 'recommendationJson')->name('recommendation-json');
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
             Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
+        });
+
+        Route::prefix('cost-control-dashboard')->controller(CostControlDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('costdashboard.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('costdashboard.waiting');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('costdashboard.history');
+            Route::get('/pending-po-json', 'pendingPoJson')->name('costdashboard.po');
+            Route::get('/pending-issue-json', 'pendingIssueJson')->name('costdashboard.issue');
+            Route::get('/budget-json', 'budgetJson')->name('costdashboard.budget');
+            Route::get('/im-budget-json', 'imBudgetJson')->name('costdashboard.imbudget');
         });
     });
 
@@ -2042,7 +2052,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.ga.export');
 
         Route::get('/view/{type}', function ($type) {
-            return view('pages.report.' . $type);
+            return view('pages.report.'.$type);
         });
     });
 
