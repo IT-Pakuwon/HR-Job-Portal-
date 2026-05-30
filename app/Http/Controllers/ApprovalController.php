@@ -294,7 +294,8 @@ class ApprovalController extends Controller
         $deptId,
         string $createdBy,
         array $ctx = [],
-        ?Carbon $now = null
+        ?Carbon $now = null,
+        ?string $onlyType = null   // when set, only generate lines of this aprv_type
     ): array {
         $now = $now ?? Carbon::now();
 
@@ -303,6 +304,18 @@ class ApprovalController extends Controller
 
         // 2) filter berdasarkan context
         $picked = $this->filterLinesByContext($allLines, $ctx);
+
+        // 3) optional: restrict to a specific type (e.g. 'Condition')
+        if ($onlyType !== null) {
+            $picked = $picked->filter(
+                fn($r) => strcasecmp(trim((string) $r->aprv_type), $onlyType) === 0
+            )->values();
+
+            // If no condition lines exist for this company, return silently — nothing to add
+            if ($picked->isEmpty()) {
+                return [null, 0];
+            }
+        }
 
         // fallback: kalau tak ada yang match, sisakan semua NORMAL
         if ($picked->isEmpty()) {

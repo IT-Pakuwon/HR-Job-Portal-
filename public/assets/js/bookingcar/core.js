@@ -1,122 +1,226 @@
-window.BookingCar = window.BookingCar || {};
+// ============================================================
+// core.js — Booking Car
+// Global state, constants, and shared utilities
+// ============================================================
 
-BookingCar.state = {
-    calendar: null,
-    bookingData: [],
-    filteredData: [],
-    currentFilter: 'ALL',
-    currentPage: 1,
-    perPage: 5,
-    selectedBooking: null,
-    selectedApprovalDocId: null,
-    routeIndex: 0,
-    editRouteIndex: 0,
-};
+const BookingCar = {
 
-BookingCar.el = {
-    mainGrid: document.getElementById('mainGrid'),
-    calendar: document.getElementById('calendar'),
-    calendarWrapper: document.getElementById('calendarWrapper'),
-    bookingListPanel: document.getElementById('bookingListPanel'),
-
-    toggleList: document.getElementById('toggleList'),
-
-    bookingListBody: document.getElementById('bookingListBody'),
-    bookingCount: document.getElementById('bookingCount'),
-
-    prevBookingPage: document.getElementById('prevBookingPage'),
-    nextBookingPage: document.getElementById('nextBookingPage'),
-    bookingPageInfo: document.getElementById('bookingPageInfo'),
-
-    bookingFilters: document.querySelectorAll('.booking-filter'),
-
-    createModal: document.getElementById('createBookingModal'),
-    openCreateModalBtn: document.getElementById('openCreateBookingModal'),
-    closeCreateModalBtn: document.getElementById('closeCreateBookingModal'),
-    closeCreateModalFooterBtn: document.getElementById('closeCreateBookingModalFooter'),
-
-    bookingCarForm: document.getElementById('bookingCarForm'),
-
-    createRouteTableBody: document.getElementById('createRouteTableBody'),
-    createAddRouteBtn: document.getElementById('createAddRouteBtn'),
-
-    viewModal: document.getElementById('viewBookingModal'),
-
-    editModal: document.getElementById('editBookingModal'),
-    editBookingForm: document.getElementById('editBookingForm'),
-    closeEditBookingModal: document.getElementById('closeEditBookingModal'),
-    cancelEditBookingBtn: document.getElementById('cancelEditBookingBtn'),
-
-    editRouteTableBody: document.getElementById('editRouteTableBody'),
-    editAddRouteBtn: document.getElementById('editAddRouteBtnEdit'),
-
-    gaProcessModal: document.getElementById('gaProcessModal'),
-    gaProcessForm: document.getElementById('gaProcessForm'),
-    closeGaProcessModal: document.getElementById('closeGaProcessModal'),
-    cancelGaProcessBtn: document.getElementById('cancelGaProcessBtn'),
-
-    driverAssignmentWrapper: document.getElementById('driverAssignmentWrapper'),
-    vehicleAssignmentWrapper: document.getElementById('vehicleAssignmentWrapper'),
-
-    gaStatusPerjalanan: document.getElementById('ga_status_perjalanan'),
-    gaDriver: document.getElementById('ga_driver'),
-    gaHandphone: document.getElementById('ga_handphone'),
-    gaVehicle: document.getElementById('ga_vehicle'),
-    gaNoPolisi: document.getElementById('ga_no_polisi'),
-
-    approveBookingBtn: document.getElementById('approveBookingBtn'),
-    reviseBookingBtn: document.getElementById('reviseBookingBtn'),
-    rejectBookingBtn: document.getElementById('rejectBookingBtn'),
-
-    bookingApprovalActionsWrapper: document.getElementById('bookingApprovalActionsWrapper'),
-
-    cancelBookingBtn: document.getElementById('cancelBookingBtn'),
-    editBookingBtn: document.getElementById('editBookingBtn'),
-
-    bookingApprovalFlow: document.getElementById('bookingApprovalFlow'),
-    bookingTrackingTimeline: document.getElementById('bookingTrackingTimeline'),
-};
-
-BookingCar.config = {
-    routes: {},
-
-    statusColor: {
-        P: 'bg-blue-500',
-        C: 'bg-emerald-500',
-        D: 'bg-amber-400',
-        R: 'bg-red-500',
-        X: 'bg-gray-500',
-        WAITING_PROCESS: 'bg-indigo-500',
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        currentEid:    null,
+        currentDocid:  null,
+        currentStatus: null,
     },
 
-    statusLabel: {
-        P: 'Pending',
-        C: 'Approved',
-        D: 'Revise',
-        R: 'Rejected',
-        X: 'Closed',
-        WAITING_PROCESS: 'Waiting Process',
+    // --------------------------------------------------------
+    // ROUTES  (injected from Blade via meta tags or inline)
+    // --------------------------------------------------------
+    routes: {
+        index:    '/bookingcar',
+        json:         '/bookingcar/json',
+        calendarJson: '/bookingcar/calendar-json',
+        store:    '/bookingcar/store',
+        detail:   (eid)    => `/bookingcar/detail/${eid}`,
+        tracking: (eid)    => `/bookingcar/tracking/${eid}`,
+        find:     (eid)    => `/bookingcar/find/${eid}`,
+        print:    (hash)   => `/bookingcar/print/${hash}`,
+        update:   (docid)  => `/bookingcar/update/${docid}`,
+        cancel:   (docid)  => `/bookingcar/cancel/${docid}`,
+        approve:  (docid)  => `/bookingcar/approve/${docid}`,
+        reject:   (docid)  => `/bookingcar/reject/${docid}`,
+        revise:   (docid)  => `/bookingcar/revise/${docid}`,
+        process:        (eid)   => `/bookingcar/process/${eid}`,
+        changeExpense:  (eid)   => `/bookingcar/change-expense/${eid}`,
+        show:           (eid)   => `/showbookingcar/${eid}`,
     },
-};
 
-BookingCar.resetState = () => {
-    BookingCar.state.selectedBooking = null;
-    BookingCar.state.selectedApprovalDocId = null;
-};
+    // --------------------------------------------------------
+    // STATUS MAP
+    // --------------------------------------------------------
+    statusMap: {
+        P: { label: 'Pending',    color: 'blue'   },
+        C: { label: 'Approved',   color: 'emerald' },
+        F: { label: 'Processed',  color: 'indigo'  },
+        D: { label: 'Revise',     color: 'amber'   },
+        R: { label: 'Rejected',   color: 'red'     },
+        X: { label: 'Cancelled',  color: 'slate'   },
+    },
 
-BookingCar.setFilter = (filter) => {
-    BookingCar.state.currentFilter = filter;
-    BookingCar.state.currentPage = 1;
-};
+    // --------------------------------------------------------
+    // CSRF TOKEN
+    // --------------------------------------------------------
+    csrf() {
+        return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    },
 
-BookingCar.setBookingData = (data = []) => {
-    BookingCar.state.bookingData = data;
-};
+    // --------------------------------------------------------
+    // DATE FORMATTER  (no memory/locale tricks — explicit)
+    // --------------------------------------------------------
+    formatDate(raw) {
+        if (!raw) return '-';
 
-BookingCar.setFilteredData = (data = []) => {
-    BookingCar.state.filteredData = data;
-};
+        // Accept "YYYY-MM-DD" or full datetime string
+        const str  = String(raw).trim();
+        const date = new Date(str.length === 10 ? str + 'T00:00:00' : str);
 
-BookingCar.setSelectedBooking = (data = null) => {
-    BookingCar.state.selectedBooking = data;
+        if (isNaN(date.getTime())) return raw;
+
+        const dd   = String(date.getDate()).padStart(2, '0');
+        const mm   = String(date.getMonth() + 1).padStart(2, '0');
+        const yyyy = date.getFullYear();
+
+        return `${dd}/${mm}/${yyyy}`;
+    },
+
+    // --------------------------------------------------------
+    // TIME FORMATTER  — extracts HH:MM from datetime string
+    // --------------------------------------------------------
+    formatTime(raw) {
+        if (!raw) return '-';
+
+        const str = String(raw).trim();
+
+        // If already HH:MM or HH:MM:SS
+        if (/^\d{2}:\d{2}/.test(str)) return str.substring(0, 5);
+
+        // If full datetime: "YYYY-MM-DD HH:MM:SS"
+        const parts = str.split(' ');
+        if (parts.length >= 2) return parts[1].substring(0, 5);
+
+        return str;
+    },
+
+    // --------------------------------------------------------
+    // STATUS BADGE HTML
+    // --------------------------------------------------------
+    statusBadge(status) {
+        const map = {
+            P: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+            C: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+            F: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
+            D: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+            R: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
+            X: 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400',
+        };
+
+        const info  = BookingCar.statusMap[status] ?? { label: status };
+        const cls   = map[status] ?? map.X;
+
+        return `<span class="inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold ${cls}">
+                    ${info.label}
+                </span>`;
+    },
+
+    // --------------------------------------------------------
+    // FETCH WRAPPER
+    // --------------------------------------------------------
+    async request(url, options = {}) {
+        const defaults = {
+            headers: {
+                'X-CSRF-TOKEN':     BookingCar.csrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept':           'application/json',
+            },
+        };
+
+        // Merge headers
+        if (options.headers) {
+            options.headers = { ...defaults.headers, ...options.headers };
+        }
+
+        const config = { ...defaults, ...options };
+
+        try {
+            const res  = await fetch(url, config);
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw { status: res.status, data };
+            }
+
+            return data;
+
+        } catch (err) {
+            // Re-throw so callers handle it
+            throw err;
+        }
+    },
+
+    // --------------------------------------------------------
+    // SWAL SHORTCUTS
+    // --------------------------------------------------------
+    toast(icon, title, timer = 2500) {
+        Swal.fire({
+            toast:            true,
+            position:         'top-end',
+            icon,
+            title,
+            showConfirmButton: false,
+            timer,
+            timerProgressBar:  true,
+        });
+    },
+
+    confirm(opts = {}) {
+        return Swal.fire({
+            title:              opts.title             ?? 'Are you sure?',
+            text:               opts.text              ?? '',
+            icon:               opts.icon              ?? 'question',
+            showCancelButton:   true,
+            confirmButtonText:  opts.confirmText       ?? 'Yes',
+            cancelButtonText:   opts.cancelText        ?? 'Cancel',
+            confirmButtonColor: opts.confirmColor      ?? '#0f172a',
+            cancelButtonColor:  opts.cancelColor       ?? '#94a3b8',
+            reverseButtons:     true,
+        });
+    },
+
+    prompt(opts = {}) {
+        return Swal.fire({
+            title:              opts.title             ?? 'Input required',
+            input:              opts.input             ?? 'textarea',
+            inputPlaceholder:   opts.placeholder       ?? '',
+            inputLabel:         opts.label             ?? '',
+            showCancelButton:   true,
+            confirmButtonText:  opts.confirmText       ?? 'Submit',
+            cancelButtonText:   opts.cancelText        ?? 'Cancel',
+            confirmButtonColor: opts.confirmColor      ?? '#0f172a',
+            cancelButtonColor:  opts.cancelColor       ?? '#94a3b8',
+            reverseButtons:     true,
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return opts.validationMsg ?? 'This field is required.';
+                }
+            },
+        });
+    },
+
+    // --------------------------------------------------------
+    // URL STATE  — push/clear eid in address bar
+    // --------------------------------------------------------
+    pushUrl(eid) {
+        const url = BookingCar.routes.show(eid);
+        history.pushState({ eid }, '', url);
+    },
+
+    clearUrl() {
+        history.pushState({}, '', BookingCar.routes.index);
+    },
+
+    // --------------------------------------------------------
+    // SET / CLEAR CURRENT DOCUMENT
+    // --------------------------------------------------------
+    setDoc(eid, docid, status) {
+        BookingCar.state.currentEid    = eid;
+        BookingCar.state.currentDocid  = docid;
+        BookingCar.state.currentStatus = status;
+    },
+
+    clearDoc() {
+        BookingCar.state.currentEid    = null;
+        BookingCar.state.currentDocid  = null;
+        BookingCar.state.currentStatus = null;
+    },
 };
