@@ -82,13 +82,8 @@
 
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-6 py-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
-                <!-- ... existing header content ... -->
-            </div>
-
-            <div class="flex-1 p-4">
-
-                {{-- Calendar Legend --}}
-                <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+                                {{-- Calendar Legend --}}
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
                     <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                         <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> Pending
                     </span>
@@ -109,6 +104,10 @@
                     </span>
                 </div>
 
+                <!-- ... existing header content ... -->
+            </div>
+
+            <div class="flex-1 p-4">
                 <div id="calendar"></div>
             </div>
 

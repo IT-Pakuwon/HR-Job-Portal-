@@ -229,12 +229,28 @@ class BookingCarController extends Controller
 
         $base->whereIn('bc.status', ['P', 'C', 'F', 'D', 'R', 'X']);
 
-        if (!$isGA) {
-            $base->where(function ($q) use ($user, $cpnyIds, $deptIds) {
-                $q->whereRaw(
-                    'LOWER(TRIM(bc.created_by)) = ?',
-                    [strtolower(trim($user->username))]
-                );
+        $username = strtolower(trim($user->username));
+
+        if ($isGA) {
+            // GA: approval-line bookings OR own created bookings
+            $approvalDocids = TrApproval::where('status', '!=', 'X')
+                ->whereRaw(
+                    "LOWER(aprv_username) ~ ?",
+                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
+                )
+                ->pluck('refnbr')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $base->where(function ($q) use ($approvalDocids, $username) {
+                $q->whereIn('bc.docid', $approvalDocids)
+                  ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
+            });
+        } else {
+            // Regular user: own docs + same company/department
+            $base->where(function ($q) use ($username, $cpnyIds, $deptIds) {
+                $q->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
 
                 $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
                     if (!empty($cpnyIds)) {
@@ -335,7 +351,7 @@ class BookingCarController extends Controller
             ]);
 
         if ($isGA) {
-            // GA: only show bookings where they appear in the approval line
+            // GA: approval-line bookings OR own created bookings
             // TrApproval is on pgsql2, TrBookingCar on pgsql5 — fetch docids separately
             $docids = TrApproval::where('status', '!=', 'X')
                 ->whereRaw(
@@ -347,7 +363,10 @@ class BookingCarController extends Controller
                 ->values()
                 ->toArray();
 
-            $base->whereIn('bc.docid', $docids);
+            $base->where(function ($q) use ($docids, $username) {
+                $q->whereIn('bc.docid', $docids)
+                  ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
+            });
         } else {
             // Regular user: only own bookings
             $base->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
