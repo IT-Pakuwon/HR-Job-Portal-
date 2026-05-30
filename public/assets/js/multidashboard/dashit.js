@@ -12,7 +12,7 @@
         ticket: "/it-dashboard/ticket-json",
         access: "/it-dashboard/access-request-json",
         recommendation: "/it-dashboard/recommendation-json",
-        doctypes: "/it-dashboard/approval-doctypes",
+        doctypes: "/it-dashboard/approval-doctypes-json",
     };
 
     function updateRefreshTime() {

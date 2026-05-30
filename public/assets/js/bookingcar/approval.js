@@ -1,442 +1,413 @@
-(function () {
+// ============================================================
+// approval.js — Booking Car
+// Approval workflow: approve, reject, revise with notifications
+// ============================================================
 
-    "use strict";
+const BookingCarApproval = {
 
-    window.BookingCar = window.BookingCar || {};
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        isProcessing: false,
+        currentAction: null,
+        currentDocid: null,
+    },
 
-    BookingCar.Approval = {
+    // --------------------------------------------------------
+    // INIT
+    // --------------------------------------------------------
+    init() {
+        // Listeners already attached in detail-modal.js
+        // This module provides the action handlers
+    },
 
-        approve(docid) {
+    // --------------------------------------------------------
+    // APPROVE BOOKING
+    // --------------------------------------------------------
+    approve(docid = null) {
+        docid = docid ?? BookingCar.state.currentDocid;
 
-            if (!docid) {
-                return;
+        if (!docid) {
+            BookingCar.toast('error', 'Invalid booking reference');
+            return;
+        }
+
+        BookingCar.confirm({
+            title: 'Approve Booking?',
+            text: 'Are you sure you want to approve this booking request?',
+            icon: 'question',
+            confirmText: 'Yes, Approve',
+            confirmColor: '#10b981',
+            cancelText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                BookingCarApproval._submitApprove(docid);
             }
+        });
+    },
 
-            Swal.fire({
+    async _submitApprove(docid) {
+        BookingCarApproval.state.isProcessing = true;
+        BookingCarApproval.state.currentAction = 'approve';
+        BookingCarApproval.state.currentDocid = docid;
 
-                title: "Approve Booking?",
-                text: "This booking will be approved",
-                icon: "question",
+        try {
+            BookingCar.toast('info', 'Processing approval...');
 
-                showCancelButton: true,
-
-                confirmButtonText: "Yes, Approve",
-                cancelButtonText: "Cancel",
-
-                reverseButtons: true,
-
-                customClass: {
-                    confirmButton: `
-                        inline-flex items-center rounded-lg
-                        bg-emerald-600 px-4 py-2
-                        text-sm font-semibold text-white
-                    `,
-                    cancelButton: `
-                        inline-flex items-center rounded-lg
-                        bg-slate-200 px-4 py-2
-                        text-sm font-semibold text-slate-700
-                    `,
-                },
-
-                buttonsStyling: false,
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) {
-                    return;
+            const response = await BookingCar.request(
+                BookingCar.routes.approve(docid),
+                {
+                    method: 'POST',
                 }
+            );
 
-                Swal.fire({
-                    title: "Processing...",
-                    text: "Approving booking",
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading(),
-                });
+            if (response.success) {
+                BookingCar.toast('success', response.message ?? 'Booking approved successfully');
 
-                $.ajax({
-
-                    url: BookingCar.config.routes.approve(docid),
-
-                    method: "POST",
-
-                    data: {
-                        _token: BookingCar.csrf,
-                    },
-
-                    success: (res) => {
-
-                        Swal.fire({
-                            icon: "success",
-                            title: "Success",
-                            text:
-                                res.message ||
-                                "Booking approved successfully",
-                        });
-
-                        BookingCar.Approval.refreshAfterAction();
-
-                    },
-
-                    error: (xhr) => {
-
-                        Swal.fire({
-                            icon: "error",
-                            title: "Failed",
-                            text:
-                                xhr.responseJSON?.message ||
-                                "Failed approve booking",
-                        });
-
-                    },
-
-                });
-
-            });
-
-        },
-
-        reject(docid) {
-
-            if (!docid) {
-                return;
-            }
-
-            Swal.fire({
-
-                title: "Reject Booking",
-
-                input: "textarea",
-
-                inputLabel: "Reject Reason",
-
-                inputPlaceholder: "Input reject reason...",
-
-                inputAttributes: {
-                    autocapitalize: "off",
-                },
-
-                showCancelButton: true,
-
-                confirmButtonText: "Reject",
-                cancelButtonText: "Cancel",
-
-                reverseButtons: true,
-
-                customClass: {
-                    confirmButton: `
-                        inline-flex items-center rounded-lg
-                        bg-red-600 px-4 py-2
-                        text-sm font-semibold text-white
-                    `,
-                    cancelButton: `
-                        inline-flex items-center rounded-lg
-                        bg-slate-200 px-4 py-2
-                        text-sm font-semibold text-slate-700
-                    `,
-                },
-
-                buttonsStyling: false,
-
-                inputValidator: (value) => {
-
-                    if (!value) {
-                        return "Reject reason is required";
-                    }
-
-                },
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) {
-                    return;
-                }
-
-                Swal.fire({
-                    title: "Processing...",
-                    text: "Rejecting booking",
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading(),
-                });
-
-                $.ajax({
-
-                    url: BookingCar.config.routes.reject(docid),
-
-                    method: "POST",
-
-                    data: {
-                        _token: BookingCar.csrf,
-                        reason: result.value,
-                    },
-
-                    success: (res) => {
-
-                        Swal.fire({
-                            icon: "success",
-                            title: "Success",
-                            text:
-                                res.message ||
-                                "Booking rejected successfully",
-                        });
-
-                        BookingCar.Approval.refreshAfterAction();
-
-                    },
-
-                    error: (xhr) => {
-
-                        Swal.fire({
-                            icon: "error",
-                            title: "Failed",
-                            text:
-                                xhr.responseJSON?.message ||
-                                "Failed reject booking",
-                        });
-
-                    },
-
-                });
-
-            });
-
-        },
-
-        revise(docid) {
-
-            if (!docid) {
-                return;
-            }
-
-            Swal.fire({
-
-                title: "Revise Booking",
-
-                input: "textarea",
-
-                inputLabel: "Revise Reason",
-
-                inputPlaceholder: "Input revise reason...",
-
-                inputAttributes: {
-                    autocapitalize: "off",
-                },
-
-                showCancelButton: true,
-
-                confirmButtonText: "Send Revise",
-                cancelButtonText: "Cancel",
-
-                reverseButtons: true,
-
-                customClass: {
-                    confirmButton: `
-                        inline-flex items-center rounded-lg
-                        bg-amber-500 px-4 py-2
-                        text-sm font-semibold text-white
-                    `,
-                    cancelButton: `
-                        inline-flex items-center rounded-lg
-                        bg-slate-200 px-4 py-2
-                        text-sm font-semibold text-slate-700
-                    `,
-                },
-
-                buttonsStyling: false,
-
-                inputValidator: (value) => {
-
-                    if (!value) {
-                        return "Revise reason is required";
-                    }
-
-                },
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) {
-                    return;
-                }
-
-                Swal.fire({
-                    title: "Processing...",
-                    text: "Sending revise",
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading(),
-                });
-
-                $.ajax({
-
-                    url: BookingCar.config.routes.revise(docid),
-
-                    method: "POST",
-
-                    data: {
-                        _token: BookingCar.csrf,
-                        reason: result.value,
-                    },
-
-                    success: (res) => {
-
-                        Swal.fire({
-                            icon: "success",
-                            title: "Success",
-                            text:
-                                res.message ||
-                                "Booking revised successfully",
-                        });
-
-                        BookingCar.Approval.refreshAfterAction();
-
-                    },
-
-                    error: (xhr) => {
-
-                        Swal.fire({
-                            icon: "error",
-                            title: "Failed",
-                            text:
-                                xhr.responseJSON?.message ||
-                                "Failed revise booking",
-                        });
-
-                    },
-
-                });
-
-            });
-
-        },
-
-        cancel(eid) {
-
-            if (!eid) {
-                return;
-            }
-
-            Swal.fire({
-
-                title: "Cancel Booking?",
-                text: "This booking will be cancelled",
-                icon: "warning",
-
-                showCancelButton: true,
-
-                confirmButtonText: "Yes, Cancel",
-                cancelButtonText: "Back",
-
-                reverseButtons: true,
-
-                customClass: {
-                    confirmButton: `
-                        inline-flex items-center rounded-lg
-                        bg-red-600 px-4 py-2
-                        text-sm font-semibold text-white
-                    `,
-                    cancelButton: `
-                        inline-flex items-center rounded-lg
-                        bg-slate-200 px-4 py-2
-                        text-sm font-semibold text-slate-700
-                    `,
-                },
-
-                buttonsStyling: false,
-
-            }).then((result) => {
-
-                if (!result.isConfirmed) {
-                    return;
-                }
-
-                Swal.fire({
-                    title: "Processing...",
-                    text: "Cancelling booking",
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading(),
-                });
-
-                $.ajax({
-
-                    url: BookingCar.config.routes.cancel(eid),
-
-                    method: "POST",
-
-                    data: {
-                        _token: BookingCar.csrf,
-                    },
-
-                    success: (res) => {
-
-                        Swal.fire({
-                            icon: "success",
-                            title: "Success",
-                            text:
-                                res.message ||
-                                "Booking cancelled successfully",
-                        });
-
-                        BookingCar.DetailModal.close();
-
-                        BookingCar.Approval.reloadList();
-
-                    },
-
-                    error: (xhr) => {
-
-                        Swal.fire({
-                            icon: "error",
-                            title: "Failed",
-                            text:
-                                xhr.responseJSON?.message ||
-                                "Failed cancel booking",
-                        });
-
-                    },
-
-                });
-
-            });
-
-        },
-
-        refreshAfterAction() {
-
-            const eid =
-                BookingCar.state?.selectedEid;
-
-            BookingCar.DetailModal.close();
-
-            if (eid) {
-
+                // Update detail if visible
                 setTimeout(() => {
+                    BookingCarDetailModal.refresh();
+                    BookingCarDatalist.refresh();
+                }, 500);
 
-                    BookingCar.DetailModal.open(eid);
-
-                }, 300);
-
+            } else {
+                BookingCar.toast('error', response.message ?? 'Failed to approve booking');
             }
 
-            BookingCar.Approval.reloadList();
+        } catch (err) {
+            console.error('Approve error:', err);
 
-        },
+            let message = 'Failed to approve booking';
 
-        reloadList() {
-
-            if (
-                BookingCar.DataList &&
-                typeof BookingCar.DataList.reload === "function"
-            ) {
-                BookingCar.DataList.reload();
+            if (err.status === 403) {
+                message = 'You do not have permission to approve this booking';
+            } else if (err.data?.message) {
+                message = err.data.message;
             }
 
-            if (
-                BookingCar.Calendar &&
-                typeof BookingCar.Calendar.refetch === "function"
-            ) {
-                BookingCar.Calendar.refetch();
+            BookingCar.toast('error', message);
+
+        } finally {
+            BookingCarApproval.state.isProcessing = false;
+            BookingCarApproval.state.currentAction = null;
+            BookingCarApproval.state.currentDocid = null;
+        }
+    },
+
+    // --------------------------------------------------------
+    // REJECT BOOKING
+    // --------------------------------------------------------
+    reject(docid = null) {
+        docid = docid ?? BookingCar.state.currentDocid;
+
+        if (!docid) {
+            BookingCar.toast('error', 'Invalid booking reference');
+            return;
+        }
+
+        BookingCar.prompt({
+            title: 'Reject Booking',
+            label: 'Rejection Reason',
+            placeholder: 'Please explain why you are rejecting this booking...',
+            input: 'textarea',
+            confirmText: 'Reject',
+            confirmColor: '#ef4444',
+            cancelText: 'Cancel',
+            validationMsg: 'Please provide a reason for rejection.',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                BookingCarApproval._submitReject(docid, result.value);
+            }
+        });
+    },
+
+    async _submitReject(docid, reason) {
+        if (BookingCarHelper.isEmpty(reason)) {
+            BookingCar.toast('warning', 'Please provide a rejection reason');
+            return;
+        }
+
+        BookingCarApproval.state.isProcessing = true;
+        BookingCarApproval.state.currentAction = 'reject';
+        BookingCarApproval.state.currentDocid = docid;
+
+        try {
+            BookingCar.toast('info', 'Processing rejection...');
+
+            const response = await BookingCar.request(
+                BookingCar.routes.reject(docid),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        comment: reason,
+                    }),
+                }
+            );
+
+            if (response.success) {
+                BookingCar.toast('success', response.message ?? 'Booking rejected successfully');
+
+                // Close detail modal after short delay
+                setTimeout(() => {
+                    BookingCarModal.closeView();
+                    BookingCarDatalist.refresh();
+                }, 500);
+
+            } else {
+                BookingCar.toast('error', response.message ?? 'Failed to reject booking');
             }
 
-        },
+        } catch (err) {
+            console.error('Reject error:', err);
 
-    };
+            let message = 'Failed to reject booking';
 
-})();
+            if (err.status === 403) {
+                message = 'You do not have permission to reject this booking';
+            } else if (err.data?.message) {
+                message = err.data.message;
+            }
+
+            BookingCar.toast('error', message);
+
+        } finally {
+            BookingCarApproval.state.isProcessing = false;
+            BookingCarApproval.state.currentAction = null;
+            BookingCarApproval.state.currentDocid = null;
+        }
+    },
+
+    // --------------------------------------------------------
+    // REQUEST REVISION
+    // --------------------------------------------------------
+    revise(docid = null) {
+        docid = docid ?? BookingCar.state.currentDocid;
+
+        if (!docid) {
+            BookingCar.toast('error', 'Invalid booking reference');
+            return;
+        }
+
+        BookingCar.prompt({
+            title: 'Request Revision',
+            label: 'Revision Notes',
+            placeholder: 'Please provide feedback for the requester to revise...',
+            input: 'textarea',
+            confirmText: 'Request Revision',
+            confirmColor: '#f59e0b',
+            cancelText: 'Cancel',
+            validationMsg: 'Please provide revision notes.',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                BookingCarApproval._submitRevise(docid, result.value);
+            }
+        });
+    },
+
+    async _submitRevise(docid, reason) {
+        if (BookingCarHelper.isEmpty(reason)) {
+            BookingCar.toast('warning', 'Please provide revision notes');
+            return;
+        }
+
+        BookingCarApproval.state.isProcessing = true;
+        BookingCarApproval.state.currentAction = 'revise';
+        BookingCarApproval.state.currentDocid = docid;
+
+        try {
+            BookingCar.toast('info', 'Sending revision request...');
+
+            const response = await BookingCar.request(
+                BookingCar.routes.revise(docid),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        comment: reason,
+                    }),
+                }
+            );
+
+            if (response.success) {
+                BookingCar.toast('success', response.message ?? 'Revision request sent successfully');
+
+                // Update detail if visible
+                setTimeout(() => {
+                    BookingCarDetailModal.refresh();
+                    BookingCarDatalist.refresh();
+                }, 500);
+
+            } else {
+                BookingCar.toast('error', response.message ?? 'Failed to request revision');
+            }
+
+        } catch (err) {
+            console.error('Revise error:', err);
+
+            let message = 'Failed to request revision';
+
+            if (err.status === 403) {
+                message = 'You do not have permission to request revision';
+            } else if (err.data?.message) {
+                message = err.data.message;
+            }
+
+            BookingCar.toast('error', message);
+
+        } finally {
+            BookingCarApproval.state.isProcessing = false;
+            BookingCarApproval.state.currentAction = null;
+            BookingCarApproval.state.currentDocid = null;
+        }
+    },
+
+    // --------------------------------------------------------
+    // IS PROCESSING CHECK
+    // --------------------------------------------------------
+    isProcessing() {
+        return BookingCarApproval.state.isProcessing;
+    },
+
+    // --------------------------------------------------------
+    // GET APPROVAL STATUS FOR UI
+    // --------------------------------------------------------
+    getApprovalStatusText(approval) {
+        if (!approval) return '-';
+
+        const statusMap = {
+            'P': '⏳ Pending',
+            'A': '✓ Approved',
+            'R': '✕ Rejected',
+            'D': '↻ Revise',
+            'C': '✓ Complete',
+            'X': '✗ Cancelled',
+        };
+
+        return statusMap[approval.status] ?? approval.status;
+    },
+
+    // --------------------------------------------------------
+    // GET APPROVAL BADGE COLOR
+    // --------------------------------------------------------
+    getApprovalBadgeClass(status) {
+        const classes = {
+            'P': 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+            'A': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+            'R': 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
+            'D': 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+            'C': 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-400',
+            'X': 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400',
+        };
+
+        return classes[status] ?? 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-400';
+    },
+
+    // --------------------------------------------------------
+    // HANDLE BULK APPROVAL (if needed in future)
+    // --------------------------------------------------------
+    approveBulk(docids = []) {
+        if (!Array.isArray(docids) || docids.length === 0) {
+            BookingCar.toast('warning', 'No bookings selected');
+            return;
+        }
+
+        BookingCar.confirm({
+            title: `Approve ${docids.length} Booking${docids.length > 1 ? 's' : ''}?`,
+            text: 'Are you sure you want to approve these booking requests?',
+            icon: 'question',
+            confirmText: 'Yes, Approve All',
+            confirmColor: '#10b981',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                BookingCarApproval._submitBulkApprove(docids);
+            }
+        });
+    },
+
+    async _submitBulkApprove(docids) {
+        BookingCarApproval.state.isProcessing = true;
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const docid of docids) {
+            try {
+                const response = await BookingCar.request(
+                    BookingCar.routes.approve(docid),
+                    {
+                        method: 'POST',
+                    }
+                );
+
+                if (response.success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            } catch (err) {
+                failCount++;
+            }
+        }
+
+        BookingCarApproval.state.isProcessing = false;
+
+        if (successCount > 0) {
+            BookingCar.toast(
+                'success',
+                `${successCount} booking${successCount > 1 ? 's' : ''} approved successfully${failCount > 0 ? `, ${failCount} failed` : ''}`
+            );
+        } else {
+            BookingCar.toast('error', 'Failed to approve bookings');
+        }
+
+        // Refresh list
+        BookingCarDatalist.refresh();
+    },
+
+    // --------------------------------------------------------
+    // VALIDATE APPROVAL PERMISSIONS
+    // --------------------------------------------------------
+    canApprove(booking) {
+        return booking?.can_approve ?? false;
+    },
+
+    canReject(booking) {
+        return booking?.can_reject ?? false;
+    },
+
+    canRevise(booking) {
+        return booking?.can_revise ?? false;
+    },
+
+    hasApprovalPermissions(booking) {
+        return BookingCarApproval.canApprove(booking) ||
+               BookingCarApproval.canReject(booking) ||
+               BookingCarApproval.canRevise(booking);
+    },
+
+    // --------------------------------------------------------
+    // FORMAT APPROVAL DATE
+    // --------------------------------------------------------
+    formatApprovalDate(dateString) {
+        if (!dateString) return '-';
+
+        try {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        } catch (err) {
+            return dateString;
+        }
+    },
+};

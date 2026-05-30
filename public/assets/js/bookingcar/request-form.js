@@ -1,815 +1,316 @@
-window.BookingCar = window.BookingCar || {};
-BookingCar.state = BookingCar.state || {};
-BookingCar.el = BookingCar.el || {};
-
-BookingCar.openCreateBookingModal = (payload = {}) => {
-
-    const $modal =
-        $('#createBookingModal');
-
-    if (
-        $('#createBookingModal')
-            .hasClass('hidden')
-    ) {
-
-        BookingCar.resetCreateBookingForm();
-    }
-
-    $modal
-        .removeClass('hidden')
-        .addClass('flex');
-
-    BookingCar.initSingleSelect();
-
-    setTimeout(() => {
-
-        BookingCar
-            .filterUserRequestByDepartment();
-
-    }, 100);
-
-    $('body')
-        .addClass('overflow-hidden');
-
-    requestAnimationFrame(() => {
-
-        $modal
-            .find('.modal-backdrop')
-            .removeClass('opacity-0')
-            .addClass('opacity-100');
-
-        $modal
-            .find('.modal-panel')
-            .removeClass(
-                'translate-y-4 scale-[0.98] opacity-0'
-            )
-            .addClass(
-                'translate-y-0 scale-100 opacity-100'
-            );
-    });
-
-    if (
-        !$('#purpose_id')
-            .hasClass('select2-hidden-accessible')
-    ) {
-
-        BookingCar.initializeCreateSelect2();
-    }
-
-    setTimeout(() => {
-
-        if (
-            payload.booking_date &&
-            document.querySelector('#booking_date')._flatpickr
-        ) {
-
-            document
-                .querySelector('#booking_date')
-                ._flatpickr
-                .setDate(payload.booking_date, true);
-        }
-
-        if (
-            payload.start_time &&
-            document.querySelector('#start_time')._flatpickr
-        ) {
-
-            document
-                .querySelector('#start_time')
-                ._flatpickr
-                .setDate(payload.start_time, true, 'H:i');
-        }
-
-        if (
-            payload.end_time &&
-            document.querySelector('#end_time')._flatpickr
-        ) {
-
-            document
-                .querySelector('#end_time')
-                ._flatpickr
-                .setDate(payload.end_time, true, 'H:i');
-        }
-
-    }, 150);
-};
-BookingCar.closeCreateBookingModal = () => {
-
-    const $modal =
-        $('#createBookingModal');
-
-    $modal
-        .find('.modal-backdrop')
-        .removeClass('opacity-100')
-        .addClass('opacity-0');
-
-    $modal
-        .find('.modal-panel')
-        .removeClass(
-            'translate-y-0 scale-100 opacity-100'
-        )
-        .addClass(
-            'translate-y-4 scale-[0.98] opacity-0'
-        );
-
-    setTimeout(() => {
-
-        $modal
-            .removeClass('flex')
-            .addClass('hidden');
-
-        $('body')
-            .removeClass('overflow-hidden');
-
-    }, 200);
-};
-BookingCar.resetCreateBookingForm = () => {
-
-    const form =
-        $('#bookingCarForm')[0];
-
-    if (form) {
-        form.reset();
-    }
-
-    $('#createRouteTableBody')
-        .empty();
-
-    $('#keterangan')
-        .val('');
-
-    BookingCar.addCreateRouteRow();
-
-    /*
-    |--------------------------------------------------------------------------
-    | RESET SELECT
-    |--------------------------------------------------------------------------
-    */
-    $('#bookingCarForm')
-        .find('select')
-        .each(function () {
-
-            const $select = $(this);
-
-            const validOptions =
-                $select.find('option')
-                    .filter(function () {
-
-                        return $(this).val() !== '';
-                    });
-
-            /*
-            |--------------------------------------------------------------------------
-            | AUTO SELECT SINGLE OPTION
-            |--------------------------------------------------------------------------
-            */
-            if (
-                validOptions.length === 1
-            ) {
-
-                $select
-                    .val(
-                        validOptions.first().val()
-                    )
-                    .trigger('change');
-
-            } else {
-
-                $select
-                    .val('')
-                    .trigger('change');
-            }
-        });
-};
-
-BookingCar.initSingleSelect = () => {
-
-    [
-        '#cpny_id',
-        '#department_id',
-       '#cpny_id_site'
-    ].forEach(selector => {
-
-        const $select = $(selector);
-
-        const totalOption =
-            $select.find('option[value!=""]').length;
-
-        if (totalOption === 1) {
-
-            const value =
-                $select.find('option[value!=""]').first().val();
-
-            $select
-                .val(value)
-                .trigger('change');
-        }
-    });
-};
-
-BookingCar.initializeCreateSelect2 = () => {
-
-    if (
-        typeof $.fn.select2 === 'undefined'
-    ) return;
-
-    const config = {
-
-        dropdownParent:
-            $('#createBookingModal'),
-
-        width: '100%',
-    };
-
-    $('#cpny_id').select2(config);
-
-    $('#department_id').select2(config);
-
-    $('#department_id').on(
-        'change',
-        function () {
-
-            BookingCar
-                .filterUserRequestByDepartment();
-        }
-    );
-
-    $('#cpny_id_site').select2({
-        ...config,
-        placeholder: 'Select Company',
-    });
-
-    $('#purpose_id').select2({
-        ...config,
-        placeholder: 'Select Purpose',
-    });
-
-    $('#user_request').select2({
-        ...config,
-        placeholder: 'Select passenger',
-    });
-
-    BookingCar.filterUserRequestByDepartment();
-};
-
-BookingCar.filterUserRequestByDepartment = () => {
-
-    const selectedDept =
-        ($('#department_id').val() || '')
-            .toString()
-            .trim();
-
-    const $userRequest =
-        $('#user_request');
-
-    /*
-    |--------------------------------------------------------------------------
-    | STORE CURRENT VALUE
-    |--------------------------------------------------------------------------
-    */
-    const currentValue =
-        $userRequest.val();
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET ALL OPTIONS
-    |--------------------------------------------------------------------------
-    */
-    const allOptions =
-        $userRequest
-            .data('all-options');
-
-    /*
-    |--------------------------------------------------------------------------
-    | FIRST LOAD
-    |--------------------------------------------------------------------------
-    */
-    if (!allOptions) {
-
-        $userRequest.data(
-            'all-options',
-            $userRequest.html()
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | RESET ORIGINAL OPTIONS
-    |--------------------------------------------------------------------------
-    */
-    $userRequest.html(
-        $userRequest.data('all-options')
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | FILTER OPTIONS
-    |--------------------------------------------------------------------------
-    */
-    $userRequest.find('option').each(function () {
-
-        const $option =
-            $(this);
-
-        const optionValue =
-            ($option.val() || '')
-                .toString()
-                .trim();
-
-        const optionDept =
-            ($option.data('dept') || '')
-                .toString()
-                .trim();
-
-        /*
-        |--------------------------------------------------------------------------
-        | KEEP PLACEHOLDER
-        |--------------------------------------------------------------------------
-        */
-        if (!optionValue) {
-            return;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | REMOVE DIFFERENT DEPARTMENT
-        |--------------------------------------------------------------------------
-        */
-        if (
-            selectedDept &&
-            optionDept !== selectedDept
-        ) {
-
-            $option.remove();
-        }
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | RESET INVALID VALUE
-    |--------------------------------------------------------------------------
-    */
-    if (
-        !$userRequest.find(
-            `option[value="${currentValue}"]`
-        ).length
-    ) {
-
-        $userRequest.val('');
-    } else {
-
-        $userRequest.val(currentValue);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | RELOAD SELECT2
-    |--------------------------------------------------------------------------
-    */
-    if (
-        $userRequest.hasClass(
-            'select2-hidden-accessible'
-        )
-    ) {
-
-        $userRequest.select2('destroy');
-    }
-
-    $userRequest.select2({
-
-        dropdownParent:
-            $('#createBookingModal'),
-
-        width: '100%',
-
-        placeholder:
-            'Select passenger',
-    });
-};
-
-BookingCar.addCreateRouteRow = () => {
-
-    const index =
-        $('#createRouteTableBody tr').length;
-
-    const row = `
-        <tr data-index="${index}"
-            class="border-b border-slate-200 dark:border-white/10">
-
-            <td class="px-4 py-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-                ${index + 1}
-            </td>
-
-            <td class="px-4 py-3">
-
-                <input type="text"
-                    name="location_from[]"
-                    placeholder="Pickup location"
-                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
-
-            </td>
-
-            <td class="px-4 py-3">
-
-                <input type="text"
-                    name="destination[]"
-                    placeholder="Destination location"
-                    class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
-
-            </td>
-
-            <td class="px-4 py-3 text-right">
-
-                <button type="button"
-                    class="remove-route-btn inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
-
-                    <i class="fa-solid fa-xmark text-sm"></i>
-
-                </button>
-
-            </td>
-
-        </tr>
-    `;
-
-    $('#createRouteTableBody')
-        .append(row);
-};
-
-BookingCar.removeCreateRouteRow = (
-    button
-) => {
-
-    const totalRows =
-        $('#createRouteTableBody tr')
-            .length;
-
-    if (totalRows <= 1) {
-
-        Swal.fire({
-            icon: 'warning',
-            title:
-                'Minimum Route',
-            text:
-                'At least one route is required',
-        });
-
-        return;
-    }
-
-    $(button)
-        .closest('tr')
-        .remove();
-
-    BookingCar.reorderCreateRouteRows();
-};
-
-BookingCar.reorderCreateRouteRows = () => {
-
-    $('#createRouteTableBody tr')
-        .each(
-            (index, element) => {
-
-                $(element)
-                    .find(
-                        'td:first'
-                    )
-                    .html(
-                        index + 1
-                    );
-            }
-        );
-};
-
-BookingCar.collectCreateRoutes = () => {
-
-    const routes = [];
-
-    $('#createRouteTableBody tr').each((_, element) => {
-
-        const pickup =
-            $(element)
-                .find('input[name="location_from[]"]')
-                .val();
-
-        const destination =
-            $(element)
-                .find('input[name="destination[]"]')
-                .val();
-
-        routes.push({
-            pickup: pickup,
-            destination: destination,
-        });
-    });
-
-    return routes;
-};
-
-BookingCar.validateCreateForm = () => {
-
-    const routes =
-        BookingCar.collectCreateRoutes();
-
-    let valid = true;
-
-    routes.forEach(route => {
-
-        if (
-            !route.pickup ||
-            !route.destination
-        ) {
-
-            valid = false;
-        }
-    });
-
-    if (
-        !$('#purpose_id').val()
-    ) {
-
-        Swal.fire({
-            icon: 'warning',
-            title: 'Purpose Required',
-            text: 'Please select purpose',
-        });
-
-        return false;
-    }
-
-    if (!valid) {
-
-        Swal.fire({
-            icon: 'warning',
-            title: 'Incomplete Route',
-            text:
-                'Please complete all pickup and destination fields',
-        });
-
-        return false;
-    }
-
-    return true;
-};
-
-BookingCar.submitCreateBooking =
-    async () => {
-
-        if (
-            !BookingCar.validateCreateForm()
-        ) {
-
-            return;
-        }
-
-        const form =
-            $('#bookingCarForm');
-
-        const submitButton =
-            $(
-                'button[form="bookingCarForm"]'
-            );
-
-        const formData = new FormData();
-
-        $('#bookingCarForm')
-            .serializeArray()
-            .forEach(field => {
-
-                formData.append(
-                    field.name,
-                    field.value
-                );
+// ============================================================
+// request-form.js — Booking Car
+// Create booking form: Select2 init, department filter, validate, submit
+// ============================================================
+
+const BookingCarForm = {
+
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        isSubmitting: false,
+    },
+
+    // --------------------------------------------------------
+    // INIT — wire events once on page load
+    // --------------------------------------------------------
+    init() {
+        // Open modal button
+        document.getElementById('openCreateBookingModal')
+            ?.addEventListener('click', () => {
+                BookingCarModal.openCreate();
+                BookingCarForm.onOpen();
             });
+
+        // Form submit
+        document.getElementById('bookingCarForm')
+            ?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await BookingCarForm.submit();
+            });
+
+        // Department change → re-filter passenger list (use jQuery for Select2 compat)
+        $('#department_id').on('change.bookingFilter', function () {
+            BookingCarForm.filterUserByDept();
+        });
+    },
+
+    // --------------------------------------------------------
+    // ON OPEN — called every time the create modal opens
+    // --------------------------------------------------------
+    onOpen(payload = {}) {
+        // Reset form state
+        BookingCarHelper.resetForm('bookingCarForm');
+        BookingCarRoute.clearCreate();
+
+        // Initialize dropdowns
+        BookingCarForm.initSelect2();
+        BookingCarForm.initSingleSelect();
+        BookingCarForm.filterUserByDept();
+
+        // Pre-fill from payload (e.g. calendar date click)
+        if (payload.booking_date) {
+            BookingCarHelper.setValue('booking_date', payload.booking_date);
+        }
+        if (payload.start_time) {
+            BookingCarHelper.setValue('start_time', payload.start_time);
+        }
+        if (payload.end_time) {
+            BookingCarHelper.setValue('end_time', payload.end_time);
+        }
+    },
+
+    // --------------------------------------------------------
+    // INIT SELECT2  — only initializes each dropdown once
+    // --------------------------------------------------------
+    initSelect2() {
+        if (typeof $.fn.select2 === 'undefined') return;
+
+        const config = {
+            dropdownParent: $('#createBookingModal'),
+            width:          '100%',
+            allowClear:     false,
+        };
+
+        const init = ($el, extra = {}) => {
+            if (!$el.length) return;
+
+            // Destroy if already initialized
+            if ($el.hasClass('select2-hidden-accessible')) {
+                $el.select2('destroy');
+            }
+
+            $el.select2({ ...config, ...extra });
+        };
+
+        init($('#cpny_id'));
+        init($('#department_id'));
+        init($('#cpny_id_site'), { placeholder: 'Select Company' });
+        init($('#purpose_id'),   { placeholder: 'Select Purpose' });
+        // #user_request is managed by filterUserByDept()
+    },
+
+    // --------------------------------------------------------
+    // AUTO-SELECT WHEN ONLY ONE VALID OPTION EXISTS
+    // --------------------------------------------------------
+    initSingleSelect() {
+        ['#cpny_id', '#department_id', '#cpny_id_site'].forEach(selector => {
+            const $sel    = $(selector);
+            if (!$sel.length) return;
+
+            const options = $sel.find('option[value!=""]');
+
+            // Auto-select if only one option
+            if (options.length === 1) {
+                $sel.val(options.first().val()).trigger('change');
+            }
+        });
+    },
+
+    // --------------------------------------------------------
+    // FILTER PASSENGER DROPDOWN BY SELECTED DEPARTMENT
+    // --------------------------------------------------------
+    filterUserByDept() {
+        const selectedDept = BookingCarHelper.getValue('department_id').trim();
+        const $sel         = $('#user_request');
+        if (!$sel.length) return;
+
+        const currentVal = $sel.val();
+
+        // Cache original HTML on first call
+        if (!$sel.data('all-options')) {
+            $sel.data('all-options', $sel.html());
+        }
+
+        // Destroy Select2 FIRST so we can freely modify the underlying options
+        if ($sel.hasClass('select2-hidden-accessible')) {
+            $sel.select2('destroy');
+        }
+
+        // Restore full option list
+        $sel.html($sel.data('all-options'));
+
+        // Remove options that don't belong to the selected department
+        if (selectedDept) {
+            $sel.find('option').each(function () {
+                const $opt = $(this);
+                if (!$opt.val()) return; // keep placeholder
+
+                // Use .attr() — reads live DOM attribute, never stale jQuery cache
+                const optDept = ($opt.attr('data-dept') ?? '').toString().trim();
+                if (optDept !== selectedDept) {
+                    $opt.remove();
+                }
+            });
+        }
+
+        // Restore previous selection only if still valid
+        const stillValid = $sel.find(`option[value="${currentVal}"]`).length > 0;
+        $sel.val(stillValid ? currentVal : '');
+
+        // Rebuild Select2 with the filtered option set
+        $sel.select2({
+            dropdownParent: $('#createBookingModal'),
+            width:          '100%',
+            placeholder:    'Select passenger',
+            allowClear:     false,
+        });
+    },
+
+    // --------------------------------------------------------
+    // VALIDATE — comprehensive validation
+    // --------------------------------------------------------
+    validate() {
+        // Get all form values
+        const cpny_id = BookingCarHelper.getValue('cpny_id');
+        const department_id = BookingCarHelper.getValue('department_id');
+        const user_peminta = BookingCarHelper.getValue('user_peminta');
+        const passenger = BookingCarHelper.getValue('passenger');
+        const booking_date = BookingCarHelper.getValue('booking_date');
+        const start_time = BookingCarHelper.getValue('start_time');
+        const end_time = BookingCarHelper.getValue('end_time');
+        const cpny_id_site = BookingCarHelper.getValue('cpny_id_site');
+        const user_request = BookingCarHelper.getValue('user_request');
+        const purpose_id = BookingCarHelper.getValue('purpose_id');
+        const purpose_descr = BookingCarHelper.getValue('purpose_descr');
+
+        // Required fields validation
+        if (BookingCarHelper.isEmpty(cpny_id)) {
+            BookingCar.toast('warning', 'Company is required.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(department_id)) {
+            BookingCar.toast('warning', 'Department is required.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(user_peminta)) {
+            BookingCar.toast('warning', 'Requester information is missing.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(passenger) || parseInt(passenger) < 1) {
+            BookingCar.toast('warning', 'Total passenger must be at least 1.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(booking_date)) {
+            BookingCar.toast('warning', 'Booking date is required.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(start_time)) {
+            BookingCar.toast('warning', 'Start time is required.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(end_time)) {
+            BookingCar.toast('warning', 'End time is required.');
+            return false;
+        }
+
+        // Time validation
+        if (start_time >= end_time) {
+            BookingCar.toast('warning', 'Start time must be before end time.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(cpny_id_site)) {
+            BookingCar.toast('warning', 'Company expense is required.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(user_request)) {
+            BookingCar.toast('warning', 'User request (passenger) is required.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(purpose_id)) {
+            BookingCar.toast('warning', 'Purpose is required.');
+            return false;
+        }
+
+        if (BookingCarHelper.isEmpty(purpose_descr)) {
+            BookingCar.toast('warning', 'Purpose description is required.');
+            return false;
+        }
+
+        // Routes validation
+        const routes = BookingCarRoute.getCreateRoutes();
+        if (!BookingCarRoute.validateRoutes(routes)) {
+            return false;
+        }
+
+        return true;
+    },
+
+    // --------------------------------------------------------
+    // SUBMIT
+    // --------------------------------------------------------
+    async submit() {
+        // Prevent double submit
+        if (BookingCarForm.state.isSubmitting) return;
+
+        if (!BookingCarForm.validate()) {
+            return;
+        }
+
+        BookingCarForm.state.isSubmitting = true;
+
+        const btn = document.querySelector('button[form="bookingCarForm"][type="submit"]');
+        const originalText = btn?.innerHTML ?? '';
+
+        // Loading state
+        BookingCarHelper.setButtonLoading('submitRequestBtn', true, originalText);
 
         try {
+            const formData = BookingCarHelper.getFormData('bookingCarForm');
 
-            submitButton.prop(
-                'disabled',
-                true
-            );
-
-            submitButton.html(`
-                <span class="inline-flex items-center gap-2">
-
-                    <svg class="h-4 w-4 animate-spin"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24">
-
-                        <circle class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4">
-                        </circle>
-
-                        <path class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v8H4z">
-                        </path>
-
-                    </svg>
-
-                    Processing...
-
-                </span>
-            `);
-
-            const response =
-                await $.ajax({
-
-                    url:
-                        BookingCar
-                            .config
-                            .routes
-                            .store,
-
-                    type: 'POST',
-
-                    data: formData,
-
-                    processData: false,
-
-                    contentType: false,
-
-                    headers: {
-                        'X-CSRF-TOKEN':
-                            BookingCar
-                                .config
-                                .csrf,
-                    },
-                });
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text:
-                    response.message ||
-                    'Booking created successfully',
+            const res = await BookingCar.request(BookingCar.routes.store, {
+                method: 'POST',
+                body:   formData,
             });
 
-            BookingCar.closeCreateBookingModal();
-
-            await BookingCar.reloadAllData();
-
-        } catch (error) {
-
-            console.error(
-                'Create booking failed:',
-                error
-            );
-
-            let message =
-                'Failed create booking';
-
-            if (
-                error.responseJSON
-                    ?.message
-            ) {
-
-                message =
-                    error
-                        .responseJSON
-                        .message;
+            if (!res.success) {
+                BookingCar.toast('error', res.message ?? 'Failed to create booking.');
+                return;
             }
 
-            if (
-                error.responseJSON
-                    ?.errors
-            ) {
+            // Success
+            BookingCar.toast('success', res.message ?? 'Booking created successfully.');
 
-                const firstError =
-                    Object.values(
-                        error
-                            .responseJSON
-                            .errors
-                    )[0];
+            // Close modal
+            BookingCarModal.closeCreate();
 
-                if (
-                    Array.isArray(
-                        firstError
-                    )
-                ) {
-
-                    message =
-                        firstError[0];
-                }
+            // Refresh data
+            if (typeof BookingCarDatalist !== 'undefined') {
+                BookingCarDatalist.refresh();
             }
 
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed',
-                text: message,
-            });
+            if (typeof BookingCarCalendar !== 'undefined') {
+                BookingCarCalendar.refresh?.();
+            }
+
+        } catch (err) {
+            console.error('Submit error:', err);
+
+            let message = 'Failed to create booking.';
+
+            if (err.status === 422 && err.data?.errors) {
+                // Validation errors from backend
+                const errors = Object.values(err.data.errors).flat();
+                message = errors[0] ?? message;
+            } else if (err.data?.message) {
+                message = err.data.message;
+            }
+
+            BookingCar.toast('error', message);
 
         } finally {
-
-            submitButton.prop(
-                'disabled',
-                false
-            );
-
-            submitButton.html(`
-                <i class="fa-solid fa-paper-plane text-xs"></i>
-                Submit Request
-            `);
+            BookingCarForm.state.isSubmitting = false;
+            BookingCarHelper.setButtonLoading('submitRequestBtn', false, originalText);
         }
-    };
-
-$(document).on(
-    'click',
-    '#openCreateBookingModal',
-    () => {
-
-        BookingCar.openCreateBookingModal();
-    }
-);
-
-$(document).on(
-    'click',
-    '#closeCreateBookingModal',
-    () => {
-
-        BookingCar.closeCreateBookingModal();
-    }
-);
-
-$(document).on(
-    'click',
-    '#closeCreateBookingModalFooter',
-    () => {
-
-        BookingCar.closeCreateBookingModal();
-    }
-);
-
-$(document).on(
-    'click',
-    '#createBookingModal',
-    function (e) {
-
-        if (
-            e.target.id ===
-            'createBookingModal'
-        ) {
-
-            BookingCar.closeCreateBookingModal();
-        }
-    }
-);
-
-$(document).on(
-    'click',
-    '#createAddRouteBtn',
-    () => {
-
-        BookingCar.addCreateRouteRow();
-    }
-);
-
-$(document).on(
-    'click',
-    '.remove-route-btn',
-    function () {
-
-        BookingCar.removeCreateRouteRow(
-            this
-        );
-    }
-);
-
-$(document).on(
-    'change',
-    '#department_id',
-    function () {
-
-        BookingCar
-            .filterUserRequestByDepartment();
-    }
-);
-
-$(document).on(
-    'submit',
-    '#bookingCarForm',
-    async function (e) {
-
-        e.preventDefault();
-
-        await BookingCar.submitCreateBooking();
-    }
-);
-
-$(document).on(
-    'keydown',
-    function (e) {
-
-        if (
-            e.key === 'Escape'
-        ) {
-
-            BookingCar.closeCreateBookingModal();
-        }
-    }
-);
+    },
+};

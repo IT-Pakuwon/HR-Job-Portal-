@@ -112,7 +112,7 @@
                 <div class="lg:col-span-5">
 
                     <select id="dashboardFilter"
-                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                        class="w-full  rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
 
                         <option value="ALL">
                             All
