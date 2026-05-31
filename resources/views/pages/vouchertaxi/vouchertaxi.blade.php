@@ -137,7 +137,7 @@
 
 
                     <div
-                        class="flex h-10 min-w-[42px] items-center justify-center  rounded-lg bg-indigo-50 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                        class="flex h-10 min-w-[42px] items-center justify-center rounded-lg bg-indigo-50 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
                         <span id="voucherCount">
                             0
                         </span>
@@ -401,14 +401,15 @@
                                     class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]"
                                     required>
                             </div>
-
                             <div class="md:col-span-2">
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Purpose *
                                 </label>
 
                                 <select id="purpose" name="purpose_id"
-                                    class="w-full rounded-lg border border-slate-200 dark:border-white/10" required>
+                                    class="w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                    required>
+                                    <option value="">Select Purpose</option>
                                 </select>
                             </div>
 
@@ -467,6 +468,13 @@
                                     class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
                                     required>
                                     <option value="">Select User</option>
+                                    @if (isset($requesters))
+                                        @foreach ($requesters as $emp)
+                                            <option value="{{ $emp->username }}">
+                                                {{ $emp->name }}
+                                            </option>
+                                        @endforeach
+                                    @endif
                                 </select>
                             </div>
 
@@ -695,15 +703,15 @@
                             </div>
 
                             <div class="md:col-span-2">
-
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Purpose *
                                 </label>
 
                                 <select id="edit_purpose" name="purpose_id"
-                                    class="w-full rounded-lg border border-slate-200 dark:border-white/10" required>
+                                    class="w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                    required>
+                                    <option value="">Select Purpose</option>
                                 </select>
-
                             </div>
 
                             <div class="md:col-span-2">
@@ -780,7 +788,6 @@
                             </div>
 
                             <div>
-
                                 <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Topup *
                                 </label>
@@ -789,9 +796,14 @@
                                     class="h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
                                     required>
                                     <option value="">Select User</option>
-
+                                    @if (isset($requesters))
+                                        @foreach ($requesters as $emp)
+                                            <option value="{{ $emp->username }}">
+                                                {{ $emp->name }}
+                                            </option>
+                                        @endforeach
+                                    @endif
                                 </select>
-
                             </div>
 
                         </div>
@@ -950,7 +962,8 @@
 
                             <div>
                                 <div class="text-xs text-slate-500">Company — Company Expense</div>
-                                <div class="mt-1 flex items-center gap-1 text-sm font-medium text-slate-900 dark:text-slate-100">
+                                <div
+                                    class="mt-1 flex items-center gap-1 text-sm font-medium text-slate-900 dark:text-slate-100">
                                     <span id="view_cpny"></span>
                                     <span class="text-slate-400">–</span>
                                     <span id="view_cpny_expense"></span>
@@ -960,6 +973,12 @@
                             <div>
                                 <div class="text-xs text-slate-500">Department</div>
                                 <div id="view_dept"
+                                    class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
+                            </div>
+
+                            <div>
+                                <div class="text-xs text-slate-500">Top Up User</div>
+                                <div id="view_topup_user"
                                     class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100"></div>
                             </div>
 
@@ -1129,6 +1148,14 @@
 
                         </button>
 
+                        <button type="button" id="processVoucherBtn"
+                            class="hidden rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
+
+                            <i class="fa-solid fa-taxi mr-1.5"></i>
+                            Process
+
+                        </button>
+
                     </div>
 
                 </div>
@@ -1160,7 +1187,7 @@
                     <div class="flex items-center gap-4">
 
                         <div
-                            class="flex h-12 w-12 items-center justify-center  rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                            class="flex h-12 w-12 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
 
                             <i class="fa-solid fa-money-bill-wave text-lg"></i>
 
@@ -1194,7 +1221,7 @@
 
                     {{-- DOCUMENT INFORMATION --}}
                     <div
-                        class="overflow-hidden  rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                        class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
                         <div
                             class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
@@ -1213,7 +1240,7 @@
 
                             <div id="process_status">
                                 <span
-                                    class=" rounded-lg bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                                    class="rounded-lg bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
                                     Waiting Process
                                 </span>
                             </div>
@@ -1282,7 +1309,7 @@
 
                     {{-- PROCESS VOUCHER --}}
                     <div
-                        class="overflow-hidden  rounded-lg border border-emerald-200 bg-white dark:border-emerald-500/20 dark:bg-[#0f172a]">
+                        class="overflow-hidden rounded-lg border border-emerald-200 bg-white dark:border-emerald-500/20 dark:bg-[#0f172a]">
 
                         <div
                             class="border-b border-emerald-100 bg-emerald-50 px-5 py-3 dark:border-emerald-500/20 dark:bg-emerald-500/10">
@@ -1335,7 +1362,7 @@
 
                             {{-- UPDATE EXPENSE OWNER --}}
                             <div
-                                class=" rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+                                class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
 
                                 <label class="flex cursor-pointer items-start gap-3">
 
@@ -1365,7 +1392,7 @@
 
                             {{-- NEW EXPENSE OWNER --}}
                             <div id="expenseOwnerSection"
-                                class="hidden  rounded-lg border border-indigo-200 bg-indigo-50 p-5 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+                                class="hidden rounded-lg border border-indigo-200 bg-indigo-50 p-5 dark:border-indigo-500/20 dark:bg-indigo-500/10">
 
                                 <div
                                     class="mb-4 text-sm font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
@@ -1445,16 +1472,7 @@
 
                                         <select id="process_user_peminta_expense" name="user_peminta_expense"
                                             class="select2-process h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm">
-                                            <option value="">
-                                                Select Employee
-                                            </option>
-
-                                            @foreach ($requesters as $u)
-                                                <option value="{{ $u->username }}">
-                                                    {{ $u->name }}
-                                                </option>
-                                            @endforeach
-
+                                            <option value="">Select Employee</option>
                                         </select>
 
                                     </div>

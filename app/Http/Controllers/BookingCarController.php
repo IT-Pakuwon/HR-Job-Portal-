@@ -304,17 +304,19 @@ class BookingCarController extends Controller
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
 
-            $firstRoute = TrBookingCarDetail::where('docid', $row->docid)
-                ->orderBy('booking_order')
-                ->first(['origin', 'destination', 'booking_order']);
-
-            $row->route_summary = $firstRoute
-                ? $firstRoute->origin . ' → ' . $firstRoute->destination
-                : '-';
-
             $row->routes = TrBookingCarDetail::where('docid', $row->docid)
                 ->orderBy('booking_order')
                 ->get(['origin', 'destination', 'booking_order']);
+
+            if ($row->routes->isEmpty()) {
+                $row->route_summary = '-';
+            } else {
+                $chain = $row->routes->first()->origin;
+                foreach ($row->routes as $r) {
+                    $chain .= ' → ' . $r->destination;
+                }
+                $row->route_summary = $chain;
+            }
 
             $row->extendedProps = ['eid' => $row->eid, 'status' => $row->status];
 
@@ -376,12 +378,18 @@ class BookingCarController extends Controller
 
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
-            $firstRoute = TrBookingCarDetail::where('docid', $row->docid)
+            $routes = TrBookingCarDetail::where('docid', $row->docid)
                 ->orderBy('booking_order')
-                ->first(['origin', 'destination']);
-            $row->route_summary = $firstRoute
-                ? $firstRoute->origin . ' → ' . $firstRoute->destination
-                : '-';
+                ->get(['origin', 'destination']);
+            if ($routes->isEmpty()) {
+                $row->route_summary = '-';
+            } else {
+                $chain = $routes->first()->origin;
+                foreach ($routes as $r) {
+                    $chain .= ' → ' . $r->destination;
+                }
+                $row->route_summary = $chain;
+            }
             unset($row->id);
             return $row;
         });

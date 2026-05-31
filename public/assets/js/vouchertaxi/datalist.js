@@ -1,9 +1,9 @@
 // ============================================================
 // datalist.js — Voucher Taxi
-// List panel: search, filter, pagination, item rendering
+// Voucher list panel: search, filter, pagination, item rendering
 // ============================================================
 
-const VoucherTaxiDataList = {
+const VoucherTaxiDatalist = {
 
     // --------------------------------------------------------
     // STATE
@@ -22,11 +22,11 @@ const VoucherTaxiDataList = {
     // INIT — wire events once on page load
     // --------------------------------------------------------
     init() {
-        VoucherTaxiDataList.bindSearch();
-        VoucherTaxiDataList.bindFilters();
-        VoucherTaxiDataList.bindPagination();
-        VoucherTaxiDataList.bindRows();
-        VoucherTaxiDataList.load();
+        VoucherTaxiDatalist.bindSearch();
+        VoucherTaxiDatalist.bindFilters();
+        VoucherTaxiDatalist.bindPagination();
+        VoucherTaxiDatalist.bindToggle();
+        VoucherTaxiDatalist.load();
     },
 
     // --------------------------------------------------------
@@ -37,11 +37,11 @@ const VoucherTaxiDataList = {
         if (!input) return;
 
         input.addEventListener('input', () => {
-            clearTimeout(VoucherTaxiDataList.state.debounceTimer);
-            VoucherTaxiDataList.state.debounceTimer = setTimeout(() => {
-                VoucherTaxiDataList.state.search = input.value.trim();
-                VoucherTaxiDataList.state.page   = 1;
-                VoucherTaxiDataList.load();
+            clearTimeout(VoucherTaxiDatalist.state.debounceTimer);
+            VoucherTaxiDatalist.state.debounceTimer = setTimeout(() => {
+                VoucherTaxiDatalist.state.search = input.value.trim();
+                VoucherTaxiDatalist.state.page   = 1;
+                VoucherTaxiDatalist.load();
             }, 350);
         });
     },
@@ -57,10 +57,9 @@ const VoucherTaxiDataList = {
                 });
                 btn.classList.add('active-filter');
 
-                const filter = btn.dataset.filter ?? 'ALL';
-                VoucherTaxiDataList.state.filter = filter === 'ALL' ? '' : filter;
-                VoucherTaxiDataList.state.page   = 1;
-                VoucherTaxiDataList.load();
+                VoucherTaxiDatalist.state.filter = btn.dataset.filter ?? 'P';
+                VoucherTaxiDatalist.state.page   = 1;
+                VoucherTaxiDatalist.load();
             });
         });
     },
@@ -71,99 +70,165 @@ const VoucherTaxiDataList = {
     bindPagination() {
         document.getElementById('prevVoucherPage')
             ?.addEventListener('click', () => {
-                if (VoucherTaxiDataList.state.page <= 1) return;
-                VoucherTaxiDataList.state.page--;
-                VoucherTaxiDataList.load();
+                if (VoucherTaxiDatalist.state.page <= 1) return;
+                VoucherTaxiDatalist.state.page--;
+                VoucherTaxiDatalist.load();
             });
 
         document.getElementById('nextVoucherPage')
             ?.addEventListener('click', () => {
                 const maxPage = Math.ceil(
-                    VoucherTaxiDataList.state.total / VoucherTaxiDataList.state.perPage
+                    VoucherTaxiDatalist.state.total / VoucherTaxiDatalist.state.perPage
                 );
-                if (VoucherTaxiDataList.state.page >= maxPage) return;
-                VoucherTaxiDataList.state.page++;
-                VoucherTaxiDataList.load();
+                if (VoucherTaxiDatalist.state.page >= maxPage) return;
+                VoucherTaxiDatalist.state.page++;
+                VoucherTaxiDatalist.load();
             });
     },
 
     // --------------------------------------------------------
-    // ROW CLICK → open detail
+    // TOGGLE LIST PANEL VISIBILITY
     // --------------------------------------------------------
-    bindRows() {
-        document.getElementById('voucherListBody')
-            ?.addEventListener('click', (e) => {
-                const row = e.target.closest('.voucher-list-item');
-                if (!row) return;
-                const eid = row.dataset.eid;
-                if (eid) VoucherTaxiDetailModal.load(eid);
+    bindToggle() {
+        const btn   = document.getElementById('toggleList');
+        const panel = document.getElementById('voucherListPanel');
+        if (!btn || !panel) return;
+
+        btn.addEventListener('click', () => {
+            panel.classList.toggle('hidden');
+        });
+    },
+
+    // --------------------------------------------------------
+    // LOAD — fetch from API and render
+    // --------------------------------------------------------
+    async load() {
+        if (VoucherTaxiDatalist.state.isLoading) return;
+        VoucherTaxiDatalist.state.isLoading = true;
+
+        VoucherTaxiDatalist.renderLoading();
+
+        try {
+            const params = new URLSearchParams({
+                draw:   VoucherTaxiDatalist.state.page,
+                start:  (VoucherTaxiDatalist.state.page - 1) * VoucherTaxiDatalist.state.perPage,
+                length: VoucherTaxiDatalist.state.perPage,
+                search: VoucherTaxiDatalist.state.search,
+                status: VoucherTaxiDatalist.state.filter === 'ALL' ? '' : VoucherTaxiDatalist.state.filter,
             });
+
+            const url = `${VoucherTaxi.routes.json}?${params.toString()}`;
+            const res = await VoucherTaxi.request(url);
+
+            const items = res.data ?? [];
+            const total = res.recordsFiltered ?? res.recordsTotal ?? 0;
+
+            VoucherTaxiDatalist.state.total = total;
+
+            VoucherTaxiDatalist.render(items);
+            VoucherTaxiDatalist.updateCount(total);
+            VoucherTaxiDatalist.updatePagination(VoucherTaxiDatalist.state.page, total);
+
+        } catch (err) {
+            console.error('[VoucherTaxiDatalist] Load error:', err);
+            VoucherTaxiDatalist.renderError();
+
+        } finally {
+            VoucherTaxiDatalist.state.isLoading = false;
+        }
     },
 
     // --------------------------------------------------------
-    // LOAD DATA FROM API
+    // PUBLIC: reload — reset to page 1 then load
     // --------------------------------------------------------
-    load() {
-        if (VoucherTaxiDataList.state.isLoading) return;
-        VoucherTaxiDataList.state.isLoading = true;
-
-        const s = VoucherTaxiDataList.state;
-        const params = new URLSearchParams({
-            draw:           s.page,
-            start:          (s.page - 1) * s.perPage,
-            length:         s.perPage,
-            'search[value]': s.search,
-            status:         s.filter,
-        });
-
-        fetch(`${VoucherTaxi.routes.json}?${params}`, {
-            headers: {
-                'X-CSRF-TOKEN':     VoucherTaxi.csrf(),
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept':           'application/json',
-            },
-        })
-        .then(r => r.json())
-        .then(data => {
-            VoucherTaxiDataList.state.total = data.recordsFiltered ?? data.recordsTotal ?? 0;
-            VoucherTaxiDataList.render(data.data ?? []);
-            VoucherTaxiDataList.updatePagination();
-        })
-        .catch(() => {
-            VoucherTaxiDataList.renderEmpty();
-        })
-        .finally(() => {
-            VoucherTaxiDataList.state.isLoading = false;
-        });
+    reload() {
+        VoucherTaxiDatalist.state.page = 1;
+        return VoucherTaxiDatalist.load();
     },
 
     // --------------------------------------------------------
-    // RENDER ITEMS
+    // PUBLIC: refresh — reload without resetting page
+    // --------------------------------------------------------
+    refresh() {
+        return VoucherTaxiDatalist.load();
+    },
+
+    // --------------------------------------------------------
+    // OPEN VOUCHER DETAIL
+    // --------------------------------------------------------
+    openVoucherDetail(eid) {
+        if (!eid) return;
+        VoucherTaxiModal.openView(eid);
+        VoucherTaxiDetailModal?.loadDetail?.(eid);
+    },
+
+    // --------------------------------------------------------
+    // RENDER: loading skeleton
+    // --------------------------------------------------------
+    renderLoading() {
+        const body = document.getElementById('voucherListBody');
+        if (!body) return;
+
+        body.innerHTML = `
+            <div class="flex flex-col items-center justify-center gap-3 py-12 text-slate-400">
+                <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+                <span class="text-sm">Loading...</span>
+            </div>`;
+    },
+
+    // --------------------------------------------------------
+    // RENDER: error state
+    // --------------------------------------------------------
+    renderError() {
+        const body = document.getElementById('voucherListBody');
+        if (!body) return;
+
+        body.innerHTML = `
+            <div class="flex flex-col items-center justify-center gap-3 py-12 text-slate-400">
+                <i class="fa-solid fa-triangle-exclamation text-2xl text-red-400"></i>
+                <span class="text-sm text-red-400">Failed to load vouchers.</span>
+            </div>`;
+    },
+
+    // --------------------------------------------------------
+    // RENDER: voucher item list
     // --------------------------------------------------------
     render(items) {
-        const container = document.getElementById('voucherListBody');
-        if (!container) return;
+        const body = document.getElementById('voucherListBody');
+        if (!body) return;
 
-        if (!items.length) {
-            VoucherTaxiDataList.renderEmpty();
+        if (!items || items.length === 0) {
+            body.innerHTML = `
+                <div class="flex flex-col items-center justify-center gap-3 py-12 text-slate-400">
+                    <i class="fa-solid fa-inbox text-2xl"></i>
+                    <span class="text-sm">No vouchers found.</span>
+                </div>`;
             return;
         }
 
-        container.innerHTML = items.map(item => VoucherTaxiDataList.itemHtml(item)).join('');
+        body.innerHTML = items.map(item => VoucherTaxiDatalist.renderItem(item)).join('');
+
+        body.querySelectorAll('.voucher-item').forEach(el => {
+            el.addEventListener('click', () => {
+                VoucherTaxiDatalist.openVoucherDetail(el.dataset.eid);
+            });
+        });
     },
 
     // --------------------------------------------------------
-    // ITEM HTML  — same card style as Booking Car
+    // RENDER: single voucher card
     // --------------------------------------------------------
-    itemHtml(item) {
+    renderItem(item) {
         const badge     = VoucherTaxi.statusBadge(item.status);
-        const date      = VoucherTaxi.formatDate(item.date_used);
-        const route     = item.route_summary ?? `${item.origin ?? '-'} → ${item.destination ?? '-'}`;
+        const date      = VoucherTaxi.formatDate(item.date_used || item.voucher_date);
+        const origin    = item.origin ?? '-';
+        const dest      = item.destination ?? '-';
+        const route     = `${origin} → ${dest}`;
         const requester = item.user_peminta ?? '-';
-        const cpny      = item.cpny_id ?? '-';
+        const purpose   = item.purpose ?? item.purpose_descr ?? '-';
 
         return `
-            <div class="voucher-list-item group cursor-pointer rounded-lg border border-slate-200 bg-white p-3.5 transition hover:border-indigo-300 hover:shadow-sm dark:border-white/10 dark:bg-[#0f172a] dark:hover:border-indigo-500/40"
+            <div class="voucher-item group cursor-pointer rounded-lg border border-slate-200 bg-white p-3.5 transition hover:border-indigo-300 hover:shadow-sm dark:border-white/10 dark:bg-[#0f172a] dark:hover:border-indigo-500/40"
                  data-eid="${item.eid}">
 
                 <div class="flex items-start justify-between gap-2">
@@ -189,13 +254,13 @@ const VoucherTaxiDataList = {
                     </div>
 
                     <div class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-building w-3 text-slate-400"></i>
-                        <span class="truncate">${cpny}</span>
+                        <i class="fa-solid fa-car w-3 text-slate-400"></i>
+                        <span class="truncate">${route}</span>
                     </div>
 
                     <div class="col-span-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-route w-3 text-slate-400"></i>
-                        <span class="truncate">${route}</span>
+                        <i class="fa-solid fa-tag w-3 text-slate-400"></i>
+                        <span class="truncate" title="${purpose}">${purpose}</span>
                     </div>
 
                 </div>
@@ -204,50 +269,29 @@ const VoucherTaxiDataList = {
     },
 
     // --------------------------------------------------------
-    // EMPTY STATE
+    // UPDATE COUNT BADGE
     // --------------------------------------------------------
-    renderEmpty() {
-        const container = document.getElementById('voucherListBody');
-        if (!container) return;
-        container.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-12 text-center">
-                <i class="fa-solid fa-inbox mb-3 text-4xl text-slate-300 dark:text-slate-600"></i>
-                <p class="text-slate-500 dark:text-slate-400">No vouchers found</p>
-                <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Try adjusting your filters or search</p>
-            </div>
-        `;
+    updateCount(total) {
+        const el = document.getElementById('voucherCount');
+        if (el) el.textContent = total;
     },
 
     // --------------------------------------------------------
-    // PAGINATION INFO
+    // UPDATE PAGINATION INFO + BUTTON STATES
     // --------------------------------------------------------
-    updatePagination() {
-        const s       = VoucherTaxiDataList.state;
-        const start   = s.total === 0 ? 0 : (s.page - 1) * s.perPage + 1;
-        const end     = Math.min(s.page * s.perPage, s.total);
-        const maxPage = Math.ceil(s.total / s.perPage);
+    updatePagination(page, total) {
+        const perPage = VoucherTaxiDatalist.state.perPage;
+        const from    = total === 0 ? 0 : (page - 1) * perPage + 1;
+        const to      = Math.min(page * perPage, total);
+        const maxPage = Math.ceil(total / perPage) || 1;
 
         const info = document.getElementById('voucherPageInfo');
-        if (info) info.textContent = `Showing ${start} - ${end} of ${s.total}`;
+        if (info) info.textContent = `Showing ${from} - ${to}`;
 
         const prev = document.getElementById('prevVoucherPage');
+        if (prev) prev.disabled = page <= 1;
+
         const next = document.getElementById('nextVoucherPage');
-        if (prev) prev.disabled = s.page <= 1;
-        if (next) next.disabled = s.page >= maxPage;
-
-        const count = document.getElementById('voucherCount');
-        if (count) count.textContent = s.total;
-    },
-
-    // --------------------------------------------------------
-    // PUBLIC HELPERS
-    // --------------------------------------------------------
-    reload() {
-        VoucherTaxiDataList.state.page = 1;
-        VoucherTaxiDataList.load();
-    },
-
-    refresh() {
-        VoucherTaxiDataList.load();
+        if (next) next.disabled = page >= maxPage;
     },
 };

@@ -1,139 +1,187 @@
 // ============================================================
 // modal.js — Voucher Taxi
-// Modal open / close animations and management
+// Modal open/close animations and URL state management
 // ============================================================
 
 const VoucherTaxiModal = {
 
     // --------------------------------------------------------
-    // SELECTORS
+    // OPEN MODAL
     // --------------------------------------------------------
-    ids: {
-        create:  'createVoucherModal',
-        edit:    'editVoucherTaxiModal',
-        view:    'viewVoucherModal',
-        process: 'processVoucherModal',
-    },
+    open(modalId) {
+        const modal    = document.getElementById(modalId);
+        if (!modal) return;
 
-    // --------------------------------------------------------
-    // INIT — wire close buttons once
-    // --------------------------------------------------------
-    init() {
-        const M = VoucherTaxiModal;
+        const backdrop = modal.querySelector('.modal-backdrop');
+        const panel    = modal.querySelector('.modal-panel');
 
-        // Create
-        document.getElementById('openCreateVoucherModal')
-            ?.addEventListener('click', () => M.openCreate());
-        document.getElementById('closeCreateVoucherModal')
-            ?.addEventListener('click', () => M.closeCreate());
-        document.getElementById('closeCreateVoucherModalFooter')
-            ?.addEventListener('click', () => M.closeCreate());
+        // Make modal visible first (flex)
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
 
-        // Edit
-        document.getElementById('closeEditVoucherModal')
-            ?.addEventListener('click', () => M.closeEdit());
-        document.getElementById('closeEditVoucherModalFooter')
-            ?.addEventListener('click', () => M.closeEdit());
-        document.getElementById('openEditFromViewBtn')
-            ?.addEventListener('click', () => { M.closeView(); M.openEdit(); });
-
-        // View
-        document.getElementById('closeViewVoucherModal')
-            ?.addEventListener('click', () => M.closeView());
-        document.getElementById('closeViewVoucherModalFooter')
-            ?.addEventListener('click', () => M.closeView());
-
-        // Process
-        document.getElementById('closeProcessVoucherModal')
-            ?.addEventListener('click', () => M.closeProcess());
-        document.getElementById('closeProcessVoucherModalFooter')
-            ?.addEventListener('click', () => M.closeProcess());
-
-        // --------------------------------------------------------
-        // CLOSE ON BACKDROP CLICK — disabled intentionally
-        // User must use close button or cancel button only
-        // --------------------------------------------------------
-    },
-
-    // --------------------------------------------------------
-    // OPEN / CLOSE HELPERS
-    // --------------------------------------------------------
-    _open(id) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.classList.remove('hidden');
-        el.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-
+        // Trigger animation on next frame
         requestAnimationFrame(() => {
-            el.querySelector('.modal-backdrop')?.style.setProperty('opacity', '1');
-            const panel = el.querySelector('.modal-panel');
+            if (backdrop) backdrop.classList.add('opacity-100');
+
             if (panel) {
-                panel.style.opacity   = '1';
-                panel.style.transform = 'translate(0,0) scale(1)';
+                panel.classList.remove('opacity-0', 'translate-y-4', 'scale-[0.98]');
+                panel.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             }
         });
+
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
     },
 
-    _close(id, onClosed) {
-        const el = document.getElementById(id);
-        if (!el) return;
+    // --------------------------------------------------------
+    // CLOSE MODAL
+    // --------------------------------------------------------
+    close(modalId, onClosed = null) {
+        const modal    = document.getElementById(modalId);
+        if (!modal) return;
 
-        el.querySelector('.modal-backdrop')?.style.setProperty('opacity', '0');
-        const panel = el.querySelector('.modal-panel');
+        const backdrop = modal.querySelector('.modal-backdrop');
+        const panel    = modal.querySelector('.modal-panel');
+
+        // Reverse animation
+        if (backdrop) backdrop.classList.remove('opacity-100');
+
         if (panel) {
-            panel.style.opacity   = '0';
-            panel.style.transform = 'translate(0,16px) scale(0.98)';
+            panel.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+            panel.classList.add('opacity-0', 'translate-y-4', 'scale-[0.98]');
         }
 
+        // Wait for transition to finish
         setTimeout(() => {
-            el.classList.add('hidden');
-            el.classList.remove('flex');
-            document.body.style.overflow = '';
-            onClosed?.();
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            // Restore body scroll only if no other modal is open
+            const anyOpen = document.querySelector(
+                '.fixed.flex:not(.hidden) .modal-panel'
+            );
+            if (!anyOpen) {
+                document.body.style.overflow = '';
+            }
+
+            if (typeof onClosed === 'function') {
+                onClosed();
+            }
         }, 200);
     },
 
     // --------------------------------------------------------
-    // PUBLIC API
+    // CLOSE ON BACKDROP CLICK  — disabled intentionally
+    // User must use close button or cancel button only
     // --------------------------------------------------------
-    openCreate()  { this._open(this.ids.create); },
-    openEdit()    { this._open(this.ids.edit); },
-    openView()    { this._open(this.ids.view); },
-    openProcess() { this._open(this.ids.process); },
 
-    closeCreate()  { this._close(this.ids.create,  () => VoucherTaxiRequestForm.reset()); },
-    closeEdit()    { this._close(this.ids.edit,     () => VoucherTaxiEditForm.reset()); },
+    // --------------------------------------------------------
+    // INIT ALL MODAL CLOSE BUTTONS
+    // --------------------------------------------------------
+    init() {
+        // ── CREATE MODAL ─────────────────────────────────────
+        document.getElementById('closeCreateVoucherModal')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.closeCreate();
+            });
+
+        document.getElementById('closeCreateVoucherModalFooter')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.closeCreate();
+            });
+
+        // ── VIEW MODAL ───────────────────────────────────────
+        document.getElementById('closeViewVoucherModal')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.closeView();
+            });
+
+        document.getElementById('closeViewVoucherModalFooter')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.closeView();
+            });
+
+        // ── EDIT MODAL ───────────────────────────────────────
+        document.getElementById('closeEditVoucherModal')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.closeEdit();
+            });
+
+        document.getElementById('closeEditVoucherModalFooter')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.closeEdit();
+            });
+
+        // ── PROCESS MODAL ────────────────────────────────────
+        document.getElementById('closeProcessVoucherModal')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.closeProcess();
+            });
+
+        document.getElementById('closeProcessVoucherModalFooter')
+            ?.addEventListener('click', () => {
+                VoucherTaxiModal.closeProcess();
+            });
+
+        // ── ESC KEY — disabled intentionally ─────────────────
+        // User must use close/cancel button only
+    },
+
+    // --------------------------------------------------------
+    // NAMED CLOSE HELPERS
+    // --------------------------------------------------------
+    closeCreate() {
+        VoucherTaxiModal.close('createVoucherModal', () => {
+            VoucherTaxiHelper.resetForm('voucherTaxiForm');
+        });
+    },
+
     closeView() {
-        this._close(this.ids.view, () => {
-            // Revert URL back to /vouchertaxi if it was pushed to /showvouchertaxi/{eid}
-            if (window.location.pathname.includes('/showvouchertaxi/') && window.history?.replaceState) {
-                window.history.replaceState({}, '', VoucherTaxi.routes.index);
+        VoucherTaxiModal.close('viewVoucherModal', () => {
+            VoucherTaxi.clearDoc();
+            VoucherTaxi.clearUrl();
+        });
+    },
+
+    closeEdit() {
+        const fromDetail = VoucherTaxiEditForm?.state?.fromDetail ?? false;
+        const eid        = VoucherTaxi?.state?.currentEid ?? null;
+
+        VoucherTaxiModal.close('editVoucherTaxiModal', () => {
+            VoucherTaxiHelper.resetForm('editVoucherTaxiForm');
+            VoucherTaxiEditForm.state.fromDetail = false;
+
+            // If cancelled (not saved), reopen the detail modal
+            if (fromDetail && eid) {
+                VoucherTaxiModal.openView(eid);
             }
         });
     },
-    closeProcess() { this._close(this.ids.process,  () => VoucherTaxiProcess.reset()); },
 
-    closeAll() {
-        this.closeCreate();
-        this.closeEdit();
-        this.closeView();
-        this.closeProcess();
-    },
-
-    isAnyOpen() {
-        return Object.values(this.ids).some(id => {
-            return !document.getElementById(id)?.classList.contains('hidden');
+    closeProcess() {
+        VoucherTaxiModal.close('processVoucherModal', () => {
+            VoucherTaxiHelper.resetForm('processVoucherForm');
+            VoucherTaxiHelper.hide('expenseOwnerSection');
         });
     },
 
     // --------------------------------------------------------
-    // SCROLL TO ELEMENT INSIDE MODAL
+    // OPEN HELPERS
     // --------------------------------------------------------
-    scrollToElement(selector) {
-        const el    = document.querySelector(selector);
-        const body  = el?.closest('.modal-scroll');
-        if (!el || !body) return;
-        body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top - 100;
+    openCreate() {
+        VoucherTaxiModal.open('createVoucherModal');
+    },
+
+    openView(eid) {
+        VoucherTaxi.pushUrl(eid);
+        VoucherTaxiModal.open('viewVoucherModal');
+    },
+
+    openEdit() {
+        VoucherTaxiModal.open('editVoucherTaxiModal');
+    },
+
+    openProcess() {
+        VoucherTaxiModal.open('processVoucherModal');
     },
 };
