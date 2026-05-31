@@ -206,7 +206,7 @@
                     <div class="flex justify-end gap-2">
 
                         <button id="openAllDocument"
-                            class="w-full flex-1 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">
+                            class="w-full flex-1 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
 
                             🚀 Open All
 

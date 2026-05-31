@@ -78,13 +78,13 @@
                                 <a href="${row.url}/${row.hid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
 
-                                    <span class="font-medium text-slate-700">
+                                    <span class="font-medium text-white">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs text-white"></i>
 
                                 </a>
                             `;
@@ -124,13 +124,13 @@
                                 <a href="${row.url}/${row.hid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
 
-                                    <span class="font-medium text-slate-700">
+                                    <span class="font-medium text-white">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs text-white"></i>
 
                                 </a>
                             `;
@@ -170,13 +170,13 @@
                                 <a href="${row.url}/${row.eid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
+                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
 
-                                    <span class="font-medium text-slate-700">
+                                    <span class="font-medium text-white">
                                         ${data}
                                     </span>
 
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-xs text-white"></i>
 
                                 </a>
                             `;
@@ -374,10 +374,10 @@
 
             if (name === tab) {
                 btn.className =
-                    "rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 bg-slate-800 text-white shadow-sm";
+                    "rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 bg-black text-white shadow-sm dark:bg-zinc-700";
             } else {
                 btn.className =
-                    "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:border-slate-400";
+                    "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700";
             }
         });
 

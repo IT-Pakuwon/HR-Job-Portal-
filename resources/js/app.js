@@ -37,15 +37,15 @@ import flatpickr from 'flatpickr';
 | Dashboard Components
 |--------------------------------------------------------------------------
 */
-import dashboardCard01 from './components/dashboard-card-01';
-import dashboardCard02 from './components/dashboard-card-02';
-import dashboardCard03 from './components/dashboard-card-03';
-import dashboardCard04 from './components/dashboard-card-04';
-import dashboardCard05 from './components/dashboard-card-05';
-import dashboardCard06 from './components/dashboard-card-06';
-import dashboardCard08 from './components/dashboard-card-08';
-import dashboardCard09 from './components/dashboard-card-09';
-import dashboardCard11 from './components/dashboard-card-11';
+import dashboardCard01 from './old-components/dashboard-card-01';
+import dashboardCard02 from './old-components/dashboard-card-02';
+import dashboardCard03 from './old-components/dashboard-card-03';
+import dashboardCard04 from './old-components/dashboard-card-04';
+import dashboardCard05 from './old-components/dashboard-card-05';
+import dashboardCard06 from './old-components/dashboard-card-06';
+import dashboardCard08 from './old-components/dashboard-card-08';
+import dashboardCard09 from './old-components/dashboard-card-09';
+import dashboardCard11 from './old-components/dashboard-card-11';
 
 /* --------------------------------------------------------------------------
 | Chart Defaults
@@ -64,28 +64,10 @@ Chart.defaults.plugins.tooltip.cornerRadius = 8;
 Chart.defaults.plugins.tooltip.padding = 8;
 
 /* --------------------------------------------------------------------------
-| Chart Area Gradient Helper
+| Chart Area Gradient Helper (re-exported from utils for backward compat)
 |--------------------------------------------------------------------------
 */
-export const chartAreaGradient = (ctx, chartArea, colorStops) => {
-
-    if (!ctx || !chartArea || !colorStops?.length) {
-        return 'transparent';
-    }
-
-    const gradient = ctx.createLinearGradient(
-        0,
-        chartArea.bottom,
-        0,
-        chartArea.top
-    );
-
-    colorStops.forEach(({ stop, color }) => {
-        gradient.addColorStop(stop, color);
-    });
-
-    return gradient;
-};
+export { chartAreaGradient } from './utils';
 
 /* --------------------------------------------------------------------------
 | Chart Background Plugin

@@ -50,14 +50,17 @@ export const adjustColorOpacity = (color, opacity) => {
 };
 
 export const oklchToRGBA = (oklchColor) => {
-  // Create a temporary div to use for color conversion
   const tempDiv = document.createElement('div');
   tempDiv.style.color = oklchColor;
   document.body.appendChild(tempDiv);
-  
-  // Get the computed style and convert to RGB
   const computedColor = window.getComputedStyle(tempDiv).color;
   document.body.removeChild(tempDiv);
-  
   return computedColor;
+};
+
+export const chartAreaGradient = (ctx, chartArea, colorStops) => {
+  if (!ctx || !chartArea || !colorStops?.length) return 'transparent';
+  const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+  colorStops.forEach(({ stop, color }) => gradient.addColorStop(stop, color));
+  return gradient;
 };

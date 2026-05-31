@@ -3,7 +3,17 @@
     <div class="max-w-9xl mx-auto space-y-4 p-2">
 
         {{-- Report Selector --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
+        {{-- Tailwind safelist: lg:grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 --}}
+        @php
+            $lgCols = match(true) {
+                $tabCount <= 1 => 'lg:grid-cols-1',
+                $tabCount == 2 => 'lg:grid-cols-2',
+                $tabCount == 3 => 'lg:grid-cols-3',
+                $tabCount == 4 => 'lg:grid-cols-4',
+                default        => 'lg:grid-cols-5',
+            };
+        @endphp
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 {{ $lgCols }}">
 
             {{-- Meeting Room --}}
             @if($hasCSACCESS)
@@ -91,19 +101,19 @@
         <div id="reportContainer">
 
             @if($hasCSACCESS)
-            <div id="report-meeting-room">
+            <div id="report-meeting-room" @class(['hidden' => $defaultReport !== 'meeting-room'])>
                 @include('pages.report-ga.meeting-room')
             </div>
             @endif
 
             @if($hasADMIN)
-            <div id="report-meeting-online" class="hidden">
+            <div id="report-meeting-online" @class(['hidden' => $defaultReport !== 'meeting-online'])>
                 @include('pages.report-ga.meeting-online')
             </div>
             @endif
 
             @if($hasGAACCESS)
-            <div id="report-operational-car" class="hidden">
+            <div id="report-operational-car" @class(['hidden' => $defaultReport !== 'operational-car'])>
                 @include('pages.report-ga.operational-car')
             </div>
 
