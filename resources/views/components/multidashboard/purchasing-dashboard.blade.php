@@ -4,11 +4,11 @@
 
         <div>
             <h1 class="text-xl font-bold text-slate-900 dark:text-white">
-                General Affairs Dashboard
+                Purchasing Dashboard
             </h1>
 
             <p class="text-xs text-slate-500 dark:text-slate-400">
-                Approval • Transportation • Parking
+                Approval • Canvass Sheet • Purchase Order
             </p>
         </div>
 
@@ -60,17 +60,17 @@
 
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-500">
-                        Waiting Voucher Taxi
+                        CS Masih Draft
                     </div>
 
-                    <div id="voucherTaxiCount"
+                    <div id="csDraftCount"
                         class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
                         0
                     </div>
                 </div>
 
                 <div class="rounded-lg bg-amber-500/10 p-2.5">
-                    🚕
+                    📄
                 </div>
 
             </div>
@@ -83,17 +83,17 @@
 
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-500">
-                        Waiting Booking Car
+                        CS On Progress
                     </div>
 
-                    <div id="bookingCarCount"
+                    <div id="csOnProgressCount"
                         class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
                         0
                     </div>
                 </div>
 
                 <div class="rounded-lg bg-blue-500/10 p-2.5">
-                    🚗
+                    🔄
                 </div>
 
             </div>
@@ -106,17 +106,17 @@
 
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-500">
-                        Free Parking
+                        PO Unsend
                     </div>
 
-                    <div id="freeParkingCount"
+                    <div id="poUnsendCount"
                         class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
                         0
                     </div>
                 </div>
 
                 <div class="rounded-lg bg-violet-500/10 p-2.5">
-                    🅿️
+                    📦
                 </div>
 
             </div>
@@ -139,16 +139,12 @@
                     📋 Approval History
                 </button>
 
-                <button id="tab-voucher-taxi">
-                    🚕 Waiting Process Voucher Taxi
+                <button id="tab-cs">
+                    📄 CS Draft & On Progress
                 </button>
 
-                <button id="tab-booking-car">
-                    🚗 Waiting Process Booking Car
-                </button>
-
-                <button id="tab-parking">
-                    🅿️ Free Parking List
+                <button id="tab-po-unsend">
+                    📦 PO Unsend
                 </button>
 
             </div>
@@ -159,14 +155,13 @@
 
             <div class="grid gap-3 lg:grid-cols-12">
 
-
                 <div class="lg:col-span-5">
 
                     <select id="dashboardFilter"
                         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
 
                         <option value="ALL">
-                            All
+                            All Doctype
                         </option>
 
                     </select>
@@ -197,7 +192,7 @@
 
                         <button
                             id="refreshDashboard"
-                            class="rounded-lg w-full flex-1  border border-slate-300 px-4 py-2 text-xs font-semibold hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
+                            class="rounded-lg w-full flex-1 border border-slate-300 px-4 py-2 text-xs font-semibold hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
 
                             🔄 Refresh
 
@@ -225,14 +220,14 @@
 </div>
 
 <script>
-window.gaRoutes = {
-    summary: "{{ route('ga.summary') }}",
-    approval: "{{ route('ga.approval') }}",
-    approvalHistory: "{{ route('ga.approval-history') }}",
-    voucherTaxi: "{{ route('ga.voucher-taxi') }}",
-    bookingCar: "{{ route('ga.booking-car') }}",
-    parking: "{{ route('ga.parking') }}"
+window.purchasingRoutes = {
+    summary:         "{{ route('purchasing.summary') }}",
+    approval:        "{{ route('purchasing.approval') }}",
+    approvalHistory: "{{ route('purchasing.approval-history') }}",
+    cs:              "{{ route('purchasing.cs') }}",
+    poUnsend:        "{{ route('purchasing.po-unsend') }}",
+    doctypes:        "{{ route('purchasing.approval-doctypes') }}",
 };
 </script>
 
-<script src="{{ asset('assets/js/multidashboard/dashga.js') }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashpurchasing.js') }}"></script>

@@ -139,6 +139,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\HrDashboardController;
+use App\Http\Controllers\PurchasingDashboardController;
 
 
 Route::get('/avatar/{filename}', function ($filename) {
@@ -1487,7 +1488,7 @@ Route::middleware(['auth'])->group(function () {
             ->controller(GmReportController::class)
             ->group(function () {
                 Route::get('/dashboard', 'dashboard')
-                    ->name('report');
+                    ->name('reportgm');
             });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
@@ -1547,6 +1548,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/applicant-json', 'applicantJson')->name('applicant-json');
             Route::get('/self-register-json', 'selfRegisterJson')->name('self-register-json');
             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
+        });
+
+        Route::prefix('purchasing-dashboard')->controller(PurchasingDashboardController::class)->name('purchasing.')->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('approval');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history');
+            Route::get('/cs-json', 'csJson')->name('cs');
+            Route::get('/po-unsend-json', 'poUnsendJson')->name('po-unsend');
+            Route::get('/approval-doctypes', 'approvalDocTypes')->name('approval-doctypes');
         });
     });
 
