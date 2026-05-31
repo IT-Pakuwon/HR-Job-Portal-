@@ -1,81 +1,68 @@
-(function () {
+// ============================================================
+// auto-open.js — Voucher Taxi
+// Auto-open modals based on URL path (/showvouchertaxi/:eid)
+// ============================================================
 
-    'use strict';
+const VoucherTaxiAutoOpen = {
 
-    VoucherTaxi.AutoOpen = {
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        opened: false,
+    },
 
-        init() {
+    // --------------------------------------------------------
+    // INIT
+    // --------------------------------------------------------
+    init() {
+        VoucherTaxiAutoOpen.checkPath();
+        VoucherTaxiAutoOpen.checkParams();
+    },
 
-            this.openVoucherFromRoute();
+    // --------------------------------------------------------
+    // CHECK PATH — /showvouchertaxi/:eid
+    // --------------------------------------------------------
+    checkPath() {
+        const match = window.location.pathname.match(/\/showvouchertaxi\/([^/]+)/);
+        if (!match) return;
 
-            VoucherTaxi.log(
-                'AutoOpen Initialized'
-            );
-        },
+        const eid = match[1];
+        if (!eid) return;
 
-        openVoucherFromRoute() {
+        setTimeout(() => {
+            VoucherTaxiDetailModal.load(eid);
+            VoucherTaxiAutoOpen.state.opened = true;
+        }, 400);
+    },
 
-            const path =
-                window.location.pathname;
+    // --------------------------------------------------------
+    // CHECK QUERY PARAMS — ?action=create / ?view=:eid
+    // --------------------------------------------------------
+    checkParams() {
+        const params = new URLSearchParams(window.location.search);
 
-            const showMatch =
-                path.match(
-                    /\/showvouchertaxi\/([^\/]+)$/
-                );
-
-            const editMatch =
-                path.match(
-                    /\/editvouchertaxi\/([^\/]+)$/
-                );
-
-            const processMatch =
-                path.match(
-                    /\/processvouchertaxi\/([^\/]+)$/
-                );
-
-            if (showMatch) {
-
-                setTimeout(() => {
-
-                    VoucherTaxi.DetailModal.open(
-                        showMatch[1]
-                    );
-
-                }, 300);
-
-                return;
-            }
-
-            if (
-                editMatch &&
-                VoucherTaxi.EditForm
-            ) {
-
-                setTimeout(() => {
-
-                    VoucherTaxi.EditForm.open(
-                        editMatch[1]
-                    );
-
-                }, 300);
-
-                return;
-            }
-
-            if (
-                processMatch &&
-                VoucherTaxi.Process
-            ) {
-
-                setTimeout(() => {
-
-                    VoucherTaxi.Process.open(
-                        processMatch[1]
-                    );
-
-                }, 300);
-            }
+        if (params.get('action') === 'create') {
+            setTimeout(() => VoucherTaxiModal.openCreate(), 400);
         }
-    };
 
-})();
+        const view = params.get('view');
+        if (view && !VoucherTaxiAutoOpen.state.opened) {
+            setTimeout(() => VoucherTaxiDetailModal.load(view), 400);
+        }
+
+        // Clean URL after reading
+        if (params.toString() && window.history?.replaceState) {
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    },
+
+    // --------------------------------------------------------
+    // CALLED WHEN DETAIL MODAL CLOSES (from init integrations)
+    // --------------------------------------------------------
+    onModalClose() {
+        if (window.location.pathname.includes('/showvouchertaxi/')) {
+            window.history.replaceState({}, '', VoucherTaxi.routes.index);
+        }
+    },
+};

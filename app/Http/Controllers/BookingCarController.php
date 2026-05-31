@@ -1077,11 +1077,13 @@ class BookingCarController extends Controller
             ];
         })->values();
 
-        $sorted = $changeExpenseSteps->merge($approvalSteps)->sortBy(function ($step) {
-            return $step['at']
-                ? \Carbon\Carbon::parse($step['at'])->timestamp
-                : PHP_INT_MAX;
-        })->values();
+        $sorted = collect($changeExpenseSteps->all())
+            ->merge(collect($approvalSteps->all()))
+            ->sortBy(function ($step) {
+                return $step['at']
+                    ? \Carbon\Carbon::parse($step['at'])->timestamp
+                    : PHP_INT_MAX;
+            })->values();
 
         $timeline = collect([$submittedStep])
             ->merge($sorted)
@@ -1325,6 +1327,53 @@ class BookingCarController extends Controller
             $message = $lock
                 ? 'Booking submitted and locked successfully.'
                 : 'Booking saved. You can update again before H+3.';
+
+            // Notify booking creator
+            try {
+                $creator = User::where('username', $booking->created_by)
+                    ->where('status', 'A')
+                    ->first();
+                $to = $creator?->notification_email ?? $creator?->email;
+
+                if ($to) {
+                    $eid             = Hashids::encode($booking->id);
+                    $statusPerjalanan = $validated['status_perjalanan'] ?? null;
+
+                    $subject = $statusPerjalanan
+                        ? $booking->docid . ' - Booking Car Status Updated by GA'
+                        : ($lock
+                            ? $booking->docid . ' - Booking Car Submitted & Locked'
+                            : $booking->docid . ' - Booking Car Processed by GA');
+
+                    $mailData = [
+                        'docid'            => $booking->docid,
+                        'name'             => $creator->name ?? $booking->created_by,
+                        'createdby'        => $booking->created_by,
+                        'cpnyid'           => $booking->cpny_id_site ?? $booking->cpny_id,
+                        'deptname'         => $booking->department_id,
+                        'date'             => $booking->booking_date,
+                        'info'             => $booking->purpose_descr,
+                        'url'              => url('/showbookingcar/' . $eid),
+                        'driver'           => $booking->driver,
+                        'handphone'        => $booking->handphone,
+                        'no_polisi'        => $booking->no_polisi,
+                        'status_perjalanan' => $statusPerjalanan,
+                    ];
+
+                    \Illuminate\Support\Facades\Mail::send(
+                        'emails.bookingcar-processed',
+                        $mailData,
+                        fn ($m) => $m->to($to)
+                            ->subject($subject)
+                            ->from(config('mail.from.address'), config('app.name'))
+                    );
+                }
+            } catch (\Throwable $mailErr) {
+                Log::warning('BookingCar GA process email failed', [
+                    'docid' => $booking->docid,
+                    'error' => $mailErr->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,

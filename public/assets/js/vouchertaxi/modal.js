@@ -1,282 +1,139 @@
-(function () {
-    "use strict";
+// ============================================================
+// modal.js — Voucher Taxi
+// Modal open / close animations and management
+// ============================================================
 
-    VoucherTaxi.Modal = {
+const VoucherTaxiModal = {
 
-        open(selector) {
+    // --------------------------------------------------------
+    // SELECTORS
+    // --------------------------------------------------------
+    ids: {
+        create:  'createVoucherModal',
+        edit:    'editVoucherTaxiModal',
+        view:    'viewVoucherModal',
+        process: 'processVoucherModal',
+    },
 
-            const $modal = $(selector);
+    // --------------------------------------------------------
+    // INIT — wire close buttons once
+    // --------------------------------------------------------
+    init() {
+        const M = VoucherTaxiModal;
 
-            if (!$modal.length) {
-                return;
+        // Create
+        document.getElementById('openCreateVoucherModal')
+            ?.addEventListener('click', () => M.openCreate());
+        document.getElementById('closeCreateVoucherModal')
+            ?.addEventListener('click', () => M.closeCreate());
+        document.getElementById('closeCreateVoucherModalFooter')
+            ?.addEventListener('click', () => M.closeCreate());
+
+        // Edit
+        document.getElementById('closeEditVoucherModal')
+            ?.addEventListener('click', () => M.closeEdit());
+        document.getElementById('closeEditVoucherModalFooter')
+            ?.addEventListener('click', () => M.closeEdit());
+        document.getElementById('openEditFromViewBtn')
+            ?.addEventListener('click', () => { M.closeView(); M.openEdit(); });
+
+        // View
+        document.getElementById('closeViewVoucherModal')
+            ?.addEventListener('click', () => M.closeView());
+        document.getElementById('closeViewVoucherModalFooter')
+            ?.addEventListener('click', () => M.closeView());
+
+        // Process
+        document.getElementById('closeProcessVoucherModal')
+            ?.addEventListener('click', () => M.closeProcess());
+        document.getElementById('closeProcessVoucherModalFooter')
+            ?.addEventListener('click', () => M.closeProcess());
+
+        // --------------------------------------------------------
+        // CLOSE ON BACKDROP CLICK — disabled intentionally
+        // User must use close button or cancel button only
+        // --------------------------------------------------------
+    },
+
+    // --------------------------------------------------------
+    // OPEN / CLOSE HELPERS
+    // --------------------------------------------------------
+    _open(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+
+        requestAnimationFrame(() => {
+            el.querySelector('.modal-backdrop')?.style.setProperty('opacity', '1');
+            const panel = el.querySelector('.modal-panel');
+            if (panel) {
+                panel.style.opacity   = '1';
+                panel.style.transform = 'translate(0,0) scale(1)';
             }
+        });
+    },
 
-            $modal.removeClass("hidden");
-            $modal.addClass("flex");
+    _close(id, onClosed) {
+        const el = document.getElementById(id);
+        if (!el) return;
 
-            document.body.classList.add(
-                "overflow-hidden"
-            );
-
-            requestAnimationFrame(() => {
-
-                $modal
-                    .find(".modal-backdrop")
-                    .removeClass("opacity-0")
-                    .addClass("opacity-100");
-
-                $modal
-                    .find(".modal-panel")
-                    .removeClass(
-                        "opacity-0 translate-y-4 scale-[0.98]"
-                    )
-                    .addClass(
-                        "opacity-100 translate-y-0 scale-100"
-                    );
-            });
-        },
-
-        resetUrl() {
-
-            const path =
-                window.location.pathname;
-
-            if (
-                path.includes("/showvouchertaxi/") ||
-                path.includes("/editvouchertaxi/") ||
-                path.includes("/processvouchertaxi/")
-            ) {
-
-                window.history.replaceState(
-                    {},
-                    document.title,
-                    "/vouchertaxi"
-                );
-            }
-        },
-
-        resetModalForm(selector) {
-
-            if (
-                selector === "#createVoucherModal" &&
-                VoucherTaxi.RequestForm &&
-                typeof VoucherTaxi.RequestForm.reset === "function"
-            ) {
-                VoucherTaxi.RequestForm.reset();
-            }
-
-            if (
-                selector === "#editVoucherTaxiModal" &&
-                VoucherTaxi.EditForm &&
-                typeof VoucherTaxi.EditForm.reset === "function"
-            ) {
-                VoucherTaxi.EditForm.reset();
-            }
-        },
-
-        close(selector) {
-
-            return new Promise((resolve) => {
-
-                const $modal = $(selector);
-
-                if (!$modal.length) {
-                    resolve();
-                    return;
-                }
-
-                $modal
-                    .find(".modal-backdrop")
-                    .removeClass("opacity-100")
-                    .addClass("opacity-0");
-
-                $modal
-                    .find(".modal-panel")
-                    .removeClass(
-                        "opacity-100 translate-y-0 scale-100"
-                    )
-                    .addClass(
-                        "opacity-0 translate-y-4 scale-[0.98]"
-                    );
-
-                setTimeout(() => {
-
-                    $modal.removeClass("flex");
-                    $modal.addClass("hidden");
-
-                    this.resetModalForm(
-                        selector
-                    );
-
-                    if (
-                        $(".fixed.flex").length === 0
-                    ) {
-
-                        document.body.classList.remove(
-                            "overflow-hidden"
-                        );
-
-                        this.resetUrl();
-                    }
-
-                    resolve();
-
-                }, 200);
-            });
-        },
-
-        closeAll() {
-
-            [
-                "#createVoucherModal",
-                "#editVoucherTaxiModal",
-                "#viewVoucherModal",
-                "#processVoucherModal",
-            ].forEach((modal) => {
-
-                this.close(modal);
-            });
-        },
-
-        bindBackdropClose() {
-
-            $(document).on(
-                "click",
-                ".modal-backdrop",
-                function () {
-
-                    const modal =
-                        $(this).closest("[id]");
-
-                    VoucherTaxi.Modal.close(
-                        "#" + modal.attr("id")
-                    );
-                }
-            );
-        },
-
-        bindEscapeKey() {
-
-            $(document).on(
-                "keydown",
-                function (e) {
-
-                    if (
-                        e.key !== "Escape"
-                    ) {
-                        return;
-                    }
-
-                    VoucherTaxi.Modal.closeAll();
-                }
-            );
-        },
-
-        bindButtons() {
-
-            $("#openCreateVoucherModal").on(
-                "click",
-                () => {
-
-                    this.open(
-                        "#createVoucherModal"
-                    );
-                }
-            );
-
-            $("#closeCreateVoucherModal").on(
-                "click",
-                () => {
-
-                    this.close(
-                        "#createVoucherModal"
-                    );
-                }
-            );
-
-            $("#closeCreateVoucherModalFooter").on(
-                "click",
-                () => {
-
-                    this.close(
-                        "#createVoucherModal"
-                    );
-                }
-            );
-
-            $("#cancelEditVoucherTaxiBtn").on(
-                "click",
-                () => {
-
-                    this.close(
-                        "#editVoucherTaxiModal"
-                    );
-                }
-            );
-
-            $("#cancelEditVoucherTaxiBtnFooter").on(
-                "click",
-                () => {
-
-                    this.close(
-                        "#editVoucherTaxiModal"
-                    );
-                }
-            );
-
-            $("#closeViewVoucherModal").on(
-                "click",
-                () => {
-
-                    this.close(
-                        "#viewVoucherModal"
-                    );
-                }
-            );
-
-            $("#closeViewVoucherModalFooter").on(
-                "click",
-                () => {
-
-                    this.close(
-                        "#viewVoucherModal"
-                    );
-                }
-            );
-
-            $("#closeProcessVoucherModal").on(
-                "click",
-                () => {
-
-                    this.close(
-                        "#processVoucherModal"
-                    );
-                }
-            );
-
-            $("#closeProcessVoucherModalFooter").on(
-                "click",
-                () => {
-
-                    this.close(
-                        "#processVoucherModal"
-                    );
-                }
-            );
-        },
-
-        init() {
-
-            this.bindButtons();
-
-            // this.bindBackdropClose();
-
-            // this.bindEscapeKey();
-
-            VoucherTaxi.log(
-                "Modal Initialized"
-            );
+        el.querySelector('.modal-backdrop')?.style.setProperty('opacity', '0');
+        const panel = el.querySelector('.modal-panel');
+        if (panel) {
+            panel.style.opacity   = '0';
+            panel.style.transform = 'translate(0,16px) scale(0.98)';
         }
-    };
 
-})();
+        setTimeout(() => {
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+            document.body.style.overflow = '';
+            onClosed?.();
+        }, 200);
+    },
+
+    // --------------------------------------------------------
+    // PUBLIC API
+    // --------------------------------------------------------
+    openCreate()  { this._open(this.ids.create); },
+    openEdit()    { this._open(this.ids.edit); },
+    openView()    { this._open(this.ids.view); },
+    openProcess() { this._open(this.ids.process); },
+
+    closeCreate()  { this._close(this.ids.create,  () => VoucherTaxiRequestForm.reset()); },
+    closeEdit()    { this._close(this.ids.edit,     () => VoucherTaxiEditForm.reset()); },
+    closeView() {
+        this._close(this.ids.view, () => {
+            // Revert URL back to /vouchertaxi if it was pushed to /showvouchertaxi/{eid}
+            if (window.location.pathname.includes('/showvouchertaxi/') && window.history?.replaceState) {
+                window.history.replaceState({}, '', VoucherTaxi.routes.index);
+            }
+        });
+    },
+    closeProcess() { this._close(this.ids.process,  () => VoucherTaxiProcess.reset()); },
+
+    closeAll() {
+        this.closeCreate();
+        this.closeEdit();
+        this.closeView();
+        this.closeProcess();
+    },
+
+    isAnyOpen() {
+        return Object.values(this.ids).some(id => {
+            return !document.getElementById(id)?.classList.contains('hidden');
+        });
+    },
+
+    // --------------------------------------------------------
+    // SCROLL TO ELEMENT INSIDE MODAL
+    // --------------------------------------------------------
+    scrollToElement(selector) {
+        const el    = document.querySelector(selector);
+        const body  = el?.closest('.modal-scroll');
+        if (!el || !body) return;
+        body.scrollTop += el.getBoundingClientRect().top - body.getBoundingClientRect().top - 100;
+    },
+};

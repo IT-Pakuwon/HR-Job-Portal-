@@ -1,336 +1,284 @@
-(function () {
-    "use strict";
+// ============================================================
+// edit-form.js — Voucher Taxi
+// Edit voucher form (status D / Revise only)
+// ============================================================
 
-    VoucherTaxi.EditForm = {
+const VoucherTaxiEditForm = {
 
-        currentEid: null,
-        currentDocId: null,
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        isSubmitting: false,
+        originalData: null,
+        currentEid:   null,
+    },
 
-        init() {
+    formId: '#editVoucherTaxiForm',
 
-            this.initSelect2();
-            this.bindEditTopupFilter();
-            this.bindSubmit();
+    // --------------------------------------------------------
+    // INIT
+    // --------------------------------------------------------
+    init() {
+        VoucherTaxiEditForm.initPurposeSelect();
+        VoucherTaxiEditForm.initTopupSelect();
+        VoucherTaxiEditForm.bindSubmit();
+        VoucherTaxiEditForm.bindDepartmentChange();
+    },
 
-            VoucherTaxi.log("EditForm Initialized");
-        },
+    // --------------------------------------------------------
+    // PURPOSE SELECT2
+    // --------------------------------------------------------
+    initPurposeSelect() {
+        $('#edit_purpose').select2({
+            placeholder: 'Search and select purpose...',
+            allowClear:  true,
+            ajax: {
+                url:      VoucherTaxi.routes.purposeSearch,
+                dataType: 'json',
+                delay:    250,
+                data:     (params) => ({ q: params.term }),
+                processResults: (data) => ({ results: data.data ?? [] }),
+            },
+            minimumInputLength: 0,
+            templateResult:    (d) => d.id ? $(`<div>${d.text}</div>`) : d.text,
+            templateSelection: (d) => d.text || 'Select purpose...',
+        });
+    },
 
-        initSelect2() {
+    // --------------------------------------------------------
+    // TOPUP SELECT2
+    // --------------------------------------------------------
+    initTopupSelect() {
+        $('#edit_user_topup').select2({ placeholder: 'Select employee...', allowClear: true });
+    },
 
-            $("#edit_cpny_id").select2({
-                width: "100%",
-                dropdownParent: $("#editVoucherTaxiModal")
-            });
+    // --------------------------------------------------------
+    // DEPARTMENT CHANGE → reload employees
+    // --------------------------------------------------------
+    bindDepartmentChange() {
+        $(document).on('change', '#edit_department_id', function() {
+            VoucherTaxiEditForm.loadEmployees($(this).val());
+        });
+    },
 
-            $("#edit_department_id").select2({
-                width: "100%",
-                dropdownParent: $("#editVoucherTaxiModal")
-            });
-
-            $("#edit_purpose").select2({
-                width: "100%",
-                dropdownParent: $("#editVoucherTaxiModal")
-            });
-
-            $("#edit_cpny_id_expense").select2({
-                width: "100%",
-                dropdownParent: $("#editVoucherTaxiModal")
-            });
-
-            $("#edit_user_topup").select2({
-                width: "100%",
-                dropdownParent: $("#editVoucherTaxiModal")
-            });
-        },
-
-        open(eid) {
-
-            this.currentEid = eid;
-
-            VoucherTaxi.Helper.loading("Loading voucher...");
-
-            $.ajax({
-
-                url: VoucherTaxi.Route.find(eid),
-
-                method: "GET",
-
-                success: (res) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    // console.log("EDIT RESPONSE", res);
-
-                    const data = res.data || res;
-
-                    // console.log(data.date_used);
-
-                    this.populate(data);
-
-                    VoucherTaxi.Modal.open("#editVoucherTaxiModal");
-                },
-
-                error: (xhr) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Helper.ajaxError(xhr);
-                }
-            });
-        },
-
-        populate(data) {
-
-            // console.log("Populate Edit Form", data);
-
-            this.currentDocId = data.docid;
-
-            $("#edit_docid").val(data.docid || "");
-
-            $("#edit_eid").val(this.currentEid || "");
-
-            $("#edit_cpny_id")
-                .val(data.cpny_id || "")
-                .trigger("change");
-
-            $("#edit_department_id")
-                .val(data.department_id || "")
-                .trigger("change");
-
-            $("#edit_user_peminta").val(
-                data.user_peminta ||
-                data.username ||
-                ""
-            );
-
-            $("#edit_requester_name").val(
-                data.user_name ||
-                data.requester_name ||
-                data.name ||
-                data.requester ||
-                data.user_peminta ||
-                ""
-            );
-
-            $("#edit_date_used").val(
-                data.date_used || ""
-            );
-
-            $("#edit_origin").val(
-                data.origin || ""
-            );
-
-            $("#edit_destination").val(
-                data.destination || ""
-            );
-
-            const purposeValue =
-                data.purpose_id || '';
-
-            const purposeText =
-                data.purpose_name || purposeValue;
-
-            $('#edit_purpose').empty();
-
-            const option = new Option(
-                purposeText,   // text shown to user
-                purposeValue,  // actual value submitted
-                true,
-                true
-            );
-
-            $('#edit_purpose')
-                .append(option)
-                .trigger('change');
-
-            $("#edit_purpose_desc").val(
-                data.purpose_descr ||
-                data.purpose_description ||
-                ""
-            );
-
-            $("#edit_cpny_id_expense")
-                .val(data.cpny_id_expense || "")
-                .trigger("change");
-
-            setTimeout(() => {
-
-                $("#edit_user_topup")
-                    .val(data.user_topup || "")
-                    .trigger("change");
-
-            }, 100);
-
-            $('#editVoucherTaxiModal input[name="type_trip"]')
-                .prop("checked", false);
-
-            $(
-                `#editVoucherTaxiModal input[name="type_trip"][value="${data.type_trip}"]`
-            ).prop("checked", true);
-
-            if ($("#editStatusBadge").length) {
-                this.renderStatus(data.status);
+    // Load employees for dept and then set a specific value (used during populate)
+    loadEmployeesAndSet(deptId, valueToSet) {
+        fetch(`${VoucherTaxi.routes.employeeByDept}?department_id=${encodeURIComponent(deptId)}`, {
+            headers: { 'X-CSRF-TOKEN': VoucherTaxi.csrf(), 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const $select = $('#edit_user_topup');
+                $select.html('<option value="">Select User</option>');
+                (data.data ?? []).forEach(e => $select.append(`<option value="${e.username}">${e.name}</option>`));
+                if (valueToSet) $select.val(valueToSet).trigger('change');
+                else $select.trigger('change');
             }
+        })
+        .catch(() => VoucherTaxi.toast('error', 'Failed to load employees'));
+    },
 
-            this.renderReviseReason(data);
-        },
+    loadEmployees(deptId) {
+        const $select = $('#edit_user_topup');
 
-        bindEditTopupFilter() {
-
-            $("#edit_department_id").on("change", function () {
-
-                const dept =
-                    ($(this).val() || "")
-                        .toString()
-                        .trim();
-
-                $("#edit_user_topup option").each(function () {
-
-                    const optionDept =
-                        ($(this).data("dept") || "")
-                            .toString()
-                            .trim();
-
-                    const visible =
-                        !dept ||
-                        !optionDept ||
-                        optionDept === dept;
-
-                    $(this).prop(
-                        "disabled",
-                        !visible
-                    );
-                });
-
-                $("#edit_user_topup")
-                    .trigger("change.select2");
-            });
-        },
-
-        renderStatus(status) {
-
-            if (!$("#editStatusBadge").length) {
-                return;
-            }
-
-            const badge =
-                VoucherTaxi.Helper.badge(status);
-
-            $("#editStatusBadge")
-                .attr(
-                    "class",
-                    `inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${badge.class}`
-                )
-                .text(
-                    badge.text || status
-                );
-        },
-
-        renderReviseReason(data) {
-
-            const reason =
-                data.revise_reason ||
-                data.revision_reason ||
-                "";
-
-            if (!$("#editReviseReasonWrapper").length) {
-                return;
-            }
-
-            if (!reason) {
-
-                $("#editReviseReasonWrapper")
-                    .addClass("hidden");
-
-                return;
-            }
-
-            $("#editReviseReasonWrapper")
-                .removeClass("hidden");
-
-            $("#edit_revise_reason")
-                .html(
-                    VoucherTaxi.Helper.nl2br(reason)
-                );
-        },
-
-        bindSubmit() {
-
-            $("#editVoucherTaxiForm")
-                .off("submit")
-                .on("submit", (e) => {
-
-                    e.preventDefault();
-
-                    this.submit();
-                });
-        },
-
-        async submit() {
-
-            if (!this.currentDocId) {
-                return;
-            }
-
-            const confirm =
-                await VoucherTaxi.Helper.confirm(
-                    "Save Changes?",
-                    "Voucher will be resubmitted for approval.",
-                    "Save"
-                );
-
-            if (!confirm.isConfirmed) {
-                return;
-            }
-
-            VoucherTaxi.Helper.loading(
-                "Saving changes..."
-            );
-
-            $.ajax({
-
-                url:
-                    VoucherTaxi.Route.update(
-                        this.currentDocId
-                    ),
-
-                method: "POST",
-
-                headers:
-                    VoucherTaxi.Helper.headers(),
-
-                data:
-                    $("#editVoucherTaxiForm")
-                        .serialize(),
-
-                success: (res) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Modal.close(
-                        "#editVoucherTaxiModal"
-                    );
-
-                    VoucherTaxi.DataList.reload();
-
-                    if (VoucherTaxi.Calendar) {
-                        VoucherTaxi.Calendar.reload();
-                    }
-
-                    VoucherTaxi.Helper.success(
-                        res.message ||
-                        "Voucher updated successfully."
-                    );
-                },
-
-                error: (xhr) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Helper.ajaxError(xhr);
-                }
-            });
+        if (!deptId) {
+            $select.html('<option value="">Select employee...</option>').val(null).trigger('change');
+            return;
         }
-    };
 
-})();
+        fetch(`${VoucherTaxi.routes.employeeByDept}?department_id=${encodeURIComponent(deptId)}`, {
+            headers: { 'X-CSRF-TOKEN': VoucherTaxi.csrf(), 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                $select.html('<option value="">Select employee...</option>');
+                (data.data ?? []).forEach(e => $select.append(`<option value="${e.username}">${e.name}</option>`));
+                $select.trigger('change');
+            }
+        })
+        .catch(() => VoucherTaxi.toast('error', 'Failed to load employees'));
+    },
+
+    // --------------------------------------------------------
+    // LOAD VOUCHER DATA INTO FORM
+    // --------------------------------------------------------
+    loadVoucher(eid) {
+        VoucherTaxiEditForm.state.currentEid = eid;
+        VoucherTaxi.showLoading();
+
+        fetch(VoucherTaxi.routes.find(eid), {
+            headers: { 'X-CSRF-TOKEN': VoucherTaxi.csrf(), 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        })
+        .then(r => r.json())
+        .then(data => {
+            VoucherTaxiEditForm.state.originalData = VoucherTaxiHelper.deepClone(data);
+            VoucherTaxiEditForm.populate(data);
+            VoucherTaxiEditForm.showRevisionReason(data);
+        })
+        .catch(() => VoucherTaxi.toast('error', 'Failed to load voucher details'))
+        .finally(() => VoucherTaxi.hideLoading());
+    },
+
+    // --------------------------------------------------------
+    // POPULATE FORM
+    // --------------------------------------------------------
+    populate(data) {
+        const f = $(VoucherTaxiEditForm.formId);
+
+        f.find('#edit_docid').val(data.docid ?? '');
+        f.find('#edit_eid').val(data.eid ?? VoucherTaxiEditForm.state.currentEid ?? '');
+        f.find('[name="cpny_id"]').val(data.cpny_id ?? '').trigger('change');
+        f.find('[name="department_id"]').val(data.department_id ?? '').trigger('change');
+        f.find('#edit_requester_name').val(data.user_name ?? data.user_peminta ?? '');
+        f.find('#edit_user_peminta').val(data.user_peminta ?? '');
+        f.find('[name="date_used"]').val(data.date_used ?? '');
+        f.find(`[name="type_trip"][value="${data.type_trip ?? 'Return'}"]`).prop('checked', true);
+
+        // Purpose select2 — set pre-existing value
+        const purposeOpt = new Option(data.purpose_id ?? '', data.purpose_id ?? '', true, true);
+        $('#edit_purpose').append(purposeOpt).trigger('change');
+
+        f.find('[name="purpose_descr"]').val(data.purpose_descr ?? '');
+        f.find('[name="cpny_id_expense"]').val(data.cpny_id_expense ?? '').trigger('change');
+
+        // Load dept employees first, then set topup value
+        if (data.department_id) {
+            VoucherTaxiEditForm.loadEmployeesAndSet(data.department_id, data.user_topup);
+        } else {
+            f.find('[name="user_topup"]').val(data.user_topup ?? '').trigger('change');
+        }
+        f.find('[name="origin"]').val(data.origin ?? '');
+        f.find('[name="destination"]').val(data.destination ?? '');
+    },
+
+    // --------------------------------------------------------
+    // REVISION REASON BANNER
+    // --------------------------------------------------------
+    showRevisionReason(data) {
+        const reason   = data.revise_reason ?? VoucherTaxiEditForm.state.originalData?.revise_reason;
+        const $wrapper = $('#editReviseReasonWrapper');
+
+        if (reason) {
+            $wrapper.find('#edit_revise_reason').text(reason);
+            $wrapper.removeClass('hidden');
+        } else {
+            $wrapper.addClass('hidden');
+        }
+    },
+
+    // --------------------------------------------------------
+    // FORM SUBMIT
+    // --------------------------------------------------------
+    bindSubmit() {
+        $(document).on('submit', VoucherTaxiEditForm.formId, function(e) {
+            e.preventDefault();
+            VoucherTaxiEditForm.submit();
+        });
+    },
+
+    // --------------------------------------------------------
+    // VALIDATE
+    // --------------------------------------------------------
+    validate(data) {
+        const errors = {};
+        if (!data.cpny_id)       errors.cpny_id       = ['Company is required'];
+        if (!data.department_id) errors.department_id = ['Department is required'];
+        if (!data.date_used)     errors.date_used     = ['Date used is required'];
+        if (!data.type_trip)     errors.type_trip     = ['Trip type is required'];
+        if (!data.purpose_id)    errors.purpose_id    = ['Purpose is required'];
+        if (!data.purpose_descr) errors.purpose_descr = ['Purpose description is required'];
+        if (!data.user_topup)    errors.user_topup    = ['Top-up employee is required'];
+        if (!data.origin)        errors.origin        = ['Origin is required'];
+        if (!data.destination)   errors.destination   = ['Destination is required'];
+
+        if (data.date_used && !VoucherTaxiHelper.isValidDate(data.date_used)) {
+            errors.date_used = ['Date used must be a valid date'];
+        }
+        return errors;
+    },
+
+    // --------------------------------------------------------
+    // GET FORM DATA
+    // --------------------------------------------------------
+    getData() {
+        const f = $(VoucherTaxiEditForm.formId);
+        return {
+            cpny_id:         f.find('[name="cpny_id"]').val(),
+            department_id:   f.find('[name="department_id"]').val(),
+            user_peminta:    f.find('#edit_user_peminta').val(),
+            date_used:       f.find('[name="date_used"]').val(),
+            type_trip:       f.find('[name="type_trip"]:checked').val(),
+            purpose_id:      f.find('[name="purpose_id"]').val(),
+            purpose_descr:   f.find('[name="purpose_descr"]').val(),
+            user_topup:      f.find('[name="user_topup"]').val(),
+            origin:          f.find('[name="origin"]').val(),
+            destination:     f.find('[name="destination"]').val(),
+            cpny_id_expense: f.find('[name="cpny_id_expense"]').val(),
+        };
+    },
+
+    // --------------------------------------------------------
+    // SUBMIT
+    // --------------------------------------------------------
+    submit() {
+        if (VoucherTaxiEditForm.state.isSubmitting) return;
+
+        const data   = VoucherTaxiEditForm.getData();
+        const errors = VoucherTaxiEditForm.validate(data);
+
+        if (Object.keys(errors).length) {
+            VoucherTaxi.toast('error', Object.values(errors).flat()[0]);
+            return;
+        }
+
+        const docid = $(VoucherTaxiEditForm.formId).find('#edit_docid').val();
+        if (!docid) { VoucherTaxi.toast('error', 'Document ID missing'); return; }
+
+        VoucherTaxiEditForm.state.isSubmitting = true;
+        VoucherTaxi.showLoading();
+
+        fetch(VoucherTaxi.routes.update(docid), {
+            method:  'PUT',
+            headers: {
+                'X-CSRF-TOKEN':     VoucherTaxi.csrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept':           'application/json',
+                'Content-Type':     'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                VoucherTaxi.toast('success', res.message ?? 'Voucher updated');
+                VoucherTaxiEditForm.reset();
+                VoucherTaxiModal.closeEdit();
+                setTimeout(() => {
+                    VoucherTaxiDetailModal.refresh();
+                    VoucherTaxiDataList.reload();
+                }, 800);
+            } else {
+                VoucherTaxi.toast('error', res.message ?? 'Failed to update voucher');
+            }
+        })
+        .catch(() => VoucherTaxi.toast('error', 'An unexpected error occurred'))
+        .finally(() => {
+            VoucherTaxi.hideLoading();
+            VoucherTaxiEditForm.state.isSubmitting = false;
+        });
+    },
+
+    // --------------------------------------------------------
+    // RESET
+    // --------------------------------------------------------
+    reset() {
+        VoucherTaxiEditForm.state.originalData = null;
+        VoucherTaxiEditForm.state.currentEid   = null;
+        $('#edit_purpose').val(null).trigger('change');
+        $('#edit_user_topup').val(null).trigger('change');
+        $('#editReviseReasonWrapper').addClass('hidden');
+    },
+};

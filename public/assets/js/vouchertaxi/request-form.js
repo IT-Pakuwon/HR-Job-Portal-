@@ -1,200 +1,193 @@
-(function () {
-    "use strict";
+// ============================================================
+// request-form.js — Voucher Taxi
+// Create voucher form handling
+// ============================================================
 
-    VoucherTaxi.RequestForm = {
-        form: null,
+const VoucherTaxiRequestForm = {
 
-        init() {
-            this.form = $("#voucherTaxiForm");
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        isSubmitting: false,
+    },
 
-            if (!this.form.length) {
-                return;
+    formId: '#voucherTaxiForm',
+
+    // --------------------------------------------------------
+    // INIT
+    // --------------------------------------------------------
+    init() {
+        VoucherTaxiRequestForm.initPurposeSelect();
+        VoucherTaxiRequestForm.initTopupSelect();
+        VoucherTaxiRequestForm.bindSubmit();
+        VoucherTaxiRequestForm.bindDepartmentChange();
+    },
+
+    // --------------------------------------------------------
+    // PURPOSE SELECT2 (AJAX search)
+    // --------------------------------------------------------
+    initPurposeSelect() {
+        $('#purpose').select2({
+            placeholder: 'Search and select purpose...',
+            allowClear:  true,
+            ajax: {
+                url:      VoucherTaxi.routes.purposeSearch,
+                dataType: 'json',
+                delay:    250,
+                data:     (params) => ({ q: params.term }),
+                processResults: (data) => ({ results: data.data ?? [] }),
+            },
+            minimumInputLength: 0,
+            templateResult:    (d) => d.id ? $(`<div>${d.text}</div>`) : d.text,
+            templateSelection: (d) => d.text || 'Select purpose...',
+        });
+    },
+
+    // --------------------------------------------------------
+    // TOPUP EMPLOYEE SELECT2
+    // --------------------------------------------------------
+    initTopupSelect() {
+        $('#user_topup').select2({ placeholder: 'Select employee...', allowClear: true });
+    },
+
+    // --------------------------------------------------------
+    // DEPARTMENT CHANGE → reload employees
+    // --------------------------------------------------------
+    bindDepartmentChange() {
+        $(document).on('change', '#department_id', function() {
+            VoucherTaxiRequestForm.loadEmployees($(this).val(), '#user_topup');
+        });
+    },
+
+    loadEmployees(deptId, selectId) {
+        const $select = $(selectId);
+
+        if (!deptId) {
+            $select.html('<option value="">Select employee...</option>').val(null).trigger('change');
+            return;
+        }
+
+        fetch(`${VoucherTaxi.routes.employeeByDept}?department_id=${encodeURIComponent(deptId)}`, {
+            headers: { 'X-CSRF-TOKEN': VoucherTaxi.csrf(), 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                $select.html('<option value="">Select employee...</option>');
+                (data.data ?? []).forEach(e => $select.append(`<option value="${e.username}">${e.name}</option>`));
+                $select.trigger('change');
             }
+        })
+        .catch(() => VoucherTaxi.toast('error', 'Failed to load employees'));
+    },
 
-            this.initSelect2();
-            this.initPurpose();
+    // --------------------------------------------------------
+    // FORM SUBMISSION
+    // --------------------------------------------------------
+    bindSubmit() {
+        $(document).on('submit', VoucherTaxiRequestForm.formId, function(e) {
+            e.preventDefault();
+            VoucherTaxiRequestForm.submit();
+        });
+    },
 
-            this.bindSubmit();
-            this.bindTopupFilter();
+    // --------------------------------------------------------
+    // VALIDATE
+    // --------------------------------------------------------
+    validate(data) {
+        const errors = {};
+        if (!data.cpny_id)       errors.cpny_id       = ['Company is required'];
+        if (!data.department_id) errors.department_id = ['Department is required'];
+        if (!data.user_peminta)  errors.user_peminta  = ['Requester is required'];
+        if (!data.date_used)     errors.date_used     = ['Date used is required'];
+        if (!data.type_trip)     errors.type_trip     = ['Trip type is required'];
+        if (!data.purpose_id)    errors.purpose_id    = ['Purpose is required'];
+        if (!data.purpose_descr) errors.purpose_descr = ['Purpose description is required'];
+        if (!data.user_topup)    errors.user_topup    = ['Top-up employee is required'];
+        if (!data.origin)        errors.origin        = ['Origin is required'];
+        if (!data.destination)   errors.destination   = ['Destination is required'];
 
-            VoucherTaxi.log("RequestForm Initialized");
-        },
+        if (data.date_used && !VoucherTaxiHelper.isValidDate(data.date_used)) {
+            errors.date_used = ['Date used must be a valid date'];
+        }
+        return errors;
+    },
 
-        initSelect2() {
-            if (!$.fn.select2) {
-                return;
+    // --------------------------------------------------------
+    // GET FORM DATA
+    // --------------------------------------------------------
+    getData() {
+        const f = $(VoucherTaxiRequestForm.formId);
+        return {
+            cpny_id:       f.find('[name="cpny_id"]').val(),
+            department_id: f.find('[name="department_id"]').val(),
+            user_peminta:  f.find('[name="user_peminta"]').val(),
+            date_used:     f.find('[name="date_used"]').val(),
+            type_trip:     f.find('[name="type_trip"]:checked').val(),
+            purpose_id:    f.find('[name="purpose_id"]').val(),
+            purpose_descr: f.find('[name="purpose_descr"]').val(),
+            user_topup:    f.find('[name="user_topup"]').val(),
+            origin:        f.find('[name="origin"]').val(),
+            destination:   f.find('[name="destination"]').val(),
+        };
+    },
+
+    // --------------------------------------------------------
+    // SUBMIT
+    // --------------------------------------------------------
+    submit() {
+        if (VoucherTaxiRequestForm.state.isSubmitting) return;
+
+        const data   = VoucherTaxiRequestForm.getData();
+        const errors = VoucherTaxiRequestForm.validate(data);
+
+        if (Object.keys(errors).length) {
+            VoucherTaxi.toast('error', Object.values(errors).flat()[0]);
+            return;
+        }
+
+        VoucherTaxiRequestForm.state.isSubmitting = true;
+        VoucherTaxi.showLoading();
+
+        fetch(VoucherTaxi.routes.store, {
+            method:  'POST',
+            headers: {
+                'X-CSRF-TOKEN':     VoucherTaxi.csrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept':           'application/json',
+                'Content-Type':     'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                VoucherTaxi.toast('success', res.message ?? 'Voucher created');
+                VoucherTaxiRequestForm.reset();
+                VoucherTaxiModal.closeCreate();
+                setTimeout(() => VoucherTaxiDataList.reload(), 800);
+            } else {
+                VoucherTaxi.toast('error', res.message ?? 'Failed to create voucher');
             }
+        })
+        .catch(() => VoucherTaxi.toast('error', 'An unexpected error occurred'))
+        .finally(() => {
+            VoucherTaxi.hideLoading();
+            VoucherTaxiRequestForm.state.isSubmitting = false;
+        });
+    },
 
-            [
-                "#cpny_id",
-                "#department_id",
-                "#cpny_id_expense",
-                "#user_topup",
-            ].forEach((selector) => {
-                const $el = $(selector);
-
-                if (!$el.length) {
-                    return;
-                }
-
-                if (!$el.is("select")) {
-                    return;
-                }
-
-                $el.select2({
-                    width: "100%",
-                    dropdownParent: $("#createVoucherModal"),
-                });
-            });
-        },
-
-        initPurpose() {
-            const $purpose = $("#purpose");
-
-            if (!$purpose.length || !$purpose.is("select") || !$.fn.select2) {
-                return;
-            }
-
-            $purpose.select2({
-                width: "100%",
-                dropdownParent: $("#createVoucherModal"),
-                placeholder: "Select Purpose",
-                allowClear: true,
-                ajax: {
-                    url: VoucherTaxi.Route.purposeSearch(),
-                    dataType: "json",
-                    delay: 250,
-                    data: (params) => ({
-                        q: params.term || "",
-                    }),
-                    processResults: (response) => ({
-                        results: response.data || [],
-                    }),
-                    cache: true,
-                },
-            });
-        },
-
-        bindSubmit() {
-            this.form.on("submit", (e) => {
-                e.preventDefault();
-
-                this.submit();
-            });
-        },
-
-        async submit() {
-            const confirm = await VoucherTaxi.Helper.confirm(
-                "Submit Voucher Taxi?",
-                "Please make sure all information is correct.",
-                "Submit",
-            );
-
-            if (!confirm.isConfirmed) {
-                return;
-            }
-
-            VoucherTaxi.Helper.loading("Submitting voucher...");
-
-            $.ajax({
-                url: VoucherTaxi.Route.store(),
-
-                method: "POST",
-
-                headers: VoucherTaxi.Helper.headers(),
-
-                data: this.form.serialize(),
-
-                success: async (response) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    this.reset();
-
-                    await VoucherTaxi.Modal.close(
-                        "#createVoucherModal"
-                    );
-
-                    VoucherTaxi.DataList.reload();
-
-                    VoucherTaxi.Calendar?.reload();
-
-                    VoucherTaxi.Helper.success(
-                        response.message ||
-                        "Voucher submitted successfully."
-                    );
-                },
-
-                error: (xhr) => {
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Helper.ajaxError(xhr);
-                },
-            });
-        },
-
-        reset() {
-            this.form.trigger("reset");
-
-            $("#purpose").val(null).trigger("change");
-
-            $("#cpny_id").trigger("change");
-
-            $("#department_id").trigger("change");
-
-            $("#cpny_id_expense").val(null).trigger("change");
-
-            $("#user_topup").val(null).trigger("change");
-
-           $("#purpose_desc").val("");
-
-            $("#trip_return").prop("checked", true);
-
-            $("#trip_oneway").prop("checked", false);
-        },
-
-        bindTopupFilter() {
-            const $department = $("#department_id");
-            const $userTopup = $("#user_topup");
-
-            const originalOptions = $userTopup.html();
-
-            const applyFilter = () => {
-                const dept = ($department.val() || "").trim();
-
-                if ($userTopup.hasClass("select2-hidden-accessible")) {
-                    $userTopup.select2("destroy");
-                }
-
-                $userTopup.html("");
-
-                $(originalOptions).each(function () {
-                    const $option = $(this);
-
-                    const optionDept = ($option.data("dept") || "")
-                        .toString()
-                        .trim();
-
-                    const isPlaceholder = !$option.val();
-
-                    if (isPlaceholder || optionDept === dept) {
-                        $userTopup.append($option.clone());
-                    }
-                });
-
-                $userTopup.select2({
-                    width: "100%",
-                    dropdownParent: $("#createVoucherModal"),
-                });
-
-                $userTopup.val("").trigger("change");
-            };
-
-            $department.off("change.topupFilter");
-
-            $department.on("change.topupFilter", applyFilter);
-
-            applyFilter();
-        },
-    };
-})();
+    // --------------------------------------------------------
+    // RESET
+    // --------------------------------------------------------
+    reset() {
+        const form = document.querySelector(VoucherTaxiRequestForm.formId);
+        form?.reset();
+        $('#purpose').val(null).trigger('change');
+        $('#user_topup').val(null).trigger('change');
+        // Reset radio to default
+        const returnRadio = form?.querySelector('[name="type_trip"][value="Return"]');
+        if (returnRadio) returnRadio.checked = true;
+    },
+};

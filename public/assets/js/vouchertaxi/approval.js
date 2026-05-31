@@ -1,348 +1,187 @@
-(function () {
-    'use strict';
+// ============================================================
+// approval.js — Voucher Taxi
+// Approve, reject, revise actions
+// ============================================================
 
-    VoucherTaxi.Approval = {
+const VoucherTaxiApproval = {
 
-        init() {
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        isProcessing: false,
+    },
 
-            this.bindApprove();
-            this.bindReject();
-            this.bindRevise();
+    // --------------------------------------------------------
+    // INIT
+    // --------------------------------------------------------
+    init() {
+        VoucherTaxiApproval.bindApprove();
+        VoucherTaxiApproval.bindReject();
+        VoucherTaxiApproval.bindRevise();
+    },
 
-            VoucherTaxi.log(
-                'Approval Initialized'
-            );
-        },
+    // --------------------------------------------------------
+    // APPROVE
+    // --------------------------------------------------------
+    bindApprove() {
+        document.getElementById('approveBtn')
+            ?.addEventListener('click', () => VoucherTaxiApproval.approve());
+    },
 
-        bindApprove() {
+    async approve() {
+        if (VoucherTaxiApproval.state.isProcessing) return;
 
-            $('#approveBtn').on(
-                'click',
-                () => {
+        const docid = document.getElementById('view_docid')?.value;
+        if (!docid) return;
 
-                    const docid =
-                        VoucherTaxi.state.selectedDocId;
+        const result = await VoucherTaxi.confirm({
+            title:       'Approve Voucher?',
+            icon:        'question',
+            confirmText: 'Yes, Approve',
+            confirmColor: '#10b981',
+        });
+        if (!result.isConfirmed) return;
 
-                    if (!docid) {
-                        return;
-                    }
+        VoucherTaxiApproval.state.isProcessing = true;
+        VoucherTaxi.showLoading();
 
-                    this.approve(docid);
-                }
-            );
-        },
-
-        bindReject() {
-
-            $('#rejectBtn').on(
-                'click',
-                () => {
-
-                    const docid =
-                        VoucherTaxi.state.selectedDocId;
-
-                    if (!docid) {
-                        return;
-                    }
-
-                    this.reject(docid);
-                }
-            );
-        },
-
-        bindRevise() {
-
-            $('#reviseBtn').on(
-                'click',
-                () => {
-
-                    const docid =
-                        VoucherTaxi.state.selectedDocId;
-
-                    if (!docid) {
-                        return;
-                    }
-
-                    this.revise(docid);
-                }
-            );
-        },
-
-        async approve(docid) {
-
-            const confirm =
-                await VoucherTaxi.Helper.confirm(
-                    'Approve Voucher?',
-                    'This voucher will continue to the next approval step.',
-                    'Approve'
-                );
-
-            if (!confirm.isConfirmed) {
-                return;
+        fetch(VoucherTaxi.routes.approve(docid), {
+            method:  'POST',
+            headers: {
+                'X-CSRF-TOKEN':     VoucherTaxi.csrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept':           'application/json',
+            },
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                VoucherTaxi.toast('success', res.message ?? 'Voucher approved');
+                VoucherTaxiDetailModal.refresh();
+                VoucherTaxiDataList.reload();
+            } else {
+                VoucherTaxi.toast('error', res.message ?? 'Approve failed');
             }
+        })
+        .catch(() => VoucherTaxi.toast('error', 'An unexpected error occurred'))
+        .finally(() => {
+            VoucherTaxi.hideLoading();
+            VoucherTaxiApproval.state.isProcessing = false;
+        });
+    },
 
-            VoucherTaxi.Helper.loading(
-                'Approving voucher...'
-            );
+    // --------------------------------------------------------
+    // REJECT
+    // --------------------------------------------------------
+    bindReject() {
+        document.getElementById('rejectBtn')
+            ?.addEventListener('click', () => VoucherTaxiApproval.promptReject());
+    },
 
-            $.ajax({
+    async promptReject() {
+        const result = await VoucherTaxi.prompt({
+            title:         'Reject Voucher',
+            label:         'Reason for rejection',
+            placeholder:   'Explain why you are rejecting this request...',
+            confirmText:   'Reject',
+            confirmColor:  '#dc2626',
+            validationMsg: 'Please provide a rejection reason.',
+        });
+        if (!result.isConfirmed) return;
+        VoucherTaxiApproval.submitReject(result.value.trim());
+    },
 
-                url:
-                    VoucherTaxi.Route.approve(
-                        docid
-                    ),
+    submitReject(reason) {
+        if (VoucherTaxiApproval.state.isProcessing) return;
 
-                method: 'POST',
+        const docid = document.getElementById('view_docid')?.value;
+        if (!docid) return;
 
-                headers:
-                    VoucherTaxi.Helper.headers(),
+        VoucherTaxiApproval.state.isProcessing = true;
+        VoucherTaxi.showLoading();
 
-                success: (res) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Modal.close(
-                        '#viewVoucherModal'
-                    );
-
-                    VoucherTaxi.DataList.reload();
-
-                    VoucherTaxi.Calendar.reload();
-
-                    VoucherTaxi.Helper.success(
-                        res.message ||
-                        'Voucher approved.'
-                    );
-                },
-
-                error:
-                    VoucherTaxi.Helper.ajaxError
-            });
-        },
-
-        async reject(docid) {
-
-            const result =
-                await Swal.fire({
-
-                    title:
-                        'Reject Voucher',
-
-                    input:
-                        'textarea',
-
-                    inputLabel:
-                        'Reject Reason',
-
-                    inputPlaceholder:
-                        'Enter reject reason...',
-
-                    inputAttributes: {
-                        rows: 4
-                    },
-
-                    showCancelButton: true,
-
-                    confirmButtonText:
-                        'Reject',
-
-                    confirmButtonColor:
-                        '#dc2626',
-
-                    inputValidator:
-                        value => {
-
-                            if (!value) {
-                                return 'Reject reason is required';
-                            }
-                        }
-                });
-
-            if (!result.isConfirmed) {
-                return;
+        fetch(VoucherTaxi.routes.reject(docid), {
+            method:  'POST',
+            headers: {
+                'X-CSRF-TOKEN':     VoucherTaxi.csrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept':           'application/json',
+                'Content-Type':     'application/json',
+            },
+            body: JSON.stringify({ reason }),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                VoucherTaxi.toast('success', res.message ?? 'Voucher rejected');
+                VoucherTaxiDetailModal.refresh();
+                VoucherTaxiDataList.reload();
+            } else {
+                VoucherTaxi.toast('error', res.message ?? 'Reject failed');
             }
+        })
+        .catch(() => VoucherTaxi.toast('error', 'An unexpected error occurred'))
+        .finally(() => {
+            VoucherTaxi.hideLoading();
+            VoucherTaxiApproval.state.isProcessing = false;
+        });
+    },
 
-            VoucherTaxi.Helper.loading(
-                'Rejecting voucher...'
-            );
+    // --------------------------------------------------------
+    // REVISE
+    // --------------------------------------------------------
+    bindRevise() {
+        document.getElementById('reviseBtn')
+            ?.addEventListener('click', () => VoucherTaxiApproval.promptRevise());
+    },
 
-            $.ajax({
+    async promptRevise() {
+        const result = await VoucherTaxi.prompt({
+            title:         'Request Revision',
+            label:         'Revision notes',
+            placeholder:   'What changes are needed?',
+            confirmText:   'Send Revision',
+            confirmColor:  '#d97706',
+            validationMsg: 'Please provide revision notes.',
+        });
+        if (!result.isConfirmed) return;
+        VoucherTaxiApproval.submitRevise(result.value.trim());
+    },
 
-                url:
-                    VoucherTaxi.Route.reject(
-                        docid
-                    ),
+    submitRevise(reason) {
+        if (VoucherTaxiApproval.state.isProcessing) return;
 
-                method: 'POST',
+        const docid = document.getElementById('view_docid')?.value;
+        if (!docid) return;
 
-                headers:
-                    VoucherTaxi.Helper.headers(),
+        VoucherTaxiApproval.state.isProcessing = true;
+        VoucherTaxi.showLoading();
 
-                data: {
-                    reason:
-                        result.value
-                },
-
-                success: (res) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Modal.close(
-                        '#viewVoucherModal'
-                    );
-
-                    VoucherTaxi.DataList.reload();
-
-                    VoucherTaxi.Calendar.reload();
-
-                    VoucherTaxi.Helper.success(
-                        res.message ||
-                        'Voucher rejected.'
-                    );
-                },
-
-                error:
-                    VoucherTaxi.Helper.ajaxError
-            });
-        },
-
-        async revise(docid) {
-
-            const result =
-                await Swal.fire({
-
-                    title:
-                        'Request Revision',
-
-                    input:
-                        'textarea',
-
-                    inputLabel:
-                        'Revision Reason',
-
-                    inputPlaceholder:
-                        'Enter revision reason...',
-
-                    inputAttributes: {
-                        rows: 4
-                    },
-
-                    showCancelButton: true,
-
-                    confirmButtonText:
-                        'Request Revision',
-
-                    confirmButtonColor:
-                        '#eab308',
-
-                    inputValidator:
-                        value => {
-
-                            if (!value) {
-                                return 'Revision reason is required';
-                            }
-                        }
-                });
-
-            if (!result.isConfirmed) {
-                return;
+        fetch(VoucherTaxi.routes.revise(docid), {
+            method:  'POST',
+            headers: {
+                'X-CSRF-TOKEN':     VoucherTaxi.csrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept':           'application/json',
+                'Content-Type':     'application/json',
+            },
+            body: JSON.stringify({ reason }),
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                VoucherTaxi.toast('success', res.message ?? 'Revision requested');
+                VoucherTaxiDetailModal.refresh();
+                VoucherTaxiDataList.reload();
+            } else {
+                VoucherTaxi.toast('error', res.message ?? 'Revise failed');
             }
-
-            VoucherTaxi.Helper.loading(
-                'Sending revision...'
-            );
-
-            $.ajax({
-
-                url:
-                    VoucherTaxi.Route.revise(
-                        docid
-                    ),
-
-                method: 'POST',
-
-                headers:
-                    VoucherTaxi.Helper.headers(),
-
-                data: {
-                    reason:
-                        result.value
-                },
-
-                success: (res) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Modal.close(
-                        '#viewVoucherModal'
-                    );
-
-                    VoucherTaxi.DataList.reload();
-
-                    VoucherTaxi.Calendar.reload();
-
-                    VoucherTaxi.Helper.success(
-                        res.message ||
-                        'Revision requested.'
-                    );
-                },
-
-                error:
-                    VoucherTaxi.Helper.ajaxError
-            });
-        },
-
-        async cancel(docid) {
-
-            const confirm =
-                await VoucherTaxi.Helper.confirm(
-                    'Cancel Voucher?',
-                    'This request will be cancelled permanently.',
-                    'Cancel Voucher'
-                );
-
-            if (!confirm.isConfirmed) {
-                return;
-            }
-
-            VoucherTaxi.Helper.loading(
-                'Cancelling voucher...'
-            );
-
-            $.ajax({
-
-                url:
-                    VoucherTaxi.Route.cancel(
-                        docid
-                    ),
-
-                method: 'POST',
-
-                headers:
-                    VoucherTaxi.Helper.headers(),
-
-                success: (res) => {
-
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Modal.close(
-                        '#viewVoucherModal'
-                    );
-
-                    VoucherTaxi.DataList.reload();
-
-                    VoucherTaxi.Calendar.reload();
-
-                    VoucherTaxi.Helper.success(
-                        res.message ||
-                        'Voucher cancelled.'
-                    );
-                },
-
-                error:
-                    VoucherTaxi.Helper.ajaxError
-            });
-        }
-    };
-
-})();
+        })
+        .catch(() => VoucherTaxi.toast('error', 'An unexpected error occurred'))
+        .finally(() => {
+            VoucherTaxi.hideLoading();
+            VoucherTaxiApproval.state.isProcessing = false;
+        });
+    },
+};

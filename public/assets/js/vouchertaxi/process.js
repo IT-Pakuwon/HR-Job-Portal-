@@ -1,289 +1,228 @@
-(function () {
-    "use strict";
+/**
+ * VoucherTaxi - Process Module
+ * GA voucher processing and budget entry
+ */
 
-    VoucherTaxi.Process = {
-        currentDocId: null,
+const VoucherTaxiProcess = {
+    formId: '#processVoucherForm',
+    isSubmitting: false,
 
-        init() {
-            this.bindOpen();
-            this.bindExpenseOwner();
-            this.bindBudgetFormatting();
-            this.bindDepartmentEmployee();
-            this.bindSubmit();
+    /**
+     * Initialize
+     */
+    init() {
+        this.initEventHandlers();
+    },
 
-            this.initSelect2();
+    /**
+     * Initialize event handlers
+     */
+    initEventHandlers() {
+        const self = this;
 
-            VoucherTaxi.log("Process Initialized");
-        },
+        // Form submission
+        $(document).on('submit', this.formId, function(e) {
+            e.preventDefault();
+            self.submit();
+        });
 
-        initSelect2() {
+        // Change expense owner checkbox
+        $(document).on('change', '#changeExpenseOwner', function() {
+            if ($(this).is(':checked')) {
+                $('#expenseOwnerSection').removeClass('hidden');
+                $(self.formId).find('[name="cpny_id_expense"], [name="department_id_expense"], [name="user_peminta_expense"]').prop('required', true);
+            } else {
+                $('#expenseOwnerSection').addClass('hidden');
+                $(self.formId).find('[name="cpny_id_expense"], [name="department_id_expense"], [name="user_peminta_expense"]').prop('required', false);
+            }
+        });
 
-            $('.select2-process').select2({
+        // Budget input formatting
+        $(document).on('input', '#actual_budget_display', function() {
+            let value = $(this).val();
 
-                width: '100%',
+            // Remove non-digits
+            value = value.replace(/\D/g, '');
 
-                dropdownParent:
-                    $('#processVoucherModal'),
+            // Format with thousand separators
+            if (value) {
+                value = parseInt(value).toLocaleString('id-ID');
+            }
 
-                placeholder:
-                    'Select Option',
+            $(this).val(value);
 
-                allowClear: true
-            });
-        },
-        bindOpen() {
-            $(document).on("click", "#openProcessVoucherBtn", () => {
-                const data = VoucherTaxi.DetailModal.currentData;
+            // Store actual number in hidden field
+            $('#actual_budget').val(value.replace(/\D/g, ''));
+        });
+    },
 
-                if (!data) {
-                    return;
+    /**
+     * Load process form
+     */
+    load(docid) {
+        VoucherTaxi.showLoading();
+
+        VoucherTaxiRoute.fetchDetail(VoucherTaxi.state.currentVoucherId)
+            .done((response) => {
+                if (response.success && response.data) {
+                    this.populateForm(response.data, docid);
+                    VoucherTaxiModal.openProcess();
                 }
-
-                this.open(data);
+            })
+            .fail(() => {
+                VoucherTaxi.showError('Failed to load voucher for processing');
+            })
+            .always(() => {
+                VoucherTaxi.hideLoading();
             });
-        },
+    },
 
-        open(data) {
+    /**
+     * Populate form with voucher data
+     */
+    populateForm(data, docid) {
+        const form = $(this.formId);
 
-            this.currentDocId = data.docid;
+        // Store docid
+        form.find('[name="process_docid"]').val(docid);
+        form.find('[id="process_docid"]').val(docid);
 
-            $("#process_docid").val(data.docid || "");
+        // Display information
+        $('#process_docno').text(data.docid);
+        $('#process_requester').text(data.user_name || data.user_peminta);
+        $('#process_date').text(VoucherTaxi.formatDate(data.date_used));
+        $('#process_company').text(data.cpny_id);
+        $('#process_department').text(data.department_id);
+        $('#process_trip').text(data.type_trip);
+        $('#process_route').text(`${data.origin} → ${data.destination}`);
+        $('#process_purpose').text(data.purpose_descr);
 
-            $("#process_docno").text(data.docid || "-");
+        // Pre-fill with existing budget if any
+        if (data.actual_budget && data.actual_budget > 0) {
+            const formatted = VoucherTaxi.formatCurrency(data.actual_budget);
+            form.find('#actual_budget_display').val(formatted);
+            form.find('#actual_budget').val(data.actual_budget);
+        }
 
-            $("#process_requester").text(
-                data.user_name || data.user_peminta || "-",
-            );
+        // Pre-fill expense owner
+        form.find('[name="cpny_id_expense"]').val(data.cpny_id_expense || '').trigger('change');
+        form.find('[name="user_peminta_expense"]').val(data.user_peminta_expense || '');
+    },
 
-            $("#process_date").text(data.date_used || "-");
+    /**
+     * Validate form
+     */
+    validate() {
+        const form = $(this.formId);
+        const actualBudget = form.find('[name="actual_budget"]').val();
 
-            $("#process_company").text(data.cpny_name || data.cpny_id || "-");
+        if (!actualBudget || parseInt(actualBudget) === 0) {
+            VoucherTaxi.showError('Please enter the actual budget amount');
+            return false;
+        }
 
-            $("#process_department").text(
-                data.department_name || data.department_id || "-",
-            );
+        // Validate expense owner if selected
+        if (form.find('[name="change_expense_owner"]').is(':checked')) {
+            const cpny = form.find('[name="cpny_id_expense"]').val();
+            const dept = form.find('[name="department_id_expense"]').val();
+            const user = form.find('[name="user_peminta_expense"]').val();
 
-            $("#process_trip").text(data.type_trip || "-");
+            if (!cpny || !dept || !user) {
+                VoucherTaxi.showError('Please select the new expense owner (Company, Department, Employee)');
+                return false;
+            }
+        }
 
-            $("#process_route").text(
-                `${data.origin || "-"} → ${data.destination || "-"}`,
-            );
+        return true;
+    },
 
-            $("#process_budget").text(
-                VoucherTaxi.Helper.moneyWithPrefix(
-                    data.actual_budget ?? data.max_budget ?? 0,
-                ),
-            );
+    /**
+     * Get form data
+     */
+    getFormData() {
+        const form = $(this.formId);
 
-            $("#process_purpose").html(`
-                <div class="space-y-2">
+        return {
+            actual_budget: form.find('[name="actual_budget"]').val(),
+            change_expense_owner: form.find('[name="change_expense_owner"]').is(':checked') ? 1 : 0,
+            cpny_id_expense: form.find('[name="cpny_id_expense"]').val() || null,
+            department_id_expense: form.find('[name="department_id_expense"]').val() || null,
+            user_peminta_expense: form.find('[name="user_peminta_expense"]').val() || null,
+        };
+    },
 
-                    <div>
-                        <span class="font-semibold">
-                            Purpose :
-                        </span>
-                        ${data.purpose_name ?? data.purpose_id ?? "-"}
-                    </div>
+    /**
+     * Submit form
+     */
+    submit() {
+        if (this.isSubmitting) return;
 
-                    <div>
-                        <span class="font-semibold">
-                            Description :
-                        </span>
+        // Validate
+        if (!this.validate()) {
+            return;
+        }
 
-                        <div class="mt-1">
-                            ${VoucherTaxi.Helper.nl2br(
-                                data.purpose_descr || "-",
-                            )}
-                        </div>
-                    </div>
+        this.isSubmitting = true;
+        const docid = $(this.formId).find('[name="process_docid"]').val();
+        const data = this.getFormData();
 
-                </div>
-            `);
+        VoucherTaxi.showLoading();
 
-            $("#current_expense_company").text(data.cpny_id_expense || "-");
+        VoucherTaxiRoute.processVoucher(docid, data)
+            .done((response) => {
+                if (response.success) {
+                    VoucherTaxi.showSuccess(response.message);
+                    this.reset();
+                    VoucherTaxiModal.closeProcess();
 
-            $("#current_expense_department").text(
-                data.department_id_expense || "-",
-            );
-
-            $("#current_expense_user").text(
-                data.user_peminta_expense || data.user_peminta || "-",
-            );
-
-            const badge = VoucherTaxi.Helper.badge(data.status);
-
-            $("#process_status").html(`
-                    <span class="
-                        rounded-full
-                        px-3 py-1
-                        text-xs
-                        font-semibold
-                        ${badge.class}
-                    ">
-                        ${badge.text}
-                    </span>
-                `);
-
-            $("#actual_budget_display").val("");
-
-            $("#actual_budget").val("");
-
-            $("#changeExpenseOwner").prop("checked", false);
-
-            $("#expenseOwnerSection").addClass("hidden");
-
-            $("#process_cpny_id_expense").val("");
-
-            $("#process_department_id_expense").val("");
-
-            $("#process_user_peminta_expense").val("");
-
-            VoucherTaxi.Modal.open("#processVoucherModal");
-        },
-
-        bindExpenseOwner() {
-            $("#changeExpenseOwner").on("change", function () {
-                $("#expenseOwnerSection").toggleClass("hidden", !this.checked);
-            });
-        },
-
-        bindBudgetFormatting() {
-            $("#actual_budget_display").on("input", function () {
-                const raw = VoucherTaxi.Helper.parseMoney($(this).val());
-
-                $("#actual_budget").val(raw);
-
-                $(this).val(VoucherTaxi.Helper.money(raw));
-            });
-        },
-
-        bindDepartmentEmployee() {
-            $("#process_department_id_expense").on("change", function () {
-                const departmentId = $(this).val();
-
-                const $employee = $("#process_user_peminta_expense");
-
-                $employee.html(`
-                <option value="">
-                    Loading...
-                </option>
-            `);
-
-                if (!departmentId) {
-                    $employee.html(`
-                    <option value="">
-                        Select Employee
-                    </option>
-                `);
-
-                    return;
+                    // Refresh detail
+                    setTimeout(() => {
+                        VoucherTaxiDetailModal.refresh();
+                    }, 1000);
                 }
-
-                $.ajax({
-                    url: VoucherTaxi.Route.employeeByDepartment(),
-
-                    method: "GET",
-
-                    data: {
-                        department_id: departmentId,
-                    },
-
-                    success: function (res) {
-                        let html = `
-                        <option value="">
-                            Select Employee
-                        </option>
-                    `;
-
-                        (res.data || []).forEach((emp) => {
-                            html += `
-                            <option value="${emp.username}">
-                                ${emp.name}
-                            </option>
-                        `;
-                        });
-
-                        $employee.html(html)
-                            .trigger('change');
-                    },
-
-                    error: function () {
-                        $employee.html(`
-                        <option value="">
-                            Select Employee
-                        </option>
-                    `);
-                    },
-                });
+            })
+            .fail((xhr) => {
+                const message = xhr.responseJSON?.message || 'Failed to process voucher';
+                VoucherTaxi.showError(message);
+            })
+            .always(() => {
+                VoucherTaxi.hideLoading();
+                this.isSubmitting = false;
             });
-        },
+    },
 
-        bindSubmit() {
-            $("#processVoucherForm").on("submit", (e) => {
-                e.preventDefault();
+    /**
+     * Reset form
+     */
+    reset() {
+        const form = $(this.formId);
+        form[0].reset();
 
-                this.submit();
-            });
-        },
+        // Reset checkboxes and sections
+        $('#changeExpenseOwner').prop('checked', false);
+        $('#expenseOwnerSection').addClass('hidden');
 
-        async submit() {
-            if (!this.currentDocId) {
-                return;
-            }
+        // Clear budget display
+        $('#actual_budget_display').val('');
+        $('#actual_budget').val('');
+    },
 
-            const actualBudget = $("#actual_budget").val();
+    /**
+     * Disable form
+     */
+    disable() {
+        $(this.formId).find('input, select, textarea, button').prop('disabled', true);
+    },
 
-            if (!actualBudget) {
-                VoucherTaxi.Helper.warning("Actual budget is required.");
+    /**
+     * Enable form
+     */
+    enable() {
+        $(this.formId).find('input, select, textarea, button').prop('disabled', false);
+    },
+};
 
-                return;
-            }
-
-            const confirm = await VoucherTaxi.Helper.confirm(
-                "Process Voucher?",
-                "Actual expense will be saved.",
-                "Save Process",
-            );
-
-            if (!confirm.isConfirmed) {
-                return;
-            }
-
-            VoucherTaxi.Helper.loading("Saving process...");
-
-            $.ajax({
-                url: VoucherTaxi.Route.process(this.currentDocId),
-
-                method: "POST",
-
-                headers: VoucherTaxi.Helper.headers(),
-
-                data: $("#processVoucherForm").serialize(),
-
-                success: (res) => {
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Modal.close("#processVoucherModal");
-
-                    VoucherTaxi.Modal.close("#viewVoucherModal");
-
-                    VoucherTaxi.DataList.reload();
-
-                    if (VoucherTaxi.Calendar) {
-                        VoucherTaxi.Calendar.reload();
-                    }
-
-                    VoucherTaxi.Helper.success(
-                        res.message || "Voucher processed successfully.",
-                    );
-                },
-
-                error: (xhr) => {
-                    VoucherTaxi.Helper.closeLoading();
-
-                    VoucherTaxi.Helper.ajaxError(xhr);
-                },
-            });
-        },
-    };
-})();
+// Initialize on document ready
+$(document).ready(() => {
+    VoucherTaxiProcess.init();
+});

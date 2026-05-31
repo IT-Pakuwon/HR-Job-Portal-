@@ -1,257 +1,124 @@
-(function () {
-    'use strict';
+// ============================================================
+// helper.js — Voucher Taxi
+// Validator utilities (no moment dependency)
+// ============================================================
 
-    VoucherTaxi.Helper = {
+const VoucherTaxiHelper = {
 
-        csrf() {
-            return $('meta[name="csrf-token"]').attr('content');
-        },
+    // --------------------------------------------------------
+    // DATE VALIDATORS
+    // --------------------------------------------------------
+    isValidDate(dateString) {
+        if (!dateString) return false;
+        return !isNaN(new Date(dateString).getTime());
+    },
 
-        headers() {
-            return {
-                'X-CSRF-TOKEN': this.csrf()
-            };
-        },
+    isDateInPast(date) {
+        if (!date) return false;
+        const d = new Date(date); d.setHours(0,0,0,0);
+        const t = new Date();     t.setHours(0,0,0,0);
+        return d < t;
+    },
 
-        money(value) {
-            const number = parseFloat(value || 0);
+    isDateToday(date) {
+        if (!date) return false;
+        return new Date(date).toDateString() === new Date().toDateString();
+    },
 
-            return new Intl.NumberFormat('id-ID', {
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-            }).format(number);
-        },
+    isDateInFuture(date) {
+        if (!date) return false;
+        const d = new Date(date); d.setHours(0,0,0,0);
+        const t = new Date();     t.setHours(0,0,0,0);
+        return d > t;
+    },
 
-        moneyWithPrefix(value) {
-            return 'Rp ' + this.money(value);
-        },
+    getDaysDifference(date1, date2) {
+        return Math.round((new Date(date2) - new Date(date1)) / 86_400_000);
+    },
 
-        parseMoney(value) {
-            return String(value || '')
-                .replace(/[^\d]/g, '');
-        },
+    compareDates(date1, date2) {
+        return new Date(date1).toDateString() === new Date(date2).toDateString();
+    },
 
-        badge(status) {
+    getTimeAgo(date) {
+        if (!date) return '';
+        const diff  = Date.now() - new Date(date).getTime();
+        const secs  = Math.round(diff / 1000);
+        const mins  = Math.round(secs / 60);
+        const hours = Math.round(mins / 60);
+        const days  = Math.round(hours / 24);
+        if (secs  < 60)  return 'just now';
+        if (mins  < 60)  return `${mins} min${mins  !== 1 ? 's' : ''} ago`;
+        if (hours < 24)  return `${hours} hr${hours !== 1 ? 's' : ''} ago`;
+        if (days  < 30)  return `${days} day${days  !== 1 ? 's' : ''} ago`;
+        return new Date(date).toLocaleDateString('id-ID');
+    },
 
-            const map = {
-                P: {
-                    text: 'Pending',
-                    class: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
-                },
-                C: {
-                    text: 'Completed',
-                    class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                },
-                D: {
-                    text: 'Revise',
-                    class: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300'
-                },
-                R: {
-                    text: 'Rejected',
-                    class: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                },
-                X: {
-                    text: 'Cancelled',
-                    class: 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300'
-                }
-            };
+    // --------------------------------------------------------
+    // FIELD VALIDATORS
+    // --------------------------------------------------------
+    isRequired(value)         { return !!value && String(value).trim() !== ''; },
+    isNumber(value)           { return !isNaN(parseFloat(value)) && isFinite(value); },
+    isPositive(value)         { return this.isNumber(value) && parseFloat(value) > 0; },
+    minLength(value, min)     { return String(value).trim().length >= min; },
+    maxLength(value, max)     { return String(value).trim().length <= max; },
+    isEmpty(str)              { return !str || String(str).trim() === ''; },
 
-            return map[status] || {
-                text: status ?? '-',
-                class: 'bg-slate-100 text-slate-700'
-            };
-        },
+    // --------------------------------------------------------
+    // STRING UTILITIES
+    // --------------------------------------------------------
+    truncate(text, len = 50)  { return VoucherTaxi.truncate(text, len); },
 
-        statusText(status) {
+    capitalize(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    },
 
-            return {
-                P: 'Pending',
-                C: 'Completed',
-                D: 'Revise',
-                R: 'Rejected',
-                X: 'Cancelled'
-            }[status] ?? status;
-        },
+    titleCase(str) {
+        if (!str) return '';
+        return str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+    },
 
-        escapeHtml(value) {
+    getInitials(name) {
+        if (!name) return '';
+        return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    },
 
-            return $('<div>')
-                .text(value ?? '')
-                .html();
-        },
+    getColorFromString(str) {
+        const colors = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#06B6D4','#F97316','#6366F1'];
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        return colors[Math.abs(hash) % colors.length];
+    },
 
-        nl2br(value) {
+    // --------------------------------------------------------
+    // OBJECT / JSON UTILITIES
+    // --------------------------------------------------------
+    deepClone(obj)        { return JSON.parse(JSON.stringify(obj)); },
 
-            return this.escapeHtml(value)
-                .replace(/\n/g, '<br>');
-        },
+    safeJsonParse(str, fallback = null) {
+        try { return JSON.parse(str); } catch { return fallback; }
+    },
 
-        debounce(fn, delay = 400) {
+    // --------------------------------------------------------
+    // STATUS HELPERS  (delegates to core)
+    // --------------------------------------------------------
+    getStatusBadge(status)  { return VoucherTaxi.statusBadge(status); },
+    getStatusColor(status)  { return VoucherTaxi.statusColor(status); },
+    getStatusIcon(status)   { return VoucherTaxi.statusIcon(status); },
 
-            let timer;
+    formatStatusLabel(status) {
+        return VoucherTaxi.statusMap[status]?.label ?? status ?? 'Unknown';
+    },
 
-            return (...args) => {
+    // --------------------------------------------------------
+    // NUMBER / CURRENCY
+    // --------------------------------------------------------
+    formatNumber(num)   { return new Intl.NumberFormat('id-ID').format(num); },
+    parseNumber(str)    { return parseInt(String(str).replace(/\D/g, '')) || 0; },
 
-                clearTimeout(timer);
-
-                timer = setTimeout(() => {
-                    fn.apply(this, args);
-                }, delay);
-            };
-        },
-
-        loading(title = 'Loading...') {
-
-            Swal.fire({
-                title,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => Swal.showLoading()
-            });
-        },
-
-        closeLoading() {
-            Swal.close();
-        },
-
-        success(message = 'Success') {
-
-            return Swal.fire({
-                icon: 'success',
-                title: 'Success',
-                text: message,
-                timer: 1800,
-                showConfirmButton: false
-            });
-        },
-
-        error(message = 'Something went wrong') {
-
-            return Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: message
-            });
-        },
-
-        warning(message = 'Warning') {
-
-            return Swal.fire({
-                icon: 'warning',
-                title: 'Warning',
-                text: message
-            });
-        },
-
-        confirm(
-            title = 'Are you sure?',
-            text = '',
-            confirmText = 'Yes'
-        ) {
-
-            return Swal.fire({
-                icon: 'question',
-                title,
-                text,
-                showCancelButton: true,
-                confirmButtonText: confirmText,
-                cancelButtonText: 'Cancel',
-                reverseButtons: true
-            });
-        },
-
-        toast(icon = 'success', title = '') {
-
-            return Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon,
-                title,
-                showConfirmButton: false,
-                timer: 2500,
-                timerProgressBar: true
-            });
-        },
-
-        ajaxError(xhr) {
-
-            let message = 'Something went wrong';
-
-            if (xhr?.responseJSON?.message) {
-                message = xhr.responseJSON.message;
-            }
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: message
-            });
-        },
-
-        copy(text) {
-
-            navigator.clipboard.writeText(text || '');
-
-            this.toast(
-                'success',
-                'Copied to clipboard'
-            );
-        },
-
-        statusTitle(status) {
-
-            switch (status) {
-
-                case 'A':
-                    return 'Approved';
-
-                case 'R':
-                    return 'Rejected';
-
-                case 'D':
-                    return 'Revised';
-
-                case 'P':
-                    return 'Waiting Approval';
-
-                case 'F':
-                    return 'Completed';
-
-                case 'C':
-                    return 'Completed';
-
-                default:
-                    return 'Submitted';
-            }
-
-        },
-
-        randomId(prefix = 'vt') {
-
-            return (
-                prefix +
-                '_' +
-                Date.now() +
-                '_' +
-                Math.floor(Math.random() * 1000)
-            );
-        }
-    };
-
-    VoucherTaxi.syncPanelHeight = function () {
-
-        const calendar =
-            document.getElementById('calendarWrapper');
-
-        const voucher =
-            document.getElementById('voucherListPanel');
-
-        if (!calendar || !voucher) return;
-
-        voucher.style.height =
-            calendar.offsetHeight + 'px';
-    };
-
-    VoucherTaxi.log('Helper Loaded');
-
-})();
+    // --------------------------------------------------------
+    // SEARCH HIGHLIGHT  (delegates to core)
+    // --------------------------------------------------------
+    highlightText(text, term) { return VoucherTaxi.highlightText(text, term); },
+};
