@@ -1,4 +1,4 @@
-// Import Chart.js
+﻿// Import Chart.js
 import {
   Chart, BarController, BarElement, LinearScale, TimeScale, Tooltip, Legend,
 } from 'chart.js';
@@ -240,3 +240,4 @@ const dashboardCard04 = () => {
 };
 
 export default dashboardCard04;
+

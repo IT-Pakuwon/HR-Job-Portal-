@@ -1,9 +1,9 @@
-// Import Chart.js
+﻿// Import Chart.js
 import {
   Chart, LineController, LineElement, Filler, PointElement, LinearScale, TimeScale, Tooltip,
 } from 'chart.js';
 import 'chartjs-adapter-moment';
-import { chartAreaGradient } from '../app';
+import { chartAreaGradient } from '../utils';
 
 // Import utilities
 import { formatValue, getCssVariable, adjustColorOpacity } from '../utils';
@@ -12,8 +12,8 @@ Chart.register(LineController, LineElement, Filler, PointElement, LinearScale, T
 
 // A chart built with Chart.js 3
 // https://www.chartjs.org/
-const dashboardCard03 = () => {
-  const ctx = document.getElementById('dashboard-card-03');
+const dashboardCard02 = () => {
+  const ctx = document.getElementById('dashboard-card-02');
   if (!ctx) return;
 
   const darkMode = localStorage.getItem('dark-mode') === 'true';
@@ -31,9 +31,9 @@ const dashboardCard03 = () => {
   const tooltipBorderColor = {
     light: '#E5E7EB',
     dark: '#4B5563'
-  };    
+  };   
 
-  fetch('/json-data-feed?datatype=3')
+  fetch('/json-data-feed?datatype=2')
     .then(a => {
       return a.json();
     })
@@ -142,4 +142,5 @@ const dashboardCard03 = () => {
     });
 };
 
-export default dashboardCard03;
+export default dashboardCard02;
+

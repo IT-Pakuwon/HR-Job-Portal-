@@ -1487,11 +1487,22 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('gm-report')
             ->controller(GmReportController::class)
             ->group(function () {
-                Route::get('/dashboard', 'dashboard')
-                    ->name('reportgm');
+                Route::get('/dashboard', 'dashboard')->name('reportgm');
+
+                // API endpoints
+                Route::get('/api/companies',             'companies')->name('gm.companies');
+                Route::get('/api/budget-summary',        'budgetSummary')->name('gm.budget-summary');
+                Route::get('/api/budget-by-company',     'budgetByCompany')->name('gm.budget-by-company');
+                Route::get('/api/budget-by-department',  'budgetByDepartment')->name('gm.budget-by-department');
+                Route::get('/api/budget-years',          'budgetYears')->name('gm.budget-years');
+                Route::get('/api/departments',           'departments')->name('gm.departments');
             });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/card-chart/catalog', function () {
+            return view('pages.card-chart.index');
+        })->middleware('access:CARDCHAT,VIEW')->name('card-chart.catalog');
 
         Route::get('/settings/account', [ProfileController::class, 'show'])->name('profile.showx');
 

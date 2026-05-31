@@ -1,4 +1,4 @@
-// Import Chart.js
+﻿// Import Chart.js
 import {
   Chart, DoughnutController, ArcElement, TimeScale, Tooltip,
 } from 'chart.js';
@@ -159,3 +159,4 @@ const dashboardCard06 = () => {
 };
 
 export default dashboardCard06;
+

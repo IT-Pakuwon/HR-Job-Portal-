@@ -1,4 +1,4 @@
-// Import Chart.js
+﻿// Import Chart.js
 import {
   Chart, BarController, BarElement, LinearScale, CategoryScale, Tooltip, Legend,
 } from 'chart.js';
@@ -77,7 +77,7 @@ const dashboardCard11 = () => {
               categoryPercentage: 1,
             },
             {
-              label: 'The product doesn’t look as advertised',
+              label: 'The product doesnâ€™t look as advertised',
               data: dataset4,
               backgroundColor: getCssVariable('--color-green-500'),
               hoverBackgroundColor: getCssVariable('--color-green-600'),
@@ -208,3 +208,4 @@ const dashboardCard11 = () => {
 };
 
 export default dashboardCard11;
+

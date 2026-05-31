@@ -1,4 +1,4 @@
-const ctx = document
+﻿const ctx = document
     .getElementById('premiumLineChart')
     .getContext('2d');
 
@@ -60,3 +60,4 @@ new Chart(ctx, {
         }
     }
 });
+

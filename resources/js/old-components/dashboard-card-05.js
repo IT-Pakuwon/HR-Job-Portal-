@@ -1,9 +1,9 @@
-// Import Chart.js
+﻿// Import Chart.js
 import {
   Chart, LineController, LineElement, Filler, PointElement, LinearScale, TimeScale, Tooltip,
 } from 'chart.js';
 import 'chartjs-adapter-moment';
-import { chartAreaGradient } from '../app';
+import { chartAreaGradient } from '../utils';
 
 // Import utilities
 import { formatValue, getCssVariable, adjustColorOpacity } from '../utils';
@@ -235,3 +235,4 @@ const dashboardCard05 = () => {
 };
 
 export default dashboardCard05;
+
