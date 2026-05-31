@@ -9,14 +9,25 @@
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">All reusable chart templates — preview with sample data.</p>
         </div>
         <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
-            14 Templates
+            16 Templates
         </span>
     </div>
 
     {{-- ─── KPI / STAT CARDS ─────────────────────────────────────────────────── --}}
     <section>
         <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">KPI / Stat Cards</h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+
+            <x-card-chart.split-stat-card
+                color="green"
+                leftLabel="Total Budget"
+                leftValue="Rp 24.5M"
+                leftDescription="Original + Additional"
+                rightLabel="Remaining"
+                rightValue="Rp 8.2M"
+                barLabel="Utilization"
+                barPct="66.5%"
+            />
 
             <x-card-chart.stat-card
                 title="Total Revenue"
@@ -141,38 +152,66 @@
     {{-- ─── DONUT & PIE ─────────────────────────────────────────────────────── --}}
     <section>
         <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Donut & Pie Charts</h2>
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
 
+            {{-- legend: bottom (default) --}}
             <x-card-chart.donut-chart
                 title="Traffic Sources"
-                subtitle="Donut"
+                subtitle="Donut · Legend Bottom"
                 chartId="donut-demo-1"
                 color="violet"
                 :height="300"
+                legendPosition="bottom"
             />
 
+            {{-- legend: top --}}
             <x-card-chart.donut-chart
                 title="Budget Allocation"
-                subtitle="Donut"
+                subtitle="Donut · Legend Top"
                 chartId="donut-demo-2"
                 color="orange"
                 :height="300"
+                legendPosition="top"
             />
 
+            {{-- legend: left --}}
+            <x-card-chart.donut-chart
+                title="Cost Mix"
+                subtitle="Donut · Legend Left"
+                chartId="donut-demo-3"
+                color="cyan"
+                :height="300"
+                legendPosition="left"
+            />
+
+            {{-- pie legend: top --}}
             <x-card-chart.pie-chart
                 title="Product Mix"
-                subtitle="Pie"
+                subtitle="Pie · Legend Top"
                 chartId="pie-demo-1"
                 color="green"
                 :height="300"
+                legendPosition="top"
             />
 
+            {{-- pie legend: bottom (default) --}}
             <x-card-chart.pie-chart
                 title="Cost Breakdown"
-                subtitle="Pie"
+                subtitle="Pie · Legend Bottom"
                 chartId="pie-demo-2"
                 color="pink"
                 :height="300"
+                legendPosition="bottom"
+            />
+
+            {{-- pie legend: left --}}
+            <x-card-chart.pie-chart
+                title="Revenue Split"
+                subtitle="Pie · Legend Left"
+                chartId="pie-demo-3"
+                color="blue"
+                :height="300"
+                legendPosition="right"
             />
 
         </div>
@@ -322,7 +361,7 @@
 
     {{-- ─── TABLE CARD ──────────────────────────────────────────────────────── --}}
     <section>
-        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Table Card</h2>
+        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Table Card (Static)</h2>
         <div class="grid grid-cols-1 gap-4">
 
             <x-card-chart.table-card
@@ -337,6 +376,34 @@
                     ['PO-2026-0878', '2026-05-28', 'HR', 'Rp 8.300.000', 'Rejected'],
                     ['PO-2026-0877', '2026-05-27', 'Finance', 'Rp 1.200.000', 'Approved'],
                 ]"
+            />
+
+        </div>
+    </section>
+
+    {{-- ─── DYNAMIC TABLE CARD ─────────────────────────────────────────────── --}}
+    <section>
+        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Dynamic Table Card (JS-driven)</h2>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+            <x-card-chart.dynamic-table-card
+                title="Budget by Department"
+                subtitle="By Department"
+                gradient="linear-gradient(to right,#F59E0B,#EF4444,#8B5CF6)"
+                :columns="['Department', 'Budget', 'Remaining', 'Usage %']"
+                tableBodyId="catalog-dept-body"
+                countBadgeId="catalog-dept-count"
+                paginationPrefix="catalogDept"
+            />
+
+            <x-card-chart.dynamic-table-card
+                title="Budget by Activity"
+                subtitle="By Activity"
+                gradient="linear-gradient(to right,#06B6D4,#3B82F6,#8B5CF6)"
+                :columns="['Description', 'Budget', 'Remaining', 'Usage %']"
+                tableBodyId="catalog-act-body"
+                countBadgeId="catalog-act-count"
+                paginationPrefix="catalogAct"
             />
 
         </div>

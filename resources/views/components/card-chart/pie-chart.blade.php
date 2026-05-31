@@ -1,17 +1,18 @@
 @props([
-    'title'   => 'Pie Chart',
-    'subtitle' => '',
-    'chartId' => 'pie-' . uniqid(),
-    'height'  => 320,
-    'color'   => 'green',
-    'series'  => [],
-    'labels'  => [],
+    'title'          => 'Pie Chart',
+    'subtitle'       => '',
+    'chartId'        => 'pie-' . uniqid(),
+    'height'         => 320,
+    'color'          => 'green',
+    'series'         => [],
+    'labels'         => [],
+    'legendPosition' => 'bottom', {{-- bottom | top | left --}}
 ])
 
 @php
     $hex = ['violet'=>['#8B5CF6','#7C3AED'],'blue'=>['#3B82F6','#06B6D4'],'green'=>['#10B981','#0D9488'],'orange'=>['#F59E0B','#D97706'],'red'=>['#EF4444','#F43F5E'],'pink'=>['#EC4899','#C026D3'],'cyan'=>['#06B6D4','#3B82F6']];
     $c = $hex[$color] ?? $hex['green'];
-    $config = ['series' => is_string($series) ? json_decode($series,true) : $series, 'labels' => is_string($labels) ? json_decode($labels,true) : $labels, 'height' => (int)$height, 'color' => $color];
+    $config = ['series' => is_string($series) ? json_decode($series,true) : $series, 'labels' => is_string($labels) ? json_decode($labels,true) : $labels, 'height' => (int)$height, 'color' => $color, 'legendPosition' => $legendPosition];
 @endphp
 
 <div {{ $attributes->merge(['class' => 'relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900']) }}>

@@ -23,12 +23,13 @@
         var cfg = {};
         try { cfg = JSON.parse(el.dataset.config || '{}'); } catch (e) {}
 
-        var series = (cfg.series && cfg.series.length) ? cfg.series : SAMPLE.series;
-        var labels = (cfg.labels && cfg.labels.length) ? cfg.labels : SAMPLE.labels;
-        var height = cfg.height || 320;
-        var color  = cfg.color  || 'green';
-        var dark   = isDark();
-        var colors = PALETTES[color] || PALETTES.green;
+        var series         = (cfg.series && cfg.series.length) ? cfg.series : SAMPLE.series;
+        var labels         = (cfg.labels && cfg.labels.length) ? cfg.labels : SAMPLE.labels;
+        var height         = cfg.height || 320;
+        var color          = cfg.color  || 'green';
+        var legendPosition = cfg.legendPosition || 'bottom'; // bottom | top | left
+        var dark           = isDark();
+        var colors         = PALETTES[color] || PALETTES.green;
 
         var chart = new ApexCharts(el, {
             series: series,
@@ -51,8 +52,12 @@
             stroke: { width: 2, colors: [dark ? '#0F172A' : '#ffffff'] },
             tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
             legend: {
-                show: true, position: 'bottom', fontSize: '12px',
-                markers: { radius: 6 }, itemMargin: { horizontal: 8, vertical: 4 },
+                show: true,
+                position: legendPosition,
+                horizontalAlign: (legendPosition === 'top' || legendPosition === 'bottom') ? 'center' : 'left',
+                fontSize: '12px',
+                markers: { radius: 6 },
+                itemMargin: { horizontal: 8, vertical: 4 },
             },
         });
         chart.render();

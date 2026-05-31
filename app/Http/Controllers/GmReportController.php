@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\BudgetDetail;
+use App\Models\DepartmentFin;
 use App\Models\User;
 
 class GmReportController extends Controller
@@ -44,43 +45,71 @@ class GmReportController extends Controller
     }
 
     /**
-     * Build aggregate SQL expressions.
-     * month = 0 → full year (use totalbudget / total_used / total_reserve columns)
-     * month > 0 → single month (use period01_used etc.)
+     * Build aggregate SQL expressions for the selected date range.
+     *
+     * - Full year (Jan 1 – Dec 31) → use totalbudget / total_used / total_reserve columns
+     * - Single or partial month range within one year → sum the relevant periodXX columns
+     * - Cross-year range → fall back to full-year totals for the start year
      */
-    private function buildExprs(int $year, int $month): array
+    private function buildExprs(string $dateFrom, string $dateTo): array
     {
-        if ($month > 0) {
-            $p = str_pad($month, 2, '0', STR_PAD_LEFT);
+        $from      = \Carbon\Carbon::parse($dateFrom);
+        $to        = \Carbon\Carbon::parse($dateTo);
+        $monthFrom = (int) $from->format('n');
+        $monthTo   = (int) $to->format('n');
+        $sameYear  = $from->year === $to->year;
+
+        // Full year or cross-year → annual total columns
+        if (!$sameYear || ($monthFrom === 1 && $monthTo === 12)) {
             return [
-                'budget'  => "COALESCE(SUM(period{$p}_budget), 0)",
-                'add'     => "COALESCE(SUM(period{$p}_budget_add), 0)",
-                'used'    => "COALESCE(SUM(period{$p}_used), 0)",
-                'reserve' => "COALESCE(SUM(period{$p}_reserve), 0)",
+                'budget'  => 'COALESCE(SUM(totalbudget), 0)',
+                'add'     => 'COALESCE(SUM(totalbudget_add), 0)',
+                'used'    => 'COALESCE(SUM(total_used), 0)',
+                'reserve' => 'COALESCE(SUM(total_reserve), 0)',
             ];
         }
+
+        // Single or multi-month range → sum period columns
+        $months   = range($monthFrom, $monthTo);
+        $buildSum = function (string $col) use ($months): string {
+            $terms = array_map(
+                fn($m) => 'COALESCE(period' . str_pad($m, 2, '0', STR_PAD_LEFT) . "_{$col}, 0)",
+                $months
+            );
+            return 'COALESCE(SUM(' . implode(' + ', $terms) . '), 0)';
+        };
+
         return [
-            'budget'  => 'COALESCE(SUM(totalbudget), 0)',
-            'add'     => 'COALESCE(SUM(totalbudget_add), 0)',
-            'used'    => 'COALESCE(SUM(total_used), 0)',
-            'reserve' => 'COALESCE(SUM(total_reserve), 0)',
+            'budget'  => $buildSum('budget'),
+            'add'     => $buildSum('budget_add'),
+            'used'    => $buildSum('used'),
+            'reserve' => $buildSum('reserve'),
         ];
     }
 
     private function parseFilters(Request $request): array
     {
+        $y        = date('Y');
+        $dateFrom = $request->input('date_from') ?: "{$y}-01-01";
+        $dateTo   = $request->input('date_to')   ?: "{$y}-12-31";
+
         return [
-            'year'    => max(2000, (int) $request->input('year',  date('Y'))),
-            'month'   => max(0,    min(12, (int) $request->input('month', 0))),
-            'cpnyId'  => $request->input('cpny_id') ?: null,
-            'depts'   => array_filter((array) $request->input('departments', [])),
+            'dateFrom' => $dateFrom,
+            'dateTo'   => $dateTo,
+            'cpnyId'   => $request->input('cpny_id') ?: null,
+            'depts'    => array_filter((array) $request->input('departments', [])),
         ];
     }
 
-    private function applyYearMonth($q, int $year, int $month)
+    private function applyDateFilter($q, string $dateFrom, string $dateTo)
     {
-        $q->whereRaw("LEFT(perpost::text, 4) = ?", [(string) $year]);
-        return $q;
+        $fromYear = substr($dateFrom, 0, 4);
+        $toYear   = substr($dateTo,   0, 4);
+
+        if ($fromYear === $toYear) {
+            return $q->whereRaw("LEFT(perpost::text, 4) = ?", [$fromYear]);
+        }
+        return $q->whereRaw("LEFT(perpost::text, 4) BETWEEN ? AND ?", [$fromYear, $toYear]);
     }
 
     // ── View ──────────────────────────────────────────────────────────────────
@@ -110,7 +139,7 @@ class GmReportController extends Controller
         ]);
     }
 
-    // ── API: Available years ──────────────────────────────────────────────────
+    // ── API: Available years (kept for reference; not used by filter bar) ─────
 
     public function budgetYears()
     {
@@ -130,16 +159,32 @@ class GmReportController extends Controller
 
     public function departments(Request $request)
     {
-        ['year' => $year, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
         $allowed = $this->allowedCompanies();
 
-        $q = BudgetDetail::query()->select('department_fin_id')
-            ->where('status', 'C')->whereNotNull('department_fin_id');
+        $q = BudgetDetail::query()
+            ->select('department_fin_id')
+            ->where('status', 'C')
+            ->whereNotNull('department_fin_id');
 
         $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
-        $q = $this->applyYearMonth($q, $year, 0);
+        $q = $this->applyDateFilter($q, $dateFrom, $dateTo);
 
-        $list = $q->distinct()->orderBy('department_fin_id')->pluck('department_fin_id');
+        $ids = $q->distinct()->orderBy('department_fin_id')->pluck('department_fin_id');
+
+        if ($ids->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $names = DepartmentFin::query()
+            ->whereIn('department_fin_id', $ids)
+            ->get()
+            ->keyBy('department_fin_id');
+
+        $list = $ids->map(fn($id) => [
+            'id'   => $id,
+            'name' => optional($names->get($id))->department_name ?: $id,
+        ]);
 
         return response()->json(['data' => $list]);
     }
@@ -148,13 +193,13 @@ class GmReportController extends Controller
 
     public function budgetSummary(Request $request)
     {
-        ['year' => $year, 'month' => $month, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
         $allowed = $this->allowedCompanies();
-        $exprs   = $this->buildExprs($year, $month);
+        $exprs   = $this->buildExprs($dateFrom, $dateTo);
 
         $q = BudgetDetail::query()->where('status', 'C');
         $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
-        $q = $this->applyYearMonth($q, $year, $month);
+        $q = $this->applyDateFilter($q, $dateFrom, $dateTo);
 
         $row = $q->selectRaw("
             {$exprs['budget']}  AS total_budget,
@@ -171,8 +216,8 @@ class GmReportController extends Controller
 
         return response()->json([
             'data' => [
-                'year'            => $year,
-                'month'           => $month,
+                'date_from'       => $dateFrom,
+                'date_to'         => $dateTo,
                 'total_budget'    => $totalFinal,
                 'total_used'      => $totalUsed,
                 'total_reserve'   => $totalReserve,
@@ -182,41 +227,15 @@ class GmReportController extends Controller
         ]);
     }
 
-    // ── API: Budget by company ────────────────────────────────────────────────
-
-    public function budgetByCompany(Request $request)
-    {
-        ['year' => $year, 'month' => $month, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
-        $allowed = $this->allowedCompanies();
-        $exprs   = $this->buildExprs($year, $month);
-
-        $finalExpr = "({$exprs['budget']}+{$exprs['add']})";
-        $remExpr   = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
-
-        $q = BudgetDetail::query()->where('status', 'C')->whereNotNull('cpny_id');
-        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
-        $q = $this->applyYearMonth($q, $year, $month);
-
-        $rows = $q->selectRaw("
-            cpny_id,
-            {$finalExpr}        AS total_final,
-            {$exprs['used']}    AS total_used,
-            {$exprs['reserve']} AS total_reserve,
-            {$remExpr}          AS total_remaining
-        ")->groupBy('cpny_id')->orderBy('cpny_id')->get();
-
-        return response()->json(['data' => $rows]);
-    }
-
-    // ── API: Budget by department (table) ─────────────────────────────────────
+    // ── API: Budget by department ─────────────────────────────────────────────
 
     public function budgetByDepartment(Request $request)
     {
-        ['year' => $year, 'month' => $month, 'cpnyId' => $cpnyId, 'depts' => $depts]
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId, 'depts' => $depts]
             = $this->parseFilters($request);
 
         $allowed = $this->allowedCompanies();
-        $exprs   = $this->buildExprs($year, $month);
+        $exprs   = $this->buildExprs($dateFrom, $dateTo);
 
         $finalExpr = "({$exprs['budget']}+{$exprs['add']})";
         $remExpr   = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
@@ -226,7 +245,7 @@ class GmReportController extends Controller
 
         $q = BudgetDetail::query()->where('status', 'C')->whereNotNull('department_fin_id');
         $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
-        $q = $this->applyYearMonth($q, $year, $month);
+        $q = $this->applyDateFilter($q, $dateFrom, $dateTo);
 
         if (!empty($depts)) {
             $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
@@ -241,6 +260,46 @@ class GmReportController extends Controller
             {$usedPct}          AS used_pct
         ")
         ->groupBy('department_fin_id')
+        ->orderByRaw("{$exprs['used']} DESC")
+        ->get();
+
+        return response()->json(['data' => $rows]);
+    }
+
+    // ── API: Budget by activity ───────────────────────────────────────────────
+
+    public function budgetByActivity(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId, 'depts' => $depts]
+            = $this->parseFilters($request);
+
+        $allowed = $this->allowedCompanies();
+        $exprs   = $this->buildExprs($dateFrom, $dateTo);
+
+        $finalExpr = "({$exprs['budget']}+{$exprs['add']})";
+        $remExpr   = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
+        $usedPct   = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
+                           THEN ROUND(({$exprs['used']} / ({$exprs['budget']}+{$exprs['add']})) * 100, 1)
+                           ELSE 0 END";
+
+        $q = BudgetDetail::query()->where('status', 'C')->whereNotNull('activity_id');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
+        $q = $this->applyDateFilter($q, $dateFrom, $dateTo);
+
+        if (!empty($depts)) {
+            $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
+        }
+
+        $rows = $q->selectRaw("
+            activity_id,
+            MAX(activity_descr) AS activity_descr,
+            {$finalExpr}        AS total_final,
+            {$exprs['used']}    AS total_used,
+            {$exprs['reserve']} AS total_reserve,
+            {$remExpr}          AS total_remaining,
+            {$usedPct}          AS used_pct
+        ")
+        ->groupBy('activity_id')
         ->orderByRaw("{$exprs['used']} DESC")
         ->get();
 
