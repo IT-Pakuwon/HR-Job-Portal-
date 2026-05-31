@@ -13,6 +13,7 @@ const BookingCarCalendar = {
         events:          [],
         isLoading:       false,
         selectedDate:    null,
+        initialLoaded:   false,
     },
 
     // --------------------------------------------------------
@@ -89,14 +90,23 @@ const BookingCarCalendar = {
 
         try {
             const response = await BookingCar.request(BookingCar.routes.calendarJson);
+            // console.log('[Calendar] calendarJson response:', response);
 
-            if (response.data) {
-                BookingCarCalendar.state.events = BookingCarCalendar.convertToEvents(response.data);
-                BookingCarCalendar.state.calendar.refetchEvents();
+            const items = Array.isArray(response.data) ? response.data : [];
+            // console.log('[Calendar] events count:', items.length);
+
+            BookingCarCalendar.state.events = BookingCarCalendar.convertToEvents(items);
+            BookingCarCalendar.state.calendar.refetchEvents();
+
+            // On first load, navigate to the most recent event's date
+            if (!BookingCarCalendar.state.initialLoaded && items.length > 0) {
+                BookingCarCalendar.state.initialLoaded = true;
+                const firstDate = items[0]?.booking_date;
+                if (firstDate) BookingCarCalendar.state.calendar.gotoDate(firstDate);
             }
 
         } catch (err) {
-            console.error('Load events error:', err);
+            console.error('[Calendar] loadEvents error:', err);
         } finally {
             BookingCarCalendar.state.isLoading = false;
         }

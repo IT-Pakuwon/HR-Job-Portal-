@@ -229,12 +229,28 @@ class BookingCarController extends Controller
 
         $base->whereIn('bc.status', ['P', 'C', 'F', 'D', 'R', 'X']);
 
-        if (!$isGA) {
-            $base->where(function ($q) use ($user, $cpnyIds, $deptIds) {
-                $q->whereRaw(
-                    'LOWER(TRIM(bc.created_by)) = ?',
-                    [strtolower(trim($user->username))]
-                );
+        $username = strtolower(trim($user->username));
+
+        if ($isGA) {
+            // GA: approval-line bookings OR own created bookings
+            $approvalDocids = TrApproval::where('status', '!=', 'X')
+                ->whereRaw(
+                    "LOWER(aprv_username) ~ ?",
+                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
+                )
+                ->pluck('refnbr')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $base->where(function ($q) use ($approvalDocids, $username) {
+                $q->whereIn('bc.docid', $approvalDocids)
+                  ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
+            });
+        } else {
+            // Regular user: own docs + same company/department
+            $base->where(function ($q) use ($username, $cpnyIds, $deptIds) {
+                $q->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
 
                 $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
                     if (!empty($cpnyIds)) {
@@ -288,17 +304,19 @@ class BookingCarController extends Controller
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
 
-            $firstRoute = TrBookingCarDetail::where('docid', $row->docid)
-                ->orderBy('booking_order')
-                ->first(['origin', 'destination', 'booking_order']);
-
-            $row->route_summary = $firstRoute
-                ? $firstRoute->origin . ' → ' . $firstRoute->destination
-                : '-';
-
             $row->routes = TrBookingCarDetail::where('docid', $row->docid)
                 ->orderBy('booking_order')
                 ->get(['origin', 'destination', 'booking_order']);
+
+            if ($row->routes->isEmpty()) {
+                $row->route_summary = '-';
+            } else {
+                $chain = $row->routes->first()->origin;
+                foreach ($row->routes as $r) {
+                    $chain .= ' → ' . $r->destination;
+                }
+                $row->route_summary = $chain;
+            }
 
             $row->extendedProps = ['eid' => $row->eid, 'status' => $row->status];
 
@@ -335,7 +353,7 @@ class BookingCarController extends Controller
             ]);
 
         if ($isGA) {
-            // GA: only show bookings where they appear in the approval line
+            // GA: approval-line bookings OR own created bookings
             // TrApproval is on pgsql2, TrBookingCar on pgsql5 — fetch docids separately
             $docids = TrApproval::where('status', '!=', 'X')
                 ->whereRaw(
@@ -347,7 +365,10 @@ class BookingCarController extends Controller
                 ->values()
                 ->toArray();
 
-            $base->whereIn('bc.docid', $docids);
+            $base->where(function ($q) use ($docids, $username) {
+                $q->whereIn('bc.docid', $docids)
+                  ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
+            });
         } else {
             // Regular user: only own bookings
             $base->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
@@ -357,12 +378,18 @@ class BookingCarController extends Controller
 
         $data->transform(function ($row) {
             $row->eid = Hashids::encode($row->id);
-            $firstRoute = TrBookingCarDetail::where('docid', $row->docid)
+            $routes = TrBookingCarDetail::where('docid', $row->docid)
                 ->orderBy('booking_order')
-                ->first(['origin', 'destination']);
-            $row->route_summary = $firstRoute
-                ? $firstRoute->origin . ' → ' . $firstRoute->destination
-                : '-';
+                ->get(['origin', 'destination']);
+            if ($routes->isEmpty()) {
+                $row->route_summary = '-';
+            } else {
+                $chain = $routes->first()->origin;
+                foreach ($routes as $r) {
+                    $chain .= ' → ' . $r->destination;
+                }
+                $row->route_summary = $chain;
+            }
             unset($row->id);
             return $row;
         });
@@ -1058,11 +1085,13 @@ class BookingCarController extends Controller
             ];
         })->values();
 
-        $sorted = $changeExpenseSteps->merge($approvalSteps)->sortBy(function ($step) {
-            return $step['at']
-                ? \Carbon\Carbon::parse($step['at'])->timestamp
-                : PHP_INT_MAX;
-        })->values();
+        $sorted = collect($changeExpenseSteps->all())
+            ->merge(collect($approvalSteps->all()))
+            ->sortBy(function ($step) {
+                return $step['at']
+                    ? \Carbon\Carbon::parse($step['at'])->timestamp
+                    : PHP_INT_MAX;
+            })->values();
 
         $timeline = collect([$submittedStep])
             ->merge($sorted)
@@ -1306,6 +1335,53 @@ class BookingCarController extends Controller
             $message = $lock
                 ? 'Booking submitted and locked successfully.'
                 : 'Booking saved. You can update again before H+3.';
+
+            // Notify booking creator
+            try {
+                $creator = User::where('username', $booking->created_by)
+                    ->where('status', 'A')
+                    ->first();
+                $to = $creator?->notification_email ?? $creator?->email;
+
+                if ($to) {
+                    $eid             = Hashids::encode($booking->id);
+                    $statusPerjalanan = $validated['status_perjalanan'] ?? null;
+
+                    $subject = $statusPerjalanan
+                        ? $booking->docid . ' - Booking Car Status Updated by GA'
+                        : ($lock
+                            ? $booking->docid . ' - Booking Car Submitted & Locked'
+                            : $booking->docid . ' - Booking Car Processed by GA');
+
+                    $mailData = [
+                        'docid'            => $booking->docid,
+                        'name'             => $creator->name ?? $booking->created_by,
+                        'createdby'        => $booking->created_by,
+                        'cpnyid'           => $booking->cpny_id_site ?? $booking->cpny_id,
+                        'deptname'         => $booking->department_id,
+                        'date'             => $booking->booking_date,
+                        'info'             => $booking->purpose_descr,
+                        'url'              => url('/showbookingcar/' . $eid),
+                        'driver'           => $booking->driver,
+                        'handphone'        => $booking->handphone,
+                        'no_polisi'        => $booking->no_polisi,
+                        'status_perjalanan' => $statusPerjalanan,
+                    ];
+
+                    \Illuminate\Support\Facades\Mail::send(
+                        'emails.bookingcar-processed',
+                        $mailData,
+                        fn ($m) => $m->to($to)
+                            ->subject($subject)
+                            ->from(config('mail.from.address'), config('app.name'))
+                    );
+                }
+            } catch (\Throwable $mailErr) {
+                Log::warning('BookingCar GA process email failed', [
+                    'docid' => $booking->docid,
+                    'error' => $mailErr->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,

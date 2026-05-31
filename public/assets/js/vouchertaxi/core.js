@@ -1,32 +1,287 @@
-window.VoucherTaxi = window.VoucherTaxi || {};
+// ============================================================
+// core.js — Voucher Taxi
+// Global state, constants, and shared utilities
+// ============================================================
 
-VoucherTaxi.state = {
-    currentPage: 1,
-    pageSize: 10,
-    totalRows: 0,
+const VoucherTaxi = {
 
-    selectedVoucher: null,
-    selectedDocId: null,
-    selectedEid: null,
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        currentEid:    null,
+        currentDocid:  null,
+        currentStatus: null,
+    },
 
-    currentFilter: 'P',
-    currentSearch: '',
+    // --------------------------------------------------------
+    // ROUTES  (injected from Blade via meta tags or inline)
+    // --------------------------------------------------------
+    routes: {
+        index:        '/vouchertaxi',
+        json:         '/vouchertaxi/json',
+        calendarJson: '/vouchertaxi/calendar-json',
+        store:        '/vouchertaxi/store',
+        detail:       (eid)    => `/vouchertaxi/detail/${eid}`,
+        tracking:     (eid)    => `/vouchertaxi/tracking/${eid}`,
+        find:         (eid)    => `/vouchertaxi/find/${eid}`,
+        print:        (hash)   => `/vouchertaxi/print/${hash}`,
+        update:       (docid)  => `/vouchertaxi/update/${docid}`,
+        cancel:       (docid)  => `/vouchertaxi/cancel/${docid}`,
+        approve:      (docid)  => `/vouchertaxi/approve/${docid}`,
+        reject:       (docid)  => `/vouchertaxi/reject/${docid}`,
+        revise:       (docid)  => `/vouchertaxi/revise/${docid}`,
+        process:      (docid)  => `/vouchertaxi/process/${docid}`,
+        show:         (eid)    => `/showvouchertaxi/${eid}`,
+    },
 
-    calendar: null,
-};
+    // --------------------------------------------------------
+    // STATUS MAP
+    // --------------------------------------------------------
+    statusMap: {
+        P: { label: 'Pending',    color: 'blue'   },
+        C: { label: 'Completed',  color: 'emerald' },
+        F: { label: 'Processed',  color: 'indigo'  },
+        D: { label: 'Revise',     color: 'amber'   },
+        R: { label: 'Rejected',   color: 'red'     },
+        X: { label: 'Cancelled',  color: 'slate'   },
+    },
 
-VoucherTaxi.config = {
-    csrf: document
-        .querySelector('meta[name="csrf-token"]')
-        ?.getAttribute('content') || '',
-};
+    // --------------------------------------------------------
+    // CSRF TOKEN
+    // --------------------------------------------------------
+    csrf() {
+        return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    },
 
-VoucherTaxi.events = {};
+    // --------------------------------------------------------
+    // DATE FORMATTER  (no memory/locale tricks — explicit)
+    // --------------------------------------------------------
+    formatDate(raw) {
+        if (!raw) return '-';
 
-VoucherTaxi.debug = false;
+        // Accept "YYYY-MM-DD" or full datetime string
+        const str  = String(raw).trim();
+        const date = new Date(str.length === 10 ? str + 'T00:00:00' : str);
 
-VoucherTaxi.log = function (...args) {
-    if (VoucherTaxi.debug) {
-        // console.log('[VoucherTaxi]', ...args);
-    }
+        if (isNaN(date.getTime())) return raw;
+
+        const dd   = String(date.getDate()).padStart(2, '0');
+        const mm   = String(date.getMonth() + 1).padStart(2, '0');
+        const yyyy = date.getFullYear();
+
+        return `${dd}/${mm}/${yyyy}`;
+    },
+
+    // --------------------------------------------------------
+    // TIME FORMATTER  — extracts HH:MM from datetime string
+    // --------------------------------------------------------
+    formatTime(raw) {
+        if (!raw) return '-';
+
+        const str = String(raw).trim();
+
+        // If already HH:MM or HH:MM:SS
+        if (/^\d{2}:\d{2}/.test(str)) return str.substring(0, 5);
+
+        // If full datetime: "YYYY-MM-DD HH:MM:SS"
+        const parts = str.split(' ');
+        if (parts.length >= 2) return parts[1].substring(0, 5);
+
+        return str;
+    },
+
+    // --------------------------------------------------------
+    // STATUS BADGE HTML
+    // --------------------------------------------------------
+    statusBadge(status) {
+        const map = {
+            P: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+            C: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+            F: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
+            D: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+            R: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
+            X: 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400',
+        };
+
+        const info  = VoucherTaxi.statusMap[status] ?? { label: status };
+        const cls   = map[status] ?? map.X;
+
+        return `<span class="inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold ${cls}">
+                    ${info.label}
+                </span>`;
+    },
+
+    // --------------------------------------------------------
+    // FETCH WRAPPER
+    // --------------------------------------------------------
+    async request(url, options = {}) {
+        const defaults = {
+            headers: {
+                'X-CSRF-TOKEN':     VoucherTaxi.csrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept':           'application/json',
+            },
+        };
+
+        // Merge headers
+        if (options.headers) {
+            options.headers = { ...defaults.headers, ...options.headers };
+        }
+
+        const config = { ...defaults, ...options };
+
+        try {
+            const res  = await fetch(url, config);
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw { status: res.status, data };
+            }
+
+            return data;
+
+        } catch (err) {
+            // Re-throw so callers handle it
+            throw err;
+        }
+    },
+
+    // --------------------------------------------------------
+    // SWAL SHORTCUTS
+    // --------------------------------------------------------
+    toast(icon, title, timer = 2500) {
+        Swal.fire({
+            toast:            true,
+            position:         'top-end',
+            icon,
+            title,
+            showConfirmButton: false,
+            timer,
+            timerProgressBar:  true,
+        });
+    },
+
+    confirm(opts = {}) {
+        return Swal.fire({
+            title:              opts.title             ?? 'Are you sure?',
+            text:               opts.text              ?? '',
+            icon:               opts.icon              ?? 'question',
+            showCancelButton:   true,
+            confirmButtonText:  opts.confirmText       ?? 'Yes',
+            cancelButtonText:   opts.cancelText        ?? 'Cancel',
+            confirmButtonColor: opts.confirmColor      ?? '#0f172a',
+            cancelButtonColor:  opts.cancelColor       ?? '#94a3b8',
+            reverseButtons:     true,
+        });
+    },
+
+    prompt(opts = {}) {
+        return Swal.fire({
+            title:              opts.title             ?? 'Input required',
+            input:              opts.input             ?? 'textarea',
+            inputPlaceholder:   opts.placeholder       ?? '',
+            inputLabel:         opts.label             ?? '',
+            showCancelButton:   true,
+            confirmButtonText:  opts.confirmText       ?? 'Submit',
+            cancelButtonText:   opts.cancelText        ?? 'Cancel',
+            confirmButtonColor: opts.confirmColor      ?? '#0f172a',
+            cancelButtonColor:  opts.cancelColor       ?? '#94a3b8',
+            reverseButtons:     true,
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return opts.validationMsg ?? 'This field is required.';
+                }
+            },
+        });
+    },
+
+    // --------------------------------------------------------
+    // URL STATE  — push/clear eid in address bar
+    // --------------------------------------------------------
+    pushUrl(eid) {
+        const url = VoucherTaxi.routes.show(eid);
+        history.pushState({ eid }, '', url);
+    },
+
+    clearUrl() {
+        history.pushState({}, '', VoucherTaxi.routes.index);
+    },
+
+    // --------------------------------------------------------
+    // SET / CLEAR CURRENT DOCUMENT
+    // --------------------------------------------------------
+    setDoc(eid, docid, status) {
+        VoucherTaxi.state.currentEid    = eid;
+        VoucherTaxi.state.currentDocid  = docid;
+        VoucherTaxi.state.currentStatus = status;
+    },
+
+    clearDoc() {
+        VoucherTaxi.state.currentEid    = null;
+        VoucherTaxi.state.currentDocid  = null;
+        VoucherTaxi.state.currentStatus = null;
+    },
+
+    // --------------------------------------------------------
+    // GET STATUS LABEL
+    // --------------------------------------------------------
+    getStatusLabel(status) {
+        return (VoucherTaxi.statusMap[status]?.label) ?? status;
+    },
+
+    // --------------------------------------------------------
+    // STATUS COLOR  (used by calendar.js for event colors)
+    // --------------------------------------------------------
+    statusColor(status) {
+        const colors = {
+            P: '#3B82F6',
+            C: '#10B981',
+            F: '#6366F1',
+            D: '#F59E0B',
+            R: '#EF4444',
+            X: '#6B7280',
+        };
+        return colors[status] ?? '#999999';
+    },
+
+    // --------------------------------------------------------
+    // CURRENCY FORMATTER  (used by detail-modal.js and process.js)
+    // --------------------------------------------------------
+    formatCurrency(value) {
+        return new Intl.NumberFormat('id-ID', {
+            style:                 'currency',
+            currency:              'IDR',
+            minimumFractionDigits: 0,
+        }).format(value ?? 0);
+    },
+
+    parseCurrency(value) {
+        return parseInt(String(value ?? '').replace(/\D/g, '')) || 0;
+    },
+
+    // --------------------------------------------------------
+    // LOADING  (Swal-based, used by modules)
+    // --------------------------------------------------------
+    showLoading() {
+        Swal.fire({
+            title:            'Please wait...',
+            allowOutsideClick: false,
+            allowEscapeKey:    false,
+            didOpen:           () => Swal.showLoading(),
+        });
+    },
+
+    hideLoading() {
+        Swal.close();
+    },
+
+    // --------------------------------------------------------
+    // TEXT UTILITIES  (used by datalist.js)
+    // --------------------------------------------------------
+    highlightText(text, term) {
+        if (!term || !text) return text ?? '';
+        const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return String(text).replace(regex, '<mark>$1</mark>');
+    },
 };

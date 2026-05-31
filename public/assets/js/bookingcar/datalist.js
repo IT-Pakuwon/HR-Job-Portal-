@@ -256,9 +256,9 @@ const BookingCarDatalist = {
                         <span>${startTime} – ${endTime}</span>
                     </div>
 
-                    <div class="col-span-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-route w-3 text-slate-400"></i>
-                        <span class="truncate">${route}</span>
+                    <div class="col-span-2 flex items-start gap-1.5">
+                        <i class="fa-solid fa-route w-3 shrink-0 mt-0.5 text-slate-400"></i>
+                        <span class="leading-snug wrap-break-word min-w-0">${route}</span>
                     </div>
 
                 </div>

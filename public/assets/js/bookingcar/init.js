@@ -22,7 +22,7 @@ const BookingCarInit = {
     init() {
         // Prevent multiple initializations
         if (BookingCarInit.state.initialized) {
-            console.warn('[BookingCar] Already initialized');
+            // console.warn('[BookingCar] Already initialized');
             return;
         }
 
@@ -112,11 +112,11 @@ const BookingCarInit = {
 
             callback();
 
-            console.log(`[BookingCar] ✓ ${stepName} initialized`);
+            // console.log(`[BookingCar] ✓ ${stepName} initialized`);
 
         } catch (err) {
             const errorMsg = `${stepName} initialization failed: ${err.message}`;
-            console.error(`[BookingCar] ✗ ${errorMsg}`);
+            // console.error(`[BookingCar] ✗ ${errorMsg}`);
 
             BookingCarInit.state.errors.push({
                 module: stepName,
@@ -133,7 +133,7 @@ const BookingCarInit = {
     // SETUP CROSS-MODULE INTEGRATIONS
     // --------------------------------------------------------
     setupIntegrations() {
-        console.log('[BookingCar] Setting up cross-module integrations...');
+        // console.log('[BookingCar] Setting up cross-module integrations...');
 
         try {
             // 1. Modal close events should update auto-open state
@@ -171,10 +171,10 @@ const BookingCarInit = {
             // 6. Edit form submission should refresh both
             // Already handled in edit-form.js
 
-            console.log('[BookingCar] ✓ Cross-module integrations completed');
+            // console.log('[BookingCar] ✓ Cross-module integrations completed');
 
         } catch (err) {
-            console.warn('[BookingCar] ⚠ Integration setup warning:', err.message);
+            // console.warn('[BookingCar] ⚠ Integration setup warning:', err.message);
             BookingCarInit.state.warnings.push({
                 type: 'integration',
                 message: err.message,
@@ -186,7 +186,7 @@ const BookingCarInit = {
     // SETUP GLOBAL EVENT HANDLERS
     // --------------------------------------------------------
     setupGlobalHandlers() {
-        console.log('[BookingCar] Setting up global event handlers...');
+        // console.log('[BookingCar] Setting up global event handlers...');
 
         try {
             // 1. Handle ESC key (close modals)
@@ -217,7 +217,7 @@ const BookingCarInit = {
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(() => {
                     // Adjust modals if needed
-                    console.log('[BookingCar] Window resized');
+                    // console.log('[BookingCar] Window resized');
                 }, 250);
             });
 
@@ -226,10 +226,10 @@ const BookingCarInit = {
                 if (document.hidden) {
                     // Page hidden - stop auto-refreshes
                     BookingCarTracking.stopAutoRefresh();
-                    console.log('[BookingCar] Page hidden - paused auto-refresh');
+                    // console.log('[BookingCar] Page hidden - paused auto-refresh');
                 } else {
                     // Page visible - restart if needed
-                    console.log('[BookingCar] Page visible - resuming');
+                    // console.log('[BookingCar] Page visible - resuming');
                 }
             });
 
@@ -239,13 +239,13 @@ const BookingCarInit = {
                     BookingCarTracking.stopAutoRefresh();
                     BookingCarCalendar.destroy();
                 } catch (err) {
-                    console.warn('[BookingCar] Cleanup warning:', err);
+                //  console.warn('[BookingCar] Cleanup warning:', err);
                 }
             });
 
             // 5. Handle online/offline status
             window.addEventListener('online', () => {
-                BookingCar.toast('success', 'Connection restored');
+                // BookingCar.toast('success', 'Connection restored');
                 // Refresh data
                 BookingCarDatalist.refresh();
             });
@@ -254,10 +254,10 @@ const BookingCarInit = {
                 BookingCar.toast('warning', 'You are offline. Some features may not work.');
             });
 
-            console.log('[BookingCar] ✓ Global event handlers registered');
+            // console.log('[BookingCar] ✓ Global event handlers registered');
 
         } catch (err) {
-            console.warn('[BookingCar] ⚠ Global handlers warning:', err.message);
+            // console.warn('[BookingCar] ⚠ Global handlers warning:', err.message);
             BookingCarInit.state.warnings.push({
                 type: 'globalHandlers',
                 message: err.message,
@@ -271,7 +271,7 @@ const BookingCarInit = {
     handleInitError(err) {
         const errorMsg = `Initialization failed: ${err.message}`;
 
-        console.error(`[BookingCar] ✗ ${errorMsg}`);
+        // console.error(`[BookingCar] ✗ ${errorMsg}`);
 
         BookingCarInit.state.initialized = false;
 
@@ -279,7 +279,7 @@ const BookingCarInit = {
         BookingCar.toast('error', 'Failed to initialize application. Please refresh the page.');
 
         // Log detailed error
-        console.error('[BookingCar] Full error:', err);
+        // console.error('[BookingCar] Full error:', err);
 
         // Could send to error tracking service
         BookingCarInit.reportError(err);
@@ -292,34 +292,34 @@ const BookingCarInit = {
         const duration = BookingCarInit.state.initEndTime - BookingCarInit.state.initStartTime;
         const durationMs = Math.round(duration * 100) / 100;
 
-        console.log(`
-╔════════════════════════════════════════════════════════╗
-║                                                        ║
-║     ✓ Booking Car Application Initialized             ║
-║                                                        ║
-║     Duration: ${durationMs}ms                           ║
-║     Status: Ready                                      ║
-║                                                        ║
-╚════════════════════════════════════════════════════════╝
-        `);
+//         console.log(`
+// ╔════════════════════════════════════════════════════════╗
+// ║                                                        ║
+// ║     ✓ Booking Car Application Initialized             ║
+// ║                                                        ║
+// ║     Duration: ${durationMs}ms                           ║
+// ║     Status: Ready                                      ║
+// ║                                                        ║
+// ╚════════════════════════════════════════════════════════╝
+//         `);
 
-        console.log('[BookingCar] Modules loaded:', {
-            core: 'BookingCar',
-            modal: 'BookingCarModal',
-            form: 'BookingCarForm',
-            editForm: 'BookingCarEditForm',
-            route: 'BookingCarRoute',
-            list: 'BookingCarDatalist',
-            detail: 'BookingCarDetailModal',
-            approval: 'BookingCarApproval',
-            tracking: 'BookingCarTracking',
-            process: 'BookingCarProcess',
-            calendar: 'BookingCarCalendar',
-            autoOpen: 'BookingCarAutoOpen',
-        });
+//         console.log('[BookingCar] Modules loaded:', {
+//             core: 'BookingCar',
+//             modal: 'BookingCarModal',
+//             form: 'BookingCarForm',
+//             editForm: 'BookingCarEditForm',
+//             route: 'BookingCarRoute',
+//             list: 'BookingCarDatalist',
+//             detail: 'BookingCarDetailModal',
+//             approval: 'BookingCarApproval',
+//             tracking: 'BookingCarTracking',
+//             process: 'BookingCarProcess',
+//             calendar: 'BookingCarCalendar',
+//             autoOpen: 'BookingCarAutoOpen',
+//         });
 
         if (BookingCarInit.state.warnings.length > 0) {
-            console.warn('[BookingCar] Initialization warnings:', BookingCarInit.state.warnings);
+            // console.warn('[BookingCar] Initialization warnings:', BookingCarInit.state.warnings);
         }
     },
 
@@ -337,7 +337,7 @@ const BookingCarInit = {
                 userAgent: navigator.userAgent,
             };
 
-            console.log('[BookingCar] Error report:', errorData);
+            // console.log('[BookingCar] Error report:', errorData);
 
             // Example: Send to backend error logging endpoint
             // fetch('/api/errors', {
@@ -349,7 +349,7 @@ const BookingCarInit = {
             // });
 
         } catch (err) {
-            console.error('[BookingCar] Error reporting failed:', err);
+            // console.error('[BookingCar] Error reporting failed:', err);
         }
     },
 
@@ -390,9 +390,9 @@ const BookingCarInit = {
         const allLoaded = Object.values(modules).every(loaded => loaded);
 
         if (allLoaded) {
-            console.log('✓ All modules loaded', modules);
+            // console.log('✓ All modules loaded', modules);
         } else {
-            console.warn('⚠ Some modules missing:', modules);
+            // console.warn('⚠ Some modules missing:', modules);
         }
 
         return allLoaded;
@@ -402,7 +402,7 @@ const BookingCarInit = {
     // RESET APPLICATION STATE (for debugging)
     // --------------------------------------------------------
     reset() {
-        console.warn('[BookingCar] Resetting application state...');
+        // console.warn('[BookingCar] Resetting application state...');
 
         try {
             // Clear core state
@@ -432,10 +432,10 @@ const BookingCarInit = {
             BookingCarDatalist.refresh();
             BookingCarCalendar.refresh();
 
-            console.log('[BookingCar] ✓ Application reset complete');
+
 
         } catch (err) {
-            console.error('[BookingCar] Reset failed:', err);
+            // console.error('[BookingCar] Reset failed:', err);
         }
     },
 
