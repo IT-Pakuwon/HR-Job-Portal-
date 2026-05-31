@@ -138,7 +138,7 @@
 
                         <button
                             id="openAllDocument"
-                            class="rounded-lg w-full flex-1 bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">
+                            class="rounded-lg w-full flex-1 bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
 
                             🚀 Open All
 

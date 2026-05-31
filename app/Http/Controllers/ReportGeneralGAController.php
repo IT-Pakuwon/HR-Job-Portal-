@@ -52,6 +52,18 @@ class ReportGeneralGAController extends Controller
 
         $user = auth()->user();
 
+        $hasCSACCESS = $user->hasRole('CSACCESS');
+        $hasADMIN    = strtolower($user->user_role) === 'admin';
+        $hasGAACCESS = $user->hasRole('GAACCESS');
+
+        $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 3 : 0);
+
+        $defaultReport = match (true) {
+            $hasGAACCESS => 'operational-car',
+            $hasADMIN    => 'meeting-online',
+            default      => 'meeting-room',
+        };
+
         return view('pages.report-ga.index', [
 
             'rooms' => $rooms,
@@ -62,11 +74,15 @@ class ReportGeneralGAController extends Controller
 
             'kendaraan' => $kendaraan,
 
-            'hasCSACCESS' => $user->hasRole('CSACCESS'),
+            'hasCSACCESS'   => $hasCSACCESS,
 
-            'hasADMIN' => strtolower($user->user_role) === 'admin',
+            'hasADMIN'      => $hasADMIN,
 
-            'hasGAACCESS' => $user->hasRole('GAACCESS'),
+            'hasGAACCESS'   => $hasGAACCESS,
+
+            'tabCount'      => $tabCount,
+
+            'defaultReport' => $defaultReport,
         ]);
     }
 
