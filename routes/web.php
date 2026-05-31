@@ -1181,6 +1181,7 @@ Route::middleware(['auth'])->group(function () {
             Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
                 Route::middleware('ajax')->group(function () {
                     Route::get('/json', 'json')->name('json');
+                    Route::get('/calendar-json', 'calendarJson')->name('calendar-json');
                     Route::get('/detail/{eid}', 'detail')->name('detail');
                     Route::get('/tracking/{eid}', 'tracking')->name('tracking');
                     Route::get('/find/{eid}', 'findByHash')->name('find');
@@ -1192,7 +1193,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/print/{hash}', 'printVoucherTaxi')->name('print');
 
                 Route::post('/store', 'storeVoucher')->name('store');
-                Route::post('/update/{id}', 'updateVoucherTaxi')->name('update');
+                Route::put('/update/{docid}', 'updateVoucherTaxi')->name('update');
                 Route::post('/cancel/{docid}', 'cancel')->name('cancel');
 
                 Route::post('/approve/{docid}', 'approveVoucherTaxi')->name('approve');
@@ -1227,6 +1228,7 @@ Route::middleware(['auth'])->group(function () {
             Route::prefix('bookingcar')->name('bookingcar.')->group(function () {
                 Route::middleware('ajax')->group(function () {
                     Route::get('/json', 'json')->name('json');
+                    Route::get('/calendar-json', 'calendarJson')->name('calendar-json');
                     Route::get('/detail/{eid}', 'detail')->name('detail');
                     Route::get('/tracking/{eid}', 'tracking')->name('tracking');
                     Route::get('/find/{eid}', 'findByHash')->name('find');
@@ -1235,7 +1237,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/print/{hash}', 'printBookingCar')->name('print');
 
                 Route::post('/store', 'storeBookingCar')->name('store');
-                Route::post('/update/{docid}', 'updateBookingCar')->name('update');
+                Route::put('/update/{docid}', 'updateBookingCar')->name('update');
                 Route::post('/cancel/{docid}', 'cancel')->name('cancel');
 
                 Route::post('/approve/{docid}', 'approveBookingCar')->name('approve');
@@ -1243,6 +1245,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/revise/{docid}', 'reviseBookingCar')->name('revise');
 
                 Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
+                Route::post('/change-expense/{eid}', 'changeCompanyExpense')->name('change-expense');
             });
 
             Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');

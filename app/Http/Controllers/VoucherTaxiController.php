@@ -87,6 +87,30 @@ class VoucherTaxiController extends Controller
             ->orderBy('name')
             ->get();
 
+        $purposes = MsCategory::query()
+            ->where('doctype', 'VCR')
+            ->where('groups', 'PURPOSE')
+            ->where('status', 'A')
+            ->orderBy('category_name')
+            ->select('categoryid', 'category_name')
+            ->get();
+
+        return view('pages.vouchertaxi.vouchertaxi', compact(
+            'all',
+            'onProgress',
+            'reject',
+            'revise',
+            'completed',
+            'usercpny',
+            'usercpny2',
+            'userdept',
+            'userdept2',
+            'requesters',
+            'company',
+            'departments',
+            'purposes'  // 👈 ADD THIS
+        ));
+
         return view('pages.vouchertaxi.vouchertaxi', compact(
             'all',
             'onProgress',
@@ -137,6 +161,24 @@ class VoucherTaxiController extends Controller
 
         $orderCol = $columns[$orderIdx] ?? 'vt.docid';
 
+        $authUser = Auth::user();
+
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $isGA = $authUser->hasRole('GAACCESS');
+
+        $cpnyIds = is_string($authUser->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $authUser->cpny_id)))
+            : (array) $authUser->cpny_id;
+
+        $deptIds = is_string($authUser->department_id)
+            ? array_filter(array_map('trim', explode(',', $authUser->department_id)))
+            : (array) $authUser->department_id;
+
+        $username = strtolower(trim($authUser->username));
+
         $query = TrVoucherTaxi::from('tr_voucher_taxi as vt')
             ->select([
                 'vt.id',
@@ -157,6 +199,43 @@ class VoucherTaxiController extends Controller
                 'vt.created_by',
                 'vt.created_at',
             ]);
+
+        if ($isGA) {
+            // GA user: sees approval-chain vouchers OR own company/department (BOTH views)
+            $approvalDocids = TrApproval::where('status', '!=', 'X')
+                ->whereRaw(
+                    "LOWER(aprv_username) ~ ?",
+                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
+                )
+                ->pluck('refnbr')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $query->where(function ($q) use ($approvalDocids, $cpnyIds, $deptIds) {
+                $q->whereIn('vt.docid', $approvalDocids);
+
+                if (!empty($cpnyIds) || !empty($deptIds)) {
+                    $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
+                        if (!empty($cpnyIds)) {
+                            $sub->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
+                        }
+                        if (!empty($deptIds)) {
+                            $sub->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
+                        }
+                    });
+                }
+            });
+        } else {
+            // Regular user: sees all vouchers in their company AND department
+            if (!empty($cpnyIds)) {
+                $query->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
+            }
+
+            if (!empty($deptIds)) {
+                $query->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
+            }
+        }
 
         if (!empty($statusFilter)) {
             $query->where('vt.status', $statusFilter);
@@ -205,6 +284,57 @@ class VoucherTaxiController extends Controller
             'recordsFiltered' => $recordsFiltered,
             'data' => $rows,
         ]);
+    }
+
+    public function calendarJson(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $isGA     = $user->hasRole('GAACCESS');
+        $username = strtolower(trim($user->username));
+
+        $base = TrVoucherTaxi::query()
+            ->whereIn('status', ['P', 'C', 'F', 'D', 'R'])
+            ->select([
+                'id', 'docid', 'date_used',
+                'origin', 'destination',
+                'purpose_descr', 'status',
+                'cpny_id', 'department_id', 'created_by',
+            ]);
+
+        if ($isGA) {
+            $docids = TrApproval::where('status', '!=', 'X')
+                ->whereRaw(
+                    "LOWER(aprv_username) ~ ?",
+                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
+                )
+                ->pluck('refnbr')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $base->where(function ($q) use ($docids, $username) {
+                $q->whereIn('docid', $docids)
+                  ->orWhereRaw('LOWER(TRIM(created_by)) = ?', [$username]);
+            });
+        } else {
+            $base->whereRaw('LOWER(TRIM(created_by)) = ?', [$username]);
+        }
+
+        $data = $base->orderBy('date_used', 'desc')->get();
+
+        $data->transform(function ($row) {
+            $row->eid = Hashids::encode($row->id);
+            $row->route_summary = $row->origin . ' → ' . $row->destination;
+            unset($row->id);
+            return $row;
+        });
+
+        return response()->json(['success' => true, 'data' => $data]);
     }
 
     public function purposeSearch(Request $request)
@@ -297,6 +427,30 @@ class VoucherTaxiController extends Controller
             'origin' => ['required'],
             'destination' => ['required'],
         ]);
+
+        if (!$user->hasRole('GAACCESS')) {
+            $userCpnyIds = is_string($user->cpny_id)
+                ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+                : (array) $user->cpny_id;
+
+            $userDeptIds = is_string($user->department_id)
+                ? array_filter(array_map('trim', explode(',', $user->department_id)))
+                : (array) $user->department_id;
+
+            if (!in_array($validated['cpny_id'], $userCpnyIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to the selected company.',
+                ], 403);
+            }
+
+            if (!in_array($validated['department_id'], $userDeptIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to the selected department.',
+                ], 403);
+            }
+        }
 
         DB::connection('pgsql5')->beginTransaction();
 
@@ -647,7 +801,8 @@ class VoucherTaxiController extends Controller
 
             $user = auth()->user();
 
-            $purposeName = $voucher->purpose_id;
+            $purposeCategory = MsCategory::where('categoryid', $voucher->purpose_id)->first();
+            $purposeName = $purposeCategory?->category_name ?? $voucher->purpose_id;
 
             $canEdit = false;
             $canCancel = false;
@@ -697,8 +852,7 @@ class VoucherTaxiController extends Controller
 
             if (
                 $voucher->status === 'C' &&
-                $user->hasRole('GAACCESS') &&
-                empty($voucher->checked_at)
+                $user->hasRole('GAACCESS')
             ) {
                 $canProcess = true;
             }
@@ -737,11 +891,17 @@ class VoucherTaxiController extends Controller
                     'purpose_name' => $purposeName,
                     'purpose_descr' => $voucher->purpose_descr,
 
-                    'cpny_id_expense' => $voucher->cpny_id_expense,
-                    'department_id_expense' => $voucher->department_id_expense,
-                    'user_peminta_expense' => $voucher->user_peminta_expense,
+                    'cpny_id_expense'           => $voucher->cpny_id_expense,
+                    'department_id_expense'     => $voucher->department_id_expense,
+                    'user_peminta_expense'      => $voucher->user_peminta_expense,
+                    'user_peminta_expense_name' => optional(
+                        User::where('username', $voucher->user_peminta_expense)->first()
+                    )->name ?? $voucher->user_peminta_expense,
 
-                    'user_topup' => $voucher->user_topup,
+                    'user_topup'      => $voucher->user_topup,
+                    'user_topup_name' => optional(
+                        User::where('username', $voucher->user_topup)->first()
+                    )->name ?? $voucher->user_topup,
 
                     'max_budget' => $voucher->max_budget,
                     'actual_budget' => $voucher->actual_budget,
@@ -787,9 +947,12 @@ class VoucherTaxiController extends Controller
     }
     public function updateGaAdvice(Request $request, $docid)
     {
-        $request->merge([
-            'actual_budget' => str_replace('.', '', $request->actual_budget),
-        ]);
+        $rawBudget = $request->actual_budget;
+        // Strip thousand-separator dots then normalise decimal comma → dot
+        $rawBudget = str_replace('.', '', (string) $rawBudget);
+        $rawBudget = str_replace(',', '.', $rawBudget);
+
+        $request->merge(['actual_budget' => $rawBudget]);
 
         $user = auth()->user();
 
@@ -825,10 +988,10 @@ class VoucherTaxiController extends Controller
                 ->where('docid', $docid)
                 ->firstOrFail();
 
-            if ($voucher->status !== 'C') {
+            if (!in_array($voucher->status, ['C', 'F'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Voucher not completed yet',
+                    'message' => 'Voucher must be approved (C) before processing.',
                 ], 400);
             }
 
@@ -847,6 +1010,9 @@ class VoucherTaxiController extends Controller
 
             $voucher->actual_budget = $validated['actual_budget'];
 
+            // Set status to F (Processed) — same as Booking Car
+            $voucher->status = 'F';
+
             $voucher->checked_by = $user->username;
             $voucher->checked_at = now();
 
@@ -859,7 +1025,7 @@ class VoucherTaxiController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Actual budget saved',
+                'message' => 'Voucher Taxi processed successfully.',
             ]);
         } catch (\Throwable $e) {
 
@@ -1017,16 +1183,8 @@ class VoucherTaxiController extends Controller
                 );
 
                 // === Simpan reason ===
-                try {
-                    app(\App\Http\Controllers\SendCommentController::class)
-                        ->sendmsg($voucher->id, $doctype, $request);
-                } catch (\Throwable $e) {
-                    \Log::warning('Failed to save reject reason Voucher Taxi', [
-                        'docid' => $voucher->docid,
-                        'doctype' => $doctype,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+                app(\App\Http\Controllers\SendCommentController::class)
+                    ->sendmsg($voucher->id, $doctype, $request);
             }
         );
 
@@ -1101,16 +1259,8 @@ class VoucherTaxiController extends Controller
                 );
 
                 // === Simpan reason ===
-                try {
-                    app(\App\Http\Controllers\SendCommentController::class)
-                        ->sendmsg($voucher->id, $doctype, $request);
-                } catch (\Throwable $e) {
-                    \Log::warning('Failed to save revise reason Voucher Taxi', [
-                        'docid' => $voucher->docid,
-                        'doctype' => $doctype,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+                app(\App\Http\Controllers\SendCommentController::class)
+                    ->sendmsg($voucher->id, $doctype, $request);
             }
         );
 
@@ -1135,7 +1285,8 @@ class VoucherTaxiController extends Controller
 
         $voucher = TrVoucherTaxi::findOrFail($id);
 
-        $purposeName = $voucher->purpose_id;
+        $purposeCategory = MsCategory::where('categoryid', $voucher->purpose_id)->first();
+        $purposeName = $purposeCategory?->category_name ?? $voucher->purpose_id;
 
         return response()->json([
             'id' => $voucher->id,
@@ -1172,12 +1323,20 @@ class VoucherTaxiController extends Controller
             $voucher = TrVoucherTaxi::findOrFail($id);
 
             $getName = function (?string $username) {
-                if (!$username) {
-                    return null;
-                }
+                if (!$username) return null;
+                return User::where('username', $username)->value('name') ?? $username;
+            };
 
-                return User::where('username', $username)
-                    ->value('name') ?? $username;
+            // Resolve comma-separated usernames → display names
+            $getApproverNames = function (?string $aprv_username) use ($getName) {
+                if (!$aprv_username) return null;
+                $names = array_filter(
+                    array_map(
+                        fn($u) => $getName(trim($u)),
+                        explode(',', $aprv_username)
+                    )
+                );
+                return implode(', ', $names) ?: $aprv_username;
             };
 
             $steps = [];
@@ -1187,13 +1346,11 @@ class VoucherTaxiController extends Controller
             // =========================
 
             $steps[] = [
-                'key' => 'submitted',
-                'title' => 'Voucher Taxi',
+                'key'    => 'submitted',
+                'title'  => 'Submitted',
                 'status' => 'C',
-                'status_label' => 'Submitted',
-                'by' => $getName($voucher->created_by),
-                'at' => optional($voucher->created_at)
-                    ->format('Y-m-d H:i'),
+                'by'     => $getName($voucher->created_by),
+                'at'     => optional($voucher->created_at)->format('d M Y H:i'),
             ];
 
             // =========================
@@ -1203,7 +1360,11 @@ class VoucherTaxiController extends Controller
             $approvals = TrApproval::query()
                 ->where('refnbr', $voucher->docid)
                 ->where('status', '<>', 'X')
-                ->orderByRaw('CAST(aprv_leveling AS INTEGER)')
+                // Processed records (non-null date) appear first, chronologically.
+                // Pending records (null date) appear last, ordered by level.
+                ->orderByRaw('CASE WHEN aprv_dateafter IS NULL THEN 1 ELSE 0 END ASC')
+                ->orderBy('aprv_dateafter', 'asc')
+                ->orderByRaw('CAST(aprv_leveling AS NUMERIC) ASC')
                 ->get();
 
             $reason = null;
@@ -1235,36 +1396,23 @@ class VoucherTaxiController extends Controller
                     'aprv_name' => $aprv->aprv_name,
                     'aprv_leveling' => $aprv->aprv_leveling,
 
-                    'title' => $aprv->aprv_name
-                        ?: ('Approval Level ' . $aprv->aprv_leveling),
+                    'title'  => 'Approval Level ' . intval((float) $aprv->aprv_leveling),
 
                     'status' => $aprv->status,
 
-                    'status_label' => match ($aprv->status) {
-                        'P' => 'Waiting approval',
-                        'A' => 'Approved',
-                        'R' => 'Rejected',
-                        'D' => 'Revise',
-                        default => '-',
-                    },
-
-                    // approver username
                     'aprv_username' => $aprv->aprv_username,
 
-                    // display processed by
                     'by' => $aprv->status === 'P'
-                        ? null
-                        : $getName(
-                            $aprv->updated_by ?: $aprv->aprv_username
-                        ),
+                        ? $getApproverNames($aprv->aprv_username)
+                        : $getName($aprv->updated_by ?: null) ?? $getApproverNames($aprv->aprv_username),
 
-                    // approval datetime
                     'at' => $aprv->aprv_dateafter
-                        ? \Carbon\Carbon::parse($aprv->aprv_dateafter)
-                        ->format('Y-m-d H:i')
+                        ? \Carbon\Carbon::parse($aprv->aprv_dateafter)->format('d M Y H:i')
                         : null,
 
-                    'reason' => $reasons->first()?->message,
+                    'comment' => in_array($aprv->status, ['D', 'R'])
+                        ? $reasons->first()?->message
+                        : null,
                 ];
             }
 

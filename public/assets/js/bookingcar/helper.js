@@ -1,335 +1,338 @@
-window.BookingCar = window.BookingCar || {};
+// ============================================================
+// helper.js — Booking Car
+// DOM helpers, UI utilities, and shared rendering functions
+// ============================================================
 
-BookingCar.formatDate = (date) => {
+const BookingCarHelper = {
 
-    if (!date) return '-';
+    // --------------------------------------------------------
+    // SHOW / HIDE ELEMENT
+    // --------------------------------------------------------
+    show(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('hidden');
+    },
 
-    const d = new Date(date);
+    hide(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    },
 
-    return d.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    });
-};
+    toggle(id, condition) {
+        condition ? BookingCarHelper.show(id) : BookingCarHelper.hide(id);
+    },
 
-BookingCar.formatDateTime = (date) => {
+    // --------------------------------------------------------
+    // SET TEXT CONTENT
+    // --------------------------------------------------------
+    setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value ?? '-';
+    },
 
-    if (!date) return '-';
+    // --------------------------------------------------------
+    // SET HTML CONTENT
+    // --------------------------------------------------------
+    setHtml(id, html) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = html ?? '';
+    },
 
-    const d = new Date(date);
+    // --------------------------------------------------------
+    // SET INPUT VALUE
+    // --------------------------------------------------------
+    setValue(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = value ?? '';
+    },
 
-    return d.toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
+    // --------------------------------------------------------
+    // GET INPUT VALUE (trimmed)
+    // --------------------------------------------------------
+    getValue(id) {
+        return document.getElementById(id)?.value?.trim() ?? '';
+    },
 
-BookingCar.formatTime = (time) => {
+    // --------------------------------------------------------
+    // SET SELECT VALUE
+    // --------------------------------------------------------
+    setSelect(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.value = value ?? '';
+    },
 
-    if (!time) return '-';
+    // --------------------------------------------------------
+    // DISABLE / ENABLE INPUT
+    // --------------------------------------------------------
+    disable(id) {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+    },
 
-    return time.toString().substring(0, 5);
-};
+    enable(id) {
+        const el = document.getElementById(id);
+        if (el) el.disabled = false;
+    },
 
-BookingCar.escapeHtml = (unsafe = '') => {
-    return $('<div>').text(unsafe).html();
-};
+    // --------------------------------------------------------
+    // LOADING STATE ON BUTTON
+    // --------------------------------------------------------
+    setButtonLoading(id, loading, originalText = null) {
+        const btn = document.getElementById(id);
+        if (!btn) return;
 
-BookingCar.showLoading = (title = 'Loading...') => {
-    Swal.fire({
-        title,
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
+        if (loading) {
+            btn.disabled             = true;
+            btn.dataset.originalText = btn.innerHTML;
+            btn.innerHTML            = `<i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                                        <span>Processing...</span>`;
+        } else {
+            btn.disabled  = false;
+            btn.innerHTML = originalText ?? btn.dataset.originalText ?? btn.innerHTML;
         }
-    });
-};
+    },
 
-BookingCar.hideLoading = () => {
-    Swal.close();
-};
+    // --------------------------------------------------------
+    // RESET FORM
+    // --------------------------------------------------------
+    resetForm(formId) {
+        const form = document.getElementById(formId);
+        if (form) form.reset();
+    },
 
-BookingCar.showSuccess = (message = 'Success') => {
-    Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: message,
-        timer: 1800,
-        showConfirmButton: false,
-    });
-};
+    // --------------------------------------------------------
+    // SERIALIZE FORM TO FORMDATA
+    // --------------------------------------------------------
+    getFormData(formId) {
+        const form = document.getElementById(formId);
+        if (!form) return new FormData();
+        return new FormData(form);
+    },
 
-BookingCar.nl2br = (value) => {
+    // --------------------------------------------------------
+    // SERIALIZE FORM TO PLAIN OBJECT
+    // --------------------------------------------------------
+    getFormObject(formId) {
+        const fd  = BookingCarHelper.getFormData(formId);
+        const obj = {};
+        fd.forEach((value, key) => {
+            if (obj[key] !== undefined) {
+                if (!Array.isArray(obj[key])) obj[key] = [obj[key]];
+                obj[key].push(value);
+            } else {
+                obj[key] = value;
+            }
+        });
+        return obj;
+    },
 
-    if (
-        value === null ||
-        value === undefined ||
-        value === ''
-    ) {
+    // --------------------------------------------------------
+    // RENDER STATUS BADGE  (delegates to core)
+    // --------------------------------------------------------
+    statusBadge(status) {
+        return BookingCar.statusBadge(status);
+    },
 
-        return '-';
-    }
+    // --------------------------------------------------------
+    // RENDER APPROVAL TIMELINE
+    // --------------------------------------------------------
+    renderTimeline(steps) {
+        if (!steps || steps.length === 0) {
+            return `
+                <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500 dark:border-white/10 dark:bg-white/2">
+                    No approval workflow available.
+                </div>`;
+        }
 
-    return String(value)
-        .replace(/\n/g, '<br>');
-};
+        const escape = (str) => {
+            if (!str) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        };
 
-BookingCar.showError = (message = 'Something went wrong') => {
-    Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: message,
-    });
-};
+        const nl2br = (str) => str.replace(/\n/g, '<br>');
 
-BookingCar.showWarning = (message = 'Warning') => {
-    Swal.fire({
-        icon: 'warning',
-        title: 'Warning',
-        text: message,
-    });
-};
+        const badgeColor = (s) => {
+            switch (s) {
+                case 'A':  return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400';
+                case 'R':  return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
+                case 'D':  return 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
+                case 'P':  return 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
+                case 'F':
+                case 'C':  return 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400';
+                case 'CE': return 'bg-teal-100 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400';
+                default:   return 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400';
+            }
+        };
 
-BookingCar.confirmAction = async ({
-    title = 'Are you sure?',
-    text = '',
-    confirmButtonText = 'Yes',
-    cancelButtonText = 'Cancel',
-    icon = 'warning',
-}) => {
-    return await Swal.fire({
-        title,
-        text,
-        icon,
-        showCancelButton: true,
-        confirmButtonText,
-        cancelButtonText,
-        reverseButtons: true,
-    });
-};
+        const icon = (s) => {
+            switch (s) {
+                case 'A':  return '<i class="fa-solid fa-check text-xs"></i>';
+                case 'R':  return '<i class="fa-solid fa-xmark text-xs"></i>';
+                case 'D':  return '<i class="fa-solid fa-rotate-left text-xs"></i>';
+                case 'P':  return '<i class="fa-solid fa-clock text-xs"></i>';
+                case 'F':
+                case 'C':  return '<i class="fa-solid fa-flag-checkered text-xs"></i>';
+                case 'CE': return '<i class="fa-solid fa-building text-xs"></i>';
+                default:   return '<i class="fa-solid fa-paper-plane text-xs"></i>';
+            }
+        };
 
-BookingCar.openModal = (modal) => {
-    if (!modal) return;
+        const pill = (s) => {
+            switch (s) {
+                case 'A':  return `<span class="inline-flex shrink-0 rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">Approved</span>`;
+                case 'R':  return `<span class="inline-flex shrink-0 rounded-lg bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-500/20 dark:text-red-300">Rejected</span>`;
+                case 'D':  return `<span class="inline-flex shrink-0 rounded-lg bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">Revised</span>`;
+                case 'P':  return `<span class="inline-flex shrink-0 rounded-lg bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">Waiting</span>`;
+                case 'F':
+                case 'C':  return `<span class="inline-flex shrink-0 rounded-lg bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-500/20 dark:text-purple-300">Completed</span>`;
+                case 'CE': return `<span class="inline-flex shrink-0 rounded-lg bg-teal-100 px-2.5 py-1 text-xs font-semibold text-teal-700 dark:bg-teal-500/20 dark:text-teal-300">Changed</span>`;
+                default:   return `<span class="inline-flex shrink-0 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-400">Submitted</span>`;
+            }
+        };
 
-    modal.classList.remove('hidden');
-    document.body.classList.add('overflow-hidden');
-};
+        const items = steps.map((step, index) => {
+            const isLast = index === steps.length - 1;
+            const s      = (step.status ?? '').toUpperCase();
+            const title  = step.title  ?? step.status_label ?? '-';
+            const by     = step.by     ?? null;
+            const at     = step.at     ?? null;
+            const remark = step.comment ?? step.reason ?? null;
+            const showRemark = remark && (s === 'D' || s === 'R');
 
-BookingCar.closeModal = (modal) => {
-    if (!modal) return;
+            return `
+                <div class="relative flex gap-4">
 
-    modal.classList.add('hidden');
+                    <div class="flex flex-col items-center">
 
-    const visibleModal = document.querySelector(
-        '#createBookingModal:not(.hidden), #viewBookingModal:not(.hidden), #editBookingModal:not(.hidden), #gaProcessModal:not(.hidden)'
-    );
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${badgeColor(s)}">
+                            ${icon(s)}
+                        </div>
 
-    if (!visibleModal) {
-        document.body.classList.remove('overflow-hidden');
-    }
-};
+                        ${!isLast ? `<div class="mt-1 w-px flex-1 min-h-6 bg-slate-200 dark:bg-white/10"></div>` : ''}
 
-BookingCar.resetCreateForm = () => {
-    const form = BookingCar.el.bookingCarForm;
+                    </div>
 
-    if (!form) return;
+                    <div class="min-w-0 flex-1 pb-4">
 
-    form.reset();
+                        <div class="flex items-start justify-between gap-3">
 
-    BookingCar.state.routeIndex = 0;
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                    ${escape(title)}
+                                </p>
 
-    if (BookingCar.el.createRouteTableBody) {
-        BookingCar.el.createRouteTableBody.innerHTML = '';
-    }
-};
+                                ${by ? `<p class="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">${escape(by)}</p>` : ''}
 
-BookingCar.resetEditForm = () => {
-    const form = BookingCar.el.editBookingForm;
+                                ${at ? `<p class="mt-1 text-xs text-slate-400 dark:text-slate-500">${escape(at)}</p>` : ''}
+                            </div>
 
-    if (!form) return;
+                            ${pill(s)}
 
-    form.reset();
+                        </div>
 
-    BookingCar.state.editRouteIndex = 0;
+                        ${showRemark ? `
+                            <div class="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-white/10 dark:bg-white/3 dark:text-slate-300">
+                                ${nl2br(escape(remark))}
+                            </div>
+                        ` : ''}
 
-    if (BookingCar.el.editRouteTableBody) {
-        BookingCar.el.editRouteTableBody.innerHTML = '';
-    }
-};
+                    </div>
 
-BookingCar.badgeStatus = (status) => {
-    const map = {
-        P: {
-            label: 'Pending',
-            class: 'bg-blue-100 text-blue-700 border-blue-200',
-        },
-        C: {
-            label: 'Approved',
-            class: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        },
-        D: {
-            label: 'Revise',
-            class: 'bg-amber-100 text-amber-700 border-amber-200',
-        },
-        R: {
-            label: 'Rejected',
-            class: 'bg-red-100 text-red-700 border-red-200',
-        },
-        X: {
-            label: 'Closed',
-            class: 'bg-gray-100 text-gray-700 border-gray-200',
-        },
-        WAITING_PROCESS: {
-            label: 'Waiting Process',
-            class: 'bg-indigo-100 text-indigo-700 border-indigo-200',
-        },
-    };
+                </div>`;
+        }).join('');
 
-    const item = map[status] || {
-        label: status || '-',
-        class: 'bg-gray-100 text-gray-700 border-gray-200',
-    };
+        return `
+            <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
 
-    return `
-        <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${item.class}">
-            ${item.label}
-        </span>
-    `;
-};
+                <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                        Approval Timeline
+                    </h3>
+                </div>
 
-BookingCar.getStatusBadge = (status) => {
+                <div class="space-y-2 p-4">
+                    ${items}
+                </div>
 
-    const map = {
-        P: {
-            text: 'Pending',
-            class: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
-        },
+            </div>`;
+    },
 
-        C: {
-            text: 'Approved',
-            class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
-        },
+    // --------------------------------------------------------
+    // RENDER ROUTE TABLE ROWS  (view modal)
+    // --------------------------------------------------------
+    renderRouteRows(details) {
+        if (!details || details.length === 0) {
+            return `<tr>
+                        <td colspan="3" class="px-4 py-4 text-center text-sm text-slate-400">
+                            No routes found.
+                        </td>
+                    </tr>`;
+        }
 
-        D: {
-            text: 'Revise',
-            class: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
-        },
+        return details.map((r, i) => `
+            <tr class="text-sm">
+                <td class="px-4 py-3 text-slate-500">${i + 1}</td>
+                <td class="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">${r.origin ?? '-'}</td>
+                <td class="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">${r.destination ?? '-'}</td>
+            </tr>
+        `).join('');
+    },
 
-        R: {
-            text: 'Rejected',
-            class: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
-        },
+    // --------------------------------------------------------
+    // RENDER EDITABLE ROUTE TABLE ROWS  (create / edit form)
+    // --------------------------------------------------------
+    renderEditableRouteRow(index, origin = '', destination = '') {
+        return `
+            <tr data-route-index="${index}">
 
-        X: {
-            text: 'Closed',
-            class: 'bg-slate-200 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300',
-        },
+                <td class="px-4 py-3 text-sm text-slate-500">
+                    ${index + 1}
+                </td>
 
-        WAITING_PROCESS: {
-            text: 'Waiting Process',
-            class: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300',
-        },
-    };
+                <td class="px-4 py-3">
+                    <input type="text"
+                        name="location_from[]"
+                        value="${origin}"
+                        placeholder="Pickup location"
+                        class="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white"
+                        required>
+                </td>
 
-    return map[status] || {
-        text: status || '-',
-        class: 'bg-slate-100 text-slate-600',
-    };
-};
-BookingCar.renderEmptyState = (
-    message = 'No booking request available'
-) => {
-    return `
-        <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 px-6 py-14 text-center">
-            <div class="text-4xl">
-                🚘
-            </div>
+                <td class="px-4 py-3">
+                    <input type="text"
+                        name="destination[]"
+                        value="${destination}"
+                        placeholder="Destination"
+                        class="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white"
+                        required>
+                </td>
 
-            <div class="mt-3 text-sm font-semibold text-gray-700">
-                ${message}
-            </div>
+                <td class="px-4 py-3 text-right">
+                    <button type="button"
+                        class="remove-route-btn inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-500 transition hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                </td>
 
-            <div class="mt-1 text-xs text-gray-400">
-                Booking data will appear here
-            </div>
-        </div>
-    `;
-};
+            </tr>`;
+    },
 
-BookingCar.debounce = (func, delay = 500) => {
-    let timeout;
+    // --------------------------------------------------------
+    // SCROLL TO TOP OF ELEMENT
+    // --------------------------------------------------------
+    scrollToTop(id) {
+        const el = document.getElementById(id);
+        if (el) el.scrollTop = 0;
+    },
 
-    return (...args) => {
-        clearTimeout(timeout);
+    // --------------------------------------------------------
+    // EMPTY CHECK
+    // --------------------------------------------------------
+    isEmpty(value) {
+        return value === null || value === undefined || String(value).trim() === '';
+    },
 
-        timeout = setTimeout(() => {
-            func.apply(this, args);
-        }, delay);
-    };
-};
-
-BookingCar.scrollTopModal = (modalSelector) => {
-    const modal = document.querySelector(modalSelector);
-
-    if (!modal) return;
-
-    modal.scrollTop = 0;
-};
-
-BookingCar.generateRouteRow = ({
-    index,
-    pickup = '',
-    destination = '',
-    type = 'create',
-}) => {
-    const pickupName =
-        type === 'create'
-            ? `pickup_location[${index}]`
-            : `edit_pickup_location[${index}]`;
-
-    const destinationName =
-        type === 'create'
-            ? `destination_location[${index}]`
-            : `edit_destination_location[${index}]`;
-
-    return `
-        <tr class="border-b border-gray-100">
-            <td class="px-4 py-3 text-sm font-medium text-gray-600">
-                ${index + 1}
-            </td>
-
-            <td class="px-4 py-3">
-                <input
-                    type="text"
-                    name="${pickupName}"
-                    value="${BookingCar.escapeHtml(pickup)}"
-                    placeholder="Pickup location"
-                    class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                >
-            </td>
-
-            <td class="px-4 py-3">
-                <input
-                    type="text"
-                    name="${destinationName}"
-                    value="${BookingCar.escapeHtml(destination)}"
-                    placeholder="Destination location"
-                    class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-black focus:outline-none"
-                >
-            </td>
-
-            <td class="px-4 py-3 text-center">
-                <button
-                    type="button"
-                    class="remove-route-btn inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
-                >
-                    ✕
-                </button>
-            </td>
-        </tr>
-    `;
 };

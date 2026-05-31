@@ -1,264 +1,432 @@
-window.BookingCar = window.BookingCar || {};
+// ============================================================
+// calendar.js — Booking Car
+// Calendar view: display bookings, handle drag selection & clicks
+// ============================================================
 
-BookingCar.getCalendarEventColor = (status) => {
+const BookingCarCalendar = {
 
-    const map = {
-        P: '#3b82f6',
-        C: '#10b981',
-        D: '#f59e0b',
-        R: '#ef4444',
-        X: '#6b7280',
-        WAITING_PROCESS: '#6366f1',
-    };
+    // --------------------------------------------------------
+    // STATE
+    // --------------------------------------------------------
+    state: {
+        calendar:        null,
+        events:          [],
+        isLoading:       false,
+        selectedDate:    null,
+        initialLoaded:   false,
+    },
 
-    return map[status] || '#64748b';
-};
+    // --------------------------------------------------------
+    // INIT — initialize FullCalendar
+    // --------------------------------------------------------
+    init() {
+        BookingCarCalendar.initCalendar();
+        BookingCarCalendar.loadEvents();
+    },
 
-BookingCar.transformCalendarEvents = () => {
+    // --------------------------------------------------------
+    // INITIALIZE CALENDAR WITH DRAG SELECTION
+    // --------------------------------------------------------
+    initCalendar() {
+        const calendarEl = document.getElementById('calendar');
+        if (!calendarEl) return;
 
-    if (!Array.isArray(BookingCar.state.bookingData)) {
-        return [];
-    }
+        BookingCarCalendar.state.calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView:        'timeGridWeek',
+            headerToolbar:      {
+                left:   'prev,next today',
+                center: 'title',
+                right:  'dayGridMonth,timeGridWeek,timeGridDay',
+            },
+            height:             'auto',
+            contentHeight:      'auto',
+            editable:           false,
+            selectable:         true,
+            slotLabelInterval:  '01:00',
+            slotLabelFormat:    {
+                meridiem: 'short',
+                hour:     'numeric',
+            },
+            eventDisplay:       'block',
+            eventTimeFormat:    {
+                hour:     '2-digit',
+                minute:   '2-digit',
+                meridiem: 'short',
+                hour12:   false,
+            },
+            dayCellDidMount: (info) => {
+                info.el.style.minHeight = '100px';
+            },
+            eventDidMount: (info) => {
+                info.el.title = BookingCarCalendar.getEventTooltip(info.event);
+            },
+            dateClick: (info) => {
+                BookingCarCalendar.handleDateClick(info.dateStr);
+            },
+            eventClick: (info) => {
+                BookingCarCalendar.handleEventClick(info.event);
+            },
+            select: (info) => {
+                BookingCarCalendar.handleSelectTime(info);
+            },
+            events: (info, successCallback, failureCallback) => {
+                BookingCarCalendar.loadEventsCallback(
+                    info.startStr,
+                    info.endStr,
+                    successCallback,
+                    failureCallback
+                );
+            },
+        });
 
-    return BookingCar.state.bookingData
-        .filter(item =>
-            item.booking_date &&
-            item.start_time &&
-            item.end_time
-        )
-        .map(item => {
+        BookingCarCalendar.state.calendar.render();
+    },
 
-            const start =
-                item.start_time.replace(' ', 'T');
+    // --------------------------------------------------------
+    // LOAD EVENTS FROM API
+    // --------------------------------------------------------
+    async loadEvents() {
+        BookingCarCalendar.state.isLoading = true;
 
-            const end =
-                item.end_time.replace(' ', 'T');
+        try {
+            const response = await BookingCar.request(BookingCar.routes.calendarJson);
+            // console.log('[Calendar] calendarJson response:', response);
+
+            const items = Array.isArray(response.data) ? response.data : [];
+            // console.log('[Calendar] events count:', items.length);
+
+            BookingCarCalendar.state.events = BookingCarCalendar.convertToEvents(items);
+            BookingCarCalendar.state.calendar.refetchEvents();
+
+            // On first load, navigate to the most recent event's date
+            if (!BookingCarCalendar.state.initialLoaded && items.length > 0) {
+                BookingCarCalendar.state.initialLoaded = true;
+                const firstDate = items[0]?.booking_date;
+                if (firstDate) BookingCarCalendar.state.calendar.gotoDate(firstDate);
+            }
+
+        } catch (err) {
+            console.error('[Calendar] loadEvents error:', err);
+        } finally {
+            BookingCarCalendar.state.isLoading = false;
+        }
+    },
+
+    // --------------------------------------------------------
+    // LOAD EVENTS CALLBACK (for calendar data source)
+    // --------------------------------------------------------
+    loadEventsCallback(start, end, successCallback, failureCallback) {
+        try {
+            const events = BookingCarCalendar.state.events;
+            successCallback(events);
+        } catch (err) {
+            console.error('Load events callback error:', err);
+            failureCallback(err);
+        }
+    },
+
+    // --------------------------------------------------------
+    // CONVERT BOOKINGS TO CALENDAR EVENTS
+    // --------------------------------------------------------
+    convertToEvents(bookings) {
+        if (!Array.isArray(bookings)) return [];
+
+        return bookings.map((booking) => {
+            const colors = BookingCarCalendar.getEventColors(booking.status);
+            const startDateTime = booking.start_time || `${booking.booking_date}T00:00:00`;
+            const endDateTime = booking.end_time || `${booking.booking_date}T23:59:59`;
+
             return {
-              id: item.eid,
-
-                title: item.docid,
-
-                start: start,
-
-                end: end,
-
-                backgroundColor:
-                    BookingCar.getCalendarEventColor(
-                        item.status
-                    ),
-
-                borderColor:
-                    BookingCar.getCalendarEventColor(
-                        item.status
-                    ),
-
-                textColor: '#ffffff',
-
-                extendedProps: {
-                    docid: item.docid,
-                    requester: item.user_request,
-                    route: (() => {
-
-                        if (
-                            Array.isArray(item.details) &&
-                            item.details.length > 1
-                        ) {
-                            return 'Multiple Route';
-                        }
-
-                        if (
-                            Array.isArray(item.details) &&
-                            item.details.length === 1
-                        ) {
-
-                            return (
-                                item.details[0].tujuan ||
-                                item.details[0].route ||
-                                item.details[0].destination ||
-                                '-'
-                            );
-                        }
-
-                        return (
-                            item.keperluan ||
-                            '-'
-                        );
-                    })(),
-                    rawData: item,
-                }
+                id:              booking.eid,
+                title:           `${booking.docid} - ${booking.user_peminta || 'Unknown'}`,
+                start:           startDateTime,
+                end:             endDateTime,
+                allDay:          false,
+                backgroundColor: colors.bg,
+                borderColor:     colors.border,
+                textColor:       colors.text,
+                extendedProps:   {
+                    docid:       booking.docid,
+                    eid:         booking.eid,
+                    status:      booking.status,
+                    requester:   booking.user_peminta,
+                    date:        booking.booking_date,
+                    route:       booking.route_summary,
+                    purpose:     booking.purpose_descr,
+                    driver:      booking.driver,
+                    vehicle:     booking.no_polisi,
+                },
             };
         });
-};
+    },
 
-BookingCar.initializeCalendar = () => {
+    // --------------------------------------------------------
+    // GET EVENT COLORS BY STATUS
+    // --------------------------------------------------------
+    getEventColors(status) {
+        const colorMap = {
+            'P': {
+                bg:     '#3b82f6',
+                border: '#1d4ed8',
+                text:   '#ffffff',
+            },
+            'C': {
+                bg:     '#10b981',
+                border: '#059669',
+                text:   '#ffffff',
+            },
+            'F': {
+                bg:     '#6366f1',
+                border: '#4f46e5',
+                text:   '#ffffff',
+            },
+            'D': {
+                bg:     '#f59e0b',
+                border: '#d97706',
+                text:   '#ffffff',
+            },
+            'R': {
+                bg:     '#ef4444',
+                border: '#dc2626',
+                text:   '#ffffff',
+            },
+            'X': {
+                bg:     '#9ca3af',
+                border: '#6b7280',
+                text:   '#ffffff',
+            },
+        };
 
-    if (!BookingCar.el.calendar) return;
+        return colorMap[status] || colorMap['P'];
+    },
 
-    const calendarEl = BookingCar.el.calendar;
+    // --------------------------------------------------------
+    // HANDLE DATE CLICK (month view)
+    // --------------------------------------------------------
+    handleDateClick(dateStr) {
+        const date = new Date(dateStr);
 
-    if (BookingCar.state.calendar) {
-        BookingCar.state.calendar.destroy();
-    }
+        if (isNaN(date.getTime())) {
+            console.error('Invalid date:', dateStr);
+            return;
+        }
 
-    const firstBookingDate =
-        BookingCar.state.bookingData?.length
-            ? BookingCar.state.bookingData[0].booking_date
-            : new Date();
+        BookingCarModal.openCreate();
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
+        setTimeout(() => {
+            BookingCarForm.onOpen({
+                booking_date: dateStr,
+            });
+        }, 300);
+    },
 
-        initialView: 'timeGridWeek',
+    // --------------------------------------------------------
+    // HANDLE EVENT CLICK (open detail modal)
+    // --------------------------------------------------------
+    handleEventClick(event) {
+        const eid = event.extendedProps.eid;
+        if (!eid) {
+            console.error('Event EID not found');
+            return;
+        }
 
-        initialDate: firstBookingDate,
+        BookingCarDatalist.openBookingDetail(eid);
+    },
 
-        height: 'auto',
+    // --------------------------------------------------------
+    // HANDLE SELECT TIME (drag selection on time grid)
+    // --------------------------------------------------------
+    handleSelectTime(selectInfo) {
+        const startDate = selectInfo.start;
+        const endDate = selectInfo.end;
 
-        selectable: true,
-        selectMirror: false,
-        editable: false,
+        // Format date (YYYY-MM-DD)
+        const year = startDate.getFullYear();
+        const month = String(startDate.getMonth() + 1).padStart(2, '0');
+        const day = String(startDate.getDate()).padStart(2, '0');
+        const bookingDate = `${year}-${month}-${day}`;
 
-        nowIndicator: true,
+        // Format start time (HH:MM)
+        const startHour = String(startDate.getHours()).padStart(2, '0');
+        const startMin = String(startDate.getMinutes()).padStart(2, '0');
+        const startTime = `${startHour}:${startMin}`;
 
-        allDaySlot: false,
+        // Format end time (HH:MM)
+        const endHour = String(endDate.getHours()).padStart(2, '0');
+        const endMin = String(endDate.getMinutes()).padStart(2, '0');
+        const endTime = `${endHour}:${endMin}`;
 
-        expandRows: true,
+        console.log('[BookingCarCalendar] Time selected:', {
+            bookingDate,
+            startTime,
+            endTime,
+        });
 
-        slotMinTime: '06:00:00',
+        // Open create modal
+        BookingCarModal.openCreate();
 
-        slotMaxTime: '23:00:00',
+        // Pre-fill date and time
+        setTimeout(() => {
+            BookingCarForm.onOpen({
+                booking_date: bookingDate,
+                start_time:   startTime,
+                end_time:     endTime,
+            });
+        }, 300);
 
-        slotDuration: '00:30:00',
+        // Unselect
+        BookingCarCalendar.state.calendar.unselect();
+    },
 
-select: function(info) {
+    // --------------------------------------------------------
+    // REFRESH CALENDAR
+    // --------------------------------------------------------
+    refresh() {
+        if (!BookingCarCalendar.state.calendar) return;
+        BookingCarCalendar.loadEvents();
+    },
 
-    if (BookingCar.state.calendar) {
+    // --------------------------------------------------------
+    // REFETCH EVENTS
+    // --------------------------------------------------------
+    refetchEvents() {
+        if (!BookingCarCalendar.state.calendar) return;
+        BookingCarCalendar.state.calendar.refetchEvents();
+    },
 
-        BookingCar.state.calendar.unselect();
-    }
+    // --------------------------------------------------------
+    // NAVIGATE TO DATE
+    // --------------------------------------------------------
+    goToDate(dateStr) {
+        if (!BookingCarCalendar.state.calendar) return;
 
-    const pad = (num) => {
-        return String(num).padStart(2, '0');
-    };
+        const date = new Date(dateStr);
+        BookingCarCalendar.state.calendar.gotoDate(date);
+    },
 
-    const formatDate = (date) => {
+    // --------------------------------------------------------
+    // CHANGE VIEW
+    // --------------------------------------------------------
+    changeView(viewName) {
+        if (!BookingCarCalendar.state.calendar) return;
+        BookingCarCalendar.state.calendar.changeView(viewName);
+    },
 
-        return [
-            date.getFullYear(),
-            pad(date.getMonth() + 1),
-            pad(date.getDate())
-        ].join('-');
-    };
+    // --------------------------------------------------------
+    // GET CURRENT VIEW
+    // --------------------------------------------------------
+    getCurrentView() {
+        if (!BookingCarCalendar.state.calendar) return null;
+        return BookingCarCalendar.state.calendar.view.type;
+    },
 
-    const formatTime = (date) => {
+    // --------------------------------------------------------
+    // GET EVENTS FOR DATE
+    // --------------------------------------------------------
+    getEventsForDate(dateStr) {
+        const date = new Date(dateStr);
+        return BookingCarCalendar.state.events.filter((event) => {
+            const eventDate = new Date(event.start);
+            return eventDate.toDateString() === date.toDateString();
+        });
+    },
 
-        return [
-            pad(date.getHours()),
-            pad(date.getMinutes())
-        ].join(':');
-    };
+    // --------------------------------------------------------
+    // GET EVENTS BY STATUS
+    // --------------------------------------------------------
+    getEventsByStatus(status) {
+        return BookingCarCalendar.state.events.filter(
+            (event) => event.extendedProps.status === status
+        );
+    },
 
-    const payload = {
+    // --------------------------------------------------------
+    // GET EVENT COUNT BY STATUS
+    // --------------------------------------------------------
+    getEventCountByStatus(status) {
+        return BookingCarCalendar.getEventsByStatus(status).length;
+    },
 
-        booking_date:
-            formatDate(info.start),
+    // --------------------------------------------------------
+    // GET STATS
+    // --------------------------------------------------------
+    getStats() {
+        return {
+            total:     BookingCarCalendar.state.events.length,
+            pending:   BookingCarCalendar.getEventCountByStatus('P'),
+            approved:  BookingCarCalendar.getEventCountByStatus('C'),
+            processed: BookingCarCalendar.getEventCountByStatus('F'),
+            revise:    BookingCarCalendar.getEventCountByStatus('D'),
+            rejected:  BookingCarCalendar.getEventCountByStatus('R'),
+            cancelled: BookingCarCalendar.getEventCountByStatus('X'),
+        };
+    },
 
-        start_time:
-            formatTime(info.start),
+    // --------------------------------------------------------
+    // EXPORT TO CSV
+    // --------------------------------------------------------
+    exportToCSV() {
+        const events = BookingCarCalendar.state.events;
+        const headers = ['ID', 'Title', 'Start', 'End', 'Status'];
+        const rows = events.map((event) => [
+            event.id,
+            event.title,
+            event.start,
+            event.end,
+            event.extendedProps.status,
+        ]);
 
-        end_time:
-            formatTime(info.end),
-    };
+        const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
 
-    console.log(
-        'Calendar Payload:',
-        payload
-    );
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
 
-    BookingCar.openCreateBookingModal(payload);
-},
+        link.href = url;
+        link.download = `bookings-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+    },
 
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay',
-        },
+    // --------------------------------------------------------
+    // DESTROY CALENDAR
+    // --------------------------------------------------------
+    destroy() {
+        if (BookingCarCalendar.state.calendar) {
+            BookingCarCalendar.state.calendar.destroy();
+            BookingCarCalendar.state.calendar = null;
+        }
+    },
 
-        events: BookingCar.transformCalendarEvents(),
+    // --------------------------------------------------------
+    // GET EVENT TOOLTIP
+    // --------------------------------------------------------
+    getEventTooltip(event) {
+        const props = event.extendedProps;
+        return `
+${event.title}
+Date: ${props.date}
+Time: ${event.start ? BookingCar.formatTime(event.start) : '-'}
+Status: ${props.status}
+`.trim();
+    },
 
-        eventContent: (arg) => {
+    // --------------------------------------------------------
+    // HIGHLIGHT DATE
+    // --------------------------------------------------------
+    highlightDate(dateStr) {
+        if (!BookingCarCalendar.state.calendar) return;
 
-            const props =
-                arg.event.extendedProps;
+        const dateEl = BookingCarCalendar.state.calendar.getDateDom(new Date(dateStr));
+        if (dateEl) {
+            dateEl.classList.add('highlighted-date');
+        }
+    },
 
-            return {
-                html: `
-                    <div class="flex h-full flex-col justify-between overflow-hidden rounded-xl p-1">
-
-                        <div>
-
-                            <div class="truncate text-[11px] font-bold">
-                                ${props.docid ?? '-'}
-                            </div>
-
-                            <div class="truncate text-[10px] opacity-90">
-                                ${props.requester ?? '-'}
-                            </div>
-
-                        </div>
-
-                        <div class="mt-1 truncate text-[9px] opacity-80">
-                            📍 ${props.route ?? '-'}
-                        </div>
-
-                    </div>
-                `
-            };
-        },
-
-        eventClick: async (info) => {
-
-            const hash = info.event.id;
-
-            if (
-                typeof BookingCar.openBookingDetail === 'function'
-            ) {
-
-                await BookingCar.openBookingDetail(hash);
-            }
-        },
-    });
-
-    calendar.render();
-
-    BookingCar.state.calendar = calendar;
-
-};
-
-BookingCar.refreshCalendarEvents = () => {
-
-    if (!BookingCar.state.calendar) return;
-
-    BookingCar.state.calendar.removeAllEvents();
-
-    const events =
-        BookingCar.transformCalendarEvents();
-
-    events.forEach(event => {
-        BookingCar.state.calendar.addEvent(event);
-    });
-
-};
-
-BookingCar.bindCalendarResize = () => {
-
-    window.addEventListener(
-        'resize',
-        BookingCar.debounce(() => {
-
-            if (BookingCar.state.calendar) {
-                BookingCar.state.calendar.updateSize();
-            }
-
-        }, 300)
-    );
+    // --------------------------------------------------------
+    // CLEAR HIGHLIGHTS
+    // --------------------------------------------------------
+    clearHighlights() {
+        const highlighted = document.querySelectorAll('.highlighted-date');
+        highlighted.forEach((el) => el.classList.remove('highlighted-date'));
+    },
 };
