@@ -54,6 +54,8 @@ function resetCreateForm() {
             .trigger("change");
     }
 
+    $("#show_notes").html("");
+
     resetCreateAttachments();
 
     existingAttachments = [];
@@ -98,7 +100,7 @@ function openCreateModal() {
 }
 
 async function closeCreateModal(force = false) {
-    if (!force && modalState.createDirty) {
+    if (!force) {
         const confirmed = await confirmCloseModal();
 
         if (!confirmed) {
@@ -161,6 +163,20 @@ async function openEditModal(hash) {
 
         $("#create_assetnbr").val(header.assetnbr);
         $("#create_keperluan").val(header.keperluan);
+
+        // Show the most recent revision/rejection note (already in the detail response)
+        const revisionNotes = res.permissions?.notes || [];
+        const reviseEntry = revisionNotes.find(n => n.note);
+        if (reviseEntry?.note) {
+            $("#show_notes").html(`
+                <div class="rounded-lg border border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/10 px-4 py-3 text-sm text-orange-700 dark:text-orange-300">
+                    <p class="mb-1 font-semibold">Revision Note</p>
+                    <p>${reviseEntry.note}</p>
+                </div>
+            `);
+        } else {
+            $("#show_notes").html("");
+        }
 
         openCreateModal();
 

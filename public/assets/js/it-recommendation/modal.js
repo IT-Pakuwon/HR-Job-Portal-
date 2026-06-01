@@ -68,18 +68,42 @@ function animateCloseModal(target, callback = null) {
 }
 
 async function confirmCloseModal() {
+    const isDark = $("html").hasClass("dark");
+
     const result = await Swal.fire({
+        title: "Close Form?",
+
+        text: "Unsaved changes will be lost.",
+
         icon: "warning",
-
-        title: "Discard Changes?",
-
-        text: "Your unsaved changes will be lost.",
 
         showCancelButton: true,
 
         confirmButtonText: "Yes, Close",
 
+        cancelButtonText: "Cancel",
+
+        reverseButtons: true,
+
         confirmButtonColor: "#dc2626",
+
+        cancelButtonColor: isDark ? "#334155" : "#e2e8f0",
+
+        background: isDark ? "#111c2d" : "#ffffff",
+
+        color: isDark ? "#ffffff" : "#0f172a",
+
+        customClass: {
+            popup: `
+                rounded-lg
+                border border-white/[0.06]
+                shadow-[0_25px_80px_rgba(0,0,0,.35)]
+            `,
+            title: `text-lg font-bold`,
+            htmlContainer: `text-sm text-slate-500`,
+            confirmButton: `rounded-lg px-5 py-3 text-sm font-semibold`,
+            cancelButton: `rounded-lg px-5 py-3 text-sm font-semibold`,
+        },
     });
 
     return result.isConfirmed;
@@ -90,7 +114,7 @@ function resetUrl() {
 }
 
 function resetShowModal() {
-    $("#show_docid").text("-");
+    $("#show_docid").text("IT Recommendation Detail");
 
     $("#show_status_badge").html("");
 
@@ -106,7 +130,13 @@ function resetShowModal() {
 
     $("#show_comments").html("");
 
-    $("#show_header_actions").addClass("hidden").html("");
+    $("#show_footer_actions").html("");
+
+    $("#show_approval_actions_wrapper").addClass("hidden").html("");
+
+    $("#show_revision_banner").addClass("hidden");
+
+    $("#show_revision_note").html("");
 
     $("#commentSection").removeClass("hidden");
 
@@ -180,7 +210,7 @@ function openProcessModal() {
 }
 
 async function closeProcessModal(force = false) {
-    if (!force && modalState.processDirty) {
+    if (!force) {
         const confirmed = await confirmCloseModal();
 
         if (!confirmed) {
@@ -208,7 +238,7 @@ function openEditRecommendationModal() {
 }
 
 async function closeEditRecommendationModal(force = false) {
-    if (!force && modalState.reviseDirty) {
+    if (!force) {
         const confirmed = await confirmCloseModal();
 
         if (!confirmed) {
@@ -265,7 +295,7 @@ $(document).on(
     },
 );
 
-$("#btnCloseShowModal").on("click", function () {
+$("#btnCloseShowModal, #btnCloseShowModalFooter").on("click", function () {
     closeShowModal();
 });
 

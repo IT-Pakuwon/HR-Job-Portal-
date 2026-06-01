@@ -7,29 +7,32 @@
     var utils     = window.gmUtils;
     var PAGE_SIZE = 7;
 
-    var charts   = { donut: null };
-    var xhrSum   = null, xhrDept = null, xhrAct = null;
+    var charts   = { donut: null, trend: null };
+    var xhrSum   = null, xhrDept = null, xhrAct = null, xhrMonth = null;
     var deptRows = [], deptPage = 1, deptSort = null;
     var actRows  = [], actPage  = 1, actSort  = null;
 
     // ── Donut chart (Used / Reserved / Remaining) ──────────────────────────────
-    // function renderDonut(used, reserve, remaining) {
-    function renderDonut(used, remaining) {
+    function renderDonut(used, reserve, remaining) {
+        var dark        = utils.isDark();
+        var hasReserve  = reserve > 0;
+        var series = hasReserve
+            ? [Math.max(0, Math.round(used)), Math.max(0, Math.round(reserve)), Math.max(0, Math.round(remaining))]
+            : [Math.max(0, Math.round(used)), Math.max(0, Math.round(remaining))];
+        var labels = hasReserve ? ['Used', 'Reserved', 'Remaining'] : ['Used', 'Remaining'];
+        var colors = hasReserve ? ['#EF4444', '#F59E0B', '#10B981'] : ['#EF4444', '#10B981'];
+
         var dark = utils.isDark();
         var opts = {
-            series: [
-                Math.max(0, Math.round(used)),
-                // Math.max(0, Math.round(reserve)),
-                Math.max(0, Math.round(remaining)),
-            ],
-            labels: ['Used', 'Remaining'],
+            series : series,
+            labels : labels,
             chart: {
                 type: 'donut', height: 210,
                 toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
                 foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 600 },
             },
-            colors: ['#EF4444', '#10B981'],
+            colors: colors,
             plotOptions: {
                 pie: {
                     donut: {
@@ -59,11 +62,28 @@
             stroke: { width: 0 },
             tooltip: {
                 theme: dark ? 'dark' : 'light',
-                y: { formatter: function (v) { return utils.idr(v); } },
+                fixed: { enabled: true, position: 'topLeft', offsetX: 10, offsetY: 10 },
+                y: {
+                    formatter: function (v, opts) {
+                        if (!opts || !opts.w || !opts.w.globals) return utils.idr(v);
+                        var series = opts.w.globals.series || [];
+                        var total  = series.reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0);
+                        var pct    = total > 0 ? (v / total * 100).toFixed(1) : '0.0';
+                        return utils.idr(v) + ' (' + pct + '%)';
+                    },
+                },
             },
             legend: {
                 show: true, position: 'right', fontSize: '12px',
                 markers: { radius: 6 }, itemMargin: { horizontal: 8, vertical: 4 },
+                formatter: function (seriesName, opts) {
+                    if (!opts || !opts.w || !opts.w.globals) return seriesName;
+                    var series = opts.w.globals.series || [];
+                    var total  = series.reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0);
+                    var val    = parseFloat(series[opts.seriesIndex]) || 0;
+                    var pct    = total > 0 ? (val / total * 100).toFixed(1) : '0.0';
+                    return seriesName + ' <b>' + pct + '%</b>';
+                },
             },
         };
         var el = document.getElementById('gmBudgetDonut');
@@ -106,7 +126,7 @@
         utils.setText('gmDeptCount', deptRows.length + ' dept' + (deptRows.length !== 1 ? 's' : ''));
 
         if (!deptRows.length) {
-            tbody.innerHTML = '<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">No data for the selected filters.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">No data for the selected filters.</td></tr>';
             var p = document.getElementById('gmDeptPagination');
             if (p) p.classList.add('hidden');
             return;
@@ -121,6 +141,7 @@
             return '<tr class="transition hover:bg-slate-50/60 dark:hover:bg-slate-800/30">'
                 + '<td class="px-5 py-3 font-semibold text-slate-700 dark:text-slate-200">' + utils.escHtml(r.department_fin_id) + '</td>'
                 + '<td class="px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-300">' + utils.idr(r.total_final) + '</td>'
+                + '<td class="px-4 py-3 text-right tabular-nums text-amber-600 dark:text-amber-400">' + utils.idr(r.total_reserve) + '</td>'
                 + '<td class="px-4 py-3 text-right tabular-nums text-emerald-600 dark:text-emerald-400">' + utils.idr(r.total_remaining) + '</td>'
                 + '<td class="px-4 py-3">' + pctBar(pct) + '</td>'
                 + '</tr>';
@@ -139,7 +160,7 @@
         utils.setText('gmActCount', actRows.length + ' activit' + (actRows.length !== 1 ? 'ies' : 'y'));
 
         if (!actRows.length) {
-            tbody.innerHTML = '<tr><td colspan="4" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">No data for the selected filters.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400 dark:text-slate-500">No data for the selected filters.</td></tr>';
             var p = document.getElementById('gmActPagination');
             if (p) p.classList.add('hidden');
             return;
@@ -154,6 +175,7 @@
             return '<tr class="transition hover:bg-slate-50/60 dark:hover:bg-slate-800/30">'
                 + '<td class="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200">' + utils.escHtml(r.activity_descr || r.activity_id || '—') + '</td>'
                 + '<td class="px-4 py-3 text-right tabular-nums text-slate-600 dark:text-slate-300">' + utils.idr(r.total_final) + '</td>'
+                + '<td class="px-4 py-3 text-right tabular-nums text-amber-600 dark:text-amber-400">' + utils.idr(r.total_reserve) + '</td>'
                 + '<td class="px-4 py-3 text-right tabular-nums text-emerald-600 dark:text-emerald-400">' + utils.idr(r.total_remaining) + '</td>'
                 + '<td class="px-4 py-3">' + pctBar(pct) + '</td>'
                 + '</tr>';
@@ -194,8 +216,7 @@
                 }
 
                 setTrend('gmUtilTrend', pct);
-                // renderDonut(d.total_used, d.total_reserve, d.total_remaining);
-                renderDonut(d.total_used, d.total_remaining);
+                renderDonut(d.total_used, d.total_reserve, d.total_remaining);
                 utils.setText('gmRefreshTime', new Date().toLocaleTimeString());
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('budget summary:', e); });
@@ -237,16 +258,144 @@
             .catch(function (e) { if (e.name !== 'AbortError') console.error('budget by activity:', e); });
     }
 
+    // ── Monthly trend chart (cumulative used + monthly bars) ──────────────────
+    function renderTrendChart(data, totalBudget) {
+        var dark       = utils.isDark();
+        var categories = data.map(function (d) { return d.month; });
+        var cumulative = data.map(function (d) { return d.cumulative; });
+        var monthly    = data.map(function (d) { return d.used; });
+
+        var opts = {
+            series: [
+                { name: 'Cumulative Used', type: 'area',   data: cumulative },
+                { name: 'Monthly Used',    type: 'column', data: monthly },
+            ],
+            chart: {
+                type: 'line', height: 210,
+                toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
+                foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
+                animations: { enabled: true, easing: 'easeinout', speed: 800 },
+                zoom: { enabled: false },
+            },
+            colors: ['#8B5CF6', '#C4B5FD'],
+            fill: {
+                type: ['gradient', 'solid'],
+                gradient: {
+                    type: 'vertical',
+                    gradientToColors: ['#06B6D4'],
+                    shadeIntensity: 1,
+                    opacityFrom: 0.55,
+                    opacityTo: 0.02,
+                    stops: [0, 95],
+                },
+                opacity: [1, 0.75],
+            },
+            stroke: { curve: 'smooth', width: [2.5, 0] },
+            markers: {
+                size: [0, 0],
+                hover: { size: 5 },
+                colors: ['#8B5CF6'],
+                strokeWidth: 0,
+            },
+            xaxis: {
+                categories: categories,
+                axisBorder: { show: false },
+                axisTicks:  { show: false },
+                tickAmount: 5,
+                labels: { style: { fontSize: '10px', fontWeight: 600 } },
+            },
+            yaxis: [
+                {
+                    seriesName: 'Cumulative Used',
+                    tickAmount: 4,
+                    labels: {
+                        formatter: function (v) { return utils.idr(v); },
+                        style: { fontSize: '9px' },
+                    },
+                },
+                {
+                    seriesName: 'Monthly Used',
+                    opposite: true,
+                    show: false,
+                },
+            ],
+            annotations: totalBudget > 0 ? {
+                yaxis: [{
+                    y           : totalBudget,
+                    yAxisIndex  : 0,
+                    borderColor : '#EF4444',
+                    borderWidth : 1.5,
+                    strokeDashArray: 5,
+                    label: {
+                        text    : 'Budget · ' + utils.idr(totalBudget),
+                        position: 'right',
+                        offsetX : -6,
+                        style   : {
+                            color: '#EF4444', fontSize: '9px', fontWeight: 700,
+                            background: dark ? '#1e293b' : '#fff',
+                            border: '0', padding: { top: 2, bottom: 2, left: 4, right: 4 },
+                        },
+                    },
+                }],
+            } : {},
+            grid: {
+                borderColor: dark ? '#334155' : '#F1F5F9',
+                strokeDashArray: 4,
+                padding: { left: 2, right: 12, top: 0, bottom: 0 },
+                xaxis: { lines: { show: false } },
+                yaxis: { lines: { show: true } },
+            },
+            tooltip: {
+                theme: dark ? 'dark' : 'light',
+                shared: true,
+                intersect: false,
+                y: { formatter: function (v) { return utils.idr(v); } },
+            },
+            dataLabels: { enabled: false },
+            legend: {
+                show: true, position: 'top', horizontalAlign: 'right',
+                fontSize: '11px', markers: { radius: 4 },
+                itemMargin: { horizontal: 10 },
+            },
+            plotOptions: {
+                bar: { columnWidth: '50%', borderRadius: 3 },
+            },
+        };
+
+        var el = document.getElementById('gmMonthlyTrend');
+        if (!el) return;
+        if (charts.trend) { charts.trend.updateOptions(opts); return; }
+        charts.trend = new ApexCharts(el, opts);
+        charts.trend.render();
+    }
+
+    function loadByMonth() {
+        if (xhrMonth) xhrMonth.abort();
+        xhrMonth = new AbortController();
+
+        fetch(routes.byMonth + utils.buildParams(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+            signal: xhrMonth.signal,
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                utils.setText('gmTrendYear', res.year || '');
+                renderTrendChart(res.data || [], res.total_budget || 0);
+            })
+            .catch(function (e) { if (e.name !== 'AbortError') console.error('budget by month:', e); });
+    }
+
     // ── Dark-mode watcher (budget charts only) ────────────────────────────────
     function watchDarkMode() {
         new MutationObserver(function () {
             var dark = utils.isDark();
-            if (charts.donut) {
-                charts.donut.updateOptions({
-                    chart:   { foreColor: dark ? '#94A3B8' : '#64748B' },
-                    tooltip: { theme: dark ? 'dark' : 'light' },
-                });
-            }
+            var themeOpts = {
+                chart:   { foreColor: dark ? '#94A3B8' : '#64748B' },
+                tooltip: { theme: dark ? 'dark' : 'light' },
+                grid:    { borderColor: dark ? '#334155' : '#F1F5F9' },
+            };
+            if (charts.donut) charts.donut.updateOptions({ chart: themeOpts.chart, tooltip: themeOpts.tooltip });
+            if (charts.trend) charts.trend.updateOptions(themeOpts);
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }
 
@@ -258,6 +407,7 @@
         loadSummary();
         loadByDept();
         loadByActivity();
+        loadByMonth();
     });
 
     // ── Init ──────────────────────────────────────────────────────────────────

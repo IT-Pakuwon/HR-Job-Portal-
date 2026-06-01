@@ -11,8 +11,6 @@ async function loadDetail(hash) {
             type: "GET",
         });
 
-        console.log("DETAIL RESPONSE", res);
-
         const header = res.header;
 
         renderHeaderInfo(header);
@@ -74,9 +72,7 @@ async function loadDetail(hash) {
 // }
 
 function renderHeaderInfo(header) {
-
-     console.log(header);
-    $("#show_docid").text(header.docid || "-");
+    $("#show_docid").text(`IT Recommendation - ${header.docid || "-"}`);
 
     $("#show_status_badge").html(statusBadge(header.status));
 
@@ -143,163 +139,130 @@ function renderRecommendationInfo(header) {
     `);
 }
 
-function timelineNoteClass(status) {
-    if (status === "R") {
-        return `
-            border-red-200
-            bg-red-50
-            text-red-700
-
-            dark:border-red-500/20
-            dark:bg-red-500/10
-            dark:text-red-300
-        `;
+function timelineBadgeColor(s) {
+    switch (s) {
+        case 'A':  return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400';
+        case 'R':  return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
+        case 'D':  return 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
+        case 'I':  return 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400';
+        case 'P':  return 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
+        case 'C':  return 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400';
+        case 'IT': return 'bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400';
+        case 'X':  return 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400';
+        default:   return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400';
     }
-
-    if (status === "D" || status === "I") {
-        return `
-            border-amber-200
-            bg-amber-50
-            text-amber-700
-
-            dark:border-amber-500/20
-            dark:bg-amber-500/10
-            dark:text-amber-300
-        `;
-    }
-
-    if (status === "X") {
-        return `
-            border-slate-200
-            bg-slate-50
-            text-slate-700
-
-            dark:border-slate-500/20
-            dark:bg-slate-500/10
-            dark:text-slate-300
-        `;
-    }
-
-    return `
-        border-gray-200
-        bg-gray-50
-        text-gray-700
-
-        dark:border-white/10
-        dark:bg-white/[0.03]
-        dark:text-gray-300
-    `;
 }
+
+function timelineBadgeIcon(s) {
+    switch (s) {
+        case 'A':  return 'fa-check';
+        case 'R':  return 'fa-xmark';
+        case 'D':  return 'fa-pen';
+        case 'I':  return 'fa-rotate-left';
+        case 'P':  return 'fa-hourglass-half';
+        case 'C':  return 'fa-flag-checkered';
+        case 'IT': return 'fa-gears';
+        case 'X':  return 'fa-ban';
+        default:   return 'fa-paper-plane';
+    }
+}
+
+function timelinePill(s, label) {
+    const cls = {
+        'A':  'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+        'R':  'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
+        'D':  'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+        'I':  'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
+        'P':  'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+        'C':  'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
+        'IT': 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300',
+        'X':  'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400',
+    }[s] ?? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300';
+
+    return `<span class="inline-flex shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold ${cls}">${label || s}</span>`;
+}
+
+const TIMELINE_INITIAL = 5;
 
 function renderTimeline(tracking = []) {
-    let html = "";
-
-    tracking.forEach((row) => {
-        html += `
-
-            <div class="flex gap-3">
-
-                <div class="
-                    flex
-                    h-8 w-8
-                    shrink-0
-
-                    items-center
-                    justify-center
-
-                    rounded-lg
-
-                    border border-slate-200
-                    dark:border-white/10
-
-                    bg-white
-                    dark:bg-[#111827]
-                ">
-
-                    <i class="
-                        fa-solid
-                        text-xs
-
-                        ${timelineIcon(row.status)}
-                    "></i>
-
-                </div>
-
-                <div class="min-w-0 flex-1 pb-2">
-
-                    <div class="
-                        flex
-                        flex-wrap
-                        items-center
-                        gap-2
-                    ">
-
-                        <h4 class="
-                            text-sm
-                            font-medium
-
-                            text-slate-700
-                            dark:text-slate-200
-                        ">
-                            ${row.title || "-"}
-                        </h4>
-
-                        ${statusBadge(row.status)}
-
-                    </div>
-
-                    <p class="
-                        mt-1
-
-                        text-xs
-
-                        text-slate-500
-                        dark:text-slate-400
-                    ">
-                        ${row.description || "-"}
-                    </p>
-
-                    <p class="
-                        mt-1
-
-                        text-[11px]
-
-                        text-slate-400
-                    ">
-                        ${row.date || "-"}
-                    </p>
-
-                    ${
-                        row.note
-                            ? `
-                                <div class="
-                                    mt-2
-
-                                    rounded-lg
-                                    border
-
-                                    px-3 py-2
-
-                                    text-xs
-                                    leading-relaxed
-
-                                    ${timelineNoteClass(row.status)}
-                                ">
-                                    ${row.note}
-                                </div>
-                            `
-                            : ""
-                    }
-
-                </div>
-
+    if (!tracking.length) {
+        $("#show_tracking").html(`
+            <div class="rounded-lg border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-400 dark:border-white/10">
+                No approval workflow available.
             </div>
+        `);
+        return;
+    }
 
+    const total    = tracking.length;
+    const hasMore  = total > TIMELINE_INITIAL;
+    const hiddenCount = total - TIMELINE_INITIAL;
+
+    const items = tracking.map((row, index) => {
+        const isLast        = index === total - 1;
+        const isLastVisible = hasMore && index === TIMELINE_INITIAL - 1;
+        const isHidden      = hasMore && index >= TIMELINE_INITIAL;
+        const s             = row.status ?? '';
+        const showNote      = row.note && ['R', 'D', 'I'].includes(s);
+
+        return `
+            <div class="relative flex gap-4${isHidden ? ' tl-extra hidden' : ''}">
+                <div class="flex flex-col items-center">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${timelineBadgeColor(s)}">
+                        <i class="fa-solid ${timelineBadgeIcon(s)} text-xs"></i>
+                    </div>
+                    ${!isLast ? `<div class="mt-1 w-px flex-1 bg-slate-200 dark:bg-white/10"></div>` : ''}
+                </div>
+                <div class="min-w-0 flex-1 ${(isLast || isLastVisible) ? 'pb-0' : 'pb-6'}${isLastVisible ? ' tl-last-visible-content' : ''}">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                ${row.title || '-'}
+                            </p>
+                            ${row.description ? `<p class="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">${row.description}</p>` : ''}
+                            ${row.date ? `<p class="mt-1 text-xs text-slate-400 dark:text-slate-500">${row.date}</p>` : ''}
+                        </div>
+                        ${timelinePill(s, row.label)}
+                    </div>
+                    ${showNote ? `
+                        <div class="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300">
+                            ${row.note}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
         `;
-    });
+    }).join('');
 
-    $("#show_tracking").html(html);
+    const showMoreBtn = hasMore ? `
+        <button id="timelineToggle" type="button" data-expanded="false" data-count="${hiddenCount}"
+            class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.02] dark:text-slate-400 dark:hover:bg-white/[0.05]">
+            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+            ${hiddenCount} more
+        </button>
+    ` : '';
+
+    $("#show_tracking").html(`<div>${items}</div>${showMoreBtn}`);
 }
+
+$(document).on("click", "#timelineToggle", function () {
+    const expanded = $(this).data("expanded");
+    const count    = $(this).data("count");
+
+    if (expanded) {
+        $(".tl-extra").addClass("hidden");
+        $(".tl-last-visible-content").removeClass("pb-6").addClass("pb-0");
+        $(this).data("expanded", false).html(
+            `<i class="fa-solid fa-chevron-down text-[10px]"></i> ${count} more`
+        );
+    } else {
+        $(".tl-extra").removeClass("hidden");
+        $(".tl-last-visible-content").removeClass("pb-0").addClass("pb-6");
+        $(this).data("expanded", true).html(
+            `<i class="fa-solid fa-chevron-up text-[10px]"></i> Show less`
+        );
+    }
+});
 
 // function renderComments(comments = []) {
 //     let html = "";
@@ -453,190 +416,83 @@ function renderProcessActionButton({ hash, className, icon, label }) {
 }
 
 function renderActions(header, permissions, hash) {
-    let html = "";
+    // ── FOOTER ACTIONS (Edit / Process / Cancel / Revise Recommendation) ──
+    let footerHtml = "";
 
     if (permissions.can_edit) {
-        html += `
-            <a
-                href="/edititrecommendation/${hash}"
-
-                class="
-                    inline-flex
-                    w-full
-
-                    items-center
-                    justify-center
-                    gap-2
-
-                    rounded-lg
-
-                    bg-amber-500
-
-                    px-4 py-2.5
-
-                    text-sm
-                    font-semibold
-
-                    text-white
-
-                    transition-all
-                    duration-200
-
-                    hover:bg-amber-600
-                "
-            >
-
-                <i class="
-                    fa-solid
-                    fa-pen
-
-                    text-xs
-                "></i>
-
+        footerHtml += `
+            <a href="/edititrecommendation/${hash}"
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600">
+                <i class="fa-solid fa-pen text-xs"></i>
                 Edit Request
-
             </a>
         `;
     }
 
     if (header.status === "W" && permissions.can_process && isITHardware) {
-        html += renderProcessActionButton({
-            hash,
-
-            className: "process-btn bg-indigo-600 hover:bg-indigo-700",
-
-            icon: "fa-gears",
-
-            label: "Process Request",
-        });
-    }
-
-    if (header.status === "I" && permissions.can_process && isITHardware) {
-        html += renderProcessActionButton({
-            hash,
-
-            className:
-                "edit-recommendation-btn bg-orange-500 hover:bg-orange-600",
-
-            icon: "fa-rotate-left",
-
-            label: "Revise Recommendation",
-        });
-    }
-
-    if (permissions.can_cancel) {
-        html += renderProcessActionButton({
-            hash,
-
-            className: "cancel-btn bg-red-600 hover:bg-red-700",
-
-            icon: "fa-ban",
-
-            label: "Cancel Request",
-        });
-    }
-
-    if (permissions.can_approve) {
-        html += `
-
-            <div class="
-              w-full flex justify-between gap-2
-            ">
-
-                <button
-                    type="button"
-
-                    data-docid="${header.docid}"
-
-                    class="
-                        approve-btn
-
-                         inline-flex flex-1 items-center justify-center gap-2
-                            rounded-lg bg-emerald-600
-                            px-4 py-3
-                            text-sm font-semibold text-white
-                            transition hover:bg-emerald-700
-                    "
-                >
-
-                    <i class="
-                        fa-solid
-                        fa-check
-
-                        text-xs
-                    "></i>
-
-                    Approve
-
-                </button>
-
-                <button
-                    type="button"
-
-                    data-docid="${header.docid}"
-
-                    class="
-                        revise-approval-btn
-
-                         inline-flex flex-1 items-center justify-center gap-2
-                    rounded-lg bg-amber-500
-                    px-4 py-3
-                    text-sm font-semibold text-white
-                    transition hover:bg-amber-600
-                    "
-                >
-
-                    <i class="
-                        fa-solid
-                        fa-rotate-left
-
-                        text-xs
-                    "></i>
-
-                    Revise
-
-                </button>
-
-                <button
-                    type="button"
-
-                    data-docid="${header.docid}"
-
-                    class="
-                        reject-approval-btn
-
-                       inline-flex flex-1 items-center justify-center gap-2
-                    rounded-lg bg-red-500
-                    px-4 py-3
-                    text-sm font-semibold text-white
-                    transition hover:bg-red-600
-                    "
-                >
-
-                    <i class="
-                        fa-solid
-                        fa-xmark
-
-                        text-xs
-                    "></i>
-
-                    Reject
-
-                </button>
-
-            </div>
-
+        footerHtml += `
+            <button type="button" data-id="${hash}"
+                class="process-btn inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                <i class="fa-solid fa-gears text-xs"></i>
+                Process Request
+            </button>
         `;
     }
 
-    if (!html) {
-        $("#show_header_actions").html("");
-        $("#show_actions_card").addClass("hidden");
-        return;
+    if (header.status === "I" && permissions.can_process && isITHardware) {
+        footerHtml += `
+            <button type="button" data-id="${hash}"
+                class="edit-recommendation-btn inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600">
+                <i class="fa-solid fa-rotate-left text-xs"></i>
+                Revise Recommendation
+            </button>
+        `;
     }
 
-    $("#show_header_actions").html(html);
-    $("#show_actions_card").removeClass("hidden");
+    if (permissions.can_cancel) {
+        footerHtml += `
+            <button type="button" data-id="${hash}"
+                class="cancel-btn inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
+                <i class="fa-solid fa-ban text-xs"></i>
+                Cancel Request
+            </button>
+        `;
+    }
+
+    $("#show_footer_actions").html(footerHtml);
+
+    // ── APPROVAL ACTIONS (Approve / Revise / Reject) ──
+    if (permissions.can_approve) {
+        $("#show_approval_actions_wrapper").removeClass("hidden").html(`
+            <div class="flex w-full gap-2">
+                <button type="button" data-docid="${header.docid}"
+                    class="approve-btn inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                    <i class="fa-solid fa-check text-xs"></i> Approve
+                </button>
+                <button type="button" data-docid="${header.docid}"
+                    class="revise-approval-btn inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600">
+                    <i class="fa-solid fa-rotate-left text-xs"></i> Revise
+                </button>
+                <button type="button" data-docid="${header.docid}"
+                    class="reject-approval-btn inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600">
+                    <i class="fa-solid fa-xmark text-xs"></i> Reject
+                </button>
+            </div>
+        `);
+    } else {
+        $("#show_approval_actions_wrapper").addClass("hidden").html("");
+    }
+
+    // ── REVISION BANNER (latest note when document is in revision state) ──
+    const notes = permissions.notes || [];
+    const reviseNote = notes.find(n => n.note);
+    if (reviseNote?.note) {
+        $("#show_revision_note").text(reviseNote.note);
+        $("#show_revision_banner").removeClass("hidden");
+    } else {
+        $("#show_revision_banner").addClass("hidden");
+        $("#show_revision_note").html("");
+    }
 }
 
 function renderDetailItems(details = []) {
@@ -1013,6 +869,43 @@ $(document).on("click", "#btnSendDiscussion", async function () {
         });
     } finally {
         btn.prop("disabled", false);
+    }
+});
+
+$(document).on("click", ".cancel-btn", async function () {
+    const hash = $(this).data("id");
+
+    const result = await Swal.fire({
+        icon: "warning",
+        title: "Cancel Request?",
+        text: "This action cannot be undone.",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Cancel",
+        confirmButtonColor: "#dc2626",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+        await $.ajax({
+            url: `/it-recommendation/cancel/${hash}`,
+            type: "POST",
+            headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") },
+        });
+
+        itrToast('success', 'Request cancelled');
+
+        table.ajax.reload(null, false);
+
+        if (currentDetailHash) {
+            await loadDetail(currentDetailHash);
+        }
+    } catch (err) {
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: err.responseJSON?.message || "Failed to cancel request",
+        });
     }
 });
 

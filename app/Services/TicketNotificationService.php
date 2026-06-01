@@ -13,6 +13,7 @@ use App\Models\SysUserRole;
 use App\Models\TrTicket;
 use App\Models\TrTicketActivity;
 use App\Models\User;
+use App\Services\WhatsappService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;

@@ -48,7 +48,7 @@ function initDataTable() {
             processing: `
                 <div class="flex items-center justify-center py-10">
                     <div class="
-                        h-10 w-10 animate-spin rounded-lg border-4
+                        h-10 w-10 animate-spin rounded-full border-4
                         border-slate-300 border-t-slate-700
                         dark:border-slate-700 dark:border-t-slate-200
                     "></div>
@@ -853,33 +853,22 @@ async function cancelDocument(id) {
         return;
     }
 
-    $.ajax({
+    try {
 
-        url: `/access-request/cancel/${id}`,
+        const res = await $.ajax({
+            url: `/access-request/cancel/${id}`,
+            type: "POST",
+        });
 
-        type: "POST",
+        itrToast("success", res.message ?? "Document cancelled successfully");
 
-        success: function (res) {
+        table.ajax.reload(null, false);
 
-            swalSuccess(
-                res.message ??
-                "Document cancelled successfully"
-            );
+    } catch (xhr) {
 
-            table.ajax.reload(
-                null,
-                false
-            );
-        },
+        swalError(xhr.responseJSON?.message ?? "Failed cancel document");
 
-        error: function (xhr) {
-
-            swalWarning(
-                xhr.responseJSON?.message ??
-                "Failed cancel document"
-            );
-        },
-    });
+    }
 }
 
 $(document).on(

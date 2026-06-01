@@ -184,10 +184,13 @@ function handleAjaxError(xhr) {
 
     if (xhr.status === 422) {
 
-        renderValidationErrors(
-            Ticket.selectors.createForm,
-            xhr.responseJSON.errors || {}
-        );
+        const errors = xhr.responseJSON?.errors || {};
+        const firstField = Object.values(errors)[0];
+        const firstMessage = Array.isArray(firstField)
+            ? firstField[0]
+            : (xhr.responseJSON?.message || 'Validation failed.');
+
+        showError(firstMessage);
 
         return;
     }
@@ -392,9 +395,7 @@ function formatDateTime(dateString) {
         return '-';
     }
 
-    return `
-        ${formatDate(dateString)}
-    `;
+    return `${formatDate(dateString)} ${formatTime(dateString)}`;
 
 }
 

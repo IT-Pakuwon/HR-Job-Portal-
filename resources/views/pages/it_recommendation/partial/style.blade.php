@@ -202,7 +202,7 @@
         outline: none;
     }
 
-    .select2-container {
+    /* .select2-container {
         width: 100% !important;
     }
 
@@ -328,7 +328,7 @@
 
     .select2-results__option--selectable:hover {
         background: rgba(148, 163, 184, .10) !important;
-    }
+    } */
 
 
     .dataTables_wrapper .dataTables_length,
@@ -339,5 +339,11 @@
     .dataTables_wrapper .dataTables_info,
     .dataTables_wrapper .dataTables_paginate{
         padding:14px 18px;
+    }
+
+    label.req::after {
+        content: " *";
+        color: #ef4444;
+        font-weight: 700;
     }
 </style>

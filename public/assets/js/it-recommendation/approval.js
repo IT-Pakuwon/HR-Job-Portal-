@@ -54,19 +54,13 @@ async function approvalAction({
                 : {},
         });
 
-        Swal.fire({
-            icon: "success",
-
-            title: successTitle,
-
-            timer: 1500,
-
-            showConfirmButton: false,
-        });
-
-        closeShowModal();
+        itrToast('success', successTitle);
 
         table.ajax.reload(null, false);
+
+        if (currentDetailHash) {
+            await loadDetail(currentDetailHash);
+        }
     } catch (err) {
         Swal.fire({
             icon: "error",

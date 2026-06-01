@@ -36,48 +36,48 @@ class TicketController extends Controller
             $notificationService;
     }
 
-protected array $workflowTransitions = [
+    protected array $workflowTransitions = [
 
-    'response' => [
-        'CREATED',
-        'TRANSFER',
-    ],
+        'response' => [
+            'CREATED',
+            'TRANSFER',
+        ],
 
-    'process' => [
-        'RESPONSE',
-        'REOPEN',
-        'PENDING',
-    ],
+        'process' => [
+            'RESPONSE',
+            'REOPEN',
+            'PENDING',
+        ],
 
-    'pending' => [
-        'PROCESS',
-    ],
+        'pending' => [
+            'PROCESS',
+        ],
 
-    'envision' => [
-        'PENDING',
-        'PROCESS',
-    ],
+        'envision' => [
+            'PENDING',
+            'PROCESS',
+        ],
 
-    'ENVISION CHECKED / SOLVED' => [
-        'ENVISION',
-    ],
+        'ENVISION CHECKED / SOLVED' => [
+            'ENVISION',
+        ],
 
-    'complete' => [
-        'PROCESS',
-        'PENDING',
-        'ENVISION CHECKED / SOLVED',
-    ],
+        'complete' => [
+            'PROCESS',
+            'PENDING',
+            'ENVISION CHECKED / SOLVED',
+        ],
 
-    'transfer' => [
-        'CREATED',
-        'TRANSFER',
-        'REOPEN',
-    ],
+        'transfer' => [
+            'CREATED',
+            'TRANSFER',
+            'REOPEN',
+        ],
 
-    'reopen' => [
-        'COMPLETED',
-    ],
-];
+        'reopen' => [
+            'COMPLETED',
+        ],
+    ];
 
     protected function canTransition(
         string $current,
@@ -513,12 +513,10 @@ protected array $workflowTransitions = [
         } catch (\Throwable $th) {
             DB::connection('pgsql5')->rollBack();
 
-            dd([
+            return response()->json([
+                'success' => false,
                 'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile(),
-                'trace' => $th->getTraceAsString(),
-            ]);
+            ], 500);
         }
     }
 
@@ -1457,7 +1455,7 @@ protected array $workflowTransitions = [
             'response_summary' => 'required|string|max:255',
             'response_descr' => 'required',
 
-            'working_start_date' => 'required|date',
+            'working_start_date' => 'nullable|date',
 
             'working_end_date' => [
                 'nullable',
@@ -1643,8 +1641,8 @@ protected array $workflowTransitions = [
             abort_if(
                 !$this->validatePIC(
                     $request->pic_ticket,
-                    $ticket->ticket_type,
-                    $ticket->ticket_categoryid
+                    $request->ticket_type,
+                    $request->ticket_categoryid
                 ),
                 422,
                 'Selected PIC is invalid.'
@@ -1859,7 +1857,7 @@ protected array $workflowTransitions = [
         try {
             $ticket->update([
                 'solution_descr' => $request->solution_descr,
-                'pic_completed_ticket' => Carbon::now(),
+                'pic_completed_ticket' => auth()->user()->username,
                 'completed_by' => auth()->user()->username,
                 'completed_at' => now(),
                 'status' => 'C',
@@ -2228,6 +2226,8 @@ protected array $workflowTransitions = [
                 }
             }
 
+            DB::connection('pgsql5')->commit();
+
             /*
         |--------------------------------------------------------------------------
         | Notification
@@ -2259,8 +2259,6 @@ protected array $workflowTransitions = [
                     ]
                 );
             }
-
-            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
@@ -2442,7 +2440,7 @@ protected array $workflowTransitions = [
                 )
                 ->orWhere(
                     'cpny_id',
-                    'all'
+                    'ALL'
                 );
             });
 

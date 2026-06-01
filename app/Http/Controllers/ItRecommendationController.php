@@ -6,6 +6,7 @@ use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsInventory;
 use App\Models\SysUserRole;
 use App\Models\TrApproval;
+use App\Models\TrApprovalHistory;
 use App\Models\TrAttachment;
 use App\Models\TrItrecommend;
 use App\Models\TrItrecommendDetail;
@@ -294,8 +295,8 @@ class ItRecommendationController extends Controller
                 $meta = [
                     'refnbr' => $docid,
                     'doctype' => $this->doctype,
-                    'cpnyid' => $request->cpny_id,
-                    'departementid' => $request->department_id,
+                    'cpny_id' => $request->cpny_id,
+                    'department_id' => $request->department_id,
                     'base_folder' => 'att-it-recommendation',
                     'created_by' => $user->username,
                 ];
@@ -381,8 +382,8 @@ class ItRecommendationController extends Controller
                 $meta = [
                     'refnbr' => $header->docid,
                     'doctype' => $this->doctype,
-                    'cpnyid' => $header->cpny_id,
-                    'departementid' => $header->department_id,
+                    'cpny_id' => $header->cpny_id,
+                    'department_id' => $header->department_id,
                     'base_folder' => 'att-it-recommendation',
                     'created_by' => auth()->user()->username,
                 ];
@@ -468,6 +469,14 @@ class ItRecommendationController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
+            // Archive completed/revised approval steps to history before resetting
+            TrApproval::where('refnbr', $header->docid)
+                ->whereIn('status', ['A', 'D', 'R'])
+                ->get()
+                ->each(function ($aprv) {
+                    TrApprovalHistory::create($aprv->only($aprv->getFillable()));
+                });
+
             // reset approval
             TrApproval::where('refnbr', $header->docid)->delete();
 
@@ -635,8 +644,8 @@ class ItRecommendationController extends Controller
         $meta = [
             'refnbr' => $header->docid,
             'doctype' => $this->doctype,
-            'cpnyid' => $header->cpny_id,
-            'departementid' => $header->department_id,
+            'cpny_id' => $header->cpny_id,
+            'department_id' => $header->department_id,
             'base_folder' => 'att-it-recommendation',
             'created_by' => $user->username,
         ];
@@ -850,23 +859,18 @@ class ItRecommendationController extends Controller
             $header->save();
             $eid = Hashids::encode($header->id);
 
-            try {
-                $request->merge([
-                    'reason' => $request->note,
-                    'status' => 'I',
-                ]);
-                app('App\Http\Controllers\SendCommentController')
-                    ->sendmsg(
-                        $header->id,
-                        $this->doctype,
-                        $request
-                    );
-            } catch (\Throwable $e) {
-                Log::warning('Failed save IT revise comment', [
-                    'docid' => $header->docid,
-                    'error' => $e->getMessage(),
-                ]);
-            }
+            TrMessage::create([
+                'refnbr'        => $header->docid,
+                'doctype'       => $this->doctype,
+                'message_date'  => now(),
+                'cpny_id'       => $header->cpny_id,
+                'department_id' => $header->department_id,
+                'username'      => $user->username,
+                'name'          => $user->name,
+                'message'       => $request->note,
+                'status'        => 'I',
+                'created_by'    => $user->username,
+            ]);
 
             DB::connection('pgsql5')->commit();
 
@@ -951,7 +955,7 @@ class ItRecommendationController extends Controller
                 ]);
                 app('App\Http\Controllers\SendCommentController')
                     ->sendmsg(
-                        $header->id,
+                        $header->docid,
                         $this->doctype,
                         $request
                     );
@@ -1215,7 +1219,7 @@ class ItRecommendationController extends Controller
                 'username' => auth()->user()->username,
                 'name' => auth()->user()->name,
                 'message' => $request->note,
-                'status' => 'I',
+                'status' => 'D',
                 'created_by' => auth()->user()->username,
             ]);
 
@@ -1604,6 +1608,7 @@ class ItRecommendationController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        // IT-initiated revisions sent back to requester (status 'I')
         $itRevisions = TrMessage::query()
             ->where('refnbr', $header->docid)
             ->where('doctype', $this->doctype)
@@ -1611,25 +1616,73 @@ class ItRecommendationController extends Controller
             ->orderBy('message_date')
             ->get();
 
-        foreach ($itRevisions as $msg) {
+        // Fallback for legacy records (old code stored with refnbr = numeric id)
+        if ($itRevisions->isEmpty() && $header->status === 'D') {
+            $legacyMsg = TrMessage::query()
+                ->where('refnbr', (string) $header->id)
+                ->where('doctype', $this->doctype)
+                ->whereNotNull('message')
+                ->where('message', '!=', '')
+                ->orderBy('message_date')
+                ->first();
+
+            $push(
+                'IT Revision Requested',
+                $legacyMsg?->username ?? $header->updated_by,
+                $legacyMsg?->message_date ?? $header->updated_at,
+                'I',
+                'IT Revision Requested',
+                $legacyMsg?->message,
+                2
+            );
+        }
+
+        $itRevisionCount = $itRevisions->count();
+
+        foreach ($itRevisions as $index => $msg) {
             $push(
                 'IT Revision Requested',
                 $msg->username,
                 $msg->message_date,
                 'I',
-                'Waiting IT Revision',
+                'IT Revision Requested',
                 $msg->message,
                 2
             );
 
+            // Show "Resubmitted" only when the revision was actually followed by a resubmit
+            // (i.e. not the latest pending revision while doc is still in 'D' status).
+            $isLastRevision = ($index === $itRevisionCount - 1);
+            if (!$isLastRevision || $header->status !== 'D') {
+                $push(
+                    'Resubmitted',
+                    $header->created_by,
+                    $msg->message_date ? Carbon::parse($msg->message_date)->addSecond() : null,
+                    'RS',
+                    'Resubmitted',
+                    null,
+                    3
+                );
+            }
+        }
+
+        // Approval-initiated revisions sent back to IT (status 'D')
+        $approvalRevisionMessages = TrMessage::query()
+            ->where('refnbr', $header->docid)
+            ->where('doctype', $this->doctype)
+            ->where('status', 'D')
+            ->orderBy('message_date')
+            ->get();
+
+        foreach ($approvalRevisionMessages as $msg) {
             $push(
-                'Resubmitted',
-                $header->created_by,
-                optional($msg->message_date)?->copy()->addSecond(),
-                'RS',
-                'Resubmitted',
-                null,
-                3
+                'Revision Requested',
+                $msg->username,
+                $msg->message_date,
+                'D',
+                'Revision Requested',
+                $msg->message,
+                5
             );
         }
 
@@ -1688,17 +1741,29 @@ class ItRecommendationController extends Controller
             }
 
             if ($row->status === 'P') {
-                $push(
-                    'Waiting Approval',
-                    $row->aprv_username,
-                    $row->aprv_datebefore
-                        ? Carbon::parse($row->aprv_datebefore)
-                        : null,
-                    'P',
-                    'Waiting Approval',
-                    null,
-                    6
-                );
+                if ($row->aprv_datebefore) {
+                    $push(
+                        'Waiting Approval',
+                        $row->aprv_username,
+                        Carbon::parse($row->aprv_datebefore),
+                        'P',
+                        'Waiting Approval',
+                        null,
+                        6
+                    );
+                } else {
+                    // Level belum aktif (date belum di-set) — tetap tampilkan sebagai upcoming step
+                    $timeline[] = [
+                        'title'      => 'Waiting Approval',
+                        'description' => $row->aprv_username,
+                        'date'       => null,
+                        'raw_date'   => null,
+                        'status'     => 'P',
+                        'label'      => 'Waiting Approval',
+                        'note'       => null,
+                        'sort_order' => 9,
+                    ];
+                }
 
                 continue;
             }
@@ -1734,24 +1799,46 @@ class ItRecommendationController extends Controller
 
                 continue;
             }
+
+            // Future/not-yet-started approval step — bypass $push() since date is null
+            $timeline[] = [
+                'title'      => 'Waiting Approval',
+                'description' => $row->aprv_username,
+                'date'       => null,
+                'raw_date'   => null,
+                'status'     => 'P',
+                'label'      => 'Waiting Approval',
+                'note'       => null,
+                'sort_order' => 9,
+            ];
         }
 
         /*
         |--------------------------------------------------------------------------
-        | COMPLETED
+        | HISTORICAL APPROVALS (from previous process cycles via TrApprovalHistory)
         |--------------------------------------------------------------------------
         */
 
-        if ($header->status === 'C') {
-            $push(
-                'Completed',
-                $header->completed_by,
-                $header->completed_at,
-                'C',
-                'Completed',
-                null,
-                7
-            );
+        $histApprovals = TrApprovalHistory::query()
+            ->where('refnbr', $header->docid)
+            ->whereIn('status', ['A', 'D', 'R'])
+            ->orderBy('aprv_dateafter')
+            ->get();
+
+        foreach ($histApprovals as $row) {
+            if ($row->status === 'A') {
+                $push('Approved', $row->aprv_username,
+                    $row->aprv_dateafter ? Carbon::parse($row->aprv_dateafter) : null,
+                    'A', 'Approved', $row->aprv_purpose, 5);
+            } elseif ($row->status === 'D') {
+                $push('Revision Requested', $row->aprv_username,
+                    $row->aprv_dateafter ? Carbon::parse($row->aprv_dateafter) : null,
+                    'D', 'Revision Requested', $row->aprv_purpose, 5);
+            } elseif ($row->status === 'R') {
+                $push('Rejected', $row->aprv_username,
+                    $row->aprv_dateafter ? Carbon::parse($row->aprv_dateafter) : null,
+                    'R', 'Rejected', $row->aprv_purpose, 5);
+            }
         }
 
         /*
@@ -1811,10 +1898,19 @@ class ItRecommendationController extends Controller
         */
 
         $timeline = collect($timeline)
-            ->sortBy([
-                ['raw_date', 'asc'],
-                ['sort_order', 'asc'],
-            ])
+            ->sortBy(function ($row) {
+                $date = $row['raw_date'];
+
+                if (!$date) {
+                    $ts = PHP_INT_MAX;
+                } elseif ($date instanceof \Carbon\Carbon) {
+                    $ts = $date->timestamp;
+                } else {
+                    $ts = Carbon::parse($date)->timestamp;
+                }
+
+                return sprintf('%020d%02d', $ts, (int) ($row['sort_order'] ?? 0));
+            })
             ->values()
             ->map(function ($row) {
                 unset($row['raw_date']);
@@ -1925,5 +2021,29 @@ class ItRecommendationController extends Controller
             ->get();
 
         return response()->json($comments);
+    }
+
+    public function print($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $header = TrItrecommend::findOrFail($id);
+
+        $details = TrItrecommendDetail::where('docid', $header->docid)->get();
+
+        $approvals = TrApproval::where('refnbr', $header->docid)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS NUMERIC)')
+            ->orderBy('id')
+            ->get();
+
+        $pdf = \PDF::loadView(
+            'pages.it_recommendation.pdf_it_recommendation',
+            compact('header', 'details', 'approvals')
+        )->setPaper('a4', 'portrait');
+
+        return $pdf->stream("IT-RECOMMENDATION-{$header->docid}.pdf");
     }
 }

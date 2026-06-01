@@ -67,9 +67,9 @@ function initRequestForm() {
 
     $("#btnSubmitRequest").on(
         "click",
-        function () {
+        async function () {
 
-            submitRequestForm();
+            await submitRequestForm();
 
         }
     );
@@ -346,7 +346,7 @@ function recalculateSummary() {
         .text(software);
 }
 
-function submitRequestForm() {
+async function submitRequestForm() {
 
     const accessDate =
         $("#access_date").val();
@@ -369,56 +369,32 @@ function submitRequestForm() {
         $(".detail-item-row");
 
     if (!accessDate) {
-
-        showValidationMessage(
-            "Request date is required."
-        );
-
+        swalWarning("Request date is required.");
         return;
     }
 
     if (!accessType) {
-
-        showValidationMessage(
-            "Request type is required."
-        );
-
+        swalWarning("Request type is required.");
         return;
     }
 
     if (!cpnyId) {
-
-        showValidationMessage(
-            "Company is required."
-        );
-
+        swalWarning("Company is required.");
         return;
     }
 
     if (!departmentId) {
-
-        showValidationMessage(
-            "Department is required."
-        );
-
+        swalWarning("Department is required.");
         return;
     }
 
     if (!keperluan) {
-
-        showValidationMessage(
-            "Purpose / Notes is required."
-        );
-
+        swalWarning("Purpose / Notes is required.");
         return;
     }
 
     if (detailRows.length === 0) {
-
-        showValidationMessage(
-            "Please add at least one request item."
-        );
-
+        swalWarning("Please add at least one request item.");
         return;
     }
 
@@ -448,11 +424,7 @@ function submitRequestForm() {
     });
 
     if (invalidDetail) {
-
-        showValidationMessage(
-            "Please select category for all request items."
-        );
-
+        swalWarning("Please select category for all request items.");
         return;
     }
 
@@ -476,11 +448,10 @@ function submitRequestForm() {
 
     });
 
-    $("#btnSubmitRequest")
-        .prop("disabled", true)
-        .addClass(
-            "opacity-60 cursor-not-allowed"
-        )
+    const btn = $("#btnSubmitRequest");
+
+    btn.prop("disabled", true)
+        .addClass("opacity-60 cursor-not-allowed")
         .html(`
             <div class="
                 h-4 w-4 animate-spin rounded-lg
@@ -490,92 +461,75 @@ function submitRequestForm() {
             Submitting...
         `);
 
-    $.ajax({
+    try {
 
-        url:
-            $("#requestUrl").val() ||
-            "/access-request/store",
+        const res = await $.ajax({
 
-        type:
-            $("#requestMethod").val() ||
-            "POST",
+            url:
+                $("#requestUrl").val() ||
+                "/access-request/store",
 
-        data: formData,
+            type:
+                $("#requestMethod").val() ||
+                "POST",
 
-        processData: false,
+            data: formData,
 
-        contentType: false,
+            processData: false,
 
-        success: function (res) {
+            contentType: false,
 
-            swalSuccess(
-                res.message ??
-                "Request submitted successfully."
-            );
+        });
 
-            selectedFiles = [];
+        Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: res.message ?? "Request submitted successfully.",
+            timer: 1800,
+            showConfirmButton: false,
+        });
 
-            existingAttachments = [];
+        selectedFiles = [];
 
-            closeAllModal();
+        existingAttachments = [];
 
-            resetRequestForm();
+        closeAllModal();
 
-            table.ajax.reload(
-                null,
-                false
-            );
-        },
+        resetRequestForm();
 
-        error: function (xhr) {
+        table.ajax.reload(null, false);
 
-            if (xhr.status === 422) {
+    } catch (xhr) {
 
-                const errors =
-                    xhr.responseJSON.errors;
+        let msg = "Failed to submit request.";
 
-                let firstError = null;
+        if (xhr.responseJSON?.message) {
+            msg = xhr.responseJSON.message;
+        }
 
-                Object.keys(errors).forEach((key) => {
+        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+            msg = Object.values(xhr.responseJSON.errors).flat().join("<br>");
+        }
 
-                    if (!firstError) {
+        Swal.fire({
+            icon: "error",
+            title: "Validation Error",
+            html: msg,
+        });
 
-                        firstError =
-                            errors[key][0];
-                    }
-                });
+    } finally {
 
-                showValidationMessage(
-                    firstError ??
-                    "Validation failed."
-                );
+        btn.prop("disabled", false)
+            .removeClass("opacity-60 cursor-not-allowed")
+            .html(`
+                <i class="fa-solid fa-paper-plane text-xs"></i>
+                Submit Request
+            `);
 
-            } else {
-
-                showValidationMessage(
-                    xhr.responseJSON?.message ??
-                    "Failed submit request."
-                );
-            }
-        },
-
-        complete: function () {
-
-            $("#btnSubmitRequest")
-                .prop("disabled", false)
-                .removeClass(
-                    "opacity-60 cursor-not-allowed"
-                )
-                .html(`
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                    Submit Request
-                `);
-
-        },
-    });
+    }
 }
 
-function openEditModal(id) {
+async function openEditModal(id) {
 
     resetRequestForm();
 
@@ -593,133 +547,94 @@ function openEditModal(id) {
 
     openModal("#requestModal");
 
-    $.ajax({
+    const btn = $("#btnSubmitRequest");
 
-        url:
-            `/access-request/detail/${id}`,
+    btn.prop("disabled", true)
+        .addClass("opacity-60 cursor-not-allowed")
+        .html(`
+            <div class="
+                h-4 w-4 animate-spin rounded-lg
+                border-2 border-white/40 border-t-white
+            "></div>
 
-        type: "GET",
+            Loading...
+        `);
 
-        beforeSend: function () {
+    try {
 
-            $("#btnSubmitRequest")
-                .prop("disabled", true)
-                .addClass(
-                    "opacity-60 cursor-not-allowed"
-                )
-                .html(`
-                    <div class="
-                        h-4 w-4 animate-spin rounded-lg
-                        border-2 border-white/40 border-t-white
-                    "></div>
+        const res = await $.ajax({
+            url: `/access-request/detail/${id}`,
+            type: "GET",
+        });
 
-                    Loading...
-                `);
+        const access =
+            res.access ?? {};
 
-        },
+        const details =
+            res.details ?? [];
 
-        success: function (res) {
-
-            // console.log(
-            //     "edit response",
-            //     res
-            // );
-
-            const access =
-                res.access ?? {};
-
-            const details =
-                res.details ?? [];
-
-            const attachments =
-                (res.attachments ?? []).filter(
-                    (
-                        file,
-                        index,
-                        self
-                    ) =>
-                        index ===
-                        self.findIndex(
-                            (f) =>
-                                f.url ===
-                                file.url
-                        )
-                );
-
-            $("#access_date").val(
-                access.access_date
-                    ? access.access_date.split(" ")[0]
-                    : ""
+        const attachments =
+            (res.attachments ?? []).filter(
+                (file, index, self) =>
+                    index === self.findIndex((f) => f.url === file.url)
             );
 
-            $("#access_type")
-                .val(access.access_type)
-                .trigger("change");
+        $("#access_date").val(
+            access.access_date
+                ? access.access_date.split(" ")[0]
+                : ""
+        );
 
-            $("#cpny_id")
-                .val(access.cpny_id)
-                .trigger("change");
+        $("#access_type")
+            .val(access.access_type)
+            .trigger("change");
 
-            $("#department_id")
-                .val(access.department_id)
-                .trigger("change");
+        $("#cpny_id")
+            .val(access.cpny_id)
+            .trigger("change");
 
-            $("#keperluan").val(
-                access.keperluan ?? ""
-            );
+        $("#department_id")
+            .val(access.department_id)
+            .trigger("change");
 
-            $("#requestDetailContainer")
-                .html("");
+        $("#keperluan").val(
+            access.keperluan ?? ""
+        );
 
-            details.forEach((item) => {
+        $("#requestDetailContainer").html("");
 
-                appendDetailRow({
+        details.forEach((item) => {
 
-                    categoryid:
-                        item.access_id,
-
-                    category_name:
-                        item.access_descr,
-
-                    group_category:
-                        item.group_category,
-
-                });
-
+            appendDetailRow({
+                categoryid:    item.access_id,
+                category_name: item.access_descr,
+                group_category: item.group_category,
             });
 
-            existingAttachments =
-                attachments;
+        });
 
-            renderExistingAttachments(
-                existingAttachments
-            );
+        existingAttachments = attachments;
 
-            recalculateSummary();
-        },
+        renderExistingAttachments(existingAttachments);
 
-        error: function (xhr) {
+        recalculateSummary();
 
-            swalError(
-                xhr.responseJSON?.message ??
-                "Failed load edit data"
-            );
+    } catch (xhr) {
 
-            closeAllModal();
-        },
+        swalError(
+            xhr.responseJSON?.message ?? "Failed load edit data"
+        );
 
-        complete: function () {
+        closeAllModal();
 
-            $("#btnSubmitRequest")
-                .prop("disabled", false)
-                .removeClass(
-                    "opacity-60 cursor-not-allowed"
-                )
-                .html(`
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                    Submit Request
-                `);
+    } finally {
 
-        },
-    });
+        btn.prop("disabled", false)
+            .removeClass("opacity-60 cursor-not-allowed")
+            .html(`
+                <i class="fa-solid fa-paper-plane text-xs"></i>
+                Submit Request
+            `);
+
+    }
 }

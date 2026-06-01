@@ -47,8 +47,6 @@
 
                 $("#waitingApprovalCount").text(data.waiting_approval || 0);
 
-                $("#approvalHistoryCount").text(data.approval_history || 0);
-
                 $("#prfCount").text(data.waiting_prf || 0);
 
                 $("#applicantCount").text(data.unchecked_applicant || 0);
@@ -594,8 +592,8 @@ function statusBadge(status) {
             }
 
             rows.forEach((row) => {
-                if (row.url && row.hid) {
-                    window.open(`${row.url}/${row.hid}`, "_blank");
+                if (row.url && row.eid) {
+                    window.open(`${row.url}/${row.eid}`, "_blank");
                 }
             });
         });

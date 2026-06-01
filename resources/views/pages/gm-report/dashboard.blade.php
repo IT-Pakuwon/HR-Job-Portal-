@@ -43,12 +43,28 @@
                     <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
                     <x-card-chart.card-shell
                         subtitle="Breakdown"
-                        title="Used · Remaining"
-                        gradient="linear-gradient(to right,#EF4444,#10B981)"
+                        title="Used · Reserved · Remaining"
+                        gradient="linear-gradient(to right,#EF4444,#F59E0B,#10B981)"
                         {{-- legendPosition="right" --}}
                     >
                         <div class="px-2 pb-2 pt-0">
                             <div id="gmBudgetDonut" style="min-height:210px"></div>
+                        </div>
+                    </x-card-chart.card-shell>
+
+                            {{-- Monthly Absorption Trend --}}
+                    <x-card-chart.card-shell
+                        subtitle="Monthly Absorption"
+                        title="Cumulative Budget Used"
+                        gradient="linear-gradient(to right,#8B5CF6,#06B6D4)"
+                    >
+                        <x-slot:headerEnd>
+                            <span id="gmTrendYear"
+                                class="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-bold text-violet-600 dark:bg-violet-500/10 dark:text-violet-400">
+                            </span>
+                        </x-slot:headerEnd>
+                        <div class="pb-4 pt-0">
+                            <div id="gmMonthlyTrend" style="min-height:210px"></div>
                         </div>
                     </x-card-chart.card-shell>
 
@@ -67,6 +83,7 @@
                     :columns="[
                         ['label' => 'Department', 'key' => 'department_fin_id'],
                         ['label' => 'Budget',     'key' => 'total_final',     'numeric' => true],
+                        ['label' => 'Reserved',   'key' => 'total_reserve',   'numeric' => true],
                         ['label' => 'Remaining',  'key' => 'total_remaining', 'numeric' => true],
                         ['label' => 'Usage %',    'key' => 'used_pct',        'numeric' => true],
                     ]"
@@ -83,6 +100,7 @@
                     :columns="[
                         ['label' => 'Description', 'key' => 'activity_descr'],
                         ['label' => 'Budget',      'key' => 'total_final',     'numeric' => true],
+                        ['label' => 'Reserved',    'key' => 'total_reserve',   'numeric' => true],
                         ['label' => 'Remaining',   'key' => 'total_remaining', 'numeric' => true],
                         ['label' => 'Usage %',     'key' => 'used_pct',        'numeric' => true],
                     ]"
@@ -91,6 +109,8 @@
             </div>
 
         </div>
+
+
 
     </div>
 
@@ -103,6 +123,7 @@
             summary    : "{{ route('gm.budget-summary') }}",
             byDept     : "{{ route('gm.budget-by-department') }}",
             byActivity : "{{ route('gm.budget-by-activity') }}",
+            byMonth    : "{{ route('gm.budget-by-month') }}",
         };
     </script>
 
