@@ -44,13 +44,6 @@ class GmReportController extends Controller
         return $q;
     }
 
-    /**
-     * Build aggregate SQL expressions for the selected date range.
-     *
-     * - Full year (Jan 1 – Dec 31) → use totalbudget / total_used / total_reserve columns
-     * - Single or partial month range within one year → sum the relevant periodXX columns
-     * - Cross-year range → fall back to full-year totals for the start year
-     */
     private function buildExprs(string $dateFrom, string $dateTo): array
     {
         $from      = \Carbon\Carbon::parse($dateFrom);
@@ -112,14 +105,16 @@ class GmReportController extends Controller
         return $q->whereRaw("LEFT(perpost::text, 4) BETWEEN ? AND ?", [$fromYear, $toYear]);
     }
 
-    // ── View ──────────────────────────────────────────────────────────────────
-
     public function dashboard()
     {
-        return view('pages.gm-report.dashboard');
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        return view('pages.gm-report.dashboard', [
+            'user' => $user,
+        ]);
     }
-
-    // ── API: Companies accessible to this user ────────────────────────────────
 
     public function companies()
     {
@@ -193,13 +188,18 @@ class GmReportController extends Controller
 
     public function budgetSummary(Request $request)
     {
-        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId] = $this->parseFilters($request);
+        ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId, 'depts' => $depts]
+            = $this->parseFilters($request);
         $allowed = $this->allowedCompanies();
         $exprs   = $this->buildExprs($dateFrom, $dateTo);
 
         $q = BudgetDetail::query()->where('status', 'C');
         $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
         $q = $this->applyDateFilter($q, $dateFrom, $dateTo);
+
+        if (!empty($depts)) {
+            $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
+        }
 
         $row = $q->selectRaw("
             {$exprs['budget']}  AS total_budget,
@@ -304,5 +304,56 @@ class GmReportController extends Controller
         ->get();
 
         return response()->json(['data' => $rows]);
+    }
+
+    // ── API: Cumulative budget used per month ─────────────────────────────────
+
+    public function budgetByMonth(Request $request)
+    {
+        ['dateFrom' => $dateFrom, 'cpnyId' => $cpnyId, 'depts' => $depts]
+            = $this->parseFilters($request);
+
+        $allowed = $this->allowedCompanies();
+        $year    = substr($dateFrom, 0, 4);
+
+        $selects = [
+            'COALESCE(SUM(totalbudget), 0) + COALESCE(SUM(totalbudget_add), 0) AS total_budget',
+        ];
+        for ($m = 1; $m <= 12; $m++) {
+            $mm        = str_pad($m, 2, '0', STR_PAD_LEFT);
+            $selects[] = "COALESCE(SUM(period{$mm}_used), 0) AS m{$mm}";
+        }
+
+        $q = BudgetDetail::query()->where('status', 'C');
+        $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
+        $q->whereRaw("LEFT(perpost::text, 4) = ?", [$year]);
+
+        if (!empty($depts)) {
+            $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
+        }
+
+        $row = $q->selectRaw(implode(', ', $selects))->first();
+
+        $months     = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $data       = [];
+        $cumulative = 0;
+
+        for ($m = 1; $m <= 12; $m++) {
+            $mm          = str_pad($m, 2, '0', STR_PAD_LEFT);
+            $used        = (float) ($row->{"m{$mm}"} ?? 0);
+            $cumulative += $used;
+            $data[]      = [
+                'month'      => $months[$m - 1],
+                'used'       => round($used),
+                'cumulative' => round($cumulative),
+            ];
+        }
+
+        return response()->json([
+            'data'         => $data,
+            'year'         => $year,
+            'total_budget' => round((float) ($row->total_budget ?? 0)),
+        ]);
     }
 }

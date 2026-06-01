@@ -171,7 +171,7 @@ function loadResponsePIC(ticket) {
             results.forEach(pic => {
 
                 const selected =
-                    ticket.pic_username === pic.id;
+                    ticket.pic_ticket === pic.id;
 
                 const option =
                     new Option(

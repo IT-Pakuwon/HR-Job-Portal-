@@ -84,7 +84,7 @@
                     <div class="text-[10px] uppercase tracking-wider text-slate-500">
                         Waiting Approval
                     </div>
-                    <div id="approvalCount" class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+                    <div id="waitingApprovalCount" class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
                         0
                     </div>
                 </div>

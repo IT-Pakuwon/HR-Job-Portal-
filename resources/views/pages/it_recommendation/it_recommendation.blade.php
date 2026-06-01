@@ -7,112 +7,88 @@
         <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
 
             {{-- All --}}
-            <a href="#" class="status-filter group block h-full text-left" data-status="">
-                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="">
                     <div
-                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-500/10 text-sm text-slate-400">
-                        📄
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">All</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $all }}</p>
                     </div>
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <span class="text-xs font-medium text-slate-400">
-                            All
-                        </span>
-                    </div>
-                    <span class="text-lg font-bold text-slate-400">
-                        {{ $all }}
-                    </span>
-                </div>
-            </a>
+                </a>
+            </button>
 
             {{-- Waiting IT --}}
-            <a href="#" class="status-filter group block h-full text-left" data-status="W,I">
-                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="W,I">
                     <div
-                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-sm text-blue-400">
-                        🛠️
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-blue-600 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/20">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🛠️</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Waiting IT</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $waitingIT }}</p>
                     </div>
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <span class="text-xs font-medium text-blue-400">
-                            Waiting IT
-                        </span>
-                    </div>
-                    <span class="text-lg font-bold text-blue-400">
-                        {{ $waitingIT }}
-                    </span>
-                </div>
-            </a>
+                </a>
+            </button>
 
             {{-- Waiting Approval --}}
-            <a href="#" class="status-filter group block h-full text-left" data-status="P">
-                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="P">
                     <div
-                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-500/10 text-sm text-orange-400">
-                        ⏳
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-orange-600 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95 dark:border-orange-500 dark:text-orange-400 dark:hover:bg-orange-500/20">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Waiting Approval</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $waitingApproval }}</p>
                     </div>
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <span class="text-xs font-medium text-orange-400">
-                            Waiting Approval
-                        </span>
-                    </div>
-                    <span class="text-lg font-bold text-orange-400">
-                        {{ $waitingApproval }}
-                    </span>
-                </div>
-            </a>
+                </a>
+            </button>
 
             {{-- Revise --}}
-            <a href="#" class="status-filter group block h-full text-left" data-status="D">
-                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="D">
                     <div
-                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-sm text-amber-400">
-                        ✏️
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-amber-600 bg-amber-200/20 p-3 text-amber-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-amber-100 hover:shadow-md active:scale-95 dark:border-amber-500 dark:text-amber-400 dark:hover:bg-amber-500/20">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Revise</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
                     </div>
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <span class="text-xs font-medium text-amber-400">
-                            Revise
-                        </span>
-                    </div>
-                    <span class="text-lg font-bold text-amber-400">
-                        {{ $revise }}
-                    </span>
-                </div>
-            </a>
+                </a>
+            </button>
 
             {{-- Rejected --}}
-            <a href="#" class="status-filter group block h-full text-left" data-status="R">
-                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="R">
                     <div
-                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-sm text-rose-400">
-                        ⛔
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-red-600 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500/20">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Rejected</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $reject }}</p>
                     </div>
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <span class="text-xs font-medium text-rose-400">
-                            Rejected
-                        </span>
-                    </div>
-                    <span class="text-lg font-bold text-rose-400">
-                        {{ $reject }}
-                    </span>
-                </div>
-            </a>
+                </a>
+            </button>
 
             {{-- Completed --}}
-            <a href="#" class="status-filter group block h-full text-left" data-status="C">
-                <div class="status-card flex h-full items-center gap-3 border border-white/10 bg-white/5 p-3">
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="C">
                     <div
-                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-sm text-emerald-400">
-                        ✅
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-600 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-500/20">
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Completed</p>
+                        </div>
+                        <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
                     </div>
-                    <div class="flex min-w-0 flex-grow flex-col">
-                        <span class="text-xs font-medium text-emerald-400">
-                            Completed
-                        </span>
-                    </div>
-                    <span class="text-lg font-bold text-emerald-400">
-                        {{ $completed }}
-                    </span>
-                </div>
-            </a>
+                </a>
+            </button>
 
         </div>
         {{-- Table --}}
@@ -120,7 +96,7 @@
             class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
-                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
 
                 <div>
 
@@ -246,7 +222,7 @@
 
                     <div id="show_notes" class="space-y-2"></div>
 
-                    <form id="createForm" class="space-y-4">
+                    <form id="createForm" class="space-y-2">
 
                         @csrf
 
@@ -462,37 +438,40 @@
         </div>
 
         {{-- View Modal --}}
-        <div id="showModal" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <div id="showModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             <div
                 class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/75">
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
+                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 <div
-                    class="bdark:border-white/10 sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div class="min-w-0">
 
-                        <div class="flex flex-wrap items-center gap-3">
-
-                            <h2 id="show_docid" class="truncate text-xl font-bold text-slate-900 dark:text-white">
-                                -
-                            </h2>
-
-                            <div id="show_status_badge"></div>
-
-                        </div>
-
-                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        <h2 id="show_docid" class="font-semibold text-slate-800 dark:text-white">
                             IT Recommendation Detail
+                        </h2>
+
+                        <p class="mt-1 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                            IT Recommendation information &amp; approval workflow.
+                            <span id="show_status_badge"></span>
                         </p>
 
                     </div>
 
                     <div class="flex items-center gap-2">
+
+                        {{-- Discussion FAB --}}
+                        <div id="discussionFab" class="hidden">
+                            <button type="button"
+                                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                                <i class="fa-solid fa-comments text-sm"></i>
+                            </button>
+                        </div>
 
                         <button id="btnCloseShowModal" type="button"
                             class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
@@ -505,11 +484,9 @@
 
                 </div>
 
-                <div class="flex-1 overflow-y-auto">
+                    <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-6">
 
-                    <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-5">
-
-                        <div class="space-y-5 lg:col-span-3">
+                        <div class="space-y-4 lg:col-span-4">
 
                             {{-- REQUEST INFORMATION --}}
                             <div
@@ -631,20 +608,10 @@
 
                         </div>
 
-                        <div class="space-y-5 lg:col-span-2">
-                            <div id="show_actions_card"
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                        <div class="space-y-2 lg:col-span-2">
 
-                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
-                                    <h3
-                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                                        Actions
-                                    </h3>
-                                </div>
-
-                                <div id="show_header_actions" class="p-2"></div>
-                            </div>
-
+                            {{-- APPROVAL ACTIONS (Approve / Revise / Reject) --}}
+                            <div id="show_approval_actions_wrapper" class="hidden"></div>
 
                             {{-- TIMELINE --}}
                             <div
@@ -666,68 +633,60 @@
 
                             </div>
 
-                            {{-- COMMENTS --}}
-                            <div id="discussionFab" class="fixed bottom-6 right-6 z-[10001] hidden">
+                        </div>
 
-                                <button type="button"
-                                    class="relative flex h-14 w-14 items-center justify-center rounded-lg bg-slate-900 text-white shadow-2xl transition hover:scale-105 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
+                    </div>
 
-                                    <i class="fa-solid fa-comments text-lg"></i>
+                {{-- DISCUSSION PANEL (fixed to viewport, pops up from bottom-right) --}}
+                <div id="discussionPanel"
+                    class="fixed bottom-20 right-6 z-[10001] hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
 
-                                </button>
+                    <div
+                        class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
-                            </div>
+                        <h3
+                            class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            Discussion
+                        </h3>
 
-                            <div id="discussionPanel"
-                                class="fixed bottom-24 right-6 z-[10001] hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+                        <button type="button" id="btnCloseDiscussion">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
 
-                                <div
-                                    class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                    </div>
 
-                                    <div>
+                    <div id="discussionMessages"
+                        class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]">
+                    </div>
 
-                                        <h3
-                                            class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                                            Discussion
-                                        </h3>
+                    <div class="border-t border-slate-200 p-3 dark:border-white/10">
 
-                                    </div>
+                        <div class="flex items-end gap-2">
 
-                                    <button type="button" id="btnCloseDiscussion">
+                            <textarea id="discussionInput" rows="1" placeholder="Write message..." class="flex-1 rounded-lg">
+                            </textarea>
 
-                                        <i class="fa-solid fa-xmark"></i>
-
-                                    </button>
-
-                                </div>
-
-                                <div id="discussionMessages"
-                                    class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]">
-                                </div>
-
-                                <div class="border-t border-slate-200 p-3 dark:border-white/10">
-
-                                    <div class="flex items-end gap-2">
-
-                                        <textarea id="discussionInput" rows="1" placeholder="Write message..." class="flex-1 rounded-lg">
-                                        </textarea>
-
-                                        <button type="button" id="btnSendDiscussion"
-                                            class="h-11 w-11 rounded-lg bg-slate-900 text-white">
-
-                                            <i class="fa-solid fa-paper-plane"></i>
-
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
+                            <button type="button" id="btnSendDiscussion"
+                                class="h-11 w-11 rounded-lg bg-slate-900 text-white">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
 
                         </div>
 
                     </div>
+
+                </div>
+
+                {{-- STICKY FOOTER --}}
+                <div
+                    class="sticky bottom-0 z-20 flex items-center justify-between border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+
+                    <button type="button" id="btnCloseShowModalFooter"
+                        class="text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
+                        Close
+                    </button>
+
+                    <div id="show_footer_actions" class="flex items-center gap-3"></div>
 
                 </div>
 
@@ -816,241 +775,231 @@
 
                     <div class="flex-1 overflow-y-auto">
 
-                        <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-1">
+                        {{-- LEFT --}}
+                        <div class="space-y-2 p-2">
 
-                            {{-- LEFT --}}
-                            <div class="space-y-5 lg:col-span-2">
+                            {{-- REQUEST INFORMATION --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                {{-- REQUEST INFORMATION --}}
-                                <div
-                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 
-                                        <h3
-                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                        Request Information
 
-                                            Request Information
-
-                                        </h3>
-
-                                    </div>
-
-                                    <div id="process_information"
-                                        class="grid grid-cols-1 gap-x-6 gap-y-5 p-5 text-sm md:grid-cols-2 xl:grid-cols-3">
-                                    </div>
+                                    </h3>
 
                                 </div>
 
-                                {{-- RECOMMENDATION --}}
-                                <div
-                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
-
-                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
-
-                                        <h3
-                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-
-                                            Recommendation
-
-                                        </h3>
-
-                                    </div>
-
-                                    <div class="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
-
-                                        <div>
-
-                                            <label
-                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
-
-                                                Recommendation Type
-
-                                            </label>
-
-                                            <select name="recommend_type" id="recommend_type" required
-                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
-
-                                                <option value="">
-                                                    Select Type
-                                                </option>
-
-                                                <option value="New Purchase">
-                                                    New Purchase
-                                                </option>
-
-                                                <option value="Repair">
-                                                    Repair
-                                                </option>
-
-                                                <option value="Replacement">
-                                                    Replacement
-                                                </option>
-
-                                            </select>
-
-                                        </div>
-
-                                        <div>
-
-                                            <label
-                                                class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
-
-                                                Warranty
-
-                                            </label>
-
-                                            <input type="text" name="waranty" id="waranty"
-                                                placeholder="Optional"
-                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
-
-                                        </div>
-
-                                        <div class="md:col-span-2">
-
-                                            <label
-                                                class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
-
-                                                Recommendation
-
-                                            </label>
-
-                                            <textarea name="recommendation" id="recommendation" rows="5" required placeholder="Write recommendation..."
-                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"></textarea>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                                {{-- ITEMS --}}
-                                <div
-                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
-
-                                    <div
-                                        class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
-
-                                        <h3
-                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-
-                                            Recommendation Items
-
-                                        </h3>
-
-                                        <button type="button" id="btnAddItem"
-                                            class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">
-
-                                            <i class="fa-solid fa-plus text-[10px]"></i>
-
-                                            Add Item
-
-                                        </button>
-
-                                    </div>
-
-                                    <div class="overflow-visible">
-
-                                        <table class="w-full text-sm">
-
-                                            <thead
-                                                class="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-[0.15em] text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
-
-                                                <tr>
-
-                                                    <th class="px-4 py-3 text-left font-semibold">
-                                                        Inventory
-                                                    </th>
-
-                                                    <th class="px-4 py-3 text-left font-semibold">
-                                                        Qty
-                                                    </th>
-
-                                                    <th class="px-4 py-3 text-left font-semibold">
-                                                        UOM
-                                                    </th>
-
-                                                    <th class="px-4 py-3 text-left font-semibold">
-                                                        Note
-                                                    </th>
-
-                                                    <th class="w-14 px-4 py-3 text-center">
-                                                    </th>
-
-                                                </tr>
-
-                                            </thead>
-
-                                            <tbody id="process_detail_body"></tbody>
-
-                                        </table>
-
-                                    </div>
-
+                                <div id="process_information"
+                                    class="grid grid-cols-1 gap-x-6 gap-y-5 p-5 text-sm md:grid-cols-2 xl:grid-cols-3">
                                 </div>
 
                             </div>
 
-                            {{-- RIGHT --}}
-                            <div class="space-y-5 lg:col-span-2">
+                            {{-- RECOMMENDATION --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                {{-- ATTACHMENTS --}}
-                                <div
-                                    class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                    <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
 
-                                        <h3
-                                            class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                        Recommendation
 
-                                            Attachments
+                                    </h3>
 
-                                        </h3>
+                                </div>
 
-                                    </div>
+                                <div class="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
 
-                                    <div class="space-y-4 p-5">
+                                    <div>
 
-                                        <label for="process_attachments_input"
-                                            class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
+                                        <label
+                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
 
-                                            <div
-                                                class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
-
-                                                <i class="fa-solid fa-cloud-arrow-up"></i>
-
-                                            </div>
-
-                                            <div>
-
-                                                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                                    Upload Process Attachment
-                                                </p>
-
-                                                <p class="text-xs text-slate-500 dark:text-slate-400">
-                                                      (Max 5 MB)
-                                                </p>
-
-                                            </div>
-
-                                            <input type="file" id="process_attachments_input" name="attachments[]"
-                                                multiple class="hidden">
+                                            Recommendation Type
 
                                         </label>
 
-                                        <div id="processAttachmentPreview" class="flex flex-wrap gap-3">
-                                        </div>
+                                        <select name="recommend_type" id="recommend_type" required
+                                            class="process-select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#111827]">
 
-                                        <div id="process_attachments" class="flex flex-wrap gap-3">
-                                        </div>
+                                            <option value="">
+                                                Select Type
+                                            </option>
+
+                                            <option value="New Purchase">
+                                                New Purchase
+                                            </option>
+
+                                            <option value="Repair">
+                                                Repair
+                                            </option>
+
+                                            <option value="Replacement">
+                                                Replacement
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <div>
+
+                                        <label
+                                            class="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+
+                                            Warranty
+
+                                        </label>
+
+                                        <input type="text" name="waranty" id="waranty" placeholder="Optional"
+                                            class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+
+                                    </div>
+
+                                    <div class="md:col-span-2">
+
+                                        <label
+                                            class="req mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+
+                                            Recommendation
+
+                                        </label>
+
+                                        <textarea name="recommendation" id="recommendation" rows="5" required placeholder="Write recommendation..."
+                                            class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white"></textarea>
 
                                     </div>
 
                                 </div>
+
+                            </div>
+
+                            {{-- ITEMS --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div
+                                    class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                        Recommendation Items
+
+                                    </h3>
+
+                                    <button type="button" id="btnAddItem"
+                                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">
+
+                                        <i class="fa-solid fa-plus text-[10px]"></i>
+
+                                        Add Item
+
+                                    </button>
+
+                                </div>
+
+                                <div class="overflow-visible">
+
+                                    <table class="w-full text-sm">
+
+                                        <thead
+                                            class="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-[0.15em] text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
+
+                                            <tr>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    Inventory
+                                                </th>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    Qty
+                                                </th>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    UOM
+                                                </th>
+
+                                                <th class="px-4 py-3 text-left font-semibold">
+                                                    Note
+                                                </th>
+
+                                                <th class="w-14 px-4 py-3 text-center">
+                                                </th>
+
+                                            </tr>
+
+                                        </thead>
+
+                                        <tbody id="process_detail_body"></tbody>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                            {{-- ATTACHMENTS --}}
+                            <div
+                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+
+                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+
+                                    <h3
+                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+
+                                        Attachments
+
+                                    </h3>
+
+                                </div>
+
+                                <div class="space-y-3 p-4">
+
+                                    <label for="process_attachments_input"
+                                        class="group flex cursor-pointer items-center justify-center gap-4 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-6 transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/[0.05]">
+
+                                        <div
+                                            class="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-300">
+
+                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+
+                                        </div>
+
+                                        <div>
+
+                                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                                Upload Process Attachment
+                                            </p>
+
+                                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                                (Max 5 MB)
+                                            </p>
+
+                                        </div>
+
+                                        <input type="file" id="process_attachments_input" name="attachments[]"
+                                            multiple class="hidden">
+
+                                    </label>
+
+                                    <div id="processAttachmentPreview" class="flex flex-wrap gap-3">
+                                    </div>
+
+                                    <div id="process_attachments" class="flex flex-wrap gap-3">
+                                    </div>
+
+                                </div>
+
                             </div>
 
                         </div>
-
                     </div>
 
                 </form>
@@ -1121,16 +1070,7 @@
                                 <div
                                     class="rounded-lg border border-orange-200 bg-orange-50 shadow-sm dark:border-orange-500/20 dark:bg-orange-500/10">
 
-                                    <div class="flex items-start gap-4 p-5">
-
-                                        <div
-                                            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-300">
-
-                                            <i class="fa-solid fa-rotate-left"></i>
-
-                                        </div>
-
-                                        <div class="min-w-0 flex-1">
+                                        <div class="flex flex-col w-full gap-2 p-4">
 
                                             <h3
                                                 class="text-xs font-bold uppercase tracking-[0.18em] text-orange-700 dark:text-orange-300">
@@ -1139,19 +1079,9 @@
 
                                             </h3>
 
-                                            <p
-                                                class="mt-2 text-sm leading-relaxed text-orange-700 dark:text-orange-200">
-
-                                                Please review and update recommendation before resubmitting approval.
-
-                                            </p>
-
-                                            <div id="revision_note_container" class="mt-4"></div>
+                                            <div id="revision_note_container" ></div>
 
                                         </div>
-
-                                    </div>
-
                                 </div>
 
                                 {{-- REQUEST INFORMATION --}}
@@ -1202,7 +1132,7 @@
                                             </label>
 
                                             <select id="edit_recommend_type"
-                                                class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-white/10 dark:bg-[#111827] dark:text-white">
+                                                class="edit-select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#111827]">
 
                                                 <option value="New Purchase">
                                                     New Purchase

@@ -4,7 +4,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Status Filter --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
 
             {{-- All Status --}}
             <button type="button" class="text-left">
@@ -74,19 +74,36 @@
                 </a>
             </button>
 
-            {{-- Completed Status --}}
+            {{-- Approved Status (management approved, IT processing) --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="C">
                     <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-md active:scale-95">
 
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Completed</p>
+                            <p class="break-words text-sm font-medium">Approved</p>
                         </div>
 
                         <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
+                    </div>
+                </a>
+            </button>
+
+            {{-- Finished Status (IT completed all access items) --}}
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="F">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🏁</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Finished</p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-bold">{{ $finished }}</p>
                     </div>
                 </a>
             </button>
@@ -254,7 +271,7 @@
 
                                 <div>
 
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                         Request Type
                                     </label>
 
@@ -349,7 +366,7 @@
 
                                 <div class="md:col-span-2">
 
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    <label class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                         Purpose / Notes
                                     </label>
 
@@ -568,27 +585,22 @@
             </div>
 
             <div
-                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-50 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0b1220]">
+                class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
 
                 {{-- HEADER --}}
                 <div
-                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4     dark:border-white/10 dark:bg-[#0f172a]/90">
+                    class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
 
                     <div class="min-w-0">
 
-                        <div class="flex flex-wrap items-center gap-3">
-
-                            <h2 id="detailModalDocId"
-                                class="truncate text-xl font-bold text-slate-900 dark:text-white">
-                                -
-                            </h2>
-
-                            <div id="detailModalStatus"></div>
-
-                        </div>
-
-                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        <h2 id="detailModalDocId"
+                            class="truncate text-xl font-bold text-slate-900 dark:text-white">
                             Access Request Detail
+                        </h2>
+
+                        <p class="mt-1 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                            Access Request information &amp; approval workflow.
+                            <span id="detailModalStatus"></span>
                         </p>
 
                     </div>
@@ -602,6 +614,14 @@
 
                         </button>
 
+                        {{-- Discussion FAB in header --}}
+                        <div id="discussionFab" class="hidden">
+                            <button type="button"
+                                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                                <i class="fa-solid fa-comments text-sm"></i>
+                            </button>
+                        </div>
+
                         <button type="button" data-modal="#detailModal"
                             class="btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
@@ -613,113 +633,87 @@
 
                 </div>
 
-                <div class="flex-1 overflow-y-auto">
+                {{-- CONTENT --}}
+                <div class="grid grid-cols-1 gap-4 bg-slate-50 p-4 dark:bg-[#0b1220] lg:grid-cols-6">
 
-                    <div class="grid grid-cols-1 gap-5 p-5 lg:grid-cols-4">
+                    {{-- LEFT CONTENT --}}
+                    <div class="space-y-4 lg:col-span-4">
 
-                        {{-- LEFT CONTENT --}}
-                        <div class="space-y-5 lg:col-span-3">
+                        {{-- REQUEST INFORMATION --}}
+                        <div
+                            class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                            {{-- REQUEST INFORMATION --}}
-                            <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
-
-                                    <h3
-                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-
-                                        Request Information
-
-                                    </h3>
-
-                                </div>
-
-                                <div id="detailInfoContainer">
-                                </div>
+                                <h3
+                                    class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                    Request Information
+                                </h3>
 
                             </div>
 
-                            {{-- ACCESS ITEMS --}}
-                            <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            <div id="detailInfoContainer"></div>
 
-                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                        </div>
 
-                                    <h3
-                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                        {{-- ACCESS ITEMS --}}
+                        <div
+                            class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                        Access Request Items
+                            <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                    </h3>
-
-                                </div>
-
-                                <div id="detailItemsContainer">
-                                </div>
+                                <h3
+                                    class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                    Access Request Items
+                                </h3>
 
                             </div>
 
-                            {{-- ATTACHMENTS --}}
-                            <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
-
-                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
-
-                                    <h3
-                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-
-                                        Attachments
-
-                                    </h3>
-
-                                </div>
-
-                                <div id="detailAttachmentContainer">
-                                </div>
-
+                            <div id="detailItemsContainer">
                             </div>
 
                         </div>
 
-                        {{-- RIGHT SIDEBAR --}}
-                        <div class="space-y-5 lg:col-span-1">
+                        {{-- ATTACHMENTS --}}
+                        <div
+                            class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                            {{-- ACTIONS --}}
-                            <div id="detailActionCard"
-                                class="hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
-                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
-
-                                    <h3
-                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                                        Actions
-                                    </h3>
-
-                                </div>
-
-                                <div id="detailActionContainer"></div>
+                                <h3
+                                    class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                    Attachments
+                                </h3>
 
                             </div>
 
-                            {{-- TIMELINE --}}
-                            <div
-                                class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
+                            <div id="detailAttachmentContainer" class="flex flex-wrap gap-3 p-5">
+                            </div>
 
-                                <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                        </div>
 
-                                    <h3
-                                        class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                    </div>
 
-                                        Approval Timeline
+                    {{-- RIGHT SIDEBAR --}}
+                    <div class="space-y-2 lg:col-span-2">
 
-                                    </h3>
+                        {{-- APPROVAL ACTIONS --}}
+                        <div id="detailActionWrapper" class="hidden"></div>
 
-                                </div>
+                        {{-- TIMELINE --}}
+                        <div
+                            class="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0f172a]">
 
-                                <div id="detailActivityContainer">
-                                </div>
+                            <div class="border-b border-slate-200 px-5 py-3 dark:border-white/10">
 
+                                <h3
+                                    class="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                    Approval Timeline
+                                </h3>
+
+                            </div>
+
+                            <div id="detailActivityContainer" class="space-y-4 p-5">
                             </div>
 
                         </div>
@@ -728,47 +722,19 @@
 
                 </div>
 
-                {{-- DISCUSSION FAB --}}
-                <div id="discussionFab" class="fixed bottom-6 right-6 z-[10001] hidden">
-
-                    <button type="button"
-                        class="relative flex h-14 w-14 items-center justify-center rounded-lg bg-slate-900 text-white shadow-2xl transition hover:scale-105 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
-
-                        <i class="fa-solid fa-comments text-lg"></i>
-
-                        <span id="discussionUnreadBadge"
-                            class="absolute -right-1 -top-1 hidden h-5 min-w-[20px] items-center justify-center rounded-lg bg-red-500 px-1 text-[10px] font-bold text-white">
-                            0
-                        </span>
-
-                    </button>
-
-                </div>
-
-                {{-- DISCUSSION PANEL --}}
+                {{-- DISCUSSION PANEL (fixed to viewport, pops up from bottom-right) --}}
                 <div id="discussionPanel"
-                    class="fixed bottom-24 right-6 z-[10001] hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+                    class="fixed bottom-20 right-6 z-[10001] hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
 
                     <div
                         class="flex items-center justify-between border-b border-slate-200 px-5 py-2 dark:border-white/10">
 
-                        <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                            Discussion
+                        </h3>
 
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                                Discussion
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                                Internal discussion
-                            </p>
-
-                        </div>
-
-                        <button type="button" id="btnCloseDiscussion"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-white/[0.08] dark:hover:text-white">
-
-                            <i class="fa-solid fa-xmark"></i>
-
+                        <button type="button" id="btnCloseDiscussion">
+                            <i class="fa-solid fa-xmark text-slate-400"></i>
                         </button>
 
                     </div>
@@ -777,7 +743,7 @@
                         class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]">
                     </div>
 
-                    <div class="border-t border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-[#0f172a]">
+                    <div class="border-t border-slate-200 p-3 dark:border-white/10">
 
                         <div class="flex items-end gap-2">
 
@@ -785,10 +751,8 @@
                                 class="min-h-[46px] flex-1 resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500"></textarea>
 
                             <button type="button" id="btnSendDiscussion"
-                                class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-slate-900 text-white transition hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-500">
-
+                                class="h-11 w-11 rounded-lg bg-slate-900 text-white dark:bg-blue-600 dark:hover:bg-blue-500">
                                 <i class="fa-solid fa-paper-plane text-sm"></i>
-
                             </button>
 
                         </div>
@@ -797,6 +761,33 @@
 
                 </div>
 
+                {{-- STICKY FOOTER --}}
+                <div
+                    class="sticky bottom-0 z-20 flex items-center justify-between border-t border-slate-200 bg-white/95 px-5 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+
+                    <button type="button" data-modal="#detailModal"
+                        class="btn-close-modal text-sm text-slate-500 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
+                        Close
+                    </button>
+
+                    <div id="detailFooterActions" class="flex items-center gap-3"></div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {{-- ATTACHMENT PREVIEW MODAL --}}
+        <div id="attachmentPreviewModal"
+            class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/80 p-4">
+
+            <button type="button" onclick="closeAttachmentPreview()"
+                class="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/20">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div id="attachmentPreviewContent" class="w-full max-w-5xl">
             </div>
 
         </div>
@@ -886,12 +877,6 @@
                     <div id="processSoftwareInfoContainer"></div>
 
                     <div id="processSoftwareDetailContainer"></div>
-
-                    <div id="processSoftwareFormContainer"></div>
-
-                    <div id="processSoftwareResultContainer"></div>
-
-                    <div id="processSoftwareActionContainer"></div>
 
                 </div>
 
@@ -1144,11 +1129,11 @@
 </script>
 <script src="{{ asset('assets/js/access-request/core.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/helper.js') }}"></script>
+<script src="{{ asset('assets/js/access-request/attachment.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/modal.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/datatable.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/detail-modal.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/request-form.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/approval.js') }}"></script>
-<script src="{{ asset('assets/js/access-request/attachment.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/process-hardware.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/process-software.js') }}"></script>

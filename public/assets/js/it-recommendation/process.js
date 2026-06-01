@@ -33,90 +33,22 @@ function processInfoContent(header) {
 }
 
 function renderProcessAttachments(attachments = []) {
-
     if (attachments.length === 0) {
-        return `
-            <div class="
-                w-full
-                rounded-lg
-                border border-dashed border-slate-200
-                dark:border-white/10
-                px-4 py-6
-                text-center text-sm text-slate-400
-            ">
-                No attachments
-            </div>
-        `;
+        return attachmentEmptyState();
     }
 
-    return attachments.map(file => `
+    return attachments.map(file => {
+        const displayName = file.attachment_name
+            ? file.attachment_name + (file.extention ? '.' + file.extention : '')
+            : (file.filename || "Attachment");
 
-        <button
-            type="button"
-
-            class="
-                preview-attachment
-
-                inline-flex
-                items-center
-                gap-2
-
-                rounded-lg
-
-                border border-slate-200
-                dark:border-white/10
-
-                bg-slate-50
-                dark:bg-white/[0.03]
-
-                px-3 py-2
-
-                text-xs
-
-                text-slate-700
-                dark:text-slate-300
-
-                transition-all
-                duration-150
-
-                hover:bg-slate-100
-                dark:hover:bg-white/[0.05]
-            "
-
-            data-url="${file.signed_url}"
-            data-name="${file.filename}"
-        >
-
-            <i class="
-                fa-solid
-                fa-paperclip
-
-                text-slate-400
-            "></i>
-
-            <div class="
-                max-w-[220px]
-                truncate
-            ">
-                ${file.filename || "Attachment"}
-            </div>
-
-        </button>
-
-    `).join('');
+        return attachmentCard({
+            name: displayName,
+            url: file.signed_url || "#",
+        });
+    }).join('');
 }
 
-$(document).on(
-    "click",
-    ".preview-attachment",
-    function ()
-    {
-        previewAttachment({
-            signed_url: $(this).data("url"),
-            filename: $(this).data("name")
-        });
-    }
-);
 function removeProcessAttachment(index)
 {
     window.processAttachments.splice(index, 1);
@@ -449,7 +381,14 @@ async function loadProcessDetail(hash) {
 
         $("#process_information").html(processInfoContent(header));
 
-        $("#recommend_type").val(header.recommend_type || "");
+        if (!$("#recommend_type").hasClass("select2-hidden-accessible")) {
+            $(".process-select2").select2({
+                width: "100%",
+                dropdownParent: $("#processModal"),
+                placeholder: "Select Type",
+            });
+        }
+        $("#recommend_type").val(header.recommend_type || "").trigger("change");
 
         $("#waranty").val(header.waranty || "");
 
@@ -611,18 +550,15 @@ async function submitProcessAction({ url, successText, note = null })
             contentType
         });
 
-        Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: successText,
-            timer: 1800,
-            showConfirmButton: false,
-        });
+        itrToast('success', successText);
 
         closeProcessModal(true);
-        closeShowModal(true);
 
         table.ajax.reload(null, false);
+
+        if (currentDetailHash) {
+            await loadDetail(currentDetailHash);
+        }
 
     } catch (err) {
 
@@ -705,51 +641,26 @@ $(document).on(
     }
 );
 
-function renderProcessAttachmentPreview()
-{
+function renderProcessAttachmentPreview() {
     let html = "";
 
-    window.processAttachments.forEach(
-        (file, index) => {
+    window.processAttachments.forEach((file, index) => {
+        html += attachmentCard({
+            name: file.name,
+            size: formatFileSize(file.size),
+            removable: true,
+            index,
+            removeClass: "btn-remove-process-attachment",
+        });
+    });
 
-            html += `
-                <div
-                    class="
-                        inline-flex
-                        items-center
-                        gap-2
-
-                        rounded-lg
-
-                        border border-indigo-200
-
-                        bg-indigo-50
-
-                        px-3 py-2
-
-                        text-xs
-                    "
-                >
-
-                    <i class="fa-solid fa-file"></i>
-
-                    <span>${file.name}</span>
-
-                    <button
-                        type="button"
-                        onclick="removeProcessAttachment(${index})"
-                        class="text-red-500"
-                    >
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-
-                </div>
-            `;
-        }
-    );
-
-    $("#processAttachmentPreview").html(html);
+    $("#processAttachmentPreview").html(html || attachmentEmptyState());
 }
+
+$(document).on("click", ".btn-remove-process-attachment", function () {
+    const index = $(this).data("index");
+    removeProcessAttachment(index);
+});
 
 $("#processForm").on("submit", async function (e) {
     e.preventDefault();

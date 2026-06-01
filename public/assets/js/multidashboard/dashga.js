@@ -5,15 +5,16 @@
     let dataRequest = null;
     let dashboardTable = null;
 
-    const urls = {
-        summary: "/ga-dashboard/summary-json",
-        approval: "/ga-dashboard/waiting-approval-json",
-        approvalHistory: "/ga-dashboard/approval-history-json",
-        voucherTaxi: "/ga-dashboard/voucher-taxi-json",
-        bookingCar: "/ga-dashboard/booking-car-json",
-        parking: "/ga-dashboard/parking-json",
+    const urls = Object.assign({
         doctypes: "/ga-dashboard/approval-doctypes",
-    };
+    }, window.gaRoutes || {
+        summary:        "/ga-dashboard/summary-json",
+        approval:       "/ga-dashboard/waiting-approval-json",
+        approvalHistory:"/ga-dashboard/approval-history-json",
+        voucherTaxi:    "/ga-dashboard/voucher-taxi-json",
+        bookingCar:     "/ga-dashboard/booking-car-json",
+        parking:        "/ga-dashboard/parking-json",
+    });
 
     function updateRefreshTime() {
         const el = document.getElementById("dashboardRefreshTime");
@@ -37,7 +38,10 @@
             },
             signal: summaryRequest.signal,
         })
-            .then((r) => r.json())
+            .then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then((res) => {
                 const data = res.data || {};
 
@@ -408,7 +412,8 @@
                 </option>
             `);
                 });
-            });
+            })
+            .catch(console.error);
     }
     function loadTab(tab) {
         if (dataRequest) {

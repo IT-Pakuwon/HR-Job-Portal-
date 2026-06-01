@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class ReportGeneralGAController extends Controller
 {
@@ -24,6 +25,12 @@ class ReportGeneralGAController extends Controller
     */
     public function index()
     {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $rooms = MsMeetingRoom::select('room_id', 'room_name')
             ->where('status', 'A')
             ->where('room_name', 'not ilike', '%Teams Only%')
@@ -49,8 +56,6 @@ class ReportGeneralGAController extends Controller
             ->whereNotNull('nopol_kendaraan')
             ->orderBy('nopol_kendaraan')
             ->get();
-
-        $user = auth()->user();
 
         $hasCSACCESS = $user->hasRole('CSACCESS');
         $hasADMIN    = strtolower($user->user_role) === 'admin';

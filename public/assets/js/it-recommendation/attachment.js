@@ -171,11 +171,9 @@ function renderAttachmentList(selector, files = [], mode = "view") {
     } else {
         files.forEach((file, index) => {
             if (mode === "upload") {
-                const size = (file.size / 1024 / 1024).toFixed(2);
-
                 html += attachmentCard({
                     name: file.name,
-                    size: `${size} MB`,
+                    size: formatFileSize(file.size),
                     removable: true,
                     index,
                     removeClass:
@@ -184,9 +182,12 @@ function renderAttachmentList(selector, files = [], mode = "view") {
                             : "btn-remove-create-attachment",
                 });
             } else {
-                html += attachmentCard({
-                    name: file.filename || "Attachment",
+                const displayName = file.attachment_name
+                    ? file.attachment_name + (file.extention ? '.' + file.extention : '')
+                    : (file.filename || "Attachment");
 
+                html += attachmentCard({
+                    name: displayName,
                     url: file.signed_url || "#",
                 });
             }
@@ -200,18 +201,20 @@ function renderCreateAttachmentPreview() {
     let html = "";
 
     existingAttachments.forEach((file) => {
+        const displayName = file.attachment_name
+            ? file.attachment_name + (file.extention ? '.' + file.extention : '')
+            : (file.filename || "Attachment");
+
         html += attachmentCard({
-            name: file.filename || "Attachment",
+            name: displayName,
             url: file.signed_url || "#",
         });
     });
 
     createSelectedFiles.forEach((file, index) => {
-        const size = (file.size / 1024 / 1024).toFixed(2);
-
         html += attachmentCard({
             name: file.name,
-            size: `${size} MB`,
+            size: formatFileSize(file.size),
             removable: true,
             index,
         });
@@ -380,11 +383,7 @@ $("#btnUploadAttachment").on("click", async function () {
             },
         });
 
-        Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: "Attachment uploaded successfully",
-        });
+        itrToast('success', 'Attachment uploaded successfully');
 
         attachmentFiles = [];
 

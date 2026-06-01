@@ -11,14 +11,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 
 class ReportCanvassSheetController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $departments = MsDepartment::pluck('department_name', 'department_id');
 
-        return view('pages.report-cs.index', compact('departments'));
+        return view('pages.report-cs.index', compact('departments') + [
+            'user' => $user,
+        ]);
     }
 
     /*

@@ -1,4 +1,4 @@
-<div id="responseTicketModal" class="ticket-modal overflow-y fixed inset-0 z-[9999] -hidden hidden p-4">
+<div id="responseTicketModal" class="ticket-modal fixed inset-0 z-[9999] hidden p-4">
 
     {{-- Backdrop --}}
     <div

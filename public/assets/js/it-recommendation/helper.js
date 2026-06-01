@@ -284,6 +284,59 @@ function emptyState(text = "No data available") {
     `;
 }
 
+function formatFileSize(bytes) {
+    if (bytes >= 1024 * 1024) {
+        return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+    }
+    return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
+function itrToast(icon, title, timer = 2500) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon,
+        title,
+        showConfirmButton: false,
+        timer,
+        timerProgressBar: true,
+    });
+}
+
+function itrConfirm(opts = {}) {
+    return Swal.fire({
+        title: opts.title ?? 'Are you sure?',
+        text: opts.text ?? '',
+        icon: opts.icon ?? 'question',
+        showCancelButton: true,
+        confirmButtonText: opts.confirmText ?? 'Yes',
+        cancelButtonText: opts.cancelText ?? 'Cancel',
+        confirmButtonColor: opts.confirmColor ?? '#0f172a',
+        cancelButtonColor: opts.cancelColor ?? '#94a3b8',
+        reverseButtons: true,
+    });
+}
+
+function itrPrompt(opts = {}) {
+    return Swal.fire({
+        title: opts.title ?? 'Input required',
+        input: opts.input ?? 'textarea',
+        inputPlaceholder: opts.placeholder ?? '',
+        inputLabel: opts.label ?? '',
+        showCancelButton: true,
+        confirmButtonText: opts.confirmText ?? 'Submit',
+        cancelButtonText: opts.cancelText ?? 'Cancel',
+        confirmButtonColor: opts.confirmColor ?? '#0f172a',
+        cancelButtonColor: opts.cancelColor ?? '#94a3b8',
+        reverseButtons: true,
+        inputValidator: (value) => {
+            if (!value || !value.trim()) {
+                return opts.validationMsg ?? 'This field is required.';
+            }
+        },
+    });
+}
+
 function sectionCard({
     title = "",
     content = "",

@@ -313,8 +313,10 @@ class MeetingController extends Controller
         return response()->json($accessories);
     }
 
-    public function calendarJson()
+    public function calendarJson(Request $request)
     {
+        abort_unless($request->ajax(), 404);
+
         $roomMap = MsMeetingRoom::pluck('room_name', 'room_id');
         $roomColors = MsMeetingRoom::pluck('eventcolor', 'room_id');
         $users = User::pluck('name', 'username');
