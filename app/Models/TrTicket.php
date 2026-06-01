@@ -48,6 +48,8 @@ class TrTicket extends Model
     protected $casts = [
         'ticketdate' => 'date',
         'ticket_duedate' => 'datetime',
+        'working_start_date' => 'datetime',
+        'working_end_date' => 'datetime',
         'completed_at' => 'datetime',
     ];
 

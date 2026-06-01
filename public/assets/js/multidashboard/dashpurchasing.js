@@ -353,6 +353,11 @@
     function init() {
         if (!$("#dashboardTable").length) return;
 
+        if (!urls.summary) {
+            console.error("dashpurchasing: window.purchasingRoutes is not defined.");
+            return;
+        }
+
         bindEvents();
         loadSummary();
 

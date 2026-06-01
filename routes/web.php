@@ -1465,7 +1465,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/upload-attachment/{hash}', 'uploadAttachment')
                 ->name('it-recommendation.upload-attachment');
 
-            Route::post('/delete-attachment/{attachment}', 'deleteAttachment')
+            Route::delete('/delete-attachment/{attachment}', 'deleteAttachment')
                 ->name('it-recommendation.delete-attachment');
             Route::post('/it-revise/{hash}', 'itRevise')->name('it-recommendation.it-revise');
             Route::post('/it-reject/{hash}', 'itReject')->name('it-recommendation.it-reject');
@@ -1497,6 +1497,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/budget-by-activity',   'budgetByActivity')->name('gm.budget-by-activity');
                 Route::get('/api/budget-years',          'budgetYears')->name('gm.budget-years');
                 Route::get('/api/departments',           'departments')->name('gm.departments');
+                Route::get('/api/budget-by-month',       'budgetByMonth')->name('gm.budget-by-month');
             });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');

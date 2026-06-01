@@ -11,8 +11,6 @@ async function loadDetail(hash) {
             type: "GET",
         });
 
-        console.log("DETAIL RESPONSE", res);
-
         const header = res.header;
 
         renderHeaderInfo(header);
@@ -74,8 +72,6 @@ async function loadDetail(hash) {
 // }
 
 function renderHeaderInfo(header) {
-
-    console.log(header);
     $("#show_docid").text(`IT Recommendation - ${header.docid || "-"}`);
 
     $("#show_status_badge").html(statusBadge(header.status));

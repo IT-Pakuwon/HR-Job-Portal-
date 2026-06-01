@@ -10,7 +10,7 @@ use Carbon\Carbon;
 
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Collection;
-
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\MsDepartment;
 use App\Models\MsLocation;
@@ -25,7 +25,14 @@ class ReportWarehouseController extends Controller
 
     public function index()
     {
-        return view('pages.report-warehouse.index');
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        return view('pages.report-warehouse.index',[
+            'user' => $user,
+        ]);
     }
 
     /*

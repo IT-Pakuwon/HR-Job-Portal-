@@ -295,8 +295,8 @@ class ItRecommendationController extends Controller
                 $meta = [
                     'refnbr' => $docid,
                     'doctype' => $this->doctype,
-                    'cpnyid' => $request->cpny_id,
-                    'departementid' => $request->department_id,
+                    'cpny_id' => $request->cpny_id,
+                    'department_id' => $request->department_id,
                     'base_folder' => 'att-it-recommendation',
                     'created_by' => $user->username,
                 ];
@@ -382,8 +382,8 @@ class ItRecommendationController extends Controller
                 $meta = [
                     'refnbr' => $header->docid,
                     'doctype' => $this->doctype,
-                    'cpnyid' => $header->cpny_id,
-                    'departementid' => $header->department_id,
+                    'cpny_id' => $header->cpny_id,
+                    'department_id' => $header->department_id,
                     'base_folder' => 'att-it-recommendation',
                     'created_by' => auth()->user()->username,
                 ];
@@ -644,8 +644,8 @@ class ItRecommendationController extends Controller
         $meta = [
             'refnbr' => $header->docid,
             'doctype' => $this->doctype,
-            'cpnyid' => $header->cpny_id,
-            'departementid' => $header->department_id,
+            'cpny_id' => $header->cpny_id,
+            'department_id' => $header->department_id,
             'base_folder' => 'att-it-recommendation',
             'created_by' => $user->username,
         ];
@@ -955,7 +955,7 @@ class ItRecommendationController extends Controller
                 ]);
                 app('App\Http\Controllers\SendCommentController')
                     ->sendmsg(
-                        $header->id,
+                        $header->docid,
                         $this->doctype,
                         $request
                     );
@@ -2021,5 +2021,29 @@ class ItRecommendationController extends Controller
             ->get();
 
         return response()->json($comments);
+    }
+
+    public function print($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $header = TrItrecommend::findOrFail($id);
+
+        $details = TrItrecommendDetail::where('docid', $header->docid)->get();
+
+        $approvals = TrApproval::where('refnbr', $header->docid)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS NUMERIC)')
+            ->orderBy('id')
+            ->get();
+
+        $pdf = \PDF::loadView(
+            'pages.it_recommendation.pdf_it_recommendation',
+            compact('header', 'details', 'approvals')
+        )->setPaper('a4', 'portrait');
+
+        return $pdf->stream("IT-RECOMMENDATION-{$header->docid}.pdf");
     }
 }

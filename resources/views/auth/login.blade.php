@@ -76,19 +76,27 @@
                     <div class="mb-6 flex flex-wrap gap-3">
 
                         <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
-                            Job Portal
+                            Purchase Requisition
                         </span>
 
                         <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
-                            IT Support
+                           Item Request
                         </span>
 
                         <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
-                            Purchasing
+                            Digital Approval
                         </span>
 
                         <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
-                            GA Service
+                           IT Support
+                        </span>
+
+                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
+                           GA Support
+                        </span>
+
+                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
+                           PRF
                         </span>
 
                     </div>

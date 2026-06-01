@@ -2,30 +2,38 @@
     let activeTab = "approval";
 
     let summaryRequest = null;
-    let dataRequest = null;
+    let dataRequest    = null;
     let dashboardTable = null;
 
     const urls = {
-        summary: "/operational-dashboard/summary-json",
-        approval: "/operational-dashboard/waiting-approval-json",
-        approvalHistory: "/operational-dashboard/approval-history-json",
-        workOrder: "/operational-dashboard/work-order-json",
-        doctypes: "/operational-dashboard/approval-doctypes",
+        summary:        "/cost-control-dashboard/summary-json",
+        approval:       "/cost-control-dashboard/waiting-approval-json",
+        approvalHistory:"/cost-control-dashboard/approval-history-json",
+        pendingPo:      "/cost-control-dashboard/pending-po-json",
+        pendingIssue:   "/cost-control-dashboard/pending-issue-json",
+        budget:         "/cost-control-dashboard/budget-json",
+        imBudget:       "/cost-control-dashboard/im-budget-json",
+        doctypes:       "/cost-control-dashboard/approval-doctypes-json",
     };
 
     function updateRefreshTime() {
         const el = document.getElementById("dashboardRefreshTime");
-
         if (!el) return;
-
         el.innerText = new Date().toLocaleTimeString();
     }
 
-    function loadSummary() {
-        if (summaryRequest) {
-            summaryRequest.abort();
-        }
+    function formatCurrency(value) {
+        if (value === null || value === undefined) return "—";
+        return new Intl.NumberFormat("id-ID", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(value);
+    }
 
+    // ─── Summary ────────────────────────────────────────────────────────────────
+
+    function loadSummary() {
+        if (summaryRequest) summaryRequest.abort();
         summaryRequest = new AbortController();
 
         fetch(urls.summary, {
@@ -35,232 +43,48 @@
             },
             signal: summaryRequest.signal,
         })
-            .then((r) => r.json())
+            .then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then((res) => {
                 const data = res.data || {};
 
-                $("#waitingApprovalCount").text(data.waiting_approval || 0);
-                $("#approvalHistoryCount").text(data.approval_history || 0);
-                $("#workOrderCount").text(data.work_order || 0);
+                $("#approvalCount").text(data.waiting_approval || 0);
+                $("#poCount").text(data.pending_po || 0);
+                $("#issueCount").text(data.pending_issue || 0);
+                $("#budgetCount").text(formatCurrency(data.budget));
+                $("#imBudgetCount").text(data.im_budget || 0);
 
                 updateRefreshTime();
             })
             .catch((err) => {
-                if (err.name !== "AbortError") {
-                    console.error(err);
-                }
+                if (err.name !== "AbortError") console.error(err);
             });
     }
 
-    function buildDataTable(data, tab) {
-        if (!$("#dashboardTable").length) {
-            return;
-        }
+    // ─── Link renderers ──────────────────────────────────────────────────────────
 
-        if ($.fn.DataTable.isDataTable("#dashboardTable")) {
-            $("#dashboardTable").DataTable().clear().destroy();
-            $("#dashboardTable").empty();
-        }
-
-        let columns = [];
-
-        switch (tab) {
-            case "approval":
-                columns = [
-                    {
-                        data: "docid",
-                        title: "Document",
-                        render: function (data, type, row) {
-                            return `
-                                <a href="${row.url}/${row.hid}"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
-
-                                    <span class="font-medium text-white">
-                                        ${data}
-                                    </span>
-
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-white"></i>
-
-                                </a>
-                            `;
-                        },
-                    },
-                    {
-                        data: "docdate",
-                        title: "Waiting Since",
-                    },
-                    {
-                        data: "cpnyid",
-                        title: "Company",
-                    },
-                    {
-                        data: "departementid",
-                        title: "Department",
-                    },
-                    {
-                        data: "infohd",
-                        title: "Description",
-                    },
-                ];
-
-                break;
-
-            case "approval-history":
-                columns = [
-                    {
-                        data: "docid",
-                        title: "Document",
-                        render: function (data, type, row) {
-                            return `
-                                <a href="${row.url}/${row.hid}"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
-
-                                    <span class="font-medium text-white">
-                                        ${data}
-                                    </span>
-
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-white"></i>
-
-                                </a>
-                            `;
-                        },
-                    },
-                    {
-                        data: "docdate",
-                        title: "Approval Date",
-                    },
-                    {
-                        data: "cpnyid",
-                        title: "Company",
-                    },
-                    {
-                        data: "departementid",
-                        title: "Department",
-                    },
-                    {
-                        data: "infohd",
-                        title: "Description",
-                    },
-                ];
-
-                break;
-
-            case "workorder":
-                columns = [
-                    {
-                        data: "woid",
-                        title: "WO Number",
-                        render: function (data, type, row) {
-                            return `
-                                <a href="${row.url}/${row.eid}"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
-
-                                    <span class="font-medium text-white">
-                                        ${data}
-                                    </span>
-
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-white"></i>
-
-                                </a>
-                            `;
-                        },
-                    },
-                    {
-                        data: "wodate",
-                        title: "Date",
-                    },
-                    {
-                        data: "wotype",
-                        title: "Type",
-                    },
-                    {
-                        data: "picrequester",
-                        title: "Requester",
-                    },
-                    {
-                        data: "pic_wo",
-                        title: "PIC WO",
-                    },
-                    {
-                        data: "keperluan",
-                        title: "Purpose",
-                    },
-                    {
-                        data: "status_pekerjaan",
-                        title: "WO Status",
-                        render: function (data) {
-                            const status = (data || "-").toUpperCase();
-
-                            const styles = {
-                                P: "bg-amber-100 text-amber-700 border-amber-200",
-                                H: "bg-red-100 text-red-700 border-red-200",
-                            };
-
-                            const labels = {
-                                P: "ON PROGRESS",
-                                H: "HOLD",
-                            };
-
-                            const badgeClass =
-                                styles[status] ??
-                                "bg-slate-100 text-slate-700 border-slate-200";
-
-                            const label = labels[status] ?? status;
-
-                            return `
-                                <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${badgeClass}">
-                                    ${label}
-                                </span>
-                            `;
-                        },
-                    },
-                ];
-
-                break;
-        }
-
-        dashboardTable = $("#dashboardTable").DataTable({
-            data: data,
-
-            columns: columns,
-
-            pageLength: 10,
-
-            lengthMenu: [
-                [10, 25, 50, 100],
-                [10, 25, 50, 100],
-            ],
-
-            responsive: true,
-            searching: true,
-            ordering: true,
-            paging: true,
-            info: true,
-            autoWidth: false,
-            destroy: true,
-            order: [],
-
-            language: {
-                search: "",
-                searchPlaceholder: "Search...",
-                lengthMenu: "Show _MENU_",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                emptyTable: "No data available",
-            },
-        });
-
-        const search = $("#dashboardSearch").val();
-
-        if (search) {
-            dashboardTable.search(search).draw();
-        }
+    function docLinkRender(data, type, row) {
+        const key = row.hid || row.eid;
+        return `
+            <a href="${row.url}/${key}" target="_blank" rel="noopener noreferrer"
+               class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
+                <span class="font-medium text-white">${data}</span>
+                <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+            </a>`;
     }
+
+    function imBudgetLinkRender(data, type, row) {
+        return `
+            <a href="/showimbudgets/${row.eid}" target="_blank" rel="noopener noreferrer"
+               class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
+                <span class="font-medium text-white">${data}</span>
+                <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+            </a>`;
+    }
+
+    // ─── Doctype filter ──────────────────────────────────────────────────────────
 
     function loadDocTypes() {
         fetch(urls.doctypes, {
@@ -271,24 +95,16 @@
         })
             .then((r) => r.json())
             .then((res) => {
-                const select = $("#dashboardFilter");
-
+                const select  = $("#dashboardFilter");
                 const current = select.val() || "ALL";
 
                 select.empty();
-
-                select.append(`
-                    <option value="ALL">
-                        All Doctype
-                    </option>
-                `);
+                select.append(`<option value="ALL">All Doctype</option>`);
 
                 (res.data || []).forEach((row) => {
-                    select.append(`
-                        <option value="${row.doctype}">
-                            ${row.doctype} - ${row.doctype_descr ?? ""}
-                        </option>
-                    `);
+                    select.append(
+                        `<option value="${row.doctype}">${row.doctype} - ${row.doctype_descr ?? ""}</option>`
+                    );
                 });
 
                 select.val(current);
@@ -296,26 +112,135 @@
             .catch(console.error);
     }
 
-    function loadTab(tab) {
-        if (dataRequest) {
-            dataRequest.abort();
+    // ─── DataTable ───────────────────────────────────────────────────────────────
+
+    function buildDataTable(data, tab) {
+        if ($.fn.DataTable.isDataTable("#dashboardTable")) {
+            $("#dashboardTable").DataTable().clear().destroy();
+            $("#dashboardTable").empty();
         }
 
-        dataRequest = new AbortController();
-
-        let url = urls.approval;
+        let columns = [];
 
         switch (tab) {
-            case "approval-history":
-                url = urls.approvalHistory;
+            case "approval":
+                columns = [
+                    { data: "docid",         title: "Document",    render: docLinkRender },
+                    { data: "docdate",        title: "Waiting Since" },
+                    { data: "cpnyid",         title: "Company" },
+                    { data: "departementid",  title: "Department" },
+                    { data: "infohd",         title: "Description" },
+                ];
                 break;
 
-            case "workorder":
-                url = urls.workOrder;
+            case "approval-history":
+                columns = [
+                    { data: "docid",         title: "Document",      render: docLinkRender },
+                    { data: "docdate",        title: "Approval Date" },
+                    { data: "cpnyid",         title: "Company" },
+                    { data: "departementid",  title: "Department" },
+                    { data: "infohd",         title: "Description" },
+                ];
+                break;
+
+            case "po":
+                columns = [
+                    { data: "order_no",      title: "PO Number" },
+                    { data: "order_date",    title: "Date" },
+                    { data: "cpny_id",       title: "Company" },
+                    { data: "department_id", title: "Department" },
+                    { data: "user_peminta",  title: "Requester" },
+                    { data: "purchaser",     title: "Purchaser" },
+                ];
+                break;
+
+            case "issue":
+                columns = [
+                    { data: "issue_id",      title: "Issue Number" },
+                    { data: "issue_date",    title: "Date" },
+                    { data: "cpny_id",       title: "Company" },
+                    { data: "department_id", title: "Department" },
+                    { data: "user_peminta",  title: "Requester" },
+                    { data: "keeper",        title: "Keeper" },
+                ];
+                break;
+
+            case "budget":
+                columns = [
+                    { data: "cpny_id",            title: "Company" },
+                    { data: "business_unit_id",   title: "Business Unit" },
+                    { data: "department_fin_id",  title: "Department" },
+                    { data: "account_id",         title: "Account" },
+                    { data: "activity_descr",     title: "Activity" },
+                    {
+                        data: "remaining_budget",
+                        title: "Remaining Budget",
+                        className: "text-right",
+                        render: (data) => formatCurrency(data),
+                    },
+                ];
+                break;
+
+            case "imbudget":
+                columns = [
+                    { data: "imbudgetid",              title: "IM Budget",       render: imBudgetLinkRender },
+                    { data: "imbudgetdate",            title: "Date" },
+                    { data: "cpny_id",                 title: "Company" },
+                    { data: "department_id",           title: "Department" },
+                    { data: "user_peminta",            title: "Requester" },
+                    { data: "csid",                    title: "CS Reference" },
+                    {
+                        data: "total_budget_requested",
+                        title: "Budget Requested",
+                        className: "text-right",
+                        render: (data) => formatCurrency(data),
+                    },
+                ];
                 break;
         }
 
-        fetch(url, {
+        dashboardTable = $("#dashboardTable").DataTable({
+            data: data,
+            columns: columns,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            responsive: true,
+            searching: true,
+            ordering: true,
+            paging: true,
+            info: true,
+            autoWidth: false,
+            destroy: true,
+            order: [[1, "desc"]],
+            language: {
+                search: "",
+                searchPlaceholder: "Search...",
+                lengthMenu: "Show _MENU_",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                emptyTable: "No data available",
+            },
+        });
+
+        const search = $("#dashboardSearch").val();
+        if (search) dashboardTable.search(search).draw();
+    }
+
+    // ─── Load tab data ───────────────────────────────────────────────────────────
+
+    function loadTab(tab) {
+        if (dataRequest) dataRequest.abort();
+        dataRequest = new AbortController();
+
+        const urlMap = {
+            "approval":         urls.approval,
+            "approval-history": urls.approvalHistory,
+            "po":               urls.pendingPo,
+            "issue":            urls.pendingIssue,
+            "budget":           urls.budget,
+            "imbudget":         urls.imBudget,
+        };
+
+        fetch(urlMap[tab] || urls.approval, {
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 Accept: "application/json",
@@ -323,10 +248,7 @@
             signal: dataRequest.signal,
         })
             .then((r) => {
-                if (!r.ok) {
-                    throw new Error(`HTTP ${r.status}`);
-                }
-
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
                 return r.json();
             })
             .then((res) => {
@@ -334,61 +256,57 @@
 
                 if (tab === "approval" || tab === "approval-history") {
                     const doctype = $("#dashboardFilter").val() || "ALL";
-
                     if (doctype !== "ALL") {
                         rows = rows.filter((row) => {
                             const match = (row.docid || "").match(/^[A-Z]+/);
-
                             return match && match[0] === doctype;
                         });
                     }
                 }
 
                 buildDataTable(rows, tab);
-
                 updateRefreshTime();
             })
             .catch((err) => {
-                if (err.name !== "AbortError") {
-                    console.error(err);
-                }
+                if (err.name !== "AbortError") console.error(err);
             });
     }
+
+    // ─── Tab activation ──────────────────────────────────────────────────────────
 
     function activateTab(tab) {
         activeTab = tab;
 
-        ["approval", "approval-history", "workorder"].forEach((name) => {
+        ["approval", "approval-history", "po", "issue", "budget", "imbudget"].forEach((name) => {
             const btn = document.getElementById(`tab-${name}`);
-
             if (!btn) return;
-
-            if (name === tab) {
-                btn.className =
-                    "rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 bg-black text-white shadow-sm dark:bg-zinc-700";
-            } else {
-                btn.className =
-                    "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700";
-            }
+            btn.className =
+                name === tab
+                    ? "rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 bg-black text-white shadow-sm dark:bg-zinc-700"
+                    : "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700";
         });
 
+        const filterWrap = $("#dashboardFilter").closest(".lg\\:col-span-5");
+
         if (tab === "approval" || tab === "approval-history") {
-            $("#dashboardFilter").closest(".lg\\:col-span-5").show();
+            loadDocTypes();
+            filterWrap.show();
         } else {
-            $("#dashboardFilter").closest(".lg\\:col-span-5").hide();
+            filterWrap.hide();
         }
 
         loadTab(tab);
     }
 
+    // ─── Events ──────────────────────────────────────────────────────────────────
+
     function bindEvents() {
-        $("#tab-approval").on("click", () => activateTab("approval"));
-
-        $("#tab-approval-history").on("click", () =>
-            activateTab("approval-history"),
-        );
-
-        $("#tab-workorder").on("click", () => activateTab("workorder"));
+        $("#tab-approval").on("click",         () => activateTab("approval"));
+        $("#tab-approval-history").on("click", () => activateTab("approval-history"));
+        $("#tab-po").on("click",               () => activateTab("po"));
+        $("#tab-issue").on("click",            () => activateTab("issue"));
+        $("#tab-budget").on("click",           () => activateTab("budget"));
+        $("#tab-imbudget").on("click",         () => activateTab("imbudget"));
 
         $("#dashboardFilter").on("change", function () {
             if (activeTab === "approval" || activeTab === "approval-history") {
@@ -397,10 +315,7 @@
         });
 
         $("#dashboardSearch").on("keyup", function () {
-            if (!dashboardTable) {
-                return;
-            }
-
+            if (!dashboardTable) return;
             dashboardTable.search(this.value).draw();
         });
 
@@ -410,52 +325,39 @@
         });
 
         $("#openAllDocument").on("click", function () {
-            if (activeTab === "workorder") {
-                return;
-            }
+            if (activeTab !== "approval" && activeTab !== "approval-history") return;
 
             const rows = dashboardTable?.rows()?.data()?.toArray() || [];
-
             rows.forEach((row) => {
                 const key = row.hid || row.eid;
-
-                if (row.url && key) {
-                    window.open(`${row.url}/${key}`, "_blank");
-                }
+                if (row.url && key) window.open(`${row.url}/${key}`, "_blank");
             });
         });
     }
 
+    // ─── Auto refresh ────────────────────────────────────────────────────────────
+
     function autoRefresh() {
         setInterval(() => {
-            if (document.hidden) {
-                return;
-            }
-
+            if (document.hidden) return;
             loadSummary();
             loadTab(activeTab);
         }, 20000);
     }
 
+    // ─── Init ────────────────────────────────────────────────────────────────────
+
     function init() {
-        if (!$("#dashboardTable").length) {
-            return;
-        }
+        if (!$("#dashboardTable").length) return;
 
         bindEvents();
-
-        loadDocTypes();
-
         loadSummary();
 
         $("#dashboardFilter").closest(".lg\\:col-span-5").hide();
 
         activateTab("approval");
-
         autoRefresh();
     }
 
-    $(document).ready(function () {
-        init();
-    });
+    $(document).ready(init);
 })();

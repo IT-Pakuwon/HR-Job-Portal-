@@ -36,48 +36,48 @@ class TicketController extends Controller
             $notificationService;
     }
 
-protected array $workflowTransitions = [
+    protected array $workflowTransitions = [
 
-    'response' => [
-        'CREATED',
-        'TRANSFER',
-    ],
+        'response' => [
+            'CREATED',
+            'TRANSFER',
+        ],
 
-    'process' => [
-        'RESPONSE',
-        'REOPEN',
-        'PENDING',
-    ],
+        'process' => [
+            'RESPONSE',
+            'REOPEN',
+            'PENDING',
+        ],
 
-    'pending' => [
-        'PROCESS',
-    ],
+        'pending' => [
+            'PROCESS',
+        ],
 
-    'envision' => [
-        'PENDING',
-        'PROCESS',
-    ],
+        'envision' => [
+            'PENDING',
+            'PROCESS',
+        ],
 
-    'ENVISION CHECKED / SOLVED' => [
-        'ENVISION',
-    ],
+        'ENVISION CHECKED / SOLVED' => [
+            'ENVISION',
+        ],
 
-    'complete' => [
-        'PROCESS',
-        'PENDING',
-        'ENVISION CHECKED / SOLVED',
-    ],
+        'complete' => [
+            'PROCESS',
+            'PENDING',
+            'ENVISION CHECKED / SOLVED',
+        ],
 
-    'transfer' => [
-        'CREATED',
-        'TRANSFER',
-        'REOPEN',
-    ],
+        'transfer' => [
+            'CREATED',
+            'TRANSFER',
+            'REOPEN',
+        ],
 
-    'reopen' => [
-        'COMPLETED',
-    ],
-];
+        'reopen' => [
+            'COMPLETED',
+        ],
+    ];
 
     protected function canTransition(
         string $current,
@@ -1857,7 +1857,7 @@ protected array $workflowTransitions = [
         try {
             $ticket->update([
                 'solution_descr' => $request->solution_descr,
-                'pic_completed_ticket' => Carbon::now(),
+                'pic_completed_ticket' => auth()->user()->username,
                 'completed_by' => auth()->user()->username,
                 'completed_at' => now(),
                 'status' => 'C',
@@ -2226,6 +2226,8 @@ protected array $workflowTransitions = [
                 }
             }
 
+            DB::connection('pgsql5')->commit();
+
             /*
         |--------------------------------------------------------------------------
         | Notification
@@ -2257,8 +2259,6 @@ protected array $workflowTransitions = [
                     ]
                 );
             }
-
-            DB::connection('pgsql5')->commit();
 
             return response()->json([
                 'success' => true,
@@ -2440,7 +2440,7 @@ protected array $workflowTransitions = [
                 )
                 ->orWhere(
                     'cpny_id',
-                    'all'
+                    'ALL'
                 );
             });
 

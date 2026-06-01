@@ -901,13 +901,9 @@ $(document).on('click', '#btn_export_ticket', function() {
 
     const params = new URLSearchParams({
 
-        search: $('#search_ticket').val() || '',
+        search: $('#filter_search').val() || '',
 
-        cpny_id: $('#filter_company').val() || '',
-
-        department_id: $('#filter_department').val() || '',
-
-        ticket_type: $('#filter_ticket_type').val() || '',
+        status: $('#filter_status_pekerjaan').val() || '',
 
         date_from: $('#filter_date_from').val() || '',
 

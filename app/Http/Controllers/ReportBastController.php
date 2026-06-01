@@ -8,11 +8,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Vinkla\Hashids\Facades\Hashids;
+use Illuminate\Support\Facades\Auth;
+
 class ReportBastController extends Controller
 {
     public function index()
     {
-        return view('pages.report-bast.index');
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        return view('pages.report-bast.index', [
+            'user' => $user,
+        ]);
     }
 
     private function query()

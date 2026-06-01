@@ -12,19 +12,37 @@
             </p>
         </div>
 
-        <div
-            class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div class="flex items-center gap-3">
 
-            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            <div
+                class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
-            <span class="text-slate-500 dark:text-slate-400">
-                Last Refresh
-            </span>
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
 
-            <span id="approvalRefreshTime"
-                class="font-semibold text-slate-900 dark:text-white">
-                --
-            </span>
+                <span class="text-slate-500 dark:text-slate-400">
+                    Last Refresh
+                </span>
+
+                <span id="approvalRefreshTime"
+                    class="font-semibold text-slate-900 dark:text-white">
+                    --
+                </span>
+
+            </div>
+
+            <div
+                class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
+
+                <span class="text-slate-500 dark:text-slate-400">
+                    Next refresh
+                </span>
+
+                <span id="approvalCountdown"
+                    class="font-semibold tabular-nums text-slate-900 dark:text-white">
+                    00:20
+                </span>
+
+            </div>
 
         </div>
 
@@ -161,15 +179,24 @@
 
                 <div class="lg:col-span-2">
 
-                    <div class="flex-1 w-full justify-end gap-2">
+                    <div class="flex w-full justify-end gap-2">
 
                         <button
                             id="openAllWaiting"
-                            class="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
+                            class="flex-1 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-gray-900 dark:bg-zinc-700 dark:hover:bg-zinc-600">
 
                             🚀 Open All
 
                         </button>
+
+                        <button
+                            id="refreshApproval"
+                            class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
+
+                            🔄 Refresh
+
+                        </button>
+
                     </div>
 
                 </div>

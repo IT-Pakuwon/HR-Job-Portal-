@@ -12,12 +12,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 
 class ReportPurchasingController extends Controller
 {
     public function index()
     {
-        return view('pages.report-purchasing.index');
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        return view('pages.report-purchasing.index', [
+            'user' => $user,
+        ]);
     }
 
     /*

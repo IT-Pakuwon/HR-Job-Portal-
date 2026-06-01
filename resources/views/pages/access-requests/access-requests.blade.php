@@ -4,7 +4,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Status Filter --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
 
             {{-- All Status --}}
             <button type="button" class="text-left">
@@ -74,19 +74,36 @@
                 </a>
             </button>
 
-            {{-- Completed Status --}}
+            {{-- Approved Status (management approved, IT processing) --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="C">
                     <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-emerald-700 bg-emerald-200/20 p-3 text-emerald-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-emerald-100 hover:shadow-md active:scale-95">
 
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Completed</p>
+                            <p class="break-words text-sm font-medium">Approved</p>
                         </div>
 
                         <p class="shrink-0 text-base font-bold">{{ $completed }}</p>
+                    </div>
+                </a>
+            </button>
+
+            {{-- Finished Status (IT completed all access items) --}}
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="F">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🏁</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Finished</p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-bold">{{ $finished }}</p>
                     </div>
                 </a>
             </button>
@@ -860,12 +877,6 @@
                     <div id="processSoftwareInfoContainer"></div>
 
                     <div id="processSoftwareDetailContainer"></div>
-
-                    <div id="processSoftwareFormContainer"></div>
-
-                    <div id="processSoftwareResultContainer"></div>
-
-                    <div id="processSoftwareActionContainer"></div>
 
                 </div>
 

@@ -62,25 +62,27 @@ class AccessRequestController extends Controller
 
         $all = $allQuery->count();
 
-        $pending = TrAccess::where('status', 'P')
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds)
-            ->count();
+        $isItRole = $user->hasRole('ITHARDWARE') || $user->hasRole('ITSOFTWARE');
 
-        $completed = TrAccess::where('status', 'C')
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds)
-            ->count();
+        $pendingQuery = TrAccess::where('status', 'P');
+        $completedQuery = TrAccess::where('status', 'C');
+        $rejectQuery = TrAccess::where('status', 'R');
+        $reviseQuery = TrAccess::where('status', 'D');
+        $finishedQuery = TrAccess::where('status', 'F');
 
-        $reject = TrAccess::where('status', 'R')
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds)
-            ->count();
+        if (!$isItRole) {
+            $pendingQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
+            $completedQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
+            $rejectQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
+            $reviseQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
+            $finishedQuery->whereIn('cpny_id', $cpnyIds)->whereIn('department_id', $deptIds);
+        }
 
-        $revise = TrAccess::where('status', 'D')
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds)
-            ->count();
+        $pending = $pendingQuery->count();
+        $completed = $completedQuery->count();
+        $reject = $rejectQuery->count();
+        $revise = $reviseQuery->count();
+        $finished = $finishedQuery->count();
 
         $modalType = null;
         $modalAccess = null;
@@ -123,6 +125,7 @@ class AccessRequestController extends Controller
             'completed',
             'reject',
             'revise',
+            'finished',
             'companies',
             'departments',
             'modalType',
@@ -779,14 +782,14 @@ class AccessRequestController extends Controller
                 DB::rollBack();
 
                 return response()->json([
-                    'message' => 'Document cannot be updated',
+                    'message' => 'Document cannot be cancelled',
                 ], 403);
             }
             if ($access->created_by !== $username) {
                 DB::rollBack();
 
                 return response()->json([
-                    'message' => 'Only creator can update document',
+                    'message' => 'Only creator can cancel document',
                 ], 403);
             }
             $access->status = 'X';
@@ -1095,7 +1098,7 @@ class AccessRequestController extends Controller
 
                 'status_label' => match ($access->status) {
                     'P' => 'Pending',
-                    'C' => 'Completed',
+                    'C' => 'Approved',
                     'R' => 'Rejected',
                     'D' => 'Revise',
                     'F' => 'Finished',

@@ -35,13 +35,14 @@
             },
             signal: summaryRequest.signal,
         })
-            .then((r) => r.json())
+            .then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then((res) => {
                 const data = res.data || {};
 
                 $("#waitingApprovalCount").text(data.waiting_approval || 0);
-
-                $("#approvalHistoryCount").text(data.approval_history || 0);
 
                 $("#workOrderCount").text(data.work_order || 0);
 
@@ -270,6 +271,9 @@
                 emptyTable: "No data available",
             },
         });
+
+        const search = $("#dashboardSearch").val();
+        if (search) dashboardTable.search(search).draw();
     }
 
     function loadDocTypes() {

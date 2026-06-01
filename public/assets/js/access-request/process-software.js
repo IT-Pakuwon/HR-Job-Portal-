@@ -27,7 +27,6 @@ function renderProcessSoftwareLoading() {
 
     $('#processSoftwareInfoContainer').html(loader);
     $('#processSoftwareDetailContainer').html(loader);
-    $('#processSoftwareActionContainer').html('');
 }
 
 function renderProcessSoftwareError(xhr) {
@@ -42,7 +41,6 @@ function renderProcessSoftwareError(xhr) {
 
     $('#processSoftwareInfoContainer').html(html);
     $('#processSoftwareDetailContainer').html('');
-    $('#processSoftwareActionContainer').html('');
 }
 
 function renderProcessSoftwareInfo(access) {

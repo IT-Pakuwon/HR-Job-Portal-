@@ -388,23 +388,15 @@
                                 All Status
                             </option>
 
-                            <option value="OPEN">
+                            <option value="P">
                                 Open
                             </option>
 
-                            <option value="ONPROGRESS">
-                                On Progress
-                            </option>
-
-                            <option value="PENDING">
-                                Pending
-                            </option>
-
-                            <option value="COMPLETED">
+                            <option value="C">
                                 Completed
                             </option>
 
-                            <option value="CANCEL">
+                            <option value="X">
                                 Cancelled
                             </option>
 

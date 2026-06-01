@@ -17,12 +17,18 @@ class ReportOperationalController extends Controller
     {
         $user = Auth::user();
 
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         abort_unless(
             $user->hasRole('COSTCTRLACCESS') || $user->hasRole('OPRACCESS'),
             403
         );
 
-        return view('pages.report-operational.index');
+        return view('pages.report-operational.index', [
+            'user' => $user,
+        ]);
     }
 
     /*
