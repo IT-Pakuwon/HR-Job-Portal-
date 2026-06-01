@@ -716,6 +716,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
         Route::get('/bqcs/edit/{hash}', [BQCSController::class, 'editBQCS'])->name('bqcs.edit');
         Route::put('bqcs/update/{hash}', [BQCSController::class, 'updateBQCS'])->name('bqcs.update');
+        Route::get('/bqcs/{hash}/download-template', [BQCSController::class, 'downloadBqCsTemplate'])->name('bqcs.downloadTemplate');
+        Route::post('/bqcs/{hash}/import-template', [BQCSController::class, 'importBqCsTemplate'])->name('bqcs.importTemplate');
+        Route::get('/bqcs/{hash}/download-edit-template', [BQCSController::class, 'downloadBqCsEditTemplate'])->name('bqcs.downloadEditTemplate');
+        Route::post('/bqcs/{hash}/import-edit-template', [BQCSController::class, 'importBqCsEditTemplate'])->name('bqcs.importEditTemplate');
 
         Route::post('/cs/check-qty', [CsJobController::class, 'checkQtyBeforeSubmit'])->name('cs.check-qty');
         Route::put('/csjobs/{csid}/cancel', [CsJobController::class, 'cancelCS'])->name('csjobs.cancel');

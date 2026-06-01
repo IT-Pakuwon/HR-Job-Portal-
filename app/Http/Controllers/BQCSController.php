@@ -14,6 +14,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Models\MsCompany;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+
+
 
 class BQCSController extends Controller
 {
@@ -74,6 +80,7 @@ class BQCSController extends Controller
             'cs'        => $cs,
             'vendors'   => $vendors,
             'bqDetails' => $bqDetails,
+            'hash'      => $hash,
         ]);
     }
 
@@ -366,7 +373,186 @@ class BQCSController extends Controller
         return view($view, compact('bq', 'details', 'vendors', 'hash_id', 'cs', 'cs_eid'));
     }
 
-    public function updateBQCS(Request $request, $hash)
+    public function updateBQCS(Request $request, string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'ok' => false,
+                'msg' => 'Hash tidak valid.',
+            ], 422);
+        }
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'ok' => false,
+                'msg' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $username = $user->username ?? 'system';
+        $now = now();
+
+        $vendors = json_decode($request->input('vendors', '[]'), true);
+        $details = json_decode($request->input('details', '[]'), true);
+
+        if (!is_array($vendors)) {
+            $vendors = [];
+        }
+
+        if (!is_array($details)) {
+            $details = [];
+        }
+
+        if (empty($details)) {
+            return response()->json([
+                'ok' => false,
+                'msg' => 'Detail BQ tidak boleh kosong.',
+            ], 422);
+        }
+
+        return DB::connection('pgsql')->transaction(function () use ($id, $vendors, $details, $username, $now) {
+            $hdr = TrBQCS::on('pgsql')
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $type = strtoupper(trim((string) ($hdr->bq_type ?? 'JASA')));
+
+            $vendorMap = [];
+
+            for ($i = 1; $i <= 6; $i++) {
+                $vid = $this->cleanVendorId($vendors[$i - 1]['id'] ?? null);
+
+                $hdr->{"vendorid{$i}"} = $vid ?: null;
+                $hdr->{"grandtotalmaterialvendor{$i}"} = null;
+                $hdr->{"grandtotaljasavendor{$i}"} = null;
+
+                $vendorMap[$i] = $vid ?: null;
+            }
+
+            TrBQCSDetail::on('pgsql')
+                ->where('bqid', $hdr->bqid)
+                ->where('csid', $hdr->csid)
+                ->delete();
+
+            $sumMaterial = array_fill(1, 6, 0.0);
+            $sumJasa = array_fill(1, 6, 0.0);
+
+            foreach ($details as $row) {
+                $bqNo = trim((string) ($row['bq_no'] ?? ''));
+                $bqLineNo = trim((string) ($row['bq_line_no'] ?? ''));
+                $bqDescr = trim((string) ($row['bq_descr'] ?? ''));
+
+                if ($bqNo === '' && $bqLineNo === '' && $bqDescr === '') {
+                    continue;
+                }
+
+                if ($bqDescr === '') {
+                    throw new \RuntimeException('Description BQ wajib diisi.');
+                }
+
+                $qty = round((float) ($row['qty'] ?? 0), 2);
+                $src = (int) ($row['bq_source'] ?? 0);
+
+                if (!in_array($src, [0, 1], true)) {
+                    $src = 1;
+                }
+
+                $duration = (int) ($row['kontrak_duration_qty'] ?? 0);
+
+                $det = new TrBQCSDetail();
+                $det->setConnection('pgsql');
+
+                $det->bqid = $hdr->bqid;
+                $det->csid = $hdr->csid;
+                $det->sppjtid = $hdr->sppjtid;
+                $det->bq_no = $bqNo;
+                $det->bq_line_no = $bqLineNo;
+                $det->bq_descr = $bqDescr;
+                $det->bq_source = $src;
+                $det->bq_qty = $src === 0 ? $qty : 0;
+                $det->qty = $qty;
+                $det->uom = $row['uom'] ?? null;
+                $det->bqtype = $row['bqtype'] ?? $type;
+
+                $det->kontrakcategory = $row['kontrakcategory'] ?? null;
+                $det->kontrak_bq_id = $row['kontrak_bq_id'] ?? null;
+                $det->kontrak_bq_type = $row['kontrak_bq_type'] ?? null;
+                $det->kontrak_duration_qty = $type === 'KONTRAK' ? $duration : null;
+
+                for ($i = 1; $i <= 6; $i++) {
+                    $det->{"vendorid{$i}"} = $vendorMap[$i];
+
+                    $prodPrice = 0.0;
+                    $jasaPrice = 0.0;
+
+                    if (!empty($row['vendor']) && is_array($row['vendor'])) {
+                        foreach ($row['vendor'] as $vv) {
+                            $idx = (int) ($vv['idx'] ?? 0);
+
+                            if ($idx === $i) {
+                                $prodPrice = round((float) ($vv['product_price'] ?? 0), 2);
+                                $jasaPrice = round((float) ($vv['jasa_price'] ?? 0), 2);
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($type === 'KONTRAK') {
+                        $multiplier = max(1, $duration);
+                        $totalMat = $qty * $prodPrice * $multiplier;
+                        $totalJasa = $qty * $jasaPrice * $multiplier;
+                    } else {
+                        $totalMat = $qty * $prodPrice;
+                        $totalJasa = $qty * $jasaPrice;
+                    }
+
+                    $det->{"vendorproductprice{$i}"} = round($prodPrice, 2);
+                    $det->{"vendortotalproductprice{$i}"} = round($totalMat, 2);
+                    $det->{"vendorjasaprice{$i}"} = round($jasaPrice, 2);
+                    $det->{"vendortotaljasaprice{$i}"} = round($totalJasa, 2);
+
+                    if (!empty($vendorMap[$i])) {
+                        $sumMaterial[$i] += $totalMat;
+                        $sumJasa[$i] += $totalJasa;
+                    }
+                }
+
+                $det->status = 'H';
+                $det->created_by = $username;
+                $det->created_at = $now;
+                $det->updated_by = $username;
+                $det->updated_at = $now;
+                $det->save();
+            }
+
+            for ($i = 1; $i <= 6; $i++) {
+                if (!empty($hdr->{"vendorid{$i}"})) {
+                    $hdr->{"grandtotalmaterialvendor{$i}"} = round($sumMaterial[$i], 2);
+                    $hdr->{"grandtotaljasavendor{$i}"} = round($sumJasa[$i], 2);
+                } else {
+                    $hdr->{"grandtotalmaterialvendor{$i}"} = null;
+                    $hdr->{"grandtotaljasavendor{$i}"} = null;
+                }
+            }
+
+            $hdr->updated_by = $username;
+            $hdr->updated_at = $now;
+            $hdr->save();
+
+            return response()->json([
+                'ok' => true,
+                'msg' => 'BQ updated',
+                'bqid' => $hdr->bqid,
+            ]);
+        });
+    }
+
+    public function updateBQCS_tanpa_import(Request $request, $hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
@@ -1147,5 +1333,469 @@ class BQCSController extends Controller
         return $pdf->stream("pdfbq_cs_{$bq->bqid}.pdf");
     }
 
+    public function downloadBqCsTemplate(string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+
+        $cs = TrCS::on('pgsql')->where('id', $id)->firstOrFail();
+
+        $vendors = [];
+
+        for ($i = 1; $i <= 6; $i++) {
+            $vidCol = "vendorid{$i}";
+            $vnmCol = "vendorname{$i}";
+
+            if (!filled($cs->{$vidCol}) && !filled($cs->{$vnmCol})) {
+                continue;
+            }
+
+            $vendors[] = [
+                'idx'  => $i,
+                'id'   => $cs->{$vidCol},
+                'name' => $cs->{$vnmCol},
+            ];
+        }
+
+        $bqDetails = BqDetail::on('pgsql')
+            ->where('bqid', $cs->bqid)
+            ->orderBy('bq_no')
+            ->orderByRaw("
+                CASE 
+                    WHEN bq_line_no ~ '^[0-9]+$' THEN 0
+                    ELSE 1
+                END ASC
+            ")
+            ->orderByRaw("
+                CASE 
+                    WHEN bq_line_no ~ '^[0-9]+$' THEN bq_line_no::int
+                    ELSE NULL
+                END ASC
+            ")
+            ->orderBy('bq_line_no')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('BQ CS Template');
+
+        $headers = [
+            'bq_no',
+            'bq_line_no',
+            'bq_descr',
+            'qty',
+            'uom',
+            'bqtype',
+            'bq_source',
+            'kontrakcategory',
+            'kontrak_bq_id',
+            'kontrak_bq_type',
+            'kontrak_duration_qty',
+        ];
+
+        foreach ($vendors as $v) {
+            $headers[] = "vendor{$v['idx']}_id";
+            $headers[] = "vendor{$v['idx']}_material_price";
+            $headers[] = "vendor{$v['idx']}_jasa_price";
+        }
+
+        $col = 1;
+
+        foreach ($headers as $header) {
+            $sheet->setCellValueByColumnAndRow($col, 1, $header);
+            $col++;
+        }
+
+        $rowNo = 2;
+
+        foreach ($bqDetails as $d) {
+            $col = 1;
+
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->bq_no);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->bq_line_no);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->bq_descr);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, (float) ($d->qty ?? 0));
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->uom);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->bqtype);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, 0);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->kontrakcategory);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->kontrak_bq_id);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->kontrak_bq_type);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->kontrak_duration_qty);
+
+            foreach ($vendors as $v) {
+                $sheet->setCellValueByColumnAndRow($col++, $rowNo, $v['id']);
+                $sheet->setCellValueByColumnAndRow($col++, $rowNo, 0);
+                $sheet->setCellValueByColumnAndRow($col++, $rowNo, 0);
+            }
+
+            $rowNo++;
+        }
+
+        foreach (range(1, count($headers)) as $columnIndex) {
+            $sheet->getColumnDimensionByColumn($columnIndex)->setAutoSize(true);
+        }
+
+        $fileName = 'BQCS_Template_' . $cs->csid . '_' . now()->format('YmdHis') . '.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    public function importBqCsTemplate(Request $request, string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'ok' => false,
+                'msg' => 'Hash tidak valid.',
+            ], 422);
+        }
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls'],
+        ]);
+
+        $cs = TrCS::on('pgsql')->where('id', $id)->firstOrFail();
+
+        $vendors = [];
+
+        for ($i = 1; $i <= 6; $i++) {
+            $vidCol = "vendorid{$i}";
+            $vnmCol = "vendorname{$i}";
+
+            if (!filled($cs->{$vidCol}) && !filled($cs->{$vnmCol})) {
+                continue;
+            }
+
+            $vendors[] = [
+                'idx' => $i,
+                'id'  => $cs->{$vidCol},
+            ];
+        }
+
+        $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $highestRow = $sheet->getHighestRow();
+        $highestCol = $sheet->getHighestColumn();
+        $highestColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+
+        $headerMap = [];
+
+        for ($col = 1; $col <= $highestColIndex; $col++) {
+            $header = trim((string) $sheet->getCellByColumnAndRow($col, 1)->getValue());
+
+            if ($header !== '') {
+                $headerMap[$header] = $col;
+            }
+        }
+
+        $get = function (int $row, string $key) use ($sheet, $headerMap) {
+            if (!isset($headerMap[$key])) {
+                return null;
+            }
+
+            return $sheet->getCellByColumnAndRow($headerMap[$key], $row)->getValue();
+        };
+
+        $rows = [];
+
+        for ($row = 2; $row <= $highestRow; $row++) {
+            $bqNo = trim((string) ($get($row, 'bq_no') ?? ''));
+            $line = trim((string) ($get($row, 'bq_line_no') ?? ''));
+            $descr = trim((string) ($get($row, 'bq_descr') ?? ''));
+
+            if ($bqNo === '' && $line === '' && $descr === '') {
+                continue;
+            }
+
+            if ($descr === '') {
+                return response()->json([
+                    'ok' => false,
+                    'msg' => "Baris {$row}: bq_descr wajib diisi.",
+                ], 422);
+            }
+
+            $qty = (float) ($get($row, 'qty') ?? 0);
+            $bqSource = (int) ($get($row, 'bq_source') ?? 1);
+
+            $vendorRows = [];
+
+            foreach ($vendors as $v) {
+                $idx = (int) $v['idx'];
+
+                $vendorRows[] = [
+                    'idx' => $idx,
+                    'vendorid' => $v['id'],
+                    'material_price' => (float) ($get($row, "vendor{$idx}_material_price") ?? 0),
+                    'jasa_price' => (float) ($get($row, "vendor{$idx}_jasa_price") ?? 0),
+                ];
+            }
+
+            $rows[] = [
+                'bq_no' => $bqNo,
+                'bq_line_no' => $line,
+                'bq_descr' => $descr,
+                'qty' => round($qty, 2),
+                'uom' => trim((string) ($get($row, 'uom') ?? '')),
+                'bqtype' => trim((string) ($get($row, 'bqtype') ?? ($cs->bqtype ?? ''))),
+                'bq_source' => $bqSource,
+                'kontrakcategory' => trim((string) ($get($row, 'kontrakcategory') ?? '')),
+                'kontrak_bq_id' => trim((string) ($get($row, 'kontrak_bq_id') ?? '')),
+                'kontrak_bq_type' => trim((string) ($get($row, 'kontrak_bq_type') ?? '')),
+                'kontrak_duration_qty' => (float) ($get($row, 'kontrak_duration_qty') ?? 0),
+                'vendor' => $vendorRows,
+            ];
+        }
+
+        if (empty($rows)) {
+            return response()->json([
+                'ok' => false,
+                'msg' => 'Excel tidak memiliki data.',
+            ], 422);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'rows' => $rows,
+        ]);
+    }
+
+    public function downloadBqCsEditTemplate(string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $bq = TrBQCS::on('pgsql')->where('id', $id)->firstOrFail();
+
+        $vendors = [];
+
+        for ($i = 1; $i <= 6; $i++) {
+            $vendorId = trim((string) ($bq->{"vendorid{$i}"} ?? ''));
+
+            if ($vendorId === '') {
+                continue;
+            }
+
+            $vendors[] = [
+                'idx' => $i,
+                'id'  => $vendorId,
+            ];
+        }
+
+        $details = TrBQCSDetail::on('pgsql')
+            ->where('bqid', $bq->bqid)
+            ->where('csid', $bq->csid)
+            ->orderBy('bq_no')
+            ->orderByRaw("
+                CASE 
+                    WHEN bq_line_no ~ '^[0-9]+$' THEN 0
+                    ELSE 1
+                END ASC
+            ")
+            ->orderByRaw("
+                CASE 
+                    WHEN bq_line_no ~ '^[0-9]+$' THEN bq_line_no::int
+                    ELSE NULL
+                END ASC
+            ")
+            ->orderBy('bq_line_no')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('BQ CS Edit');
+
+        $headers = [
+            'bq_no',
+            'bq_line_no',
+            'bq_descr',
+            'qty',
+            'uom',
+            'bq_source',
+            'bqtype',
+            'kontrakcategory',
+            'kontrak_bq_id',
+            'kontrak_bq_type',
+            'kontrak_duration_qty',
+        ];
+
+        foreach ($vendors as $v) {
+            $headers[] = "vendor{$v['idx']}_id";
+            $headers[] = "vendor{$v['idx']}_material_price";
+            $headers[] = "vendor{$v['idx']}_jasa_price";
+        }
+
+        foreach ($headers as $idx => $header) {
+            $sheet->setCellValueByColumnAndRow($idx + 1, 1, $header);
+        }
+
+        $rowNo = 2;
+
+        foreach ($details as $d) {
+            $col = 1;
+
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->bq_no);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->bq_line_no);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->bq_descr);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, (float) ($d->qty ?? 0));
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->uom);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, (int) ($d->bq_source ?? 0));
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->bqtype);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->kontrakcategory);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->kontrak_bq_id);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->kontrak_bq_type);
+            $sheet->setCellValueByColumnAndRow($col++, $rowNo, $d->kontrak_duration_qty);
+
+            foreach ($vendors as $v) {
+                $i = (int) $v['idx'];
+
+                $sheet->setCellValueByColumnAndRow($col++, $rowNo, $v['id']);
+                $sheet->setCellValueByColumnAndRow($col++, $rowNo, (float) ($d->{"vendorproductprice{$i}"} ?? 0));
+                $sheet->setCellValueByColumnAndRow($col++, $rowNo, (float) ($d->{"vendorjasaprice{$i}"} ?? 0));
+            }
+
+            $rowNo++;
+        }
+
+        foreach (range(1, count($headers)) as $columnIndex) {
+            $sheet->getColumnDimensionByColumn($columnIndex)->setAutoSize(true);
+        }
+
+        $fileName = 'BQCS_Edit_' . $bq->bqid . '_' . now()->format('YmdHis') . '.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    public function importBqCsEditTemplate(Request $request, string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'ok' => false,
+                'msg' => 'Hash tidak valid.',
+            ], 422);
+        }
+
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls'],
+        ]);
+
+        $bq = TrBQCS::on('pgsql')->where('id', $id)->firstOrFail();
+
+        $vendors = [];
+
+        for ($i = 1; $i <= 6; $i++) {
+            $vendorId = trim((string) ($bq->{"vendorid{$i}"} ?? ''));
+
+            if ($vendorId === '') {
+                continue;
+            }
+
+            $vendors[] = [
+                'idx' => $i,
+                'id'  => $vendorId,
+            ];
+        }
+
+        $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $highestRow = $sheet->getHighestRow();
+        $highestCol = $sheet->getHighestColumn();
+        $highestColIndex = Coordinate::columnIndexFromString($highestCol);
+
+        $headerMap = [];
+
+        for ($col = 1; $col <= $highestColIndex; $col++) {
+            $header = trim((string) $sheet->getCellByColumnAndRow($col, 1)->getValue());
+
+            if ($header !== '') {
+                $headerMap[$header] = $col;
+            }
+        }
+
+        $get = function (int $row, string $key) use ($sheet, $headerMap) {
+            if (!isset($headerMap[$key])) {
+                return null;
+            }
+
+            return $sheet->getCellByColumnAndRow($headerMap[$key], $row)->getValue();
+        };
+
+        $rows = [];
+
+        for ($row = 2; $row <= $highestRow; $row++) {
+            $bqNo = trim((string) ($get($row, 'bq_no') ?? ''));
+            $line = trim((string) ($get($row, 'bq_line_no') ?? ''));
+            $descr = trim((string) ($get($row, 'bq_descr') ?? ''));
+
+            if ($bqNo === '' && $line === '' && $descr === '') {
+                continue;
+            }
+
+            if ($descr === '') {
+                return response()->json([
+                    'ok' => false,
+                    'msg' => "Baris {$row}: bq_descr wajib diisi.",
+                ], 422);
+            }
+
+            $vendorRows = [];
+
+            foreach ($vendors as $v) {
+                $idx = (int) $v['idx'];
+
+                $vendorRows[] = [
+                    'idx' => $idx,
+                    'vendorid' => $v['id'],
+                    'product_price' => (float) ($get($row, "vendor{$idx}_material_price") ?? 0),
+                    'jasa_price' => (float) ($get($row, "vendor{$idx}_jasa_price") ?? 0),
+                ];
+            }
+
+            $rows[] = [
+                'bq_no' => $bqNo,
+                'bq_line_no' => $line,
+                'bq_descr' => $descr,
+                'qty' => round((float) ($get($row, 'qty') ?? 0), 2),
+                'uom' => trim((string) ($get($row, 'uom') ?? '')),
+                'bq_source' => (int) ($get($row, 'bq_source') ?? 1),
+                'bqtype' => trim((string) ($get($row, 'bqtype') ?? $bq->bq_type)),
+                'kontrakcategory' => trim((string) ($get($row, 'kontrakcategory') ?? '')),
+                'kontrak_bq_id' => trim((string) ($get($row, 'kontrak_bq_id') ?? '')),
+                'kontrak_bq_type' => trim((string) ($get($row, 'kontrak_bq_type') ?? '')),
+                'kontrak_duration_qty' => (float) ($get($row, 'kontrak_duration_qty') ?? 0),
+                'vendor' => $vendorRows,
+            ];
+        }
+
+        if (empty($rows)) {
+            return response()->json([
+                'ok' => false,
+                'msg' => 'Excel tidak memiliki data.',
+            ], 422);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'rows' => $rows,
+        ]);
+    }
 
 }

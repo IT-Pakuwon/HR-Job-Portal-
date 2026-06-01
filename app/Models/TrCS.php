@@ -21,7 +21,7 @@ class TrCS extends Model
     protected $fillable = [       
         'csid' , 'csdate' , 'cpny_id' , 'sppbjktid' , 'bqid' , 'bqtype' , 'department_id' , 'user_peminta' , 'keperluan' , 
         'csnote' , 'budget_perpost' , 'woid' , 'spbid' , 'flag_imbudget' , 'imbudgetid' , 'status_imbudget' , 
-        'rev_csid' , 'prev_csid' , 'vendorid1' , 'vendorname1' , 'vendoralamat1' , 'vendortelp1' , 'vendorcp1' , 'vendortop1' , 
+        'rev_csid' , 'prev_csid'  , 'prev_ponbr' , 'vendorid1' , 'vendorname1' , 'vendoralamat1' , 'vendortelp1' , 'vendorcp1' , 'vendortop1' , 
         'vendornote1' , 'totalvendor1' , 'taxcodevendor1' , 'ppnvendor1' , 'pphvendor1' , 'taxvendor1' , 'grandtotalvendor1' , 
         'totalselectedvendor1' , 'taxselectedvendor1' , 'grandtotalselectedvendor1' , 'vendorid2' , 'vendorname2' , 
         'vendoralamat2' , 'vendortelp2' , 'vendorcp2' , 'vendortop2' , 'vendornote2' , 'totalvendor2' , 'taxcodevendor2' , 

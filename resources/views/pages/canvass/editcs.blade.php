@@ -1560,7 +1560,7 @@
             }
         });
     </script>
-    <script>
+    {{-- <script>
         (function() {
             const EPS = 1;
 
@@ -1616,9 +1616,10 @@
 
                     const csVendorName = normalizeVendorName(csRow?.vendorname || '');
 
-                    const bqRow = Object.values(BQ_VENDOR_TOTALS || {}).find(v =>
-                        normalizeVendorName(v.vendorname || '') === csVendorName
-                    );
+                    // const bqRow = Object.values(BQ_VENDOR_TOTALS || {}).find(v =>
+                    //     normalizeVendorName(v.vendorname || '') === csVendorName
+                    // );
+                    const bqRow = BQ_VENDOR_TOTALS[i] || null;
 
                     if (!csRow && !bqRow) continue;
 
@@ -1650,9 +1651,8 @@
                 return true;
             };
         })();
-    </script>
-
-    {{-- <script>
+    </script> --}}
+    <script>
         (function() {
             const EPS = 1;
 
@@ -1665,17 +1665,20 @@
 
             function showMismatchTable(rows) {
                 const $tbody = $('#bqcsMismatchBody').empty();
+
                 rows.forEach(r => {
                     const cls = 'text-red-600 dark:text-red-400 font-semibold';
+
                     $tbody.append(`
                         <tr>
                             <td class="px-3 py-2">${_.escape(r.vendor_label)}</td>
                             <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.bq)}</td>
-                            <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.cs)}</td>
+                            <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.cs_before_tax)}</td>
                             <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.diff)}</td>
                         </tr>
                     `);
                 });
+
                 $('#bqcsMismatchModal').removeClass('hidden');
             }
 
@@ -1698,23 +1701,44 @@
                 const mismatches = [];
 
                 for (let i = 1; i <= 6; i++) {
-                    const csRow = CS_VENDOR_TOTALS[i];
-                    const bqRow = BQ_VENDOR_TOTALS[i];
+                    const csRow = CS_VENDOR_TOTALS[i] || null;
+                    const bqRow = BQ_VENDOR_TOTALS[i] || null;
 
                     if (!csRow && !bqRow) continue;
 
-                    const vendorName = (csRow?.vendorname || csRow?.vendorid || `Vendor ${i}`);
-                    const csTotal = Number(csRow?.total_cs || 0);
+                    const csVendorId = String(csRow?.vendorid || '').trim();
+                    const bqVendorId = String(bqRow?.vendorid || '').trim();
+
+                    const csBeforeTax = Number(csRow?.total_cs || 0);
                     const bqSum = Number(bqRow?.sum_bq || 0);
 
-                    const diff = Math.abs(bqSum - csTotal);
-                    if (diff > EPS) {
+                    // Kalau slot kosong dan dua-duanya 0, skip
+                    if (!csVendorId && !bqVendorId && csBeforeTax === 0 && bqSum === 0) {
+                        continue;
+                    }
+
+                    const vendorLabel = csRow?.vendorname ||
+                        csRow?.vendorid ||
+                        bqRow?.vendorname ||
+                        bqRow?.vendorid ||
+                        `Vendor ${i}`;
+
+                    /*
+                    * IMPORTANT:
+                    * Compare berdasarkan slot vendor ke-i.
+                    * Jangan cari berdasarkan vendor name/vendor id saja,
+                    * karena vendor yang sama boleh muncul lebih dari satu kolom:
+                    * vendor1 = VV00531, vendor2 = VV00531.
+                    */
+                    const diff = bqSum - csBeforeTax;
+
+                    if (Math.abs(diff) > EPS) {
                         mismatches.push({
                             idx: i,
-                            vendor_label: vendorName,
+                            vendor_label: `${vendorLabel} #${i}`,
                             bq: bqSum,
-                            cs: csTotal,
-                            diff: bqSum - csTotal
+                            cs_before_tax: csBeforeTax,
+                            diff: diff
                         });
                     }
                 }
@@ -1727,8 +1751,9 @@
                 return true;
             };
         })();
-    </script> --}}
+    </script>
 
+    
     <script>
         function validatePaymentTerms() {
             let ok = true;

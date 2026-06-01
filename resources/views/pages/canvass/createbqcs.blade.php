@@ -1,4 +1,20 @@
 <x-app-layout>
+    <style>
+        #bqTable th,
+        #bqTable td {
+            vertical-align: top;
+        }
+
+        #bqTable .bq-no,
+        #bqTable .bq-line,
+        #bqTable .bq-uom {
+            min-width: 0;
+        }
+
+        #bqTable .bq-descr {
+            line-height: 1.4;
+        }
+    </style>
     <div class="max-w-9xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
         <form id="bqForm" class="flex flex-col gap-4" enctype="multipart/form-data">
             @csrf
@@ -62,7 +78,25 @@
                         class="justify-center pb-4 text-sm font-bold text-gray-800 dark:border-gray-700 dark:text-white">
                         BQ Detail
                     </div>
-                    <div class="mb-3 flex justify-end">
+                    {{-- <div class="mb-3 flex justify-end">
+                        <button type="button" id="btnAddRow"
+                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
+                            + Add Row
+                        </button>
+                    </div> --}}
+                    <div class="mb-3 flex flex-wrap justify-end gap-2">
+                        <a href="{{ route('bqcs.downloadTemplate', $hash) }}"
+                            class="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
+                            Download Template Excel
+                        </a>
+
+                        <input type="file" id="bqImportFile" class="hidden" accept=".xlsx,.xls">
+
+                        <button type="button" id="btnImportExcel"
+                            class="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700">
+                            Import Excel
+                        </button>
+
                         <button type="button" id="btnAddRow"
                             class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
                             + Add Row
@@ -72,6 +106,20 @@
 
                 <div class="rounded-base relative overflow-x-auto">
                     <table class="text-body w-full table-auto text-left text-sm rtl:text-right" id="bqTable">
+                        <colgroup>
+                            <col style="width: 60px;">   {{-- No --}}
+                            <col style="width: 60px;">   {{-- Line --}}
+                            <col style="width: 420px;">  {{-- Description --}}
+                            <col style="width: 100px;">  {{-- Qty --}}
+                            <col style="width: 70px;">  {{-- UoM --}}
+                            <col style="width: 150px;">  {{-- Estimates --}}
+
+                            @foreach ($vendors as $v)
+                                <col style="width: 300px;"> {{-- Vendor --}}
+                            @endforeach
+
+                            <col style="width: 80px;"> {{-- Action --}}
+                        </colgroup>
                         <thead
                             class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
@@ -374,6 +422,15 @@
                         });
                     });
 
+                    // details.push({
+                    //     bq_no: bqNo,
+                    //     bq_line_no: line,
+                    //     bq_descr: descr,
+                    //     qty: qty,
+                    //     uom: uom,
+                    //     bq_source: bq_source,
+                    //     vendor: rowVendors
+                    // });
                     details.push({
                         bq_no: bqNo,
                         bq_line_no: line,
@@ -381,6 +438,11 @@
                         qty: qty,
                         uom: uom,
                         bq_source: bq_source,
+                        bqtype: tr.dataset.bqtype || '',
+                        kontrakcategory: tr.dataset.kontrakcategory || '',
+                        kontrak_bq_id: tr.dataset.kontrakBqId || '',
+                        kontrak_bq_type: tr.dataset.kontrakBqType || '',
+                        kontrak_duration_qty: tr.dataset.kontrakDurationQty || 0,
                         vendor: rowVendors
                     });
                 });
@@ -725,6 +787,197 @@
                 document.getElementById('bqForm').dispatchEvent(new Event('input', {
                     bubbles: true
                 }));
+            });
+        })();
+    </script>
+
+    <script>
+        (function() {
+            const vendors = @json($vendors);
+            const tbody = document.querySelector('#bqForm tbody');
+
+            function toFixed2(n) {
+                n = Number(n || 0);
+                return isNaN(n) ? '0.00' : n.toFixed(2);
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, function(m) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;'
+                    }[m];
+                });
+            }
+
+            function buildImportedRow(row) {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b dark:border-gray-700';
+                tr.dataset.removable = String(Number(row.bq_source || 1) === 1 ? 1 : 0);
+                tr.dataset.bqSource = String(row.bq_source ?? 1);
+
+                const removable = tr.dataset.removable === '1';
+
+                tr.innerHTML = `
+                    <td class="border px-4 py-2">                       
+                        <input type="text" class="bq-no w-full rounded-lg border px-2 py-1 text-center" value="${escapeHtml(row.bq_no)}">
+                    </td>
+
+                    <td class="border px-4 py-2">
+                       <input type="text" class="bq-line w-full rounded-lg border px-2 py-1 text-center" value="${escapeHtml(row.bq_line_no)}">
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <textarea class="bq-descr min-h-[42px] w-full resize-y rounded-lg border px-2 py-1">${escapeHtml(row.bq_descr)}</textarea>
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <input type="number" step="0.01" min="0"
+                            class="bq-qty w-full rounded-lg border px-2 py-1 text-right md:w-24"
+                            value="${toFixed2(row.qty)}">
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <input type="text" class="bq-uom w-full rounded-lg border px-2 py-1 text-center" value="${escapeHtml(row.uom)}">
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <label class="flex flex-col gap-1">
+                                <span>Est. Material</span>
+                                <span>0,00</span>
+                            </label>
+                            <label class="flex flex-col gap-1">
+                                <span>Est. Jasa</span>
+                                <span>0,00</span>
+                            </label>
+                        </div>
+                    </td>
+                `;
+
+                vendors.forEach((v, i) => {
+                    const vendorRow = (row.vendor || []).find(x => Number(x.idx) === Number(v.idx)) || {};
+
+                    const td = document.createElement('td');
+                    td.className = 'block border px-4 py-2 md:table-cell md:border';
+                    td.innerHTML = `
+                        <span class="font-medium md:hidden">${escapeHtml(v.name)}:</span>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <label class="flex flex-col gap-1">
+                                <span>Total Material</span>
+                                <input type="number"
+                                    class="bq-price-mat w-full rounded-md border px-2 py-1 text-right"
+                                    value="${toFixed2(vendorRow.material_price)}">
+                            </label>
+                            <label class="flex flex-col gap-1">
+                                <span>Total Jasa</span>
+                                <input type="number"
+                                    class="bq-price-jsa w-full rounded-md border px-2 py-1 text-right"
+                                    value="${toFixed2(vendorRow.jasa_price)}">
+                            </label>
+                        </div>
+                    `;
+
+                    tr.appendChild(td);
+                });
+
+                const actionTd = document.createElement('td');
+                actionTd.className = 'border px-4 py-2 text-center align-middle';
+
+                if (removable) {
+                    actionTd.innerHTML = `
+                        <button type="button"
+                            class="btn-remove-row mt-4 rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white">
+                            🗑️
+                        </button>
+                    `;
+                } else {
+                    actionTd.innerHTML = `
+                        <button type="button"
+                            class="btn-remove-row h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400"
+                            disabled>
+                            🗑️
+                        </button>
+                    `;
+                }
+
+                tr.appendChild(actionTd);
+
+                return tr;
+            }
+
+            document.getElementById('btnImportExcel').addEventListener('click', function() {
+                document.getElementById('bqImportFile').click();
+            });
+
+            document.getElementById('bqImportFile').addEventListener('change', function() {
+                const file = this.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('_token', '{{ csrf_token() }}');
+
+                showOverlay('Importing Excel...');
+
+                fetch("{{ route('bqcs.importTemplate', $hash) }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: fd
+                    })
+                    .then(async response => {
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw data;
+                        }
+
+                        return data;
+                    })
+                    .then(res => {
+                        hideOverlay();
+
+                        if (!res.ok) {
+                            Swal.fire('Import gagal', res.msg || 'Import Excel gagal.', 'error');
+                            return;
+                        }
+
+                        tbody.innerHTML = '';
+
+                        (res.rows || []).forEach(row => {
+                            tbody.appendChild(buildImportedRow(row));
+                        });
+
+                        if (typeof recalcAllVendors === 'function') {
+                            recalcAllVendors();
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Import berhasil',
+                            text: `${res.rows.length} row berhasil dimuat ke table. Klik Save BQ untuk menyimpan.`,
+                        });
+                    })
+                    .catch(err => {
+                        hideOverlay();
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Import gagal',
+                            text: err?.msg || err?.message || 'Terjadi kesalahan saat import Excel.',
+                        });
+                    })
+                    .finally(() => {
+                        this.value = '';
+                    });
             });
         })();
     </script>

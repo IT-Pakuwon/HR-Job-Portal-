@@ -61,7 +61,25 @@
                         class="justify-center pb-4 text-sm font-bold text-gray-800 dark:border-gray-700 dark:text-white">
                         BQ Detail
                     </div>
-                    <div class="mb-3 flex justify-end">
+                    {{-- <div class="mb-3 flex justify-end">
+                        <button type="button" id="btnAddRow"
+                            class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
+                            + Add Row
+                        </button>
+                    </div> --}}
+                    <div class="mb-3 flex flex-wrap justify-end gap-2">
+                        <a href="{{ route('bqcs.downloadEditTemplate', $hash_id) }}"
+                            class="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
+                            Download Current Excel
+                        </a>
+
+                        <input type="file" id="bqImportFile" class="hidden" accept=".xlsx,.xls">
+
+                        <button type="button" id="btnImportExcel"
+                            class="rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60">
+                            Import Excel
+                        </button>
+
                         <button type="button" id="btnAddRow"
                             class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60">
                             + Add Row
@@ -71,6 +89,20 @@
 
                 <div class="rounded-base relative overflow-x-auto">
                     <table class="text-body w-full table-auto text-left text-sm rtl:text-right" id="bqTable">
+                        <colgroup>
+                            <col style="width: 60px;">   {{-- No --}}
+                            <col style="width: 60px;">   {{-- Line --}}
+                            <col style="width: 420px;">  {{-- Description --}}
+                            <col style="width: 100px;">  {{-- Qty --}}
+                            <col style="width: 70px;">  {{-- UoM --}}
+                            <col style="width: 150px;">  {{-- Estimates --}}
+
+                            @foreach ($vendors as $v)
+                                <col style="width: 300px;"> {{-- Vendor --}}
+                            @endforeach
+
+                            <col style="width: 80px;"> {{-- Action --}}
+                        </colgroup>
                         <thead
                             class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
                             <tr>
@@ -465,7 +497,7 @@
                         const mat = toFixed2(td?.querySelector('.bq-price-mat')?.value || 0);
                         const jsa = toFixed2(td?.querySelector('.bq-price-jsa')?.value || 0);
                         rowVendors.push({
-                            idx: i + 1,
+                            idx: Number(v.idx || (i + 1)),
                             product_price: mat,
                             jasa_price: jsa
                         });
@@ -506,16 +538,21 @@
                 if (elGrand) elGrand.textContent = nf.format(sumMat + sumJsa);
             }
 
-            function recalcAll() {
+            // function recalcAll() {
+            //     for (let i = 1; i <= Math.min(vendors.length, 6); i++) recalcVendor(i);
+            // }
+            window.recalcAll = function() {
                 for (let i = 1; i <= Math.min(vendors.length, 6); i++) recalcVendor(i);
-            }
+            };
 
             document.getElementById('bqTable').addEventListener('input', e => {
                 if (e.target.matches('.bq-qty,.bq-price-mat,.bq-price-jsa')) recalcAll();
             });
 
-            document.addEventListener('DOMContentLoaded', recalcAll);
-            recalcAll();
+            // document.addEventListener('DOMContentLoaded', recalcAll);
+            // recalcAll();
+            document.addEventListener('DOMContentLoaded', window.recalcAll);
+            window.recalcAll();
 
             $btn.addEventListener('click', async function() {
                 if (isSubmitting) return;
@@ -748,6 +785,246 @@
                 document.getElementById('bqTable')?.dispatchEvent(new Event('input', {
                     bubbles: true
                 }));
+            });
+        })();
+    </script>
+    <script>
+        (function() {
+            const vendors = @json($vendors);
+            const tbody = document.querySelector('#bqTable tbody');
+
+            function toFixed2(n) {
+                n = Number(n || 0);
+                return isNaN(n) ? '0.00' : n.toFixed(2);
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, function(m) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;'
+                    }[m];
+                });
+            }
+
+            function buildVendorTd(vendorRow) {
+                const td = document.createElement('td');
+                td.className = 'border px-4 py-2';
+
+                td.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <label class="flex flex-col gap-1">
+                            <span>Total Material</span>
+                            <input type="number" step="0.01" min="0"
+                                class="bq-price-mat w-full rounded-md border px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                value="${toFixed2(vendorRow?.product_price ?? vendorRow?.material_price ?? 0)}">
+                        </label>
+
+                        <label class="flex flex-col gap-1">
+                            <span>Total Jasa</span>
+                            <input type="number" step="0.01" min="0"
+                                class="bq-price-jsa w-full rounded-md border px-2 py-1 text-right dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                value="${toFixed2(vendorRow?.jasa_price ?? 0)}">
+                        </label>
+                    </div>
+                `;
+
+                return td;
+            }
+
+            function buildActionTd(removable) {
+                const td = document.createElement('td');
+                td.className = 'border px-4 py-2 text-center align-middle';
+
+                if (removable) {
+                    td.innerHTML = `
+                        <button type="button" title="Remove row"
+                            class="btn-remove-row mt-4 rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-60">
+                            🗑️
+                        </button>
+                    `;
+                } else {
+                    td.innerHTML = `
+                        <button type="button" title="Cannot remove" disabled
+                            class="mx-auto flex h-9 w-9 cursor-not-allowed items-center justify-center rounded border border-gray-300 bg-gray-200/30 text-gray-400">
+                            🗑️
+                        </button>
+                    `;
+                }
+
+                return td;
+            }
+
+            function buildImportedRow(row) {
+                const tr = document.createElement('tr');
+
+                const source = Number(row.bq_source ?? row.source ?? 1);
+                const removable = source === 1;
+
+                tr.className = 'border-b dark:border-gray-700';
+                tr.dataset.removable = removable ? '1' : '0';
+                tr.dataset.source = String(source);
+
+                tr.innerHTML = `
+                    <td class="border px-4 py-2">
+                        <input type="text"
+                            class="bq-no w-full rounded-lg border px-2 py-1 text-center dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                            value="${escapeHtml(row.bq_no)}">
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <input type="text"
+                            class="bq-line w-full rounded-lg border px-2 py-1 text-center dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                            value="${escapeHtml(row.bq_line_no)}">
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <textarea
+                            class="bq-descr-input min-h-[42px] w-full resize-y rounded-lg border px-2 py-1 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">${escapeHtml(row.bq_descr)}</textarea>
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <input type="number" step="0.01" min="0"
+                            class="bq-qty w-full rounded-lg border px-2 py-1 text-right md:w-24 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                            value="${toFixed2(row.qty)}">
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <input type="text"
+                            class="bq-uom-input w-full rounded-lg border px-2 py-1 text-center dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                            value="${escapeHtml(row.uom)}">
+                    </td>
+
+                    <td class="border px-4 py-2">
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="flex flex-col gap-1">
+                                <span>Est. Material</span>
+                                <span class="text-gray-800 dark:text-gray-200">${escapeHtml(row.est_material_price_fmt || '0,00')}</span>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <span>Est. Jasa</span>
+                                <span class="text-gray-800 dark:text-gray-200">${escapeHtml(row.est_jasa_price_fmt || '0,00')}</span>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                vendors.forEach((v, i) => {
+                    const idx = Number(v.idx || (i + 1));
+                    const vendorRow = (row.vendor || []).find(x => Number(x.idx) === idx) || {};
+                    tr.appendChild(buildVendorTd(vendorRow));
+                });
+
+                tr.appendChild(buildActionTd(removable));
+
+                return tr;
+            }
+
+            async function chooseImportMode() {
+                const result = await Swal.fire({
+                    title: 'Import Excel',
+                    text: 'Pilih cara import data Excel.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonText: 'Replace All Details',
+                    denyButtonText: 'Append Rows',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#7c3aed',
+                    denyButtonColor: '#059669',
+                });
+
+                if (result.isConfirmed) return 'replace';
+                if (result.isDenied) return 'append';
+                return null;
+            }
+
+            document.getElementById('btnImportExcel')?.addEventListener('click', function() {
+                document.getElementById('bqImportFile')?.click();
+            });
+
+            document.getElementById('bqImportFile')?.addEventListener('change', async function() {
+                const file = this.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                const mode = await chooseImportMode();
+
+                if (!mode) {
+                    this.value = '';
+                    return;
+                }
+
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('_token', '{{ csrf_token() }}');
+
+                showOverlay('Importing Excel');
+
+                fetch("{{ route('bqcs.importEditTemplate', $hash_id) }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: fd
+                    })
+                    .then(async response => {
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw data;
+                        }
+
+                        return data;
+                    })
+                    .then(res => {
+                        hideOverlay();
+
+                        if (!res.ok) {
+                            Swal.fire('Import gagal', res.msg || 'Import Excel gagal.', 'error');
+                            return;
+                        }
+
+                        if (mode === 'replace') {
+                            tbody.innerHTML = '';
+                        }
+
+                        (res.rows || []).forEach(row => {
+                            tbody.appendChild(buildImportedRow(row));
+                        });
+
+                        if (typeof recalcAll === 'function') {
+                            recalcAll();
+                        } else {
+                            document.getElementById('bqTable')?.dispatchEvent(new Event('input', {
+                                bubbles: true
+                            }));
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Import berhasil',
+                            text: `${res.rows.length} row berhasil dimuat. Klik Save untuk menyimpan ke database.`,
+                        });
+                    })
+                    .catch(err => {
+                        hideOverlay();
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Import gagal',
+                            text: err?.msg || err?.message || 'Terjadi kesalahan saat import Excel.',
+                        });
+                    })
+                    .finally(() => {
+                        this.value = '';
+                    });
             });
         })();
     </script>
