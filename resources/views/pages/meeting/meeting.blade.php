@@ -636,7 +636,18 @@
             ],
 
 
-            events: '/calendar-json',
+            events: function(info, success, failure) {
+
+                fetch('/calendar-json?start=' + info.startStr + '&end=' + info.endStr, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(success)
+                .catch(failure);
+            },
             // eventContent: function(arg) {
             //     const title = arg.event.title;
             //     const user = arg.event.extendedProps.user;
