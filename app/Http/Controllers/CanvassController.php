@@ -12,6 +12,7 @@ use App\Models\MsTop;
 use App\Models\TrApproval;
 use App\Models\TrAttachment;
 use App\Models\TrBQCS;
+use App\Models\TrBQCSDetail;
 use App\Models\TrCS;
 use App\Models\TrCSdetail;
 use App\Models\TrIMBudget;
@@ -4383,6 +4384,11 @@ class CanvassController extends Controller
                 $det->save();
             }
 
+            if (!empty($cs->bqid)) {
+                // dd('syncBqCsVendorFromCs');
+                $this->syncBqCsVendorFromCs($cs->csid, $username);
+            }
+
             // =========================================================
             // 5. NEW ATTACHMENTS
             // =========================================================
@@ -7173,12 +7179,38 @@ class CanvassController extends Controller
         try {
             foreach ($nonEmptyGroups as $vendorKey => $items) {
                 /*
+                |--------------------------------------------------------------------------
+                | Skip detail CS yang qty = 0 dan price = 0
+                |--------------------------------------------------------------------------
+                | Jika TrCSdetail qty = 0 dan vendorprice sesuai vendor terpilih = 0,
+                | maka baris tersebut tidak perlu dibuat ke TrPOdetail.
+                */
+                $items = $items->filter(function ($item) {
+                    /** @var TrCSdetail $row */
+                    $row = $item['row'];
+                    $idx = (int) $item['vendor_idx'];
+
+                    $qty = (float) ($row->qty ?? 0);
+                    $price = (float) ($row->{"vendorprice{$idx}"} ?? 0);
+
+                    // skip hanya kalau dua-duanya 0
+                    return !($qty == 0 && $price == 0);
+                })->values();
+
+                // Kalau setelah difilter tidak ada detail valid, tidak perlu buat PO
+                if ($items->isEmpty()) {
+                    continue;
+                }
+
+
+                /*
                 Ambil index vendor pertama dalam group.
                 Ini dipakai untuk header PO seperti vendor name, address, TOP, note, taxcode.
                 Kalau vendor1 dan vendor2 vendorid-nya sama, header akan ikut data yang pertama ditemukan.
                 */
                 $firstItem = $items->first();
                 $i = (int) $firstItem['vendor_idx'];
+                
 
                 // Info vendor dari header CS
                 $vendorId = $cs->{"vendorid{$i}"} ?? $firstItem['vendor_id'];
@@ -9189,5 +9221,313 @@ class CanvassController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    private function resetBqCsVendorSlots(TrBQCS $bq): void
+    {
+        for ($i = 1; $i <= 6; $i++) {
+            $bq->{"vendorid{$i}"} = null;
+            $bq->{"grandtotalmaterialvendor{$i}"} = 0;
+            $bq->{"grandtotaljasavendor{$i}"} = 0;
+        }
+    }
+
+    private function resetBqCsDetailVendorSlots(TrBQCSDetail $detail): void
+    {
+        for ($i = 1; $i <= 6; $i++) {
+            $detail->{"vendorid{$i}"} = null;
+
+            $detail->{"vendorproductprice{$i}"} = 0;
+            $detail->{"vendortotalproductprice{$i}"} = 0;
+
+            $detail->{"vendorjasaprice{$i}"} = 0;
+            $detail->{"vendortotaljasaprice{$i}"} = 0;
+        }
+    }
+
+    private function syncBqCsVendorFromCs(string $csid, string $username): void
+    {
+        $dt = now();
+
+        $cs = TrCS::query()
+            ->where('csid', $csid)
+            ->first();
+
+        if (!$cs) {
+            \Log::warning('[syncBqCsVendorFromCs] CS not found', [
+                'csid' => $csid,
+            ]);
+            return;
+        }
+
+        $bq = TrBQCS::query()
+            ->where('csid', $csid)
+            ->first();
+
+        if (!$bq) {
+            \Log::warning('[syncBqCsVendorFromCs] BQ CS not found', [
+                'csid' => $csid,
+            ]);
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 1. Snapshot header BQ lama sebelum reset
+        |--------------------------------------------------------------------------
+        */
+        $oldHeader = [];
+
+        for ($slot = 1; $slot <= 6; $slot++) {
+            $oldHeader[$slot] = [
+                'vendorid' => trim((string) ($bq->{"vendorid{$slot}"} ?? '')),
+                'material' => (float) ($bq->{"grandtotalmaterialvendor{$slot}"} ?? 0),
+                'jasa' => (float) ($bq->{"grandtotaljasavendor{$slot}"} ?? 0),
+                'used' => false,
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2. Ambil vendor aktif dari CS
+        |--------------------------------------------------------------------------
+        */
+        $activeVendors = [];
+
+        for ($slot = 1; $slot <= 6; $slot++) {
+            $vendorId = trim((string) ($cs->{"vendorid{$slot}"} ?? ''));
+
+            if ($vendorId === '') {
+                continue;
+            }
+
+            $activeVendors[] = [
+                'cs_slot' => $slot,
+                'vendorid' => $vendorId,
+            ];
+        }
+
+        if (empty($activeVendors)) {
+            \Log::warning('[syncBqCsVendorFromCs] No active vendors in CS', [
+                'csid' => $csid,
+                'bqid' => $bq->bqid,
+            ]);
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 3. Buat mapping old BQ slot -> new BQ slot
+        |--------------------------------------------------------------------------
+        | Jangan pakai total 0 sebagai matching.
+        |
+        | Contoh:
+        | BQ lama:
+        | slot 1 = VV00203
+        | slot 2 = COZI
+        | slot 3 = PERKASA
+        |
+        | CS baru:
+        | slot 1 = VV00203
+        | slot 2 = PERKASA
+        |
+        | Maka hasil mapping:
+        | old slot 1 -> new slot 1
+        | old slot 3 -> new slot 2
+        */
+        $slotMap = [];
+
+        foreach ($activeVendors as $newIndex => $active) {
+            $newSlot = $newIndex + 1;
+
+            if ($newSlot > 6) {
+                break;
+            }
+
+            $targetVendorId = $active['vendorid'];
+            $matchedOldSlot = null;
+
+            /*
+            * PRIORITAS 1:
+            * Match berdasarkan vendorid lama di BQ.
+            */
+            foreach ($oldHeader as $oldSlot => $old) {
+                if ($old['used']) {
+                    continue;
+                }
+
+                if ($old['vendorid'] !== '' && $old['vendorid'] === $targetVendorId) {
+                    $matchedOldSlot = $oldSlot;
+                    break;
+                }
+            }
+
+            /*
+            * PRIORITAS 2:
+            * Fallback ke posisi slot yang sama, tapi hanya jika slot lama tidak kosong
+            * atau punya nilai material/jasa.
+            */
+            if (!$matchedOldSlot) {
+                $sameSlot = (int) ($active['cs_slot'] ?? $newSlot);
+
+                if (
+                    isset($oldHeader[$sameSlot]) &&
+                    !$oldHeader[$sameSlot]['used'] &&
+                    (
+                        $oldHeader[$sameSlot]['vendorid'] !== '' ||
+                        $oldHeader[$sameSlot]['material'] != 0 ||
+                        $oldHeader[$sameSlot]['jasa'] != 0
+                    )
+                ) {
+                    $matchedOldSlot = $sameSlot;
+                }
+            }
+
+            /*
+            * PRIORITAS 3:
+            * Ambil slot lama berikutnya yang punya nilai, bukan slot kosong.
+            * Ini membantu kalau vendorid di header BQ sempat kosong tapi nominal masih ada.
+            */
+            if (!$matchedOldSlot) {
+                foreach ($oldHeader as $oldSlot => $old) {
+                    if ($old['used']) {
+                        continue;
+                    }
+
+                    if (
+                        $old['vendorid'] !== '' ||
+                        $old['material'] != 0 ||
+                        $old['jasa'] != 0
+                    ) {
+                        $matchedOldSlot = $oldSlot;
+                        break;
+                    }
+                }
+            }
+
+            /*
+            * Jika tetap tidak ketemu, pakai slot baru.
+            * Tapi biasanya ini vendor baru, jadi nilainya memang 0.
+            */
+            if (!$matchedOldSlot) {
+                $matchedOldSlot = $newSlot;
+            }
+
+            $oldHeader[$matchedOldSlot]['used'] = true;
+            $slotMap[$matchedOldSlot] = $newSlot;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 4. Snapshot detail BQ lama sebelum reset
+        |--------------------------------------------------------------------------
+        */
+        $details = TrBQCSDetail::query()
+            ->where('bqid', $bq->bqid)
+            ->where('csid', $csid)
+            ->get();
+
+        $detailSnapshots = [];
+
+        foreach ($details as $detail) {
+            $detailSnapshots[$detail->id] = [];
+
+            for ($slot = 1; $slot <= 6; $slot++) {
+                $detailSnapshots[$detail->id][$slot] = [
+                    'vendorid' => trim((string) ($detail->{"vendorid{$slot}"} ?? '')),
+
+                    'vendorproductprice' => (float) ($detail->{"vendorproductprice{$slot}"} ?? 0),
+                    'vendortotalproductprice' => (float) ($detail->{"vendortotalproductprice{$slot}"} ?? 0),
+
+                    'vendorjasaprice' => (float) ($detail->{"vendorjasaprice{$slot}"} ?? 0),
+                    'vendortotaljasaprice' => (float) ($detail->{"vendortotaljasaprice{$slot}"} ?? 0),
+                ];
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 5. Reset header BQ
+        |--------------------------------------------------------------------------
+        */
+        for ($slot = 1; $slot <= 6; $slot++) {
+            $bq->{"vendorid{$slot}"} = null;
+            $bq->{"grandtotalmaterialvendor{$slot}"} = 0;
+            $bq->{"grandtotaljasavendor{$slot}"} = 0;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 6. Isi ulang header BQ berdasarkan slotMap
+        |--------------------------------------------------------------------------
+        */
+        foreach ($slotMap as $oldSlot => $newSlot) {
+            $activeVendor = $activeVendors[$newSlot - 1] ?? null;
+
+            if (!$activeVendor) {
+                continue;
+            }
+
+            $bq->{"vendorid{$newSlot}"} = $activeVendor['vendorid'];
+            $bq->{"grandtotalmaterialvendor{$newSlot}"} = $oldHeader[$oldSlot]['material'] ?? 0;
+            $bq->{"grandtotaljasavendor{$newSlot}"} = $oldHeader[$oldSlot]['jasa'] ?? 0;
+        }
+
+        $bq->updated_by = $username;
+        $bq->updated_at = $dt;
+        $bq->save();
+
+        /*
+        |--------------------------------------------------------------------------
+        | 7. Reset dan isi ulang detail BQ
+        |--------------------------------------------------------------------------
+        */
+        foreach ($details as $detail) {
+            $oldValues = $detailSnapshots[$detail->id] ?? [];
+
+            for ($slot = 1; $slot <= 6; $slot++) {
+                $detail->{"vendorid{$slot}"} = null;
+
+                $detail->{"vendorproductprice{$slot}"} = 0;
+                $detail->{"vendortotalproductprice{$slot}"} = 0;
+
+                $detail->{"vendorjasaprice{$slot}"} = 0;
+                $detail->{"vendortotaljasaprice{$slot}"} = 0;
+            }
+
+            foreach ($slotMap as $oldSlot => $newSlot) {
+                $activeVendor = $activeVendors[$newSlot - 1] ?? null;
+
+                if (!$activeVendor) {
+                    continue;
+                }
+
+                $detail->{"vendorid{$newSlot}"} = $activeVendor['vendorid'];
+
+                $detail->{"vendorproductprice{$newSlot}"} =
+                    $oldValues[$oldSlot]['vendorproductprice'] ?? 0;
+
+                $detail->{"vendortotalproductprice{$newSlot}"} =
+                    $oldValues[$oldSlot]['vendortotalproductprice'] ?? 0;
+
+                $detail->{"vendorjasaprice{$newSlot}"} =
+                    $oldValues[$oldSlot]['vendorjasaprice'] ?? 0;
+
+                $detail->{"vendortotaljasaprice{$newSlot}"} =
+                    $oldValues[$oldSlot]['vendortotaljasaprice'] ?? 0;
+            }
+
+            $detail->updated_by = $username;
+            $detail->updated_at = $dt;
+            $detail->save();
+        }
+
+        \Log::info('[syncBqCsVendorFromCs] success', [
+            'csid' => $csid,
+            'bqid' => $bq->bqid,
+            'slot_map' => $slotMap,
+            'active_vendors' => $activeVendors,
+            'old_header' => $oldHeader,
+        ]);
     }
 }
