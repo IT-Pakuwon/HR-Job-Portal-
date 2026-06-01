@@ -150,6 +150,34 @@ function renderITRDocButton(row) {
         `;
     }
 
+    const eyeIcon = row.can_edit
+        ? `
+            <a
+                href="/showitrecommendation/${row.eid}"
+                class="
+                    inline-flex
+                    h-8 w-8
+                    items-center
+                    justify-center
+                    rounded-lg
+                    border border-slate-200
+                    bg-white
+                    text-slate-500
+                    transition
+                    hover:bg-slate-100
+                    hover:text-slate-700
+                    dark:border-white/10
+                    dark:bg-white/[0.03]
+                    dark:text-slate-400
+                    dark:hover:bg-white/[0.07]
+                "
+                title="View Detail"
+            >
+                <i class="fa-solid fa-eye text-xs"></i>
+            </a>
+        `
+        : '';
+
     return `
         <div class="flex items-center gap-2 whitespace-nowrap">
 
@@ -159,6 +187,8 @@ function renderITRDocButton(row) {
             >
                 ${row.docid}
             </a>
+
+            ${eyeIcon}
 
         </div>
     `;

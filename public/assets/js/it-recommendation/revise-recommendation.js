@@ -315,9 +315,12 @@ function renderEditRecommendationAttachmentPreview() {
     let html = "";
 
     editRecommendationExistingAttachments.forEach(file => {
+        const displayName = file.attachment_name
+            ? file.attachment_name + (file.extention ? '.' + file.extention : '')
+            : (file.filename || "Attachment");
 
         html += attachmentCard({
-            name: file.filename || "Attachment",
+            name: displayName,
             url: file.signed_url || "#",
             removable: true,
             index: file.id,
@@ -328,11 +331,9 @@ function renderEditRecommendationAttachmentPreview() {
 
     editRecommendationFiles.forEach((file, index) => {
 
-        const size = (file.size / 1024 / 1024).toFixed(2);
-
         html += attachmentCard({
             name: file.name,
-            size: `${size} MB`,
+            size: formatFileSize(file.size),
             removable: true,
             index,
             removeClass: "btn-remove-edit-recommendation-attachment"
@@ -433,7 +434,7 @@ $(document).on(
 );
 
 function renderRevisionNote(tracking = []) {
-    const reviseTimeline = tracking.find((row) => row.status === "D");
+    const reviseTimeline = tracking.find((row) => ['D', 'I'].includes(row.status) && row.note);
 
     if (reviseTimeline?.note) {
         $("#revision_note_container").html(`
@@ -561,7 +562,14 @@ async function loadEditRecommendation(hash) {
 
         renderEditRecommendationInfo(header);
 
-        $("#edit_recommend_type").val(header.recommend_type || "");
+        if (!$("#edit_recommend_type").hasClass("select2-hidden-accessible")) {
+            $(".edit-select2").select2({
+                width: "100%",
+                dropdownParent: $("#editRecommendationModal"),
+                placeholder: "Select Type",
+            });
+        }
+        $("#edit_recommend_type").val(header.recommend_type || "").trigger("change");
 
         $("#edit_waranty").val(header.waranty || "");
 
@@ -784,23 +792,15 @@ $("#editRecommendationForm").on("submit", async function (e) {
             return;
         }
 
-        Swal.fire({
-            icon: "success",
-
-            title: "Success",
-
-            text: "Recommendation resubmitted successfully",
-
-            timer: 1800,
-
-            showConfirmButton: false,
-        });
+        itrToast('success', 'Recommendation resubmitted successfully');
 
         closeEditRecommendationModal(true);
 
-        closeShowModal(true);
-
-        table.ajax.reload(null, false);
+        if (currentDetailHash) {
+            setTimeout(async () => {
+                await loadDetail(currentDetailHash);
+            }, 250);
+        }
     } catch (err) {
         let msg = err.responseJSON?.message || "Failed update recommendation";
 

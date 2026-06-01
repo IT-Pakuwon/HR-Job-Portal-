@@ -144,8 +144,7 @@ function selectInventory({
 
     const result = btn.closest(resultClass);
 
-    result.hide();
-    result.empty();
+    result.addClass("hidden").empty();
 }
 $(document).on("focus", ".inventory-search", function () {
 

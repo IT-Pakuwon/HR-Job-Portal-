@@ -90,7 +90,7 @@ function resetUrl() {
 }
 
 function resetShowModal() {
-    $("#show_docid").text("-");
+    $("#show_docid").text("IT Recommendation Detail");
 
     $("#show_status_badge").html("");
 
@@ -106,7 +106,13 @@ function resetShowModal() {
 
     $("#show_comments").html("");
 
-    $("#show_header_actions").addClass("hidden").html("");
+    $("#show_footer_actions").html("");
+
+    $("#show_approval_actions_wrapper").addClass("hidden").html("");
+
+    $("#show_revision_banner").addClass("hidden");
+
+    $("#show_revision_note").html("");
 
     $("#commentSection").removeClass("hidden");
 
@@ -265,7 +271,7 @@ $(document).on(
     },
 );
 
-$("#btnCloseShowModal").on("click", function () {
+$("#btnCloseShowModal, #btnCloseShowModalFooter").on("click", function () {
     closeShowModal();
 });
 
