@@ -9,6 +9,7 @@ use App\Models\TrAccessDetail;
 use App\Models\TrApproval;
 use App\Models\TrAttachment;
 use App\Models\TrMessage;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -931,6 +932,11 @@ class AccessRequestController extends Controller
                     ->count() > 0;
             }
 
+            $canViewPassword =
+                $access->created_by === $user->username
+                || $user->hasRole('ITHARDWARE')
+                || $user->hasRole('ITSOFTWARE');
+
             return response()->json([
                 'success' => true,
                 'access' => $access,
@@ -938,6 +944,8 @@ class AccessRequestController extends Controller
                 'approvals' => $approvals,
                 'attachments' => $attachments,
                 'comments' => $comments,
+
+                'can_view_password' => $canViewPassword,
 
                 'permissions' => [
                     'can_process_hardware' => $canProcessHardware,
@@ -1021,15 +1029,9 @@ class AccessRequestController extends Controller
             $approvals = TrApproval::where('refnbr', $access->docid)
                 ->where('aprv_doctype', 'ACR')
                 ->where('status', '<>', 'X')
-                ->get()
-                ->sortBy(function ($item) {
-                    $date = in_array($item->status, ['A', 'D', 'R'])
-                        ? $item->updated_at
-                        : $item->created_at;
-
-                    return optional($date)->timestamp ?? 0;
-                })
-                ->values();
+                ->orderBy('aprv_leveling')
+                ->orderBy('id')
+                ->get();
             $reasons = TrMessage::where('doctype', 'ACR')
                 ->where('refnbr', $access->docid)
                 ->orderByDesc('created_at')

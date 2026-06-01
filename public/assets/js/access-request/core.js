@@ -1,8 +1,6 @@
 let table;
 let currentStatus = "";
 let currentModal = null;
-let existingAttachments = [];
-let selectedFiles = [];
 let detailIndex = 0;
 
 $(document).ready(function () {

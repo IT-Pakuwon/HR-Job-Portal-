@@ -1,3 +1,38 @@
+function infoItem(label, value) {
+    return `
+        <div class="min-w-0">
+            <div class="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                ${label}
+            </div>
+            <div class="mt-1 break-words text-sm text-slate-700 dark:text-slate-200">
+                ${value || "-"}
+            </div>
+        </div>
+    `;
+}
+
+function formatFileSize(bytes) {
+    if (bytes >= 1024 * 1024) {
+        return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+    }
+    return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
+function itrToast(icon, title, timer = 2500) {
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon,
+        title,
+        showConfirmButton: false,
+        timer,
+        timerProgressBar: true,
+        background: $("html").hasClass("dark") ? "#0f172a" : "#ffffff",
+        color: $("html").hasClass("dark") ? "#ffffff" : "#0f172a",
+        customClass: { popup: "rounded-lg border border-white/[0.06]" },
+    });
+}
+
 function formatDate(date) {
 
     if (!date) {

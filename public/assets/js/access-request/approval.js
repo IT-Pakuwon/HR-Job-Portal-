@@ -74,48 +74,24 @@ $(document).on("click", ".btn-approve", async function () {
         return;
     }
 
-    $.ajax({
+    try {
 
-        url: `/access-request/approve/${docid}`,
+        const res = await $.ajax({
+            url: `/access-request/approve/${docid}`,
+            type: "POST",
+        });
 
-        type: "POST",
+        itrToast("success", res.message ?? "Request approved successfully");
 
-        beforeSend: function () {
+        closeAllModal();
 
-            Swal.showLoading();
+        table.ajax.reload(null, false);
 
-        },
+    } catch (xhr) {
 
-        success: function (res) {
+        swalError(xhr.responseJSON?.message ?? "Failed approve request");
 
-            Swal.close();
-
-            swalSuccess(
-                res.message ??
-                "Request approved successfully"
-            );
-
-            closeAllModal();
-
-            table.ajax.reload(null, false);
-
-        },
-
-        error: function (xhr) {
-
-            Swal.close();
-
-            swalError(
-
-                xhr.responseJSON?.message ??
-
-                "Failed approve request"
-
-            );
-
-        },
-
-    });
+    }
 
 });
 
@@ -228,57 +204,25 @@ $(document).on("click", ".btn-revise", async function () {
         return;
     }
 
-    $.ajax({
+    try {
 
-        url: `/access-request/revise/${docid}`,
+        const res = await $.ajax({
+            url: `/access-request/revise/${docid}`,
+            type: "POST",
+            data: { reason: result.value },
+        });
 
-        type: "POST",
+        itrToast("success", res.message ?? "Request revised successfully");
 
-        data: {
+        closeAllModal();
 
-            reason: result.value,
+        table.ajax.reload(null, false);
 
-        },
+    } catch (xhr) {
 
-        beforeSend: function () {
+        swalError(xhr.responseJSON?.message ?? "Failed revise request");
 
-            Swal.showLoading();
-
-        },
-
-        success: function (res) {
-
-            Swal.close();
-
-            swalSuccess(
-
-                res.message ??
-
-                "Request revised successfully"
-
-            );
-
-            closeAllModal();
-
-            table.ajax.reload(null, false);
-
-        },
-
-        error: function (xhr) {
-
-            Swal.close();
-
-            swalError(
-
-                xhr.responseJSON?.message ??
-
-                "Failed revise request"
-
-            );
-
-        },
-
-    });
+    }
 
 });
 
@@ -391,56 +335,24 @@ $(document).on("click", ".btn-reject", async function () {
         return;
     }
 
-    $.ajax({
+    try {
 
-        url: `/access-request/reject/${docid}`,
+        const res = await $.ajax({
+            url: `/access-request/reject/${docid}`,
+            type: "POST",
+            data: { reason: result.value },
+        });
 
-        type: "POST",
+        itrToast("success", res.message ?? "Request rejected successfully");
 
-        data: {
+        closeAllModal();
 
-            reason: result.value,
+        table.ajax.reload(null, false);
 
-        },
+    } catch (xhr) {
 
-        beforeSend: function () {
+        swalError(xhr.responseJSON?.message ?? "Failed reject request");
 
-            Swal.showLoading();
-
-        },
-
-        success: function (res) {
-
-            Swal.close();
-
-            swalSuccess(
-
-                res.message ??
-
-                "Request rejected successfully"
-
-            );
-
-            closeAllModal();
-
-            table.ajax.reload(null, false);
-
-        },
-
-        error: function (xhr) {
-
-            Swal.close();
-
-            swalError(
-
-                xhr.responseJSON?.message ??
-
-                "Failed reject request"
-
-            );
-
-        },
-
-    });
+    }
 
 });

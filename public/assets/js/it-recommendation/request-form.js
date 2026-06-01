@@ -100,7 +100,7 @@ function openCreateModal() {
 }
 
 async function closeCreateModal(force = false) {
-    if (!force && modalState.createDirty) {
+    if (!force) {
         const confirmed = await confirmCloseModal();
 
         if (!confirmed) {

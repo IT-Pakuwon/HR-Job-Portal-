@@ -1,393 +1,159 @@
-function renderExistingAttachments(files = []) {
+// ─── Shared state ───────────────────────────────────────────────────────────
+let selectedFiles = [];
+let existingAttachments = [];
 
-    let html = "";
+// ─── Attachment card (same pattern as ITR) ───────────────────────────────────
+function attachmentCard({ name, size = null, url = null, removable = false, index = null, removeClass = "btn-remove-existing-file" }) {
+    const removeButton = removable
+        ? `<button type="button"
+                class="${removeClass} inline-flex h-7 w-7 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+                data-index="${index}">
+                <i class="fa-solid fa-xmark text-xs"></i>
+           </button>`
+        : "";
 
-    if (!files.length) {
+    const inner = `
+        <div class="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0b1220] px-4 py-3 shadow-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-white/[0.03]">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-slate-300">
+                <i class="fa-solid fa-paperclip"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-slate-700 dark:text-slate-200">${name}</p>
+                ${size ? `<p class="mt-1 text-xs text-slate-400">${size}</p>` : ""}
+            </div>
+            ${removeButton}
+        </div>
+    `;
 
-        $("#existingAttachmentContainer").html("");
+    if (!url) return inner;
 
+    return `<div class="attachment-preview block cursor-pointer" data-url="${url}" data-filename="${name}">${inner}</div>`;
+}
+
+// ─── Attachment preview modal ─────────────────────────────────────────────────
+function previewAttachment({ filename, signed_url }) {
+    const url = signed_url;
+    const ext = (filename || "").split(".").pop().toLowerCase();
+    const imageTypes = ["jpg", "jpeg", "png", "webp", "gif"];
+
+    if (imageTypes.includes(ext)) {
+        $("#attachmentPreviewContent").html(`<img src="${url}" class="max-h-[85vh] mx-auto rounded-lg">`);
+        $("#attachmentPreviewModal").removeClass("hidden").addClass("flex");
         return;
     }
 
+    if (ext === "pdf") {
+        $("#attachmentPreviewContent").html(`<iframe src="${url}" class="h-[85vh] w-full rounded-lg"></iframe>`);
+        $("#attachmentPreviewModal").removeClass("hidden").addClass("flex");
+        return;
+    }
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename || "";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+function closeAttachmentPreview() {
+    $("#attachmentPreviewModal").removeClass("flex").addClass("hidden");
+    $("#attachmentPreviewContent").html("");
+}
+
+$(document).on("keydown", function (e) {
+    if (e.key === "Escape") closeAttachmentPreview();
+});
+
+$(document).on("click", ".attachment-preview", function () {
+    previewAttachment({
+        filename: $(this).data("filename"),
+        signed_url: $(this).data("url"),
+    });
+});
+
+// ─── Render existing attachments (in the create/edit form) ───────────────────
+function renderExistingAttachments(files = []) {
+    if (!files.length) {
+        $("#existingAttachmentContainer").html("");
+        return;
+    }
+
+    let html = "";
     files.forEach((file, index) => {
-
-        html += `
-
-            <div class="
-                flex items-center justify-between gap-3
-
-                rounded-lg
-
-                border border-slate-200
-                dark:border-white/[0.06]
-
-                bg-white
-                dark:bg-[#111c2d]
-
-                px-4 py-3
-
-                shadow-sm
-                dark:shadow-none
-
-                transition
-                hover:bg-slate-50
-                dark:hover:bg-white/[0.03]
-            ">
-
-                <div class="
-                    flex min-w-0 flex-1
-                    items-center gap-3
-                ">
-
-                    <div class="
-                        flex h-11 w-11 shrink-0
-                        items-center justify-center
-
-                        rounded-lg
-
-                        border border-slate-200
-                        dark:border-white/[0.06]
-
-                        bg-slate-50
-                        dark:bg-[#0b1525]
-                    ">
-
-                        <i class="
-                            fa-regular fa-file
-
-                            text-slate-500
-                            dark:text-slate-300
-                        "></i>
-
-                    </div>
-
-                    <div class="min-w-0 flex-1">
-
-                        <p class="
-                            truncate
-
-                            text-sm font-medium
-
-                            text-slate-700
-                            dark:text-slate-100
-                        ">
-
-                            ${file.display_name ?? file.filename ?? "-"}
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <div class="
-                    flex items-center gap-2
-                    shrink-0
-                ">
-
-                    <a
-                        href="${file.url}"
-                        target="_blank"
-                        class="
-                            inline-flex h-10 w-10
-                            items-center justify-center
-
-                            rounded-lg
-
-                            border border-slate-200
-                            dark:border-white/[0.06]
-
-                            bg-white
-                            dark:bg-[#0b1525]
-
-                            text-slate-600
-                            dark:text-slate-300
-
-                            transition
-
-                            hover:bg-slate-100
-                            dark:hover:bg-white/[0.06]
-                        "
-                    >
-
-                        <i class="
-                            fa-solid fa-eye text-xs
-                        "></i>
-
-                    </a>
-
-                    <button
-                        type="button"
-                        class="
-                            btn-remove-existing-file
-
-                            inline-flex h-10 w-10
-                            items-center justify-center
-
-                            rounded-lg
-
-                            border border-red-200
-                            dark:border-red-500/20
-
-                            bg-white
-                            dark:bg-red-500/10
-
-                            text-red-500
-                            dark:text-red-300
-
-                            transition
-
-                            hover:bg-red-50
-                            dark:hover:bg-red-500/20
-                        "
-                        data-index="${index}"
-                    >
-
-                        <i class="
-                            fa-solid fa-trash text-xs
-                        "></i>
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        `;
+        html += attachmentCard({
+            name: file.display_name ?? file.filename ?? "-",
+            url: file.url ?? "#",
+            removable: true,
+            index,
+            removeClass: "btn-remove-existing-file",
+        });
     });
 
     $("#existingAttachmentContainer").html(html);
 }
 
+// ─── Render new (staged) attachments ─────────────────────────────────────────
 function renderNewAttachments() {
-
     let html = "";
 
     selectedFiles.forEach((file, index) => {
-
-        html += `
-
-            <div class="
-                flex items-center justify-between gap-3
-
-                rounded-lg
-
-                border border-blue-200
-                dark:border-blue-500/20
-
-                bg-blue-50
-                dark:bg-blue-500/10
-
-                px-4 py-3
-
-                transition
-            ">
-
-                <div class="
-                    flex min-w-0 flex-1
-                    items-center gap-3
-                ">
-
-                    <div class="
-                        flex h-11 w-11 shrink-0
-                        items-center justify-center
-
-                        rounded-lg
-
-                        border border-blue-200
-                        dark:border-blue-500/20
-
-                        bg-white
-                        dark:bg-[#0b1525]
-                    ">
-
-                        <i class="
-                            fa-solid fa-paperclip
-
-                            text-blue-500
-                            dark:text-blue-300
-                        "></i>
-
-                    </div>
-
-                    <div class="min-w-0 flex-1">
-
-                        <p class="
-                            truncate
-
-                            text-sm font-medium
-
-                            text-slate-700
-                            dark:text-slate-100
-                        ">
-
-                            ${file.name}
-
-                        </p>
-
-                        <p class="
-                            mt-0.5
-
-                            text-xs
-
-                            text-slate-500
-                            dark:text-slate-400
-                        ">
-
-                            ${(file.size / 1024 / 1024).toFixed(2)} MB
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <button
-                    type="button"
-                    class="
-                        btn-remove-new-file
-
-                        inline-flex h-10 w-10
-                        shrink-0
-                        items-center justify-center
-
-                        rounded-lg
-
-                        border border-red-200
-                        dark:border-red-500/20
-
-                        bg-white
-                        dark:bg-red-500/10
-
-                        text-red-500
-                        dark:text-red-300
-
-                        transition
-
-                        hover:bg-red-50
-                        dark:hover:bg-red-500/20
-                    "
-                    data-index="${index}"
-                >
-
-                    <i class="
-                        fa-solid fa-xmark text-xs
-                    "></i>
-
-                </button>
-
-            </div>
-
-        `;
+        html += attachmentCard({
+            name: file.name,
+            size: formatFileSize(file.size),
+            removable: true,
+            index,
+            removeClass: "btn-remove-new-file",
+        });
     });
 
     $("#newAttachmentContainer").html(html);
 
-    let dt = new DataTransfer();
-
-    selectedFiles.forEach((file) => {
-
-        dt.items.add(file);
-
-    });
-
+    const dt = new DataTransfer();
+    selectedFiles.forEach((f) => dt.items.add(f));
     $("#requestAttachment")[0].files = dt.files;
 }
 
+// ─── Event handlers ───────────────────────────────────────────────────────────
 function initAttachmentHandlers() {
-
     $(document)
-
         .off("click", ".btn-remove-existing-file")
-
-        .on(
-            "click",
-            ".btn-remove-existing-file",
-            function () {
-
-                const index =
-                    $(this).data("index");
-
-                existingAttachments.splice(
-                    index,
-                    1
-                );
-
-                renderExistingAttachments(
-                    existingAttachments
-                );
-
-            }
-        );
+        .on("click", ".btn-remove-existing-file", function () {
+            const index = $(this).data("index");
+            existingAttachments.splice(index, 1);
+            renderExistingAttachments(existingAttachments);
+        });
 
     $(document)
-
         .off("click", ".btn-remove-new-file")
-
-        .on(
-            "click",
-            ".btn-remove-new-file",
-            function () {
-
-                const index =
-                    $(this).data("index");
-
-                selectedFiles.splice(
-                    index,
-                    1
-                );
-
-                renderNewAttachments();
-
-            }
-        );
+        .on("click", ".btn-remove-new-file", function () {
+            const index = $(this).data("index");
+            selectedFiles.splice(index, 1);
+            renderNewAttachments();
+        });
 
     $(document)
-
         .off("change", "#requestAttachment")
+        .on("change", "#requestAttachment", function (e) {
+            const maxSize = 5 * 1024 * 1024;
+            const files = [...e.target.files];
+            const validFiles = [];
 
-        .on(
-            "change",
-            "#requestAttachment",
-            function (e) {
+            files.forEach((file) => {
+                if (file.size > maxSize) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "File Too Large",
+                        text: `${file.name} exceeds the maximum size of 5 MB.`,
+                        confirmButtonColor: "#2563eb",
+                    });
+                    return;
+                }
+                validFiles.push(file);
+            });
 
-                const maxSize =
-                    5 * 1024 * 1024;
-
-                const files =
-                    [...e.target.files];
-
-                const validFiles = [];
-
-                files.forEach((file) => {
-
-                    if (file.size > maxSize) {
-
-                        Swal.fire({
-                            icon: "warning",
-                            title: "File Too Large",
-                            text:
-                                `${file.name} exceeds the maximum size of 5 MB.`,
-                            confirmButtonColor:
-                                "#2563eb"
-                        });
-
-                        return;
-                    }
-
-                    validFiles.push(file);
-
-                });
-
-                selectedFiles = [
-                    ...selectedFiles,
-                    ...validFiles
-                ];
-
-                renderNewAttachments();
-
-                $(this).val("");
-
-            }
-        );
+            selectedFiles = [...selectedFiles, ...validFiles];
+            renderNewAttachments();
+            $(this).val("");
+        });
 }

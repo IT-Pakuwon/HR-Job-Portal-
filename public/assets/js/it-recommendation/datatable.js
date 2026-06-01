@@ -178,6 +178,36 @@ function renderITRDocButton(row) {
         `
         : '';
 
+    const cancelIcon = row.can_cancel
+        ? `
+            <button
+                type="button"
+                class="
+                    cancel-btn
+                    inline-flex
+                    h-8 w-8
+                    items-center
+                    justify-center
+                    rounded-lg
+                    border border-red-200
+                    bg-white
+                    text-red-500
+                    transition
+                    hover:bg-red-50
+                    hover:text-red-700
+                    dark:border-red-500/20
+                    dark:bg-white/[0.03]
+                    dark:text-red-400
+                    dark:hover:bg-red-500/10
+                "
+                data-id="${row.eid}"
+                title="Cancel Request"
+            >
+                <i class="fa-solid fa-ban text-xs"></i>
+            </button>
+        `
+        : '';
+
     return `
         <div class="flex items-center gap-2 whitespace-nowrap">
 
@@ -189,6 +219,8 @@ function renderITRDocButton(row) {
             </a>
 
             ${eyeIcon}
+
+            ${cancelIcon}
 
         </div>
     `;

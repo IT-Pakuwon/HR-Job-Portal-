@@ -513,12 +513,10 @@ protected array $workflowTransitions = [
         } catch (\Throwable $th) {
             DB::connection('pgsql5')->rollBack();
 
-            dd([
+            return response()->json([
+                'success' => false,
                 'message' => $th->getMessage(),
-                'line' => $th->getLine(),
-                'file' => $th->getFile(),
-                'trace' => $th->getTraceAsString(),
-            ]);
+            ], 500);
         }
     }
 
@@ -1457,7 +1455,7 @@ protected array $workflowTransitions = [
             'response_summary' => 'required|string|max:255',
             'response_descr' => 'required',
 
-            'working_start_date' => 'required|date',
+            'working_start_date' => 'nullable|date',
 
             'working_end_date' => [
                 'nullable',
@@ -1643,8 +1641,8 @@ protected array $workflowTransitions = [
             abort_if(
                 !$this->validatePIC(
                     $request->pic_ticket,
-                    $ticket->ticket_type,
-                    $ticket->ticket_categoryid
+                    $request->ticket_type,
+                    $request->ticket_categoryid
                 ),
                 422,
                 'Selected PIC is invalid.'

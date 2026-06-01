@@ -4,9 +4,9 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
 
-            $isIT = \App\Models\SysUserRole::query()
+            $isIT = \App\Models\MsTicketCategoryDept::query()
                 ->where('username', auth()->user()->username)
-                ->whereIn('role_id', ['ITHARDWARE', 'ITSOFTWARE'])
+                ->where('status', 'A')
                 ->exists();
 
         @endphp
@@ -1032,7 +1032,7 @@
         </div>
 
         {{-- DETAIL TICKET MODAL --}}
-        <div id="ticketDetailModal" class="ticket-modal overflow-y fixed inset-0 z-[9999] -hidden hidden p-4">
+        <div id="ticketDetailModal" class="ticket-modal fixed inset-0 z-[9999] hidden p-4">
 
             {{-- Backdrop --}}
             <div
