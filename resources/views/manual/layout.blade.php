@@ -30,11 +30,26 @@
 
             </div>
 
+            @php
+                $manualAllowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
+            @endphp
+
             @foreach ($rootMenus as $rootMenu)
                 @php
                     $rootSlug = \Illuminate\Support\Str::slug($rootMenu->menu_slug ?? $rootMenu->menu_name);
                     $isRootActive = request()->segment(2) === $rootSlug;
+
+                    // Mirror the same filter logic as the main sidebar
+                    $visibleParents = $rootMenu->children->filter(function ($parentMenu) use ($manualAllowedIds) {
+                        $visibleChildren = $parentMenu->children->whereIn('menu_id', $manualAllowedIds);
+                        return $visibleChildren->isNotEmpty()
+                            || (in_array($parentMenu->menu_id, $manualAllowedIds) && !empty($parentMenu->menu_route));
+                    });
                 @endphp
+
+                @if ($visibleParents->isEmpty())
+                    @continue
+                @endif
 
                 <div class="mb-4" x-data="{ openRoot: {{ $isRootActive ? 'true' : 'false' }} }">
 
@@ -52,41 +67,47 @@
                     <!-- CHILD -->
                     <div x-show="openRoot" x-transition class="mt-2 space-y-1 pl-4">
 
-                        @foreach ($rootMenu->children as $parentMenu)
+                        @foreach ($visibleParents as $parentMenu)
                             @php
-                                $parentSlug = \Illuminate\Support\Str::slug(
-                                    $parentMenu->menu_slug ?? $parentMenu->menu_name,
-                                );
+                                $parentSlug     = \Illuminate\Support\Str::slug($parentMenu->menu_slug ?? $parentMenu->menu_name);
                                 $isParentActive = request()->segment(3) === $parentSlug;
+                                $visibleChildren = $parentMenu->children->whereIn('menu_id', $manualAllowedIds);
                             @endphp
 
                             <div x-data="{ openParent: {{ $isParentActive ? 'true' : 'false' }} }">
 
                                 <button @click="openParent = !openParent"
                                     class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-
                                     <span>{{ $parentMenu->menu_name }}</span>
+                                    @if ($visibleChildren->isNotEmpty())
+                                        <svg class="h-3.5 w-3.5 transition-transform text-gray-400" :class="{ 'rotate-180': openParent }"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    @endif
                                 </button>
 
                                 <!-- SUB CHILD -->
-                                <div x-show="openParent" x-transition class="mt-1 space-y-1 pl-4">
+                                @if ($visibleChildren->isNotEmpty())
+                                    <div x-show="openParent" x-transition class="mt-1 space-y-1 pl-4">
 
-                                    @foreach ($parentMenu->children as $childMenu)
-                                        @php
-                                            $childSlug = \Illuminate\Support\Str::slug(
-                                                $childMenu->menu_slug ?? $childMenu->menu_name,
-                                            );
-                                            $isActive = request()->segment(4) === $childSlug;
-                                        @endphp
+                                        @foreach ($visibleChildren as $childMenu)
+                                            @php
+                                                $childSlug = \Illuminate\Support\Str::slug($childMenu->menu_slug ?? $childMenu->menu_name);
+                                                $isActive  = request()->segment(4) === $childSlug;
+                                            @endphp
 
-                                        <a href="{{ route('manual', [$rootSlug, $parentSlug, $childSlug]) }}"
-                                            class="{{ $isActive ? 'bg-blue-500 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} block rounded-md px-3 py-2 text-sm">
+                                            <a href="{{ route('manual', [$rootSlug, $parentSlug, $childSlug]) }}"
+                                                class="{{ $isActive
+                                                    ? 'bg-indigo-500 text-white'
+                                                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}
+                                                block rounded-md px-3 py-1.5 text-sm">
+                                                {{ $childMenu->menu_name }}
+                                            </a>
+                                        @endforeach
 
-                                            {{ $childMenu->menu_name }}
-                                        </a>
-                                    @endforeach
-
-                                </div>
+                                    </div>
+                                @endif
                             </div>
                         @endforeach
 
