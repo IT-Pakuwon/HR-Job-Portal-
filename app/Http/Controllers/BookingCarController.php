@@ -1585,12 +1585,6 @@ class BookingCarController extends Controller
             ) {
                 $booking->status = 'C';
 
-                $booking->completed_by =
-                    $booking->completed_by
-                    ?: auth()->user()->username;
-
-                $booking->completed_at = $now;
-
                 $booking->updated_by =
                     auth()->user()->username;
 
@@ -1646,13 +1640,6 @@ class BookingCarController extends Controller
                             'date' => $now->toDateTimeString(),
                         ]
                     );
-
-                // TRACK LAST PROCESS
-
-                $booking->completed_by =
-                    auth()->user()->username;
-
-                $booking->completed_at = $now;
 
                 $booking->updated_by =
                     auth()->user()->username;

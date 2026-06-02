@@ -60,10 +60,10 @@
 @endonce
 
 {{-- ── Outer flex wrapper ───────────────────────────────────────────────────── --}}
-<div class="flex flex-wrap items-center gap-2">
+<div class="flex items-center gap-2 overflow-x-auto pb-0.5 sm:flex-wrap sm:overflow-visible sm:pb-0">
 
     {{-- ── Main filter pill ─────────────────────────────────────────────────── --}}
-    <div class="flex items-center divide-x divide-slate-200 rounded-2xl border border-slate-200 bg-white shadow-sm dark:divide-slate-700/60 dark:border-slate-700/60 dark:bg-slate-900">
+    <div class="flex min-w-max items-center divide-x divide-slate-200 rounded-2xl border border-slate-200 bg-white shadow-sm dark:divide-slate-700/60 dark:border-slate-700/60 dark:bg-slate-900">
 
         {{-- 1a. Company — locked badge (shown by JS when user has only one company) --}}
         <div id="gmCompanyLocked"
@@ -108,7 +108,7 @@
 
             {{-- Date Panel --}}
             <div id="gmDatePanel"
-                class="absolute right-0 top-full z-50 mt-1.5 hidden w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700/60 dark:bg-slate-900">
+                class="absolute right-0 top-full z-50 mt-1.5 hidden w-72 max-w-[calc(100vw-1rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700/60 dark:bg-slate-900">
 
                 <p class="mb-2.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Quick Select</p>
                 <div class="grid grid-cols-2 gap-1.5">
@@ -170,7 +170,7 @@
 
             {{-- Department Panel --}}
             <div id="gmDeptPanel"
-                class="absolute right-0 top-full z-50 mt-1.5 hidden w-80 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700/60 dark:bg-slate-900">
+                class="absolute right-0 top-full z-50 mt-1.5 hidden w-80 max-w-[calc(100vw-1rem)] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-700/60 dark:bg-slate-900">
                 <div class="relative mb-2">
                     <svg class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>

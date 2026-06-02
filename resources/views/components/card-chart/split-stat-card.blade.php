@@ -42,7 +42,7 @@
                 {{ $leftLabel }}
             </p>
             <p @if($leftValueId) id="{{ $leftValueId }}" @endif
-               class="mt-1 text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">{{ $leftValue }}</p>
+               class="mt-1 text-lg font-extrabold tabular-nums text-slate-900 sm:text-xl lg:text-2xl dark:text-white">{{ $leftValue }}</p>
             @if($leftDescription)
                 <p class="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500">{{ $leftDescription }}</p>
             @endif
@@ -57,7 +57,7 @@
                 {{ $rightLabel }}
             </p>
             <p @if($rightValueId) id="{{ $rightValueId }}" @endif
-               class="mt-1 text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white">{{ $rightValue }}</p>
+               class="mt-1 text-lg font-extrabold tabular-nums text-slate-900 sm:text-xl lg:text-2xl dark:text-white">{{ $rightValue }}</p>
             @if($rightBadgeId)
                 <span id="{{ $rightBadgeId }}"
                       class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold">—</span>

@@ -149,6 +149,7 @@ class ReportWarehouseController extends Controller
 
                 'd.inventoryid',
                 'd.inventory_descr',
+                'd.uom',
                 'h.receiptnote',
 
                 'd.qtyordered',
@@ -878,6 +879,8 @@ class ReportWarehouseController extends Controller
                 'Inventory ID' => $row->inventoryid,
 
                 'Description' => $row->inventory_descr,
+
+                'UOM' => $row->uom,
 
                 'Qty Ordered' =>
                     number_format($row->qtyordered ?? 0,3,'.',''),

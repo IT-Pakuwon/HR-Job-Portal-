@@ -101,6 +101,7 @@
 
                         <th class="px-3 py-3 text-left">Inventory ID</th>
                         <th class="px-3 py-3 text-left">Description</th>
+                        <th class="px-3 py-3 text-left">UOM</th>
 
                         <th class="px-3 py-3 text-right">Qty Ordered</th>
                         <th class="px-3 py-3 text-right">Qty Received</th>
@@ -197,6 +198,9 @@
                 },
                 {
                     data: 'inventory_descr'
+                },
+                {
+                    data: 'uom'
                 },
 
                 {

@@ -23,10 +23,10 @@
         <div class="space-y-2">
 
             {{-- Charts Row --}}
-            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
 
                 {{-- 1. Budget vs Remaining + Breakdown (stacked left column) --}}
-                <div class="grid gap-3">
+                <div class="grid gap-3 md:col-span-2 lg:col-span-1">
                     <x-card-chart.split-stat-card
                         color="green"
                         leftLabel="Total Budget"
@@ -40,7 +40,7 @@
                         barId="gmUtilBar"
                     />
 
-                    <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <x-card-chart.card-shell
                         subtitle="Breakdown"
                         title="Used · Reserved · Remaining"
