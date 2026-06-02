@@ -115,55 +115,69 @@ class TicketController extends Controller
             ];
         })->values();
 
-        $counts = [
-            'all' => TrTicket::count(),
+        $isIT = $this->isITRole();
 
-            'created' => TrTicket::where(
+        $userCompanies    = $companies->pluck('cpny_id')->toArray();
+        $userDepartments  = $departments->pluck('department_id')->toArray();
+
+        $baseCount = function () use ($isIT, $userCompanies, $userDepartments) {
+            $q = TrTicket::query();
+            if (!$isIT) {
+                $q->whereIn('cpny_id', $userCompanies)
+                  ->whereIn('department_id', $userDepartments);
+            }
+            return $q;
+        };
+
+        $counts = [
+            'all' => $baseCount()->count(),
+
+            'created' => $baseCount()->where(
                 'status_pekerjaan',
                 'CREATED'
             )->count(),
 
-            'response' => TrTicket::where(
+            'response' => $baseCount()->where(
                 'status_pekerjaan',
                 'RESPONSE'
             )->count(),
 
-            'process' => TrTicket::where(
+            'process' => $baseCount()->where(
                 'status_pekerjaan',
                 'PROCESS'
             )->count(),
 
-            'pending' => TrTicket::where(
+            'pending' => $baseCount()->where(
                 'status_pekerjaan',
                 'PENDING'
             )->count(),
 
-            'envision' => TrTicket::where(
+            'envision' => $baseCount()->where(
                 'status_pekerjaan',
                 'ENVISION'
             )->count(),
 
-            'transfer' => TrTicket::where(
+            'transfer' => $baseCount()->where(
                 'status_pekerjaan',
                 'TRANSFER'
             )->count(),
 
-            'completed' => TrTicket::where(
+            'completed' => $baseCount()->where(
                 'status_pekerjaan',
                 'COMPLETED'
             )->count(),
 
-            'reopen' => TrTicket::where(
+            'reopen' => $baseCount()->where(
                 'status_pekerjaan',
                 'REOPEN'
             )->count(),
 
-            'cancel' => TrTicket::where(
+            'cancel' => $baseCount()->where(
                 'status_pekerjaan',
                 'CANCEL'
             )->count(),
 
-            'ENVISION CHECKED / SOLVED' => TrTicket::where(
+            'ENVISION CHECKED / SOLVED' => $baseCount()->where(
                 'status_pekerjaan',
                 'ENVISION CHECKED / SOLVED'
             )->count(),
