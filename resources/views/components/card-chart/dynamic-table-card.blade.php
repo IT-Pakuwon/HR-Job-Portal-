@@ -46,7 +46,7 @@
 
     {{-- Table --}}
     <div class="overflow-x-auto">
-        <table @if($tableBodyId) id="{{ $tableBodyId }}-tbl" @endif class="w-full text-xs">
+        <table @if($tableBodyId) id="{{ $tableBodyId }}-tbl" @endif class="w-full min-w-[520px] text-xs">
             @if(count($cols))
                 <thead>
                     <tr class="border-t border-slate-100 dark:border-slate-700/60">
@@ -62,7 +62,7 @@
                                     : ($isFirst ? 'left' : ($isLast ? 'center' : 'right'));
                                 $px         = $isFirst ? 'px-5' : 'px-4';
                             @endphp
-                            <th class="bg-slate-50 {{ $px }} py-2.5 text-{{ $align }} text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:bg-slate-800/50 dark:text-slate-500 {{ $sortKey ? 'select-none cursor-pointer hover:text-slate-600 dark:hover:text-slate-300 transition-colors' : '' }}"
+                            <th class="whitespace-nowrap bg-slate-50 {{ $px }} py-2.5 text-{{ $align }} text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:bg-slate-800/50 dark:text-slate-500 {{ $sortKey ? 'select-none cursor-pointer hover:text-slate-600 dark:hover:text-slate-300 transition-colors' : '' }}"
                                 @if($sortKey) data-sort-key="{{ $sortKey }}" data-sort-numeric="{{ $sortNum }}" @endif>
                                 {{ $label }}
                                 @if($sortKey)

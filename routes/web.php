@@ -180,8 +180,10 @@ Route::post('/login', function (Request $request) {
     return redirect()->intended('/dashboard');
 })->name('login.submit'); // ✅ FIXED (was duplicate)
 
-Route::post('/logout', function () {
+Route::post('/logout', function (Request $request) {
     Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
     return redirect('/login');
 })->name('logout');
@@ -189,12 +191,6 @@ Route::post('/logout', function () {
 Route::get('/modules', function () {
     return view('layouts.module');
 })->name('modules');
-
-Route::post('/logout', function () {
-    Auth::logout();
-
-    return redirect('/login');
-})->name('logout');
 
 // Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 Route::middleware(['auth'])->group(function () {
