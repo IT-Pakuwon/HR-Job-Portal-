@@ -38,6 +38,10 @@ class ItRecommendationController extends Controller
             return redirect()->route('login');
         }
 
+        $isITHardware = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'ITHARDWARE')
+            ->exists();
+
         $cpnyIds = is_string($user->cpny_id)
             ? array_map('trim', explode(',', $user->cpny_id))
             : (array) $user->cpny_id;
@@ -47,8 +51,10 @@ class ItRecommendationController extends Controller
             : (array) $user->department_id;
 
         $q = TrItrecommend::query()
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds);
+            ->when(!$isITHardware, function ($query) use ($cpnyIds, $deptIds) {
+                $query->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds);
+            });
 
         $all = (clone $q)->count();
         $waitingIT = (clone $q)->whereIn('status', ['W', 'I'])->count();
@@ -70,10 +76,6 @@ class ItRecommendationController extends Controller
                 'ticketid',
                 'issue_summary',
             ]);
-
-        $isITHardware = SysUserRole::where('username', $user->username)
-            ->where('role_id', 'ITHARDWARE')
-            ->exists();
 
         return view('pages.it_recommendation.it_recommendation', compact(
             'all',
@@ -100,6 +102,10 @@ class ItRecommendationController extends Controller
         $deptIds = is_string($user->department_id)
             ? array_map('trim', explode(',', $user->department_id))
             : (array) $user->department_id;
+
+        $isITHardware = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'ITHARDWARE')
+            ->exists();
 
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
@@ -128,8 +134,10 @@ class ItRecommendationController extends Controller
         $orderCol = $columns[$orderIdx] ?? 'docid';
 
         $base = TrItrecommend::query()
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds);
+            ->when(!$isITHardware, function ($query) use ($cpnyIds, $deptIds) {
+                $query->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds);
+            });
 
         if ($status !== '') {
             $statuses = array_filter(
@@ -160,10 +168,6 @@ class ItRecommendationController extends Controller
             ->skip($start)
             ->take($length)
             ->get();
-
-        $isITHardware = SysUserRole::where('username', $user->username)
-            ->where('role_id', 'ITHARDWARE')
-            ->exists();
 
         $data->transform(function ($row) use ($isITHardware, $user) {
             $row->eid = Hashids::encode($row->id);
