@@ -31,10 +31,10 @@
     </script>
 </head>
 
-<body class="font-inter antialiased lg:h-screen lg:overflow-hidden">
+<body class="font-inter antialiased sm:h-screen sm:overflow-hidden">
 
     <main
-        class="relative min-h-screen lg:h-full"
+        class="relative min-h-screen sm:h-full"
         style="
             background:
             radial-gradient(circle at center,
@@ -71,7 +71,7 @@
         </div>
 
         {{-- Main Content --}}
-        <div class="relative flex min-h-screen lg:h-screen items-center justify-center p-3 md:p-6 lg:p-8">
+        <div class="relative flex min-h-screen sm:h-screen items-center justify-center p-3 md:p-6 lg:p-8">
 
             {{ $slot }}
 

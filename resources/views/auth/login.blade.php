@@ -1,7 +1,7 @@
 <x-authentication-layout>
-<div class="w-full overflow-hidden rounded-2xl sm:rounded-[36px] lg:h-full bg-white shadow-[0_20px_80px_rgba(0,0,0,.12)] dark:border dark:border-slate-800 dark:bg-slate-900">
+<div class="w-full overflow-hidden rounded-2xl sm:rounded-[36px] sm:h-full bg-white shadow-[0_20px_80px_rgba(0,0,0,.12)] dark:border dark:border-slate-800 dark:bg-slate-900">
 
-    <div class="grid lg:grid-cols-[58%_42%] lg:h-full">
+    <div class="grid lg:grid-cols-[58%_42%] sm:h-full">
 
         {{-- LEFT HERO --}}
         <div class="relative hidden p-6 lg:block">
