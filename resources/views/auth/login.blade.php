@@ -1,7 +1,7 @@
 <x-authentication-layout>
-<div class="h-full w-full overflow-hidden rounded-[36px] bg-white shadow-[0_20px_80px_rgba(0,0,0,.12)] dark:border dark:border-slate-800 dark:bg-slate-900">
+<div class="w-full overflow-hidden rounded-2xl sm:rounded-[36px] lg:h-full bg-white shadow-[0_20px_80px_rgba(0,0,0,.12)] dark:border dark:border-slate-800 dark:bg-slate-900">
 
-    <div class="grid h-full lg:grid-cols-[58%_42%]">
+    <div class="grid lg:grid-cols-[58%_42%] lg:h-full">
 
         {{-- LEFT HERO --}}
         <div class="relative hidden p-6 lg:block">
@@ -112,12 +112,12 @@
         </div>
 
         {{-- RIGHT PANEL --}}
-        <div class="relative flex items-center justify-center px-8 py-16 lg:px-20">
+        <div class="relative overflow-y-auto flex flex-col px-6 py-8 sm:px-8 sm:py-12 lg:px-20 lg:py-16">
 
-            <div class="w-full max-w-2xl">
+            <div class="w-full max-w-2xl mx-auto my-auto">
 
                 {{-- Theme Toggle --}}
-                <div class="absolute right-10 top-10">
+                <div class="absolute right-5 top-5 sm:right-10 sm:top-10">
 
                     <button
                         x-data="{ dark: document.documentElement.classList.contains('dark') }"
@@ -167,7 +167,7 @@
                 </div>
 
                 {{-- Mobile Logo --}}
-                <div class="mb-12 lg:hidden">
+                <div class="mb-8 sm:mb-12 lg:hidden">
                     <img
                         src="{{ asset('images/Logo Pakuwon.png') }}"
                         class="h-14">
@@ -176,11 +176,11 @@
                 {{-- Header --}}
                 <div>
 
-                    <h1 class="mt-6 text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    <h1 class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
                         Welcome Back
                     </h1>
 
-                    <p class="mt-4 text-lg text-slate-500 dark:text-slate-400">
+                    <p class="mt-3 text-base lg:text-lg text-slate-500 dark:text-slate-400">
                         Sign in to continue accessing APP System.
                     </p>
 
@@ -196,7 +196,7 @@
                 <form
                     method="POST"
                     action="{{ route('login') }}"
-                    class="mt-10 space-y-6">
+                    class="mt-6 sm:mt-8 lg:mt-10 space-y-5 sm:space-y-6">
 
                     @csrf
 
@@ -322,7 +322,7 @@
                 </form>
 
                 {{-- Footer Help --}}
-                <div class="mt-10">
+                <div class="mt-6 sm:mt-8 lg:mt-10">
 
                     <div class="flex items-center gap-4">
 
