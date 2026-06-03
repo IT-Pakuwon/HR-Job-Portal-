@@ -1087,6 +1087,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/inventory/by-worktype', [MasterController::class, 'InventoryByWorktype'])->name('inventory.byWorktype');
     Route::get('/wos/ajax/completed-wo', [MasterController::class, 'completedWoSppb'])->name('wos.ajax.completed-wo');
     Route::post('/coa', [MasterController::class, 'updateCoa'])->name('coa.update');
+    Route::get('/itrecommend/ajax/completed', [MasterController::class, 'ajaxCompletedItr'])->name('itrecommend.ajax.completed');
 
     Route::get('/users/businessunits/by-cpny', [MasterController::class, 'businessUnitsByCpny'])->name('businessunits.byCpny');
     Route::get('/coa/by-deptwo', [MasterController::class, 'CoaBudgetbyDept'])->name('coa.byDeptWo');
