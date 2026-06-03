@@ -22,23 +22,21 @@ class CostControlDashboardController extends Controller
         $this->approvalController = $approvalController;
     }
 
+    private function getAllowedCpny(): array
+    {
+        $user = auth()->user();
+        $msUser = User::query()->where('username', optional($user)->username)->first();
+
+        return collect(explode(',', (string) optional($msUser)->cpny_id))
+            ->map(fn ($v) => strtoupper(trim($v)))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
     public function summaryJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
-
-        $pendingPo = StagingIfcaPoApprove::query()
-            ->where('status', 'D')
-            ->distinct('order_no')
-            ->count('order_no');
-
-        $pendingIssue = StagingIfcaIcStkIssue::query()
-            ->where('status', 'D')
-            ->distinct('issue_id')
-            ->count('issue_id');
-
-        $imBudget = TrIMBudget::query()
-            ->where('status', 'P')
-            ->count();
 
         $user = $request->user();
 
@@ -48,6 +46,25 @@ class CostControlDashboardController extends Controller
                 'message' => 'Unauthenticated',
             ], 401);
         }
+
+        $allowedCpny = $this->getAllowedCpny();
+
+        $pendingPo = StagingIfcaPoApprove::query()
+            ->where('status', 'D')
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
+            ->distinct('order_no')
+            ->count('order_no');
+
+        $pendingIssue = StagingIfcaIcStkIssue::query()
+            ->where('status', 'D')
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
+            ->distinct('issue_id')
+            ->count('issue_id');
+
+        $imBudget = TrIMBudget::query()
+            ->where('status', 'P')
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
+            ->count();
 
         $username = strtolower(trim($user->username));
 
@@ -61,16 +78,6 @@ class CostControlDashboardController extends Controller
             ->whereNotNull('aprv_datebefore')
             ->count();
 
-        $msUser = User::query()
-            ->where('username', $user->username)
-            ->first();
-
-        $allowedCpny = collect(explode(',', (string) optional($msUser)->cpny_id))
-            ->map(fn ($v) => strtoupper(trim($v)))
-            ->filter()
-            ->values()
-            ->all();
-
         $budget = BudgetDetail::query()
             ->select([
                 'totalbudget',
@@ -79,9 +86,7 @@ class CostControlDashboardController extends Controller
                 'total_used',
             ])
             ->where('status', 'C')
-            ->when(!empty($allowedCpny), function ($q) use ($allowedCpny) {
-                $q->whereIn('cpny_id', $allowedCpny);
-            })
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
             ->get()
             ->sum(function ($row) {
                 return

@@ -24,6 +24,7 @@ use App\Http\Controllers\CalrNonPurchController;
 use App\Http\Controllers\CanvassController;
 use App\Http\Controllers\CanvassxController;
 use App\Http\Controllers\CareerController;
+use App\Http\Controllers\CarExpenseController;
 use App\Http\Controllers\ChangeStoController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CostControlDashboardController;
@@ -36,6 +37,7 @@ use App\Http\Controllers\GaDashboardController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\HrDashboardController;
 use App\Http\Controllers\IMBudgetController;
 use App\Http\Controllers\IMBudgetNonPurchController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
@@ -85,6 +87,7 @@ use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectTaskController;
+use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\ReportBastController;
@@ -105,9 +108,9 @@ use App\Http\Controllers\SppjController;
 use App\Http\Controllers\SppkController;
 use App\Http\Controllers\SpptController;
 use App\Http\Controllers\StockJobsController;
+// INTEGRATION
 use App\Http\Controllers\StrukturOrgController;
 use App\Http\Controllers\SysAccessRightController;
-// INTEGRATION
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
 use App\Http\Controllers\SysMenuController;
@@ -138,9 +141,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
-use App\Http\Controllers\HrDashboardController;
-use App\Http\Controllers\PurchasingDashboardController;
-
 
 Route::get('/avatar/{filename}', function ($filename) {
     return response($filename, 200, [
@@ -1282,6 +1282,26 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
             });
 
+        Route::controller(CarExpenseController::class)
+            ->prefix('carexpense')
+            ->name('carexpense.')
+            ->group(function () {
+                Route::get('/', 'index')->middleware('access:CAREXPENSE,VIEW')->name('index');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('json');
+                    Route::get('/show/{eid}', 'show')->name('show');
+                    Route::get('/attachments/{eid}', 'getAttachments')->name('attachments');
+                });
+
+                Route::post('/store', 'store')->name('store');
+                Route::put('/update/{eid}', 'update')->name('update');
+                Route::delete('/delete/{eid}', 'destroy')->name('delete');
+
+                Route::post('/upload-attachment/{eid}', 'uploadAttachment')->name('upload-attachment');
+                Route::delete('/delete-attachment/{id}', 'destroyAttachment')->name('delete-attachment');
+            });
+
         Route::prefix('ticket')->controller(TicketController::class)->group(function () {
             Route::get('/', 'index')->name('ticket');
             Route::get('/export', 'export')->name('ticket.export');
@@ -1490,14 +1510,14 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/dashboard', 'dashboard')->middleware('access:REPORTGM,VIEW')->name('reportgm');
 
                 // API endpoints
-                Route::get('/api/companies',             'companies')->name('gm.companies');
-                Route::get('/api/budget-summary',        'budgetSummary')->name('gm.budget-summary');
-                Route::get('/api/budget-by-company',     'budgetByCompany')->name('gm.budget-by-company');
-                Route::get('/api/budget-by-department',  'budgetByDepartment')->name('gm.budget-by-department');
-                Route::get('/api/budget-by-activity',   'budgetByActivity')->name('gm.budget-by-activity');
-                Route::get('/api/budget-years',          'budgetYears')->name('gm.budget-years');
-                Route::get('/api/departments',           'departments')->name('gm.departments');
-                Route::get('/api/budget-by-month',       'budgetByMonth')->name('gm.budget-by-month');
+                Route::get('/api/companies', 'companies')->name('gm.companies');
+                Route::get('/api/budget-summary', 'budgetSummary')->name('gm.budget-summary');
+                Route::get('/api/budget-by-company', 'budgetByCompany')->name('gm.budget-by-company');
+                Route::get('/api/budget-by-department', 'budgetByDepartment')->name('gm.budget-by-department');
+                Route::get('/api/budget-by-activity', 'budgetByActivity')->name('gm.budget-by-activity');
+                Route::get('/api/budget-years', 'budgetYears')->name('gm.budget-years');
+                Route::get('/api/departments', 'departments')->name('gm.departments');
+                Route::get('/api/budget-by-month', 'budgetByMonth')->name('gm.budget-by-month');
             });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
@@ -1521,7 +1541,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/recommendation-json', 'recommendationJson')->name('recommendation-json');
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('waiting-approval-json');
             Route::get('/approval-history-json', 'approvalHistoryJson')->name('approval-history-json');
-             Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
+            Route::get('/approval-doctypes-json', 'approvalDocTypes')->name('approval-doctypes-json');
         });
 
         Route::prefix('cost-control-dashboard')->controller(CostControlDashboardController::class)->group(function () {

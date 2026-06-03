@@ -1191,7 +1191,7 @@ class BookingCarController extends Controller
                 ),
 
                 'can_process' => (
-                    in_array($booking->status, ['C', 'F'])
+                    in_array($booking->status, ['C', 'F', 'U'])
                     && Auth::user()->hasRole('GAACCESS')
                     && !$booking->completed_at
                 ),
@@ -1262,7 +1262,7 @@ class BookingCarController extends Controller
                 throw new \Exception('You are not authorized to process this booking.');
             }
 
-            if (!in_array($booking->status, ['C', 'F'])) {
+            if (!in_array($booking->status, ['C', 'F', 'U'])) {
                 throw new \Exception('Booking cannot be processed. Only approved or previously processed bookings are allowed.');
             }
 
@@ -1314,15 +1314,26 @@ class BookingCarController extends Controller
             $user = Auth::user();
 
             DB::connection('pgsql5')->transaction(function () use ($booking, $validated, $lock, $user) {
+                $hasStatusPerjalanan = !empty($validated['status_perjalanan']);
+
                 $booking->status_perjalanan = $validated['status_perjalanan'] ?? null;
-                $booking->driver            = $validated['driver']            ?? null;
-                $booking->handphone         = $validated['handphone']         ?? null;
-                $booking->no_polisi         = $validated['no_polisi']         ?? null;
-                $booking->status            = 'F';
-                $booking->checked_by        = $user->username;
-                $booking->checked_at        = now();
-                $booking->updated_by        = $user->username;
-                $booking->updated_at        = now();
+
+                if ($hasStatusPerjalanan) {
+                    $booking->status    = 'U';
+                    $booking->driver    = null;
+                    $booking->handphone = null;
+                    $booking->no_polisi = null;
+                } else {
+                    $booking->status    = 'F';
+                    $booking->driver    = $validated['driver']    ?? null;
+                    $booking->handphone = $validated['handphone'] ?? null;
+                    $booking->no_polisi = $validated['no_polisi'] ?? null;
+                }
+
+                $booking->checked_by = $user->username;
+                $booking->checked_at = now();
+                $booking->updated_by = $user->username;
+                $booking->updated_at = now();
 
                 if ($lock) {
                     $booking->completed_by = $user->username;
