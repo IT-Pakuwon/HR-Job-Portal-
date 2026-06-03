@@ -1015,13 +1015,9 @@ class TicketController extends Controller
                 $priority?->ticket_sla_days ?? 1
             );
 
-            $workingStart =
-                $request->working_start_date
-                ?? now();
+            $workingStart = $request->working_start_date ?? now();
 
-            $workingEnd =
-                $request->working_end_date
-                ?? $dueDate;
+            $workingEnd = $request->working_end_date ?? $dueDate;
 
             $ticket->update([
                 'pic_ticket' => $request->pic_ticket,
@@ -1031,6 +1027,10 @@ class TicketController extends Controller
                 'ticket_sla_days' => $priority?->ticket_sla_days,
 
                 'ticket_duedate' => $dueDate,
+
+                'working_start_date' => $workingStart,
+
+                'working_end_date' => $workingEnd,
 
                 'status' => 'P',
 
@@ -1137,16 +1137,9 @@ class TicketController extends Controller
         |--------------------------------------------------------------------------
         */
 
-            $workingStart =
-                $request->working_start_date
-                ?? $ticket->working_start_date
-                ?? now();
+            $workingStart = $request->working_start_date ?? now();
 
-            $workingEnd =
-                $request->working_end_date
-                ?? $ticket->working_end_date
-                ?? $ticket->ticket_duedate
-                ?? now()->addDay();
+            $workingEnd = $request->working_end_date ?? $ticket->ticket_duedate ?? now()->addDay();
 
             /*
         |--------------------------------------------------------------------------
@@ -1155,6 +1148,10 @@ class TicketController extends Controller
         */
 
             $ticket->update([
+                'working_start_date' => $workingStart,
+
+                'working_end_date' => $workingEnd,
+
                 'status' => 'P',
 
                 'status_pekerjaan' => 'PROCESS',
@@ -1307,16 +1304,9 @@ class TicketController extends Controller
         |--------------------------------------------------------------------------
         */
 
-            $workingStart =
-                $request->working_start_date
-                ?? $ticket->working_start_date
-                ?? now();
+            $workingStart = $request->working_start_date ?? now();
 
-            $workingEnd =
-                $request->working_end_date
-                ?? $ticket->working_end_date
-                ?? $ticket->ticket_duedate
-                ?? now()->addDay();
+            $workingEnd = $request->working_end_date ?? $ticket->ticket_duedate ?? now()->addDay();
 
             /*
         |--------------------------------------------------------------------------
@@ -1325,6 +1315,10 @@ class TicketController extends Controller
         */
 
             $ticket->update([
+                'working_start_date' => $workingStart,
+
+                'working_end_date' => $workingEnd,
+
                 'status' => 'P',
 
                 'status_pekerjaan' => 'PENDING',
@@ -1457,7 +1451,7 @@ class TicketController extends Controller
             'response_summary' => 'required|string|max:255',
             'response_descr' => 'required',
 
-            'working_start_date' => 'nullable|date',
+            'working_start_date' => 'required|date',
 
             'working_end_date' => [
                 'nullable',
@@ -1482,11 +1476,9 @@ class TicketController extends Controller
         |--------------------------------------------------------------------------
         */
 
-            $workingStart =
-                $request->working_start_date;
+            $workingStart = $request->working_start_date;
 
-            $workingEnd =
-                $request->working_end_date;
+            $workingEnd = $request->working_end_date ?: null;
 
             /*
         |--------------------------------------------------------------------------
@@ -1495,6 +1487,10 @@ class TicketController extends Controller
         */
 
             $ticket->update([
+                'working_start_date' => $workingStart,
+
+                'working_end_date' => $workingEnd,
+
                 'status' => 'P',
 
                 'status_pekerjaan' => 'ENVISION',
@@ -1974,14 +1970,9 @@ class TicketController extends Controller
         |--------------------------------------------------------------------------
         */
 
-            $workingStart =
-                $request->working_start_date
-                ?? now();
+            $workingStart = $request->working_start_date ?? now();
 
-            $workingEnd =
-                $request->working_end_date
-                ?? $ticket->ticket_duedate
-                ?? now()->addDay();
+            $workingEnd = $request->working_end_date ?? $ticket->ticket_duedate ?? now()->addDay();
 
             /*
         |--------------------------------------------------------------------------
@@ -1994,17 +1985,9 @@ class TicketController extends Controller
 
                 'reopen_descr' => $request->response_descr,
 
-                /*
-            |--------------------------------------------------------------------------
-            | Working Schedule
-            |--------------------------------------------------------------------------
-            */
+                'working_start_date' => $workingStart,
 
-                /*
-            |--------------------------------------------------------------------------
-            | Workflow
-            |--------------------------------------------------------------------------
-            */
+                'working_end_date' => $workingEnd,
 
                 'status' => 'P',
 
