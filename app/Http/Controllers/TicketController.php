@@ -1032,10 +1032,6 @@ class TicketController extends Controller
 
                 'ticket_duedate' => $dueDate,
 
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'RESPONSE',
@@ -1159,10 +1155,6 @@ class TicketController extends Controller
         */
 
             $ticket->update([
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'PROCESS',
@@ -1333,10 +1325,6 @@ class TicketController extends Controller
         */
 
             $ticket->update([
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'PENDING',
@@ -1507,10 +1495,6 @@ class TicketController extends Controller
         */
 
             $ticket->update([
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'ENVISION',
@@ -1751,10 +1735,6 @@ class TicketController extends Controller
             | Reset Working Schedule
             |--------------------------------------------------------------------------
             */
-
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
 
                 /*
             |--------------------------------------------------------------------------
@@ -2019,10 +1999,6 @@ class TicketController extends Controller
             | Working Schedule
             |--------------------------------------------------------------------------
             */
-
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
 
                 /*
             |--------------------------------------------------------------------------
