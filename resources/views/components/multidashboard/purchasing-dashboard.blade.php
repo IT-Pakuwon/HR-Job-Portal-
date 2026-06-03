@@ -60,7 +60,7 @@
 
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-500">
-                        CS Masih Draft
+                        CS Draft
                     </div>
 
                     <div id="csDraftCount"
@@ -106,8 +106,8 @@
 
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-500">
-                        PO Unsend
-                    </div>
+                            PO Unsend
+                        </div>
 
                     <div id="poUnsendCount"
                         class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
@@ -144,7 +144,7 @@
                 </button>
 
                 <button id="tab-po-unsend">
-                    📦 PO Unsend
+                    📦 Unsend PO
                 </button>
 
             </div>
