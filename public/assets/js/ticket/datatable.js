@@ -263,7 +263,7 @@ const ticketTable = $("#ticketTable").DataTable({
             className: "px-5 py-4 whitespace-nowrap align-top",
 
             render: function (data) {
-                return formatDateTime(data);
+                return formatDate(data);
             },
         },
 

@@ -356,12 +356,13 @@
                             return data;
                         }
 
-                        // display format
-                        return new Date(data).toLocaleDateString('id-ID', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                        });
+                        // display as yyyy-mm-dd
+                        let d = new Date(data);
+                        if (isNaN(d)) return data;
+                        let yyyy = d.getFullYear();
+                        let mm = String(d.getMonth() + 1).padStart(2, '0');
+                        let dd = String(d.getDate()).padStart(2, '0');
+                        return `${yyyy}-${mm}-${dd}`;
                     }
                 },
                 {
