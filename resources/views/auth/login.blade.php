@@ -203,7 +203,7 @@
                     <div>
 
                         <label class="mb-2 block text-md font-semibold text-slate-700 dark:text-slate-300">
-                            Email Address
+                            Email Address or Username
                         </label>
 
                         <input

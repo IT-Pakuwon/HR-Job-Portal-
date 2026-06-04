@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -1840,6 +1841,64 @@ class AccessRequestController extends Controller
                     'ACR',
                     $request
                 );
+
+            /*
+            |------------------------------------------------------------------
+            | Comment notification
+            |------------------------------------------------------------------
+            */
+            try {
+                $authUser = Auth::user();
+
+                $usernames = collect([
+                    $access->user_peminta,
+                    $access->user_assign,
+                    $access->created_by,
+                ])->filter()->unique();
+
+                $approverUsernames = TrApproval::where('refnbr', $access->docid)
+                    ->pluck('aprv_username');
+
+                $usernames = $usernames->merge($approverUsernames)
+                    ->filter()
+                    ->unique()
+                    ->reject(fn($u) => $u === $authUser->username);
+
+                $commenterEmail = $authUser->notification_email ?: $authUser->email;
+                $commenterName  = $authUser->name ?? $authUser->username;
+
+                foreach ($usernames as $username) {
+                    $recipient = User::where('username', $username)->first();
+                    $email = $recipient?->notification_email ?: $recipient?->email;
+
+                    if (!$email || $email === $commenterEmail) {
+                        continue;
+                    }
+
+                    try {
+                        Mail::to($email)->send(
+                            new \App\Mail\CommentNotificationMail(
+                                'ACR',
+                                $access->docid,
+                                $commenterName,
+                                $request->message,
+                                'ACR'
+                            )
+                        );
+                    } catch (\Throwable $e) {
+                        Log::warning('ACR Comment Mail Failed', [
+                            'docid' => $access->docid,
+                            'email' => $email,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('ACR comment notification failed', [
+                    'docid' => $access->docid,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,

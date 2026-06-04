@@ -1996,6 +1996,61 @@ class ItRecommendationController extends Controller
 
             DB::connection('pgsql5')->commit();
 
+            /*
+            |------------------------------------------------------------------
+            | Comment notification
+            |------------------------------------------------------------------
+            */
+            try {
+                $usernames = collect([
+                    $header->user_peminta,
+                    $header->created_by,
+                ])->filter()->unique();
+
+                $approverUsernames = TrApproval::where('refnbr', $header->docid)
+                    ->pluck('aprv_username');
+
+                $usernames = $usernames->merge($approverUsernames)
+                    ->filter()
+                    ->unique()
+                    ->reject(fn($u) => $u === $user->username);
+
+                $commenterEmail = $user->notification_email ?: $user->email;
+                $commenterName  = $user->name ?? $user->username;
+
+                foreach ($usernames as $username) {
+                    $recipient = User::where('username', $username)->first();
+                    $email = $recipient?->notification_email ?: $recipient?->email;
+
+                    if (!$email || $email === $commenterEmail) {
+                        continue;
+                    }
+
+                    try {
+                        Mail::to($email)->send(
+                            new \App\Mail\CommentNotificationMail(
+                                $this->doctype,
+                                $header->docid,
+                                $commenterName,
+                                $request->message,
+                                'ITR'
+                            )
+                        );
+                    } catch (\Throwable $e) {
+                        Log::warning('ITR Comment Mail Failed', [
+                            'docid' => $header->docid,
+                            'email' => $email,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('ITR comment notification failed', [
+                    'docid' => $header->docid,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Comment submitted',

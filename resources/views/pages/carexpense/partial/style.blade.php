@@ -17,7 +17,7 @@
         background: rgba(148, 163, 184, .45);
     }
 
-    .status-card {
+    /* .status-card {
         position: relative;
         overflow: hidden;
         border-radius: 18px;
@@ -37,7 +37,7 @@
     .status-filter.active .status-card {
         outline: 2px solid rgba(99, 102, 241, .35);
         box-shadow: 0 12px 30px rgba(99, 102, 241, .16);
-    }
+    } */
 
     #createModal,
     #showModal,

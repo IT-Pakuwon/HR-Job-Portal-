@@ -6,6 +6,9 @@ use App\Exports\MeetingOnlineExport;
 use App\Exports\MeetingRoomExport;
 use App\Exports\VoucherTaxiExport;
 use App\Exports\BookingCarExport;
+use App\Exports\FreeParkingExport;
+use App\Exports\CarExpenseExport;
+use App\Models\MsCategory;
 use App\Models\MsMeetingRoom;
 use App\Models\User;
 use Carbon\Carbon;
@@ -57,11 +60,23 @@ class ReportGeneralGAController extends Controller
             ->orderBy('nopol_kendaraan')
             ->get();
 
+        $parkingTypes = MsCategory::where('doctype', 'PKR')
+            ->where('type', 'TYPE')
+            ->where('status', 'A')
+            ->orderBy('category_name')
+            ->get(['categoryid', 'category_name']);
+
+        $workerTypes = MsCategory::where('doctype', 'PKR')
+            ->where('type', 'WORKER')
+            ->where('status', 'A')
+            ->orderBy('category_name')
+            ->get(['categoryid', 'category_name']);
+
         $hasCSACCESS = $user->hasRole('CSACCESS');
         $hasADMIN    = strtolower($user->user_role) === 'admin';
         $hasGAACCESS = $user->hasRole('GAACCESS');
 
-        $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 3 : 0);
+        $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 4 : 0);
 
         $defaultReport = match (true) {
             $hasGAACCESS => 'operational-car',
@@ -78,6 +93,10 @@ class ReportGeneralGAController extends Controller
             'drivers' => $drivers,
 
             'kendaraan' => $kendaraan,
+
+            'parkingTypes' => $parkingTypes,
+
+            'workerTypes' => $workerTypes,
 
             'hasCSACCESS'   => $hasCSACCESS,
 
@@ -111,6 +130,12 @@ class ReportGeneralGAController extends Controller
             case 'voucher-taxi':
                 return $this->voucherTaxiJson($request);
 
+            case 'free-parking':
+                return $this->freeParkingJson($request);
+
+            case 'car-expense':
+                return $this->carExpenseJson($request);
+
             default:
                 abort(404);
         }
@@ -137,6 +162,12 @@ class ReportGeneralGAController extends Controller
 
             case 'voucher-taxi':
                 return $this->exportVoucherTaxi($request);
+
+            case 'free-parking':
+                return $this->exportFreeParking($request);
+
+            case 'car-expense':
+                return $this->exportCarExpense($request);
 
             default:
                 abort(404);
@@ -1173,6 +1204,184 @@ class ReportGeneralGAController extends Controller
         return Excel::download(
             new VoucherTaxiExport($request),
             'voucher-taxi-report.xlsx'
+        );
+    }
+
+    private function freeParkingJson(Request $request)
+    {
+        $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
+
+        $companies = \App\Models\MsCompany::pluck('cpny_name', 'cpny_id');
+
+        $parkingTypeMap = MsCategory::where('doctype', 'PKR')
+            ->where('type', 'TYPE')
+            ->pluck('category_name', 'categoryid');
+
+        $workerTypeMap = MsCategory::where('doctype', 'PKR')
+            ->where('type', 'WORKER')
+            ->pluck('category_name', 'categoryid');
+
+        $user = auth()->user();
+
+        $companyIds = collect(explode(',', (string) $user->cpny_id))
+            ->map(fn ($x) => trim($x))
+            ->filter()
+            ->values()
+            ->toArray();
+
+        $query = DB::connection('pgsql5')
+            ->table('tr_parking_registration_detail as pd')
+            ->join('tr_parking_registration as pr', 'pr.docid', '=', 'pd.docid')
+            ->whereIn('pr.cpny_id', $companyIds)
+            ->select([
+                'pr.docid',
+                'pr.parking_regist_date',
+                'pd.nama',
+                'pd.cpny_id',
+                'pd.department_id',
+                'pd.nopol',
+                'pd.jenis_kendaraan',
+                'pd.parking_type',
+                'pd.worker_type',
+                'pd.startdate',
+                'pd.enddate',
+                'pd.status',
+            ]);
+
+        if ($request->date_from) {
+            $query->whereDate('pr.parking_regist_date', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('pr.parking_regist_date', '<=', $request->date_to);
+        }
+
+        if ($request->name) {
+            $query->where(function ($q) use ($request) {
+                $q->where('pd.nama', 'ilike', "%{$request->name}%")
+                    ->orWhere('pd.username', 'ilike', "%{$request->name}%");
+            });
+        }
+
+        if ($request->parking_type) {
+            $query->where('pd.parking_type', $request->parking_type);
+        }
+
+        if ($request->worker_type) {
+            $query->where('pd.worker_type', $request->worker_type);
+        }
+
+        if ($request->status) {
+            $query->where('pd.status', $request->status);
+        }
+
+        return DataTables::of($query)
+
+            ->editColumn('parking_regist_date', fn ($row) => $row->parking_regist_date
+                ? Carbon::parse($row->parking_regist_date)->format('d-M-Y')
+                : '-'
+            )
+
+            ->editColumn('startdate', fn ($row) => $row->startdate
+                ? Carbon::parse($row->startdate)->format('d-M-Y')
+                : '-'
+            )
+
+            ->editColumn('enddate', fn ($row) => $row->enddate
+                ? Carbon::parse($row->enddate)->format('d-M-Y')
+                : '-'
+            )
+
+            ->addColumn('company', fn ($row) => $companies[$row->cpny_id] ?? '-')
+
+            ->addColumn('department', fn ($row) => $departments[$row->department_id] ?? '-')
+
+            ->addColumn('parking_type_label', fn ($row) => $parkingTypeMap[$row->parking_type] ?? $row->parking_type ?? '-')
+
+            ->addColumn('worker_type_label', fn ($row) => $workerTypeMap[$row->worker_type] ?? $row->worker_type ?? '-')
+
+            ->addColumn('status_label', fn ($row) => match ($row->status) {
+                'P' => 'On Progress',
+                'C' => 'Completed',
+                'R' => 'Rejected',
+                'D' => 'Revise',
+                'X' => 'Cancelled',
+                'A' => 'Active',
+                default => $row->status ?? '-',
+            })
+
+            ->orderColumn('parking_regist_date', 'pr.parking_regist_date $1')
+
+            ->make(true);
+    }
+
+    private function exportFreeParking(Request $request)
+    {
+        return Excel::download(
+            new FreeParkingExport($request),
+            'free-parking-report.xlsx'
+        );
+    }
+
+    private function carExpenseJson(Request $request)
+    {
+        $categoryMap = \App\Models\MsCategory::where('groups', 'CAR COST')
+            ->where('status', 'A')
+            ->pluck('category_name', 'id');
+
+        $query = DB::connection('pgsql')->table('tr_car_expense')
+            ->whereNull('deleted_at')
+            ->select([
+                'refnbr',
+                'ref_date',
+                'nopol',
+                'driver',
+                'cost_type',
+                'cost_descr',
+                'cost_qty',
+                'cost_amount',
+            ]);
+
+        if ($request->date_from) {
+            $query->whereDate('ref_date', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('ref_date', '<=', $request->date_to);
+        }
+
+        if ($request->nopol) {
+            $query->where('nopol', $request->nopol);
+        }
+
+        if ($request->driver) {
+            $query->where('driver', 'ilike', "%{$request->driver}%");
+        }
+
+        return DataTables::of($query)
+
+            ->editColumn('ref_date', fn ($row) => $row->ref_date
+                ? Carbon::parse($row->ref_date)->format('d-M-Y')
+                : '-'
+            )
+
+            ->addColumn('cost_type_name', fn ($row) => $categoryMap[$row->cost_type] ?? $row->cost_type ?? '-')
+
+            ->addColumn('cost_amount_label', fn ($row) => $row->cost_amount
+                ? 'Rp ' . number_format($row->cost_amount, 0, ',', '.')
+                : '-'
+            )
+
+            ->orderColumn('ref_date', 'ref_date $1')
+
+            ->make(true);
+    }
+
+    private function exportCarExpense(Request $request)
+    {
+        return Excel::download(
+            new CarExpenseExport($request),
+            'car-expense-report.xlsx'
         );
     }
 

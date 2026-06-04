@@ -10,11 +10,12 @@
             <button type="button" class="text-left">
                 <a href="#" class="status-filter active group block h-full flex-1 w-full" data-filter="">
                     <div
-                        class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
                             <p class="break-words text-sm font-medium">All</p>
                         </div>
+                        <p class="shrink-0 text-base font-bold">{{ $countAll }}</p>
                     </div>
                 </a>
             </button>
@@ -33,11 +34,12 @@
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full flex-1 w-full" data-filter="{{ $type->id }}">
                         <div
-                            class="status-card flex h-full items-center gap-3 rounded-lg border p-3 transition-all duration-300 ease-in-out hover:shadow-md active:scale-95 {{ $cardColors[$loop->index % count($cardColors)] }}">
+                            class="status-card flex h-full items-center gap-3 rounded-lg border p-3 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-md active:scale-95 {{ $cardColors[$loop->index % count($cardColors)] }}">
                             <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚗</div>
                             <div class="flex min-w-0 flex-grow flex-col leading-tight">
                                 <p class="break-words text-sm font-medium">{{ $type->category_name }}</p>
                             </div>
+                            <p class="shrink-0 text-base font-bold">{{ $countByType[$type->id] ?? 0 }}</p>
                         </div>
                     </a>
                 </button>
@@ -57,20 +59,11 @@
                 </h2>
 
                 <div class="flex items-center gap-3">
-
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Search..."
-                            class="h-10 rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100 dark:placeholder:text-slate-500">
-                        <i
-                            class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
-                    </div>
-
                     <button type="button" id="btnOpenCreate"
                         class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                         <i class="fa-solid fa-plus mr-2 text-xs"></i>
                         Create
                     </button>
-
                 </div>
 
             </div>
@@ -108,41 +101,25 @@
 
             </div>
 
-            <div class="relative overflow-x-auto">
-
-                <table class="w-full min-w-full border-separate border-spacing-0 text-sm">
-
-                    <thead>
-                        <tr
-                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
-                            <th class="w-10 px-4 py-3 text-center font-medium">#</th>
-                            <th class="px-4 py-3 text-left font-medium">Ref No</th>
-                            <th class="px-4 py-3 text-left font-medium">Date</th>
-                            <th class="px-4 py-3 text-left font-medium">Nopol</th>
-                            <th class="px-4 py-3 text-left font-medium">Driver</th>
-                            <th class="px-4 py-3 text-left font-medium">Cost Type</th>
-                            <th class="px-4 py-3 text-left font-medium">Description</th>
-                            <th class="px-4 py-3 text-right font-medium">Qty</th>
-                            <th class="px-4 py-3 text-right font-medium">Amount</th>
-                            <th class="px-4 py-3 text-center font-medium">Action</th>
+            <div class="relative overflow-x-auto p-4">
+                <table id="carExpenseTable" class="w-full text-left text-sm">
+                    <thead
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                        <tr>
+                            <th></th>
+                            <th class="px-4 py-3 font-medium">Ref No</th>
+                            <th class="px-4 py-3 font-medium">Date</th>
+                            <th class="px-4 py-3 font-medium">Nopol</th>
+                            <th class="px-4 py-3 font-medium">Driver</th>
+                            <th class="px-4 py-3 font-medium">Cost Type</th>
+                            <th class="px-4 py-3 font-medium">Description</th>
+                            <th class="px-4 py-3 font-medium text-right">Qty</th>
+                            <th class="px-4 py-3 font-medium text-right">Amount</th>
+                            <th class="px-4 py-3 font-medium text-center">Action</th>
                         </tr>
                     </thead>
-
-                    <tbody id="carExpenseTableBody">
-                        <tr>
-                            <td colspan="10" class="px-4 py-8 text-center text-sm text-slate-400">Loading...</td>
-                        </tr>
-                    </tbody>
-
+                    <tbody></tbody>
                 </table>
-
-            </div>
-
-            {{-- Pagination --}}
-            <div
-                class="flex flex-col items-center justify-between gap-3 border-t border-gray-100 px-5 py-3 dark:border-white/[0.06] sm:flex-row">
-                <p id="paginationInfo" class="text-sm text-slate-500 dark:text-slate-400"></p>
-                <div id="paginationControls" class="flex items-center gap-1"></div>
             </div>
 
         </div>
@@ -705,12 +682,6 @@
 
         const CostTypes = @json($costTypes->keyBy('id'));
 
-        let currentFilter = '';
-        let currentPage = 1;
-        let currentSearch = '';
-        let currentNopol = '';
-        let currentDateFrom = '';
-        let currentDateTo = '';
         let currentEid = null;
 
         function formatIDR(val) {
@@ -731,10 +702,6 @@
                 hour: '2-digit', minute: '2-digit', second: '2-digit',
                 hour12: false,
             }).replace(/\//g, '-');
-        }
-
-        function getCostTypeName(id) {
-            return CostTypes[id]?.category_name ?? id ?? '-';
         }
 
         function openModal(id) {
@@ -766,176 +733,6 @@
                 el.classList.remove('flex');
             }, 200);
         }
-
-        // ---- FETCH TABLE ----
-
-        async function fetchTable() {
-            const params = new URLSearchParams({
-                page: currentPage,
-                search: currentSearch,
-                filter: currentFilter,
-                nopol: currentNopol,
-                date_from: currentDateFrom,
-                date_to: currentDateTo,
-            });
-
-            const tbody = document.getElementById('carExpenseTableBody');
-            tbody.innerHTML =
-                `<tr><td colspan="10" class="px-4 py-8 text-center text-sm text-slate-400">Loading...</td></tr>`;
-
-            try {
-                const res  = await fetch(`${CarExpenseRoutes.json}?${params}`, {
-                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                });
-                const json = await res.json();
-                renderTable(json.data, json.total, json.page);
-            } catch (err) {
-                tbody.innerHTML =
-                    `<tr><td colspan="10" class="px-4 py-8 text-center text-sm text-red-400">Failed to load data.</td></tr>`;
-                console.error('fetchTable error:', err);
-            }
-        }
-
-        function renderTable(rows, total, page) {
-            const tbody = document.getElementById('carExpenseTableBody');
-            const perPage = 10;
-            const offset = (page - 1) * perPage;
-            const totalPages = Math.ceil(total / perPage);
-
-            if (!rows || rows.length === 0) {
-                tbody.innerHTML =
-                    `<tr><td colspan="10" class="px-4 py-8 text-center text-sm text-slate-400">No data found.</td></tr>`;
-                document.getElementById('paginationInfo').textContent = '';
-                document.getElementById('paginationControls').innerHTML = '';
-                return;
-            }
-
-            tbody.innerHTML = rows.map((row, i) => `
-                <tr class="border-b border-gray-100 transition hover:bg-slate-50 dark:border-white/[0.04] dark:hover:bg-white/[0.02]">
-                    <td class="px-4 py-3 text-center text-xs text-slate-400">${offset + i + 1}</td>
-                    <td class="px-4 py-3 font-medium text-slate-700 dark:text-slate-200">${row.refnbr ?? '-'}</td>
-                    <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${formatDate(row.ref_date)}</td>
-                    <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${row.nopol ?? '-'}</td>
-                    <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${row.driver ?? '-'}</td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-                            ${row.cost_type_name ?? row.cost_type ?? '-'}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-slate-600 dark:text-slate-300 max-w-[180px] truncate" title="${row.cost_descr ?? ''}">${row.cost_descr ?? '-'}</td>
-                    <td class="px-4 py-3 text-right text-slate-600 dark:text-slate-300">${row.cost_qty ?? 0}</td>
-                    <td class="px-4 py-3 text-right font-medium text-slate-700 dark:text-slate-200">${formatIDR(row.cost_amount ?? 0)}</td>
-                    <td class="px-4 py-3 text-center">
-                        <button type="button" onclick="openDetail('${row.eid}')"
-                            class="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]">
-                            <i class="fa-solid fa-eye mr-1 text-[10px]"></i> View
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-
-            const from = offset + 1;
-            const to = Math.min(offset + rows.length, total);
-            document.getElementById('paginationInfo').textContent = `Showing ${from}–${to} of ${total} records`;
-
-            renderPagination(page, totalPages);
-        }
-
-        function renderPagination(page, totalPages) {
-            const ctrl = document.getElementById('paginationControls');
-            if (totalPages <= 1) {
-                ctrl.innerHTML = '';
-                return;
-            }
-
-            const btnClass = (active) =>
-                `inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition
-                ${active
-                    ? 'bg-slate-900 text-white dark:bg-blue-600'
-                    : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]'}`;
-
-            let html = `
-                <button class="${btnClass(false)}" ${page === 1 ? 'disabled' : ''} onclick="goPage(${page - 1})">
-                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
-                </button>`;
-
-            const range = [...new Set([1, page - 1, page, page + 1, totalPages].filter(p => p >= 1 && p <= totalPages))]
-                .sort((a, b) => a - b);
-            let prev = 0;
-            range.forEach(p => {
-                if (prev && p - prev > 1) html += `<span class="px-1 text-slate-400">…</span>`;
-                html += `<button class="${btnClass(p === page)}" onclick="goPage(${p})">${p}</button>`;
-                prev = p;
-            });
-
-            html += `
-                <button class="${btnClass(false)}" ${page === totalPages ? 'disabled' : ''} onclick="goPage(${page + 1})">
-                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                </button>`;
-
-            ctrl.innerHTML = html;
-        }
-
-        function goPage(p) {
-            currentPage = p;
-            fetchTable();
-        }
-
-        // ---- FILTER CARDS ----
-
-        document.querySelectorAll('.status-filter').forEach(el => {
-            el.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelectorAll('.status-filter').forEach(x => x.classList.remove('active'));
-                this.classList.add('active');
-                currentFilter = this.dataset.filter ?? '';
-                currentPage = 1;
-                fetchTable();
-            });
-        });
-
-        // ---- SEARCH ----
-
-        let searchTimer;
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-                currentSearch = this.value.trim();
-                currentPage = 1;
-                fetchTable();
-            }, 400);
-        });
-
-        // ---- NOPOL & DATE RANGE FILTERS ----
-
-        document.getElementById('filterNopol').addEventListener('change', function() {
-            currentNopol = this.value;
-            currentPage = 1;
-            fetchTable();
-        });
-
-        document.getElementById('filterDateFrom').addEventListener('change', function() {
-            currentDateFrom = this.value;
-            currentPage = 1;
-            fetchTable();
-        });
-
-        document.getElementById('filterDateTo').addEventListener('change', function() {
-            currentDateTo = this.value;
-            currentPage = 1;
-            fetchTable();
-        });
-
-        document.getElementById('btnResetFilters').addEventListener('click', function() {
-            document.getElementById('filterNopol').value = '';
-            document.getElementById('filterDateFrom').value = '';
-            document.getElementById('filterDateTo').value = '';
-            currentNopol = '';
-            currentDateFrom = '';
-            currentDateTo = '';
-            currentPage = 1;
-            fetchTable();
-        });
 
         // ---- OPEN DETAIL ----
 
@@ -1051,7 +848,7 @@
                         if (json.success) {
                             closeModal('showModal');
                             Swal.fire('Deleted!', json.message, 'success');
-                            fetchTable();
+                            window.carExpenseTable.ajax.reload(null, false);
                         } else {
                             Swal.fire('Error', json.message, 'error');
                         }
@@ -1119,7 +916,6 @@
                     return;
                 }
 
-                // Upload attachments if any were selected
                 if (files.length > 0) {
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-2"></i>Uploading...';
                     await uploadFilesToExpense(json.data.eid, files);
@@ -1127,7 +923,7 @@
 
                 closeModal('createModal');
                 Swal.fire('Success', json.message, 'success');
-                fetchTable();
+                window.carExpenseTable.ajax.reload(null, false);
             } catch {
                 Swal.fire('Error', 'Request failed.', 'error');
             } finally {
@@ -1168,7 +964,7 @@
                     if (json.success) {
                         closeModal('editModal');
                         Swal.fire('Success', json.message, 'success');
-                        fetchTable();
+                        window.carExpenseTable.ajax.reload(null, false);
                     } else {
                         Swal.fire('Error', json.message, 'error');
                     }
@@ -1217,13 +1013,144 @@
         ['btnCloseEditModal', 'btnCancelEdit'].forEach(id =>
             document.getElementById(id)?.addEventListener('click', () => confirmCloseForm('editModal', 'editForm')));
 
-        // ---- INIT ----
+        // ---- DATATABLE INIT ----
 
         $(document).ready(function() {
-            $('.select2').select2({
-                width: '100%'
+            $('.select2').select2({ width: '100%' });
+
+            let currentFilter  = '';
+            let currentNopol   = '';
+            let currentDateFrom = '';
+            let currentDateTo   = '';
+
+            window.carExpenseTable = $('#carExpenseTable').DataTable({
+                processing: true,
+                serverSide: true,
+                deferRender: true,
+
+                pageLength: 10,
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'All']
+                ],
+
+                dom: '<"dt-toolbar"l B f>rtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '↓ Excel',
+                        title: 'Car_Expense',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                        exportOptions: { columns: ':visible', modifier: { page: 'current' } }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: '↓ CSV',
+                        title: 'Car_Expense',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                        exportOptions: { columns: ':visible', modifier: { page: 'current' } }
+                    }
+                ],
+
+                responsive: {
+                    details: { type: 'column', target: 0 }
+                },
+
+                columnDefs: [
+                    { targets: 0, width: '28px', className: 'dtr-control', orderable: false },
+                    { targets: 9, orderable: false }
+                ],
+
+                ajax: {
+                    url: CarExpenseRoutes.json,
+                    type: 'GET',
+                    data: function(d) {
+                        d.filter    = currentFilter;
+                        d.nopol     = currentNopol;
+                        d.date_from = currentDateFrom;
+                        d.date_to   = currentDateTo;
+                    }
+                },
+
+                order: [[1, 'desc']],
+
+                columns: [
+                    { data: null, defaultContent: '' },
+                    { data: 'refnbr', defaultContent: '-' },
+                    { data: 'ref_date', defaultContent: '-' },
+                    { data: 'nopol', defaultContent: '-' },
+                    { data: 'driver', defaultContent: '-' },
+                    {
+                        data: 'cost_type_name',
+                        defaultContent: '-',
+                        render: function(data) {
+                            return `<span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">${data ?? '-'}</span>`;
+                        }
+                    },
+                    { data: 'cost_descr', defaultContent: '-' },
+                    { data: 'cost_qty', defaultContent: '0', className: 'text-right' },
+                    {
+                        data: 'cost_amount',
+                        defaultContent: '0',
+                        className: 'text-right font-medium',
+                        render: function(data) {
+                            return 'Rp ' + Number(data).toLocaleString('id-ID');
+                        }
+                    },
+                    {
+                        data: 'eid',
+                        className: 'text-center',
+                        render: function(data) {
+                            return `<button type="button" onclick="openDetail('${data}')"
+                                class="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]">
+                                <i class="fa-solid fa-eye mr-1 text-[10px]"></i> View
+                            </button>`;
+                        }
+                    }
+                ],
+
+                searchDelay: 400,
             });
-            fetchTable();
+
+            // Cost type filter cards
+            $('.status-filter').on('click', function(e) {
+                e.preventDefault();
+                currentFilter = $(this).data('filter') ?? '';
+                window.carExpenseTable.ajax.reload(null, true);
+            });
+
+            document.querySelectorAll('.status-filter').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Nopol & date range filters
+            document.getElementById('filterNopol').addEventListener('change', function() {
+                currentNopol = this.value;
+                window.carExpenseTable.ajax.reload(null, true);
+            });
+
+            document.getElementById('filterDateFrom').addEventListener('change', function() {
+                currentDateFrom = this.value;
+                window.carExpenseTable.ajax.reload(null, true);
+            });
+
+            document.getElementById('filterDateTo').addEventListener('change', function() {
+                currentDateTo = this.value;
+                window.carExpenseTable.ajax.reload(null, true);
+            });
+
+            document.getElementById('btnResetFilters').addEventListener('click', function() {
+                document.getElementById('filterNopol').value = '';
+                document.getElementById('filterDateFrom').value = '';
+                document.getElementById('filterDateTo').value = '';
+                currentNopol   = '';
+                currentDateFrom = '';
+                currentDateTo   = '';
+                window.carExpenseTable.ajax.reload(null, true);
+            });
         });
     </script>
 

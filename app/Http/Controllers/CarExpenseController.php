@@ -61,12 +61,21 @@ class CarExpenseController extends Controller
             ->orderBy('category_name')
             ->get(['id', 'categoryid', 'category_name']);
 
+        $countAll = TrCarExpense::whereNull('deleted_at')->count();
+
+        $countByType = TrCarExpense::whereNull('deleted_at')
+            ->selectRaw('cost_type, count(*) as total')
+            ->groupBy('cost_type')
+            ->pluck('total', 'cost_type');
+
         return view(
             'pages.carexpense.carexpense',
             compact(
                 'kendaraan',
                 'drivers',
-                'costTypes'
+                'costTypes',
+                'countAll',
+                'countByType'
             )
         );
     }
@@ -79,15 +88,23 @@ class CarExpenseController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $perPage = 10;
-        $page = max(1, (int) $request->input('page', 1));
-        $offset = ($page - 1) * $perPage;
+        $draw   = (int) $request->input('draw', 1);
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        $search = trim((string) $request->input('search.value', ''));
 
-        $search    = trim((string) $request->input('search', ''));
-        $filter    = trim((string) $request->input('filter', ''));
-        $nopol     = trim((string) $request->input('nopol', ''));
-        $dateFrom  = trim((string) $request->input('date_from', ''));
-        $dateTo    = trim((string) $request->input('date_to', ''));
+        $filter   = trim((string) $request->input('filter', ''));
+        $nopol    = trim((string) $request->input('nopol', ''));
+        $dateFrom = trim((string) $request->input('date_from', ''));
+        $dateTo   = trim((string) $request->input('date_to', ''));
+
+        $orderableColumns = ['', 'refnbr', 'ref_date', 'nopol', 'driver', 'cost_type', 'cost_descr', 'cost_qty', 'cost_amount', ''];
+        $orderColIndex    = (int) $request->input('order.0.column', 1);
+        $orderDir         = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+        $orderColumn      = $orderableColumns[$orderColIndex] ?? 'refnbr';
+        if ($orderColumn === '') {
+            $orderColumn = 'refnbr';
+        }
 
         $base = TrCarExpense::query()->whereNull('deleted_at');
 
@@ -107,6 +124,8 @@ class CarExpenseController extends Controller
             $base->whereDate('ref_date', '<=', $dateTo);
         }
 
+        $recordsTotal = (clone $base)->count();
+
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
                 $q->where('refnbr', 'ilike', "%{$search}%")
@@ -116,13 +135,15 @@ class CarExpenseController extends Controller
             });
         }
 
-        $total = (clone $base)->count();
+        $recordsFiltered = (clone $base)->count();
 
-        $data = $base
-            ->orderBy('refnbr', 'desc')
-            ->skip($offset)
-            ->take($perPage)
-            ->get();
+        $query = $base->orderBy($orderColumn, $orderDir)->skip($start);
+
+        if ($length !== -1) {
+            $query->take($length);
+        }
+
+        $data = $query->get();
 
         $costTypeMap = MsCategory::query()
             ->where('groups', 'CAR COST')
@@ -138,9 +159,10 @@ class CarExpenseController extends Controller
         });
 
         return response()->json([
-            'data' => $data,
-            'total' => $total,
-            'page' => $page,
+            'draw'            => $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
         ]);
     }
 

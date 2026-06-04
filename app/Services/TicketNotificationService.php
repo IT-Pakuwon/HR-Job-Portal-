@@ -391,6 +391,70 @@ class TicketNotificationService
         $this->whatsapp = $whatsapp;
     }
 
+    public function ticketCommented(
+        TrTicket $ticket,
+        string $commenterUsername,
+        string $message
+    ): void {
+        $emails = collect();
+
+        $requester = User::query()
+            ->where('username', $ticket->user_peminta)
+            ->first();
+
+        $requesterEmail = $this->getUserEmail($requester);
+        if ($requesterEmail) {
+            $emails->push($requesterEmail);
+        }
+
+        if ($ticket->pic_ticket) {
+            $pic = User::query()
+                ->where('username', $ticket->pic_ticket)
+                ->first();
+
+            $picEmail = $this->getUserEmail($pic);
+            if ($picEmail) {
+                $emails->push($picEmail);
+            }
+        }
+
+        $commenter = User::query()
+            ->where('username', $commenterUsername)
+            ->first();
+
+        $commenterEmail = $commenter
+            ? $this->getUserEmail($commenter)
+            : null;
+
+        $commenterName = $commenter?->name ?? $commenterUsername;
+
+        $emails = $emails
+            ->filter()
+            ->unique()
+            ->reject(fn($email) => $email === $commenterEmail)
+            ->values();
+
+        foreach ($emails as $email) {
+            try {
+                Mail::to($email)->send(
+                    new \App\Mail\CommentNotificationMail(
+                        'TIC',
+                        $ticket->ticketid,
+                        $commenterName,
+                        $message,
+                        'TICKET'
+                    )
+                );
+            } catch (\Throwable $e) {
+                Log::error('Ticket Comment Mail Failed', [
+                    'ticketid' => $ticket->ticketid,
+                    'email'    => $email,
+                    'error'    => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
     public function ticketEnvision(
         TrTicket $ticket,
         string $responseSummary,
