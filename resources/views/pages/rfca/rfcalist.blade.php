@@ -125,15 +125,17 @@
 
             function headerFor(sc) {
                 return `
-                <th></th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Rfca ID</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Rfca Date</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
-                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Rfca Status</th>
-                        `;
+                    <th></th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca ID</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca Date</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">PO Nbr</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">CS ID</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Vendor</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca Status</th>
+                `;
             }
 
 
@@ -152,16 +154,45 @@
                     },
                     {
                         data: 'ponbr',
-                        className: 'text-left'
+                        className: 'text-left',
+                        // render: (_v, _t, row) => renderPoLink(row)
                     },
                     {
                         data: 'sppbjktid',
+                        className: 'text-left',
+                        // render: (_v, _t, row) => renderSppbLink(row)
+                    },
+                    {
+                        data: 'csid',
                         className: 'text-left'
                     },
                     {
                         data: 'cpny_id',
                         className: 'text-left'
                     },
+                    {
+                        data: 'vendorname',
+                        className: 'text-left'
+                    },
+                    // {
+                    //     data: 'vendorname',
+                    //     className: 'text-left',
+                    //     render: (_v, _t, row) => {
+                    //         const vendorName = row.vendorname ?? '-';
+                    //         const vendorId = row.vendorid ?? '';
+
+                    //         if (vendorId) {
+                    //             return `
+                    //                 <div class="min-w-[180px]">
+                    //                     <div class="font-semibold text-gray-800 dark:text-gray-100">${vendorName}</div>
+                    //                     <div class="text-xs text-gray-500 dark:text-gray-400">${vendorId}</div>
+                    //                 </div>
+                    //             `;
+                    //         }
+
+                    //         return vendorName;
+                    //     }
+                    // },
                     {
                         data: 'created_by'
                     },
@@ -184,8 +215,8 @@
 
             function orderFor(sc) {
                 return [
-                    [1, 'desc'], // rfcadate
-                    [0, 'desc'], // rfcaid
+                    [2, 'desc'], // rfcadate
+                    [1, 'desc'], // rfcaid
                 ];
             }
 

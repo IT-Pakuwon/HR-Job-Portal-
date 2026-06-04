@@ -28,7 +28,7 @@
     <div class="max-w-9xl mx-auto p-2">
         <div class="mb-4 flex items-center justify-end">          
 
-            @if (!empty($canSubmit) && $canSubmit)
+            {{-- @if (!empty($canSubmit) && $canSubmit)
                 <div class="flex gap-3">
                     <button type="button"
                         id="btnMatchingRfca"
@@ -44,6 +44,29 @@
                         </svg>
                         Submit
                     </button>
+                </div>
+            @endif --}}
+            @if ((!empty($canShowMatchingRfca) && $canShowMatchingRfca) || (!empty($canShowSubmit) && $canShowSubmit))
+                <div class="flex gap-3">
+                    @if (!empty($canShowMatchingRfca) && $canShowMatchingRfca)
+                        <button type="button"
+                            id="btnMatchingRfca"
+                            class="inline-flex items-center gap-1 rounded-md bg-purple-100 px-3 py-2 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-200">
+                            Matching RFCA
+                        </button>
+                    @endif
+
+                    @if (!empty($canShowSubmit) && $canShowSubmit)
+                        <button id="submitBtn"
+                            class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+                            </svg>
+                            Submit
+                        </button>
+                    @endif
                 </div>
             @endif
 
@@ -246,22 +269,13 @@
                                     'icon' => 'tag',
                                     'label' => 'RFCA Type',
                                     'value' => $rfca->rfca_type !== null ? e($rfca->rfca_type) : '-',
-                                ],
-                                [
-                                    'icon' => 'tag',
-                                    'label' => 'Status RFCA',
-                                    'value' => $rfca->status_rfca !== null ? e($rfca->status_rfca) : '-',
-                                ],
+                                ],                               
                                 [
                                     'icon' => 'user-circle',
-                                    'label' => 'Created By',
+                                    'label' => 'Purchaser',
                                     'value' => e($rfca->created_by),
                                 ],
-                                [
-                                    'icon' => 'user-circle',
-                                    'label' => 'Updated By',
-                                    'value' => e($rfca->updated_by),
-                                ],
+                               
                             ];
                         @endphp
 
@@ -647,9 +661,7 @@
                                             <th class="px-3 py-2 text-left">Department</th>
                                             <th class="px-3 py-2 text-left">Vendor</th>
                                             <th class="px-3 py-2 text-right">PO Amount</th>
-                                            <th class="px-3 py-2 text-right">RFCA Amount</th>
-                                            <th class="px-3 py-2 text-center">RFCA Status</th>
-                                            <th class="px-3 py-2 text-center">PO Status</th>
+                                            <th class="px-3 py-2 text-right">RFCA Amount</th>                                           
                                         </tr>
                                     </thead>
 
@@ -1137,7 +1149,11 @@
                     url: "{{ route('po.matching-rfca.list') }}",
                     type: "GET",
                     data: {
-                        search: search
+                        search: search,
+                        ponbr: @json($rfca->ponbr),
+                        cpny_id: @json($rfca->cpny_id),
+                        csid: @json($rfca->csid),
+                        sppbjktid: @json($rfca->sppbjktid)
                     },
                     success: function (res) {
                         if (!res.success || !res.data || res.data.length === 0) {
@@ -1176,16 +1192,7 @@
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.po_amount)}</td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.rfca_amount)}</td>
-                                    <td class="whitespace-nowrap px-3 py-2 text-center">
-                                        <span class="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-700">
-                                            ${row.status ?? '-'}
-                                        </span>
-                                    </td>
-                                    <td class="whitespace-nowrap px-3 py-2 text-center">
-                                        <span class="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700">
-                                            ${row.po_status ?? '-'}
-                                        </span>
-                                    </td>
+                                    
                                 </tr>
                             `;
                         });

@@ -1822,6 +1822,8 @@ class CanvassController extends Controller
         $keperluan = $request->input('keperluan');
         $bqtype = $request->input('bqtype');
         $budgetPerpost = $request->input('budget_perpost');
+        $prev_ponbr = $request->input('prev_ponbr');
+        // dd($prev_ponbr);
 
         $vendors = json_decode($request->input('vendors', '[]'), true) ?: [];
         $details = json_decode($request->input('details', '[]'), true) ?: [];
@@ -2098,6 +2100,7 @@ class CanvassController extends Controller
             $cs->csnote = $csnote ?: null;
             $cs->assigndate = $assigndate ?: null;
             $cs->prev_csid = $prev_csid ?: null;
+            $cs->prev_ponbr = $prev_ponbr ?: null;
             $cs->rev_csid = $nextRev;
             $cs->woid = $woid ?: ($srcHeader->woid ?? ($prevCS->woid ?? null));
             $cs->spbid = $spbid ?: ($srcHeader->spbid ?? ($prevCS->spbid ?? null));
@@ -8487,6 +8490,128 @@ class CanvassController extends Controller
     public function getLastPriceHistory(Request $request)
     {
         $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $inventoryid = trim((string) $request->query('inventoryid', ''));
+        $csdateRaw = trim((string) $request->query('csdate', ''));
+
+        if ($inventoryid === '') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'inventoryid is required'
+            ], 422);
+        }
+
+        $csDate = null;
+
+        if ($csdateRaw !== '') {
+            try {
+                $csDate = \Carbon\Carbon::parse($csdateRaw)->startOfDay();
+            } catch (\Throwable $e) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Invalid csdate format'
+                ], 422);
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 1) Ambil history dari semua company
+        |--------------------------------------------------------------------------
+        | Tidak ada filter cpny_id di TrPoLastPrice.
+        */
+        $hist = TrPoLastPrice::query()
+            ->select([
+                'ponbr',
+                'podate',
+                'cpny_id',
+                'vendorname',
+                'inventory_descr',
+                'unitcost',
+                'csid',
+                'purchaser',
+            ])
+            ->where('inventoryid', $inventoryid)
+            ->whereNull('deleted_at')
+            ->when($csDate, function ($q) use ($csDate) {
+                $q->whereDate('podate', '<', $csDate->toDateString());
+            })
+            ->orderByDesc('podate')
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2) Mapping TrPO berdasarkan ponbr + cpny_id
+        |--------------------------------------------------------------------------
+        | Karena ponbr kemungkinan sama, yang membedakan adalah cpny_id.
+        */
+        $poKeys = $hist
+            ->filter(fn ($r) => !empty($r->ponbr) && !empty($r->cpny_id))
+            ->map(fn ($r) => [
+                'ponbr'   => $r->ponbr,
+                'cpny_id' => $r->cpny_id,
+            ])
+            ->unique(fn ($r) => $r['ponbr'] . '|' . $r['cpny_id'])
+            ->values();
+
+        $ponbrs = $poKeys->pluck('ponbr')->unique()->values()->all();
+        $cpnyIds = $poKeys->pluck('cpny_id')->unique()->values()->all();
+
+        $poRows = TrPO::query()
+            ->select(['id', 'ponbr', 'cpny_id'])
+            ->whereIn('ponbr', $ponbrs)
+            ->whereIn('cpny_id', $cpnyIds)
+            ->get();
+
+        $poIdByKey = [];
+
+        foreach ($poRows as $po) {
+            $key = trim((string) $po->ponbr) . '|' . trim((string) $po->cpny_id);
+            $poIdByKey[$key] = $po->id;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 3) Bentuk response
+        |--------------------------------------------------------------------------
+        */
+        $rows = $hist->map(function ($r) use ($poIdByKey) {
+            $key = trim((string) $r->ponbr) . '|' . trim((string) $r->cpny_id);
+            $poId = $poIdByKey[$key] ?? null;
+
+            return [
+                'ponbr' => $r->ponbr,
+                'eid' => $poId ? Hashids::encode($poId) : null,
+                'podate' => $r->podate
+                    ? \Carbon\Carbon::parse($r->podate)->format('d/m/Y')
+                    : null,
+                'cpny_id' => $r->cpny_id,
+                'csid' => $r->csid,
+                'vendorname' => $r->vendorname,
+                'inventory_descr' => $r->inventory_descr,
+                'unitcost' => (float) ($r->unitcost ?? 0),
+                'purchaser' => $r->purchaser,
+            ];
+        });
+
+        return response()->json([
+            'ok' => true,
+            'data' => $rows,
+        ]);
+    }
+
+    public function getLastPriceHistory_zzz(Request $request)
+    {
+        $user = Auth::user();
         if (!$user) {
             return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
         }
@@ -8555,60 +8680,7 @@ class CanvassController extends Controller
         ]);
     }
 
-    public function getLastPriceHistory_xxx(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        $inventoryid = $request->query('inventoryid');
-        $csdate = $request->query('csdate');
-        if (!$inventoryid) {
-            return response()->json(['ok' => false, 'message' => 'inventoryid is required'], 422);
-        }
-
-        // 1) Ambil history (dari TrPoLastPrice)
-        $hist = TrPoLastPrice::query()
-            ->select(['ponbr', 'podate', 'vendorname', 'inventory_descr', 'unitcost', 'csid', 'purchaser'])
-            ->where('podate', '<', $csdate)
-            ->where('inventoryid', $inventoryid)
-            ->whereNull('deleted_at')
-            ->orderByDesc('podate')
-            ->orderByDesc('created_at')
-            ->limit(100)
-            ->get();
-
-        // 2) Ambil mapping PO ID dari TrPo berdasarkan ponbr
-        $ponbrs = $hist->pluck('ponbr')->filter()->unique()->values()->all();
-
-        // sesuaikan model TrPO kamu (nama class bisa TrPO / TrPo)
-        $poIdByPonbr = TrPO::query()
-            ->select(['id', 'ponbr'])
-            ->whereIn('ponbr', $ponbrs)
-            ->pluck('id', 'ponbr'); // [ponbr => id]
-
-        // 3) Bentuk response
-        $rows = $hist->map(function ($r) use ($poIdByPonbr) {
-            $poId = $poIdByPonbr[$r->ponbr] ?? null;
-
-            return [
-                'ponbr' => $r->ponbr,
-                'eid' => $poId ? Hashids::encode($poId) : null, // ✅ dari TrPo.id
-                'podate' => $r->podate ? \Carbon\Carbon::parse($r->podate)->format('d/m/Y') : null,
-                'csid' => $r->csid,
-                'vendorname' => $r->vendorname,
-                'inventory_descr' => $r->inventory_descr,
-                'unitcost' => (float) ($r->unitcost ?? 0),
-                'purchaser' => $r->purchaser,
-            ];
-        });
-
-        return response()->json([
-            'ok' => true,
-            'data' => $rows,
-        ]);
-    }
+   
 
     public function getLastPriceHistoryEntry(Request $request)
     {

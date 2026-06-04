@@ -661,12 +661,13 @@
                                                         </td>
 
                                                         <td class="w-32 px-3 py-2 align-top">
-                                                            {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
+                                                            {{ number_format((float) ($row->inventory_last_price ?? 0), 2, ',', '.') }}                                                        
                                                             <button type="button"
                                                                 class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                                                                 title="View Last Price History"
                                                                 data-inventoryid="{{ $row->inventoryid }}"
                                                                 data-inventorydescr="{{ $row->inventory_descr ?? '' }}"
+                                                                data-cpnyid="{{ $cs->cpny_id ?? $srcHeader->cpny_id ?? '' }}"
                                                                 data-csdate="{{ optional($cs)->csdate ? \Carbon\Carbon::parse($cs->csdate)->format('Y-m-d') : '' }}">
                                                                 🔍
                                                             </button>
@@ -761,7 +762,7 @@
                 <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50  "></div>
 
                 <div
-                    class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                    class="absolute left-1/2 top-1/2 w-[96vw] max-w-7xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
                     <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
                         <div class="flex flex-col">
                             <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
@@ -783,6 +784,7 @@
                                     <tr>
                                         <th class="px-3 py-2 text-left font-semibold">PO Nbr</th>
                                         <th class="px-3 py-2 text-left font-semibold">PO Date</th>
+                                        <th class="px-3 py-2 text-left font-semibold">Company</th>
                                         <th class="px-3 py-2 text-left font-semibold">CS ID</th>
                                         <th class="px-3 py-2 text-left font-semibold">Vendor</th>
                                         <th class="px-3 py-2 text-right font-semibold">Unit Cost</th>
@@ -1613,6 +1615,7 @@
         $(document).on('click', '.btn-lastprice', function() {
             const inventoryid = String($(this).data('inventoryid') || '');
             const inventorydescr = String($(this).data('inventorydescr') || '');
+            const cpnyid = String($(this).data('cpnyid') || '');
             const csdate = String($(this).data('csdate') || '');
 
             if (!inventoryid) {
@@ -1632,6 +1635,7 @@
                 method: "GET",
                 data: {
                     inventoryid: inventoryid,
+                    cpny_id: cpnyid,
                     csdate: csdate
                 },
                 success: function(res) {
@@ -1650,14 +1654,15 @@
                                 <td class="px-3 py-2">
                                     ${r.eid
                                         ? `<a href="/showpo/${r.eid}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                target="_blank"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="text-indigo-600 hover:underline font-semibold">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ${r.ponbr ?? ''}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </a>`
+                                            target="_blank"
+                                            class="font-semibold text-indigo-600 hover:underline">
+                                            ${r.ponbr ?? ''}
+                                        </a>`
                                         : (r.ponbr ?? '')
                                     }
                                 </td>
                                 <td class="px-3 py-2">${r.podate ?? ''}</td>
+                                <td class="px-3 py-2">${r.cpny_id ?? ''}</td>
                                 <td class="px-3 py-2">${r.csid ?? ''}</td>
                                 <td class="px-3 py-2">${r.vendorname ?? ''}</td>
                                 <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>

@@ -1295,7 +1295,7 @@
                 // ==============================
                 let hasAttachment = false;
 
-                if (!validateItrForComputerItem()) return;
+                // if (!validateItrForComputerItem()) return;
 
                 $('#attachmentsContainer input[type="file"]').each(function() {
                     if (this.files && this.files.length > 0) {

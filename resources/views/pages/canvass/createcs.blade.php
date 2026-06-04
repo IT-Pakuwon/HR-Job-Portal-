@@ -20,6 +20,7 @@
                         value="{{ $user_peminta ?? ($header->created_by ?? '') }}">
                     <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
                     <input type="hidden" name="prev_csid" value="{{ $prev_csid ?? ($poHeader->csid ?? '') }}">
+                    <input type="hidden" name="prev_ponbr" value="{{ $docno ?? ($poHeader->ponbr ?? '') }}">
 
                     <div
                         class="flex w-full flex-col gap-4 rounded-2xl bg-white px-8 py-6 text-xs shadow-sm dark:bg-gray-900">

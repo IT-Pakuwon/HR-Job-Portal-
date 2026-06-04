@@ -102,17 +102,6 @@
                                 <span class="{{ $valueClass }}">{{ $paymentPct }}%</span>
                             </div>
 
-
-                            {{-- <div>
-                                <span class="{{ $labelClass }}">Progress %:</span>
-                                <span class="{{ $valueClass }}">{{ $term->progress_pct }}%</span>
-                            </div>
-
-                            <div>
-                                <span class="{{ $labelClass }}">Payment %:</span>
-                                <span class="{{ $valueClass }}">{{ $term->payment_pct }}%</span>
-                            </div> --}}
-
                         </div>
 
                         <!-- Divider -->
@@ -500,73 +489,6 @@
         });
     </script>
 
-    {{-- <script>
-        $(function() {
-            // ganti sesuai kebutuhanmu; sesuai snippet awalmu menggunakan $bq->bqid
-            const listUrl = @json(route('attachments.list', ['doctype' => 'BQ', 'refnbr' => $term->bqid]));
-
-            const $grid = $('#bqAttachmentGrid');
-
-            function cardTpl(at) {
-                const name = at.name || at.display_name || '(no name)';
-                const by = at.created_user ?? at.created_by ?? '-';
-                const dateStr = at.created_at ? dayjs(at.created_at).format("DD MMM 'YY") : '-';
-                const ext = (at.extention || '').toLowerCase();
-                const href = at.url || '#';
-                const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'avif'].includes(ext);
-
-                const thumb = isImg && at.url ?
-                    `<img src="${href}" alt="${name}" class="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" referrerpolicy="no-referrer">` :
-                    `<div class="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-gray-700">
-                        <span class="text-lg">${ ext === 'pdf' ? '📕' : '📄' }</span>
-                    </div>`;
-
-                return `
-                    <div class="group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white transition hover:border-gray-500 dark:border-gray-700 dark:bg-gray-800 min-w-[120px]">
-                        <a ${at.url ? `href="${href}" target="_blank"` : ''} class="relative block aspect-square overflow-hidden">
-                            ${thumb}
-                            <div class="absolute inset-0 bg-black/0 transition group-hover:bg-black/20"></div>
-                        </a>
-                        <div class="px-2 py-2">
-                            <div class="truncate  text-sm  font-medium text-gray-900 dark:text-gray-100" title="${name}">
-                                ${name}${ext ? `<span class="text-gray-400">.${ext}</span>` : ''}
-                            </div>
-                            <div class="mt-0.5 space-y-0.5">
-                                <div class="truncate text-[11px] text-gray-500 dark:text-gray-400" title="${by}">${by}</div>
-                                <div class="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">${dateStr}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function renderGrid(rows) {
-                $grid.empty();
-                if (!rows || !rows.length) {
-                    $grid.append(`
-                        <p class="col-span-full py-6 text-center italic text-gray-500 dark:text-gray-400">
-                            No attachments found.
-                        </p>
-                    `);
-                    return;
-                }
-                rows.forEach(at => $grid.append(cardTpl(at)));
-            }
-
-            function refresh() {
-                $.get(listUrl)
-                    .done(res => {
-                        if (res.success) renderGrid(res.attachments);
-                        else toastr.error(res.message || 'Failed to load attachments.');
-                    })
-                    .fail(() => toastr.error('Failed to load attachments.'));
-            }
-
-            // initial load
-            refresh();
-        });
-    </script> --}}
-
     <script>
         (function() {
             const grid = document.getElementById('attachmentsGrid');
@@ -734,9 +656,7 @@
             });
 
         });
-    </script>
-    
-
+    </script>  
 
 
     {{-- Toastr CDN --}}

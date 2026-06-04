@@ -21,6 +21,7 @@ use Illuminate\Support\Str;
 use App\Models\TrApproval;
 use App\Models\MsCompany;
 use App\Models\TrCalr;
+use App\Models\vMatchingRfca;
 
 class RfcaListController extends Controller
 {
@@ -190,11 +191,15 @@ class RfcaListController extends Controller
 
         $orderColumns = [
             0 => 'tr_rfca.rfcaid',
-            1 => 'tr_rfca.rfcadate',
-            2 => 'tr_rfca.ponbr',
-            3 => 'tr_rfca.sppbjktid',
-            4 => 'tr_rfca.cpny_id',
-            5 => 'tr_rfca.created_by',
+            1 => 'tr_rfca.rfcaid',
+            2 => 'tr_rfca.rfcadate',
+            3 => 'tr_rfca.ponbr',
+            4 => 'tr_rfca.sppbjktid',
+            5 => 'tr_rfca.csid',
+            6 => 'tr_rfca.cpny_id',
+            7 => 'tr_rfca.vendorname',
+            8 => 'tr_rfca.created_by',
+            9 => 'step.rfca_step_id',
         ];
 
         if ($search !== '') {
@@ -202,7 +207,10 @@ class RfcaListController extends Controller
                 $q->where('tr_rfca.rfcaid', 'ilike', "%{$search}%")
                     ->orWhere('tr_rfca.ponbr', 'ilike', "%{$search}%")
                     ->orWhere('tr_rfca.sppbjktid', 'ilike', "%{$search}%")
+                    ->orWhere('tr_rfca.csid', 'ilike', "%{$search}%")
                     ->orWhere('tr_rfca.cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('tr_rfca.vendorid', 'ilike', "%{$search}%")
+                    ->orWhere('tr_rfca.vendorname', 'ilike', "%{$search}%")
                     ->orWhere('tr_rfca.created_by', 'ilike', "%{$search}%")
                     ->orWhereRaw("TO_CHAR(tr_rfca.rfcadate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
             });
@@ -216,22 +224,26 @@ class RfcaListController extends Controller
         $orderCol = $orderColumns[$orderIdx] ?? 'tr_rfca.rfcadate';
 
         $rows = $base->select([
-                    'tr_rfca.id',
-                    'tr_rfca.rfcaid',
-                    'tr_rfca.rfcadate',
-                    'tr_rfca.ponbr',
-                    'tr_rfca.sppbjktid',
-                    'tr_rfca.cpny_id',
-                    'tr_rfca.created_by',
-                    'tr_rfca.status',
-                    'tr_rfca.rfca_type',
-                    'step.rfca_step_id as current_step_id',
-                    'step.progress_approval',
-                ])
-                ->orderBy($orderCol, $orderDir)
-                ->orderBy('tr_rfca.rfcaid', 'desc')
-                ->skip($start)->take($length)
-                ->get();
+            'tr_rfca.id',
+            'tr_rfca.rfcaid',
+            'tr_rfca.rfcadate',
+            'tr_rfca.ponbr',
+            'tr_rfca.sppbjktid',
+            'tr_rfca.csid',
+            'tr_rfca.cpny_id',
+            'tr_rfca.vendorid',
+            'tr_rfca.vendorname',
+            'tr_rfca.created_by',
+            'tr_rfca.status',
+            'tr_rfca.rfca_type',
+            'step.rfca_step_id as current_step_id',
+            'step.progress_approval',
+        ])
+        ->orderBy($orderCol, $orderDir)
+        ->orderBy('tr_rfca.rfcaid', 'desc')
+        ->skip($start)
+        ->take($length)
+        ->get();
 
         // map PO id untuk link, dll… (bagian bawah tetap sama seperti punya kamu)
         // ...
@@ -483,6 +495,21 @@ class RfcaListController extends Controller
         $hasSteps = $rfcaSteps->isNotEmpty();
         $canSubmit = ($rfca->created_by === $loginUsername) && !$hasSteps;
 
+        $hasMatchingRfca = false;
+
+        if ($canSubmit) {
+            $hasMatchingRfca = vMatchingRfca::query()
+                ->where('ponbr', $ponbr)
+                ->where('cpny_id', $cpnyId)
+                ->where('csid', $csid)
+                ->where('sppbjktid', $sppbjktid)
+                ->where('prev_status', 'P')
+                ->exists();
+        }
+
+        $canShowMatchingRfca = $canSubmit && $hasMatchingRfca;
+        $canShowSubmit = $canSubmit && !$hasMatchingRfca;
+
         $loginDept = $user->department_id ?? '';
         $loginDepartments = array_map('trim', explode(',', $loginDept));
 
@@ -503,6 +530,9 @@ class RfcaListController extends Controller
             'rfcaSteps'          => $rfcaSteps,
             'currentStep'        => $currentStep,
             'canSubmit'          => $canSubmit,
+            'hasMatchingRfca'     => $hasMatchingRfca,
+            'canShowMatchingRfca' => $canShowMatchingRfca,
+            'canShowSubmit'       => $canShowSubmit,
             'canProcessStepDept' => $canProcessStepDept,
             'docPrefix'          => $prefix,
         ]);
@@ -744,23 +774,25 @@ class RfcaListController extends Controller
         $company = MsCompany::where('cpny_id', $rfca->cpny_id)->first();
 
         // Mapping status dokumen
-        switch ($rfca->status_rfca) {
-            case 'R':
-                $status_doc = 'Rejected';
-                break;
-            case 'C':
-                $status_doc = 'Completed';
-                break;
-            case 'D':
-                $status_doc = 'Hold';
-                break;
-            case 'X':
-                $status_doc = 'Cancel';
-                break;
-            default:
-                $status_doc = 'On Progress';
-                break;
-        }
+        // switch ($rfca->status_rfca) {
+        //     case 'R':
+        //         $status_doc = 'Rejected';
+        //         break;
+        //     case 'C':
+        //         $status_doc = 'Completed';
+        //         break;
+        //     case 'D':
+        //         $status_doc = 'Hold';
+        //         break;
+        //     case 'X':
+        //         $status_doc = 'Cancel';
+        //         break;
+        //     default:
+        //         $status_doc = 'On Progress';
+        //         break;
+        // }
+
+        $status_doc = 'Completed';
 
         if ($rfca->rfca_type === 'RFP') {
             $doctype ='RFCA - RFP';
@@ -844,6 +876,85 @@ class RfcaListController extends Controller
     }
 
     public function getMatchingRfcaList(Request $request)
+    {
+        // dd($request->all());
+        $search   = trim((string) $request->get('search', ''));
+        $ponbr    = trim((string) $request->get('ponbr', ''));
+        $cpnyId   = trim((string) $request->get('cpny_id', ''));
+        $csid     = trim((string) $request->get('csid', ''));
+        $sppbjktid = trim((string) $request->get('sppbjktid', ''));
+
+        $query = vMatchingRfca::query()
+            ->select([
+                // current document
+                'ponbr',
+                'cpny_id',
+                'csid',
+                'sppbjktid',
+
+                // previous RFCA data, alias supaya response tetap cocok dengan view lama
+                'prev_id as id',
+                'prev_rfcaid as rfcaid',
+                'prev_rfcadate as rfcadate',
+                'prev_ponbr as prev_ponbr',
+                'prev_cpnyid as prev_cpnyid',
+                'prev_department_id as department_id',
+                'prev_vendorid as vendorid',
+                'prev_vendorname as vendorname',
+                'prev_po_amount as po_amount',
+                'prev_rfca_amount as rfca_amount',
+                'prev_payment_pct as payment_pct',
+                'prev_status as status',
+                \DB::raw("'D' as po_status"),
+            ])
+            ->where('prev_status', 'P');
+
+        // filter berdasarkan dokumen saat ini
+        if ($ponbr !== '') {
+            $query->where('ponbr', $ponbr);
+        }
+
+        if ($cpnyId !== '') {
+            $query->where('cpny_id', $cpnyId);
+        }
+
+        if ($csid !== '') {
+            $query->where('csid', $csid);
+        }
+
+        if ($sppbjktid !== '') {
+            $query->where('sppbjktid', $sppbjktid);
+        }
+
+        // search global
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('prev_rfcaid', 'ILIKE', "%{$search}%")
+                    ->orWhere('prev_ponbr', 'ILIKE', "%{$search}%")
+                    ->orWhere('prev_cpnyid', 'ILIKE', "%{$search}%")
+                    ->orWhere('prev_vendorid', 'ILIKE', "%{$search}%")
+                    ->orWhere('prev_vendorname', 'ILIKE', "%{$search}%")
+                    ->orWhere('prev_department_id', 'ILIKE', "%{$search}%")
+                    ->orWhere('ponbr', 'ILIKE', "%{$search}%")
+                    ->orWhere('cpny_id', 'ILIKE', "%{$search}%")
+                    ->orWhere('csid', 'ILIKE', "%{$search}%")
+                    ->orWhere('sppbjktid', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        $rows = $query
+            ->orderByDesc('prev_rfcadate')
+            ->orderByDesc('prev_id')
+            ->limit(100)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $rows,
+        ]);
+    }
+
+    public function getMatchingRfcaList_xxx(Request $request)
     {
         $search = trim($request->get('search', ''));
 
