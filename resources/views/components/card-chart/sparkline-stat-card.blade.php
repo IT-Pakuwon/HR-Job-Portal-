@@ -10,6 +10,7 @@
     'height'      => 70,
     'series'      => [],
     'icon'        => null,
+    'waves'       => 1,
 ])
 
 @php
@@ -25,7 +26,7 @@
     $c = $hex[$color] ?? $hex['violet'];
     $trendPos = $trend && $trendUp;
     $trendNeg = $trend && !$trendUp;
-    $config = ['series' => is_string($series) ? json_decode($series,true) : $series, 'height' => (int)$height, 'color' => $color];
+    $config = ['series' => is_string($series) ? json_decode($series,true) : $series, 'height' => (int)$height, 'color' => $color, 'waves' => (int)$waves];
 @endphp
 
 <div {{ $attributes->merge(['class' => 'relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900']) }}>

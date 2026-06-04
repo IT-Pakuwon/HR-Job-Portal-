@@ -91,15 +91,28 @@
                 </h1>
 
                 <!-- RIGHT -->
-                <div class="flex items-center gap-2">
-                    <label class="text-sm text-gray-600 dark:text-gray-300">
-                        Business Unit:
-                    </label>
-
-                    <select id="filterBusinessUnit"
-                        class="w-full rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Business Unit</option>
-                    </select>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <label class="whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">From:</label>
+                        <input type="date" id="filterDateFrom"
+                            class="rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">To:</label>
+                        <input type="date" id="filterDateTo"
+                            class="rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">Business Unit:</label>
+                        <select id="filterBusinessUnit"
+                            class="rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                            <option value="">All Business Unit</option>
+                        </select>
+                    </div>
+                    <button id="resetFilters" type="button"
+                        class="rounded border border-gray-400 bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                        Reset
+                    </button>
                 </div>
 
             </div>
@@ -205,7 +218,9 @@
                     type: "GET",
                     data: function(d) {
                         d.job_status = jobStatusFilter ?? '';
-                        d.business_unit = $('#filterBusinessUnit').val(); // 🔥 ADD THIS
+                        d.business_unit = $('#filterBusinessUnit').val();
+                        d.date_from = $('#filterDateFrom').val();
+                        d.date_to = $('#filterDateTo').val();
                     }
                 },
                 order: [
@@ -362,6 +377,17 @@
             });
 
             $('#filterBusinessUnit').on('change', function() {
+                table.ajax.reload();
+            });
+
+            $('#filterDateFrom, #filterDateTo').on('change', function() {
+                table.ajax.reload();
+            });
+
+            $('#resetFilters').on('click', function() {
+                $('#filterDateFrom').val('');
+                $('#filterDateTo').val('');
+                $('#filterBusinessUnit').val('');
                 table.ajax.reload();
             });
 

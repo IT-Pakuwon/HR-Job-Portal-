@@ -143,6 +143,7 @@ class ReportWarehouseController extends Controller
                 'h.receiptdate',
                 'h.receiptnbr',
                 'h.receipttype',
+                'h.sppbjktid',
                 'h.created_by',
                 'h.cpny_id',
                 'h.vendorname',
@@ -860,6 +861,8 @@ class ReportWarehouseController extends Controller
                         : '',
 
                 'Receipt No' => $row->receiptnbr,
+
+                'SPPBJKT' => $row->sppbjktid ?? '',
 
                 'Type' => match ($row->receipttype) {
 

@@ -1527,6 +1527,10 @@ Route::middleware(['auth'])->group(function () {
             return view('pages.card-chart.index');
         })->middleware('access:CARDCHAT,VIEW')->name('card-chart.catalog');
 
+        Route::get('/card-chart/drag-dashboard', function () {
+            return view('pages.card-chart.drag-dashboard');
+        })->middleware('access:CARDCHAT,VIEW')->name('card-chart.drag-dashboard');
+
         Route::get('/settings/account', [ProfileController::class, 'show'])->name('profile.showx');
 
         Route::prefix('approval-dashboard')->controller(ApprovalDashboardController::class)->group(function () {

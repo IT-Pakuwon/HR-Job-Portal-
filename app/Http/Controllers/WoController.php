@@ -2090,8 +2090,10 @@ class WoController extends Controller
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
-        $jobStatus = (string) $request->query('job_status', '');
+        $jobStatus    = (string) $request->query('job_status', '');
         $businessUnit = (string) $request->query('business_unit', '');
+        $dateFrom     = $request->query('date_from', '');
+        $dateTo       = $request->query('date_to', '');
 
         $columns = [
             0 => 'wo.woid',
@@ -2138,6 +2140,14 @@ class WoController extends Controller
 
         if ($businessUnit !== '') {
             $base->where('wo.budget_business_unit_id', $businessUnit);
+        }
+
+        if ($dateFrom !== '') {
+            $base->whereDate('wo.wodate', '>=', $dateFrom);
+        }
+
+        if ($dateTo !== '') {
+            $base->whereDate('wo.wodate', '<=', $dateTo);
         }
 
         $recordsTotal = (clone $base)->distinct()->count('wo.woid');

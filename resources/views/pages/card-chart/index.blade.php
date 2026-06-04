@@ -8,9 +8,19 @@
             <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Chart Card Catalog</h1>
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">All reusable chart templates — preview with sample data.</p>
         </div>
-        <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
-            26 Templates
-        </span>
+        <div class="flex items-center gap-3">
+            <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
+                32 Templates
+            </span>
+            <a href="{{ route('card-chart.drag-dashboard') }}"
+               class="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 active:scale-95 dark:bg-violet-500 dark:hover:bg-violet-600">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 20 20">
+                    <path d="M3 5h4M3 10h4M3 15h4M11 5h6M11 10h6M11 15h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M7 3v4M7 13v4M17 3v4M17 13v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
+                </svg>
+                Customize Drag Dashboard
+            </a>
+        </div>
     </div>
 
     {{-- ─── KPI / STAT CARDS ─────────────────────────────────────────────────── --}}
@@ -410,6 +420,7 @@
         <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Sparkline Stat Cards</h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
+            {{-- 1 wave --}}
             <x-card-chart.sparkline-stat-card
                 title="Monthly Revenue"
                 subtitle="Finance"
@@ -420,8 +431,10 @@
                 color="violet"
                 chartId="spark-demo-1"
                 icon="💰"
+                :waves="1"
             />
 
+            {{-- 1 wave --}}
             <x-card-chart.sparkline-stat-card
                 title="Active Users"
                 subtitle="Platform"
@@ -432,8 +445,10 @@
                 color="blue"
                 chartId="spark-demo-2"
                 icon="👥"
+                :waves="1"
             />
 
+            {{-- 2 waves --}}
             <x-card-chart.sparkline-stat-card
                 title="Open Tickets"
                 subtitle="Support"
@@ -444,8 +459,10 @@
                 color="green"
                 chartId="spark-demo-3"
                 icon="🎫"
+                :waves="2"
             />
 
+            {{-- 2 waves --}}
             <x-card-chart.sparkline-stat-card
                 title="Failed Jobs"
                 subtitle="Operations"
@@ -456,6 +473,7 @@
                 color="red"
                 chartId="spark-demo-4"
                 icon="⚠️"
+                :waves="2"
             />
 
         </div>
@@ -737,6 +755,226 @@
                     ['name' => 'Bob',   'data' => [['x' => 'Leave', 'y' => [1751328000000, 1751673600000]]]],
                     ['name' => 'Citra', 'data' => [['x' => 'Leave', 'y' => [1751500800000, 1751760000000]]]],
                     ['name' => 'Doni',  'data' => [['x' => 'Leave', 'y' => [1751155200000, 1751328000000]]]],
+                ]"
+            />
+
+        </div>
+    </section>
+
+    {{-- ─── BUBBLE CHART ───────────────────────────────────────────────────── --}}
+    <section>
+        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Bubble Chart (3-Variable Analysis)</h2>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+            <x-card-chart.bubble-chart
+                title="Property Portfolio Analysis"
+                subtitle="Real Estate · Price vs Yield vs Area"
+                chartId="bubble-demo-1"
+                color="blue"
+                xLabel="Price (M IDR)"
+                yLabel="Gross Yield (%)"
+                :height="300"
+            />
+
+            <x-card-chart.bubble-chart
+                title="Campaign Performance Matrix"
+                subtitle="Marketing · Spend vs Conversion vs Reach"
+                chartId="bubble-demo-2"
+                color="violet"
+                xLabel="Ad Spend (M)"
+                yLabel="Conversion Rate (%)"
+                :series="[
+                    ['name' => 'Instagram', 'data' => [['x'=>12,'y'=>4.5,'z'=>85],['x'=>25,'y'=>5.2,'z'=>140],['x'=>8,'y'=>3.8,'z'=>60]]],
+                    ['name' => 'Google Ads','data' => [['x'=>18,'y'=>6.1,'z'=>110],['x'=>35,'y'=>7.4,'z'=>200],['x'=>10,'y'=>5.5,'z'=>75]]],
+                    ['name' => 'TikTok',    'data' => [['x'=>15,'y'=>8.2,'z'=>95], ['x'=>28,'y'=>9.5,'z'=>160]]],
+                ]"
+                :height="300"
+            />
+
+        </div>
+    </section>
+
+    {{-- ─── RADAR / SPIDER CHART ────────────────────────────────────────────── --}}
+    <section>
+        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Radar / Spider Chart (Multi-Attribute Comparison)</h2>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+            <x-card-chart.radar-chart
+                title="Property Feature Scoring"
+                subtitle="Real Estate · Location Analysis"
+                chartId="radar-demo-1"
+                color="violet"
+                :height="300"
+                :series="[
+                    ['name' => 'Villa Almyra', 'data' => [90, 85, 70, 95, 80, 75]],
+                    ['name' => 'Grand Duta',   'data' => [75, 92, 85, 70, 65, 88]],
+                ]"
+                :categories="['Location','Amenities','ROI','Security','Connectivity','Views']"
+            />
+
+            <x-card-chart.radar-chart
+                title="Marketing Channel Effectiveness"
+                subtitle="Q2 2026 · Channel Performance"
+                chartId="radar-demo-2"
+                color="orange"
+                :height="300"
+                :series="[
+                    ['name' => 'Q1 2026', 'data' => [80, 72, 65, 90, 58, 77]],
+                    ['name' => 'Q2 2026', 'data' => [88, 60, 75, 82, 71, 83]],
+                ]"
+                :categories="['Social Media','Email','SEO','Paid Ads','Events','Referral']"
+            />
+
+        </div>
+    </section>
+
+    {{-- ─── BOX PLOT CHART ─────────────────────────────────────────────────── --}}
+    <section>
+        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Box Plot Chart (Distribution & Price Range)</h2>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+            <x-card-chart.boxplot-chart
+                title="Property Price Distribution"
+                subtitle="Real Estate · By District (M IDR)"
+                chartId="boxplot-demo-1"
+                color="cyan"
+                :height="300"
+            />
+
+            <x-card-chart.boxplot-chart
+                title="Lease Value Distribution"
+                subtitle="Leasing · By Property Type (M/yr)"
+                chartId="boxplot-demo-2"
+                color="green"
+                :height="300"
+                :series="[['data' => [
+                    ['x' => 'Residential', 'y' => [80,  120, 180, 260, 420]],
+                    ['x' => 'Commercial',  'y' => [150, 250, 380, 550, 900]],
+                    ['x' => 'Industrial',  'y' => [200, 350, 500, 750, 1200]],
+                    ['x' => 'Retail',      'y' => [100, 180, 280, 420, 700]],
+                ]]]"
+            />
+
+        </div>
+    </section>
+
+    {{-- ─── CUSTOMER TRAFFIC CHART ──────────────────────────────────────────── --}}
+    <section>
+        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Customer Traffic Chart (Movement & Flow)</h2>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+            <x-card-chart.traffic-chart
+                title="Showroom Foot Traffic"
+                subtitle="Real Estate · Hourly Visitor Count"
+                chartId="traffic-demo-1"
+                color="orange"
+                :height="280"
+            />
+
+            <x-card-chart.traffic-chart
+                title="Event Attendance Flow"
+                subtitle="Event · Arrival Pattern by Hour"
+                chartId="traffic-demo-2"
+                color="violet"
+                :height="280"
+                :categories="['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00']"
+                :series="[38, 72, 95, 148, 220, 180, 110, 95, 130, 160, 85]"
+                :peakThreshold="120"
+            />
+
+        </div>
+    </section>
+
+    {{-- ─── SANKEY / CUSTOMER ZONE MOVEMENT ───────────────────────────────── --}}
+    <section>
+        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Customer Zone Movement — Sankey / Alluvial Flow</h2>
+        <p class="mb-4 -mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Bands show how customers transition between zones (floors, areas) over time.
+            Band width = number of people making that move. Darker bands = cross-zone movement; lighter = staying in the same zone.
+        </p>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+            {{-- Mall: 3 floors, 4 hourly snapshots --}}
+            <x-card-chart.sankey-chart
+                title="Mall Customer Flow"
+                subtitle="Real Estate · Zone Movement by Hour"
+                chartId="sankey-demo-1"
+                color="blue"
+                :height="380"
+            />
+
+            {{-- Event venue: 4 zones, 5 time periods --}}
+            <x-card-chart.sankey-chart
+                title="Event Venue Visitor Flow"
+                subtitle="Event · Zone Distribution Over Time"
+                chartId="sankey-demo-2"
+                color="violet"
+                :height="380"
+                :times="['Open', 'Hour 1', 'Hour 2', 'Hour 3', 'Close']"
+                :zones="['Stage Area', 'Exhibition', 'F&B Zone', 'VIP Lounge']"
+                :counts="[
+                    [200, 250, 300, 220, 80],
+                    [150, 180, 160, 200, 90],
+                    [ 80, 120, 200, 250, 130],
+                    [ 50,  50,  40,  30, 100],
+                ]"
+            />
+
+        </div>
+
+        {{-- Full-width: Leasing/Property — showing tenant movement across zones --}}
+        <div class="mt-4">
+            <x-card-chart.sankey-chart
+                title="Shopping Mall Tenant Zone — Full Day"
+                subtitle="Leasing · Customer Movement Pattern (9 AM – 5 PM)"
+                chartId="sankey-demo-3"
+                color="green"
+                :height="360"
+                :times="['9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM']"
+                :zones="['Ground Floor', 'Lower Ground', 'Upper Floor', 'Food Court']"
+                :counts="[
+                    [180, 150, 120, 160, 200, 170, 140, 130, 100],
+                    [ 60,  90, 110,  70,  40,  55,  80,  70,  50],
+                    [ 30,  50,  80, 100,  90,  70,  60,  80,  60],
+                    [ 30,  60, 100, 170, 170, 105,  70,  70,  90],
+                ]"
+            />
+        </div>
+    </section>
+
+    {{-- ─── EVENT TIMELINE CARD ─────────────────────────────────────────────── --}}
+    <section>
+        <h2 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Event Timeline Card (Milestone Tracker)</h2>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+
+            {{-- Default: property marketing campaign --}}
+            <x-card-chart.timeline-card
+                title="Property Campaign Plan"
+                subtitle="Marketing · Q1 2026"
+                color="violet"
+            />
+
+            <x-card-chart.timeline-card
+                title="Lease Renewal Schedule"
+                subtitle="Leasing · Upcoming Milestones"
+                color="cyan"
+                :items="[
+                    ['date' => '01 Jun', 'label' => 'Pre-Renewal Notice',  'description' => 'Send 90-day renewal reminders to tenants', 'color' => 'cyan',   'done' => true],
+                    ['date' => '15 Jun', 'label' => 'Negotiation Window',  'description' => 'Rate review & new terms discussion',       'color' => 'blue',   'done' => true],
+                    ['date' => '01 Aug', 'label' => 'Contract Signing',    'description' => 'Execute renewal agreements',               'color' => 'green',  'done' => false],
+                    ['date' => '01 Sep', 'label' => 'New Lease Period',    'description' => 'Renewed leases officially take effect',    'color' => 'violet', 'done' => false],
+                ]"
+            />
+
+            <x-card-chart.timeline-card
+                title="Promo Event Roadmap"
+                subtitle="Promotion · Events Calendar"
+                color="orange"
+                :items="[
+                    ['date' => '05 Jun', 'label' => 'Grand Launch',      'description' => 'Project reveal & media briefing',       'color' => 'orange', 'done' => true],
+                    ['date' => '20 Jun', 'label' => 'Referral Program',  'description' => 'Activate agent referral bonuses',       'color' => 'green',  'done' => false],
+                    ['date' => '10 Jul', 'label' => 'Property Expo',     'description' => 'Booth at Jakarta Property Expo 2026',   'color' => 'blue',   'done' => false],
+                    ['date' => '01 Aug', 'label' => 'Final Promo Ends',  'description' => 'Early-bird discount deadline closes',   'color' => 'red',    'done' => false],
                 ]"
             />
 

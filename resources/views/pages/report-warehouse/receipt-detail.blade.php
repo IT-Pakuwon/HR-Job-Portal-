@@ -93,6 +93,7 @@
                     <tr>
                         <th class="px-3 py-3 text-left">Receipt Date</th>
                         <th class="px-3 py-3 text-left">Receipt No</th>
+                        <th class="px-3 py-3 text-left">SPPBJKT</th>
                         <th class="px-3 py-3 text-left">Type</th>
 
                         <th class="px-3 py-3 text-left">Created By</th>
@@ -170,6 +171,10 @@
                 },
                 {
                     data: 'receiptnbr'
+                },
+                {
+                    data: 'sppbjktid',
+                    defaultContent: '-'
                 },
                 {
                     data: 'receipttype'
