@@ -413,60 +413,7 @@ class IMBudgetController extends Controller
                 return $remain;
 
             };
-
-            // // === 3) INSERT DETAIL hasil GROUP & hitung totals
-            // $sumNeeded    = 0.0;
-            // $sumRequested = 0.0;
-
-            // foreach ($groups as $g) {
-
-            //     $expense = (float) $g['sum'];
-            //     $remain  = (float) $getBudgetRemain(
-            //         $g['perpost'],
-            //         $g['cpny'],
-            //         $g['bu'],
-            //         $g['deptfin'],
-            //         $g['account'],
-            //         $g['activity'],
-            //         $g['actdescr']
-            //     );
-
-            //     $remainx = $remain + $expense;
-            //     $needed = max($expense - $remainx, 0.0);
-
-            //     // ✅ kalau kamu hanya mau baris yang kekurangan budget:
-            //     if ($needed <= 0) {
-            //         continue;
-            //     }
-
-            //     $detail = new TrIMBudgetdetail();
-            //     $detail->imbudgetid                  = $docid;
-            //     $detail->csid                        = $csid;
-            //     $detail->sppbjktid                   = $sppbjktid;
-
-            //     $detail->budget_perpost              = $g['perpost'];
-            //     $detail->budget_cpny_id              = $g['cpny'];
-            //     $detail->budget_business_unit_id     = $g['bu'];
-            //     $detail->budget_department_fin_id    = $g['deptfin'];
-            //     $detail->budget_account_id           = $g['account'];
-            //     $detail->budget_activity_id          = $g['activity'];
-            //     $detail->budget_activity_descr       = $g['actdescr'];
-
-            //     $detail->amount_expense              = $expense;
-            //     $detail->budget_remain               = $remainx;
-            //     $detail->budget_needed               = $needed;
-
-            //     // kalau kolom ini masih dipakai
-            //     $detail->budget_requested            = $needed;
-
-            //     $detail->status                      = 'P';
-            //     $detail->created_by                  = $username;
-            //     $detail->save();
-
-            //     $sumRequested += $expense;
-            //     $sumNeeded    += $needed;
-            // }
-
+           
             // === 3) INSERT DETAIL hasil GROUP & hitung totals
             $sumNeeded    = 0.0;
             $sumRequested = 0.0;
@@ -490,7 +437,7 @@ class IMBudgetController extends Controller
                 * expense = nilai CS yang mau dipakai
                 * needed = kekurangan budget
                 */
-                $budgetRemain = $remain;
+                $budgetRemain = $remain + $expense; // asumsi reserve belum masuk hitungan remain, jadi kita tambahkan dulu
                 $needed = max($expense - $budgetRemain, 0.0);
 
                 // Kalau hanya mau insert yang kekurangan budget
@@ -524,6 +471,70 @@ class IMBudgetController extends Controller
                 $sumNeeded    += $needed;
             }
 
+            // foreach ($groups as $g) {
+
+            //     $expense = (float) $g['sum'];
+
+            //     $remain = (float) $getBudgetRemain(
+            //         $g['perpost'],
+            //         $g['cpny'],
+            //         $g['bu'],
+            //         $g['deptfin'],
+            //         $g['account'],
+            //         $g['activity'],
+            //         $g['actdescr']
+            //     );
+
+            //     /*
+            //     |--------------------------------------------------------------------------
+            //     | Hitung kebutuhan IM Budget
+            //     |--------------------------------------------------------------------------
+            //     | Jika budget remain minus, kekurangan = minus budget + expense.
+            //     | Jika budget remain positif, kekurangan = expense - remain.
+            //     */
+            //     $budgetRemain = round($remain, 2);
+            //     $expense = round($expense, 2);
+
+            //     if ($budgetRemain < 0) {
+            //         $needed = abs($budgetRemain) + $expense;
+            //     } else {
+            //         $needed = max($expense - $budgetRemain, 0.0);
+            //     }
+
+            //     $needed = round($needed, 2);
+
+            //     // Kalau tidak ada kekurangan budget, tidak perlu insert detail
+            //     if ($needed <= 0) {
+            //         continue;
+            //     }
+
+            //     $detail = new TrIMBudgetdetail();
+            //     $detail->imbudgetid                  = $docid;
+            //     $detail->csid                        = $csid;
+            //     $detail->sppbjktid                   = $sppbjktid;
+
+            //     $detail->budget_perpost              = $g['perpost'];
+            //     $detail->budget_cpny_id              = $g['cpny'];
+            //     $detail->budget_business_unit_id     = $g['bu'];
+            //     $detail->budget_department_fin_id    = $g['deptfin'];
+            //     $detail->budget_account_id           = $g['account'];
+            //     $detail->budget_activity_id          = $g['activity'];
+            //     $detail->budget_activity_descr       = $g['actdescr'];
+
+            //     $detail->amount_expense              = $expense;
+            //     $detail->budget_remain               = $budgetRemain;
+            //     $detail->budget_needed               = $needed;
+            //     $detail->budget_requested            = $needed;
+
+            //     $detail->status                      = 'P';
+            //     $detail->created_by                  = $username;
+            //     $detail->save();
+
+            //     // karena budget_requested = needed
+            //     $sumRequested += $needed;
+            //     $sumNeeded    += $needed;
+            // }
+
             // kalau semua grup ternyata remain cukup, jangan bikin IMBudget kosong
             if ($sumNeeded <= 0) {
                 DB::rollBack();
@@ -553,81 +564,7 @@ class IMBudgetController extends Controller
             $mailInfo = 'Request IM Budget Department ' . $header->department_id;
 
             $woid  = strtoupper(trim((string)($cs->woid ?? '')));
-            $spbid = strtoupper(trim((string)($cs->spbid ?? '')));
-
-            // if ($woid !== '') {
-
-            //     $wo = TrWO::query()
-            //         ->select('woid','created_by')
-            //         ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
-            //         ->first();
-
-            //     if ($wo && $isFilled($wo->created_by)) {
-            //         $recipientUsernames = [trim((string)$wo->created_by)];
-            //         $mailName = trim((string)$wo->created_by);
-            //         $mailInfo = "Request IM Budget untuk WO {$woid} - Dept {$header->department_id}";
-            //     }
-
-            // } elseif ($spbid !== '') {
-
-            //     $spb = TrSPB::query()
-            //         ->select('spbid','created_by')
-            //         ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
-            //         ->first();
-
-            //     if ($spb && $isFilled($spb->created_by)) {
-            //         $recipientUsernames = [trim((string)$spb->created_by)];
-            //         $mailName = trim((string)$spb->created_by);
-            //         $mailInfo = "Request IM Budget untuk SPB {$spbid} - Dept {$header->department_id}";
-            //     }
-
-            // }
-
-            // if ($woid !== '') {
-
-            //     $wo = TrWO::query()
-            //         ->select('woid', 'created_by','department_id')
-            //         ->whereRaw('UPPER(TRIM(woid)) = ?', [$woid])
-            //         ->first();
-
-            //     if ($wo && $isFilled($wo->created_by)) {
-            //         $woCreatedBy = trim((string) $wo->created_by);
-            //         $woDepartmentId = trim((string) $wo->department_id);
-
-            //         // update user_peminta di header IMBudget
-            //         $header->user_peminta = $woCreatedBy;
-            //         $header->updated_by = $username;
-            //         $header->updated_at = now();
-            //         $header->save();
-
-            //         $recipientUsernames = [$woCreatedBy];
-            //         $mailName = $woCreatedBy;
-            //         $mailInfo = "Request IM Budget untuk WO {$woid} - Dept {$woDepartmentId}";
-            //     }
-
-            // } elseif ($spbid !== '') {
-
-            //     $spb = TrSPB::query()
-            //         ->select('spbid', 'created_by','department_id')
-            //         ->whereRaw('UPPER(TRIM(spbid)) = ?', [$spbid])
-            //         ->first();
-
-            //     if ($spb && $isFilled($spb->created_by)) {
-            //         $spbCreatedBy = trim((string) $spb->created_by);
-            //         $spbDepartmentId = trim((string) $spb->department_id);
-
-            //         // update user_peminta di header IMBudget
-            //         $header->user_peminta = $spbCreatedBy;
-            //         $header->updated_by = $username;
-            //         $header->updated_at = now();
-            //         $header->save();
-
-            //         $recipientUsernames = [$spbCreatedBy];
-            //         $mailName = $spbCreatedBy;
-            //         $mailInfo = "Request IM Budget untuk SPB {$spbid} - Dept {$spbDepartmentId}";
-            //     }
-
-            // }
+            $spbid = strtoupper(trim((string)($cs->spbid ?? '')));           
 
             $wo = null;
             $spb = null;

@@ -95,6 +95,7 @@
                             <col style="width: 420px;">  {{-- Description --}}
                             <col style="width: 100px;">  {{-- Qty --}}
                             <col style="width: 70px;">  {{-- UoM --}}
+                            <col style="width: 60px;">
                             <col style="width: 150px;">  {{-- Estimates --}}
 
                             @foreach ($vendors as $v)
