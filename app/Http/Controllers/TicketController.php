@@ -1810,6 +1810,10 @@ class TicketController extends Controller
         $request->validate([
             'solution_descr' => 'required',
 
+            'working_start_date' => 'nullable|date',
+
+            'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
+
             'attachments.*' => [
                 'nullable',
                 'file',
@@ -1823,7 +1827,7 @@ class TicketController extends Controller
         try {
             $ticket->update([
                 'solution_descr' => $request->solution_descr,
-                'pic_completed_ticket' => auth()->user()->username,
+                'pic_completed_ticket' => $request->working_end_date ?? now(),
                 'completed_by' => auth()->user()->username,
                 'completed_at' => now(),
                 'status' => 'C',
@@ -1839,6 +1843,8 @@ class TicketController extends Controller
                 'response_date' => now(),
                 'response_summary' => 'Ticket Completed',
                 'response_descr' => $request->solution_descr,
+                'working_start_date' => $request->working_start_date,
+                'working_end_date' => $request->working_end_date,
                 'status_pekerjaan' => 'COMPLETED',
                 'status' => 'A',
                 'created_by' => auth()->user()->username,

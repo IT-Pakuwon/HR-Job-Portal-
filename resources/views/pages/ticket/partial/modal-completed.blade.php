@@ -105,6 +105,35 @@
 
                     </div>
 
+                    <!-- Working Schedule -->
+                    <div
+                        class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.03]">
+                        <div class="mb-4 flex items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Estimated Schedule</h3>
+                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Optional estimated start and end.</p>
+                            </div>
+                            <label
+                                class="inline-flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <input type="checkbox" id="complete_use_schedule"
+                                    class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+                                <span>Use Schedule</span>
+                            </label>
+                        </div>
+                        <div id="complete_schedule_container" class="grid hidden grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">Estimated Start Date</div>
+                                <input type="datetime-local" id="complete_working_start_date" name="working_start_date"
+                                    class="form-input">
+                            </div>
+                            <div>
+                                <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">Estimated End Date</div>
+                                <input type="datetime-local" id="complete_working_end_date" name="working_end_date"
+                                    class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
                     <div
                         class="overflow-visible rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.03]">
 

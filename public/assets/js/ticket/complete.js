@@ -19,6 +19,18 @@ function initCompleteTicket() {
     );
 
     $(document)
+        .off('change.complete_schedule', '#complete_use_schedule')
+        .on('change.complete_schedule', '#complete_use_schedule', function () {
+            if ($(this).is(':checked')) {
+                $('#complete_schedule_container').removeClass('hidden');
+            } else {
+                $('#complete_schedule_container').addClass('hidden');
+                $('#complete_working_start_date').val('');
+                $('#complete_working_end_date').val('');
+            }
+        });
+
+    $(document)
 
         .off(
             'change.complete',
@@ -110,6 +122,15 @@ function resetCompleteTicketForm() {
 
     $('#complete_solution_descr')
         .val('');
+
+    $('#complete_use_schedule')
+        .prop('checked', false);
+
+    $('#complete_schedule_container')
+        .addClass('hidden');
+
+    $('#complete_working_start_date').val('');
+    $('#complete_working_end_date').val('');
 
     Ticket.state.completeAttachments = [];
 

@@ -87,6 +87,8 @@ function loadTicketDetail(eid) {
             renderTicketComments(data.comments || []);
 
             renderTicketAttachments(data.attachments || []);
+
+            renderAttachmentTabPanel(data.attachments || []);
         },
 
         error: function (xhr) {
@@ -579,6 +581,70 @@ function renderTicketAttachments(attachments = []) {
             </a>
 
         `);
+    });
+}
+
+function renderAttachmentTabPanel(attachments = []) {
+    const container = $("#ticket_attachment_tab_list");
+
+    container.empty();
+
+    if (!attachments.length) {
+        container.html(`
+            <div class="rounded-lg border border-dashed border-gray-300 px-4 py-5 text-center text-sm text-gray-400 dark:border-gray-700">
+                No attachment available
+            </div>
+        `);
+        return;
+    }
+
+    const imageExts = ["jpg", "jpeg", "png"];
+
+    attachments.forEach(function (file) {
+        const ext = (file.extention || "").toLowerCase();
+        const isImage = imageExts.includes(ext);
+
+        if (isImage) {
+            container.append(`
+                <a href="${file.url}" target="_blank" class="block overflow-hidden rounded-xl border border-gray-200 bg-white transition-all duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                    <img src="${file.url}" alt="${file.display_name || file.name}"
+                        class="w-full object-cover"
+                        style="max-height: 240px;"
+                        onerror="this.closest('a').classList.add('broken-img')">
+                    <div class="flex items-center justify-between gap-2 px-4 py-2.5">
+                        <div class="min-w-0">
+                            <div class="truncate text-sm font-medium text-gray-700 dark:text-gray-200">
+                                ${file.display_name || file.name}
+                            </div>
+                            <div class="mt-0.5 text-xs text-gray-400">
+                                ${ext.toUpperCase()} • ${formatFileSize(file.size || 0)}
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-sm text-gray-400"></i>
+                    </div>
+                </a>
+            `);
+        } else {
+            container.append(`
+                <a href="${file.url}" target="_blank"
+                    class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 transition-all duration-200 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700/50">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+                            <i class="fa-solid fa-file"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="truncate text-sm font-medium text-gray-700 dark:text-gray-200">
+                                ${file.display_name || file.name}
+                            </div>
+                            <div class="mt-1 text-xs text-gray-400">
+                                ${ext.toUpperCase()} • ${formatFileSize(file.size || 0)}
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-gray-400"></i>
+                </a>
+            `);
+        }
     });
 }
 
@@ -1473,6 +1539,10 @@ function bindTicketDetailTabs() {
 
         if (tab === "discussion") {
             $("#ticket_discussion_panel").removeClass("hidden");
+        }
+
+        if (tab === "attachments") {
+            $("#ticket_attachments_panel").removeClass("hidden");
         }
     });
 }

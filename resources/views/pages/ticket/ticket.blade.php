@@ -638,7 +638,7 @@
         </div>
         {{-- CREATE TICKET MODAL --}}
         <div id="createTicketModal" data-form-modal="true"
-            class="ticket-modal fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+            class="ticket-modal fixed inset-0 z-[50] hidden items-center justify-center p-4">
 
             {{-- Backdrop --}}
             <div
@@ -1029,7 +1029,7 @@
         </div>
 
         {{-- DETAIL TICKET MODAL --}}
-        <div id="ticketDetailModal" class="ticket-modal fixed inset-0 z-[9999] hidden p-4">
+        <div id="ticketDetailModal" class="ticket-modal fixed inset-0 z-[50] hidden p-4">
 
             {{-- Backdrop --}}
             <div
@@ -1379,6 +1379,16 @@
 
                                     </button>
 
+                                    <button type="button"
+                                        class="ticket-detail-tab inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200"
+                                        data-tab="attachments">
+
+                                        <i class="fa-solid fa-paperclip text-[12px]"></i>
+
+                                        Attachments
+
+                                    </button>
+
                                 </div>
 
                             </div>
@@ -1476,6 +1486,24 @@
 
                                         </form>
 
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            {{-- Attachments Tab --}}
+                            <div id="ticket_attachments_panel"
+                                class="ticket-tab-content hidden flex-1 overflow-y-auto p-6">
+
+                                <div class="mb-4">
+                                    <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Attachments</h3>
+                                </div>
+
+                                <div id="ticket_attachment_tab_list" class="space-y-4">
+
+                                    <div class="rounded-lg border border-dashed border-gray-300 px-4 py-5 text-center text-sm text-gray-400 dark:border-gray-700">
+                                        No attachment available
                                     </div>
 
                                 </div>
