@@ -30,6 +30,12 @@
 
             </div>
 
+            <div class="mb-4 mt-2">
+                <h2 class="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                    Manual Book
+                </h2>
+            </div>
+
             @php
                 $manualAllowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
             @endphp
@@ -76,19 +82,27 @@
 
                             <div x-data="{ openParent: {{ $isParentActive ? 'true' : 'false' }} }">
 
-                                <button @click="openParent = !openParent"
-                                    class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <span>{{ $parentMenu->menu_name }}</span>
-                                    @if ($visibleChildren->isNotEmpty())
+                                @if ($visibleChildren->isEmpty())
+                                    {{-- Leaf parent: render as a direct link --}}
+                                    <a href="{{ route('manual', [$rootSlug, $parentSlug]) }}"
+                                        class="{{ $isParentActive
+                                            ? 'bg-indigo-500 text-white'
+                                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' }}
+                                        block rounded-md px-3 py-2 text-sm">
+                                        {{ $parentMenu->menu_name }}
+                                    </a>
+                                @else
+                                    {{-- Parent with children: render as collapsible button --}}
+                                    <button @click="openParent = !openParent"
+                                        class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                        <span>{{ $parentMenu->menu_name }}</span>
                                         <svg class="h-3.5 w-3.5 transition-transform text-gray-400" :class="{ 'rotate-180': openParent }"
                                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                         </svg>
-                                    @endif
-                                </button>
+                                    </button>
 
-                                <!-- SUB CHILD -->
-                                @if ($visibleChildren->isNotEmpty())
+                                    <!-- SUB CHILD -->
                                     <div x-show="openParent" x-transition class="mt-1 space-y-1 pl-4">
 
                                         @foreach ($visibleChildren as $childMenu)

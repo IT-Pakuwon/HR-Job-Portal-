@@ -15,9 +15,15 @@
         <x-app.document-notifications />
 
         <a href="{{ route('manual', ['root' => 'faq']) }}"
-            class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-            title="Manual Book">
+            class="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            title="Manual Book"
+            x-data="{ seen: localStorage.getItem('manualBookSeen') === 'true' }"
+            @click="seen = true; localStorage.setItem('manualBookSeen', 'true')">
             <i class="fas fa-book text-lg"></i>
+            <span x-show="!seen" class="absolute right-1 top-1 flex h-2 w-2">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75"></span>
+                <span class="relative inline-flex h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-white dark:ring-gray-800"></span>
+            </span>
         </a>
         <!-- Dark mode toggle -->
         <div class="relative z-[50]">
