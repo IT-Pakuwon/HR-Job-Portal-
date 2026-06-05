@@ -29,6 +29,10 @@ use App\Models\User;
 use App\Models\Userbusinessunit;
 use App\Models\Usercpny;
 use App\Models\Userdept;
+use App\Models\TrItrecommend;
+use App\Models\TrItrecommendDetail;
+use App\Models\TrTicket;
+use App\Models\TrTicketActivity;
 use App\Models\VTrackingSppbFlow;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Http\Request;
@@ -685,6 +689,42 @@ class SppbController extends Controller
                 $uploadResult = null; // tidak ada attachment
             }
 
+            // Auto-attach PDF ITR jika ada
+            if (!empty($header->itrecommendid)) {
+                try {
+                    $this->attachItrPdf(
+                        $header->itrecommendid,
+                        $docid,
+                        $request->input('cpnyid'),
+                        $request->input('departementid'),
+                        $username
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('Auto-attach ITR PDF gagal (store)', [
+                        'itrId' => $header->itrecommendid,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Auto-attach PDF Ticket jika ada
+            if (!empty($header->ticketid)) {
+                try {
+                    $this->attachTicketPdf(
+                        $header->ticketid,
+                        $docid,
+                        $request->input('cpnyid'),
+                        $request->input('departementid'),
+                        $username
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning('Auto-attach Ticket PDF gagal (store)', [
+                        'ticketId' => $header->ticketid,
+                        'error'    => $e->getMessage(),
+                    ]);
+                }
+            }
+
             $eid = Hashids::encode($header->id);
 
             $approvalCtl->notifyFirstApprover(
@@ -892,6 +932,9 @@ class SppbController extends Controller
         };
 
         $header = TrSPPB::findOrFail($id);
+
+        $oldItrId    = $header->itrecommendid;
+        $oldTicketId = $header->ticketid;
 
         // update header
         $header->cpny_id = $request->cpnyid;
@@ -1114,6 +1157,65 @@ class SppbController extends Controller
                         'message' => 'Failed to update PB',
                         'error' => 'Gagal upload attachment: '.$e->getMessage(),
                     ], 500);
+                }
+            }
+
+            // Auto-attach PDF ITR: hapus lama, pasang baru jika ID berubah
+            $newItrId    = $header->itrecommendid;
+            $newTicketId = $header->ticketid;
+
+            if ($newItrId !== $oldItrId) {
+                // Soft-delete attachment ITR lama (jika ada)
+                if (!empty($oldItrId)) {
+                    TrAttachment::where('refnbr', $header->sppbid)
+                        ->where('attachment_name', 'IT-RECOMMENDATION-'.$oldItrId)
+                        ->where('status', 'A')
+                        ->update(['status' => 'X', 'updated_by' => $username]);
+                }
+                // Attach PDF ITR baru
+                if (!empty($newItrId)) {
+                    try {
+                        $this->attachItrPdf(
+                            $newItrId,
+                            $header->sppbid,
+                            $request->cpnyid,
+                            $request->departementid,
+                            $username
+                        );
+                    } catch (\Throwable $e) {
+                        Log::warning('Auto-attach ITR PDF gagal (update)', [
+                            'itrId' => $newItrId,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
+            // Auto-attach PDF Ticket: hapus lama, pasang baru jika ID berubah
+            if ($newTicketId !== $oldTicketId) {
+                // Soft-delete attachment Ticket lama (jika ada)
+                if (!empty($oldTicketId)) {
+                    TrAttachment::where('refnbr', $header->sppbid)
+                        ->where('attachment_name', 'TICKET-'.$oldTicketId)
+                        ->where('status', 'A')
+                        ->update(['status' => 'X', 'updated_by' => $username]);
+                }
+                // Attach PDF Ticket baru
+                if (!empty($newTicketId)) {
+                    try {
+                        $this->attachTicketPdf(
+                            $newTicketId,
+                            $header->sppbid,
+                            $request->cpnyid,
+                            $request->departementid,
+                            $username
+                        );
+                    } catch (\Throwable $e) {
+                        Log::warning('Auto-attach Ticket PDF gagal (update)', [
+                            'ticketId' => $newTicketId,
+                            'error'    => $e->getMessage(),
+                        ]);
+                    }
                 }
             }
 
@@ -2805,5 +2907,70 @@ class SppbController extends Controller
             $spb->updated_at = now();
             $spb->save();
         });
+    }
+
+    private function attachItrPdf(string $itrId, string $sppbId, string $cpnyId, string $deptId, string $createdBy): void
+    {
+        $header = TrItrecommend::where('docid', $itrId)->first();
+        if (!$header) {
+            Log::warning('attachItrPdf: ITR not found', ['itrId' => $itrId]);
+            return;
+        }
+
+        $details   = TrItrecommendDetail::where('docid', $itrId)->get();
+        $approvals = TrApproval::where('refnbr', $itrId)
+            ->where('status', '<>', 'X')
+            ->orderByRaw('CAST(aprv_leveling AS NUMERIC)')
+            ->orderBy('id')
+            ->get();
+        $attachments = [];
+
+        $pdfContent = \PDF::loadView(
+            'pages.it_recommendation.pdf_it_recommendation',
+            compact('header', 'details', 'approvals', 'attachments')
+        )->setPaper('a4', 'portrait')->output();
+
+        app(TrAttachmentController::class)->uploadFromContent([
+            'refnbr'        => $sppbId,
+            'doctype'       => 'PB',
+            'base_folder'   => 'att-purchasing-app/pb',
+            'created_by'    => $createdBy,
+            'cpny_id'       => $cpnyId,
+            'department_id' => $deptId,
+        ], $pdfContent, "IT-RECOMMENDATION-{$itrId}", 'pdf');
+    }
+
+    private function attachTicketPdf(string $ticketId, string $sppbId, string $cpnyId, string $deptId, string $createdBy): void
+    {
+        $ticket = TrTicket::with([
+            'type', 'category', 'subcategory', 'priority', 'location', 'subLocation',
+        ])->where('ticketid', $ticketId)->first();
+
+        if (!$ticket) {
+            Log::warning('attachTicketPdf: Ticket not found', ['ticketId' => $ticketId]);
+            return;
+        }
+
+        $responseActivity = TrTicketActivity::where('ticketid', $ticketId)
+            ->where('status_pekerjaan', 'RESPONSE')
+            ->orderBy('id')
+            ->first();
+
+        $respondedBy = $responseActivity?->created_by ?? $ticket->pic_ticket;
+        $attachments = [];
+
+        $pdfContent = \PDF::loadView(
+            'pages.ticket.print',
+            compact('ticket', 'attachments', 'respondedBy')
+        )->setPaper('a4', 'portrait')->output();
+
+        app(TrAttachmentController::class)->uploadFromContent([
+            'refnbr'        => $sppbId,
+            'doctype'       => 'PB',
+            'base_folder'   => 'att-purchasing-app/pb',
+            'created_by'    => $createdBy,
+            'cpny_id'       => $cpnyId,
+            'department_id' => $deptId,
+        ], $pdfContent, "TICKET-{$ticketId}", 'pdf');
     }
 }

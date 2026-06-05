@@ -196,6 +196,8 @@
                 <form
                     method="POST"
                     action="{{ route('login') }}"
+                    x-data="loginForm()"
+                    @submit="onSubmit"
                     class="mt-6 sm:mt-8 lg:mt-10 space-y-5 sm:space-y-6">
 
                     @csrf
@@ -209,6 +211,8 @@
                         <input
                             type="text"
                             name="login"
+                            id="login_input"
+                            x-model="loginVal"
                             value="{{ old('login') }}"
                             required
                             autofocus
@@ -299,7 +303,17 @@
                             </button>
                         </div>
 
-                        <div class="mt-3 flex justify-end">
+                        <div class="mt-3 flex items-center justify-between">
+
+                            <label class="flex cursor-pointer items-center gap-2.5">
+                                <input
+                                    type="checkbox"
+                                    name="remember"
+                                    id="remember"
+                                    x-model="remember"
+                                    class="h-4 w-4 cursor-pointer rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800">
+                                <span class="text-sm text-slate-600 dark:text-slate-400">Keep me signed in</span>
+                            </label>
 
                             <a
                                 href="{{ route('password.request') }}"
@@ -354,6 +368,26 @@
     </div>
 
 </div>
+
+<script>
+function loginForm() {
+    const SAVED_KEY = 'app_saved_login';
+    const saved     = localStorage.getItem(SAVED_KEY) || '';
+
+    return {
+        loginVal: '{{ old('login') }}' || saved,
+        remember: !!saved,
+
+        onSubmit() {
+            if (this.remember && this.loginVal.trim()) {
+                localStorage.setItem(SAVED_KEY, this.loginVal.trim());
+            } else {
+                localStorage.removeItem(SAVED_KEY);
+            }
+        },
+    };
+}
+</script>
 
 @if ($errors->any())
 <script>

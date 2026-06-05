@@ -67,43 +67,6 @@
         background: rgba(148, 163, 184, .45);
     }
 
-    .status-card {
-        position: relative;
-
-        overflow: hidden;
-
-        border-radius: 18px;
-
-        backdrop-filter: blur(10px);
-
-        transition:
-            transform .18s ease,
-            box-shadow .18s ease,
-            border-color .18s ease;
-    }
-
-    .status-card::before {
-        display: none;
-    }
-
-    .status-card:hover {
-        transform: translateY(-3px);
-
-        box-shadow:
-            0 14px 35px rgba(15, 23, 42, .08);
-    }
-
-    .dark .status-card:hover {
-        box-shadow:
-            0 18px 40px rgba(0, 0, 0, .35);
-    }
-
-    .status-filter.active .status-card {
-        outline: 2px solid rgba(99, 102, 241, .35);
-
-        box-shadow:
-            0 12px 30px rgba(99, 102, 241, .16);
-    }
 
     .ticket-modal {
         backdrop-filter: blur(6px);

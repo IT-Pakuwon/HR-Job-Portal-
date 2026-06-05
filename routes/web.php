@@ -31,6 +31,7 @@ use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\GaDashboardController;
@@ -173,7 +174,7 @@ Route::post('/login', function (Request $request) {
     if (!$user || !Auth::attempt([
         'email' => $user->email,
         'password' => $credentials['password'],
-    ])) {
+    ], $request->boolean('remember'))) {
         throw ValidationException::withMessages(['login' => ['These credentials do not match our records.']]);
     }
 
@@ -1540,6 +1541,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/waiting-json', 'waitingJson');
             Route::get('/approve-json', 'approveJson');
         });
+
+        Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
 
         Route::prefix('it-dashboard')->controller(ItDashboardController::class)->name('it-dashboard.')->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('summary-json');

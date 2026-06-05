@@ -269,8 +269,8 @@
                     <td class="meta-label">Company</td>
                     <td class="meta-value">{{ $header->cpny_id ?? '-' }}</td>
 
-                    <td class="meta-label">Location</td>
-                    <td class="meta-value">{{ $header->location_id ?? '-' }}</td>
+                    <td class="meta-label">Requested By</td>
+                    <td class="meta-value">{{ $header->created_by ?? '-' }}</td>
                 </tr>
 
                 <tr>
@@ -293,10 +293,7 @@
 
                 <tr>
                     <td class="meta-label">Asset Number</td>
-                    <td class="meta-value">{{ $header->assetnbr ?? '-' }}</td>
-
-                    <td class="meta-label">Requested By</td>
-                    <td class="meta-value">{{ $header->created_by ?? '-' }}</td>
+                    <td class="meta-value" colspan="3">{{ $header->assetnbr ?? '-' }}</td>
                 </tr>
 
                 <tr>

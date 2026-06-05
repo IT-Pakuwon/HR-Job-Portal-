@@ -43,43 +43,6 @@ function initDataTable() {
             },
         },
 
-        language: {
-
-            processing: `
-                <div class="flex items-center justify-center py-10">
-                    <div class="
-                        h-10 w-10 animate-spin rounded-full border-4
-                        border-slate-300 border-t-slate-700
-                        dark:border-slate-700 dark:border-t-slate-200
-                    "></div>
-                </div>
-            `,
-
-            emptyTable: `
-                <div class="py-10 text-center">
-
-                    <div class="
-                        mx-auto flex h-14 w-14 items-center justify-center
-                        rounded-lg
-                        bg-slate-100
-                        dark:bg-white/[0.06]
-                        text-2xl
-                    ">
-                        📭
-                    </div>
-
-                    <p class="
-                        mt-4 text-sm font-medium
-                        text-slate-700
-                        dark:text-slate-300
-                    ">
-                        No access request found
-                    </p>
-
-                </div>
-            `,
-        },
-
         columns: [
 
             {

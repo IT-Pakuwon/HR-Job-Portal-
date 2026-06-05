@@ -1,533 +1,465 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
     <title>{{ $ticket->ticketid }} — IT Support Ticket</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    <style>
         body {
-            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-            font-size: 11.5px;
-            color: #0f172a;
-            background: #fff;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #222;
+            margin: 0;
+            padding: 0;
         }
 
         .page {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 48px 52px 56px;
+            padding: 28px 34px;
         }
 
-        /* ── Document header ── */
-        .doc-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            padding-bottom: 16px;
-            margin-bottom: 22px;
-            border-bottom: 2px solid #e2e8f0;
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .doc-header-left .org {
-            font-size: 13px;
-            font-weight: 700;
-            color: #1d4ed8;
-            letter-spacing: 0.01em;
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+            margin-bottom: 18px;
         }
 
-        .doc-header-left .meta {
-            font-size: 10.5px;
-            color: #94a3b8;
-            margin-top: 3px;
+        .header td {
+            vertical-align: top;
         }
 
-        .doc-header-right {
-            text-align: right;
-        }
-
-        .doc-header-right .ticketid {
+        .title {
             font-size: 20px;
-            font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -0.02em;
-            line-height: 1;
+            font-weight: bold;
+            letter-spacing: .8px;
+            color: #111;
         }
 
-        .doc-header-right .submitted {
-            font-size: 10.5px;
-            color: #94a3b8;
+        .company {
             margin-top: 4px;
+            font-size: 12px;
+            color: #555;
         }
 
-        .status-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 6px;
-            justify-content: flex-end;
+        .doc-number {
+            text-align: right;
+            font-size: 14px;
+            font-weight: bold;
         }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 9px;
-            border-radius: 20px;
-            font-size: 9.5px;
-            font-weight: 700;
-            letter-spacing: 0.07em;
-            text-transform: uppercase;
+        .doc-date {
+            margin-top: 4px;
+            text-align: right;
+            font-size: 11px;
+            color: #666;
         }
 
-        .badge-dot { width: 5px; height: 5px; border-radius: 50%; }
+        .doc-status {
+            margin-top: 4px;
+            text-align: right;
+            font-size: 11px;
+            font-weight: bold;
+            color: #444;
+        }
 
-        .badge-open     { background: #dbeafe; color: #1d4ed8; }
-        .badge-open     .badge-dot { background: #1d4ed8; }
-        .badge-done     { background: #dcfce7; color: #15803d; }
-        .badge-done     .badge-dot { background: #15803d; }
-        .badge-cancel   { background: #f1f5f9; color: #64748b; }
-        .badge-cancel   .badge-dot { background: #94a3b8; }
-        .badge-workflow { background: #f1f5f9; color: #475569; }
-
-        /* ── Section card ── */
-        .card {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
+        .divider {
+            border-top: 1px solid #d0d5dd;
             margin-bottom: 20px;
         }
 
-        .card-head {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 16px;
-            border-bottom: 1px solid #e2e8f0;
+        /* =========================
+           SECTION WRAPPER
+        ========================= */
+
+        .section {
+            margin-bottom: 18px;
+            border: 1px solid #d9dde6;
+            overflow: hidden;
         }
 
-        .card-head.blue  { background: #eff6ff; border-bottom-color: #bfdbfe; }
-        .card-head.green { background: #f0fdf4; border-bottom-color: #bbf7d0; }
-
-        .card-head-num {
-            width: 20px;
-            height: 20px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .section-header {
+            background: #f0f2f5;
+            color: #2c3e50;
             font-size: 10.5px;
-            font-weight: 800;
-            flex-shrink: 0;
-        }
-
-        .card-head.blue  .card-head-num { background: #1d4ed8; color: #fff; }
-        .card-head.green .card-head-num { background: #15803d; color: #fff; }
-
-        .card-head-label {
-            font-size: 9.5px;
-            font-weight: 700;
-            letter-spacing: 0.12em;
+            font-weight: bold;
+            padding: 5px 10px;
+            letter-spacing: .5px;
             text-transform: uppercase;
+            border-bottom: 1px solid #d9dde6;
+            border-left: 3px solid #555e6e;
         }
 
-        .card-head.blue  .card-head-label { color: #1d4ed8; }
-        .card-head.green .card-head-label { color: #15803d; }
-
-        /* ── Info grid ── */
-        .info-grid   { display: grid; gap: 0; }
-        .info-grid-2 { grid-template-columns: 1fr 1fr; }
-        .info-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-
-        .info-cell {
-            padding: 10px 14px;
-            border-right: 1px solid #f1f5f9;
-            border-bottom: 1px solid #f1f5f9;
+        .section-body {
+            padding: 0;
         }
 
-        .info-grid-2 .info-cell:nth-child(2n),
-        .info-grid-3 .info-cell:nth-child(3n) { border-right: none; }
+        /* =========================
+           META TABLE
+        ========================= */
 
-        .info-label {
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #94a3b8;
-            margin-bottom: 4px;
+        .meta-table {
+            table-layout: fixed;
+            width: 100%;
         }
 
-        .info-value {
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #0f172a;
-            line-height: 1.4;
+        .meta-table td {
+            border-top: 1px solid #e8ecf2;
+            border-right: 1px solid #e8ecf2;
+            padding: 7px 10px;
+            vertical-align: top;
+            font-size: 11px;
+            word-wrap: break-word;
         }
 
-        .info-value.muted {
-            color: #94a3b8;
-            font-weight: 400;
-            font-style: italic;
+        .meta-table tr:first-child td {
+            border-top: none;
         }
 
-        /* ── Text blocks (summary / description) ── */
-        .text-block {
-            padding: 10px 14px;
-            border-bottom: 1px solid #f1f5f9;
+        .meta-table td:last-child {
+            border-right: none;
         }
 
-        .text-block:last-child { border-bottom: none; }
-        .text-block .info-label { margin-bottom: 6px; }
-
-        .summary-text {
-            font-size: 13px;
-            font-weight: 700;
-            color: #0f172a;
-            line-height: 1.5;
+        .meta-label {
+            width: 130px;
+            background: #f4f6fb;
+            font-weight: bold;
+            color: #333;
         }
+
+        .meta-value {
+            color: #222;
+        }
+
+        .meta-value a,
+        .meta-label a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* =========================
+           DESCRIPTION BOX
+        ========================= */
 
         .desc-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 7px;
-            padding: 10px 14px;
-            font-size: 11.5px;
+            padding: 10px 12px;
+            background: #fafcff;
+            font-size: 11px;
             color: #334155;
-            line-height: 1.7;
-            min-height: 34px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            border-top: 1px solid #e8ecf2;
         }
 
-        .desc-box.green {
-            background: #f0fdf4;
-            border-color: #bbf7d0;
-            color: #166534;
-        }
-
-        /* Strip Quill chrome */
-        .ql-editor { padding: 0 !important; min-height: unset !important; overflow: visible !important; }
-        .ql-container.ql-snow, .ql-toolbar { border: none !important; }
-
-        /* ── Priority badge ── */
-        .priority-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
-            border-radius: 5px;
-            font-size: 10.5px;
-            font-weight: 600;
-        }
-
-        .priority-tag-dot { width: 6px; height: 6px; border-radius: 50%; }
-
-        .p-low      { background: #dcfce7; color: #15803d; }
-        .p-low      .priority-tag-dot { background: #15803d; }
-        .p-medium   { background: #fef9c3; color: #854d0e; }
-        .p-medium   .priority-tag-dot { background: #ca8a04; }
-        .p-high     { background: #fee2e2; color: #b91c1c; }
-        .p-high     .priority-tag-dot { background: #ef4444; }
-        .p-critical { background: #fdf4ff; color: #7e22ce; }
-        .p-critical .priority-tag-dot { background: #a855f7; }
-
-        /* ── Signature ── */
-        .sig-section {
-            margin-top: 24px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        .sig-box { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-
-        .sig-box-head {
-            background: #f8fafc;
-            padding: 6px 14px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 9.5px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
+        .desc-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #888;
             text-transform: uppercase;
-            color: #64748b;
+            letter-spacing: .4px;
+            margin-bottom: 5px;
         }
 
-        .sig-box-body { padding: 38px 14px 12px; }
+        /* Quill content in DomPDF */
+        .ql-editor { padding: 0 !important; min-height: unset !important; }
+        .ql-container.ql-snow, .ql-toolbar { border: none !important; }
+        .ql-editor p { margin: 0 0 4px 0; }
+        .ql-editor strong, .ql-editor b { font-weight: bold; }
+        .ql-editor em, .ql-editor i { font-style: italic; }
+        .ql-editor ul { margin: 0; padding-left: 16px; list-style-type: disc; }
+        .ql-editor ol { margin: 0; padding-left: 16px; list-style-type: decimal; }
+        .ql-editor li { margin-bottom: 2px; }
+        .ql-editor img { max-width: 100%; height: auto; display: block; margin: 4px 0; }
+        .ql-editor a { color: inherit; text-decoration: none; }
 
-        .sig-line { border-top: 1.5px solid #cbd5e1; padding-top: 5px; }
-        .sig-name { font-size: 11px; font-weight: 600; color: #0f172a; }
-        .sig-role  { font-size: 9.5px; color: #94a3b8; margin-top: 2px; }
+        /* =========================
+           SIGNATURE TABLE
+        ========================= */
 
-        /* ── Footer ── */
-        .doc-footer {
-            margin-top: 20px;
-            padding-top: 12px;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 9.5px;
-            color: #94a3b8;
+        .approval-table {
+            table-layout: fixed;
+            width: 100%;
         }
 
-        .doc-footer strong { color: #64748b; }
-
-        @page {
-            margin: 0;
+        .approval-table th {
+            border-top: none;
+            border-right: 1px solid #e8ecf2;
+            border-bottom: 1px solid #e8ecf2;
+            background: #f4f6fb;
+            padding: 7px 10px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
         }
 
-        @media print {
-            .page { max-width: 100%; padding: 22mm 24mm 26mm; }
-            a { color: inherit; text-decoration: none; }
+        .approval-table th:last-child {
+            border-right: none;
+        }
+
+        .approval-table td {
+            border-right: 1px solid #e8ecf2;
+            border-top: 1px solid #e8ecf2;
+            padding: 12px 10px;
+            vertical-align: top;
+            height: 70px;
+        }
+
+        .approval-table td:last-child {
+            border-right: none;
+        }
+
+        .approval-name {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 14px;
+            color: #111;
+        }
+
+        .approval-role {
+            font-size: 10px;
+            color: #666;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .footer-note {
+            margin-top: 16px;
+            font-size: 10px;
+            color: #777;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
-    <script>window.onload = function () { window.print(); }</script>
+    @php
+        $statusLabel = match($ticket->status) {
+            'P' => 'Open',
+            'C' => 'Completed',
+            'X' => 'Cancelled',
+            default => $ticket->status,
+        };
+
+        $pName  = optional($ticket->priority)->ticket_priority_name ?? $ticket->ticket_priority ?? '-';
+        $pLower = strtolower($pName);
+    @endphp
 
     <div class="page">
 
-        {{-- ── Document header ── --}}
-        <div class="doc-header">
-            <div class="doc-header-left">
-                <div class="org">IT Support Ticket</div>
-                <div class="meta">{{ $ticket->cpny_id }} &nbsp;·&nbsp; {{ $ticket->department_id }}</div>
-            </div>
-            <div class="doc-header-right">
-                <div class="ticketid">{{ $ticket->ticketid }}</div>
-                <div class="submitted">Submitted {{ optional($ticket->ticketdate)->format('d M Y') ?? '-' }}</div>
-                @php
-                    $statusLabel = match($ticket->status) {
-                        'P' => 'Open', 'C' => 'Completed', 'X' => 'Cancelled', default => $ticket->status,
-                    };
-                    $badgeClass = match($ticket->status) {
-                        'C' => 'badge-done', 'X' => 'badge-cancel', default => 'badge-open',
-                    };
-                @endphp
-                <div class="status-row">
-                    <span class="badge {{ $badgeClass }}">
-                        <span class="badge-dot"></span>{{ $statusLabel }}
-                    </span>
-                    <span class="badge badge-workflow">{{ $ticket->status_pekerjaan }}</span>
-                </div>
+        {{-- HEADER --}}
+        <table class="header">
+            <tr>
+                <td>
+                    <div class="title">IT SUPPORT TICKET</div>
+                    <div class="company">{{ $ticket->cpny_id ?? '-' }} &nbsp;·&nbsp; {{ $ticket->department_id ?? '-' }}</div>
+                </td>
+                <td style="text-align:right;">
+                    <div class="doc-number">{{ $ticket->ticketid }}</div>
+                    <div class="doc-date">{{ optional($ticket->ticketdate)->format('d F Y') ?? '-' }}</div>
+                    <div class="doc-status">{{ $statusLabel }}</div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="divider"></div>
+
+        {{-- SECTION: TICKET INFORMATION --}}
+        <div class="section">
+            <div class="section-header">Ticket Information</div>
+            <div class="section-body">
+                <table class="meta-table">
+                    <tbody>
+                        <tr>
+                            <td class="meta-label">Requester</td>
+                            <td class="meta-value">{{ $ticket->user_peminta ?? $ticket->created_by ?? '-' }}</td>
+                            <td class="meta-label">Company</td>
+                            <td class="meta-value">{{ $ticket->cpny_id ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Department</td>
+                            <td class="meta-value">{{ $ticket->department_id ?? '-' }}</td>
+                            <td class="meta-label">Status</td>
+                            <td class="meta-value">{{ $statusLabel }} / {{ $ticket->status_pekerjaan ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Ticket Type</td>
+                            <td class="meta-value">{{ optional($ticket->type)->ticket_type_name ?? $ticket->ticket_type ?? '-' }}</td>
+                            <td class="meta-label">Priority</td>
+                            <td class="meta-value">{{ $pName }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Category</td>
+                            <td class="meta-value">{{ optional($ticket->category)->ticket_category_name ?? '-' }}</td>
+                            <td class="meta-label">Sub Category</td>
+                            <td class="meta-value">{{ optional($ticket->subcategory)->ticket_subcategory_name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Location</td>
+                            <td class="meta-value">{{ optional($ticket->location)->location_name ?? '-' }}</td>
+                            <td class="meta-label">Sub Location</td>
+                            <td class="meta-value">{{ optional($ticket->subLocation)->sub_location_name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">SLA Due Date</td>
+                            <td class="meta-value">{{ optional($ticket->ticket_duedate)->format('d M Y, H:i') ?? '-' }}</td>
+                            <td class="meta-label">Submitted Date</td>
+                            <td class="meta-value">{{ optional($ticket->ticketdate)->format('d M Y') ?? '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        {{-- ═══════════════════════════════════════
-             SECTION 1 — TICKET REQUEST
-        ════════════════════════════════════════ --}}
-        <div class="card">
-            <div class="card-head blue">
-                <div class="card-head-num">1</div>
-                <div class="card-head-label">Ticket Request Information</div>
-            </div>
-
-            <div class="info-grid info-grid-3">
-                <div class="info-cell">
-                    <div class="info-label">Requester</div>
-                    <div class="info-value">{{ $ticket->user_peminta ?? $ticket->created_by ?? '-' }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">Company</div>
-                    <div class="info-value">{{ $ticket->cpny_id ?? '-' }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">Department</div>
-                    <div class="info-value">{{ $ticket->department_id ?? '-' }}</div>
-                </div>
-            </div>
-
-            <div class="info-grid info-grid-3">
-                <div class="info-cell">
-                    <div class="info-label">Ticket Type</div>
-                    <div class="info-value">{{ optional($ticket->type)->ticket_type_name ?? $ticket->ticket_type ?? '-' }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">Category</div>
-                    <div class="info-value">{{ optional($ticket->category)->ticket_category_name ?? '-' }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">Sub Category</div>
-                    <div class="info-value">{{ optional($ticket->subcategory)->ticket_subcategory_name ?? '-' }}</div>
-                </div>
-            </div>
-
-            <div class="info-grid info-grid-2">
-                <div class="info-cell">
-                    <div class="info-label">Location</div>
-                    <div class="info-value">{{ optional($ticket->location)->location_name ?? '-' }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">Sub Location</div>
-                    <div class="info-value">{{ optional($ticket->subLocation)->sub_location_name ?? '-' }}</div>
-                </div>
-            </div>
-
-            <div class="text-block">
-                <div class="info-label">Issue Summary</div>
-                <div class="summary-text">{{ $ticket->issue_summary ?? '-' }}</div>
-            </div>
-
-            <div class="text-block">
-                <div class="info-label">Issue Description</div>
-                <div class="desc-box">
-                    @if ($ticket->issue_descr)
-                        <div class="ql-editor">{!! $ticket->issue_descr !!}</div>
-                    @else
-                        <span style="color:#94a3b8;font-style:italic;">No description provided.</span>
-                    @endif
-                </div>
-            </div>
-
-            @if (!empty($attachments))
-                <div class="text-block">
-                    <div class="info-label">Attachments ({{ count($attachments) }})</div>
-                    @php $imageExts = ['jpg','jpeg','png']; @endphp
-
-                    {{-- Image attachments --}}
-                    @php $images = array_filter($attachments, fn($a) => in_array(strtolower($a['extention'] ?? ''), $imageExts)); @endphp
-                    @if (!empty($images))
-                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:8px;">
-                            @foreach ($images as $img)
-                                <div style="border:1px solid #e2e8f0; border-radius:6px; overflow:hidden;">
-                                    <img src="{{ $img['url'] }}" alt="{{ $img['display_name'] ?? $img['filename'] }}"
-                                        style="width:100%; height:120px; object-fit:cover; display:block;">
-                                    <div style="padding:5px 8px; font-size:9.5px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                        {{ $img['display_name'] ?? $img['filename'] }}
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    {{-- Non-image attachments --}}
-                    @php $files = array_filter($attachments, fn($a) => !in_array(strtolower($a['extention'] ?? ''), $imageExts)); @endphp
-                    @if (!empty($files))
-                        <div style="display:flex; flex-direction:column; gap:5px;">
-                            @foreach ($files as $file)
-                                <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px;">
-                                    <span style="font-size:10px; font-weight:700; color:#64748b; background:#e2e8f0; padding:2px 6px; border-radius:4px; text-transform:uppercase;">
-                                        {{ $file['extention'] ?? 'FILE' }}
-                                    </span>
-                                    <span style="font-size:11px; color:#334155; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                        {{ $file['display_name'] ?? $file['filename'] }}
-                                    </span>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            @endif
-        </div>
-
-        {{-- ═══════════════════════════════════════
-             SECTION 2 — RESOLUTION & SOLUTION
-        ════════════════════════════════════════ --}}
-        <div class="card">
-            <div class="card-head green">
-                <div class="card-head-num">2</div>
-                <div class="card-head-label">Resolution &amp; Solution</div>
-            </div>
-
-            <div class="info-grid info-grid-3">
-                <div class="info-cell">
-                    <div class="info-label">Responded By</div>
-                    <div class="info-value">{{ $respondedBy ?? '-' }}</div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">Completed By</div>
-                    <div class="info-value {{ $ticket->completed_by ? '' : 'muted' }}">
-                        {{ $ticket->completed_by ?? 'Not yet completed' }}
-                    </div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">Completed At</div>
-                    <div class="info-value {{ $ticket->completed_at ? '' : 'muted' }}">
-                        {{ optional($ticket->completed_at)->format('d M Y, H:i') ?? 'Not yet completed' }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="info-grid info-grid-2">
-                <div class="info-cell">
-                    <div class="info-label">Priority</div>
-                    @php
-                        $pName   = optional($ticket->priority)->ticket_priority_name ?? $ticket->ticket_priority ?? '';
-                        $pLower  = strtolower($pName);
-                        $pClass  = match(true) {
-                            str_contains($pLower, 'low')      => 'p-low',
-                            str_contains($pLower, 'high')     => 'p-high',
-                            str_contains($pLower, 'critical') => 'p-critical',
-                            $pName !== ''                     => 'p-medium',
-                            default                           => '',
-                        };
-                    @endphp
-                    <div class="info-value" style="padding-top:3px;">
-                        @if ($pName)
-                            <span class="priority-tag {{ $pClass }}">
-                                <span class="priority-tag-dot"></span>{{ $pName }}
-                            </span>
-                        @else
-                            <span class="muted">Not set</span>
-                        @endif
-                    </div>
-                </div>
-                <div class="info-cell">
-                    <div class="info-label">SLA Due Date</div>
-                    <div class="info-value {{ $ticket->ticket_duedate ? '' : 'muted' }}">
-                        {{ optional($ticket->ticket_duedate)->format('d M Y, H:i') ?? 'Not assigned' }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-block">
-                <div class="info-label">Solution / Resolution Description</div>
-                @if ($ticket->solution_descr)
-                    <div class="desc-box green">
-                        <div class="ql-editor">{!! $ticket->solution_descr !!}</div>
-                    </div>
-                @else
+        {{-- SECTION: ISSUE --}}
+        <div class="section">
+            <div class="section-header">Issue</div>
+            <div class="section-body">
+                <table class="meta-table">
+                    <tbody>
+                        <tr>
+                            <td class="meta-label" style="width:130px;">Issue Summary</td>
+                            <td class="meta-value" style="font-weight:bold;">{{ $ticket->issue_summary ?? '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                @if ($ticket->issue_descr)
                     <div class="desc-box">
-                        <span style="color:#94a3b8;font-style:italic;">No solution recorded yet.</span>
+                        <div class="desc-label">Issue Description</div>
+                        <div class="ql-editor">{!! $ticket->issue_descr !!}</div>
                     </div>
                 @endif
             </div>
         </div>
 
-        {{-- ── Signature (completed tickets only) ── --}}
-        @if ($ticket->status === 'C')
-            <div class="sig-section">
-                <div class="sig-box">
-                    <div class="sig-box-head">Requester</div>
-                    <div class="sig-box-body">
-                        <div class="sig-line">
-                            <div class="sig-name">{{ $ticket->user_peminta ?? $ticket->created_by ?? '-' }}</div>
-                            <div class="sig-role">Ticket Requester</div>
-                        </div>
+        {{-- SECTION: SOLUTION --}}
+        <div class="section">
+            <div class="section-header">Solution</div>
+            <div class="section-body">
+                <table class="meta-table">
+                    <tbody>
+                        <tr>
+                            <td class="meta-label">Responded By</td>
+                            <td class="meta-value">{{ $respondedBy ?? '-' }}</td>
+                            <td class="meta-label">Completed By</td>
+                            <td class="meta-value">{{ $ticket->completed_by ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Completed At</td>
+                            <td class="meta-value">{{ optional($ticket->completed_at)->format('d M Y, H:i') ?? '-' }}</td>
+                            <td class="meta-label">IT PIC</td>
+                            <td class="meta-value">{{ $ticket->pic_ticket ?? '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                @if ($ticket->solution_descr)
+                    <div class="desc-box">
+                        <div class="desc-label">Solution / Resolution Description</div>
+                        <div class="ql-editor">{!! $ticket->solution_descr !!}</div>
                     </div>
-                </div>
-                <div class="sig-box">
-                    <div class="sig-box-head">IT Technician</div>
-                    <div class="sig-box-body">
-                        <div class="sig-line">
-                            <div class="sig-name">{{ $ticket->completed_by ?? $ticket->pic_ticket ?? '-' }}</div>
-                            <div class="sig-role">IT Support / PIC</div>
-                        </div>
-                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- SECTION: ATTACHMENTS --}}
+        @if (!empty($attachments))
+            @php
+                $imageExts = ['jpg', 'jpeg', 'png'];
+                $imgAtts   = array_values(array_filter($attachments, fn($a) => in_array(strtolower($a['extention'] ?? ''), $imageExts)));
+                $fileAtts  = array_values(array_filter($attachments, fn($a) => !in_array(strtolower($a['extention'] ?? ''), $imageExts)));
+            @endphp
+
+            <div class="section">
+                <div class="section-header">Attachments ({{ count($attachments) }})</div>
+                <div class="section-body" style="padding: 10px 12px;">
+
+                    @if (!empty($imgAtts))
+                        @php $imgChunks = array_chunk($imgAtts, 3); @endphp
+                        <table style="margin-bottom:10px; border-collapse:collapse; table-layout:fixed; width:100%;">
+                            @foreach ($imgChunks as $imgRow)
+                                <tr>
+                                    @foreach ($imgRow as $img)
+                                        <td style="width:33%; border:1px solid #e8ecf2; padding:4px; vertical-align:top;">
+                                            @if (!empty($img['base64']))
+                                                <img src="{{ $img['base64'] }}" style="width:100%; height:120px; display:block;">
+                                            @endif
+                                            <div style="font-size:9px; color:#555; margin-top:3px; word-break:break-all;">
+                                                {{ $img['display_name'] ?? $img['filename'] }}
+                                            </div>
+                                        </td>
+                                    @endforeach
+                                    @for ($i = count($imgRow); $i < 3; $i++)
+                                        <td style="width:33%;"></td>
+                                    @endfor
+                                </tr>
+                            @endforeach
+                        </table>
+                    @endif
+
+                    @if (!empty($fileAtts))
+                        <table class="meta-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:60px; background:#f4f6fb; border:1px solid #e8ecf2; padding:6px 10px; text-align:left; font-size:11px; font-weight:bold; color:#333;">Type</th>
+                                    <th style="background:#f4f6fb; border:1px solid #e8ecf2; border-left:none; padding:6px 10px; text-align:left; font-size:11px; font-weight:bold; color:#333;">File Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($fileAtts as $file)
+                                    <tr>
+                                        <td class="meta-label" style="text-transform:uppercase;">{{ $file['extention'] ?? '-' }}</td>
+                                        <td class="meta-value">{{ $file['display_name'] ?? $file['filename'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+
                 </div>
             </div>
         @endif
 
-        {{-- ── Footer ── --}}
-        <div class="doc-footer">
-            <span>Generated on <strong>{{ now()->format('d M Y, H:i') }}</strong></span>
-            <span><strong>{{ $ticket->ticketid }}</strong> &nbsp;·&nbsp; IT Support Ticket System</span>
+        {{-- SECTION: ACKNOWLEDGEMENT (completed tickets only) --}}
+        @if ($ticket->status === 'C')
+            <div class="section">
+                <div class="section-header">Acknowledgement</div>
+                <div class="section-body">
+                    <table class="approval-table">
+                        <thead>
+                            <tr>
+                                <th>Requester</th>
+                                <th>IT Technician / PIC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="approval-name">{{ strtoupper($ticket->user_peminta ?? $ticket->created_by ?? '-') }}</div>
+                                    <div class="approval-role">Ticket Requester</div>
+                                </td>
+                                <td>
+                                    <div class="approval-name">{{ strtoupper($ticket->completed_by ?? $ticket->pic_ticket ?? '-') }}</div>
+                                    <div class="approval-role">IT Support / PIC</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
+
+        <div class="footer-note">
+            * Generated by Pakuwon APP System &nbsp;·&nbsp; {{ now()->format('d M Y, H:i') }}
         </div>
 
     </div>
+
 </body>
 </html>

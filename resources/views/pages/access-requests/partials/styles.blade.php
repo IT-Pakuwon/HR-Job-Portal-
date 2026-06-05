@@ -41,26 +41,6 @@
         z-index: 999999 !important;
     }
 
-    .status-filter.active .status-card {
-
-        border-color:
-            rgba(59, 130, 246, .35);
-
-        background:
-            linear-gradient(135deg,
-                rgba(37, 99, 235, .22),
-                rgba(15, 23, 42, .75));
-
-        color: #ffffff;
-    }
-
-    .status-filter.active .status-card p,
-    .status-filter.active .status-card span {
-
-        color:
-            rgba(255, 255, 255, .88);
-    }
-
     .table-wrapper::-webkit-scrollbar {
         height: 10px;
         width: 10px;

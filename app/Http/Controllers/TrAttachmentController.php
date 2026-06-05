@@ -99,6 +99,76 @@ class TrAttachmentController extends Controller
         return $result;
     }
 
+    /**
+     * Upload raw binary content directly to GCS and create a TrAttachment record.
+     * Useful for generated PDFs that are never persisted to disk as UploadedFile.
+     */
+    public function uploadFromContent(array $meta, string $content, string $attachmentName, string $ext): array
+    {
+        foreach (['refnbr', 'doctype', 'base_folder', 'created_by'] as $k) {
+            if (empty($meta[$k])) {
+                throw new \InvalidArgumentException("Missing required meta: {$k}");
+            }
+        }
+
+        $year       = now()->year;
+        $yearFolder = rtrim($meta['base_folder'], '/') . "/{$year}";
+
+        $config      = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+        $bucket = $storage->bucket($config['bucket']);
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'att_');
+        try {
+            file_put_contents($tmpPath, $content);
+
+            $randomPrefix = md5(random_int(1, 99999999));
+            $filename     = $randomPrefix . '.' . $ext;
+            $gcsPath      = "{$yearFolder}/{$filename}";
+
+            $bucket->upload(fopen($tmpPath, 'r'), [
+                'name'          => $gcsPath,
+                'predefinedAcl' => 'private',
+                'metadata'      => [
+                    'contentType' => 'application/pdf',
+                    'metadata'    => ['original-name' => $attachmentName . '.' . $ext],
+                ],
+            ]);
+
+            Log::info('uploadFromContent sukses', ['gcsPath' => $gcsPath]);
+
+            $row = TrAttachment::create([
+                'refnbr'          => $meta['refnbr'],
+                'doctype'         => $meta['doctype'],
+                'attachment_date' => Carbon::now(),
+                'cpny_id'         => $meta['cpny_id']        ?? null,
+                'department_id'   => $meta['department_id']  ?? null,
+                'attachment_name' => $attachmentName,
+                'folder'          => $yearFolder,
+                'filename'        => $filename,
+                'filesize'        => strlen($content),
+                'extention'       => $ext,
+                'status'          => 'A',
+                'created_by'      => $meta['created_by'],
+            ]);
+
+            return [
+                'folder' => $yearFolder,
+                'items'  => [['gcsPath' => $gcsPath, 'id' => $row->id, 'filename' => $filename]],
+            ];
+        } finally {
+            @unlink($tmpPath);
+        }
+    }
+
 public function uploadAttachments(Request $request, string $doctype, string $refnbr)
 {
     $user = Auth::user();

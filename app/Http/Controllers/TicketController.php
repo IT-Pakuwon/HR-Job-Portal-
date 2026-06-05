@@ -2708,6 +2708,44 @@ class TicketController extends Controller
 
         $attachments = $attachmentResponse->getData(true)['attachments'] ?? [];
 
+        $imageExts = ['jpg', 'jpeg', 'png'];
+        foreach ($attachments as &$att) {
+            $ext = strtolower($att['extention'] ?? '');
+            if (in_array($ext, $imageExts) && !empty($att['url'])) {
+                try {
+                    $bytes = file_get_contents($att['url']);
+                    $mime  = $ext === 'png' ? 'image/png' : 'image/jpeg';
+                    $att['base64'] = 'data:' . $mime . ';base64,' . base64_encode($bytes);
+                } catch (\Throwable $e) {
+                    $att['base64'] = null;
+                }
+            }
+        }
+        unset($att);
+
+        // Convert any image URLs embedded in Quill HTML fields to base64 for DomPDF
+        foreach (['issue_descr', 'solution_descr'] as $field) {
+            if (!empty($ticket->$field)) {
+                $ticket->$field = preg_replace_callback(
+                    '/<img([^>]+)src=["\']([^"\']+)["\']([^>]*)>/i',
+                    function ($m) {
+                        $src = $m[2];
+                        if (str_starts_with($src, 'data:')) return $m[0];
+                        try {
+                            $bytes = file_get_contents($src);
+                            $ext   = strtolower(pathinfo(parse_url($src, PHP_URL_PATH), PATHINFO_EXTENSION));
+                            $mime  = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
+                            $b64   = 'data:' . $mime . ';base64,' . base64_encode($bytes);
+                            return '<img' . $m[1] . 'src="' . $b64 . '"' . $m[3] . '>';
+                        } catch (\Throwable $e) {
+                            return $m[0];
+                        }
+                    },
+                    $ticket->$field
+                );
+            }
+        }
+
         $responseActivity = TrTicketActivity::where('ticketid', $ticket->ticketid)
             ->where('status_pekerjaan', 'RESPONSE')
             ->orderBy('id')
@@ -2715,7 +2753,10 @@ class TicketController extends Controller
 
         $respondedBy = $responseActivity?->created_by ?? $ticket->pic_ticket;
 
-        return view('pages.ticket.print', compact('ticket', 'attachments', 'respondedBy'));
+        $pdf = \PDF::loadView('pages.ticket.print', compact('ticket', 'attachments', 'respondedBy'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream("TICKET-{$ticket->ticketid}.pdf");
     }
 
     public function export(Request $request)

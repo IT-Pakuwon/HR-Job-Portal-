@@ -164,19 +164,22 @@
             @endif
         </div>
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
-                    Request SPPB
-                </h1>
+        <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-                <div class="flex items-center gap-4">
+            <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <h2 id="pageTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+                        Request SPPB
+                    </h2>
+                </div>
+
+                <div class="flex items-center gap-3">
                     {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
-                    <div id="allFilters" class="flex hidden items-center gap-2">
+                    <div id="allFilters" class="hidden items-center gap-2 flex">
 
                         {{-- Status Filter --}}
                         <select id="filterStatus"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
+                            class="h-9 rounded-lg border border-gray-200 px-3 text-sm dark:border-white/[0.06] dark:bg-[#0f172a] dark:text-gray-300">
                             <option value="">All Status</option>
                             <option value="P">On Progress</option>
                             <option value="C">Completed</option>
@@ -184,55 +187,35 @@
 
                         {{-- Department Filter --}}
                         <select id="filterDepartment"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
+                            class="h-9 rounded-lg border border-gray-200 px-3 text-sm dark:border-white/[0.06] dark:bg-[#0f172a] dark:text-gray-300">
                             <option value="">All Department</option>
                         </select>
 
                     </div>
+
                     <a id="createBtn" href="{{ url('/createsppbs') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                        <i class="fas fa-plus pr-2"></i>Create
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        <i class="fa-solid fa-plus mr-2 text-xs"></i>Create
                     </a>
                 </div>
-
-
             </div>
 
-            <div class="rounded-base relative overflow-x-auto"> {{-- Padding applied here instead of outer container --}}
-                <table id="sppbsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
-                                DocID
-                            </th>
-                            <th id="thWoId" scope="col" class="hidden w-32 px-6 py-2 font-medium">
-                                WO ID
-                            </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
-                                Date
-                            </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
-                                Company
-                            </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
-                                Department
-                            </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
-                                Request Type
-                            </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
-                                Description
-                            </th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">
-                                Status
-                            </th>
+            <div class="relative overflow-hidden">
+                <table id="sppbsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">Doc ID</th>
+                            <th id="thWoId" class="hidden px-4 py-3 text-left font-medium">WO ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Department</th>
+                            <th class="px-4 py-3 text-left font-medium">Request Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Description</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
-                        {{-- Table rows will be populated here by JavaScript/DataTables --}}
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
@@ -1245,11 +1228,23 @@
                     {
                         data: 'requesttype_name',
                         defaultContent: '-',
-                        className: 'text-left'
+                        className: 'text-left',
+                        render: function(data) {
+                            if (!data) return '-';
+                            const str = String(data);
+                            if (str.length <= 40) return str;
+                            return `<span title="${str.replace(/"/g, '&quot;')}" class="cursor-help">${str.substring(0, 40)}…</span>`;
+                        }
                     },
                     {
                         data: 'keperluan',
-                        className: 'text-left'
+                        className: 'text-left',
+                        render: function(data) {
+                            if (!data) return '-';
+                            const str = String(data);
+                            if (str.length <= 50) return str;
+                            return `<span title="${str.replace(/"/g, '&quot;')}" class="cursor-help">${str.substring(0, 50)}…</span>`;
+                        }
                     },
 
                     {
