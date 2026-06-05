@@ -154,6 +154,10 @@ function initModal() {
         '.btn-close-form-modal',
         function () {
 
+            const $btn   = $(this);
+            const $modal = $btn.closest('.ticket-modal');
+            const modalId = '#' + $modal.attr('id');
+
             const isDark =
                 $('html').hasClass('dark');
 
@@ -237,15 +241,19 @@ function initModal() {
                     return;
                 }
 
-                closeAllModal();
+                closeModal(modalId);
 
                 resetTicketUrl();
 
-                setTimeout(function () {
+                if (modalId === '#createTicketModal') {
 
-                    resetCreateTicketForm();
+                    setTimeout(function () {
 
-                }, 240);
+                        resetCreateTicketForm();
+
+                    }, 240);
+
+                }
 
             });
 
@@ -287,9 +295,14 @@ function initModal() {
         '.modal-backdrop',
         function () {
 
-            $(this)
-                .closest('.ticket-modal')
-                .find('.btn-close-modal, .btn-close-form-modal')
+            const $modal = $(this).closest('.ticket-modal');
+
+            if ($modal.data('form-modal')) {
+                return;
+            }
+
+            $modal
+                .find('.btn-close-modal')
                 .first()
                 .trigger('click');
 
@@ -314,8 +327,12 @@ function initModal() {
                 return;
             }
 
+            if ($(currentModal).data('form-modal')) {
+                return;
+            }
+
             $(currentModal)
-                .find('.btn-close-modal, .btn-close-form-modal')
+                .find('.btn-close-modal')
                 .first()
                 .trigger('click');
 

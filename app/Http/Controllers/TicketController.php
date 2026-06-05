@@ -888,14 +888,6 @@ class TicketController extends Controller
 
                     'status' => $ticket->status,
 
-                    'working_start_date' => optional(
-                        $ticket->working_start_date
-                    )->format('Y-m-d H:i:s'),
-
-                    'working_end_date' => optional(
-                        $ticket->working_end_date
-                    )->format('Y-m-d H:i:s'),
-
                     'status_pekerjaan' => $ticket->status_pekerjaan,
 
                     'created_by' => $ticket->created_by,
@@ -1028,10 +1020,6 @@ class TicketController extends Controller
 
                 'ticket_duedate' => $dueDate,
 
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'RESPONSE',
@@ -1148,10 +1136,6 @@ class TicketController extends Controller
         */
 
             $ticket->update([
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'PROCESS',
@@ -1315,10 +1299,6 @@ class TicketController extends Controller
         */
 
             $ticket->update([
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'PENDING',
@@ -1487,10 +1467,6 @@ class TicketController extends Controller
         */
 
             $ticket->update([
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'ENVISION',
@@ -1984,10 +1960,6 @@ class TicketController extends Controller
                 'reopen_ticket' => now(),
 
                 'reopen_descr' => $request->response_descr,
-
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
 
                 'status' => 'P',
 

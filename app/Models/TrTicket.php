@@ -26,8 +26,6 @@ class TrTicket extends Model
         'user_peminta',
         'location_id',
         'sub_location_id',
-        'working_start_date',
-        'working_end_date',
         'issue_summary',
         'issue_descr',
         'status',

@@ -128,6 +128,8 @@ class CostControlDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
+        $allowedCpny = $this->getAllowedCpny();
+
         $data = StagingIfcaPoApprove::query()
             ->select([
                 'cpny_id',
@@ -139,6 +141,7 @@ class CostControlDashboardController extends Controller
                 'status',
             ])
             ->where('status', 'D')
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
             ->groupBy(
                 'cpny_id',
                 'order_no',
@@ -161,6 +164,8 @@ class CostControlDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
+        $allowedCpny = $this->getAllowedCpny();
+
         $data = StagingIfcaIcStkIssue::query()
             ->select([
                 'cpny_id',
@@ -172,6 +177,7 @@ class CostControlDashboardController extends Controller
                 'status',
             ])
             ->where('status', 'D')
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
             ->groupBy(
                 'cpny_id',
                 'issue_id',
@@ -260,6 +266,8 @@ class CostControlDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
+        $allowedCpny = $this->getAllowedCpny();
+
         $data = TrIMBudget::query()
             ->select([
                 'id',
@@ -273,6 +281,7 @@ class CostControlDashboardController extends Controller
                 'status',
             ])
             ->where('status', 'P')
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
             ->orderByDesc('imbudgetdate')
             ->get()
             ->map(function ($row) {

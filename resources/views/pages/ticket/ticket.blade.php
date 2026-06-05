@@ -9,6 +9,11 @@
                 ->where('status', 'A')
                 ->exists();
 
+            $isITRole = \App\Models\SysUserRole::query()
+                ->where('username', auth()->user()->username)
+                ->whereIn('role_id', ['ITHARDWARE', 'ITSOFTWARE'])
+                ->exists();
+
         @endphp
 
         {{-- Status Filter --}}
@@ -632,7 +637,7 @@
 
         </div>
         {{-- CREATE TICKET MODAL --}}
-        <div id="createTicketModal"
+        <div id="createTicketModal" data-form-modal="true"
             class="ticket-modal fixed inset-0 z-[9999] hidden items-center justify-center p-4">
 
             {{-- Backdrop --}}
@@ -655,7 +660,7 @@
                     </div>
 
                     <button type="button"
-                        class="btn-close-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white">
+                        class="btn-close-form-modal inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white">
 
                         <i class="fa-solid fa-xmark text-lg"></i>
 
@@ -996,7 +1001,7 @@
                             <div class="flex items-center justify-end gap-3">
 
                                 <button type="button"
-                                    class="btn-close-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
+                                    class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
 
                                     Cancel
 
@@ -1511,6 +1516,9 @@
 
         window.isIT =
             @json($isIT);
+
+        window.isITRole =
+            @json($isITRole);
 
         window.ticketRoutes = {
 

@@ -266,6 +266,13 @@ function renderTicketActions(ticket) {
         return;
     }
 
+    if (!window.isITRole) {
+        $('#ticketActionBtn').addClass('hidden');
+        return;
+    }
+
+    $('#ticketActionBtn').removeClass('hidden');
+
     const actions =
         buildTicketActions(ticket);
 

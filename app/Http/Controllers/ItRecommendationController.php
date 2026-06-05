@@ -70,6 +70,7 @@ class ItRecommendationController extends Controller
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
             ->whereIn('status', ['P'])
+            ->whereNotIn('status_pekerjaan', ['CREATED', 'CANCEL', 'REJECT'])
             ->orderByDesc('ticketdate')
             ->limit(50)
             ->get([
@@ -226,6 +227,7 @@ class ItRecommendationController extends Controller
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
             ->whereIn('status', ['P'])
+            ->whereNotIn('status_pekerjaan', ['OPEN', 'CANCEL', 'REJECT'])
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('ticketid', 'ilike', "%{$q}%")
@@ -864,16 +866,16 @@ class ItRecommendationController extends Controller
             $eid = Hashids::encode($header->id);
 
             TrMessage::create([
-                'refnbr'        => $header->docid,
-                'doctype'       => $this->doctype,
-                'message_date'  => now(),
-                'cpny_id'       => $header->cpny_id,
+                'refnbr' => $header->docid,
+                'doctype' => $this->doctype,
+                'message_date' => now(),
+                'cpny_id' => $header->cpny_id,
                 'department_id' => $header->department_id,
-                'username'      => $user->username,
-                'name'          => $user->name,
-                'message'       => $request->note,
-                'status'        => 'I',
-                'created_by'    => $user->username,
+                'username' => $user->username,
+                'name' => $user->name,
+                'message' => $request->note,
+                'status' => 'I',
+                'created_by' => $user->username,
             ]);
 
             DB::connection('pgsql5')->commit();
@@ -1758,13 +1760,13 @@ class ItRecommendationController extends Controller
                 } else {
                     // Level belum aktif (date belum di-set) — tetap tampilkan sebagai upcoming step
                     $timeline[] = [
-                        'title'      => 'Waiting Approval',
+                        'title' => 'Waiting Approval',
                         'description' => $row->aprv_username,
-                        'date'       => null,
-                        'raw_date'   => null,
-                        'status'     => 'P',
-                        'label'      => 'Waiting Approval',
-                        'note'       => null,
+                        'date' => null,
+                        'raw_date' => null,
+                        'status' => 'P',
+                        'label' => 'Waiting Approval',
+                        'note' => null,
                         'sort_order' => 9,
                     ];
                 }
@@ -1806,13 +1808,13 @@ class ItRecommendationController extends Controller
 
             // Future/not-yet-started approval step — bypass $push() since date is null
             $timeline[] = [
-                'title'      => 'Waiting Approval',
+                'title' => 'Waiting Approval',
                 'description' => $row->aprv_username,
-                'date'       => null,
-                'raw_date'   => null,
-                'status'     => 'P',
-                'label'      => 'Waiting Approval',
-                'note'       => null,
+                'date' => null,
+                'raw_date' => null,
+                'status' => 'P',
+                'label' => 'Waiting Approval',
+                'note' => null,
                 'sort_order' => 9,
             ];
         }
@@ -1907,7 +1909,7 @@ class ItRecommendationController extends Controller
 
                 if (!$date) {
                     $ts = PHP_INT_MAX;
-                } elseif ($date instanceof \Carbon\Carbon) {
+                } elseif ($date instanceof Carbon) {
                     $ts = $date->timestamp;
                 } else {
                     $ts = Carbon::parse($date)->timestamp;
@@ -2013,10 +2015,10 @@ class ItRecommendationController extends Controller
                 $usernames = $usernames->merge($approverUsernames)
                     ->filter()
                     ->unique()
-                    ->reject(fn($u) => $u === $user->username);
+                    ->reject(fn ($u) => $u === $user->username);
 
                 $commenterEmail = $user->notification_email ?: $user->email;
-                $commenterName  = $user->name ?? $user->username;
+                $commenterName = $user->name ?? $user->username;
 
                 foreach ($usernames as $username) {
                     $recipient = User::where('username', $username)->first();

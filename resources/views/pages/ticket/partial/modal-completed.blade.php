@@ -1,4 +1,4 @@
-<div id="completeTicketModal" class="ticket-modal fixed inset-0 z-[80] hidden overflow-y-auto p-3 sm:p-5">
+<div id="completeTicketModal" data-form-modal="true" class="ticket-modal fixed inset-0 z-[80] hidden overflow-y-auto p-3 sm:p-5">
 
     <div class="modal-backdrop absolute inset-0 bg-slate-900/60"></div>
 
@@ -22,8 +22,8 @@
 
                 </div>
 
-                <button type="button" onclick="closeModal('#completeTicketModal')"
-                    class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.06] dark:hover:text-white">
+                <button type="button"
+                    class="btn-close-form-modal inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/[0.06] dark:hover:text-white">
 
                     <i class="fa-solid fa-xmark text-base"></i>
 
@@ -166,8 +166,8 @@
                 <div
                     class="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-slate-200 bg-white/95 px-4 py-4  dark:border-white/[0.06] dark:bg-[#0f172a]/95 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-5">
 
-                    <button type="button" onclick="closeModal('#completeTicketModal')"
-                         class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
+                    <button type="button"
+                        class="btn-close-form-modal inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5">
 
                         Cancel
 

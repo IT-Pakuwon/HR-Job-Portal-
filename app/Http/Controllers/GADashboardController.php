@@ -6,6 +6,7 @@ use App\Models\Autonbr;
 use App\Models\TrBookingCar;
 use App\Models\TrParkingRegistration;
 use App\Models\TrVoucherTaxi;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -20,6 +21,18 @@ class GaDashboardController extends Controller
         $this->approvalController = $approvalController;
     }
 
+    private function getAllowedCpny(): array
+    {
+        $user = auth()->user();
+        $msUser = User::query()->where('username', optional($user)->username)->first();
+
+        return collect(explode(',', (string) optional($msUser)->cpny_id))
+            ->map(fn ($v) => strtoupper(trim($v)))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
     public function summaryJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
@@ -30,22 +43,22 @@ class GaDashboardController extends Controller
                 ->getData(true)['data'] ?? []
         )->count();
 
-       $companies = array_map('trim', explode(',', $request->user()->cpny_id));
+        $allowedCpny = $this->getAllowedCpny();
 
         $voucherTaxi = TrVoucherTaxi::query()
-            ->whereIn('cpny_id_expense', $companies)
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id_expense', $allowedCpny))
             ->where('status', 'C')
             ->whereNull('actual_budget')
             ->count();
 
         $bookingCar = TrBookingCar::query()
-            ->whereIn('cpny_id_site', $companies)
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id_site', $allowedCpny))
             ->where('status', 'C')
             ->whereNull('no_polisi')
             ->count();
 
         $freeParking = TrParkingRegistration::query()
-            ->whereIn('site_id_parking', $companies)
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('site_id_parking', $allowedCpny))
             ->where('status', 'P')
             ->count();
 
@@ -77,7 +90,7 @@ class GaDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-       $companies = array_map('trim', explode(',', $request->user()->cpny_id));
+        $allowedCpny = $this->getAllowedCpny();
 
         $data = TrVoucherTaxi::query()
             ->select([
@@ -92,7 +105,7 @@ class GaDashboardController extends Controller
                 'actual_budget',
                 'status',
             ])
-            ->whereIn('cpny_id_expense', $companies)
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id_expense', $allowedCpny))
             ->where('status', 'C')
             ->whereNull('actual_budget')
             ->orderByDesc('voucher_date')
@@ -122,7 +135,7 @@ class GaDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-       $companies = array_map('trim', explode(',', $request->user()->cpny_id));
+        $allowedCpny = $this->getAllowedCpny();
 
         $data = TrBookingCar::query()
             ->select([
@@ -135,7 +148,7 @@ class GaDashboardController extends Controller
                 'no_polisi',
                 'status',
             ])
-            ->whereIn('cpny_id_site', $companies)
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id_site', $allowedCpny))
             ->where('status', 'C')
             ->whereNull('no_polisi')
             ->orderByDesc('booking_date')
@@ -164,7 +177,7 @@ class GaDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-       $companies = array_map('trim', explode(',', $request->user()->cpny_id));
+        $allowedCpny = $this->getAllowedCpny();
 
         $data = TrParkingRegistration::query()
             ->select([
@@ -178,7 +191,7 @@ class GaDashboardController extends Controller
                 'info',
                 'status',
             ])
-            ->whereIn('site_id_parking', $companies)
+            ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('site_id_parking', $allowedCpny))
             ->where('status', 'P')
             ->orderByDesc('parking_regist_date')
             ->get()

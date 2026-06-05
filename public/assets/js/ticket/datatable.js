@@ -586,7 +586,7 @@ function renderTicketActionDropdown(row) {
                 class="
                     ticket-action-menu
 
-                    absolute right-0 top-full z-[99999] mt-2
+                    fixed z-[99999]
 
                     hidden
 
@@ -616,6 +616,10 @@ function renderTicketActionDropdown(row) {
 }
 
 function buildTicketActions(row) {
+
+    if (!window.isITRole) {
+        return [];
+    }
 
     const actions = [];
 
@@ -838,16 +842,20 @@ $(document).on(
 
         e.stopPropagation();
 
-        $('.ticket-action-menu')
-            .not(
-                $(this)
-                    .siblings('.ticket-action-menu')
-            )
-            .addClass('hidden');
+        const $btn  = $(this);
+        const $menu = $btn.siblings('.ticket-action-menu');
+        const isHidden = $menu.hasClass('hidden');
 
-        $(this)
-            .siblings('.ticket-action-menu')
-            .toggleClass('hidden');
+        $('.ticket-action-menu').addClass('hidden');
+
+        if (isHidden) {
+            const rect      = this.getBoundingClientRect();
+            const menuWidth = 220;
+            const left      = Math.max(0, rect.right - menuWidth);
+            const top       = rect.bottom + 8;
+
+            $menu.css({ top: top + 'px', left: left + 'px' }).removeClass('hidden');
+        }
     }
 );
 
