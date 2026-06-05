@@ -11,7 +11,23 @@ function initTicketDetailModal() {
 
     bindExpandableContent();
 
+    bindPrintTicket();
+
     autoOpenTicketDetail();
+}
+
+function bindPrintTicket() {
+    $(document).on('click', '#btn_print_ticket', function () {
+        const eid = $('#comment_ticket_id').val();
+
+        if (!eid) {
+            return;
+        }
+
+        const url = (window.ticketRoutes.print || '').replace(':eid', eid);
+
+        window.open(url, '_blank');
+    });
 }
 
 function bindOpenTicketDetail() {
@@ -607,6 +623,7 @@ function renderAttachmentTabPanel(attachments = []) {
     attachments.forEach(function (file) {
         const ext = (file.extention || "").toLowerCase();
         const isImage = imageExts.includes(ext);
+        const isPdf = ext === "pdf";
 
         if (isImage) {
             container.append(`
@@ -627,6 +644,29 @@ function renderAttachmentTabPanel(attachments = []) {
                         <i class="fa-solid fa-arrow-up-right-from-square text-sm text-gray-400"></i>
                     </div>
                 </a>
+            `);
+        } else if (isPdf) {
+            container.append(`
+                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                    <div style="height: 240px; position: relative;">
+                        <object data="${file.url}" type="application/pdf" class="w-full h-full" style="height: 240px;">
+                            <div class="flex h-full items-center justify-center bg-red-50 dark:bg-red-900/20">
+                                <i class="fa-solid fa-file-pdf text-5xl text-red-400"></i>
+                            </div>
+                        </object>
+                    </div>
+                    <a href="${file.url}" target="_blank" class="flex items-center justify-between gap-2 px-4 py-2.5 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <div class="min-w-0">
+                            <div class="truncate text-sm font-medium text-gray-700 dark:text-gray-200">
+                                ${file.display_name || file.name}
+                            </div>
+                            <div class="mt-0.5 text-xs text-gray-400">
+                                PDF • ${formatFileSize(file.size || 0)}
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-sm text-gray-400"></i>
+                    </a>
+                </div>
             `);
         } else {
             container.append(`

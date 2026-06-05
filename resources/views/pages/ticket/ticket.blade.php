@@ -1590,6 +1590,8 @@
             tracking: "{{ url('/ticket/tracking') }}/:eid",
 
             comments: "{{ url('/ticket/comments') }}/:eid",
+
+            print: "{{ url('/ticket/print') }}/:eid",
         };
     </script>
     <script src="{{ asset('assets/js/ticket/core.js') }}"></script>

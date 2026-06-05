@@ -2100,9 +2100,29 @@ class ItRecommendationController extends Controller
             ->orderBy('id')
             ->get();
 
+        $attachmentResponse = app(TrAttachmentController::class)
+            ->listAttachments(request(), $this->doctype, $header->docid);
+
+        $attachments = $attachmentResponse->getData(true)['attachments'] ?? [];
+
+        $imageExts = ['jpg', 'jpeg', 'png'];
+        foreach ($attachments as &$att) {
+            $ext = strtolower($att['extention'] ?? '');
+            if (in_array($ext, $imageExts) && !empty($att['url'])) {
+                try {
+                    $bytes = file_get_contents($att['url']);
+                    $mime  = $ext === 'png' ? 'image/png' : 'image/jpeg';
+                    $att['base64'] = 'data:' . $mime . ';base64,' . base64_encode($bytes);
+                } catch (\Throwable $e) {
+                    $att['base64'] = null;
+                }
+            }
+        }
+        unset($att);
+
         $pdf = \PDF::loadView(
             'pages.it_recommendation.pdf_it_recommendation',
-            compact('header', 'details', 'approvals')
+            compact('header', 'details', 'approvals', 'attachments')
         )->setPaper('a4', 'portrait');
 
         return $pdf->stream("IT-RECOMMENDATION-{$header->docid}.pdf");

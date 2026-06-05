@@ -2678,6 +2678,46 @@ class TicketController extends Controller
             ->exists();
     }
 
+    public function printTicket(string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::with([
+            'type',
+            'category',
+            'subcategory',
+            'priority',
+            'location',
+            'subLocation',
+        ])->findOrFail($id);
+
+        abort_unless(
+            $this->canAccessTicket($ticket),
+            403
+        );
+
+        $attachmentController = app(TrAttachmentController::class);
+
+        $attachmentResponse = $attachmentController->listAttachments(
+            request(),
+            'TIC',
+            $ticket->ticketid
+        );
+
+        $attachments = $attachmentResponse->getData(true)['attachments'] ?? [];
+
+        $responseActivity = TrTicketActivity::where('ticketid', $ticket->ticketid)
+            ->where('status_pekerjaan', 'RESPONSE')
+            ->orderBy('id')
+            ->first();
+
+        $respondedBy = $responseActivity?->created_by ?? $ticket->pic_ticket;
+
+        return view('pages.ticket.print', compact('ticket', 'attachments', 'respondedBy'));
+    }
+
     public function export(Request $request)
     {
         abort_unless(

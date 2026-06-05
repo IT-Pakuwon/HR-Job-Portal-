@@ -473,6 +473,13 @@
                             </button>
                         </div>
 
+                        {{-- Print Button --}}
+                        <button id="btnPrintRecommendation" type="button"
+                            title="Print PDF"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                            <i class="fa-solid fa-print text-sm"></i>
+                        </button>
+
                         <button id="btnCloseShowModal" type="button"
                             class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
 
@@ -1442,6 +1449,8 @@
             uploadAttachment: @json(route('it-recommendation.upload-attachment', ['hash' => '__HASH__'])),
 
             deleteAttachment: @json(route('it-recommendation.delete-attachment', ['attachment' => '__ID__'])),
+
+            print: @json(url('/it-recommendation/print')) + '/__HASH__',
 
             base: @json(url('/it-recommendation'))
 

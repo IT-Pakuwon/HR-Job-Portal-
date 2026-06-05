@@ -1,6 +1,12 @@
 let currentDetailHash = null;
 let currentDiscussionHash = null;
 
+$(document).on('click', '#btnPrintRecommendation', function () {
+    if (!currentDetailHash) return;
+    const url = (window.ITRecommendationRoutes.print || '').replace('__HASH__', currentDetailHash);
+    window.open(url, '_blank');
+});
+
 async function loadDetail(hash) {
     currentDetailHash = hash;
 

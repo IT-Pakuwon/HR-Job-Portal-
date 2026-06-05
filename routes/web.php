@@ -1332,6 +1332,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/complete/{hash}', 'completeTicket')->name('ticket.complete');
             Route::post('/reopen/{hash}', 'reopenTicket')->name('ticket.reopen');
             Route::post('/comment/{hash}', 'comment')->name('ticket.comment');
+
+            Route::get('/print/{hash}', 'printTicket')->name('ticket.print');
         });
 
         Route::controller(TicketController::class)->group(function () {
