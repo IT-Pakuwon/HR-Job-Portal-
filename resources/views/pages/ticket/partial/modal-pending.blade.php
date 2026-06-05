@@ -163,13 +163,8 @@
                                     Pending Reason
                                 </div>
 
-                                <textarea
-                                    id="pending_response_descr"
-                                    name="response_descr"
-                                    rows="5"
-                                    class="form-textarea w-full"
-                                    placeholder="Write pending reason or waiting detail..."
-                                    required></textarea>
+                                <textarea id="pending_response_descr" name="response_descr" class="hidden"></textarea>
+                                <div id="pending_descr_editor" class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]" style="min-height:120px;"></div>
 
                             </div>
 

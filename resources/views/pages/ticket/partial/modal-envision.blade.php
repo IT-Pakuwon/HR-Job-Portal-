@@ -83,8 +83,8 @@
                                     Envision Description
                                 </div>
 
-                                <textarea id="envision_descr" name="response_descr" rows="6" class="form-textarea w-full"
-                                    placeholder="Explain issue analysis, next action plan, estimation..." required></textarea>
+                                <textarea id="envision_descr" name="response_descr" class="hidden"></textarea>
+                                <div id="envision_descr_editor" class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]" style="min-height:120px;"></div>
                             </div>
 
                         </div>

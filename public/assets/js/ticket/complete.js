@@ -73,11 +73,22 @@ function initCompleteTicket() {
         );
 }
 
+function initCompleteDescrEditor() {
+    if (window.completeDescr) return;
+    window.completeDescr = new Quill('#complete_solution_editor', {
+        theme: 'snow',
+        placeholder: 'Write solution description...',
+        modules: { toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']] }
+    });
+}
+
 function openCompleteTicketModal(eid) {
 
     if (!eid) {
         return;
     }
+
+    initCompleteDescrEditor();
 
     resetCompleteTicketForm();
 
@@ -120,8 +131,7 @@ function resetCompleteTicketForm() {
     $('#complete_pic_ticket')
         .text('-');
 
-    $('#complete_solution_descr')
-        .val('');
+    if (window.completeDescr) { window.completeDescr.setText(''); }
 
     $('#complete_use_schedule')
         .prop('checked', false);
@@ -203,12 +213,11 @@ function populateCompleteTicket(ticket) {
             'Ticket Completed'
         );
 
-    $('#complete_solution_descr')
-        .val(
-            ticket.serviceorder_action ||
-            ticket.solution_descr ||
-            ''
+    if (window.completeDescr) {
+        window.completeDescr.clipboard.dangerouslyPasteHTML(
+            ticket.serviceorder_action || ticket.solution_descr || ''
         );
+    }
 }
 
 function submitCompleteTicket() {
@@ -219,6 +228,8 @@ function submitCompleteTicket() {
 
     const form =
         $('#completeTicketForm')[0];
+
+    if (window.completeDescr) { $('#complete_solution_descr').val(window.completeDescr.root.innerHTML); }
 
     const formData =
         new FormData(form);

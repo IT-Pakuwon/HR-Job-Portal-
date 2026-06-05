@@ -1,5 +1,22 @@
 window.Ticket = window.Ticket || {};
 
+function initIssueDescrEditor() {
+    if (window.issueDescrQuill) return;
+
+    window.issueDescrQuill = new Quill('#issue_descr_editor', {
+        theme: 'snow',
+        placeholder: 'Explain your issue detail...',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link'],
+                ['clean'],
+            ],
+        },
+    });
+}
+
 function initTicketRequestForm() {
 
     bindOpenCreateTicketModal();
@@ -14,6 +31,8 @@ function bindOpenCreateTicketModal() {
         'click',
         '#btn_create_ticket',
         function () {
+
+            initIssueDescrEditor();
 
             resetCreateTicketForm();
 
@@ -84,6 +103,10 @@ function resetCreateTicketForm() {
     $('#issue_summary').val('');
     $('#issue_descr').val('');
 
+    if (window.issueDescrQuill) {
+        window.issueDescrQuill.setText('');
+    }
+
 }
 
 function bindSubmitCreateTicket() {
@@ -115,6 +138,11 @@ function submitCreateTicket() {
         Ticket.selectors.createForm
     );
 
+    if (window.issueDescrQuill) {
+        $('#issue_descr').val(
+            window.issueDescrQuill.root.innerHTML
+        );
+    }
 
     const form =
         $(Ticket.selectors.createForm)[0];

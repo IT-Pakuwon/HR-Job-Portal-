@@ -177,6 +177,28 @@
                             color:#6b7280;
                             vertical-align:top;
                         ">
+                            Category
+                        </td>
+
+                        <td
+                            style="
+                            padding:14px 0;
+                            font-size:14px;
+                            color:#111827;
+                        ">
+                            {{ $ticket->category->ticket_category_name ?? $ticket->ticket_categoryid }}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td
+                            style="
+                            padding:14px 0;
+                            font-size:13px;
+                            font-weight:600;
+                            color:#6b7280;
+                            vertical-align:top;
+                        ">
                             Priority
                         </td>
 

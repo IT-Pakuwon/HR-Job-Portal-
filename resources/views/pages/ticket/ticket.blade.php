@@ -929,8 +929,11 @@
 
                                     </label>
 
-                                    <textarea id="issue_descr" name="issue_descr" rows="5" placeholder="Explain your issue detail..."
-                                        class="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500"></textarea>
+                                    <textarea id="issue_descr" name="issue_descr" class="hidden"></textarea>
+
+                                    <div id="issue_descr_editor"
+                                        class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]"
+                                        style="min-height: 140px;"></div>
 
                                 </div>
 
@@ -1532,8 +1535,10 @@
 
 
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
 
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <script>

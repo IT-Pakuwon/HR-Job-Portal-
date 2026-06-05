@@ -8,6 +8,7 @@ use App\Mail\TicketCompletedMail;
 use App\Mail\TicketCreatedMail;
 use App\Mail\TicketReopenMail;
 use App\Mail\TicketTransferMail;
+use App\Models\MsTicketCategoryDept;
 use App\Models\MsWaSetting;
 use App\Models\SysUserRole;
 use App\Models\TrTicket;
@@ -74,10 +75,27 @@ class TicketNotificationService
     ) {
         $emails = collect();
 
-        $itUsers =
-            $this->getITUsers();
+        $picUsernames = MsTicketCategoryDept::query()
 
-        foreach ($itUsers as $user) {
+            ->where('ticket_categoryid', $ticket->ticket_categoryid)
+
+            ->where('status', 'A')
+
+            ->pluck('username')
+
+            ->unique()
+
+            ->values();
+
+        $picUsers = User::query()
+
+            ->whereIn('username', $picUsernames)
+
+            ->where('status', 'A')
+
+            ->get();
+
+        foreach ($picUsers as $user) {
             $email =
                 $this->getUserEmail($user);
 

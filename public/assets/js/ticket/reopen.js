@@ -61,11 +61,22 @@ function initReopenTicket() {
         );
 }
 
+function initReopenDescrEditor() {
+    if (window.reopenDescr) return;
+    window.reopenDescr = new Quill('#reopen_descr_editor', {
+        theme: 'snow',
+        placeholder: 'Write reopen description...',
+        modules: { toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']] }
+    });
+}
+
 function openReopenTicketModal(eid) {
 
     if (!eid) {
         return;
     }
+
+    initReopenDescrEditor();
 
     resetReopenTicketForm();
 
@@ -108,8 +119,7 @@ function resetReopenTicketForm() {
     $('#reopen_pic_ticket')
         .text('-');
 
-    $('#reopen_descr')
-        .val('');
+    if (window.reopenDescr) { window.reopenDescr.setText(''); }
 
     Ticket.state.reopenAttachments = [];
 
@@ -181,8 +191,7 @@ function populateReopenTicket(ticket) {
             'Ticket Reopened'
         );
 
-    $('#reopen_descr')
-        .val('');
+    if (window.reopenDescr) { window.reopenDescr.setText(''); }
 }
 
 function submitReopenTicket() {
@@ -193,6 +202,8 @@ function submitReopenTicket() {
 
     const form =
         $('#reopenTicketForm')[0];
+
+    if (window.reopenDescr) { $('#reopen_descr').val(window.reopenDescr.root.innerHTML); }
 
     const formData =
         new FormData(form);

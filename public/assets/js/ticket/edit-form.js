@@ -29,6 +29,8 @@ function bindOpenEditTicket() {
 
 function openEditTicketModal(eid) {
 
+    initIssueDescrEditor();
+
     resetCreateTicketForm();
 
     $('#ticket_eid')
@@ -155,6 +157,12 @@ function loadEditTicket(eid) {
             $('#issue_descr')
                 .val(ticket.issue_descr);
 
+            if (window.issueDescrQuill) {
+                window.issueDescrQuill.clipboard.dangerouslyPasteHTML(
+                    ticket.issue_descr || ''
+                );
+            }
+
             Ticket.state.existingAttachments =
                 response.data.attachments || [];
 
@@ -211,6 +219,12 @@ function submitUpdateTicket() {
     clearValidationErrors(
         Ticket.selectors.createForm
     );
+
+    if (window.issueDescrQuill) {
+        $('#issue_descr').val(
+            window.issueDescrQuill.root.innerHTML
+        );
+    }
 
     const eid =
         $('#ticket_eid').val();

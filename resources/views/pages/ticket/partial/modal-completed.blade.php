@@ -96,8 +96,8 @@
                                     Solution Description
                                 </div>
 
-                                <textarea id="complete_solution_descr" name="solution_descr" rows="7" class="form-textarea w-full"
-                                    placeholder="Explain final resolution, root cause, actions performed, or workaround..." required></textarea>
+                                <textarea id="complete_solution_descr" name="solution_descr" class="hidden"></textarea>
+                                <div id="complete_solution_editor" class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]" style="min-height:120px;"></div>
 
                             </div>
 

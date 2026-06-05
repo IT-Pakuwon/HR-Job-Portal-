@@ -8,8 +8,18 @@ function initProcessTicket() {
     bindProcessAttachment();
 }
 
+function initProcessDescrEditor() {
+    if (window.processDescr) return;
+    window.processDescr = new Quill('#process_descr_editor', {
+        theme: 'snow',
+        placeholder: 'Write process description...',
+        modules: { toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']] }
+    });
+}
+
 function openProcessTicketModal(eid) {
     if (!eid) return;
+    initProcessDescrEditor();
     resetProcessTicketForm();
     $("#process_ticket_eid").val(eid);
     openModal("#processTicketModal");
@@ -29,7 +39,7 @@ function resetProcessTicketForm() {
     $("#process_pic_ticket").text("-");
     $("#process_ticket_category").text("-");
     $("#process_ticket_sla").text("-");
-    $("#response_descr").val("");
+    if (window.processDescr) { window.processDescr.setText(''); }
     $("#process_use_schedule").prop("checked", false);
     $("#process_schedule_container").addClass("hidden");
     $("#process_working_start_date").val("");
@@ -78,8 +88,7 @@ function populateProcessTicket(ticket) {
             );
     }
 
-    // Optionally prefill previous process description
-    $("#response_descr").val(ticket.response_descr || "");
+    if (window.processDescr) { window.processDescr.clipboard.dangerouslyPasteHTML(ticket.response_descr || ''); }
 }
 
 function bindProcessSchedule() {
@@ -169,6 +178,9 @@ function bindSubmitProcessTicket() {
 
 function submitProcessTicket() {
     const eid = $("#process_ticket_eid").val();
+
+    if (window.processDescr) { $('#response_descr').val(window.processDescr.root.innerHTML); }
+
     const formData = new FormData($("#processTicketForm")[0]);
     Ticket.state.processAttachments.forEach((file) => {
         formData.append("attachments[]", file);

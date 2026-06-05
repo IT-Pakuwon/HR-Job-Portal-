@@ -235,7 +235,11 @@ function renderTicketInformation(ticket) {
                 `,
     );
 
-    $("#detail_issue_descr").html(nl2br(ticket.issue_descr || "-"));
+    $("#detail_issue_descr").html(
+        ticket.issue_descr
+            ? `<div class="ql-editor" style="padding:0;height:auto;overflow:visible;">${ticket.issue_descr}</div>`
+            : "-"
+    );
 
     $("#detail_solution_descr").html(
         ticket.solution_descr
@@ -1581,10 +1585,22 @@ function checkExpandableContent(selector) {
         overflow: "hidden",
     });
 
-    if (content[0].scrollHeight > 180) {
-        button.removeClass("hidden");
-    } else {
-        button.addClass("hidden");
+    function updateBtn() {
+        if (content[0].scrollHeight > 180) {
+            button.removeClass("hidden");
+        } else {
+            button.addClass("hidden");
+        }
+    }
+
+    updateBtn();
+
+    const imgs = content.find("img");
+
+    if (imgs.length) {
+        imgs.on("load error", function () {
+            updateBtn();
+        });
     }
 }
 

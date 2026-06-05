@@ -13,11 +13,22 @@ function initPendingTicket() {
     bindPendingAttachment();
 }
 
+function initPendingDescrEditor() {
+    if (window.pendingDescr) return;
+    window.pendingDescr = new Quill('#pending_descr_editor', {
+        theme: 'snow',
+        placeholder: 'Write pending reason...',
+        modules: { toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']] }
+    });
+}
+
 function openPendingTicketModal(eid) {
 
     if (!eid) {
         return;
     }
+
+    initPendingDescrEditor();
 
     resetPendingTicketForm();
 
@@ -64,8 +75,7 @@ function resetPendingTicketForm() {
     $('#pending_ticket_sla')
         .text('-');
 
-    $('#pending_response_descr')
-        .val('');
+    if (window.pendingDescr) { window.pendingDescr.setText(''); }
 
     $('#pending_use_schedule')
         .prop('checked', false);
@@ -439,6 +449,8 @@ function submitPendingTicket() {
 
     const eid =
         $('#pending_ticket_eid').val();
+
+    if (window.pendingDescr) { $('#pending_response_descr').val(window.pendingDescr.root.innerHTML); }
 
     const formData =
         new FormData(

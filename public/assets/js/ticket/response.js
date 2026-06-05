@@ -1,9 +1,20 @@
 window.Ticket = window.Ticket || {};
 
+function initResponseDescrEditor() {
+    if (window.responseDescr) return;
+    window.responseDescr = new Quill('#response_descr_editor', {
+        theme: 'snow',
+        placeholder: 'Write response description...',
+        modules: { toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']] }
+    });
+}
+
 function openResponseTicketModal(eid) {
     if (!eid) {
         return;
     }
+
+    initResponseDescrEditor();
 
     resetResponseTicketForm();
 
@@ -16,6 +27,8 @@ function openResponseTicketModal(eid) {
 
 function resetResponseTicketForm() {
     $("#responseTicketForm")[0].reset();
+
+    if (window.responseDescr) { window.responseDescr.setText(''); }
 
     $("#response_pic")
         .empty()
@@ -274,6 +287,8 @@ $(document).on("change", "#response_use_schedule", function () {
 
 function submitResponseTicket() {
     const eid = $("#response_ticket_eid").val();
+
+    if (window.responseDescr) { $('#response_descr').val(window.responseDescr.root.innerHTML); }
 
     const formData = new FormData($("#responseTicketForm")[0]);
 

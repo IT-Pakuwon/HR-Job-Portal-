@@ -162,11 +162,8 @@
                                     Process Description
                                 </div>
 
-                                <textarea id="response_descr"
-                                    name="response_descr"
-                                    rows="5"
-                                    class="form-textarea w-full"
-                                    placeholder="Write current process progress..."></textarea>
+                                <textarea id="response_descr" name="response_descr" class="hidden"></textarea>
+                                <div id="process_descr_editor" class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]" style="min-height:120px;"></div>
 
                             </div>
 

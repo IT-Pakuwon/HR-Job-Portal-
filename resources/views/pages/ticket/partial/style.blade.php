@@ -299,4 +299,12 @@
     #ticketTable tbody td {
         overflow: visible !important;
     }
+
+    #detail_issue_descr .ql-editor img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+        display: block;
+        margin: 4px 0;
+    }
 </style>

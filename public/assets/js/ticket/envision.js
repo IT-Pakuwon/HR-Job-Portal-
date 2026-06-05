@@ -85,11 +85,22 @@ function initEnvisionTicket() {
     );
 }
 
+function initEnvisionDescrEditor() {
+    if (window.envisionDescr) return;
+    window.envisionDescr = new Quill('#envision_descr_editor', {
+        theme: 'snow',
+        placeholder: 'Write envision description...',
+        modules: { toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']] }
+    });
+}
+
 function openEnvisionTicketModal(eid) {
 
     if (!eid) {
         return;
     }
+
+    initEnvisionDescrEditor();
 
     resetEnvisionTicketForm();
 
@@ -135,8 +146,7 @@ function resetEnvisionTicketForm() {
     $('#envision_response_summary')
         .val('');
 
-    $('#envision_descr')
-        .val('');
+    if (window.envisionDescr) { window.envisionDescr.setText(''); }
 
     $('#envision_working_start_date')
         .val('');
@@ -271,6 +281,8 @@ function submitEnvisionTicket() {
 
     const form =
         $('#envisionTicketForm')[0];
+
+    if (window.envisionDescr) { $('#envision_descr').val(window.envisionDescr.root.innerHTML); }
 
     const formData =
         new FormData(form);

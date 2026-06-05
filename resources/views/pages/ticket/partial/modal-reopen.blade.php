@@ -96,12 +96,8 @@
                                     Reopen Description
                                 </div>
 
-                                <textarea id="reopen_descr"
-                                    name="response_descr"
-                                    rows="7"
-                                    class="form-textarea w-full"
-                                    placeholder="Explain remaining issue, incorrect solution, or additional request..."
-                                    required></textarea>
+                                <textarea id="reopen_descr" name="response_descr" class="hidden"></textarea>
+                                <div id="reopen_descr_editor" class="rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]" style="min-height:120px;"></div>
 
                             </div>
 
