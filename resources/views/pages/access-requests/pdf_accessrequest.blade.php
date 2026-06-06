@@ -459,27 +459,15 @@
 
                 <tr>
 
-                    <th width="20%">
+                    <th width="60%">
                         Access Item
                     </th>
 
-                    <th width="12%">
+                    <th width="20%">
                         Category
                     </th>
 
-                    <th width="16%">
-                        Username
-                    </th>
-
-                    <th width="16%">
-                        Password
-                    </th>
-
-                    <th width="22%">
-                        Response
-                    </th>
-
-                    <th width="14%">
+                    <th width="20%">
                         Status
                     </th>
 
@@ -526,18 +514,6 @@
                         </td>
 
                         <td>
-                            {{ $item->access_username ?? '-' }}
-                        </td>
-
-                        <td>
-                            {{ $item->access_password ?? '-' }}
-                        </td>
-
-                        <td>
-                            {{ $item->access_response ?? '-' }}
-                        </td>
-
-                        <td>
 
                             <span class="table-status {{ $detailClass }}">
                                 {{ $detailStatus }}
@@ -551,7 +527,7 @@
 
                     <tr>
 
-                        <td colspan="6"
+                        <td colspan="3"
                             style="
                                 text-align:center;
                                 padding:16px;

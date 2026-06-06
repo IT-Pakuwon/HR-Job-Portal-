@@ -266,7 +266,7 @@ function docNotifications() {
 
         async load() {
             try {
-                const res = await fetch('/my-document-notifications');
+                const res = await fetch('/my-document-notifications', { headers: { 'Accept': 'application/json' } });
                 if (!res.ok) return;
                 const { data = [] } = await res.json();
                 const seen = this._getSeen();
