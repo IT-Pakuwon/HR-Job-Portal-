@@ -35,40 +35,26 @@
 
     <main
         class="relative min-h-screen sm:h-full"
-        style="
-            background:
-            radial-gradient(circle at center,
-                rgba(255,255,255,.28) 0%,
-                rgba(255,255,255,.12) 20%,
-                rgba(255,255,255,.04) 35%,
-                rgba(0,0,0,0) 60%),
-            linear-gradient(
-                135deg,
-                #8b1d17 0%,
-                #7a1714 35%,
-                #6b1312 100%
-            );
-        ">
+        style="background:#07051a;">
 
-        {{-- Top glow --}}
-        <div
-            class="pointer-events-none absolute left-1/2 top-0 h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-white/15 blur-[180px]">
-        </div>
+        {{-- Deep base gradient --}}
+        <div class="pointer-events-none absolute inset-0"
+            style="background:linear-gradient(135deg,#0d0b2e 0%,#0f0c38 40%,#130e42 100%);"></div>
 
-        {{-- Left glow --}}
+        {{-- Top-left indigo bloom --}}
         <div
-            class="pointer-events-none absolute left-0 top-1/2 h-[900px] w-[900px] -translate-y-1/2 rounded-full bg-white/10 blur-[220px]">
-        </div>
+            class="pointer-events-none absolute -left-40 -top-40 h-[700px] w-[700px] rounded-full blur-[120px]"
+            style="background:radial-gradient(circle,rgba(99,102,241,0.35) 0%,rgba(79,70,229,0.15) 50%,transparent 70%);"></div>
 
-        {{-- Right glow --}}
+        {{-- Bottom-right violet bloom --}}
         <div
-            class="pointer-events-none absolute right-0 top-1/2 h-[900px] w-[900px] -translate-y-1/2 rounded-full bg-white/10 blur-[220px]">
-        </div>
+            class="pointer-events-none absolute -bottom-40 -right-40 h-[700px] w-[700px] rounded-full blur-[120px]"
+            style="background:radial-gradient(circle,rgba(139,92,246,0.30) 0%,rgba(109,40,217,0.12) 50%,transparent 70%);"></div>
 
-        {{-- Bottom glow --}}
+        {{-- Center subtle glow --}}
         <div
-            class="pointer-events-none absolute bottom-0 left-1/2 h-[400px] w-[800px] -translate-x-1/2 rounded-full bg-white/5 blur-[180px]">
-        </div>
+            class="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[160px]"
+            style="background:radial-gradient(ellipse,rgba(99,102,241,0.12) 0%,transparent 70%);"></div>
 
         {{-- Main Content --}}
         <div class="relative flex min-h-screen sm:h-screen items-center justify-center p-3 md:p-6 lg:p-8">

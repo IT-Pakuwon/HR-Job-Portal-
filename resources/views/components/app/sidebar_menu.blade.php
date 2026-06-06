@@ -32,7 +32,7 @@
                 <!-- DASHBOARD -->
                 {{-- <li
                     class="{{ Request::segment(1) === 'dashboard'
-                        ? 'bg-violet-500/10 text-violet-600'
+                        ? 'bg-indigo-500/10 text-indigo-600'
                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@
 
                             <li
                                 class="{{ Route::is($menu->menu_route . '*')
-                                    ? 'bg-violet-500/10 text-violet-600'
+                                    ? 'bg-indigo-500/10 text-indigo-600'
                                     : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
                                 <a href="{{ route($menu->menu_route) }}"
@@ -113,7 +113,7 @@
 
                                 <button @click="open = !open"
                                     class="{{ $isActive
-                                        ? 'bg-violet-500/10 text-violet-600'
+                                        ? 'bg-indigo-500/10 text-indigo-600'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
                                     flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
 
@@ -155,7 +155,7 @@
 
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
                                                 class="{{ Route::is($child->menu_route . '*')
-                                                    ? 'text-violet-600'
+                                                    ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
 
@@ -218,7 +218,7 @@
 
                             <li
                                 class="{{ Route::is($menu->menu_route . '*')
-                                    ? 'bg-violet-500/10 text-violet-600'
+                                    ? 'bg-indigo-500/10 text-indigo-600'
                                     : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
                                 <a href="{{ route($menu->menu_route) }}"
@@ -249,7 +249,7 @@
 
                                 <button @click="open = !open"
                                     class="{{ $isActive
-                                        ? 'bg-violet-500/10 text-violet-600'
+                                        ? 'bg-indigo-500/10 text-indigo-600'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
                                     flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
 
@@ -291,7 +291,7 @@
 
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
                                                 class="{{ Route::is($child->menu_route . '*')
-                                                    ? 'text-violet-600'
+                                                    ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
 
@@ -354,7 +354,7 @@
 
                             <li
                                 class="{{ Route::is($menu->menu_route . '*')
-                                    ? 'bg-violet-500/10 text-violet-600'
+                                    ? 'bg-indigo-500/10 text-indigo-600'
                                     : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
                                 <a href="{{ route($menu->menu_route) }}"
@@ -385,7 +385,7 @@
 
                                 <button @click="open = !open"
                                     class="{{ $isActive
-                                        ? 'bg-violet-500/10 text-violet-600'
+                                        ? 'bg-indigo-500/10 text-indigo-600'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
                                     flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
 
@@ -427,7 +427,7 @@
 
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
                                                 class="{{ Route::is($child->menu_route . '*')
-                                                    ? 'text-violet-600'
+                                                    ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
 
@@ -491,7 +491,7 @@
                         @if ($children->isEmpty() && $isDirectMenu)
 
                             <li class="{{ Route::is($menu->menu_route . '*')
-                                ? 'bg-violet-500/10 text-violet-600'
+                                ? 'bg-indigo-500/10 text-indigo-600'
                                 : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
                                 <a href="{{ route($menu->menu_route) }}"
@@ -522,7 +522,7 @@
 
                                 <button @click="open = !open"
                                     class="{{ $isActive
-                                        ? 'bg-violet-500/10 text-violet-600'
+                                        ? 'bg-indigo-500/10 text-indigo-600'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
                                     flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
 
@@ -563,7 +563,7 @@
                                         <li>
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
                                                 class="{{ Route::is($child->menu_route . '*')
-                                                    ? 'text-violet-600'
+                                                    ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
 
@@ -622,7 +622,7 @@
                         @if ($children->isEmpty() && $isDirectMenu)
 
                             <li class="{{ Route::is($menu->menu_route . '*')
-                                ? 'bg-violet-500/10 text-violet-600'
+                                ? 'bg-indigo-500/10 text-indigo-600'
                                 : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
                                 <a href="{{ route($menu->menu_route) }}"
@@ -653,7 +653,7 @@
 
                                 <button @click="open = !open"
                                     class="{{ $isActive
-                                        ? 'bg-violet-500/10 text-violet-600'
+                                        ? 'bg-indigo-500/10 text-indigo-600'
                                         : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
                                     flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
 
@@ -694,7 +694,7 @@
                                         <li>
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
                                                 class="{{ Route::is($child->menu_route . '*')
-                                                    ? 'text-violet-600'
+                                                    ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
 
@@ -772,16 +772,16 @@
 
                                     <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('users') }}"
-                                                class="{{ Request::segment(1) === 'users' ? 'text-violet-600' : '' }} sidebar-link text-sm">Users</a>
+                                                class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Users</a>
                                         </li>
                                         <li><a href="{{ route('roles') }}"
-                                                class="{{ Request::segment(1) === 'roles' ? 'text-violet-600' : '' }} sidebar-link text-sm">Roles</a>
+                                                class="{{ Request::segment(1) === 'roles' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Roles</a>
                                         </li>
                                         <li><a href="{{ route('access_rights') }}"
-                                                class="{{ Request::segment(1) === 'access_rights' ? 'text-violet-600' : '' }} sidebar-link text-sm">Access
+                                                class="{{ Request::segment(1) === 'access_rights' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Access
                                                 Rights</a></li>
                                         <li><a href="{{ route('role_menus') }}"
-                                                class="{{ Request::segment(1) === 'role_menus' ? 'text-violet-600' : '' }} sidebar-link text-sm">Role
+                                                class="{{ Request::segment(1) === 'role_menus' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Role
                                                 Menus</a></li>
                                     </ul>
                                 </li>
@@ -807,13 +807,13 @@
 
                                     <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('applications') }}"
-                                                class="{{ Request::segment(1) === 'applications' ? 'text-violet-600' : '' }} sidebar-link text-sm">Applications</a>
+                                                class="{{ Request::segment(1) === 'applications' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Applications</a>
                                         </li>
                                         <li><a href="{{ route('screens') }}"
-                                                class="{{ Request::segment(1) === 'screens' ? 'text-violet-600' : '' }} sidebar-link text-sm">Screens</a>
+                                                class="{{ Request::segment(1) === 'screens' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Screens</a>
                                         </li>
                                         <li><a href="{{ route('menus') }}"
-                                                class="{{ Request::segment(1) === 'menus' ? 'text-violet-600' : '' }} sidebar-link text-sm">Menus</a>
+                                                class="{{ Request::segment(1) === 'menus' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Menus</a>
                                         </li>
                                     </ul>
                                 </li>
@@ -839,20 +839,20 @@
 
                                     <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('companies') }}"
-                                                class="{{ Request::segment(1) === 'companies' ? 'text-violet-600' : '' }} sidebar-link text-sm">Companies</a>
+                                                class="{{ Request::segment(1) === 'companies' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Companies</a>
                                         </li>
                                         <li><a href="{{ route('department') }}"
-                                                class="{{ Request::segment(1) === 'department' ? 'text-violet-600' : '' }} sidebar-link text-sm">Department</a>
+                                                class="{{ Request::segment(1) === 'department' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Department</a>
                                         </li>
                                         <li><a href="{{ route('business-units') }}"
-                                                class="{{ Request::segment(1) === 'business-units' ? 'text-violet-600' : '' }} sidebar-link text-sm">Business
+                                                class="{{ Request::segment(1) === 'business-units' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Business
                                                 Units</a>
                                         </li>
                                         <li><a href="{{ route('tenants') }}"
-                                                class="{{ Request::segment(1) === 'tenants' ? 'text-violet-600' : '' }} sidebar-link text-sm">Tenants</a>
+                                                class="{{ Request::segment(1) === 'tenants' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Tenants</a>
                                         </li>
                                         <li><a href="{{ route('locations') }}"
-                                                class="{{ Request::segment(1) === 'locations' ? 'text-violet-600' : '' }} sidebar-link text-sm">Locations</a>
+                                                class="{{ Request::segment(1) === 'locations' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Locations</a>
                                         </li>
 
 
@@ -879,33 +879,33 @@
 
                                     <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('categories') }}"
-                                                class="{{ Request::segment(1) === 'categories' ? 'text-violet-600' : '' }} sidebar-link text-sm">Categories</a>
+                                                class="{{ Request::segment(1) === 'categories' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Categories</a>
                                         </li>
                                         <li><a href="{{ route('vendors') }}"
-                                                class="{{ Request::segment(1) === 'vendors' ? 'text-violet-600' : '' }} sidebar-link text-sm">Vendors</a>
+                                                class="{{ Request::segment(1) === 'vendors' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Vendors</a>
                                         </li>
                                         <li><a href="{{ route('inventories') }}"
-                                                class="{{ Request::segment(1) === 'inventories' ? 'text-violet-600' : '' }} sidebar-link text-sm">Inventories</a>
+                                                class="{{ Request::segment(1) === 'inventories' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Inventories</a>
                                         </li>
                                         <li><a href="{{ route('autonbrs') }}"
-                                                class="{{ Request::segment(1) === 'autonbrs' ? 'text-violet-600' : '' }} sidebar-link text-sm">Autonbrs</a>
+                                                class="{{ Request::segment(1) === 'autonbrs' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Autonbrs</a>
                                         </li>
                                         <li><a href="{{ route('tops') }}"
-                                                class="{{ Request::segment(1) === 'tops' ? 'text-violet-600' : '' }} sidebar-link text-sm">TOPS</a>
+                                                class="{{ Request::segment(1) === 'tops' ? 'text-indigo-600' : '' }} sidebar-link text-sm">TOPS</a>
                                         </li>
                                         <li><a href="{{ route('sys-calendar') }}"
-                                                class="{{ Request::segment(1) === 'sys-calendar' ? 'text-violet-600' : '' }} sidebar-link text-sm">Calendar
+                                                class="{{ Request::segment(1) === 'sys-calendar' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Calendar
                                                 Exception</a>
                                         </li>
                                         <li><a href="{{ route('attachments-master') }}"
-                                                class="{{ Request::segment(1) === 'attachments-master' ? 'text-violet-600' : '' }} sidebar-link text-sm">Attachments
+                                                class="{{ Request::segment(1) === 'attachments-master' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Attachments
                                                 Master</a>
                                         </li>
                                         <li><a href="{{ route('kendaraan') }}"
-                                                class="{{ Request::segment(1) === 'kendaraan' ? 'text-violet-600' : '' }} sidebar-link text-sm">Kendaraan</a>
+                                                class="{{ Request::segment(1) === 'kendaraan' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Kendaraan</a>
                                         </li>
                                         <li><a href="{{ route('groupbiayanonpurch') }}"
-                                                class="{{ Request::segment(1) === 'groupbiayanonpurch' ? 'text-violet-600' : '' }} sidebar-link text-sm">Group
+                                                class="{{ Request::segment(1) === 'groupbiayanonpurch' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
                                                 Biaya Non Purch</a>
                                         </li>
                                     </ul>
@@ -931,33 +931,33 @@
 
                                     <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('approvals') }}"
-                                                class="{{ Request::segment(1) === 'approvals' ? 'text-violet-600' : '' }} sidebar-link text-sm">Approvals</a>
+                                                class="{{ Request::segment(1) === 'approvals' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Approvals</a>
                                         </li>
                                         <li><a href="{{ route('approvalsgroupbiaya') }}"
-                                                class="{{ Request::segment(1) === 'approvalsgroupbiaya' ? 'text-violet-600' : '' }} sidebar-link text-sm">Approvals
+                                                class="{{ Request::segment(1) === 'approvalsgroupbiaya' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Approvals
                                                 Group Biaya</a>
                                         </li>
                                         <li>
                                             <a href="{{ route('integration.ifcaintegration') }}"
-                                                class="{{ Request::segment(1) === 'ifcaintegration' ? 'text-violet-600' : '' }} sidebar-link text-sm">
+                                                class="{{ Request::segment(1) === 'ifcaintegration' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                                 IFCA Integration
                                             </a>
                                         </li>
                                         <li>
                                             <a href="{{ route('integration.acumvms.index') }}"
-                                                class="{{ Request::segment(1) === 'acumvms' ? 'text-violet-600' : '' }} sidebar-link text-sm">
+                                                class="{{ Request::segment(1) === 'acumvms' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                                 ACUM VMS Integration
                                             </a>
                                         </li>
                                         <li>
                                             <a href="{{ route('user_sync.index') }}"
-                                                class="{{ Request::segment(1) === 'user_sync' ? 'text-violet-600' : '' }} sidebar-link text-sm">
+                                                class="{{ Request::segment(1) === 'user_sync' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                                 User Sync
                                             </a>
                                         </li>
                                         <li>
                                             <a href="{{ route('test-email.index') }}"
-                                                class="{{ Request::segment(1) === 'test-email' ? 'text-violet-600' : '' }} sidebar-link text-sm">
+                                                class="{{ Request::segment(1) === 'test-email' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                                 TESTING EMAIL
                                             </a>
                                         </li>

@@ -66,7 +66,7 @@
     <div class="mt-6 border-t border-gray-100 pt-5 dark:border-gray-700/60">
         <div class="text-xs">
             {{ __('Have an account?') }} <a
-                class="font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400"
+                class="font-medium text-amber-500 hover:text-amber-600 dark:hover:text-amber-400"
                 href="{{ route('login') }}">{{ __('Sign In') }}</a>
         </div>
     </div>
