@@ -40,13 +40,21 @@ class DocumentNotificationController extends Controller
             // R older than 1 day is dismissed automatically
             ->where(fn($q) => $q->where('status', '!=', 'R')
                                 ->orWhere('aprv_dateafter', '>=', now()->subDay()))
-            // exclude docs that have already been resubmitted (new P row with aprv_datebefore)
+            // Exclude D/R rows where the document has already moved on:
+            // (a) user resubmitted → new P row with aprv_datebefore set
+            // (b) already approved after the revision → A row updated after aprv_dateafter
             ->whereNotExists(fn($sub) =>
                 $sub->select(DB::raw(1))
                     ->from($tblApr . ' as t2')
                     ->whereColumn('t2.refnbr', $tblApr . '.refnbr')
-                    ->where('t2.status', 'P')
-                    ->whereNotNull('t2.aprv_datebefore')
+                    ->where(fn($q) =>
+                        $q->where(fn($q2) =>
+                            $q2->where('t2.status', 'P')->whereNotNull('t2.aprv_datebefore')
+                        )->orWhere(fn($q2) =>
+                            $q2->where('t2.status', 'A')
+                               ->whereColumn('t2.updated_at', '>', $tblApr . '.aprv_dateafter')
+                        )
+                    )
             )
             ->get();
 
