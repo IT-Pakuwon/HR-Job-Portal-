@@ -1,32 +1,29 @@
 <x-authentication-layout>
-<div class="w-full overflow-hidden rounded-2xl sm:rounded-[36px] sm:h-full bg-white shadow-[0_20px_80px_rgba(0,0,0,.12)] dark:border dark:border-slate-800 dark:bg-slate-900">
+<div class="w-full overflow-hidden rounded-2xl sm:rounded-[36px] sm:h-full bg-white dark:bg-[#0f0f1a] shadow-[0_30px_100px_rgba(0,0,0,.18)] dark:shadow-[0_30px_100px_rgba(0,0,0,.55)]">
 
     <div class="grid lg:grid-cols-[58%_42%] sm:h-full">
 
         {{-- LEFT HERO --}}
-        <div class="relative hidden p-6 lg:block">
+        <div class="relative hidden p-6 lg:block bg-white dark:bg-[#0f0f1a]">
 
             <div
-                class="relative h-full overflow-hidden rounded-[30px]"
+                class="relative h-full overflow-hidden rounded-[30px] bg-[#2a1208] dark:bg-[#1a0c05]"
                 x-data="loginHero()">
 
-                {{-- Background Slider --}}
-                <template x-for="(image,index) in images" :key="index">
-                    <img
-                        :src="image"
-                        x-show="current === index"
-                        x-transition:enter="transition-opacity duration-1000"
-                        x-transition:enter-start="opacity-0"
-                        x-transition:enter-end="opacity-100"
-                        x-transition:leave="transition-opacity duration-1000"
-                        x-transition:leave-start="opacity-100"
-                        x-transition:leave-end="opacity-0"
-                        class="absolute inset-0 h-full w-full object-cover"
-                        alt="">
-                </template>
+                {{-- Background Image (both light and dark mode) --}}
+                <img
+                    src="{{ asset('images/login/Background 1.png') }}"
+                    class="absolute inset-0 h-full w-full object-cover"
+                    alt="">
 
-                {{-- Overlay --}}
-                <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/80"></div>
+                {{-- Light mode: subtle vignette --}}
+                <div class="absolute inset-0 block dark:hidden" style="background:radial-gradient(ellipse at center,rgba(0,0,0,0.08) 0%,rgba(0,0,0,0.40) 100%);"></div>
+
+                {{-- Dark mode: deeper vignette --}}
+                <div class="absolute inset-0 hidden dark:block" style="background:radial-gradient(ellipse at center,rgba(0,0,0,0.05) 0%,rgba(0,0,0,0.52) 100%);"></div>
+
+                {{-- Wave canvas (transparent — sits over image) --}}
+                <canvas id="orbCanvas" class="absolute inset-0 w-full h-full"></canvas>
 
                 {{-- Top Bar --}}
                 <div class="absolute inset-x-0 top-0 z-20 flex items-center justify-between p-8">
@@ -36,74 +33,59 @@
                         alt="Logo"
                         class="h-12 w-auto">
 
-
                     {{-- Clock --}}
-                    <div
-                        class="rounded-2xl border border-white/15 bg-white/10 px-5 py-3 backdrop-blur-xl shadow-lg shadow-black/10">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex items-center gap-2 text-white">
-
-                                <span
-                                    x-text="time"
-                                    class="text-lg font-semibold tracking-tight">
-                                </span>
-
-                                <span class="text-white/40">
-                                    •
-                                </span>
-
-                                <span
-                                    x-text="date"
-                                    class="text-md text-white/70">
-                                </span>
-
-                            </div>
-
+                    <div class="rounded-2xl border border-white/20 bg-black/20 px-5 py-3 backdrop-blur-xl">
+                        <div class="flex items-center gap-2 text-white">
+                            <span x-text="time" class="text-lg font-semibold tracking-tight"></span>
+                            <span class="text-white/40">•</span>
+                            <span x-text="date" class="text-md text-white/65"></span>
                         </div>
-
                     </div>
 
                 </div>
 
-                {{-- Bottom Content --}}
-                <div class="absolute bottom-12 left-12 z-20 max-w-xl text-white">
+                {{-- Greeting --}}
+                <div class="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-10" style="padding-bottom:30%;">
+                    <p id="greetingText" class="text-2xl font-bold text-white drop-shadow-lg leading-snug min-h-8"></p>
+                    <p class="mt-2 text-xs tracking-widest uppercase text-white/50">Sign in to continue</p>
+                </div>
 
+                {{-- Bottom: APP SYSTEM + Bubbles --}}
+                <div class="absolute bottom-9 inset-x-0 z-20 flex flex-col items-center text-white text-center px-10">
 
+                    <h2 class="text-4xl font-bold tracking-tight drop-shadow-lg">APP SYSTEM</h2>
 
-                    {{-- Modules --}}
-                    <div class="mb-6 flex flex-wrap gap-3">
+                    <p class="mt-1 text-xs font-medium tracking-widest uppercase text-white/55">
+                        Pakuwon Group
+                    </p>
 
-                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
+                    <div class="mt-4 flex flex-wrap justify-center gap-2">
+
+                        <span class="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium backdrop-blur-xl">
                             Purchase Requisition
                         </span>
 
-                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
-                           Item Request
+                        <span class="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium backdrop-blur-xl">
+                            Item Request
                         </span>
 
-                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
+                        <span class="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium backdrop-blur-xl">
                             Digital Approval
                         </span>
 
-                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
-                           IT Support
+                        <span class="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium backdrop-blur-xl">
+                            IT Support
                         </span>
 
-                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
-                           GA Support
+                        <span class="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium backdrop-blur-xl">
+                            GA Support
                         </span>
 
-                        <span class="rounded-full border text-md border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-xl">
-                           PRF
+                        <span class="rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium backdrop-blur-xl">
+                            Recruitment
                         </span>
 
                     </div>
-
-                    <h2 class="text-5xl font-bold leading-tight">
-                        APP System
-                    </h2>
 
                 </div>
 
@@ -112,9 +94,9 @@
         </div>
 
         {{-- RIGHT PANEL --}}
-        <div class="relative overflow-y-auto flex flex-col px-6 py-8 sm:px-8 sm:py-12 lg:px-20 lg:py-16">
+        <div class="relative overflow-y-auto flex flex-col px-6 py-8 sm:px-8 sm:py-12 lg:px-20 lg:py-10 bg-white dark:bg-[#0f0f1a] border-l border-indigo-100/80 dark:border-white/5 [&::-webkit-scrollbar]:hidden" style="scrollbar-width:none">
 
-            <div class="w-full max-w-2xl mx-auto my-auto">
+            <div class="w-full max-w-2xl mx-auto flex-1 flex flex-col justify-center">
 
                 {{-- Theme Toggle --}}
                 <div class="absolute right-5 top-5 sm:right-10 sm:top-10">
@@ -134,12 +116,12 @@
                                 localStorage.setItem('dark-mode', false);
                             }
                         "
-                        class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:scale-105 dark:border-slate-700 dark:bg-slate-800">
+                        class="flex h-11 w-11 items-center justify-center rounded-full border border-indigo-200 bg-white dark:border-white/15 dark:bg-white/8 shadow-sm transition hover:scale-105 hover:bg-indigo-50 dark:hover:bg-white/12 backdrop-blur-sm">
 
                         <svg
                             x-show="!dark"
                             xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 text-slate-600"
+                            class="h-5 w-5 text-indigo-500"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -152,7 +134,7 @@
                         <svg
                             x-show="dark"
                             xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 text-slate-200"
+                            class="h-5 w-5 text-white/70"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -176,11 +158,11 @@
                 {{-- Header --}}
                 <div>
 
-                    <h1 class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    <h1 class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
                         Welcome Back
                     </h1>
 
-                    <p class="mt-3 text-base lg:text-lg text-slate-500 dark:text-slate-400">
+                    <p class="mt-3 text-base lg:text-lg text-gray-500 dark:text-white/40">
                         Sign in to continue accessing APP System.
                     </p>
 
@@ -204,7 +186,7 @@
 
                     <div>
 
-                        <label class="mb-2 block text-md font-semibold text-slate-700 dark:text-slate-300">
+                        <label class="mb-2 block text-md font-semibold text-gray-600 dark:text-white/55">
                             Email Address or Username
                         </label>
 
@@ -217,13 +199,13 @@
                             required
                             autofocus
                             placeholder="john.doe@pakuwon.com"
-                            class="h-14 w-full rounded-2xl border border-slate-300 bg-white px-5 text-slate-900 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                            class="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 text-gray-900 placeholder:text-gray-400 outline-none transition-all focus:border-indigo-400 focus:ring-4 focus:ring-indigo-400/15 dark:border-white/12 dark:bg-white/8 dark:text-white dark:placeholder:text-white/25 dark:focus:border-indigo-400/70 dark:focus:ring-indigo-400/10">
 
                     </div>
 
                     <div x-data="{ show:false }">
 
-                        <label class="mb-2 block text-md font-semibold text-slate-700 dark:text-slate-300">
+                        <label class="mb-2 block text-md font-semibold text-gray-600 dark:text-white/55">
                             Password
                         </label>
 
@@ -234,12 +216,12 @@
                                 name="password"
                                 required
                                 placeholder="Enter password"
-                                class="h-14 w-full rounded-2xl border border-slate-300 bg-white px-5 pr-14 text-slate-900 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                                class="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 pr-14 text-gray-900 placeholder:text-gray-400 outline-none transition-all focus:border-indigo-400 focus:ring-4 focus:ring-indigo-400/15 dark:border-white/12 dark:bg-white/8 dark:text-white dark:placeholder:text-white/25 dark:focus:border-indigo-400/70 dark:focus:ring-indigo-400/10">
 
                             <button
                                 type="button"
                                 @click="show = !show"
-                                class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-300">
+                                class="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-indigo-500 dark:text-white/30 dark:hover:text-white/70">
 
                                 <!-- Eye -->
                                 <svg
@@ -303,31 +285,31 @@
                             </button>
                         </div>
 
-                        <div class="mt-3 flex items-center justify-between">
+                    </div>
 
-                            <label class="flex cursor-pointer items-center gap-2.5">
-                                <input
-                                    type="checkbox"
-                                    name="remember"
-                                    id="remember"
-                                    x-model="remember"
-                                    class="h-4 w-4 cursor-pointer rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800">
-                                <span class="text-sm text-slate-600 dark:text-slate-400">Keep me signed in</span>
-                            </label>
+                    <div class="mt-3 flex items-center justify-between">
 
-                            <a
-                                href="{{ route('password.request') }}"
-                                class="text-md font-medium text-indigo-600 hover:text-indigo-700">
-                                Forgot password?
-                            </a>
+                        <label class="flex cursor-pointer items-center gap-2.5">
+                            <input
+                                type="checkbox"
+                                name="remember"
+                                id="remember"
+                                x-model="remember"
+                                class="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500/50 dark:border-white/20">
+                            <span class="text-sm text-gray-500 dark:text-white/40">Keep me signed in</span>
+                        </label>
 
-                        </div>
+                        <a
+                            href="{{ route('password.request') }}"
+                            class="text-md font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                            Forgot password?
+                        </a>
 
                     </div>
 
                     <button
                         type="submit"
-                        class="h-14 w-full rounded-2xl bg-slate-900 text-base font-semibold text-white transition hover:bg-black dark:bg-white dark:text-slate-900">
+                        class="h-14 w-full rounded-2xl bg-indigo-700 hover:bg-indigo-800 active:scale-[.98] text-base font-bold text-white transition-all shadow-lg shadow-indigo-900/30 dark:bg-indigo-600 dark:hover:bg-indigo-500 dark:shadow-indigo-900/40">
 
                         Sign In
 
@@ -340,19 +322,19 @@
 
                     <div class="flex items-center gap-4">
 
-                        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                        <div class="h-px flex-1 bg-gray-200 dark:bg-white/8"></div>
 
-                        <span class="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                        <span class="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-white/25">
                             Support
                         </span>
 
-                        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                        <div class="h-px flex-1 bg-gray-200 dark:bg-white/8"></div>
 
                     </div>
 
-                    <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div class="mt-6 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-5 dark:border-white/8 dark:bg-white/5">
 
-                        <p class="text-center text-md text-slate-600 dark:text-slate-400">
+                        <p class="text-center text-md text-indigo-900/65 dark:text-white/35">
                             For account activation, or access requests,
                             please contact the IT Department.
                         </p>
@@ -368,6 +350,150 @@
     </div>
 
 </div>
+
+
+<script>
+(function initSiri() {
+
+    function startTypewriter() {
+        const el = document.getElementById('greetingText');
+        if (!el) return;
+
+        const h = new Date().getHours();
+        const greeting = h >= 5 && h < 12 ? 'Good Morning'
+                       : h < 17             ? 'Good Afternoon'
+                       : h < 21             ? 'Good Evening'
+                       :                      'Good Night';
+
+        const msgs = [
+            greeting + '! Welcome back.',
+            "Don't forget to check your notifications for document status updates.",
+            "Check your dashboard — documents may be waiting for your approval.",
+            "Stay on top of your workflow. Review any pending requests today.",
+            "Have you reviewed your open purchase requisitions lately?",
+            "Timely approvals keep your team moving. Check your approval list now.",
+            "A quick dashboard check can save your team hours of waiting.",
+            "Pending items in your queue? Head to the dashboard after sign in.",
+            "New submissions may be waiting for your review in the system.",
+            "Your team is counting on you — check for any open documents today.",
+        ];
+        let idx = 0;
+
+        function typeIn(text, onDone) {
+            let i = 0;
+            el.textContent = '';
+            const iv = setInterval(() => {
+                if (i < text.length) {
+                    el.textContent = text.substring(0, ++i) + '|';
+                } else {
+                    clearInterval(iv);
+                    let blink = true;
+                    const blinkIv = setInterval(() => {
+                        blink = !blink;
+                        el.textContent = text + (blink ? '|' : ' ');
+                    }, 500);
+                    setTimeout(() => { clearInterval(blinkIv); onDone(text); }, 30000);
+                }
+            }, 55);
+        }
+
+        function eraseOut(text, onDone) {
+            let i = text.length;
+            const iv = setInterval(() => {
+                el.textContent = i > 0 ? text.substring(0, --i) + '|' : '';
+                if (i === 0) { clearInterval(iv); setTimeout(onDone, 350); }
+            }, 28);
+        }
+
+        function cycle() {
+            typeIn(msgs[idx], (typed) => {
+                eraseOut(typed, () => {
+                    idx = (idx + 1) % msgs.length;
+                    cycle();
+                });
+            });
+        }
+
+        setTimeout(cycle, 600);
+    }
+
+    function start() {
+        const canvas = document.getElementById('orbCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let W = 0, H = 0, t = 0;
+
+        function resize() {
+            W = canvas.width  = canvas.offsetWidth;
+            H = canvas.height = canvas.offsetHeight;
+        }
+        const ro = new ResizeObserver(resize);
+        ro.observe(canvas);
+        resize();
+
+        const NUM   = 7;
+        const waves = Array.from({length: NUM}, (_, i) => {
+            const sp = i - (NUM - 1) / 2;
+            return {
+                vertOff:  sp * 11,
+                ampScale: Math.exp(-sp * sp * 0.18),
+                phase:    sp * 0.44,
+                lw:       i === Math.floor(NUM / 2) ? 2.8 : Math.max(0.6, 1.8 - Math.abs(sp) * 0.3),
+            };
+        });
+
+        function frame() {
+            t += 0.012;
+            if (!W || !H) { requestAnimationFrame(frame); return; }
+
+            ctx.clearRect(0, 0, W, H);
+
+            const cy      = H * 0.53;
+            const baseAmp = Math.min(W, H) * 0.11 * (0.82 + 0.18 * Math.sin(t * 0.45));
+
+            for (const wv of waves) {
+                const amp = baseAmp * wv.ampScale;
+                const a   = 0.28 + 0.72 * wv.ampScale;
+
+                // Warm white/cream — visible on the dark photo in both modes
+                const grd = ctx.createLinearGradient(0, 0, W, 0);
+                grd.addColorStop(0,    `rgba(255, 230, 180, ${a * 0.80})`);
+                grd.addColorStop(0.42, `rgba(255, 255, 248, ${a})`);
+                grd.addColorStop(0.58, `rgba(255, 255, 248, ${a})`);
+                grd.addColorStop(1,    `rgba(255, 220, 170, ${a * 0.80})`);
+
+                ctx.beginPath();
+                for (let px = 0; px <= W; px += 2) {
+                    const xn = px / W;
+                    const y  = cy + wv.vertOff + amp * (
+                        0.68 * Math.sin(3.0 * Math.PI * xn + t * 1.6 + wv.phase) +
+                        0.32 * Math.sin(5.8 * Math.PI * xn - t * 0.9 + wv.phase * 0.65)
+                    );
+                    px === 0 ? ctx.moveTo(px, y) : ctx.lineTo(px, y);
+                }
+
+                ctx.strokeStyle = grd;
+                ctx.lineWidth   = wv.lw;
+                ctx.shadowBlur  = wv.lw > 2 ? 14 : 5;
+                ctx.shadowColor = 'rgba(255, 240, 200, 0.55)';
+                ctx.stroke();
+            }
+            ctx.shadowBlur = 0;
+
+            requestAnimationFrame(frame);
+        }
+
+        frame();
+        startTypewriter();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
+})();
+</script>
 
 <script>
 function loginForm() {
