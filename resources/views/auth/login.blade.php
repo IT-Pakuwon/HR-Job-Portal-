@@ -94,7 +94,7 @@
         </div>
 
         {{-- RIGHT PANEL --}}
-        <div class="relative overflow-y-auto flex flex-col px-6 py-8 sm:px-8 sm:py-12 lg:px-20 lg:py-10 bg-white dark:bg-[#0f0f1a] border-l border-indigo-100/80 dark:border-white/5 [&::-webkit-scrollbar]:hidden" style="scrollbar-width:none">
+        <div class="relative overflow-y-auto flex flex-col px-6 py-8 sm:px-8 sm:py-8 md:px-12 md:py-10 lg:px-10 lg:py-10 xl:px-20 bg-white dark:bg-[#0f0f1a] border-l border-indigo-100/80 dark:border-white/5 [&::-webkit-scrollbar]:hidden" style="scrollbar-width:none">
 
             <div class="w-full max-w-2xl mx-auto flex-1 flex flex-col justify-center">
 
@@ -149,7 +149,7 @@
                 </div>
 
                 {{-- Mobile Logo --}}
-                <div class="mb-8 sm:mb-12 lg:hidden">
+                <div class="mb-6 sm:mb-8 lg:hidden">
                     <img
                         src="{{ asset('images/Logo Pakuwon.png') }}"
                         class="h-14">
@@ -158,7 +158,7 @@
                 {{-- Header --}}
                 <div>
 
-                    <h1 class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
+                    <h1 class="mt-3 text-3xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
                         Welcome Back
                     </h1>
 
@@ -180,7 +180,7 @@
                     action="{{ route('login') }}"
                     x-data="loginForm()"
                     @submit="onSubmit"
-                    class="mt-6 sm:mt-8 lg:mt-10 space-y-5 sm:space-y-6">
+                    class="mt-5 sm:mt-6 md:mt-8 lg:mt-8 space-y-4 sm:space-y-5 md:space-y-6">
 
                     @csrf
 
@@ -287,9 +287,9 @@
 
                     </div>
 
-                    <div class="mt-3 flex items-center justify-between">
+                    <div class="mt-3 flex items-center justify-between gap-2">
 
-                        <label class="flex cursor-pointer items-center gap-2.5">
+                        <label class="flex cursor-pointer items-center gap-2 shrink-0">
                             <input
                                 type="checkbox"
                                 name="remember"
@@ -301,7 +301,7 @@
 
                         <a
                             href="{{ route('password.request') }}"
-                            class="text-md font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                            class="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors whitespace-nowrap">
                             Forgot password?
                         </a>
 
@@ -318,7 +318,7 @@
                 </form>
 
                 {{-- Footer Help --}}
-                <div class="mt-6 sm:mt-8 lg:mt-10">
+                <div class="mt-5 sm:mt-6 md:mt-8">
 
                     <div class="flex items-center gap-4">
 

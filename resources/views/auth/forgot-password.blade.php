@@ -2,7 +2,7 @@
 
     <div class="w-full max-w-2xl">
 
-        <div class="rounded-[32px] bg-white p-10 shadow-[0_20px_80px_rgba(0,0,0,.18)] dark:bg-[#0f0f1a] dark:border dark:border-indigo-900/40">
+        <div class="rounded-3xl md:rounded-4xl bg-white p-6 sm:p-8 md:p-10 shadow-[0_20px_80px_rgba(0,0,0,.18)] dark:bg-[#0f0f1a] dark:border dark:border-indigo-900/40">
 
             {{-- Theme Toggle --}}
             <div class="flex justify-end">
@@ -61,11 +61,11 @@
                     Account Recovery
                 </span>
 
-                <h1 class="mt-6 text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <h1 class="mt-4 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
                     Forgot Password?
                 </h1>
 
-                <p class="mt-4 text-lg text-gray-500 dark:text-white/40">
+                <p class="mt-3 text-base md:text-lg text-gray-500 dark:text-white/40">
                     Enter your email address and we'll send you a password reset link.
                 </p>
 
@@ -86,7 +86,7 @@
             @endif
 
             {{-- Form --}}
-            <form method="POST" action="{{ route('password.email') }}" class="mt-10 space-y-6">
+            <form method="POST" action="{{ route('password.email') }}" class="mt-5 sm:mt-6 md:mt-8 space-y-4 sm:space-y-5 md:space-y-6">
 
                 @csrf
 
@@ -119,7 +119,7 @@
             </form>
 
             {{-- Divider --}}
-            <div class="mt-10 flex items-center gap-4">
+            <div class="mt-5 sm:mt-6 md:mt-8 flex items-center gap-4">
                 <div class="h-px flex-1 bg-gray-200 dark:bg-white/8"></div>
                 <span class="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-white/25">Support</span>
                 <div class="h-px flex-1 bg-gray-200 dark:bg-white/8"></div>
@@ -134,7 +134,7 @@
             </div>
 
             {{-- Back --}}
-            <div class="mt-8 text-center">
+            <div class="mt-5 sm:mt-6 md:mt-8 text-center">
                 <a href="{{ route('login') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
                     ← Back to Sign In
                 </a>

@@ -35,26 +35,11 @@
 
     <main
         class="relative min-h-screen sm:h-full"
-        style="background:#07051a;">
+        style="background-color:#07051a; background-image:url('{{ asset('images/login/Background 1.png') }}'); background-size:cover; background-position:center;">
 
-        {{-- Deep base gradient --}}
+        {{-- Dark vignette overlay (consistent with left hero panel) --}}
         <div class="pointer-events-none absolute inset-0"
-            style="background:linear-gradient(135deg,#0d0b2e 0%,#0f0c38 40%,#130e42 100%);"></div>
-
-        {{-- Top-left indigo bloom --}}
-        <div
-            class="pointer-events-none absolute -left-40 -top-40 h-[700px] w-[700px] rounded-full blur-[120px]"
-            style="background:radial-gradient(circle,rgba(99,102,241,0.35) 0%,rgba(79,70,229,0.15) 50%,transparent 70%);"></div>
-
-        {{-- Bottom-right violet bloom --}}
-        <div
-            class="pointer-events-none absolute -bottom-40 -right-40 h-[700px] w-[700px] rounded-full blur-[120px]"
-            style="background:radial-gradient(circle,rgba(139,92,246,0.30) 0%,rgba(109,40,217,0.12) 50%,transparent 70%);"></div>
-
-        {{-- Center subtle glow --}}
-        <div
-            class="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[160px]"
-            style="background:radial-gradient(ellipse,rgba(99,102,241,0.12) 0%,transparent 70%);"></div>
+            style="background:radial-gradient(ellipse at center,rgba(0,0,0,0.10) 0%,rgba(0,0,0,0.55) 100%);"></div>
 
         {{-- Main Content --}}
         <div class="relative flex min-h-screen sm:h-screen items-center justify-center p-3 md:p-6 lg:p-8">
