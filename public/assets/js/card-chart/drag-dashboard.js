@@ -1222,10 +1222,14 @@
 
     /* ── Layout modal ───────────────────────────────────────────────── */
     function openLayoutModal() {
-        $$('dbd-modal-layout').classList.remove('hidden');
+        var el = $$('dbd-modal-layout');
+        el.classList.remove('hidden');
+        el.style.display = 'flex';
     }
     function closeLayoutModal() {
-        $$('dbd-modal-layout').classList.add('hidden');
+        var el = $$('dbd-modal-layout');
+        el.style.display = 'none';
+        el.classList.add('hidden');
     }
 
     function renderLayoutOptions() {
@@ -1251,11 +1255,15 @@
         activeSlot = slotEl;
         $$('dbd-chart-search').value = '';
         filterCatalog('');
-        $$('dbd-modal-chart').classList.remove('hidden');
+        var el = $$('dbd-modal-chart');
+        el.classList.remove('hidden');
+        el.style.display = 'flex';
         $$('dbd-chart-search').focus();
     }
     function closeChartModal() {
-        $$('dbd-modal-chart').classList.add('hidden');
+        var el = $$('dbd-modal-chart');
+        el.style.display = 'none';
+        el.classList.add('hidden');
         activeSlot = null;
     }
 
@@ -1353,7 +1361,7 @@
     function updateEmptyState() {
         var hasSections = $$('dbd-sections').children.length > 0;
         $$('dbd-empty').style.display  = hasSections ? 'none' : '';
-        $$('dbd-add-row').style.display = hasSections ? '' : 'none';
+        $$('dbd-add-row').style.display = hasSections ? 'flex' : 'none';
     }
 
     function updateCount() {
