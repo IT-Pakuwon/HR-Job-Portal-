@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\MsTicketCategoryDept;
 use App\Models\SysUserRole;
 use App\Models\TrAccess;
 use App\Models\TrApproval;
@@ -221,6 +222,39 @@ class DocumentNotificationController extends Controller
             }));
         } catch (\Throwable $e) {
             Log::warning('DocumentNotificationController: TrTicket fetch failed', ['err' => $e->getMessage()]);
+        }
+
+        // ── 3b. TrTicket: notify IT category staff when a ticket is CREATED ──
+        // Matches the ticket's ticket_categoryid against MsTicketCategoryDept for this user.
+        // Disappears automatically once IT picks up and changes status away from CREATED.
+        try {
+            $assignedCategories = MsTicketCategoryDept::whereRaw("lower(trim(username)) = ?", [$username])
+                ->where('status', 'A')
+                ->pluck('ticket_categoryid');
+
+            if ($assignedCategories->isNotEmpty()) {
+                $newTickets = TrTicket::where('status_pekerjaan', 'CREATED')
+                    ->whereIn('ticket_categoryid', $assignedCategories)
+                    ->where('updated_at', '>=', now()->subDays(90))
+                    ->select('id', 'ticketid', 'cpny_id', 'ticket_categoryid', 'ticket_sla_days', 'updated_at', 'created_by', 'user_peminta')
+                    ->get();
+
+                $data = $data->concat($newTickets->map(fn($r) => [
+                    'key'        => strtoupper(trim($r->ticketid)) . '_TKT_CREATED',
+                    'hid'        => Hashids::encode($r->id),
+                    'docid'      => $r->ticketid,
+                    'status'     => 'TKT_CREATED',
+                    'label'      => 'New Ticket',
+                    'message'    => 'Hi, a new ticket has been created from ' . ($r->user_peminta ?? $r->created_by) . ', please review and respond to the ticket.',
+                    'cpnyid'     => $r->cpny_id,
+                    'url'        => '/showticket',
+                    'by'         => $r->user_peminta ?? $r->created_by,
+                    'sla_days'   => $r->ticket_sla_days,
+                    'updated_at' => $r->updated_at,
+                ]));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationController: TrTicket (category IT) fetch failed', ['err' => $e->getMessage()]);
         }
 
         // ── 4a. TrItrecommend: notify the created_user on I / P / D / C ──

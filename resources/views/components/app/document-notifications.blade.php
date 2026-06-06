@@ -266,6 +266,7 @@ function docNotifications() {
                 'R': { iconBg: 'bg-red-100 dark:bg-red-900/30',       iconText: 'text-red-600 dark:text-red-400',       badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',           bar: 'bg-red-500',    cat: 'reject'  },
                 'H': { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'hold'    },
                 // Ticket statuses
+                'TKT_CREATED':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'info' },
                 'TKT_TRANSFER':   { iconBg: 'bg-amber-100 dark:bg-amber-900/30',   iconText: 'text-amber-600 dark:text-amber-400',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',     bar: 'bg-amber-500',   cat: 'warn'    },
                 'TKT_RESPONSE':   { iconBg: 'bg-blue-100 dark:bg-blue-900/30',     iconText: 'text-blue-600 dark:text-blue-400',     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',         bar: 'bg-blue-500',    cat: 'info'    },
                 'TKT_PROCESS':    { iconBg: 'bg-indigo-100 dark:bg-indigo-900/30', iconText: 'text-indigo-600 dark:text-indigo-400', badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',  bar: 'bg-indigo-500',  cat: 'process' },
@@ -332,10 +333,10 @@ function docNotifications() {
             }
         },
 
-        // Returns true when a key was first seen 7+ days ago → "still in process" re-alert.
-        _isReAlert(key) {
+        // Returns true when a key was first seen >= `days` days ago → re-alert fires.
+        _isReAlert(key, days = 7) {
             const fs = this._getFirstSeen();
-            return !!fs[key] && (Date.now() - fs[key]) >= 7 * 86400 * 1000;
+            return !!fs[key] && (Date.now() - fs[key]) >= days * 86400 * 1000;
         },
 
         // Remove first-seen entries whose items are no longer returned by the server
@@ -383,13 +384,17 @@ function docNotifications() {
                     const first = fresh[0];
 
                     // Check re-alert BEFORE marking seen (first-seen is already set for old keys).
-                    const isReAlert = this._isReAlert(first.key);
+                    // TKT_CREATED uses the ticket's own SLA days as the threshold; everything else uses 7 days.
+                    const reAlertDays = first.status === 'TKT_CREATED' && first.sla_days ? first.sla_days : 7;
+                    const isReAlert   = this._isReAlert(first.key, reAlertDays);
                     // Statuses where the recipient must act → "Please proceed your document."
                     // Everything else (creator waiting on others) → "Please wait..."
-                    const _proceedStatuses = new Set(['D', 'H', 'ITR_D', 'ITR_PIC_W', 'ITR_PIC_I', 'ACC_C']);
-                    const reAlertMsg = _proceedStatuses.has(first.status)
-                        ? 'Please proceed your document.'
-                        : 'Please wait, your document is still in process.';
+                    const _proceedStatuses = new Set(['D', 'H', 'ITR_D', 'ITR_PIC_W', 'ITR_PIC_I', 'ACC_C', 'TKT_CREATED']);
+                    const reAlertMsg = first.status === 'TKT_CREATED' && first.sla_days
+                        ? `This ticket has exceeded its ${first.sla_days}-day SLA. Please review and respond immediately.`
+                        : _proceedStatuses.has(first.status)
+                            ? 'Please proceed your document.'
+                            : 'Please wait, your document is still in process.';
                     const toastMsg   = isReAlert ? reAlertMsg : first.message;
 
                     // Mark all fresh items as seen and record first-seen timestamp.
