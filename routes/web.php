@@ -93,6 +93,7 @@ use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
 use App\Http\Controllers\ReportBastController;
 use App\Http\Controllers\ReportCanvassSheetController;
+use App\Http\Controllers\ReportFixedAssetController;
 use App\Http\Controllers\ReportGeneralGAController;
 use App\Http\Controllers\ReportOperationalController;
 use App\Http\Controllers\ReportPurchasingController;
@@ -2129,6 +2130,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/view/detail', function () {
             return view('pages.report-bast.bast-detail');
         });
+    });
+
+    Route::prefix('report-fixedassets')->middleware('access:REPORTFA,VIEW')->group(function () {
+        Route::get('/', [ReportFixedAssetController::class, 'index'])
+            ->name('reportfixedassets');
+
+        Route::get('/json', [ReportFixedAssetController::class, 'json'])
+            ->name('report.fa.json');
+
+        Route::get('/export', [ReportFixedAssetController::class, 'export'])
+            ->name('report.fa.export');
     });
 
     Route::prefix('report-ga')->group(function () {
