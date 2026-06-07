@@ -74,6 +74,31 @@
         });
     }
 
+    function itrStatusBadge(status) {
+
+        const map = {
+            W: { label: "Waiting for IT",   cls: "bg-blue-100 text-blue-700 border-blue-200" },
+            I: { label: "Waiting Revision", cls: "bg-violet-100 text-violet-700 border-violet-200" },
+        };
+
+        const s   = (status || "").toUpperCase();
+        const def = map[s] ?? { label: s || "-", cls: "bg-slate-100 text-slate-700 border-slate-200" };
+
+        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${def.cls}">${def.label}</span>`;
+    }
+
+    function accessStatusBadge(status) {
+
+        const map = {
+            C: { label: "Waiting for Process", cls: "bg-blue-100 text-blue-700 border-blue-200" },
+        };
+
+        const s   = (status || "").toUpperCase();
+        const def = map[s] ?? { label: s || "-", cls: "bg-slate-100 text-slate-700 border-slate-200" };
+
+        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${def.cls}">${def.label}</span>`;
+    }
+
     function statusBadge(status) {
 
         const styles = {
@@ -388,9 +413,29 @@
                     },
 
                     { data:"user_peminta", title:"Requester" },
-                    { data:"user_assign", title:"Assign To" },
+                    {
+                        data:"groups",
+                        title:"Group",
+                        render:function(data){
+                            const groups = Array.isArray(data) ? data : [];
+                            return groups.map(g => {
+                                const cls = g === "HARDWARE"
+                                    ? "bg-slate-800 text-white"
+                                    : "bg-blue-600 text-white";
+                                return `<span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold ${cls}">${g}</span>`;
+                            }).join(" ");
+                        }
+                    },
                     { data:"access_type", title:"Type" },
-                    { data:"keperluan", title:"Purpose" }
+                    { data:"keperluan", title:"Purpose" },
+
+                    {
+                        data:"status",
+                        title:"Status",
+                        render:function(data){
+                            return accessStatusBadge(data);
+                        }
+                    }
 
                 ];
 
@@ -431,7 +476,15 @@
                     { data:"user_peminta", title:"Requester" },
                     { data:"ticketnbr", title:"Ticket" },
                     { data:"recommend_type", title:"Type" },
-                    { data:"recommend_pic", title:"PIC" }
+                    { data:"recommend_pic", title:"PIC" },
+
+                    {
+                        data:"status",
+                        title:"Status",
+                        render:function(data){
+                            return itrStatusBadge(data);
+                        }
+                    }
 
                 ];
 
@@ -550,9 +603,7 @@
                     $("#dashboardFilter")
                     .val() || "ALL";
 
-                if (
-                    doctype !== "ALL"
-                ) {
+                if (doctype !== "ALL") {
 
                     rows =
                         rows.filter(row => {
@@ -569,6 +620,33 @@
                         });
 
                 }
+
+            } else {
+
+                const statusVal =
+                    ($("#statusFilter").val() || "ALL")
+                    .trim();
+
+                if (statusVal !== "ALL") {
+
+                    if (tab === "ticket") {
+
+                        rows = rows.filter(row =>
+                            (row.status_pekerjaan || "")
+                            .toUpperCase() === statusVal
+                        );
+
+                    } else {
+
+                        rows = rows.filter(row =>
+                            (row.status || "")
+                            .toUpperCase() === statusVal
+                        );
+
+                    }
+
+                }
+
             }
 
             buildDataTable(
@@ -625,20 +703,59 @@
 
         });
 
+        const statusOptions = {
+
+            ticket: [
+                { value: "ALL",                       label: "All Status" },
+                { value: "CREATED",                   label: "Created" },
+                { value: "RESPONSE",                  label: "Response" },
+                { value: "PROCESS",                   label: "Process" },
+                { value: "PENDING",                   label: "Pending" },
+                { value: "ENVISION",                  label: "Envision" },
+                { value: "ENVISION CHECKED / SOLVED", label: "Envision Checked / Solved" },
+                { value: "TRANSFER",                  label: "Transfer" },
+                { value: "REOPEN",                    label: "Reopen" },
+            ],
+
+            access: [
+                { value: "ALL", label: "All Status" },
+                { value: "C",   label: "Waiting for Process" },
+            ],
+
+            recommendation: [
+                { value: "ALL", label: "All Status" },
+                { value: "W",   label: "Waiting for IT" },
+                { value: "I",   label: "Waiting Revision" },
+            ],
+        };
+
         if (
             tab === "approval" ||
             tab === "approval-history"
         ) {
 
-            $("#dashboardFilter")
-                .closest(".lg\\:col-span-5")
-                .show();
+            $("#dashboardFilter").show();
+            $("#statusFilter").hide().val("ALL");
 
         } else {
 
-            $("#dashboardFilter")
-                .closest(".lg\\:col-span-5")
-                .hide();
+            $("#dashboardFilter").hide();
+
+            const opts =
+                statusOptions[tab] || [];
+
+            const sel =
+                $("#statusFilter");
+
+            sel.empty();
+
+            opts.forEach(o =>
+                sel.append(
+                    `<option value="${o.value}">${o.label}</option>`
+                )
+            );
+
+            sel.val("ALL").show();
 
         }
 
@@ -694,6 +811,25 @@
                     if (
                         activeTab === "approval" ||
                         activeTab === "approval-history"
+                    ) {
+
+                        loadTab(
+                            activeTab
+                        );
+
+                    }
+
+                }
+            );
+
+        $("#statusFilter")
+            .on(
+                "change",
+                function(){
+
+                    if (
+                        activeTab !== "approval" &&
+                        activeTab !== "approval-history"
                     ) {
 
                         loadTab(

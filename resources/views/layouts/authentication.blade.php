@@ -31,11 +31,11 @@
     </script>
 </head>
 
-<body class="font-inter antialiased sm:h-screen sm:overflow-hidden">
+<body class="font-inter antialiased bg-[#07051a] sm:h-screen sm:overflow-hidden">
 
     <main
         class="relative min-h-screen sm:h-full"
-        style="background-color:#07051a; background-image:url('{{ asset('images/login/Background 1.png') }}'); background-size:cover; background-position:center;">
+        style="background-color:#07051a; background-image:url('{{ asset('images/login/Background 2.png') }}'); background-size:cover; background-position:center;">
 
         {{-- Dark vignette overlay (consistent with left hero panel) --}}
         <div class="pointer-events-none absolute inset-0"

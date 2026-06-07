@@ -361,8 +361,8 @@
 
         const h = new Date().getHours();
         const greeting = h >= 5 && h < 12 ? 'Good Morning'
-                       : h < 17             ? 'Good Afternoon'
-                       : h < 21             ? 'Good Evening'
+                       : h >= 12 && h < 17  ? 'Good Afternoon'
+                       : h >= 17 && h < 21  ? 'Good Evening'
                        :                      'Good Night';
 
         const msgs = [

@@ -135,8 +135,16 @@
                         class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
 
                         <option value="ALL">
-                            All
+                            All Doctype
                         </option>
+
+                    </select>
+
+                    <select id="statusFilter"
+                        style="display:none"
+                        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+
+                        <option value="ALL">All Status</option>
 
                     </select>
 
@@ -190,4 +198,4 @@
     </div>
 </div>
 
-<script src="{{ asset('assets/js/multidashboard/dashit.js') }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashit.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashit.js')) }}"></script>

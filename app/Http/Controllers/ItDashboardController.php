@@ -27,14 +27,15 @@ class ItDashboardController extends Controller
 
         $openTicket = TrTicket::query()
             ->where('status', 'P')
+            ->whereNotIn(DB::raw('UPPER(status_pekerjaan)'), ['CANCEL', 'COMPLETED'])
             ->count();
 
         $accessRequest = TrAccess::query()
-            ->where('status', 'P')
+            ->where('status', 'C')
             ->count();
 
         $recommendation = TrItrecommend::query()
-            ->where('status', 'P')
+            ->whereIn('status', ['W', 'I'])
             ->count();
 
         $user = $request->user();
@@ -89,6 +90,7 @@ class ItDashboardController extends Controller
                 'status',
             ])
             ->where('status', 'P')
+            ->whereNotIn(DB::raw('UPPER(status_pekerjaan)'), ['CANCEL', 'COMPLETED'])
             ->orderByDesc('ticketdate')
             ->get();
 
@@ -135,34 +137,38 @@ class ItDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $requests = TrAccess::query()
-            ->select([
-                'id',
-                'docid',
-                'access_date',
-                'cpny_id',
-                'department_id',
-                'user_peminta',
-                'user_assign',
-                'access_type',
-                'keperluan',
-                'status',
-                'created_at',
-            ])
-            ->where('status', 'P')
+        $user        = $request->user();
+        $isHardware  = $user->hasRole('ITHARDWARE');
+        $isSoftware  = $user->hasRole('ITSOFTWARE');
+
+        $query = TrAccess::query()
+            ->select(['id', 'docid', 'access_date', 'cpny_id', 'department_id', 'user_peminta', 'access_type', 'keperluan', 'status', 'created_at'])
+            ->where('status', 'C');
+
+        if ($isHardware && !$isSoftware) {
+            $query->whereHas('details', fn($q) => $q->whereRaw("UPPER(group_category) = 'HARDWARE'"));
+        } elseif ($isSoftware && !$isHardware) {
+            $query->whereHas('details', fn($q) => $q->whereRaw("UPPER(group_category) = 'SOFTWARE'"));
+        }
+
+        $requests = $query
             ->orderByDesc('access_date')
             ->get()
             ->map(function ($row) {
+                $groups = \App\Models\TrAccessDetail::where('docid', $row->docid)
+                    ->pluck('group_category')
+                    ->map(fn($x) => strtoupper(trim($x)))
+                    ->unique()
+                    ->values();
+
                 return [
-                    'eid' => Hashids::encode($row->id),
-                    'docid' => $row->docid,
-                    'cpny_id' => $row->cpny_id,
-                    'department_id' => $row->department_id,
+                    'eid'        => Hashids::encode($row->id),
+                    'docid'      => $row->docid,
                     'user_peminta' => $row->user_peminta,
-                    'user_assign' => $row->user_assign,
-                    'access_type' => $row->access_type,
-                    'keperluan' => $row->keperluan,
-                    'status' => $row->status,
+                    'access_type'  => $row->access_type,
+                    'keperluan'  => $row->keperluan,
+                    'groups'     => $groups,
+                    'status'     => $row->status,
                     'created_at' => optional($row->created_at)?->format('d M Y H:i'),
                 ];
             });
@@ -191,7 +197,7 @@ class ItDashboardController extends Controller
                 'status',
                 'recommendation',
             ])
-            ->where('status', 'P')
+            ->whereIn('status', ['W', 'I'])
             ->orderByDesc('itrecommend_date')
             ->get()
             ->map(function ($row) {
