@@ -287,7 +287,7 @@ class ApprovalController extends Controller
      * Generate TrApproval dari MsApproval TERPILIH (sudah difilter context).
      * Return: [first_level_username_string|null, count]
      */
-    public function generateForDocument(
+    public function generateForDocument_xxx(
         string $refnbr,
         string $doctype,
         $cpnyId,
@@ -352,6 +352,114 @@ class ApprovalController extends Controller
         $firstUsernames = $first ? $first->aprv_username : null;
 
         return [$firstUsernames, $picked->count()];
+    }
+
+    public function generateForDocument(
+        string $refnbr,
+        string $doctype,
+        $cpnyId,
+        $deptId,
+        string $createdBy,
+        array $ctx = [],
+        ?Carbon $now = null,
+        ?string $onlyType = null
+    ): array {
+        $now = $now ?? Carbon::now();
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOCK PER DOKUMEN
+        |--------------------------------------------------------------------------
+        | Mencegah 2 request bersamaan membuat approval double.
+        | Lock ini aktif selama transaksi berjalan.
+        */
+        DB::connection('pgsql')->select(
+            'SELECT pg_advisory_xact_lock(hashtext(?))',
+            ["approval:{$doctype}:{$refnbr}"]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK EXISTING APPROVAL
+        |--------------------------------------------------------------------------
+        | Kalau approval untuk dokumen ini sudah ada, jangan create ulang.
+        */
+        $existingQuery = TrApproval::query()
+            ->where('refnbr', $refnbr)
+            ->where('aprv_doctype', $doctype);
+
+        $existingCount = (clone $existingQuery)->count();
+
+        if ($existingCount > 0) {
+            $firstPending = (clone $existingQuery)
+                ->where('status', 'P');
+
+            $this->orderByLevel($firstPending);
+
+            $firstPending = $firstPending->first();
+
+            return [
+                $firstPending?->aprv_username,
+                $existingCount,
+            ];
+        }
+
+        // 1) load semua line aktif
+        $allLines = $this->loadLines($doctype, $cpnyId, $deptId);
+
+        // 2) filter berdasarkan context
+        $picked = $this->filterLinesByContext($allLines, $ctx);
+
+        // 3) optional: restrict to a specific type
+        if ($onlyType !== null) {
+            $picked = $picked->filter(
+                fn ($r) => strcasecmp(trim((string) $r->aprv_type), $onlyType) === 0
+            )->values();
+
+            if ($picked->isEmpty()) {
+                return [null, 0];
+            }
+        }
+
+        // fallback: kalau tidak ada yang match, pakai NORMAL
+        if ($picked->isEmpty()) {
+            $picked = $allLines
+                ->filter(fn ($r) => strcasecmp($r->aprv_type, 'Normal') === 0)
+                ->values();
+        }
+
+        if ($picked->isEmpty()) {
+            abort(422, 'Approval line tidak valid (tidak ada rule yang match).');
+        }
+
+        $firstLevel = (string) $picked->first()->aprv_leveling;
+
+        foreach ($picked as $m) {
+            TrApproval::create([
+                'refnbr'             => $refnbr,
+                'aprv_leveling'      => $m->aprv_leveling,
+                'aprv_doctype'       => $m->aprv_doctype,
+                'aprv_cpnyid'        => $m->aprv_cpnyid,
+                'aprv_departementid' => $m->aprv_departementid,
+                'aprv_username'      => $m->aprv_username,
+                'aprv_name'          => $m->aprv_name,
+                'aprv_type'          => $m->aprv_type,
+                'aprv_condition'     => $m->aprv_condition,
+                'aprv_start_nominal' => $m->aprv_start_nominal,
+                'aprv_end_nominal'   => $m->aprv_end_nominal,
+                'aprv_datebefore'    => ((string) $m->aprv_leveling === $firstLevel) ? $now : null,
+                'aprv_dateafter'     => null,
+                'status'             => 'P',
+                'created_by'         => $createdBy,
+            ]);
+        }
+
+        $first = $picked->first();
+
+        return [
+            $first?->aprv_username,
+            $picked->count(),
+        ];
     }
 
     /** ==================================

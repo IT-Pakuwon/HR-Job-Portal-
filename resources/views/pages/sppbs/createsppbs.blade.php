@@ -977,7 +977,7 @@
                 }
 
                 // Validasi ITR ID khusus item category Komputer
-                // if (!validateItrForComputerItem()) return;
+                if (!validateItrForComputerItem()) return;
 
                 // =========================
                 // Attachment validation

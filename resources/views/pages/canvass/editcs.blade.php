@@ -1816,8 +1816,34 @@
             return true;
         }
 
+        function unlockApprovalSubmit() {
+            isSubmittingApproval = false;
+
+            $('#submitBtn')
+                .prop('disabled', false)
+                .removeClass('hidden cursor-not-allowed opacity-60');
+
+            $('#btnText').text('Submit Approval');
+            $('#loadingSpinner').addClass('hidden');
+
+            $('#saveBtn, #cancelBtn, #backBtn, #addAttachment')
+                .prop('disabled', false)
+                .removeClass('cursor-not-allowed opacity-60 pointer-events-none');
+
+            $('#csForm')
+                .find('input, select, textarea, button')
+                .prop('disabled', false);
+
+            hideOverlay();
+        }
+
         $('#saveBtn').on('click', function(e) {
             e.preventDefault();
+
+            // cegah double click / request kedua
+            if (isSubmittingApproval) {
+                return false;
+            }
 
             if (!validateQtyLimit()) {
                 toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
@@ -2153,6 +2179,17 @@
             if (index > -1 && index + 1 < inputs.length) {
                 inputs[index + 1].focus();
             }
+        });
+    </script>
+    <script>
+        $('#csForm').on('submit', function(e) {
+            e.preventDefault();
+
+            if (isSubmittingApproval) {
+                return false;
+            }
+
+            $('#submitBtn').trigger('click');
         });
     </script>
 
