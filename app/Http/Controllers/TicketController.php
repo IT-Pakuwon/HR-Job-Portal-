@@ -11,6 +11,7 @@ use App\Models\MsTicketCategoryDept;
 use App\Models\MsTicketPriority;
 use App\Models\MsTicketSubcategory;
 use App\Models\MsTicketType;
+use App\Models\SysCalendar;
 use App\Models\TrMessage;
 use App\Models\TrServiceorderEnvision;
 use App\Models\TrTicket;
@@ -1003,7 +1004,7 @@ class TicketController extends Controller
                 $request->ticket_priority
             )->first();
 
-            $dueDate = now()->addDays(
+            $dueDate = $this->calculateDueDate(
                 $priority?->ticket_sla_days ?? 1
             );
 
@@ -2474,6 +2475,26 @@ class TicketController extends Controller
                     ];
                 }),
         ]);
+    }
+
+    protected function calculateDueDate(int $slaDays, ?Carbon $from = null): Carbon
+    {
+        $holidays = SysCalendar::whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
+            ->pluck('date_calendar')
+            ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
+            ->toArray();
+
+        $date = ($from ?? now())->copy()->startOfDay();
+        $counted = 0;
+
+        while ($counted < $slaDays) {
+            $date->addDay();
+            if (!in_array($date->format('Y-m-d'), $holidays)) {
+                $counted++;
+            }
+        }
+
+        return $date;
     }
 
     protected function createActivity(array $data)

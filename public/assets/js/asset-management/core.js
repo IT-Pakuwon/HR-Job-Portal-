@@ -1,10 +1,15 @@
 let table;
+let assignedTable;
 let currentStatus = '';
 
 $(document).ready(function () {
     initDataTable();
+    initAssignedTable();
     initFilters();
     amLoadInventories();
+    amLoadFilterCompanies();
+    amLoadFilterDepartments('');
+    initFilterButtons();
     initModalHandlers();
     initFormHandlers();
 });

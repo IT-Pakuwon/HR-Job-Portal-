@@ -37,6 +37,10 @@ function initDataTable() {
             data: function (d) {
                 d.filter_status    = currentStatus;
                 d.filter_inventory = $('#filterInventory').val();
+                d.filter_sttb      = $('#filterSttb').val();
+                d.filter_po        = $('#filterPo').val();
+                d.filter_company   = $('#filterCompany').val();
+                d.filter_dept      = $('#filterDept').val();
             },
         },
 
@@ -114,25 +118,24 @@ function initDataTable() {
                 className: 'px-4 py-3 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap text-right',
             },
 
-            // 9 — Assigned To
+            // 9 — Company (from receipt)
             {
-                data:      'assign_info',
-                orderable: false,
-                className: 'px-4 py-3 text-xs',
+                data:      'cpny_id',
+                name:      'cpny_id',
+                className: 'px-4 py-3 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap',
                 render: function (data) {
-                    if (!data) {
-                        return `<span class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-white/10 px-3 py-1 text-xs font-medium text-slate-400 dark:text-slate-500">Not assigned</span>`;
-                    }
-                    return data;
+                    return data || '<span class="text-slate-300 dark:text-slate-600">—</span>';
                 },
             },
 
-            // 10 — Warranty
+            // 10 — Department (from receipt)
             {
-                data:      'warranty_info',
-                orderable: false,
-                className: 'px-4 py-3',
-                render: function (data) { return data || ''; },
+                data:      'department_id',
+                name:      'department_id',
+                className: 'px-4 py-3 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap',
+                render: function (data) {
+                    return data || '<span class="text-slate-300 dark:text-slate-600">—</span>';
+                },
             },
 
             // 11 — Action
@@ -159,19 +162,191 @@ function amLoadInventories() {
         });
         $('#filterInventory').html(opts);
 
-        // Initialize Select2 after options are loaded
         if ($.fn.select2) {
-            $('#filterInventory').select2({
-                placeholder:  'All Inventories',
-                allowClear:   true,
-                width:        '320px',
-            });
+            $('#filterInventory').select2({ placeholder: 'All Inventories', allowClear: true, width: '100%' });
         }
     });
 
-    // Reload table on selection change (works with both native and Select2)
     $('#filterInventory').on('change', function () {
         if (table) table.ajax.reload();
+    });
+}
+
+function amLoadFilterCompanies() {
+    $.get(window.amRoutes.companies, function (data) {
+        let opts = '<option value="">All Companies</option>';
+        data.forEach(function (c) {
+            opts += `<option value="${c.cpny_id}">${c.cpny_id} — ${c.cpny_name}</option>`;
+        });
+        $('#filterCompany').html(opts);
+    });
+
+    $('#filterCompany').on('change', function () {
+        amLoadFilterDepartments($(this).val());
+        if (table) table.ajax.reload();
+    });
+}
+
+function amLoadFilterDepartments(cpnyId) {
+    const params = cpnyId ? { cpny_id: cpnyId } : {};
+    $.get(window.amRoutes.departments, params, function (data) {
+        let opts = '<option value="">All Departments</option>';
+        data.forEach(function (d) {
+            opts += `<option value="${d.department_id}">${d.department_name}</option>`;
+        });
+        $('#filterDept').html(opts);
+    });
+
+    $('#filterDept').off('change.filter').on('change.filter', function () {
+        if (table) table.ajax.reload();
+    });
+}
+
+function initFilterButtons() {
+
+    $('#applyFilter').on('click', function () {
+        if (table) table.ajax.reload();
+    });
+
+    $('#resetFilter').on('click', function () {
+        $('#filterSttb').val('');
+        $('#filterPo').val('');
+        $('#filterCompany').val('');
+        $('#filterDept').val('');
+
+        if ($.fn.select2 && $('#filterInventory').data('select2')) {
+            $('#filterInventory').val(null).trigger('change');
+        } else {
+            $('#filterInventory').val('');
+        }
+
+        amLoadFilterDepartments('');
+        if (table) table.ajax.reload();
+    });
+
+    $('#exportFilter').on('click', function () {
+        const params = new URLSearchParams({
+            filter_status:    currentStatus               || '',
+            filter_inventory: $('#filterInventory').val() || '',
+            filter_sttb:      $('#filterSttb').val()      || '',
+            filter_po:        $('#filterPo').val()        || '',
+            filter_company:   $('#filterCompany').val()   || '',
+            filter_dept:      $('#filterDept').val()      || '',
+        });
+        window.location.href = window.amRoutes.export + '?' + params.toString();
+    });
+}
+
+function initAssignedTable() {
+
+    assignedTable = $('#assignedTable').DataTable({
+
+        processing: true,
+        serverSide: false,
+        searching:  true,
+
+        responsive: {
+            details: { type: 'column', target: 0 },
+        },
+
+        columnDefs: [
+            { targets: 0, className: 'dtr-control', orderable: false, width: '28px' },
+        ],
+
+        autoWidth:  false,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        order:      [[1, 'asc']],
+
+        ajax: {
+            url:  window.amRoutes.assignedJson,
+            type: 'GET',
+        },
+
+        columns: [
+            // 0 — responsive toggle
+            { data: null, defaultContent: '' },
+
+            // 1 — Doc ID
+            {
+                data:      'assign_id',
+                className: 'px-4 py-3 text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap',
+            },
+
+            // 2 — Inv. Code
+            {
+                data:      'inventoryid',
+                className: 'px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap',
+            },
+
+            // 3 — Inventory Name
+            {
+                data:      'inventory_descr',
+                orderable: false,
+                className: 'px-4 py-3 text-sm text-slate-600 dark:text-slate-300',
+                render:    function (data) {
+                    return `<span style="max-width:200px;display:block">${data ?? '—'}</span>`;
+                },
+            },
+
+            // 4 — Unit
+            {
+                data:      'unit_num',
+                className: 'px-4 py-3 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap text-center',
+            },
+
+            // 5 — Unit Cost
+            {
+                data:      'unitcost_fmt',
+                orderable: false,
+                className: 'px-4 py-3 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap text-right',
+            },
+
+            // 6 — Company
+            {
+                data:      'assign_cpny_id',
+                className: 'px-4 py-3 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap',
+            },
+
+            // 7 — Department
+            {
+                data:      'assign_department_id',
+                className: 'px-4 py-3 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap',
+            },
+
+            // 8 — User
+            {
+                data:      'assign_username',
+                className: 'px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap',
+            },
+
+            // 9 — Warranty Period
+            {
+                data:      'warranty_period',
+                orderable: false,
+                className: 'px-4 py-3',
+                render:    function (data) { return data || ''; },
+            },
+
+            // 10 — Action
+            {
+                data:      'action',
+                orderable: false,
+                className: 'px-4 py-3 text-center',
+                render:    function (data) { return data || ''; },
+            },
+        ],
+
+        drawCallback: function () {
+            bindAssignedTableActions();
+        },
+    });
+}
+
+function bindAssignedTableActions() {
+    $('.see-more-btn').off('click').on('click', function () {
+        const id = $(this).data('id');
+        amOpenDetail(id);
     });
 }
 
@@ -184,7 +359,15 @@ function initFilters() {
 
         currentStatus = $(this).data('status');
 
-        table.ajax.reload();
+        if (currentStatus === 'assigned') {
+            $('#mainTableWrapper').addClass('hidden');
+            $('#assignedTableWrapper').removeClass('hidden');
+            if (assignedTable) assignedTable.ajax.reload();
+        } else {
+            $('#mainTableWrapper').removeClass('hidden');
+            $('#assignedTableWrapper').addClass('hidden');
+            if (table) table.ajax.reload();
+        }
     });
 }
 

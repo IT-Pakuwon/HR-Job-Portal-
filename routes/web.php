@@ -2143,6 +2143,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/departments', [AssetManagementController::class, 'departments'])->name('asset-management.departments');
         Route::get('/users', [AssetManagementController::class, 'users'])->name('asset-management.users');
         Route::get('/inventories', [AssetManagementController::class, 'inventories'])->name('asset-management.inventories');
+        Route::get('/export', [AssetManagementController::class, 'export'])->name('asset-management.export');
+        Route::get('/assigned-json', [AssetManagementController::class, 'assignedJson'])->name('asset-management.assigned-json');
     });
 
     Route::prefix('report-fixedassets')->middleware('access:REPORTFA,VIEW')->group(function () {

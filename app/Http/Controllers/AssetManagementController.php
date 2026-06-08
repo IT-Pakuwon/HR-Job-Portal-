@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsCompany;
 use App\Models\MsDepartment;
 use App\Models\Usercpny;
@@ -14,6 +15,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class AssetManagementController extends Controller
 {
+    use HasAutonbr;
     // ─── JSON file path ───────────────────────────────────────────────────────────
 
     private function storagePath(): string
@@ -102,8 +104,7 @@ class AssetManagementController extends Controller
 
         $allRecords    = $this->allRecords();
         $assignedCount = $allRecords->count();
-        $activeCount   = $allRecords->where('has_expired', false)->count();
-        $expiredCount  = $allRecords->where('has_expired', true)->count();
+        // activeCount / expiredCount no longer shown in status cards but kept for potential future use
 
         try {
             $totalCount = $this->applyUserScope($this->buildQuery())->count();
@@ -114,7 +115,7 @@ class AssetManagementController extends Controller
         $unassignedCount = max(0, $totalCount - $assignedCount);
 
         return view('pages.asset-management.index', compact(
-            'totalCount', 'unassignedCount', 'activeCount', 'expiredCount'
+            'totalCount', 'unassignedCount', 'assignedCount'
         ));
     }
 
@@ -152,35 +153,6 @@ class AssetManagementController extends Controller
                     ? number_format((float) $row->unitcost, 0, '.', ',')
                     : '-'
             )
-            ->addColumn('assign_info', function ($row) use ($assets) {
-                $asset = $assets->get($row->compound_id);
-                if (!$asset) return '';
-
-                return implode('<br>', array_filter([
-                    '<span class="text-gray-500">' . e($asset['assign_cpny_id']) . '</span>',
-                    '<span class="text-gray-500">' . e($asset['assign_department_id']) . '</span>',
-                    '<span class="font-medium text-gray-800">' . e($asset['assign_username']) . '</span>',
-                ]));
-            })
-            ->addColumn('warranty_info', function ($row) use ($assets) {
-                $asset = $assets->get($row->compound_id);
-                if (!$asset) return '';
-
-                $start = !empty($asset['start_date'])
-                    ? Carbon::parse($asset['start_date'])->format('d-M-Y')
-                    : '—';
-                $end = !empty($asset['end_date'])
-                    ? Carbon::parse($asset['end_date'])->format('d-M-Y')
-                    : '—';
-
-                if ($asset['has_expired']) {
-                    return '<span class="px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Expired</span>'
-                        . '<div class="text-xs text-gray-400 mt-0.5">' . $start . ' → ' . $end . '</div>';
-                }
-
-                return '<span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Active</span>'
-                    . '<div class="text-xs text-gray-400 mt-0.5">Since ' . $start . '</div>';
-            })
             ->addColumn('action', function ($row) use ($assets) {
                 $asset = $assets->get($row->compound_id);
 
@@ -210,7 +182,7 @@ class AssetManagementController extends Controller
                     class="assign-btn inline-flex items-center rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
                     data-receipt="' . $json . '">Assign</button>';
             })
-            ->rawColumns(['assign_info', 'warranty_info', 'action'])
+            ->rawColumns(['action'])
             ->make(true);
     }
 
@@ -312,7 +284,14 @@ class AssetManagementController extends Controller
             return response()->json(['message' => 'This item is already assigned.'], 422);
         }
 
+        $dt      = now();
+        $year    = (int) $dt->year;
+        $month   = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+        $auto    = $this->nextAutonbr('AM', $year, $month, Auth::user()->username, 'Asset Management');
+        $assignId = 'AM' . substr((string) $year, 2) . $month . sprintf('%04d', $auto['next']);
+
         $this->insertRecord([
+            'assign_id'            => $assignId,
             'compound_id'          => (int) $validated['compound_id'],
             'receipt_detail_id'    => (int) $validated['receipt_detail_id'],
             'unit_num'             => (int) $validated['unit_num'],
@@ -335,7 +314,133 @@ class AssetManagementController extends Controller
             'updated_by'           => null,
         ]);
 
-        return response()->json(['message' => 'Asset assigned successfully.']);
+        return response()->json(['message' => 'Asset assigned successfully.', 'assign_id' => $assignId]);
+    }
+
+    // ─── Assigned DataTable JSON ──────────────────────────────────────────────────
+
+    public function assignedJson(Request $request)
+    {
+        $records = $this->allRecords();
+
+        if ($records->isEmpty()) {
+            return DataTables::of(collect([]))->make(true);
+        }
+
+        $compoundIds = $records->pluck('compound_id')->filter()->values()->toArray();
+
+        $dbMap = $this->applyUserScope($this->buildQuery())
+            ->whereIn('compound_id', $compoundIds)
+            ->get(['compound_id', 'unitcost', 'qty_received'])
+            ->keyBy('compound_id');
+
+        $data = $records->map(function ($record) use ($dbMap) {
+            $db       = $dbMap->get($record['compound_id']);
+            $unitcost = $db ? $db->unitcost : null;
+
+            $startFmt = !empty($record['start_date'])
+                ? Carbon::parse($record['start_date'])->format('d-M-Y') : null;
+            $endFmt = !empty($record['end_date'])
+                ? Carbon::parse($record['end_date'])->format('d-M-Y') : null;
+
+            return [
+                'id'                   => $record['id'],
+                'assign_id'            => $record['assign_id'] ?? '—',
+                'inventoryid'          => $record['inventoryid'] ?? '—',
+                'inventory_descr'      => $record['inventory_descr'] ?? '—',
+                'unit_num'             => $record['unit_num'] ?? '—',
+                'unitcost_fmt'         => $unitcost ? number_format((float) $unitcost, 0, '.', ',') : '—',
+                'assign_cpny_id'       => $record['assign_cpny_id'] ?? '—',
+                'assign_department_id' => $record['assign_department_id'] ?? '—',
+                'assign_username'      => $record['assign_username'] ?? '—',
+                'start_date_fmt'       => $startFmt ?? '—',
+                'end_date_fmt'         => $endFmt,
+                'has_expired'          => $record['has_expired'] ?? false,
+            ];
+        });
+
+        return DataTables::of($data)
+            ->addColumn('warranty_period', function ($row) {
+                $start = '<span class="text-sm text-slate-600 dark:text-slate-300">' . e($row['start_date_fmt']) . '</span>';
+                if ($row['end_date_fmt']) {
+                    $start .= '<br><span class="text-xs text-slate-400 dark:text-slate-500">→ ' . e($row['end_date_fmt']) . '</span>';
+                }
+                $badge = $row['has_expired']
+                    ? '<span class="ml-1 inline-flex items-center rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 dark:bg-red-500/15 dark:text-red-300">Expired</span>'
+                    : '<span class="ml-1 inline-flex items-center rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">Active</span>';
+                return $badge . '<br>' . $start;
+            })
+            ->addColumn('action', fn($row) =>
+                '<button type="button"
+                    class="see-more-btn inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                    data-id="' . (int) ($row['id'] ?? 0) . '">
+                    <i class="fa-solid fa-eye text-xs"></i> See More
+                </button>'
+            )
+            ->rawColumns(['warranty_period', 'action'])
+            ->make(true);
+    }
+
+    // ─── Export CSV ───────────────────────────────────────────────────────────────
+
+    public function export(Request $request)
+    {
+        $query = $this->buildQuery();
+        $query = $this->applyUserScope($query);
+        $query = $this->applyFilters($query, $request);
+
+        $rows   = $query->orderBy('receiptdate', 'desc')->get();
+        $assets = $this->allRecords()->keyBy('compound_id');
+
+        $filename = 'asset-management-' . now()->format('Ymd-His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($rows, $assets) {
+            $handle = fopen('php://output', 'w');
+
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM for Excel
+
+            fputcsv($handle, [
+                'Assign ID', 'STTB', 'Date', 'PO', 'Vendor Code', 'Vendor Name',
+                'Inv. Code', 'Inventory Name', 'Unit #', 'Unit Cost',
+                'Assigned Company', 'Assigned Dept', 'Assigned Username',
+                'Warranty Start', 'Warranty End', 'Warranty Expired',
+                'Serial Number', 'Notes',
+            ]);
+
+            foreach ($rows as $row) {
+                $asset = $assets->get($row->compound_id);
+
+                fputcsv($handle, [
+                    $asset['assign_id']            ?? '',
+                    $row->receiptnbr               ?? '',
+                    $row->receiptdate ? Carbon::parse($row->receiptdate)->format('d-M-Y') : '',
+                    $row->ponbr                    ?? '',
+                    $row->vendorid                 ?? '',
+                    $row->vendorname               ?? '',
+                    $row->inventoryid              ?? '',
+                    $row->inventory_descr          ?? '',
+                    ($row->unit_num ?? '') . ' / ' . ($row->qty_received ?? ''),
+                    $row->unitcost ? number_format((float) $row->unitcost, 0, '.', ',') : '',
+                    $asset['assign_cpny_id']       ?? '',
+                    $asset['assign_department_id'] ?? '',
+                    $asset['assign_username']      ?? '',
+                    $asset['start_date']           ?? '',
+                    $asset['end_date']             ?? '',
+                    isset($asset['has_expired']) ? ($asset['has_expired'] ? 'Yes' : 'No') : '',
+                    $asset['serial_number']        ?? '',
+                    $asset['notes']                ?? '',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     // ─── Show (for edit modal) ────────────────────────────────────────────────────
@@ -402,6 +507,7 @@ class AssetManagementController extends Controller
                 sttbdt.receiptnbr,
                 sttbdt.budget_cpny_id,
                 sttb.cpny_id,
+                sttb.department_id,
                 sttb.receiptdate,
                 sttb.ponbr,
                 sttb.vendorid,
@@ -445,6 +551,25 @@ class AssetManagementController extends Controller
     {
         if ($request->filter_inventory) {
             $query->where('inventoryid', $request->filter_inventory);
+        }
+
+        if ($request->filter_sttb) {
+            $query->where('receiptnbr', 'ilike', '%' . $request->filter_sttb . '%');
+        }
+
+        if ($request->filter_po) {
+            $query->where('ponbr', 'ilike', '%' . $request->filter_po . '%');
+        }
+
+        if ($request->filter_company) {
+            $query->where('cpny_id', $request->filter_company);
+        }
+
+        if ($request->filter_dept) {
+            $ids = $this->allRecords()
+                ->filter(fn($r) => ($r['assign_department_id'] ?? '') === $request->filter_dept)
+                ->pluck('compound_id')->filter()->values()->toArray();
+            $query->whereIn('compound_id', empty($ids) ? [0] : $ids);
         }
 
         $status = $request->filter_status;
