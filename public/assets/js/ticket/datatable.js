@@ -323,6 +323,58 @@ const ticketTable = $("#ticketTable").DataTable({
             },
         },
 
+
+
+        {
+            data: "created_by",
+
+            name: "created_by",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data) {
+                if (!data) {
+                    return `<span class="text-gray-400">-</span>`;
+                }
+
+                return `
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold uppercase text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                            ${data.charAt(0)}
+                        </div>
+                        <span class="text-sm text-gray-700 dark:text-gray-200">${data}</span>
+                    </div>
+                `;
+            },
+        },
+
+        {
+            data: "department_id",
+
+            name: "department_id",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data) {
+                return data
+                    ? `<span class="text-sm text-gray-700 dark:text-gray-200">${data}</span>`
+                    : `<span class="text-gray-400">-</span>`;
+            },
+        },
+
+        {
+            data: "cpny_id",
+
+            name: "cpny_id",
+
+            className: "px-5 py-4 whitespace-nowrap align-top",
+
+            render: function (data) {
+                return data
+                    ? `<span class="text-sm text-gray-700 dark:text-gray-200">${data}</span>`
+                    : `<span class="text-gray-400">-</span>`;
+            },
+        },
         {
             data: "pic_ticket",
 
@@ -354,7 +406,6 @@ const ticketTable = $("#ticketTable").DataTable({
                     `;
             },
         },
-
         {
             data: "priority_name",
 

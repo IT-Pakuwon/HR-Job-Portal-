@@ -531,6 +531,12 @@ class TicketNotificationService
             )->format('H:i')
             : '-';
 
+        $plainDescr = html_entity_decode(
+            strip_tags($responseDescr),
+            ENT_QUOTES | ENT_HTML5,
+            'UTF-8'
+        );
+
         $message = "
 PAKUWON SYSTEM
 TICKET ORDER
@@ -552,7 +558,7 @@ DEPARTMENT : {$ticket->department_id}
 JOBTYPE  : {$responseSummary}
 
 Dear Team,
-{$responseDescr}
+{$plainDescr}
 ----------------------------------
 ORDER/MONTHLY : Monthly
 ";

@@ -599,6 +599,18 @@
                             </th>
 
                             <th class="px-4 py-3 text-left font-medium">
+                                Created By
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
+                                Department
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
+                                Company
+                            </th>
+
+                            <th class="px-4 py-3 text-left font-medium">
                                 PIC
                             </th>
 
@@ -1222,6 +1234,40 @@
                                                 -
 
                                             </div>
+
+                                        </div>
+
+                                        <div>
+
+                                            <label class="text-xs text-gray-400">
+
+                                                Department
+
+                                            </label>
+
+                                            <p id="detail_department"
+                                                class="mt-1 text-sm font-medium text-gray-800 dark:text-white">
+
+                                                -
+
+                                            </p>
+
+                                        </div>
+
+                                        <div>
+
+                                            <label class="text-xs text-gray-400">
+
+                                                Company
+
+                                            </label>
+
+                                            <p id="detail_company"
+                                                class="mt-1 text-sm font-medium text-gray-800 dark:text-white">
+
+                                                -
+
+                                            </p>
 
                                         </div>
 

@@ -1697,8 +1697,6 @@ class TicketController extends Controller
             |--------------------------------------------------------------------------
             */
 
-                'ticket_priority' => null,
-
                 'ticket_sla_days' => null,
 
                 'ticket_duedate' => null,

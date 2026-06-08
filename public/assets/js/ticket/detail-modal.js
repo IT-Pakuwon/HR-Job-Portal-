@@ -184,6 +184,10 @@ function renderTicketInformation(ticket) {
                 `,
     );
 
+    $("#detail_department").text(ticket.department_id || "-");
+
+    $("#detail_company").text(ticket.cpny_id || "-");
+
     $("#detail_priority").html(`
 
             <span class="
@@ -1660,6 +1664,10 @@ function resetTicketDetailModal() {
     $("#detail_category").html("-");
 
     $("#detail_pic").html("-");
+
+    $("#detail_department").text("-");
+
+    $("#detail_company").text("-");
 
     $("#detail_priority").html("-");
 
