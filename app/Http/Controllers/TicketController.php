@@ -2852,7 +2852,7 @@ class TicketController extends Controller
 
             'response_descr'    =>
                 'Note: ' .
-                ($so->serviceorder_descr ?? '-'),
+                ($so->serviceorder_action ?? '-'),
 
             'status_pekerjaan'  =>
                 'ENVISION CHECKED / SOLVED',
