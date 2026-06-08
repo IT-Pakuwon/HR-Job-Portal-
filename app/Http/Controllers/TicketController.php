@@ -77,6 +77,7 @@ class TicketController extends Controller
 
         'reopen' => [
             'COMPLETED',
+            'CANCEL',
         ],
     ];
 
@@ -1938,8 +1939,10 @@ class TicketController extends Controller
         );
 
         abort_if(
-            $ticket->status !== 'C'
-                || $ticket->status_pekerjaan !== 'COMPLETED',
+            !(
+                ($ticket->status === 'C' && $ticket->status_pekerjaan === 'COMPLETED')
+                || ($ticket->status === 'X' && $ticket->status_pekerjaan === 'CANCEL')
+            ),
             403
         );
 
@@ -2711,8 +2714,10 @@ class TicketController extends Controller
                 ]),
 
             'can_reopen' => $isIT
-                && $ticket->status === 'C'
-                && $ticket->status_pekerjaan === 'COMPLETED',
+                && (
+                    ($ticket->status === 'C' && $ticket->status_pekerjaan === 'COMPLETED')
+                    || ($ticket->status === 'X' && $ticket->status_pekerjaan === 'CANCEL')
+                ),
         ];
     }
 

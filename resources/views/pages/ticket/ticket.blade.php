@@ -1619,6 +1619,8 @@
 
             store: "{{ route('ticket.store') }}",
 
+            cancel: "{{ url('/ticket/cancel') }}/:eid",
+
             response: "{{ url('/ticket/response') }}/:eid",
 
             process: "{{ url('/ticket/process') }}/:eid",
@@ -1665,6 +1667,7 @@
     <script src="{{ asset('assets/js/ticket/envision.js') }}"></script>
     <script src="{{ asset('assets/js/ticket/reopen.js') }}"></script>
     <script src="{{ asset('assets/js/ticket/complete.js') }}"></script>
+    <script src="{{ asset('assets/js/ticket/cancel.js') }}"></script>
 
     <script src="{{ asset('assets/js/ticket/init.js') }}"></script>
 </x-app-layout>
