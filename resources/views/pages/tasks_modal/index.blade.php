@@ -44,7 +44,7 @@
             </nav>
         </div>
         <div class="grid">
-            <x-tasks.tasks-01 />
+            {{-- <x-tasks.tasks-01 /> --}}
         </div>
     </div>
 </x-app-layout>

@@ -35,7 +35,7 @@
                 </nav>
             </div> --}}
         <div class="grid">
-            <x-groups.groups-01 />
+            {{-- <x-groups.groups-01 /> --}}
         </div>
     </div>
 </x-app-layout>
