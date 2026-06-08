@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\TicketExport;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\MsCompany;
 use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use App\Models\MsTicketCategory;
@@ -2242,17 +2243,10 @@ class TicketController extends Controller
     {
         $user = auth()->user();
 
-        $companies = collect(
-            explode(',', $user->cpny_id)
-        )
-            ->filter()
-            ->map(function ($item) {
-                return [
-                    'cpny_id' => trim($item),
-                    'cpny_name' => trim($item),
-                ];
-            })
-            ->values();
+        $companies = MsCompany::query()
+            ->where('status', 'A')
+            ->orderBy('cpny_name')
+            ->get(['cpny_id', 'cpny_name']);
 
         $departments = collect(
             explode(',', $user->department_id)
@@ -2266,17 +2260,8 @@ class TicketController extends Controller
             })
             ->values();
 
-        $userCompanies = explode(
-            ',',
-            $user->cpny_id
-        );
-
         $locations = MsLocation::query()
             ->where('status', 'A')
-            ->where(function ($q) use ($userCompanies) {
-                $q->whereIn('cpny_id', $userCompanies)
-                ->orWhere('cpny_id', 'ALL');
-            })
             ->orderBy('location_name')
             ->get([
                 'location_id',
@@ -2432,13 +2417,6 @@ class TicketController extends Controller
             );
         }
 
-        if ($request->filled('cpny_id')) {
-            $query->where(
-                'cpny_id',
-                $request->cpny_id
-            );
-        }
-
         return response()->json([
             'results' => $query
                 ->orderBy('sub_location_name')
@@ -2496,18 +2474,15 @@ class TicketController extends Controller
 
     public function companiesSearch(Request $request)
     {
-        $companies = MsLocation::query()
+        $companies = MsCompany::query()
             ->where('status', 'A')
-            ->select('cpny_id')
-            ->distinct()
-            ->whereNotNull('cpny_id')
-            ->orderBy('cpny_id')
-            ->pluck('cpny_id');
+            ->orderBy('cpny_name')
+            ->get(['cpny_id', 'cpny_name']);
 
         return response()->json([
-            'results' => $companies->map(fn($id) => [
-                'id'   => $id,
-                'text' => $id,
+            'results' => $companies->map(fn($c) => [
+                'id'   => $c->cpny_id,
+                'text' => $c->cpny_name,
             ])->values(),
         ]);
     }
