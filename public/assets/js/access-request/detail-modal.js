@@ -265,12 +265,17 @@ function renderDetailItems(details = [], access = {}) {
                     </div>
                 </td>
                 <td class="px-4 py-4 min-w-[160px]">${passwordCell}</td>
+                <td class="px-4 py-4">
+                    <div class="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] px-3 py-2 text-sm">
+                        ${item.access_pic ?? "-"}
+                    </div>
+                </td>
             </tr>
         `;
     });
 
     if (!rows) {
-        rows = `<tr><td colspan="5" class="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400">No detail item available</td></tr>`;
+        rows = `<tr><td colspan="6" class="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-400">No detail item available</td></tr>`;
     }
 
     $("#detailItemsContainer").html(`
@@ -283,6 +288,7 @@ function renderDetailItems(details = [], access = {}) {
                         <th class="px-4 py-3 text-left font-semibold">Response</th>
                         <th class="px-4 py-3 text-left font-semibold">Username</th>
                         <th class="px-4 py-3 text-left font-semibold">Password</th>
+                        <th class="px-4 py-3 text-left font-semibold">Processed By</th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>

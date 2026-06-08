@@ -2420,6 +2420,13 @@ class TicketController extends Controller
             );
         }
 
+        if ($request->filled('cpny_id')) {
+            $query->where(
+                'cpny_id',
+                $request->cpny_id
+            );
+        }
+
         return response()->json([
             'results' => $query
                 ->orderBy('sub_location_name')

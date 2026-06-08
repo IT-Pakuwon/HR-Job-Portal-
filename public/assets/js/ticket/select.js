@@ -177,6 +177,22 @@ function renderLocationDropdown(
     locations = []
 ) {
 
+    Ticket.state.allLocations = locations;
+
+    const cpnyId = $('#cpny_id').val();
+
+    const filtered = cpnyId
+        ? locations.filter(function (l) {
+            return l.cpny_id === cpnyId || l.cpny_id === 'ALL';
+        })
+        : locations;
+
+    populateLocationSelect(filtered);
+
+}
+
+function populateLocationSelect(locations = []) {
+
     const select =
         $('#location_id');
 
@@ -405,6 +421,9 @@ function initSubLocationSelect() {
                     location_id:
                         $('#location_id').val(),
 
+                    cpny_id:
+                        $('#cpny_id').val(),
+
                 };
 
             },
@@ -454,6 +473,36 @@ function bindTicketSelectEvents() {
             }
 
             $('#ticket_subcategoryid')
+                .val(null)
+                .trigger('change');
+
+        }
+    );
+
+    $('#cpny_id').on(
+        'change',
+        function () {
+
+            if (Ticket.state.isEditLoading) {
+                return;
+            }
+
+            const cpnyId = $(this).val();
+            const all = Ticket.state.allLocations || [];
+
+            const filtered = cpnyId
+                ? all.filter(function (l) {
+                    return l.cpny_id === cpnyId || l.cpny_id === 'ALL';
+                })
+                : all;
+
+            populateLocationSelect(filtered);
+
+            $('#location_id')
+                .val(null)
+                .trigger('change');
+
+            $('#sub_location_id')
                 .val(null)
                 .trigger('change');
 
