@@ -741,14 +741,19 @@ class AccessRequestController extends Controller
             }
 
             if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    TrAttachmentController::upload(
-                        $file,
-                        $access->docid,
-                        'ACR',
-                        'att-access-request'
-                    );
-                }
+                $meta = [
+                    'refnbr'        => $access->docid,
+                    'doctype'       => 'ACR',
+                    'cpny_id'       => $access->cpny_id,
+                    'department_id' => $access->department_id,
+                    'base_folder'   => 'att-access-request/acr',
+                    'created_by'    => auth()->user()->username,
+                ];
+
+                app(TrAttachmentController::class)->uploadInternal(
+                    $meta,
+                    (array) $request->file('attachments')
+                );
             }
 
             return response()->json([
@@ -880,26 +885,12 @@ class AccessRequestController extends Controller
             $completed = $details->where('status', 'C')->count();
             $total = $details->count();
 
-            $rows = TrAttachment::where('refnbr', $access->docid)
-                ->where('status', 'A')
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $attachmentResponse = app(TrAttachmentController::class)
+                ->listAttachments(request(), 'ACR', $access->docid);
 
-            $attachments = $rows->map(function ($r) {
-                return [
-                    'id' => $r->id,
-
-                    // ORIGINAL DISPLAY NAME
-                    'display_name' => $r->attachment_name,
-
-                    // RANDOM STORAGE NAME
-                    'filename' => $r->filename,
-
-                    'filepath' => $r->filepath,
-                    'url' => $r->filepath ?? '#',
-                    'created_at' => $r->created_at,
-                ];
-            });
+            $attachments = collect(
+                $attachmentResponse->getData(true)['attachments'] ?? []
+            );
 
             $comments = TrMessage::query()
                 ->where('refnbr', $access->docid)

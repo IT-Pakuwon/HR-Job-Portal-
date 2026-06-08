@@ -1407,28 +1407,14 @@ class ItRecommendationController extends Controller
             ->orderBy('id')
             ->get();
 
-        $attachments = TrAttachment::query()
-            ->where('refnbr', $header->docid)
-            ->where('doctype', $this->doctype)
-            ->orderByDesc('id')
-            ->get();
+        $attachmentResponse = app(TrAttachmentController::class)
+            ->listAttachments(request(), $this->doctype, $header->docid);
 
-        $attachments->transform(function ($row) {
-            try {
-                $filepath = trim($row->folder, '/').'/'.$row->filename;
-
-                $row->signed_url = app(TrAttachmentController::class)
-                    ->getSignedUrl($filepath);
-            } catch (\Throwable $e) {
-                Log::error('Attachment signed url failed', [
-                    'docid' => $row->refnbr,
-                    'error' => $e->getMessage(),
-                ]);
-
-                $row->signed_url = null;
-            }
-
-            return $row;
+        $attachments = collect(
+            $attachmentResponse->getData(true)['attachments'] ?? []
+        )->map(function ($att) {
+            $att['signed_url'] = $att['url'] ?? null;
+            return $att;
         });
 
         $canApprove = TrApproval::query()
