@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ArrayExport;
 
 class ReportFixedAssetController extends Controller
 {
@@ -187,18 +189,9 @@ class ReportFixedAssetController extends Controller
             'Status'         => $row->status,
         ]);
 
-        return response()->streamDownload(function () use ($data) {
-            $handle = fopen('php://output', 'w');
-
-            if ($data->isNotEmpty()) {
-                fputcsv($handle, array_keys($data->first()));
-            }
-
-            foreach ($data as $row) {
-                fputcsv($handle, $row);
-            }
-
-            fclose($handle);
-        }, 'FixedAsset_Report_' . now()->format('Ymd_His') . '.csv');
+        return Excel::download(
+            new ArrayExport($data),
+            'FixedAsset_Report_' . now()->format('Ymd_His') . '.xlsx'
+        );
     }
 }

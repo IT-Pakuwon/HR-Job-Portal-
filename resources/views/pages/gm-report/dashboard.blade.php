@@ -3,20 +3,32 @@
     <div class="max-w-9xl mx-auto w-full space-y-2 p-2">
 
         {{-- ── Page Header ──────────────────────────────────────────────────────── --}}
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {{-- gmPageHeader is observed: when it leaves the viewport the filter
+             teleports into #gmFilterFloat (fixed); when it re-enters it comes back --}}
+        <div id="gmPageHeader" class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 
             <div>
                 <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                     GM Report Dashboard
                 </h1>
                 <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                Overview
-                <span id="gmPeriodLabel" class="ml-1 text-violet-500"></span>
-            </p>
+                    Overview
+                    <span id="gmPeriodLabel" class="ml-1 text-violet-500"></span>
+                </p>
             </div>
 
-            {{-- ── Filter Bar ─────────────────────────────────────────────────── --}}
-            <x-dashboard-filter.dashboard-filter />
+            {{-- Inline anchor — filter lives here when header is visible --}}
+            <div id="gmFilterAnchor">
+                <x-dashboard-filter.dashboard-filter />
+            </div>
+        </div>
+
+        {{-- Fixed floating container — filter moves here once header scrolls away --}}
+        <div id="gmFilterFloat"
+             class="fixed right-4 top-15.5 z-50 hidden max-w-[calc(100vw-2rem)]
+                    rounded-2xl border border-slate-200/80 bg-white/90 p-1.5
+                    shadow-xl backdrop-blur-md
+                    dark:border-slate-700/50 dark:bg-slate-900/90">
         </div>
 
         {{-- ── Budget Section ───────────────────────────────────────────────────── --}}
@@ -116,8 +128,6 @@
 
         </div>
 
-
-
     </div>
 
     {{-- ── Route registry (shared across all GM section scripts) ─────────────── --}}
@@ -134,11 +144,46 @@
     </script>
 
     {{-- Load order: core → filter → [section scripts] --}}
-    {{-- core  : shared state (gmState), utilities (gmUtils), event bus (gmDispatchFilter) --}}
-    {{-- filter: filter bar UI — fires gm:filter when state changes --}}
-    {{-- budget: budget section — listens for gm:filter, owns its own fetches & charts --}}
     <script src="{{ asset('assets/js/gm-report/gm-core.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-filter.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-budget.js') }}"></script>
+
+    {{-- ── Floating filter teleport ────────────────────────────────────────────
+         Watches the page header with IntersectionObserver (offset -56px for the
+         sticky navbar). When the header leaves the viewport the filter DOM node
+         is moved into #gmFilterFloat (fixed pill). When the header re-enters
+         it moves back to #gmFilterAnchor so it looks integrated in the header.
+    --}}
+    <script>
+    (function () {
+        const anchor   = document.getElementById('gmFilterAnchor');
+        const floatBox = document.getElementById('gmFilterFloat');
+        const header   = document.getElementById('gmPageHeader');
+        if (!anchor || !floatBox || !header) return;
+
+        const obs = new IntersectionObserver(([entry]) => {
+            if (!entry.isIntersecting) {
+                // Header scrolled away — move filter into floating pill
+                const el = anchor.firstElementChild;
+                if (el) {
+                    floatBox.appendChild(el);
+                    floatBox.classList.remove('hidden');
+                }
+            } else {
+                // Header visible again — return filter to inline position
+                const el = floatBox.firstElementChild;
+                if (el) {
+                    anchor.appendChild(el);
+                    floatBox.classList.add('hidden');
+                }
+            }
+        }, {
+            rootMargin: '-56px 0px 0px 0px', // account for sticky navbar height
+            threshold: 0
+        });
+
+        obs.observe(header);
+    })();
+    </script>
 
 </x-app-layout>
