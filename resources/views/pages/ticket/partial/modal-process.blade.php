@@ -99,6 +99,44 @@
                             <div
                                 class="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
 
+                                Company
+
+                            </div>
+
+                            <div id="process_cpny_info"
+                                class="mt-1 text-sm font-semibold text-slate-800 dark:text-white">
+
+                                -
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/[0.06] dark:bg-white/[0.03]">
+
+                            <div
+                                class="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+
+                                Department
+
+                            </div>
+
+                            <div id="process_department_info"
+                                class="mt-1 text-sm font-semibold text-slate-800 dark:text-white">
+
+                                -
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/[0.06] dark:bg-white/[0.03]">
+
+                            <div
+                                class="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+
                                 Category
 
                             </div>
@@ -242,6 +280,51 @@
                                 </div>
 
                             </div>
+
+                        </div>
+
+                    </div>
+
+                    {{-- Change Company --}}
+                    <div
+                        class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-white/[0.06] dark:bg-white/[0.03]">
+
+                        <div class="mb-4 flex items-center justify-between gap-4">
+
+                            <div>
+
+                                <h3 class="text-sm font-semibold text-slate-800 dark:text-white">
+                                    Change Company
+                                </h3>
+
+                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                    Optional company reassignment.
+                                </p>
+
+                            </div>
+
+                            <label
+                                class="inline-flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+
+                                <input type="checkbox"
+                                    id="process_use_company"
+                                    class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400">
+
+                                <span>Change Company</span>
+
+                            </label>
+
+                        </div>
+
+                        <div id="process_company_container" class="hidden">
+
+                            <div class="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                                Company
+                            </div>
+
+                            <select id="process_cpny_id" name="cpny_id" class="form-input w-full">
+                                <option value="">-- Select Company --</option>
+                            </select>
 
                         </div>
 

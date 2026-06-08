@@ -5,6 +5,7 @@ Ticket.state.processAttachments = [];
 function initProcessTicket() {
     bindSubmitProcessTicket();
     bindProcessSchedule();
+    bindProcessCompany();
     bindProcessAttachment();
 }
 
@@ -37,6 +38,8 @@ function resetProcessTicketForm() {
     $("#process_new_attachment_list").empty();
     $("#process_ticketid").text("-");
     $("#process_pic_ticket").text("-");
+    $("#process_cpny_info").text("-");
+    $("#process_department_info").text("-");
     $("#process_ticket_category").text("-");
     $("#process_ticket_sla").text("-");
     if (window.processDescr) { window.processDescr.setText(''); }
@@ -44,6 +47,9 @@ function resetProcessTicketForm() {
     $("#process_schedule_container").addClass("hidden");
     $("#process_working_start_date").val("");
     $("#process_working_end_date").val("");
+    $("#process_use_company").prop("checked", false);
+    $("#process_company_container").addClass("hidden");
+    $("#process_cpny_id").val("").trigger("change");
     $("#btnSubmitProcessTicket").prop("disabled", false);
 }
 
@@ -68,6 +74,8 @@ function populateProcessTicket(ticket) {
 
     $("#process_ticketid").text(ticket.ticketid || "-");
     $("#process_pic_ticket").text(ticket.pic_ticket || "-");
+    $("#process_cpny_info").text(ticket.cpny_id || "-");
+    $("#process_department_info").text(ticket.department_id || "-");
     $("#process_ticket_category").text(
         `${ticket.ticket_category || "-"} / ${ticket.ticket_subcategory || "-"}`,
     );
@@ -100,6 +108,34 @@ function bindProcessSchedule() {
             $("#process_working_start_date").val("");
             $("#process_working_end_date").val("");
         }
+    });
+}
+
+function bindProcessCompany() {
+    $(document).on("change", "#process_use_company", function () {
+        if ($(this).is(":checked")) {
+            $("#process_company_container").removeClass("hidden");
+            loadProcessCompanies();
+        } else {
+            $("#process_company_container").addClass("hidden");
+            $("#process_cpny_id").val("").trigger("change");
+        }
+    });
+}
+
+function loadProcessCompanies() {
+    const select = $("#process_cpny_id");
+    if (select.find("option").length > 1) return;
+
+    $.ajax({
+        url: window.ticketRoutes.companiesSearch,
+        type: "GET",
+        success(res) {
+            select.find("option:not(:first)").remove();
+            (res.results || []).forEach(function (item) {
+                select.append(new Option(item.text, item.id));
+            });
+        },
     });
 }
 

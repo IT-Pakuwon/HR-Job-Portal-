@@ -1615,6 +1615,8 @@
 
             picSearch: "{{ route('ticket.picSearch') }}",
 
+            companiesSearch: "{{ route('ticket.companiesSearch') }}",
+
             store: "{{ route('ticket.store') }}",
 
             response: "{{ url('/ticket/response') }}/:eid",

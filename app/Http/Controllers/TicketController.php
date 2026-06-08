@@ -664,11 +664,10 @@ class TicketController extends Controller
             !(
                 (
                     $ticket->created_by === auth()->user()->username
-                    && $ticket->status === 'P'
                     && $ticket->status_pekerjaan === 'CREATED'
                 )
                 || (
-                    $this->isITRole()
+                    $ticket->pic_ticket === auth()->user()->username
                     && $ticket->status_pekerjaan !== 'COMPLETED'
                 )
             ),
@@ -1105,6 +1104,8 @@ class TicketController extends Controller
         $request->validate([
             'response_descr' => 'nullable',
 
+            'cpny_id' => 'nullable|string',
+
             'working_start_date' => 'nullable|date',
 
             'working_end_date' => 'nullable|date|after_or_equal:working_start_date',
@@ -1136,13 +1137,21 @@ class TicketController extends Controller
         |--------------------------------------------------------------------------
         */
 
-            $ticket->update([
+            $ticketUpdate = [
                 'status' => 'P',
 
                 'status_pekerjaan' => 'PROCESS',
 
                 'updated_by' => auth()->user()->username,
-            ]);
+            ];
+
+            if ($request->filled('cpny_id')) {
+                $ticketUpdate['cpny_id'] = $request->cpny_id;
+            }
+
+            $ticket->update($ticketUpdate);
+
+            $ticket->refresh();
 
             /*
         |--------------------------------------------------------------------------
@@ -2482,6 +2491,24 @@ class TicketController extends Controller
         ]);
     }
 
+    public function companiesSearch(Request $request)
+    {
+        $companies = MsLocation::query()
+            ->where('status', 'A')
+            ->select('cpny_id')
+            ->distinct()
+            ->whereNotNull('cpny_id')
+            ->orderBy('cpny_id')
+            ->pluck('cpny_id');
+
+        return response()->json([
+            'results' => $companies->map(fn($id) => [
+                'id'   => $id,
+                'text' => $id,
+            ])->values(),
+        ]);
+    }
+
     protected function calculateDueDate(int $slaDays, ?Carbon $from = null): Carbon
     {
         $holidays = SysCalendar::whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
@@ -2628,12 +2655,10 @@ class TicketController extends Controller
             'can_cancel' => (
                 (
                     $isRequester
-                    && $ticket->status === 'P'
                     && $ticket->status_pekerjaan === 'CREATED'
                 )
-
                 || (
-                    $isIT
+                    $isPIC
                     && $ticket->status_pekerjaan !== 'COMPLETED'
                 )
             ),

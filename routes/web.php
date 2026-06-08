@@ -1321,6 +1321,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/location-search', 'locationSearch')->name('ticket.locationSearch');
                 Route::get('/sub-location-search', 'subLocationSearch')->name('ticket.subLocationSearch');
                 Route::get('/pic-search', 'picSearch')->name('ticket.picSearch');
+                Route::get('/companies-search', 'companiesSearch')->name('ticket.companiesSearch');
                 Route::get('/create-dropdown', 'createDropdown')->name('ticket.create-dropdown');
             });
 
