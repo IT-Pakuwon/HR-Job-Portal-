@@ -91,6 +91,7 @@ function renderProcessHardwareItems(access, details = []) {
                        class="hardware-password w-full rounded-lg border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#0b1525] px-4 py-3 pr-10 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 focus:border-blue-500/30 focus:ring-0"
                        data-id="${item.id}"
                        value="${item.access_password ?? ''}"
+                       autocomplete="new-password"
                        placeholder="Password">
                    <button type="button" class="btn-toggle-pw-input absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200" data-visible="0">
                        <i class="fa-solid fa-eye-slash text-xs"></i>
@@ -118,7 +119,7 @@ function renderProcessHardwareItems(access, details = []) {
                 <td class="px-5 py-5 min-w-[220px]">
                     ${isCompleted
                         ? `<div class="rounded-lg border border-slate-200 dark:border-white/[0.06] bg-slate-50 dark:bg-white/[0.03] px-4 py-3 text-sm text-slate-700 dark:text-slate-200 break-all">${item.access_username ?? '-'}</div>`
-                        : `<input type="text" class="hardware-username w-full rounded-lg border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#0b1525] px-4 py-3 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 focus:border-blue-500/30 focus:ring-0" data-id="${item.id}" value="${item.access_username ?? ''}" placeholder="Username">`}
+                        : `<input type="text" class="hardware-username w-full rounded-lg border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-[#0b1525] px-4 py-3 text-sm text-slate-700 dark:text-slate-100 placeholder:text-slate-400 focus:border-blue-500/30 focus:ring-0" data-id="${item.id}" value="${item.access_username ?? ''}" autocomplete="off" placeholder="Username">`}
                 </td>
                 <td class="px-5 py-5 min-w-[220px]">${pwField}</td>
                 <td class="px-5 py-5 min-w-[180px]">

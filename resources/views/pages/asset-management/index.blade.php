@@ -163,7 +163,7 @@
 
                 <div>
                     <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
-                        Asset Management — KOMPUTER
+                        Asset Management
                     </h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
                         Click <strong>Assign</strong> on an unassigned item, or <strong>Edit</strong> to update an
