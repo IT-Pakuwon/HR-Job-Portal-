@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssetManagementController;
 use App\Http\Controllers\AccessRequestController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\ApplicantController;
@@ -2130,6 +2131,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/view/detail', function () {
             return view('pages.report-bast.bast-detail');
         });
+    });
+
+    Route::prefix('asset-management')->group(function () {
+        Route::get('/', [AssetManagementController::class, 'index'])->name('asset-management');
+        Route::get('/json', [AssetManagementController::class, 'json'])->name('asset-management.json');
+        Route::post('/store', [AssetManagementController::class, 'store'])->name('asset-management.store');
+        Route::get('/show/{id}', [AssetManagementController::class, 'show'])->name('asset-management.show');
+        Route::put('/update/{id}', [AssetManagementController::class, 'update'])->name('asset-management.update');
+        Route::get('/companies', [AssetManagementController::class, 'companies'])->name('asset-management.companies');
+        Route::get('/departments', [AssetManagementController::class, 'departments'])->name('asset-management.departments');
+        Route::get('/users', [AssetManagementController::class, 'users'])->name('asset-management.users');
+        Route::get('/inventories', [AssetManagementController::class, 'inventories'])->name('asset-management.inventories');
     });
 
     Route::prefix('report-fixedassets')->middleware('access:REPORTFA,VIEW')->group(function () {

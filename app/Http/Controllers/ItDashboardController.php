@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Autonbr;
+use App\Models\MsTicketCategoryDept;
 use App\Models\TrAccess;
 use App\Models\TrItrecommend;
 use App\Models\TrTicket;
@@ -25,19 +26,6 @@ class ItDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $openTicket = TrTicket::query()
-            ->where('status', 'P')
-            ->whereNotIn(DB::raw('UPPER(status_pekerjaan)'), ['CANCEL', 'COMPLETED'])
-            ->count();
-
-        $accessRequest = TrAccess::query()
-            ->where('status', 'C')
-            ->count();
-
-        $recommendation = TrItrecommend::query()
-            ->whereIn('status', ['W', 'I'])
-            ->count();
-
         $user = $request->user();
 
         if (!$user) {
@@ -48,6 +36,25 @@ class ItDashboardController extends Controller
         }
 
         $username = strtolower(trim($user->username));
+
+        $assignedCategoryIds = MsTicketCategoryDept::where('status', 'A')
+            ->whereRaw("lower(trim(username)) = ?", [$username])
+            ->pluck('ticket_categoryid')
+            ->toArray();
+
+        $openTicket = TrTicket::query()
+            ->where('status', 'P')
+            ->whereNotIn(DB::raw('UPPER(status_pekerjaan)'), ['CANCEL', 'COMPLETED'])
+            ->whereIn('ticket_categoryid', $assignedCategoryIds)
+            ->count();
+
+        $accessRequest = TrAccess::query()
+            ->where('status', 'C')
+            ->count();
+
+        $recommendation = TrItrecommend::query()
+            ->whereIn('status', ['W', 'I'])
+            ->count();
 
         $waitingApproval = DB::connection('pgsql2')
             ->table('tr_approval')
@@ -74,11 +81,22 @@ class ItDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
+        $user = $request->user();
+        $username = strtolower(trim($user->username ?? ''));
+
+        // Category IDs the current user is assigned as PIC (active only)
+        $assignedCategoryIds = MsTicketCategoryDept::where('status', 'A')
+            ->whereRaw('lower(trim(username)) = ?', [$username])
+            ->pluck('ticket_categoryid')
+            ->toArray();
+
         $tickets = TrTicket::query()
             ->select([
                 'id',
                 'ticketid',
                 'ticketdate',
+                'cpny_id',
+                'department_id',
                 'ticket_priority',
                 'ticket_duedate',
                 'ticket_type',
@@ -91,6 +109,7 @@ class ItDashboardController extends Controller
             ])
             ->where('status', 'P')
             ->whereNotIn(DB::raw('UPPER(status_pekerjaan)'), ['CANCEL', 'COMPLETED'])
+            ->whereIn('ticket_categoryid', $assignedCategoryIds)
             ->orderByDesc('ticketdate')
             ->get();
 
@@ -113,6 +132,8 @@ class ItDashboardController extends Controller
                 'eid' => Hashids::encode($row->id),
                 'ticketid' => $row->ticketid,
                 'ticketdate' => optional($row->ticketdate)->format('d M Y'),
+                'cpny_id' => $row->cpny_id,
+                'department_id' => $row->department_id,
                 'ticket_priority' => $row->ticket_priority,
                 'ticket_duedate' => optional($row->ticket_duedate)->format('d M Y H:i'),
                 'ticket_type' => $row->ticket_type,
@@ -137,18 +158,18 @@ class ItDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $user        = $request->user();
-        $isHardware  = $user->hasRole('ITHARDWARE');
-        $isSoftware  = $user->hasRole('ITSOFTWARE');
+        $user = $request->user();
+        $isHardware = $user->hasRole('ITHARDWARE');
+        $isSoftware = $user->hasRole('ITSOFTWARE');
 
         $query = TrAccess::query()
             ->select(['id', 'docid', 'access_date', 'cpny_id', 'department_id', 'user_peminta', 'access_type', 'keperluan', 'status', 'created_at'])
             ->where('status', 'C');
 
         if ($isHardware && !$isSoftware) {
-            $query->whereHas('details', fn($q) => $q->whereRaw("UPPER(group_category) = 'HARDWARE'"));
+            $query->whereHas('details', fn ($q) => $q->whereRaw("UPPER(group_category) = 'HARDWARE'"));
         } elseif ($isSoftware && !$isHardware) {
-            $query->whereHas('details', fn($q) => $q->whereRaw("UPPER(group_category) = 'SOFTWARE'"));
+            $query->whereHas('details', fn ($q) => $q->whereRaw("UPPER(group_category) = 'SOFTWARE'"));
         }
 
         $requests = $query
@@ -157,18 +178,18 @@ class ItDashboardController extends Controller
             ->map(function ($row) {
                 $groups = \App\Models\TrAccessDetail::where('docid', $row->docid)
                     ->pluck('group_category')
-                    ->map(fn($x) => strtoupper(trim($x)))
+                    ->map(fn ($x) => strtoupper(trim($x)))
                     ->unique()
                     ->values();
 
                 return [
-                    'eid'        => Hashids::encode($row->id),
-                    'docid'      => $row->docid,
+                    'eid' => Hashids::encode($row->id),
+                    'docid' => $row->docid,
                     'user_peminta' => $row->user_peminta,
-                    'access_type'  => $row->access_type,
-                    'keperluan'  => $row->keperluan,
-                    'groups'     => $groups,
-                    'status'     => $row->status,
+                    'access_type' => $row->access_type,
+                    'keperluan' => $row->keperluan,
+                    'groups' => $groups,
+                    'status' => $row->status,
                     'created_at' => optional($row->created_at)?->format('d M Y H:i'),
                 ];
             });
@@ -258,6 +279,7 @@ class ItDashboardController extends Controller
             ->pluck('docid')
             ->map(function ($docid) {
                 preg_match('/^[A-Z]+/', $docid, $match);
+
                 return $match[0] ?? null;
             })
             ->filter()

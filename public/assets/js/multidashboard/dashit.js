@@ -346,8 +346,27 @@
                     },
 
                     {
+                        data:"ticket_categoryid",
+                        title:"Category",
+                        render:function(data, type, row){
+                            const sub = row.ticket_subcategoryid || "";
+                            return sub ? `${data} - ${sub}` : (data || "-");
+                        }
+                    },
+
+                    {
                         data:"ticket_priority",
                         title:"Priority"
+                    },
+
+                    {
+                        data:"cpny_id",
+                        title:"Company"
+                    },
+
+                    {
+                        data:"department_id",
+                        title:"Department"
                     },
 
                     {
