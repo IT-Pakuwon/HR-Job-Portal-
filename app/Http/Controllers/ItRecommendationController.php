@@ -247,6 +247,7 @@ class ItRecommendationController extends Controller
             ->limit(20)
             ->get([
                 'ticketid',
+                'user_peminta',
                 'issue_summary',
             ]);
 
