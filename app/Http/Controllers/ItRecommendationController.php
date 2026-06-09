@@ -221,19 +221,22 @@ class ItRecommendationController extends Controller
 
         $user = auth()->user();
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
-
         $deptIds = is_string($user->department_id)
             ? array_map('trim', explode(',', $user->department_id))
             : (array) $user->department_id;
 
+        $ticketDeptIds = \App\Models\Userdept::where('username', $user->username)
+            ->pluck('department_id')
+            ->merge($deptIds)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         $data = TrTicket::query()
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds)
-            ->whereIn('status', ['P'])
-            ->whereNotIn('status_pekerjaan', ['OPEN', 'CANCEL', 'REJECT'])
+            ->whereIn('department_id', $ticketDeptIds)
+            ->whereIn('status', ['P', 'C'])
+            ->whereNotIn('status_pekerjaan', ['CREATED', 'CANCEL', 'REJECT'])
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('ticketid', 'ilike', "%{$q}%")
