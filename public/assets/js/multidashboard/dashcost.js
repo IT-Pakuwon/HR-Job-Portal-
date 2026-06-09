@@ -5,6 +5,7 @@
     let dataRequest    = null;
     let dashboardTable = null;
     let tableBuiltForTab = null;
+    let rawImBudgetData = [];
 
     const urls = {
         summary:        "/cost-control-dashboard/summary-json",
@@ -74,6 +75,33 @@
                 <span class="font-medium text-white">${data}</span>
                 <i class="fas fa-arrow-up-right-from-square text-xs"></i>
             </a>`;
+    }
+
+    function imBudgetStatusBadge(status) {
+        const map = {
+            H: ["On Hold",      "bg-amber-100 text-amber-700 border-amber-200"],
+            P: ["On Progress",  "bg-blue-100 text-blue-700 border-blue-200"],
+            C: ["Completed",    "bg-emerald-100 text-emerald-700 border-emerald-200"],
+        };
+        const [label, cls] = map[status] ?? [status, "bg-slate-100 text-slate-600 border-slate-200"];
+        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${cls}">${label}</span>`;
+    }
+
+    function applyImBudgetFilter(data) {
+        const val = ($("#dashboardFilter").val() || "ALL").trim();
+        if (val === "ALL") return data;
+        return data.filter((r) => (r.status || "").toUpperCase() === val);
+    }
+
+    function loadImBudgetStatusFilter() {
+        const select = $("#dashboardFilter");
+        const current = select.val() || "ALL";
+        select.empty();
+        select.append(`<option value="ALL">All Status</option>`);
+        select.append(`<option value="H">On Hold</option>`);
+        select.append(`<option value="P">On Progress</option>`);
+        select.append(`<option value="C">Completed</option>`);
+        select.val(current);
     }
 
     function imBudgetLinkRender(data, type, row) {
@@ -203,6 +231,11 @@
                         className: "text-right",
                         render: (data) => formatCurrency(data),
                     },
+                    {
+                        data: "status",
+                        title: "Status",
+                        render: (data) => imBudgetStatusBadge(data),
+                    },
                 ];
                 break;
         }
@@ -272,6 +305,11 @@
                     }
                 }
 
+                if (tab === "imbudget") {
+                    rawImBudgetData = rows;
+                    rows = applyImBudgetFilter(rows);
+                }
+
                 buildDataTable(rows, tab);
                 updateRefreshTime();
             })
@@ -299,6 +337,9 @@
         if (tab === "approval" || tab === "approval-history") {
             loadDocTypes();
             filterWrap.show();
+        } else if (tab === "imbudget") {
+            loadImBudgetStatusFilter();
+            filterWrap.show();
         } else {
             filterWrap.hide();
         }
@@ -319,6 +360,8 @@
         $("#dashboardFilter").on("change", function () {
             if (activeTab === "approval" || activeTab === "approval-history") {
                 loadTab(activeTab);
+            } else if (activeTab === "imbudget") {
+                buildDataTable(applyImBudgetFilter(rawImBudgetData), "imbudget");
             }
         });
 
@@ -343,16 +386,6 @@
         });
     }
 
-    // ─── Auto refresh ────────────────────────────────────────────────────────────
-
-    function autoRefresh() {
-        setInterval(() => {
-            if (document.hidden) return;
-            loadSummary();
-            loadTab(activeTab);
-        }, 20000);
-    }
-
     // ─── Init ────────────────────────────────────────────────────────────────────
 
     function init() {
@@ -364,7 +397,6 @@
         $("#dashboardFilter").closest(".lg\\:col-span-5").hide();
 
         activateTab("approval");
-        autoRefresh();
     }
 
     $(document).ready(init);

@@ -62,7 +62,7 @@ class CostControlDashboardController extends Controller
             ->count('issue_id');
 
         $imBudget = TrIMBudget::query()
-            ->where('status', 'P')
+            ->whereNotIn('status', ['X', 'D', 'R'])
             ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
             ->count();
 
@@ -280,7 +280,7 @@ class CostControlDashboardController extends Controller
                 'total_budget_requested',
                 'status',
             ])
-            ->where('status', 'P')
+            ->whereNotIn('status', ['X', 'D', 'R'])
             ->when(!empty($allowedCpny), fn ($q) => $q->whereIn('cpny_id', $allowedCpny))
             ->orderByDesc('imbudgetdate')
             ->get()

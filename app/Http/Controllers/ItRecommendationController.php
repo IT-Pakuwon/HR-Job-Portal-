@@ -56,7 +56,7 @@ class ItRecommendationController extends Controller
                     ->whereIn('department_id', $deptIds);
             });
 
-        $all = (clone $q)->count();
+        $all = (clone $q)->whereNotIn('status', ['L'])->count();
         $waitingIT = (clone $q)->whereIn('status', ['W', 'I'])->count();
         $waitingApproval = (clone $q)->where('status', 'P')->count();
         $reject = (clone $q)->where('status', 'R')->count();
