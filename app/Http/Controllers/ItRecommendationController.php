@@ -69,7 +69,7 @@ class ItRecommendationController extends Controller
         $tickets = TrTicket::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
-            ->whereIn('status', ['P'])
+            ->whereIn('status', ['P', 'C'])
             ->whereNotIn('status_pekerjaan', ['CREATED', 'CANCEL', 'REJECT'])
             ->orderByDesc('ticketdate')
             ->limit(50)
@@ -1414,6 +1414,7 @@ class ItRecommendationController extends Controller
             $attachmentResponse->getData(true)['attachments'] ?? []
         )->map(function ($att) {
             $att['signed_url'] = $att['url'] ?? null;
+
             return $att;
         });
 
@@ -2097,8 +2098,8 @@ class ItRecommendationController extends Controller
             if (in_array($ext, $imageExts) && !empty($att['url'])) {
                 try {
                     $bytes = file_get_contents($att['url']);
-                    $mime  = $ext === 'png' ? 'image/png' : 'image/jpeg';
-                    $att['base64'] = 'data:' . $mime . ';base64,' . base64_encode($bytes);
+                    $mime = $ext === 'png' ? 'image/png' : 'image/jpeg';
+                    $att['base64'] = 'data:'.$mime.';base64,'.base64_encode($bytes);
                 } catch (\Throwable $e) {
                     $att['base64'] = null;
                 }
