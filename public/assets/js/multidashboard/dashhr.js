@@ -3,6 +3,7 @@
     let summaryRequest = null;
     let dataRequest = null;
     let dashboardTable = null;
+    let tableBuiltForTab = null;
 
     const urls = {
         summary: "/hr-dashboard/summary-json",
@@ -128,11 +129,18 @@ function statusBadge(status) {
     `;
 }
     function buildDataTable(data, tab) {
+        if ($.fn.DataTable.isDataTable("#dashboardTable") && tableBuiltForTab === tab) {
+            dashboardTable.clear().rows.add(data).draw(false);
+            return;
+        }
+
         if ($.fn.DataTable.isDataTable("#dashboardTable")) {
             $("#dashboardTable").DataTable().clear().destroy();
 
             $("#dashboardTable").empty();
         }
+
+        tableBuiltForTab = tab;
 
         let columns = [];
 

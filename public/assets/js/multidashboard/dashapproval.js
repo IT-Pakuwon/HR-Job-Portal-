@@ -5,6 +5,7 @@
     let summaryRequest = null;
     let dataRequest = null;
     let dashboardTable = null;
+    let tableBuiltForTab = null;
 
     let countdown = 20;
     let countdownTimer = null;
@@ -114,6 +115,11 @@
 
     function buildDataTable(data, tab) {
 
+        if ($.fn.DataTable.isDataTable("#approvalTable") && tableBuiltForTab === tab) {
+            dashboardTable.clear().rows.add(data).draw(false);
+            return;
+        }
+
         if ($.fn.DataTable.isDataTable("#approvalTable")) {
 
             $("#approvalTable")
@@ -123,6 +129,8 @@
 
             $("#approvalTable").empty();
         }
+
+        tableBuiltForTab = tab;
 
         dashboardTable = $("#approvalTable").DataTable({
 
