@@ -1,72 +1,72 @@
 <div class="space-y-4">
 
     <!-- FILTER PANEL -->
-    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm">
+    <div class="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/60">
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-8">
 
             <!-- Date From -->
             <div>
-                <label class="text-xs text-gray-500">Date From</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">Date From</label>
                 <input type="date" id="fa_date_from"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <!-- Date To -->
             <div>
-                <label class="text-xs text-gray-500">Date To</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">Date To</label>
                 <input type="date" id="fa_date_to"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <!-- STTB / Receipt No -->
             <div>
-                <label class="text-xs text-gray-500">STTB</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">STTB</label>
                 <input type="text" id="fa_receiptnbr" placeholder="GRxxxx"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <!-- PO No -->
             <div>
-                <label class="text-xs text-gray-500">PO</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">PO</label>
                 <input type="text" id="fa_ponbr" placeholder="xxxxx"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <!-- SPPB -->
             <div>
-                <label class="text-xs text-gray-500">SPPB</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">SPPB</label>
                 <input type="text" id="fa_sppb" placeholder="PBxxxx"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <!-- Department -->
             <div>
-                <label class="text-xs text-gray-500">Department</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">Department</label>
                 <input type="text" id="fa_department"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <!-- Vendor -->
             <div>
-                <label class="text-xs text-gray-500">Vendor</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">Vendor</label>
                 <input type="text" id="fa_vendor"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <!-- Inventory Code / Name -->
             <div>
-                <label class="text-xs text-gray-500">Inventory Code / Name</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">Inventory Code / Name</label>
                 <input type="text" id="fa_inventory"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
             </div>
 
             <!-- Status -->
             <div>
-                <label class="text-xs text-gray-500">Status</label>
+                <label class="mb-1 block text-[11px] font-medium text-gray-500">Status</label>
                 <select id="fa_status"
-                    class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
-                    <option value="">All</option>
+                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm">
+                    <option value="">All Status</option>
                     <option value="Full Received">Full Received</option>
                     <option value="Partial Received">Partial Received</option>
                 </select>
@@ -79,12 +79,13 @@
                     Apply
                 </button>
 
-                <button id="faReset" class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
+                <button id="faReset"
+                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700">
                     Reset
                 </button>
 
                 <button id="faExport"
-                    class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+                    class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
                     Export
                 </button>
 
@@ -97,7 +98,7 @@
     <!-- TABLE -->
     <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
 
-        <div class="border-b px-6 py-4">
+        <div class="border-b border-gray-200 px-6 py-4">
             <h2 class="text-sm font-semibold text-gray-800">
                 Fixed Asset Receipt Report
             </h2>
@@ -111,27 +112,27 @@
 
             <table id="faTable" class="min-w-full text-sm text-gray-700">
 
-                <thead class="bg-gray-50 text-[11px] uppercase text-gray-500">
+                <thead class="bg-gray-50 text-[11px] uppercase tracking-wider text-gray-500">
                     <tr>
-                        <th>STTB</th>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>PO</th>
-                        <th>Ref Receipt</th>
-                        <th>Cpny</th>
-                        <th>SPPB</th>
-                        <th>Department</th>
-                        <th>User Peminta</th>
-                        <th>Vendor</th>
-                        <th>Vendor Name</th>
-                        <th>Item Sub Type</th>
-                        <th>Item Category</th>
-                        <th>Inventory Code</th>
-                        <th>Inventory Name</th>
-                        <th>Qty PO</th>
-                        <th>Qty STTB</th>
-                        <th>UOM</th>
-                        <th>Status</th>
+                        <th class="px-3 py-3 text-left">STTB</th>
+                        <th class="px-3 py-3 text-left">Date</th>
+                        <th class="px-3 py-3 text-left">Type</th>
+                        <th class="px-3 py-3 text-left">PO</th>
+                        <th class="px-3 py-3 text-left">Ref Receipt</th>
+                        <th class="px-3 py-3 text-left">Cpny</th>
+                        <th class="px-3 py-3 text-left">SPPB</th>
+                        <th class="px-3 py-3 text-left">Department</th>
+                        <th class="px-3 py-3 text-left">User Peminta</th>
+                        <th class="px-3 py-3 text-left">Vendor</th>
+                        <th class="px-3 py-3 text-left">Vendor Name</th>
+                        <th class="px-3 py-3 text-left">Item Sub Type</th>
+                        <th class="px-3 py-3 text-left">Item Category</th>
+                        <th class="px-3 py-3 text-left">Inventory Code</th>
+                        <th class="px-3 py-3 text-left">Inventory Name</th>
+                        <th class="px-3 py-3 text-right">Qty PO</th>
+                        <th class="px-3 py-3 text-right">Qty STTB</th>
+                        <th class="px-3 py-3 text-left">UOM</th>
+                        <th class="px-3 py-3 text-left">Status</th>
                     </tr>
                 </thead>
 
@@ -153,6 +154,17 @@
             responsive: true,
             searching: false,
 
+            dom: "<'flex items-center justify-between mb-3'<'text-sm'l>>" +
+                "rt" +
+                "<'flex items-center justify-between mt-3'<'text-sm'i><'text-sm'p>>",
+
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+
+            pageLength: 10,
+
             ajax: {
                 url: "{{ route('report.fa.json') }}",
                 data: function(d) {
@@ -169,26 +181,27 @@
             },
 
             columns: [
-                { data: 'receiptnbr' },
-                { data: 'receipt_date_fmt' },
-                { data: 'receipttype', className: 'text-center' },
-                { data: 'ponbr' },
-                { data: 'ref_receiptnbr' },
-                { data: 'cpny_id', className: 'text-center' },
-                { data: 'sppbjktid' },
-                { data: 'department_id' },
-                { data: 'user_peminta' },
-                { data: 'vendorid' },
-                { data: 'vendorname' },
-                { data: 'inventory_sub_type' },
-                { data: 'inventory_category' },
-                { data: 'inventoryid' },
-                { data: 'inventory_descr' },
-                { data: 'qty_po', className: 'text-center' },
-                { data: 'qty_sttb', className: 'text-center' },
-                { data: 'uom', className: 'text-center' },
+                { data: 'receiptnbr', className: 'px-3' },
+                { data: 'receipt_date_fmt', className: 'px-3' },
+                { data: 'receipttype', className: 'px-3' },
+                { data: 'ponbr', className: 'px-3' },
+                { data: 'ref_receiptnbr', className: 'px-3' },
+                { data: 'cpny_id', className: 'px-3' },
+                { data: 'sppbjktid', className: 'px-3' },
+                { data: 'department_id', className: 'px-3' },
+                { data: 'user_peminta', className: 'px-3' },
+                { data: 'vendorid', className: 'px-3' },
+                { data: 'vendorname', className: 'px-3' },
+                { data: 'inventory_sub_type', className: 'px-3' },
+                { data: 'inventory_category', className: 'px-3' },
+                { data: 'inventoryid', className: 'px-3' },
+                { data: 'inventory_descr', className: 'px-3' },
+                { data: 'qty_po', className: 'px-3 text-right' },
+                { data: 'qty_sttb', className: 'px-3 text-right' },
+                { data: 'uom', className: 'px-3' },
                 {
                     data: 'status',
+                    className: 'px-3',
                     render: function(data) {
                         let map = {
                             'Full Received':    'bg-green-100 text-green-700',
@@ -196,7 +209,7 @@
                             'ERR':              'bg-red-100 text-red-700',
                         };
                         let cls = map[data] ?? 'bg-gray-100 text-gray-600';
-                        return `<span class="px-2 py-1 text-xs rounded ${cls}">${data}</span>`;
+                        return `<span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${cls}">${data}</span>`;
                     }
                 },
             ],

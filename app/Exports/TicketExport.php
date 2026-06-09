@@ -83,6 +83,14 @@ class TicketExport implements FromCollection, WithHeadings
             });
         }
 
+        if ($this->request->filled('category_id')) {
+
+            $query->where(
+                'ticket_categoryid',
+                $this->request->category_id
+            );
+        }
+
         return $query
             ->orderByDesc('ticketdate')
             ->get([

@@ -53,6 +53,8 @@ const ticketTable = $("#ticketTable").DataTable({
 
             d.status_pekerjaan = $("#filter_status_pekerjaan").val();
 
+            d.category_id = $("#filter_category_id").val();
+
             d.date_from = $("#filter_date_from").val();
 
             d.date_to = $("#filter_date_to").val();
@@ -939,40 +941,37 @@ $(document).on("keyup", "#filter_search", function () {
     }, 500);
 });
 
-$(document).on("change", "#filter_status", function () {
+$(document).on("change", "#filter_category_id", function () {
     ticketTable.ajax.reload();
 });
 
-$(document).on("change", "#filter_status_pekerjaan", function () {
+$(document).on('click', '#btn_apply_filter', function () {
     ticketTable.ajax.reload();
 });
 
-$(document).on("change", "#filter_date_from", function () {
+$(document).on('click', '#btn_reset_filter', function () {
+    $('#filter_search').val('');
+    $('#filter_status').val('');
+    $('#filter_status_pekerjaan').val('');
+    $('#filter_category_id').val('');
+    $('#filter_date_from').val('');
+    $('#filter_date_to').val('');
+    ticketStatusFilter = '';
+    $('.ticket-status-card').removeClass('active');
     ticketTable.ajax.reload();
 });
 
-$(document).on("change", "#filter_date_to", function () {
-    ticketTable.ajax.reload();
-});
-
-
-$(document).on('click', '#btn_export_ticket', function() {
-
+function doExportTicket() {
     const params = new URLSearchParams({
-
-        search: $('#filter_search').val() || '',
-
-        status: $('#filter_status_pekerjaan').val() || '',
-
-        date_from: $('#filter_date_from').val() || '',
-
-        date_to: $('#filter_date_to').val() || ''
-
+        search:      $('#filter_search').val() || '',
+        status:      $('#filter_status_pekerjaan').val() || '',
+        category_id: $('#filter_category_id').val() || '',
+        date_from:   $('#filter_date_from').val() || '',
+        date_to:     $('#filter_date_to').val() || '',
     });
 
-    window.open(
-        `/ticket/export?${params.toString()}`,
-        '_blank'
-    );
+    window.open(`/ticket/export?${params.toString()}`, '_blank');
+}
 
-});
+$(document).on('click', '#btn_export_ticket', doExportTicket);
+$(document).on('click', '#btn_export_filter', doExportTicket);

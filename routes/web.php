@@ -1323,6 +1323,8 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/pic-search', 'picSearch')->name('ticket.picSearch');
                 Route::get('/companies-search', 'companiesSearch')->name('ticket.companiesSearch');
                 Route::get('/create-dropdown', 'createDropdown')->name('ticket.create-dropdown');
+                Route::get('/service-orders/json', 'serviceOrderJson')->name('ticket.serviceOrders.json');
+                Route::post('/service-orders/{id}/non-aktif', 'serviceOrderNonAktif')->name('ticket.serviceOrders.nonAktif');
             });
 
             Route::post('/store', 'store')->name('ticket.store');

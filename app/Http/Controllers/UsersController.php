@@ -231,10 +231,10 @@ class UsersController extends Controller
             'jabatan' => $user->jabatan,
             'role' => $user->user_role,
             'homepage' => $user->homepage,
-            'cpny_id' => explode(',', $user->cpny_id),
-            'department_id' => explode(',', $user->department_id),
-            'division_id' => explode(',', (string) $user->division_id),
-            'business_unit_id' => explode(',', $user->business_unit_id),
+            'cpny_id' => array_values(array_filter(explode(',', $user->cpny_id ?? ''), fn($v) => $v !== '')),
+            'department_id' => array_values(array_filter(explode(',', $user->department_id ?? ''), fn($v) => $v !== '')),
+            'division_id' => array_values(array_filter(explode(',', (string) ($user->division_id ?? '')), fn($v) => $v !== '')),
+            'business_unit_id' => array_values(array_filter(explode(',', $user->business_unit_id ?? ''), fn($v) => $v !== '')),
             'role_ids' => $userRoles,
         ]);
     }

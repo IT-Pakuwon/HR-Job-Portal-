@@ -20,6 +20,13 @@ class Kernel extends ConsoleKernel
             Schedule::FRIDAY,
         ];
 
+        // Sync ENVISION tickets → ENVISION CHECKED/SOLVED every 5 minutes
+        $schedule->command('ticket:sync-envision-solved')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/sync-envision-solved.log'));
+
         // Email pending approval
         $schedule->command('email:approval-pending')
             ->days($days)

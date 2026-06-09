@@ -186,12 +186,18 @@ class TicketController extends Controller
             )->count(),
         ];
 
+        $categories = MsTicketCategory::query()
+            ->where('status', 'A')
+            ->orderBy('ticket_category_name')
+            ->get(['ticket_categoryid', 'ticket_category_name']);
+
         return view('pages.ticket.ticket', [
             'title' => 'Ticket',
             'eid' => $eid,
             'companies' => $companies,
             'departments' => $departments,
             'counts' => $counts,
+            'categories' => $categories,
         ]);
     }
 
@@ -297,12 +303,12 @@ class TicketController extends Controller
             );
         }
 
-        TrTicket::query()
-            ->where('status_pekerjaan', 'ENVISION')
-            ->get()
-            ->each(function ($ticket) {
-                $this->syncEnvisionSolved($ticket);
-            });
+        if ($request->filled('category_id')) {
+            $query->where(
+                'ticket_categoryid',
+                $request->category_id
+            );
+        }
 
         return DataTables::of($query)
 
@@ -2504,7 +2510,7 @@ class TicketController extends Controller
             }
         }
 
-        return $date;
+        return $date->endOfDay();
     }
 
     protected function createActivity(array $data)
@@ -2876,4 +2882,57 @@ class TicketController extends Controller
     }
 }
 
+    public function serviceOrderJson(Request $request)
+    {
+        abort_unless($this->isITRole(), 403);
+
+        $query = TrServiceorderEnvision::query()
+            ->whereNull('deleted_at');
+
+        if ($request->filled('search_so')) {
+            $s = $request->search_so;
+            $query->where(function ($q) use ($s) {
+                $q->where('serviceorderid', 'ilike', "%{$s}%")
+                  ->orWhere('ticketid',       'ilike', "%{$s}%")
+                  ->orWhere('user_pic',        'ilike', "%{$s}%")
+                  ->orWhere('job_type',        'ilike', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('so_job_status')) {
+            $query->where('job_status', $request->so_job_status);
+        }
+
+        if ($request->filled('so_date_from')) {
+            $query->whereDate('serviceorderdate', '>=', $request->so_date_from);
+        }
+
+        if ($request->filled('so_date_to')) {
+            $query->whereDate('serviceorderdate', '<=', $request->so_date_to);
+        }
+
+        return DataTables::of($query->orderByDesc('serviceorderdate'))
+            ->addColumn('ticket_link', function ($row) {
+                return $row->ticketid;
+            })
+            ->toJson();
+    }
+
+    public function serviceOrderNonAktif(int $id)
+    {
+        abort_unless($this->isITRole(), 403);
+
+        $so = TrServiceorderEnvision::findOrFail($id);
+
+        abort_if($so->status === 'X', 422, 'Service order is already non-active.');
+
+        $user = auth()->user();
+
+        $so->update([
+            'status'     => 'X',
+            'updated_by' => $user->username,
+        ]);
+
+        return response()->json(['message' => 'Service order set to non-active.']);
+    }
 }

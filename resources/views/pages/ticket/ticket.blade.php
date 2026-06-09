@@ -361,7 +361,7 @@
             <div
                 class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
 
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
 
                     {{-- Search --}}
                     <div>
@@ -465,6 +465,32 @@
 
                     </div>
 
+                    {{-- Category --}}
+                    <div>
+
+                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+
+                            Category
+
+                        </label>
+
+                        <select id="filter_category_id"
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+
+                            <option value="">
+                                All Category
+                            </option>
+
+                            @foreach ($categories as $cat)
+                                <option value="{{ $cat->ticket_categoryid }}">
+                                    {{ $cat->ticket_category_name }}
+                                </option>
+                            @endforeach
+
+                        </select>
+
+                    </div>
+
                     {{-- Date From --}}
                     <div>
 
@@ -495,6 +521,44 @@
 
                 </div>
 
+                {{-- Filter Action Buttons --}}
+                <div class="mt-3 flex flex-wrap items-center justify-end gap-2">
+
+                    <button type="button" id="btn_reset_filter"
+                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+
+                        Reset
+
+                    </button>
+
+                    <button type="button" id="btn_apply_filter"
+                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                        </svg>
+
+                        Apply Filter
+
+                    </button>
+
+                    <button type="button" id="btn_export_filter"
+                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-green-300 bg-green-50 px-4 text-sm font-medium text-green-700 transition hover:bg-green-100 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16V4m0 12l-4-4m4 4l4-4m5 8H3" />
+                        </svg>
+
+                        Export to Excel
+
+                    </button>
+
+                </div>
+
             </div>
         @endif
         {{-- Table Wrapper --}}
@@ -513,6 +577,19 @@
                 </div>
 
                 <div class="flex items-center gap-3">
+
+                    @if ($isITRole)
+                        <button type="button" id="btn_open_so_list"
+                            class="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-teal-300 bg-teal-50 px-4 text-sm font-medium text-teal-700 transition hover:bg-teal-100 dark:border-teal-700 dark:bg-teal-900/30 dark:text-teal-200 dark:hover:bg-teal-900/50">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+
+                            <span>Service Order List</span>
+
+                        </button>
+                    @endif
 
                     @if ($isIT)
                         <a href="{{ route('ticketsetup') }}"
@@ -1569,6 +1646,65 @@
 
         </div>
 
+        {{-- SERVICE ORDER LIST MODAL --}}
+        @if ($isITRole)
+        <div id="soListModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+            <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
+            <div class="modal-panel relative z-10 flex max-h-[95vh] w-full max-w-7xl translate-y-4 scale-[0.98] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white opacity-0 transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+
+                {{-- Header --}}
+                <div class="flex items-center justify-between border-b border-slate-200 bg-white/90 px-6 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Service Order List</h2>
+                    <button type="button" id="btn_close_so_list"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300">
+                        <i class="fa-solid fa-xmark text-base"></i>
+                    </button>
+                </div>
+
+                {{-- Filters --}}
+                <div class="border-b border-slate-200 bg-slate-50 px-6 py-3 dark:border-white/10 dark:bg-white/[0.02]">
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+                        <input type="text" id="so_filter_search" placeholder="SO ID / Ticket / PIC / Job Type"
+                            class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                        <select id="so_filter_job_status"
+                            class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            <option value="">All Status</option>
+                            <option value="O">Open</option>
+                            <option value="C">Completed</option>
+                            <option value="X">Cancelled</option>
+                        </select>
+                        <input type="date" id="so_filter_date_from"
+                            class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                        <input type="date" id="so_filter_date_to"
+                            class="h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                    </div>
+                </div>
+
+                {{-- Table --}}
+                <div class="flex-1 overflow-auto p-4">
+                    <table id="soListTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="px-4 py-3 text-left font-medium">SO ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Date</th>
+                                <th class="px-4 py-3 text-left font-medium">Ticket ID</th>
+                                <th class="px-4 py-3 text-left font-medium">PIC</th>
+                                <th class="px-4 py-3 text-left font-medium">Job Type</th>
+                                <th class="px-4 py-3 text-left font-medium min-w-[200px]">Description</th>
+                                <th class="px-4 py-3 text-left font-medium min-w-[200px]">Action Taken</th>
+                                <th class="px-4 py-3 text-left font-medium">Job Status</th>
+                                <th class="px-4 py-3 text-left font-medium">Completed At</th>
+                                <th class="px-4 py-3 text-center font-medium">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        @endif
+
         @include('pages.ticket.partial.modal-response')
         @include('pages.ticket.partial.modal-transfer')
         @include('pages.ticket.partial.modal-process')
@@ -1602,6 +1738,9 @@
         window.ticketRoutes = {
 
             createDropdown: "{{ route('ticket.create-dropdown') }}",
+
+            serviceOrdersJson:    "{{ route('ticket.serviceOrders.json') }}",
+            serviceOrderNonAktif: "{{ url('/ticket/service-orders') }}/:id/non-aktif",
 
             categorySearch: "{{ route('ticket.categorySearch') }}",
 
@@ -1670,4 +1809,7 @@
     <script src="{{ asset('assets/js/ticket/cancel.js') }}"></script>
 
     <script src="{{ asset('assets/js/ticket/init.js') }}"></script>
+    @if ($isITRole)
+    <script src="{{ asset('assets/js/ticket/service-order-list.js') }}"></script>
+    @endif
 </x-app-layout>
