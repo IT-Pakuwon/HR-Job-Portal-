@@ -66,9 +66,15 @@ class ItRecommendationController extends Controller
         $usercpny = Usercpny::where('username', $user->username)->get();
         $userdept = Userdept::where('username', $user->username)->get();
 
+        $ticketDeptIds = $userdept->pluck('department_id')
+            ->merge($deptIds)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
         $tickets = TrTicket::query()
-            ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds)
+            ->whereIn('department_id', $ticketDeptIds)
             ->whereIn('status', ['P', 'C'])
             ->whereNotIn('status_pekerjaan', ['CREATED', 'CANCEL', 'REJECT'])
             ->orderByDesc('ticketdate')
