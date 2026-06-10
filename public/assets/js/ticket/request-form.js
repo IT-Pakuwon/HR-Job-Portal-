@@ -144,6 +144,23 @@ function submitCreateTicket() {
         );
     }
 
+    const summary = $('#issue_summary').val().trim();
+    const descrText = window.issueDescrQuill
+        ? window.issueDescrQuill.getText().trim()
+        : $('#issue_descr').val().trim();
+
+    if (!summary) {
+        showError('Issue Summary is required.');
+        $('#issue_summary').focus();
+        return;
+    }
+
+    if (!descrText) {
+        showError('Issue Description is required.');
+        window.issueDescrQuill?.focus();
+        return;
+    }
+
     const form =
         $(Ticket.selectors.createForm)[0];
 

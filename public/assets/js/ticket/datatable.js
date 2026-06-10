@@ -527,6 +527,8 @@ const ticketTable = $("#ticketTable").DataTable({
     ],
 
     drawCallback: function () {
+        refreshStatusCards();
+
         $("#ticketTable tbody tr").addClass(
             "transition duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/40",
         );
@@ -975,3 +977,18 @@ function doExportTicket() {
 
 $(document).on('click', '#btn_export_ticket', doExportTicket);
 $(document).on('click', '#btn_export_filter', doExportTicket);
+
+function refreshStatusCards() {
+    if (!window.ticketRoutes?.counts) return;
+
+    $.getJSON(window.ticketRoutes.counts, function (data) {
+        $('[data-count]').each(function () {
+            const key = $(this).data('count');
+            if (data[key] !== undefined) {
+                $(this).text(data[key]);
+            }
+        });
+    });
+}
+
+window.refreshStatusCards = refreshStatusCards;
