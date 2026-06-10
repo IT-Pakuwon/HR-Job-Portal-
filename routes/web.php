@@ -353,6 +353,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('applicant.mapping.store');
     Route::post('/applicant/mapping/rollback', [SelfRegisterApplicantController::class, 'rollbackMapping'])
         ->name('applicant.mapping.rollback');
+    Route::post('/applicant/tag', [SelfRegisterApplicantController::class, 'storeTag'])
+        ->name('applicant.tag.store');
+    Route::post('/applicant/reject', [SelfRegisterApplicantController::class, 'storeReject'])
+        ->name('applicant.reject.store');
+    Route::get('/applicant/departments', [SelfRegisterApplicantController::class, 'getDepartments'])
+        ->name('applicant.departments');
 
     Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
     Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');
@@ -1321,6 +1327,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/location-search', 'locationSearch')->name('ticket.locationSearch');
                 Route::get('/sub-location-search', 'subLocationSearch')->name('ticket.subLocationSearch');
                 Route::get('/pic-search', 'picSearch')->name('ticket.picSearch');
+                Route::get('/counts', 'counts')->name('ticket.counts');
                 Route::get('/companies-search', 'companiesSearch')->name('ticket.companiesSearch');
                 Route::get('/create-dropdown', 'createDropdown')->name('ticket.create-dropdown');
                 Route::get('/service-orders/json', 'serviceOrderJson')->name('ticket.serviceOrders.json');
