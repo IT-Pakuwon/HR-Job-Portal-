@@ -49,6 +49,7 @@ class TicketController extends Controller
             'RESPONSE',
             'REOPEN',
             'PENDING',
+            'ENVISION',
         ],
 
         'pending' => [
@@ -1567,17 +1568,6 @@ class TicketController extends Controller
             DB::connection('pgsql5')->commit();
 
             $ticket->refresh();
-
-            $this->notificationService->ticketEnvision(
-                $ticket,
-                $request->response_summary,
-                $request->response_descr
-            );
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Ticket envision updated successfully.',
-            ]);
         } catch (\Throwable $th) {
             DB::connection('pgsql5')->rollBack();
 
@@ -1587,6 +1577,25 @@ class TicketController extends Controller
                 'message' => $th->getMessage(),
             ], 500);
         }
+
+        try {
+            $this->notificationService->ticketEnvision(
+                $ticket,
+                $request->response_summary,
+                $request->response_descr
+            );
+        } catch (\Throwable $e) {
+            \Log::error('ticketEnvision notification failed', [
+                'ticketid' => $ticket->ticketid,
+                'cpny_id'  => $ticket->cpny_id,
+                'error'    => $e->getMessage(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket envision updated successfully.',
+        ]);
     }
 
     public function transferTicket(Request $request, $hash)
@@ -2656,6 +2665,7 @@ class TicketController extends Controller
                     'RESPONSE',
                     'PENDING',
                     'REOPEN',
+                    'ENVISION',
                 ]),
 
             'can_pending' => $isPIC

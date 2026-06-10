@@ -28,6 +28,7 @@ use App\Models\ApplicantLanguage;
 use App\Models\ApplicantMarital;
 use App\Models\ApplicantSW;
 use App\Models\ApplicantSkill;
+use App\Models\ApplicantDriverLicense;
 use App\Models\ApplicantWorking;
 use App\Models\JobApplyStep;
 use App\Models\Mschecklist;
@@ -2050,6 +2051,7 @@ class CareerController extends Controller
         $applicant_course = ApplicantCourse::where('applicant_id', $applicant->applicant_id)->get();
         $applicant_sw = ApplicantSW::where('applicant_id', $applicant->applicant_id)->orderBy('sw_type', 'asc')->get();
         $applicant_skill = ApplicantSkill::where('applicant_id', $applicant->applicant_id)->get();
+        $applicant_driver_license = ApplicantDriverLicense::where('applicant_id', $applicant->applicant_id)->get();
 
         $data = [
             'cpnyid' => $company->cpnyname,
@@ -2067,6 +2069,7 @@ class CareerController extends Controller
             'applicant_course' => $applicant_course,
             'applicant_skill' => $applicant_skill,
             'applicant_sw' => $applicant_sw,
+            'applicant_driver_license' => $applicant_driver_license,
         ];        
 
         $pdf = PDF::loadView('pages.careers.pdfapplicantprofile', $data)

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ApplicantDriverLicense extends Model
 {
+    protected $connection = 'mysql3';
     protected $table = 'hr_ms_applicant_driver_license';
 
     public $timestamps = false; // kalau tidak ada created_at

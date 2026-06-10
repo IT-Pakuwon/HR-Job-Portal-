@@ -1674,26 +1674,6 @@ class ItRecommendationController extends Controller
             }
         }
 
-        // Approval-initiated revisions sent back to IT (status 'D')
-        $approvalRevisionMessages = TrMessage::query()
-            ->where('refnbr', $header->docid)
-            ->where('doctype', $this->doctype)
-            ->where('status', 'D')
-            ->orderBy('message_date')
-            ->get();
-
-        foreach ($approvalRevisionMessages as $msg) {
-            $push(
-                'Revision Requested',
-                $msg->username,
-                $msg->message_date,
-                'D',
-                'Revision Requested',
-                $msg->message,
-                5
-            );
-        }
-
         /*
         |--------------------------------------------------------------------------
         | IT PROCESS

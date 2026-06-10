@@ -182,16 +182,15 @@
                                 <div class="{{ $value }} flex flex-wrap gap-2">
 
                                     @php
-                                        $totalDocs =
-                                            (optional($wo->spbs)->count() ?? 0) +
-                                            (optional($wo->sppbs)->count() ?? 0) +
-                                            (optional($wo->sppjs)->count() ?? 0) +
-                                            // (optional($wo->sppks)->count() ?? 0) +
-                                            (optional($wo->sppts)->count() ?? 0);
+                                        $activeSpbs  = collect($wo->spbs  ?? [])->whereNotIn('status', ['X', 'R']);
+                                        $activeSppbs = collect($wo->sppbs ?? [])->whereNotIn('status', ['X', 'R']);
+                                        $activeSppjs = collect($wo->sppjs ?? [])->whereNotIn('status', ['X', 'R']);
+                                        $activeSppts = collect($wo->sppts ?? [])->whereNotIn('status', ['X', 'R']);
+                                        $totalDocs   = $activeSpbs->count() + $activeSppbs->count() + $activeSppjs->count() + $activeSppts->count();
                                     @endphp
 
                                     {{-- SPB --}}
-                                    @foreach ($wo->spbs ?? [] as $spb)
+                                    @foreach ($activeSpbs as $spb)
                                         @php $hash = \Hashids::encode($spb->id); @endphp
                                         <a href="{{ url('/showspbs/' . $hash) }}" target="_blank"
                                             class="badge-doc bg-blue-100 text-blue-700">
@@ -200,7 +199,7 @@
                                     @endforeach
 
                                     {{-- SPPB --}}
-                                    @foreach ($wo->sppbs ?? [] as $sppb)
+                                    @foreach ($activeSppbs as $sppb)
                                         @php $hash = \Hashids::encode($sppb->id); @endphp
                                         <a href="{{ url('/showsppbs/' . $hash) }}" target="_blank"
                                             class="badge-doc bg-green-100 text-green-700">
@@ -209,7 +208,7 @@
                                     @endforeach
 
                                     {{-- SPPJ --}}
-                                    @foreach ($wo->sppjs ?? [] as $sppj)
+                                    @foreach ($activeSppjs as $sppj)
                                         @php $hash = \Hashids::encode($sppj->id); @endphp
                                         <a href="{{ url('/showsppjs/' . $hash) }}" target="_blank"
                                             class="badge-doc bg-purple-100 text-purple-700">
@@ -217,9 +216,8 @@
                                         </a>
                                     @endforeach
 
-
                                     {{-- SPPT --}}
-                                    @foreach ($wo->sppts ?? [] as $sppt)
+                                    @foreach ($activeSppts as $sppt)
                                         @php $hash = \Hashids::encode($sppt->id); @endphp
                                         <a href="{{ url('/showsppts/' . $hash) }}" target="_blank"
                                             class="badge-doc bg-pink-100 text-pink-700">

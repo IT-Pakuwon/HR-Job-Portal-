@@ -1830,6 +1830,7 @@
                             <tr>
                                 <th>No</th>
                                 <th>Company</th>
+                                <th>Company ID</th>
                                 <th>Chat ID</th>
                                 <th>Status</th>
                                 <th class="text-right">Action</th>
@@ -2354,6 +2355,10 @@
                     {
                         data: 'cpny_name',
                         name: 'cpny_name'
+                    },
+                    {
+                        data: 'cpny_id',
+                        name: 'cpny_id'
                     },
                     {
                         data: 'chat_id',

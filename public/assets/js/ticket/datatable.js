@@ -714,6 +714,7 @@ function buildTicketActions(row) {
             'RESPONSE',
             'PENDING',
             'REOPEN',
+            'ENVISION',
         ].includes(row.status_pekerjaan) &&
         row.pic_ticket === window.currentUser
     ) {
