@@ -386,13 +386,13 @@ class ApprovalController extends Controller
         */
         $existingQuery = TrApproval::query()
             ->where('refnbr', $refnbr)
-            ->where('aprv_doctype', $doctype);
+            ->where('aprv_doctype', $doctype)
+            ->where('status', 'P');
 
         $existingCount = (clone $existingQuery)->count();
 
         if ($existingCount > 0) {
-            $firstPending = (clone $existingQuery)
-                ->where('status', 'P');
+            $firstPending = (clone $existingQuery);
 
             $this->orderByLevel($firstPending);
 

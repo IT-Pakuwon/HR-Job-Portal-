@@ -244,25 +244,20 @@ class TicketController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search =
-                $request->search;
+            $search = $request->search;
 
             $query->where(function ($q) use ($search) {
-                $q->where(
-                    'ticketid',
-                    'ilike',
-                    "%{$search}%"
-                )
-                    ->orWhere(
-                        'issue_summary',
-                        'ilike',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'pic_ticket',
-                        'ilike',
-                        "%{$search}%"
-                    );
+                $q->where('ticketid',        'ilike', "%{$search}%")
+                  ->orWhere('issue_summary', 'ilike', "%{$search}%")
+                  ->orWhere('pic_ticket',    'ilike', "%{$search}%")
+                  ->orWhere('ticket_type',   'ilike', "%{$search}%")
+                  ->orWhere('created_by',    'ilike', "%{$search}%")
+                  ->orWhere('user_peminta',  'ilike', "%{$search}%")
+                  ->orWhere('department_id', 'ilike', "%{$search}%")
+                  ->orWhere('cpny_id',       'ilike', "%{$search}%")
+                  ->orWhere('status_pekerjaan', 'ilike', "%{$search}%")
+                  ->orWhereHas('category', fn ($c) => $c->where('ticket_categoryid', 'ilike', "%{$search}%"))
+                  ->orWhereHas('subcategory', fn ($c) => $c->where('ticket_subcategoryid', 'ilike', "%{$search}%"));
             });
         }
 

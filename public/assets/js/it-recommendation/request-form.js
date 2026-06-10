@@ -28,7 +28,7 @@ function initCreateSelect2() {
                 return {
                     results: data.map((item) => ({
                         id: item.ticketid,
-                        text: `${item.ticketid} - ${item.issue_summary}`,
+                        text: `${item.ticketid} - ${item.user_peminta} - ${item.issue_summary}`,
                     })),
                 };
             },

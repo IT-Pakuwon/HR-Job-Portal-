@@ -35,7 +35,7 @@ const ticketTable = $("#ticketTable").DataTable({
 
     searching: true,
 
-    dom: "flrtip",
+    dom: "lrtip",
 
     ordering: true,
 
