@@ -3117,6 +3117,31 @@
             });
 
         });
+
+        // Ticket Type change → load Category options dynamically
+        $('#subcategory_ticket_type').on('change', function () {
+            loadCategoryOptions($(this).val(), '#subcategory_category');
+        });
+
+        $('#edit_subcategory_ticket_type').on('change', function () {
+            loadCategoryOptions($(this).val(), '#edit_subcategory_category');
+        });
+
+        $('#priority_ticket_type').on('change', function () {
+            loadCategoryOptions($(this).val(), '#priority_category');
+        });
+
+        $('#edit_priority_ticket_type').on('change', function () {
+            loadCategoryOptions($(this).val(), '#edit_priority_category');
+        });
+
+        $('#dept_ticket_type').on('change', function () {
+            loadCategoryOptions($(this).val(), '#dept_category');
+        });
+
+        $('#edit_dept_ticket_type').on('change', function () {
+            loadCategoryOptions($(this).val(), '#edit_dept_category');
+        });
     </script>
 
 </x-app-layout>
