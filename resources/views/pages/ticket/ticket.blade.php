@@ -40,7 +40,7 @@
 
                         </div>
 
-                        <p class="shrink-0 text-base font-bold">
+                        <p class="shrink-0 text-base font-bold" data-count="all">
                             {{ $counts['all'] ?? 0 }}
                         </p>
 
@@ -71,7 +71,7 @@
 
                             </div>
 
-                            <p class="shrink-0 text-base font-bold">
+                            <p class="shrink-0 text-base font-bold" data-count="created">
                                 {{ $counts['created'] ?? 0 }}
                             </p>
 
@@ -101,7 +101,7 @@
 
                             </div>
 
-                            <p class="shrink-0 text-base font-bold">
+                            <p class="shrink-0 text-base font-bold" data-count="response">
                                 {{ $counts['response'] ?? 0 }}
                             </p>
 
@@ -132,7 +132,7 @@
 
                         </div>
 
-                        <p class="shrink-0 text-base font-bold">
+                        <p class="shrink-0 text-base font-bold" data-count="process">
                             {{ $counts['process'] ?? 0 }}
                         </p>
 
@@ -162,7 +162,7 @@
 
                         </div>
 
-                        <p class="shrink-0 text-base font-bold">
+                        <p class="shrink-0 text-base font-bold" data-count="pending">
                             {{ $counts['pending'] ?? 0 }}
                         </p>
 
@@ -193,7 +193,7 @@
 
                             </div>
 
-                            <p class="shrink-0 text-base font-bold">
+                            <p class="shrink-0 text-base font-bold" data-count="envision">
                                 {{ $counts['envision'] ?? 0 }}
                             </p>
 
@@ -224,7 +224,7 @@
 
                             </div>
 
-                            <p class="shrink-0 text-base font-bold">
+                            <p class="shrink-0 text-base font-bold" data-count="envision_solved">
                                 {{ $counts['ENVISION CHECKED / SOLVED'] ?? 0 }}
                             </p>
 
@@ -254,7 +254,7 @@
 
                             </div>
 
-                            <p class="shrink-0 text-base font-bold">
+                            <p class="shrink-0 text-base font-bold" data-count="transfer">
                                 {{ $counts['transfer'] ?? 0 }}
                             </p>
 
@@ -285,7 +285,7 @@
 
                         </div>
 
-                        <p class="shrink-0 text-base font-bold">
+                        <p class="shrink-0 text-base font-bold" data-count="completed">
                             {{ $counts['completed'] ?? 0 }}
                         </p>
 
@@ -315,7 +315,7 @@
 
                         </div>
 
-                        <p class="shrink-0 text-base font-bold">
+                        <p class="shrink-0 text-base font-bold" data-count="reopen">
                             {{ $counts['reopen'] ?? 0 }}
                         </p>
 
@@ -345,7 +345,7 @@
 
                         </div>
 
-                        <p class="shrink-0 text-base font-bold">
+                        <p class="shrink-0 text-base font-bold" data-count="cancel">
                             {{ $counts['cancel'] ?? 0 }}
                         </p>
 
@@ -999,12 +999,11 @@
                                 <div>
 
                                     <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-
-                                        Issue Summary
-
+                                        Issue Summary <span class="text-red-500">*</span>
                                     </label>
 
                                     <input type="text" id="issue_summary" name="issue_summary" maxlength="255"
+                                        required
                                         placeholder="Enter issue summary"
                                         class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500">
 
@@ -1013,9 +1012,7 @@
                                 <div>
 
                                     <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-
-                                        Issue Description
-
+                                        Issue Description <span class="text-red-500">*</span>
                                     </label>
 
                                     <textarea id="issue_descr" name="issue_descr" class="hidden"></textarea>
@@ -1736,6 +1733,8 @@
             @json($isITRole);
 
         window.ticketRoutes = {
+
+            counts: "{{ route('ticket.counts') }}",
 
             createDropdown: "{{ route('ticket.create-dropdown') }}",
 

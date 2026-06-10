@@ -9,6 +9,7 @@ use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use App\Models\MsTicketCategory;
 use App\Models\MsTicketCategoryDept;
+use App\Models\SysUserRole;
 use App\Models\MsTicketPriority;
 use App\Models\MsTicketSubcategory;
 use App\Models\MsTicketType;
@@ -364,6 +365,15 @@ class TicketController extends Controller
             ->exists();
     }
 
+    protected function isITByRole()
+    {
+        return SysUserRole::query()
+            ->where('username', auth()->user()->username)
+            ->whereIn('role_id', ['ITHARDWARE', 'ITSOFTWARE'])
+            ->where('status', 'A')
+            ->exists();
+    }
+
     protected function canAccessTicket($ticket)
     {
         $user = auth()->user();
@@ -665,16 +675,16 @@ class TicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
+        $username    = auth()->user()->username;
+        $isRequester = $ticket->created_by === $username;
+        $isPIC       = $ticket->pic_ticket  === $username;
+        $isITByRole  = $this->isITByRole();
+
         abort_if(
             !(
-                (
-                    $ticket->created_by === auth()->user()->username
-                    && $ticket->status_pekerjaan === 'CREATED'
-                )
-                || (
-                    $ticket->pic_ticket === auth()->user()->username
-                    && $ticket->status_pekerjaan !== 'COMPLETED'
-                )
+                ($isRequester && $ticket->status_pekerjaan === 'CREATED')
+                || ($isPIC && $ticket->status_pekerjaan !== 'COMPLETED')
+                || ($isITByRole && $ticket->status_pekerjaan !== 'COMPLETED')
             ),
             403
         );
@@ -685,20 +695,20 @@ class TicketController extends Controller
             $ticket->update([
                 'status' => 'X',
                 'status_pekerjaan' => 'CANCEL',
-                'updated_by' => auth()->user()->username,
+                'updated_by' => $username,
             ]);
 
             $this->createActivity([
-                'ticketid' => $ticket->ticketid,
-                'cpny_id' => $ticket->cpny_id,
-                'department_id' => $ticket->department_id,
-                'pic_ticket' => auth()->user()->username,
-                'response_date' => now(),
+                'ticketid'         => $ticket->ticketid,
+                'cpny_id'          => $ticket->cpny_id,
+                'department_id'    => $ticket->department_id,
+                'pic_ticket'       => $username,
+                'response_date'    => now(),
                 'response_summary' => 'Ticket Cancelled',
-                'response_descr' => 'Ticket cancelled by requester.',
+                'response_descr'   => 'Ticket cancelled.',
                 'status_pekerjaan' => 'CANCEL',
-                'status' => 'A',
-                'created_by' => auth()->user()->username,
+                'status'           => 'A',
+                'created_by'       => $username,
             ]);
 
             $ticket->refresh();
@@ -2250,6 +2260,43 @@ class TicketController extends Controller
         }
     }
 
+    public function counts()
+    {
+        $user    = auth()->user();
+        $isIT    = $this->isITRole();
+
+        $userCompanies   = collect(explode(',', $user->cpny_id))->filter()->map(fn($v) => trim($v))->toArray();
+        $userDepartments = collect(explode(',', $user->department_id))->filter()->map(fn($v) => trim($v))->toArray();
+
+        $base = function () use ($isIT, $userCompanies, $userDepartments, $user) {
+            $q = TrTicket::query();
+            if (!$isIT) {
+                $q->where(function ($q2) use ($user) {
+                    $q2->where('created_by', $user->username)
+                       ->orWhere('pic_ticket', $user->username);
+                });
+            }
+            return $q;
+        };
+
+        $statuses = [
+            'created', 'response', 'process', 'pending',
+            'envision', 'transfer', 'completed', 'reopen', 'cancel',
+        ];
+
+        $counts = ['all' => $base()->count()];
+
+        foreach ($statuses as $s) {
+            $counts[$s] = $base()->where('status_pekerjaan', strtoupper($s))->count();
+        }
+
+        $counts['envision_solved'] = $base()
+            ->where('status_pekerjaan', 'ENVISION CHECKED / SOLVED')
+            ->count();
+
+        return response()->json($counts);
+    }
+
     public function createDropdown()
     {
         $user = auth()->user();
@@ -2634,7 +2681,8 @@ class TicketController extends Controller
         $isPIC =
             $ticket->pic_ticket === $user->username;
 
-        $isIT = $this->isITRole();
+        $isIT       = $this->isITRole();
+        $isITByRole = $this->isITByRole();
 
         return [
             'can_edit' => $isRequester
@@ -2642,14 +2690,9 @@ class TicketController extends Controller
                 && $ticket->status_pekerjaan === 'CREATED',
 
             'can_cancel' => (
-                (
-                    $isRequester
-                    && $ticket->status_pekerjaan === 'CREATED'
-                )
-                || (
-                    $isPIC
-                    && $ticket->status_pekerjaan !== 'COMPLETED'
-                )
+                ($isRequester && $ticket->status_pekerjaan === 'CREATED')
+                || ($isPIC && $ticket->status_pekerjaan !== 'COMPLETED')
+                || ($isITByRole && $ticket->status_pekerjaan !== 'COMPLETED')
             ),
 
             'can_response' => $isIT
