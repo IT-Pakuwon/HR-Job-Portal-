@@ -74,6 +74,7 @@ class TicketController extends Controller
             'CREATED',
             'TRANSFER',
             'REOPEN',
+            'RESPONSE',
         ],
 
         'reopen' => [
@@ -2684,6 +2685,7 @@ class TicketController extends Controller
                     'CREATED',
                     'TRANSFER',
                     'REOPEN',
+                    'RESPONSE',
                 ]),
 
             'can_complete' => $isPIC
