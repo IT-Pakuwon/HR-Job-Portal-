@@ -121,7 +121,7 @@ class HrDashboardController extends Controller
 
                     'status' => $row->status,
 
-                    'url' => '/showpersonnels/' . Hashids::encode($row->id),
+                    'url' => '/showpersonnels',
                 ];
             })
             ->values();

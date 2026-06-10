@@ -600,9 +600,8 @@ function statusBadge(status) {
             }
 
             rows.forEach((row) => {
-                const id = row.hid || row.eid;
-                if (row.url && id) {
-                    window.open(`${row.url}/${id}`, "_blank");
+                if (row.url && row.hid) {
+                    window.open(`${row.url}/${row.hid}`, "_blank");
                 }
             });
         });
