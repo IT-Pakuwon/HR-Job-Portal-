@@ -763,7 +763,8 @@ function buildTicketActions(row) {
         [
             'CREATED',
             'TRANSFER',
-            'REOPEN'
+            'REOPEN',
+            'RESPONSE',
         ].includes(row.status_pekerjaan) &&
         (
             row.pic_ticket === window.currentUser ||
