@@ -992,8 +992,16 @@ class AccessRequestController extends Controller
                     return null;
                 }
 
-                return User::where('username', $username)
-                    ->value('name') ?? $username;
+                $parts = array_filter(array_map('trim', preg_split('/[,;|]/', $username)));
+
+                if (count($parts) <= 1) {
+                    return User::where('username', $username)->value('name') ?? $username;
+                }
+
+                return implode(', ', array_map(
+                    fn ($u) => User::where('username', $u)->value('name') ?? $u,
+                    $parts
+                ));
             };
 
             $steps = [];
@@ -1054,7 +1062,7 @@ class AccessRequestController extends Controller
                     },
 
                     // approver username
-                    'aprv_username' => $aprv->aprv_username,
+                    'aprv_username' => implode(', ', array_filter(array_map('trim', preg_split('/[,;|]/', $aprv->aprv_username ?? '')))),
 
                     // display processed by
                     'by' => $aprv->status === 'P'

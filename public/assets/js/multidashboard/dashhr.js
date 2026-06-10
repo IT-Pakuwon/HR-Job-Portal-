@@ -153,7 +153,7 @@ function statusBadge(status) {
 
                         render: function (data, type, row) {
                             return `
-                                <a href="${row.url}/${row.eid}"
+                                <a href="${row.url}/${row.hid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
                                    class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
@@ -200,7 +200,7 @@ function statusBadge(status) {
 
                         render: function (data, type, row) {
                             return `
-                                <a href="${row.url}/${row.eid}"
+                                <a href="${row.url}/${row.hid}"
                                    target="_blank"
                                    rel="noopener noreferrer"
                                    class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
@@ -600,8 +600,9 @@ function statusBadge(status) {
             }
 
             rows.forEach((row) => {
-                if (row.url && row.eid) {
-                    window.open(`${row.url}/${row.eid}`, "_blank");
+                const id = row.hid || row.eid;
+                if (row.url && id) {
+                    window.open(`${row.url}/${id}`, "_blank");
                 }
             });
         });

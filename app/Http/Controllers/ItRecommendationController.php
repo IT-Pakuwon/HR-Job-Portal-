@@ -135,6 +135,7 @@ class ItRecommendationController extends Controller
         $orderCol = $columns[$orderIdx] ?? 'docid';
 
         $base = TrItrecommend::query()
+            ->whereNotIn('status', ['L'])
             ->when(!$isITHardware, function ($query) use ($cpnyIds, $deptIds) {
                 $query->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds);
@@ -1546,6 +1547,10 @@ class ItRecommendationController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $fmtUsers = fn(?string $u): string => $u
+            ? implode(', ', array_filter(array_map('trim', preg_split('/[,;|]/', $u))))
+            : '';
+
         $push = function (
             $title,
             $description,
@@ -1720,7 +1725,7 @@ class ItRecommendationController extends Controller
             if ($row->status === 'A') {
                 $push(
                     'Approved',
-                    $row->aprv_username,
+                    $fmtUsers($row->aprv_username),
                     $row->aprv_dateafter
                         ? Carbon::parse($row->aprv_dateafter)
                         : null,
@@ -1737,7 +1742,7 @@ class ItRecommendationController extends Controller
                 if ($row->aprv_datebefore) {
                     $push(
                         'Waiting Approval',
-                        $row->aprv_username,
+                        $fmtUsers($row->aprv_username),
                         Carbon::parse($row->aprv_datebefore),
                         'P',
                         'Waiting Approval',
@@ -1748,7 +1753,7 @@ class ItRecommendationController extends Controller
                     // Level belum aktif (date belum di-set) — tetap tampilkan sebagai upcoming step
                     $timeline[] = [
                         'title' => 'Waiting Approval',
-                        'description' => $row->aprv_username,
+                        'description' => $fmtUsers($row->aprv_username),
                         'date' => null,
                         'raw_date' => null,
                         'status' => 'P',
@@ -1764,7 +1769,7 @@ class ItRecommendationController extends Controller
             if ($row->status === 'D') {
                 $push(
                     'Revision Requested',
-                    $row->aprv_username,
+                    $fmtUsers($row->aprv_username),
                     $row->aprv_dateafter
                         ? Carbon::parse($row->aprv_dateafter)
                         : $row->updated_at,
@@ -1780,7 +1785,7 @@ class ItRecommendationController extends Controller
             if ($row->status === 'R') {
                 $push(
                     'Rejected',
-                    $row->aprv_username,
+                    $fmtUsers($row->aprv_username),
                     $row->aprv_dateafter
                         ? Carbon::parse($row->aprv_dateafter)
                         : $row->updated_at,
@@ -1796,7 +1801,7 @@ class ItRecommendationController extends Controller
             // Future/not-yet-started approval step — bypass $push() since date is null
             $timeline[] = [
                 'title' => 'Waiting Approval',
-                'description' => $row->aprv_username,
+                'description' => $fmtUsers($row->aprv_username),
                 'date' => null,
                 'raw_date' => null,
                 'status' => 'P',
@@ -1820,15 +1825,15 @@ class ItRecommendationController extends Controller
 
         foreach ($histApprovals as $row) {
             if ($row->status === 'A') {
-                $push('Approved', $row->aprv_username,
+                $push('Approved', $fmtUsers($row->aprv_username),
                     $row->aprv_dateafter ? Carbon::parse($row->aprv_dateafter) : null,
                     'A', 'Approved', $row->aprv_purpose, 5);
             } elseif ($row->status === 'D') {
-                $push('Revision Requested', $row->aprv_username,
+                $push('Revision Requested', $fmtUsers($row->aprv_username),
                     $row->aprv_dateafter ? Carbon::parse($row->aprv_dateafter) : null,
                     'D', 'Revision Requested', $row->aprv_purpose, 5);
             } elseif ($row->status === 'R') {
-                $push('Rejected', $row->aprv_username,
+                $push('Rejected', $fmtUsers($row->aprv_username),
                     $row->aprv_dateafter ? Carbon::parse($row->aprv_dateafter) : null,
                     'R', 'Rejected', $row->aprv_purpose, 5);
             }
