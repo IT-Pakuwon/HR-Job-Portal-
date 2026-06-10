@@ -193,7 +193,7 @@
                                         <label class="font-medium text-gray-700 dark:text-gray-300">Actual</label>
                                         <input type="number" name="actual" id="actual" min="0"
                                             class="number-only w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            value="{{ old('actual', $personnel->actual) }}" readonly>
+                                            value="{{ old('actual', $personnel->actual) }}" >
                                     </div>
                                     <div class="flex items-center gap-4">
                                         <label
@@ -201,7 +201,7 @@
                                             Required</label>
                                         <input type="number" name="required" id="required" min="0"
                                             class="number-only w-full rounded-sm border border-gray-300/50 bg-white p-3 focus:ring focus:ring-blue-300 dark:bg-gray-800"
-                                            value="{{ old('required', $personnel->required) }}" readonly>
+                                            value="{{ old('required', $personnel->required) }}" >
                                     </div>
                                     <div class="flex items-center gap-4">
                                         <label
@@ -923,6 +923,20 @@
 
             // total_actual readonly
             $('#total_actual').prop('readonly', true);
-        });
+            function calculateTotalActual() {
+                const actual = parseInt($('#actual').val() || 0, 10);
+                const required = parseInt($('#required').val() || 0, 10);
+
+                $('#total_actual').val(actual + required);
+            }
+
+            $('#total_actual').prop('readonly', true);
+
+            $('#actual, #required').on('input change keyup', function() {
+                calculateTotalActual();
+            });
+
+            calculateTotalActual();
+                    });
     </script>
 </x-app-layout>

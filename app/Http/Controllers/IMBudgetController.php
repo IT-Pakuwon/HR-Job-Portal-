@@ -228,10 +228,6 @@ class IMBudgetController extends Controller
         ]);
     }
 
-
-
-
-
     public function generateIMBudget(Request $request)
     {
         // --- Ambil CS header & detail ---
@@ -283,7 +279,20 @@ class IMBudgetController extends Controller
         $perpost       = $cs->budget_perpost  ?? $cs->perpost        ?? $request->input('perpost');
         $sppbjktid     = $cs->sppbjktid       ?? $request->input('sppbjktid');
         $user_peminta  = $cs->user_peminta    ?? $request->input('user_peminta', $username);
-        $imbudgetnote  = $cs->keperluan    ?? $cs->csnote         ?? $cs->note ?? $request->input('imbudgetnote');
+        $keperluan  = $cs->keperluan;
+
+        $imdoctype = null;
+
+        if (!empty($rfpId)) {
+            $imdoctype = $this->resolveIMBudgetDoctypeFromValue($rfpId);
+        } elseif (!empty($rfpNonPurchaseId)) {
+            $imdoctype = $this->resolveIMBudgetDoctypeFromValue($rfpNonPurchaseId);
+        } elseif (!empty($calrNonPurchaseId)) {
+            $imdoctype = $this->resolveIMBudgetDoctypeFromValue($calrNonPurchaseId);
+        } elseif (!empty($csid)) {
+            $imdoctype = $this->resolveIMBudgetDoctypeFromValue($csid);
+        }
+
 
         // === Approval engine (pakai cpny/dept hasil mapping)
         $approvalCtl = app(ApprovalController::class);
@@ -308,12 +317,14 @@ class IMBudgetController extends Controller
             $header = new TrIMBudget();
             $header->imbudgetid               = $docid;
             $header->imbudgetdate             = $dt->toDateString();
+            $header->doctype                  = $imdoctype;
             $header->csid                     = $csid;
             $header->sppbjktid                = $sppbjktid;
             $header->cpny_id                  = $cpnyid;
             $header->department_id            = $departementid;
             $header->user_peminta             = $user_peminta;
-            $header->imbudgetnote             = $imbudgetnote;
+            $header->keperluan                = $keperluan;
+            // $header->imbudgetnote             = $request->input('imbudgetnote');
             $header->budget_perpost           = $perpost;
             $header->total_budget_needed      = 0;
             $header->total_budget_requested   = 0;
@@ -449,6 +460,7 @@ class IMBudgetController extends Controller
                 $detail->imbudgetid                  = $docid;
                 $detail->csid                        = $csid;
                 $detail->sppbjktid                   = $sppbjktid;
+                $detail->doctype                     = $imdoctype;
 
                 $detail->budget_perpost              = $g['perpost'];
                 $detail->budget_cpny_id              = $g['cpny'];
@@ -982,8 +994,31 @@ class IMBudgetController extends Controller
         ])
         ->findOrFail($id);
 
+        // $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)
+        //     ->get();
+
         $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)
             ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Budget Type Badge
+        |--------------------------------------------------------------------------
+        | Rule:
+        | jika ada detail budget_remain > 0  => Over Budget
+        | jika semua budget_remain <= 0      => Unbudget
+        */
+        $hasOverBudget = $imbudgetdetail->contains(function ($row) {
+            return (float) ($row->budget_remain ?? 0) > 0;
+        });
+
+        $budgetType = $hasOverBudget ? 'Over Budget' : 'Unbudget';
+
+        $budgetClasses = match ($budgetType) {
+            'Over Budget' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+            'Unbudget'    => 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
+            default       => '',
+        };
 
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
@@ -1069,7 +1104,7 @@ class IMBudgetController extends Controller
         $canUpload     = $imbudget->user_peminta === $loginUsername;
 
 
-        return view('pages.imbudgets.showimbudgets', compact('imbudget','attachments','imbudgetdetail','hash','canUpload','eid_cs','eid_sppbjkt','prefix','docid'));
+        return view('pages.imbudgets.showimbudgets', compact('imbudget','attachments','imbudgetdetail','hash','canUpload','eid_cs','eid_sppbjkt','prefix','docid', 'budgetType','budgetClasses'));
     }
 
 
@@ -1618,6 +1653,33 @@ class IMBudgetController extends Controller
         TrCS::where('csid', $csid)->update([
             'status_imbudget' => $status,
         ]);
+    }
+
+    private function resolveIMBudgetDoctypeFromValue(?string $value): ?string
+    {
+        $value = strtoupper(trim((string) $value));
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (str_starts_with($value, 'RFP')) {
+            return 'RFP';
+        }
+
+        if (str_starts_with($value, 'RP')) {
+            return 'RP';
+        }
+
+        if (str_starts_with($value, 'CA')) {
+            return 'CA';
+        }
+
+        if (str_starts_with($value, 'CS')) {
+            return 'CS';
+        }
+
+        return null;
     }
 
 

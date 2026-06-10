@@ -72,7 +72,7 @@
 
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Description
+                                    Reason
                                 </label>
                                 <textarea rows="3" name="imbudgetnote"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:outline-none focus:ring-0 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">{{ $imbudget->imbudgetnote }}</textarea>

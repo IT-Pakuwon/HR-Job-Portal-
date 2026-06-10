@@ -174,82 +174,8 @@
                                         dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                             </div>
 
-                        </div>
-                        {{-- Row Tanggal & Dibayarkan Kepada --}}
-                        {{-- <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">                              
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Dibayarkan Kepada
-                                </label>
-                                <textarea name="pleasepayto" id="pleasepayto" rows="2" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="Input nama / detail penerima pembayaran..."></textarea>
-                            </div>
-
-                             <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Keperluan
-                                </label>
-                                <textarea name="keperluan" id="keperluan" rows="2" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="Input keperluan..."></textarea>
-                            </div>   
-                            <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Amount Request Payment
-                                </label>
-                                <input type="text" name="amountrequestpayment" id="amountrequestpayment"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="0,00">
-                            </div>                        
-
-                        </div> --}}
-
-                        {{-- Row Kepada & Tembusan --}}
-                        {{-- <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-3">
-
-                           
-                            <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tanggal Realisasi
-                                </label>
-                                <input type="date" name="datepenyelesaian" id="datepenyelesaian"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                            </div>
-
-                           
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Kepada
-                                </label>
-                                <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple >
-                                    @foreach ($kepada as $u)
-                                        <option value="{{ $u->username }}">
-                                            {{ $u->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                           
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tembusan
-                                </label>
-                                <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple>
-                                    @foreach ($tembusan as $u)
-                                        <option value="{{ $u->username }}">
-                                            {{ $u->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                        </div> --}}
+                        </div>                                          
+                       
                         {{-- Row Payment Info --}}
                         <div id="paymentInfoRow"
                             class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">

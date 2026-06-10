@@ -45,7 +45,15 @@
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
+
                             {{ $imbudget->imbudgetid }}
+
+                            @if (!empty($budgetType))
+                                <span
+                                    class="{{ $budgetClasses }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
+                                    {{ $budgetType }}
+                                </span>
+                            @endif
                         </h1>
 
                         @php
@@ -170,12 +178,25 @@
                             @endforeach
 
                             {{-- Purpose full width --}}
-                            @if (!empty($imbudget->imbudgetnote))
+                            @if (!empty($imbudget->keperluan))
                                 <div class="col-span-2">
                                     <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                                         <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
                                         <div class="flex flex-col">
                                             <span class="text-gray-500">Purpose</span>
+                                            <span class="break-words font-medium text-gray-900 dark:text-gray-300">
+                                                {{ $imbudget->keperluan }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                            @if (!empty($imbudget->imbudgetnote))
+                                <div class="col-span-2">
+                                    <div class="flex items-start gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                        <x-heroicon-o-clipboard-document-check class="mt-0.5 h-5 w-5 text-gray-400" />
+                                        <div class="flex flex-col">
+                                            <span class="text-gray-500">Reason</span>
                                             <span class="break-words font-medium text-gray-900 dark:text-gray-300">
                                                 {{ $imbudget->imbudgetnote }}
                                             </span>

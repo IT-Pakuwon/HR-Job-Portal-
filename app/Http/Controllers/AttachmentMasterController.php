@@ -43,9 +43,9 @@ class AttachmentMasterController extends Controller
                 'status',
             ]);
 
-        if ($cpnyId !== '') {
-            $query->where('cpny_id', $cpnyId);
-        }
+        // if ($cpnyId !== '') {
+        //     $query->where('cpny_id', $cpnyId);
+        // }
 
         if ($doctype !== '') {
             $query->where('doctype', 'ilike', '%'.$doctype.'%');

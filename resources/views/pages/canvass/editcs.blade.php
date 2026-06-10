@@ -298,7 +298,7 @@
                             </details>
 
                             <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
-                                <button id="backBtn" onclick="history.back()"
+                                <button type="button" id="backBtn" onclick="history.back()"
                                     class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
                                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
@@ -309,7 +309,7 @@
                                 </button>
 
                                 <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                    <button id="cancelBtn"
+                                    <button type="button" id="cancelBtn"
                                         class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
                                         <span id="cancelText">Cancel</span>
                                         <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
@@ -320,6 +320,16 @@
                                         </svg>
                                     </button>
 
+                                    {{-- <button type="button" id="saveBtn"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto">
+                                        <span id="saveText">Save CS</span>
+                                        <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                    </button> --}}
                                     <button type="button" id="saveBtn"
                                         class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto">
                                         <span id="saveText">Save CS</span>
@@ -1841,9 +1851,11 @@
             e.preventDefault();
 
             // cegah double click / request kedua
-            if (isSubmittingApproval) {
+            if (isSavingCs || isSubmittingApproval) {
                 return false;
             }
+
+            isSavingCs = true;
 
             if (!validateQtyLimit()) {
                 toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
@@ -1894,8 +1906,24 @@
                     toastr.success('CS berhasil disimpan.');
                     window.location.href = res.redirect ?? window.location.href;
                 },
+                // error: function(xhr) {
+                //     hideOverlay();
+                //     let msg = 'Gagal menyimpan CS.';
+                //     if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                //     toastr.error(msg);
+                // }
                 error: function(xhr) {
                     hideOverlay();
+
+                    isSavingCs = false;
+
+                    $('#saveBtn')
+                        .prop('disabled', false)
+                        .removeClass('cursor-not-allowed opacity-60');
+
+                    $('#saveText').text('Save CS');
+                    $('#saveSpinner').addClass('hidden');
+
                     let msg = 'Gagal menyimpan CS.';
                     if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
                     toastr.error(msg);
@@ -1905,8 +1933,28 @@
     </script>
 
     <script>
+        function lockApprovalSubmit(text = 'Submitting approval...') {
+            isSubmittingApproval = true;
+
+            $('#submitBtn')
+                .prop('disabled', true)
+                .addClass('hidden cursor-not-allowed opacity-60');
+
+            $('#btnText').text(text);
+            $('#loadingSpinner').removeClass('hidden');
+
+            $('#saveBtn, #cancelBtn, #backBtn, #addAttachment')
+                .prop('disabled', true)
+                .addClass('cursor-not-allowed opacity-60 pointer-events-none');
+
+            showOverlay(text);
+        }
         $('#submitBtn').on('click', function(e) {
             e.preventDefault();
+
+            if (isSubmittingApproval || isSavingCs) {
+                return false;
+            }
 
             if (!validateQtyLimit()) {
                 toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
@@ -1971,7 +2019,8 @@
             const doc = $('input[name="doc"]').val();
             const src_id = $('input[name="src_id"]').val();
 
-            showOverlay('Validating qty...');
+            // showOverlay('Validating qty...');
+            lockApprovalSubmit('Validating qty...');
 
             $.ajax({
                 url: "{{ route('cs.check-qty') }}",
@@ -2000,16 +2049,19 @@
                         success: function() {
                             hideOverlay();
                             toastr.success('CS berhasil disubmit.');
-                            window.location.href = "/cslist";
+                            // window.location.href = "/cslist";
+                            window.location.replace(res.redirect || "/cslist");
                         },
                         error: function(xhr) {
-                            hideOverlay();
+                            // hideOverlay();
+                            unlockApprovalSubmit();
                             toastr.error(xhr.responseJSON?.message || 'Gagal menyimpan CS.');
                         }
                     });
                 },
                 error: function(xhr) {
-                    hideOverlay();
+                    // hideOverlay();
+                    unlockApprovalSubmit();
                     const res = xhr.responseJSON || {};
                     toastr.error(res.message || 'Qty tidak valid.');
 
@@ -2182,6 +2234,15 @@
         });
     </script>
     <script>
+        // $('#csForm').on('submit', function(e) {
+        //     e.preventDefault();
+
+        //     if (isSubmittingApproval) {
+        //         return false;
+        //     }
+
+        //     $('#submitBtn').trigger('click');
+        // });
         $('#csForm').on('submit', function(e) {
             e.preventDefault();
 
@@ -2189,8 +2250,17 @@
                 return false;
             }
 
-            $('#submitBtn').trigger('click');
+            // hanya trigger submit approval kalau tombol submit masih aktif
+            if ($('#submitBtn').length && !$('#submitBtn').prop('disabled')) {
+                $('#submitBtn').trigger('click');
+            }
+
+            return false;
         });
+    </script>
+    <script>
+        let isSubmittingApproval = false;
+        let isSavingCs = false;
     </script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
