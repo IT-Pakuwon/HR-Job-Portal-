@@ -20,6 +20,12 @@ class Kernel extends ConsoleKernel
             Schedule::FRIDAY,
         ];
 
+        // Pre-warm document notification cache for active users
+        $schedule->command('notifications:refresh-doc')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         // Sync ENVISION tickets → ENVISION CHECKED/SOLVED every 5 minutes
         $schedule->command('ticket:sync-envision-solved')
             ->everyFiveMinutes()

@@ -154,7 +154,7 @@
         {{-- Footer --}}
         <div x-show="items.length > 0" class="border-t border-gray-100 bg-gray-50 px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800/50">
             <p class="text-center text-xs text-gray-400 dark:text-gray-500">
-                Refreshes automatically every 10 seconds
+                Refreshes automatically every 30 seconds
             </p>
         </div>
 
@@ -295,7 +295,12 @@ function docNotifications() {
 
         init() {
             this.load();
-            setInterval(() => this.load(), 10000);
+            this._timer = setInterval(() => {
+                if (document.visibilityState !== 'hidden') this.load();
+            }, 30000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') this.load();
+            });
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
