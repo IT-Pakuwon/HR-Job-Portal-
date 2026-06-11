@@ -55,6 +55,13 @@ class TrTicket extends Model
             ->orderBy('id');
     }
 
+    public function responseActivity()
+    {
+        return $this->hasOne(TrTicketActivity::class, 'ticketid', 'ticketid')
+            ->where('status_pekerjaan', 'RESPONSE')
+            ->orderBy('id');
+    }
+
     public function type()
     {
         return $this->belongsTo(MsTicketType::class, 'ticket_type', 'ticket_type');

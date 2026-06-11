@@ -216,6 +216,7 @@ class TicketController extends Controller
             'priority',
             'location',
             'subLocation',
+            'responseActivity',
         ])->whereNull('deleted_at');
 
         if (!$isIT) {
@@ -346,6 +347,10 @@ class TicketController extends Controller
                 )->sub_location_name;
             })
 
+            ->addColumn('response_working_start', function ($row) {
+                return optional($row->responseActivity)->working_start_date;
+            })
+
             ->addColumn('actions', function ($row) {
                 return $this->buildActions($row);
             })
@@ -450,7 +455,9 @@ class TicketController extends Controller
                 'ticket_categoryid' => $request->ticket_categoryid,
                 'ticket_subcategoryid' => $request->ticket_subcategoryid,
 
-                'ticket_priority' => 'Medium',
+                'ticket_priority'  => 'Medium',
+                'ticket_sla_days'  => $defaultPriority?->ticket_sla_days ?? 3,
+                'ticket_duedate'   => $this->calculateDueDate($defaultPriority?->ticket_sla_days ?? 3),
 
                 'user_peminta' => $username,
 
@@ -1018,13 +1025,11 @@ class TicketController extends Controller
                 $request->ticket_priority
             )->first();
 
-            $dueDate = $this->calculateDueDate(
-                $priority?->ticket_sla_days ?? 1
-            );
+            $workingStart = $request->working_start_date
+                ? Carbon::parse($request->working_start_date)
+                : now();
 
-            $workingStart = $request->working_start_date ?? now();
-
-            $workingEnd = $request->working_end_date ?? $dueDate;
+            $workingEnd = $request->working_end_date ?? null;
 
             $ticket->update([
                 'pic_ticket' => $request->pic_ticket,
@@ -1032,8 +1037,6 @@ class TicketController extends Controller
                 'ticket_priority' => $request->ticket_priority,
 
                 'ticket_sla_days' => $priority?->ticket_sla_days,
-
-                'ticket_duedate' => $dueDate,
 
                 'status' => 'P',
 
