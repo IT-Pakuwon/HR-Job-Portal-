@@ -27,7 +27,7 @@
                         </div>
 
                         {{-- ===== Header fields ===== --}}
-                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
 
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
@@ -69,12 +69,19 @@
 
                                 <input type="hidden" name="perpost" value="{{ $imbudget->budget_perpost }}">
                             </div>
-
                             <div class="flex flex-col gap-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Purpose
+                                </label>
+                                <textarea rows="3" name="keperluan" disabled
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300">{{ $imbudget->keperluan }}</textarea>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Reason
                                 </label>
-                                <textarea rows="3" name="imbudgetnote"
+                                <textarea rows="3" name="imbudgetnote" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:outline-none focus:ring-0 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">{{ $imbudget->imbudgetnote }}</textarea>
                             </div>
                         </div>

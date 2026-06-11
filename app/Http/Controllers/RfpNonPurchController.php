@@ -38,6 +38,8 @@ use Illuminate\Support\Str;
 use Mail;
 use PDF;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\BudgetDetail;
+use App\Models\MsPurchSetting;
 
 class RfpNonPurchController extends Controller
 {
@@ -725,6 +727,78 @@ class RfpNonPurchController extends Controller
                 ->where('rfpnonpurchaseid', $docid)
                 ->orderBy('id')
                 ->get();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Mapping Budget Detail
+            |--------------------------------------------------------------------------
+            | Dipakai untuk tooltip budget di view:
+            | totalbudget, totalbudget_add, total_reserve, total_used, account_descr
+            */
+            $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+                    $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                        ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+                })
+                ->where('ms_budget.status', 'C')
+                ->select(
+                    'ms_budget.cpny_id',
+                    'ms_budget.business_unit_id',
+                    'ms_budget.department_fin_id',
+                    'ms_budget.account_id',
+                    'ms_budget.activity_id',
+                    'ms_budget.activity_descr',
+                    'ms_budget.perpost',
+                    'ms_budget.totalbudget',
+                    'ms_budget.totalbudget_add',
+                    'ms_budget.total_reserve',
+                    'ms_budget.total_used',
+                    'ms_coa.account_descr as account_descr'
+                )
+                ->get();
+
+            $budgetMap = [];
+
+            foreach ($budgets as $b) {
+                $key = implode('|', [
+                    (string) $b->cpny_id,
+                    (string) $b->business_unit_id,
+                    (string) $b->department_fin_id,
+                    (string) $b->account_id,
+                    (string) $b->activity_descr,
+                    (string) $b->perpost,
+                ]);
+
+                $budgetMap[$key] = $b;
+            }
+
+            foreach ($details as $item) {
+                $key = implode('|', [
+                    (string) $item->budget_cpny_id,
+                    (string) $item->budget_business_unit_id,
+                    (string) $item->budget_department_fin_id,
+                    (string) $item->budget_account_id,
+                    (string) $item->budget_activity_descr,
+                    (string) $item->budget_perpost,
+                ]);
+
+                if (isset($budgetMap[$key])) {
+                    $budget = $budgetMap[$key];
+
+                    $item->budget_data = $budget;
+                    $item->account_descr = $budget->account_descr;
+
+                    $budgetValue = (float) ($budget->totalbudget ?? 0);
+                    $additional  = (float) ($budget->totalbudget_add ?? 0);
+                    $reserved    = (float) ($budget->total_reserve ?? 0);
+                    $used        = (float) ($budget->total_used ?? 0);
+
+                    $item->budget_remaining = $budgetValue + $additional - $reserved - $used;
+                } else {
+                    $item->budget_data = null;
+                    $item->account_descr = null;
+                    $item->budget_remaining = 0;
+                }
+            }
         }
 
         // =========================
@@ -1018,6 +1092,126 @@ class RfpNonPurchController extends Controller
 
         $fullname = optional($rfpnonpurch->creator)->name
             ?: $rfpnonpurch->created_by;
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK IM BUDGET BEFORE APPROVE
+        |--------------------------------------------------------------------------
+        | Rule:
+        | - Cek flag_imbudget = true
+        | - Cek setting IMGENRFPNP
+        | - Generate IM Budget saat approval level = setting_value_int
+        */
+        $flagIMBudget = $this->isTruthy($rfpnonpurch->flag_imbudget ?? false);
+
+        $imGenerateLevel = (float) (MsPurchSetting::query()
+            ->where('setting_id', 'IMGENRFPNP')
+            ->value('setting_value_int') ?? 0);
+
+        if ($flagIMBudget && $imGenerateLevel > 0) {
+
+            $currentApproval = TrApproval::query()
+                ->where('refnbr', $rfpnonpurch->rfpnonpurchaseid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->where(function ($q) use ($user) {
+                    $q->where('aprv_username', $user->username)
+                    ->orWhereRaw("? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))", [$user->username]);
+                })
+                ->orderBy('aprv_leveling')
+                ->first();
+
+            $currentLevel = (float) ($currentApproval->aprv_leveling ?? 0);
+
+            if ($currentApproval && $currentLevel == $imGenerateLevel) {
+
+                $statusIM = strtoupper(trim((string) ($rfpnonpurch->status_imbudget ?? '')));
+                $imbudgetId = trim((string) ($rfpnonpurch->imbudgetid ?? ''));
+
+                /*
+                |--------------------------------------------------------------------------
+                | Kalau IM masih on progress, approve diblok dulu
+                |--------------------------------------------------------------------------
+                */
+                if ($imbudgetId !== '' && !in_array($statusIM, ['C', 'COMPLETED'], true)) {
+                    return response()->json([
+                        'success' => false,
+                        'code' => 'IM_IN_PROGRESS',
+                        'message' => 'Masih On Progress IM Budget.',
+                    ], 200);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Kalau belum ada IM, minta confirm dari user
+                |--------------------------------------------------------------------------
+                */
+                if ($imbudgetId === '' && !$request->boolean('confirm_generate_im')) {
+                    return response()->json([
+                        'success' => false,
+                        'need_confirm_generate_im' => true,
+                        'message' => 'Dokumen ini membutuhkan IM Budget. Generate IM Budget sekarang?',
+                    ], 200);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Kalau user confirm, generate IM Budget lalu HOLD approval
+                |--------------------------------------------------------------------------
+                */
+                if ($imbudgetId === '' && $request->boolean('confirm_generate_im')) {
+
+                    DB::connection('pgsql')->beginTransaction();
+
+                    try {
+                        /*
+                        |--------------------------------------------------------------------------
+                        | PANGGIL FUNCTION GENERATE IM BUDGET MILIK KAMU DI SINI
+                        |--------------------------------------------------------------------------
+                        | Sesuaikan nama function generate-nya.
+                        | Function ini idealnya return object TrIMBudget.
+                        */
+                        // $imbudget = $this->generateIMBudgetFromRfpNonPurch(
+                        //     $rfpnonpurch,
+                        //     $user,
+                        //     now()
+                        // );
+                        $imbudget = app(IMBudgetController::class)->generateIMBudgetFromRfpNonPurch(
+                            $rfpnonpurch,
+                            $user,
+                            now()
+                        );
+
+                        $rfpnonpurch->imbudgetid = $imbudget->imbudgetid;
+                        $rfpnonpurch->status_imbudget = 'H';
+                        $rfpnonpurch->updated_by = $user->username;
+                        $rfpnonpurch->updated_at = now();
+                        $rfpnonpurch->save();
+
+                        DB::connection('pgsql')->commit();
+
+                        return response()->json([
+                            'success' => true,
+                            'code' => 'IM_CREATED_HOLD',
+                            'message' => 'IM Budget berhasil dibuat dan status approval di-HOLD.',
+                            'imbudgetid' => $imbudget->imbudgetid,
+                            'imbudget_show_url' => url('/showimbudgets/' . Hashids::encode($imbudget->id)),
+                        ], 200);
+
+                    } catch (\Throwable $e) {
+                        DB::connection('pgsql')->rollBack();
+                        report($e);
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => config('app.debug')
+                                ? $e->getMessage()
+                                : 'Gagal generate IM Budget.',
+                        ], 500);
+                    }
+                }
+            }
+        }
 
         $result = app(ApprovalController::class)->approveStep(
             $rfpnonpurch->rfpnonpurchaseid,
@@ -2279,6 +2473,15 @@ class RfpNonPurchController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    private function isTruthy($value): bool
+    {
+        return in_array(
+            strtolower(trim((string) $value)),
+            ['1', 'true', 't', 'yes', 'y'],
+            true
+        );
     }
 
     

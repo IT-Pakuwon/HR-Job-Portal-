@@ -201,10 +201,9 @@
                                     <table class="w-full table-fixed text-sm">
                                         <colgroup>
                                             <col class="w-[50px]">
-                                            <col class="w-[45%]">
+                                            <col class="w-[40%]">
                                             <col class="w-[180px]">
-                                            <col class="w-[200px]">
-                                            <col class="w-[230px]">
+                                            <col class="w-[420px]">
                                         </colgroup>
 
                                         <thead class="border-b text-gray-600 dark:text-gray-300">
@@ -212,15 +211,7 @@
                                                 <th class="p-2 text-center">No</th>
                                                 <th class="p-2 text-left">Description</th>
                                                 <th class="p-2 text-right">Amount Request</th>
-                                                {{-- <th class="p-2 text-left">Account</th>
-                                                <th class="p-2 text-left">Activity</th> --}}
-                                                @if ($showAccountColumn)
-                                                    <th class="p-2 text-left">Account</th>
-                                                @endif
-
-                                                @if ($showActivityColumn)
-                                                    <th class="p-2 text-left">Activity</th>
-                                                @endif
+                                                <th class="p-2 text-left">Budget</th>
                                             </tr>
                                         </thead>
 
@@ -228,35 +219,125 @@
                                             @forelse ($details as $i => $d)
                                                 <tr>
                                                     <td class="p-2 text-center">{{ $i + 1 }}</td>
-                                                    <td class="p-2">{{ $d->keperluan_detail ?: '-' }}</td>
+
+                                                    <td class="p-2">
+                                                        {{ $d->keperluan_detail ?: '-' }}
+                                                    </td>
+
                                                     <td class="p-2 text-right">
                                                         Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}
                                                     </td>
-                                                    {{-- <td class="p-2">{{ $d->budget_account_id ?: '-' }}</td>
-                                                    <td class="p-2">
-                                                        {{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}
-                                                    </td> --}}
-                                                    @if ($showAccountColumn)
-                                                        <td class="p-2">
-                                                            {{ $d->budget_account_id ?: '-' }}
-                                                        </td>
-                                                    @endif
 
-                                                    @if ($showActivityColumn)
-                                                        <td class="p-2">
-                                                            {{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}
-                                                        </td>
-                                                    @endif
+                                                    <td class="p-2">
+                                                        <div class="group relative inline-block cursor-help">
+                                                            @php
+                                                                $budgetData = $d->budget_data ?? null;
+
+                                                                $budget = (float) ($budgetData->totalbudget ?? 0);
+                                                                $additional = (float) ($budgetData->totalbudget_add ?? 0);
+                                                                $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                                $used = (float) ($budgetData->total_used ?? 0);
+
+                                                                $totalBudget = $budget + $additional;
+                                                                $available = $totalBudget - $reserved - $used;
+                                                            @endphp
+
+                                                            <div class="budget-trigger"
+                                                                data-budget="{{ $budget }}"
+                                                                data-additional="{{ $additional }}"
+                                                                data-reserved="{{ $reserved }}"
+                                                                data-used="{{ $used }}"
+                                                                data-available="{{ $available }}"
+                                                                data-desc="{{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}"
+                                                                data-account="{{ $d->budget_account_id ?: '-' }}"
+                                                                data-coa="{{ optional($budgetData)->account_descr ?: '-' }}"
+                                                                data-bu="{{ $d->budget_business_unit_id ?: '-' }}">
+
+                                                                <div class="flex flex-wrap items-center gap-2 text-sm">
+                                                                    @if (!empty($d->budget_department_fin_id))
+                                                                        <span
+                                                                            class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                                            {{ $d->budget_department_fin_id }}
+                                                                        </span>
+                                                                    @endif
+
+                                                                    @if (!empty($d->budget_business_unit_id))
+                                                                        <span
+                                                                            class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                                            {{ $d->budget_business_unit_id }}
+                                                                        </span>
+                                                                    @endif
+
+                                                                    <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                                        {{ $d->budget_account_id ?: '-' }}
+                                                                    </span>
+
+                                                                    <span class="text-gray-400 dark:text-gray-500">•</span>
+
+                                                                    <span class="max-w-[240px] truncate text-gray-500 dark:text-gray-400">
+                                                                        {{ $d->budget_activity_descr ?: $d->budget_activity_id ?: '-' }}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="{{ 3 + ($showAccountColumn ? 1 : 0) + ($showActivityColumn ? 1 : 0) }}" class="p-3 text-center italic text-gray-500">
+                                                    <td colspan="4" class="p-3 text-center italic text-gray-500">
                                                         No detail found.
                                                     </td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
                                     </table>
+
+                                    <div id="budgetTooltip"
+                                        class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900">
+
+                                        <div class="space-y-1">
+                                            <div id="ttDesc" class="font-semibold text-gray-900 dark:text-white"></div>
+
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                <span id="ttAccount"></span>
+                                                <span class="mx-1 text-gray-300">|</span>
+                                                <span id="ttCoa"></span>
+                                                <span class="mx-1 text-gray-300">|</span>
+                                                <span id="ttBU"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                        <div class="space-y-1.5">
+                                            <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                <span>Budget</span>
+                                                <span id="ttBudget"></span>
+                                            </div>
+
+                                            <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                                <span>Additional</span>
+                                                <span id="ttAdditional"></span>
+                                            </div>
+
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-500">Reserved</span>
+                                                <span id="ttReserved" class="text-red-500"></span>
+                                            </div>
+
+                                            <div class="flex justify-between">
+                                                <span class="text-gray-500">Used</span>
+                                                <span id="ttUsed" class="text-red-500"></span>
+                                            </div>
+
+                                            <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                            <div class="flex justify-between font-semibold">
+                                                <span class="text-gray-700 dark:text-gray-300">Available</span>
+                                                <span id="ttAvailable"></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         @endif
@@ -492,6 +573,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         dayjs.extend(dayjs_plugin_relativeTime);
@@ -668,27 +750,146 @@
                 }
             });
 
+            // $(document).on("click", "#approveBtn", function() {
+            //     $.ajax({
+            //         url: `/rfpnonpurch/${rfpid}/approve`,
+            //         type: "POST",
+            //         data: {
+            //             _token: csrf,
+            //             rfpid: rfpid
+            //         },
+            //         success: function(response) {
+            //             if (response.success) {
+            //                 toastr.success("RFP approved successfully!");
+            //                 closeOrRedirect("/rfpnonpurch");
+            //             } else {
+            //                 toastr.error(response.message || "Failed to approve RFP.");
+            //             }
+            //         },
+            //         error: function(xhr) {
+            //             toastr.error(xhr.responseJSON?.message || "Unable to approve RFP.");
+            //         }
+            //     });
+            // });
             $(document).on("click", "#approveBtn", function() {
+                approveRfpNonPurchWithIMCheck(rfpid);
+            });
+
+            function approveRfpNonPurchWithIMCheck(rfpid, confirmGenerateIM = false) {
+                const $spinner = $("#loadingSpinnerContainer");
+
+                $("#approveBtn")
+                    .prop("disabled", true)
+                    .addClass("pointer-events-none opacity-60");
+
+                $spinner.fadeIn();
+
                 $.ajax({
-                    url: `/rfpnonpurch/${rfpid}/approve`,
+                    url: `/rfpnonpurch/${encodeURIComponent(rfpid)}/approve`,
                     type: "POST",
                     data: {
                         _token: csrf,
-                        rfpid: rfpid
+                        rfpid: rfpid,
+                        confirm_generate_im: confirmGenerateIM ? 1 : 0
                     },
                     success: function(response) {
-                        if (response.success) {
-                            toastr.success("RFP approved successfully!");
+                        /*
+                        |--------------------------------------------------------------------------
+                        | CASE: perlu konfirmasi generate IM Budget
+                        |--------------------------------------------------------------------------
+                        */
+                        if (response?.need_confirm_generate_im) {
+                            $spinner.fadeOut();
+
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            Swal.fire({
+                                title: 'Generate IM Budget?',
+                                text: response.message || 'Dokumen ini membutuhkan IM Budget. Generate sekarang?',
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes, generate',
+                                cancelButtonText: 'No'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    approveRfpNonPurchWithIMCheck(rfpid, true);
+                                }
+                            });
+
+                            return;
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | CASE: IM masih on progress
+                        |--------------------------------------------------------------------------
+                        */
+                        if (response?.code === 'IM_IN_PROGRESS') {
+                            $spinner.fadeOut();
+
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Tidak bisa approve',
+                                text: response.message || 'Masih On Progress IM Budget.'
+                            });
+
+                            return;
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | CASE: IM berhasil dibuat, approval ditahan
+                        |--------------------------------------------------------------------------
+                        */
+                        if (response?.code === 'IM_CREATED_HOLD') {
+                            $spinner.fadeOut();
+
+                            toastr.success(response.message || 'IM Budget berhasil dibuat.');
+
+                            if (response.imbudget_show_url) {
+                                window.location.href = response.imbudget_show_url;
+                            } else {
+                                closeOrRedirect("/rfpnonpurch");
+                            }
+
+                            return;
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | CASE: approve normal
+                        |--------------------------------------------------------------------------
+                        */
+                        $spinner.fadeOut();
+
+                        if (response?.success) {
+                            toastr.success(response.message || "RFP approved successfully!");
                             closeOrRedirect("/rfpnonpurch");
                         } else {
-                            toastr.error(response.message || "Failed to approve RFP.");
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            toastr.error(response?.message || "Failed to approve RFP.");
                         }
                     },
                     error: function(xhr) {
+                        $spinner.fadeOut();
+
+                        $("#approveBtn")
+                            .prop("disabled", false)
+                            .removeClass("pointer-events-none opacity-60");
+
                         toastr.error(xhr.responseJSON?.message || "Unable to approve RFP.");
                     }
                 });
-            });
+            }
 
             $(document).on("click", "#rejectBtn", function() {
                 checkApproval(rfpid, "reject");
@@ -919,6 +1120,66 @@
             $('#btnResetRfpAttachment').on('click', function() {
                 $('#rfpAttachFiles').val('');
             });
+        });
+    </script>
+    <script>
+        function formatBudgetNumber(value) {
+            value = Number(value || 0);
+
+            return value.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        $(document).on('mouseenter', '.budget-trigger', function(e) {
+            const $el = $(this);
+            const $tooltip = $('#budgetTooltip');
+
+            $('#ttDesc').text($el.data('desc') || '-');
+            $('#ttAccount').text($el.data('account') || '-');
+            $('#ttCoa').text($el.data('coa') || '-');
+            $('#ttBU').text($el.data('bu') || '-');
+
+            $('#ttBudget').text(formatBudgetNumber($el.data('budget')));
+            $('#ttAdditional').text(formatBudgetNumber($el.data('additional')));
+            $('#ttReserved').text(formatBudgetNumber($el.data('reserved')));
+            $('#ttUsed').text(formatBudgetNumber($el.data('used')));
+
+            const available = Number($el.data('available') || 0);
+            $('#ttAvailable')
+                .text(formatBudgetNumber(available))
+                .removeClass('text-red-600 text-emerald-600')
+                .addClass(available < 0 ? 'text-red-600' : 'text-emerald-600');
+
+            $tooltip.removeClass('hidden');
+        });
+
+        $(document).on('mousemove', '.budget-trigger', function(e) {
+            const $tooltip = $('#budgetTooltip');
+
+            let left = e.clientX + 16;
+            let top = e.clientY + 16;
+
+            const tooltipWidth = $tooltip.outerWidth() || 288;
+            const tooltipHeight = $tooltip.outerHeight() || 220;
+
+            if (left + tooltipWidth > window.innerWidth) {
+                left = e.clientX - tooltipWidth - 16;
+            }
+
+            if (top + tooltipHeight > window.innerHeight) {
+                top = e.clientY - tooltipHeight - 16;
+            }
+
+            $tooltip.css({
+                left: left + 'px',
+                top: top + 'px'
+            });
+        });
+
+        $(document).on('mouseleave', '.budget-trigger', function() {
+            $('#budgetTooltip').addClass('hidden');
         });
     </script>
 </x-app-layout>

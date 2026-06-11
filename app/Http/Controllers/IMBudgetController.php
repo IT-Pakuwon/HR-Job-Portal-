@@ -40,6 +40,8 @@ use App\Models\TrSPPT;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\TrWO;
 use App\Models\TrSPB;
+use App\Models\TrRfpNonPurch;
+use App\Models\TrRfpNonPurchDetail;
 
 class IMBudgetController extends Controller
 {
@@ -700,6 +702,456 @@ class IMBudgetController extends Controller
         }
     }
 
+    public function generateIMBudgetFromRfpNonPurch(TrRfpNonPurch $rfpnonpurch, $user = null, $dt = null)
+    {
+        $dt = $dt ?: Carbon::now();
+
+        $username = $user->username
+            ?? auth()->user()->username
+            ?? 'system';
+
+        $sourceDocid = trim((string) $rfpnonpurch->rfpnonpurchaseid);
+
+        if ($sourceDocid === '') {
+            throw new \Exception('RFP Non Purchase ID tidak ditemukan.');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cegah generate double
+        |--------------------------------------------------------------------------
+        */
+        if (!empty($rfpnonpurch->imbudgetid)) {
+            $existing = TrIMBudget::query()
+                ->where('imbudgetid', $rfpnonpurch->imbudgetid)
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+        }
+
+        $existingBySource = TrIMBudget::query()
+            ->where('rfpnonpurchaseid', $sourceDocid)
+            ->whereIn('status', ['H', 'P', 'C'])
+            ->orderByDesc('id')
+            ->first();
+
+        if ($existingBySource) {
+            return $existingBySource;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil detail source dari TrRfpNonPurchDetail
+        |--------------------------------------------------------------------------
+        */
+        $rows = TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $sourceDocid)
+            ->orderBy('id')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            throw new \Exception("Detail RFP Non Purchase {$sourceDocid} tidak ditemukan.");
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Konfigurasi dasar
+        |--------------------------------------------------------------------------
+        */
+        $doctype = 'IM';      // autonumber IMBudget
+        $imdoctype = 'RFP';   // isi field doctype di tr_imbudget
+
+        $year = (int) $dt->year;
+        $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Helper angka lokal
+        |--------------------------------------------------------------------------
+        */
+        $toFloat = function ($v): ?float {
+            if ($v === null || $v === '') {
+                return null;
+            }
+
+            $s = preg_replace('/\s+/', '', (string) $v);
+
+            $hasComma = strpos($s, ',') !== false;
+            $hasDot = strpos($s, '.') !== false;
+
+            if ($hasComma && $hasDot) {
+                $lastComma = strrpos($s, ',');
+                $lastDot = strrpos($s, '.');
+
+                if ($lastComma > $lastDot) {
+                    $s = str_replace('.', '', $s);
+                    $s = str_replace(',', '.', $s);
+                } else {
+                    $s = str_replace(',', '', $s);
+                }
+            } elseif ($hasComma) {
+                $s = str_replace(',', '.', $s);
+            } elseif ($hasDot && substr_count($s, '.') > 1) {
+                $s = str_replace('.', '', $s);
+            }
+
+            return is_numeric($s) ? (float) $s : null;
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | Mapping header dari RFP Non Purchase
+        |--------------------------------------------------------------------------
+        */
+        $cpnyid = $rfpnonpurch->cpny_id;
+        $departementid = $rfpnonpurch->department_id;
+        $perpost = $rfpnonpurch->budget_perpost;
+        $userPeminta = $rfpnonpurch->user_peminta ?: $rfpnonpurch->created_by ?: $username;
+        $keperluan = $rfpnonpurch->keperluan;
+
+        if (empty($perpost)) {
+            $perpost = $rows->pluck('budget_perpost')->filter()->first();
+        }
+
+        if (empty($cpnyid)) {
+            $cpnyid = $rows->pluck('budget_cpny_id')->filter()->first();
+        }
+
+        DB::connection('pgsql')->beginTransaction();
+
+        try {
+            /*
+            |--------------------------------------------------------------------------
+            | Autonumber IMBudget
+            |--------------------------------------------------------------------------
+            */
+            $auto = $this->nextAutonbr(
+                $doctype,
+                $year,
+                $month,
+                $username,
+                'IMBudget'
+            );
+
+            $urutan = (int) $auto['next'];
+
+            $tglbln = substr((string) $year, 2) . $month; // YYMM
+            $docid = $doctype . $tglbln . sprintf('%04d', $urutan);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Insert header IMBudget
+            |--------------------------------------------------------------------------
+            */
+            $header = new TrIMBudget();
+            $header->imbudgetid = $docid;
+            $header->imbudgetdate = $dt->toDateString();
+
+            $header->doctype = $imdoctype;
+
+            $header->csid = null;
+            $header->sppbjktid = null;
+            $header->spbid = null;
+            $header->issueid = null;
+            $header->rfp_id = null;
+            $header->rfpnonpurchaseid = $sourceDocid;
+            $header->calrnonpurchaseid = null;
+
+            $header->cpny_id = $cpnyid;
+            $header->department_id = $departementid;
+            $header->user_peminta = $userPeminta;
+            $header->keperluan = $keperluan;
+            $header->imbudgetnote = null;
+            $header->budget_perpost = $perpost;
+
+            $header->total_amount_expense = 0;
+            $header->total_budget_remain = 0;
+            $header->total_budget_needed = 0;
+            $header->total_budget_requested = 0;
+
+            $header->status = 'H';
+            $header->created_by = $username;
+            $header->created_at = $dt;
+            $header->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Grouping detail RFP Non Purchase
+            |--------------------------------------------------------------------------
+            */
+            $groups = [];
+
+            foreach ($rows as $d) {
+                $gPerpost = $d->budget_perpost ?: $perpost;
+                $gCpny = $d->budget_cpny_id ?: $cpnyid;
+                $gBu = $d->budget_business_unit_id ?: null;
+                $gDeptFin = $d->budget_department_fin_id ?: null;
+                $gAccount = $d->budget_account_id ?: null;
+                $gActivity = $d->budget_activity_id ?: null;
+                $gActdescr = $d->budget_activity_descr ?: null;
+
+                $amount = $toFloat($d->amount_request ?? 0) ?? 0.0;
+
+                if ($amount <= 0) {
+                    continue;
+                }
+
+                $key = implode('|', [
+                    (string) $gPerpost,
+                    (string) $gCpny,
+                    (string) $gBu,
+                    (string) $gDeptFin,
+                    (string) $gAccount,
+                    (string) $gActivity,
+                    (string) $gActdescr,
+                ]);
+
+                if (!isset($groups[$key])) {
+                    $groups[$key] = [
+                        'sum' => 0.0,
+                        'perpost' => $gPerpost,
+                        'cpny' => $gCpny,
+                        'bu' => $gBu,
+                        'deptfin' => $gDeptFin,
+                        'account' => $gAccount,
+                        'activity' => $gActivity,
+                        'actdescr' => $gActdescr,
+                    ];
+                }
+
+                $groups[$key]['sum'] += $amount;
+            }
+
+            if (empty($groups)) {
+                DB::connection('pgsql')->rollBack();
+
+                throw new \Exception("Tidak ada nilai expense yang valid untuk RFP Non Purchase {$sourceDocid}.");
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Helper ambil budget remain dari ms_budget
+            |--------------------------------------------------------------------------
+            */
+            $getBudgetRemain = function ($perpost, $cpny, $bu, $deptfin, $account, $activity, $actdescr): float {
+                $q = BudgetDetail::query()
+                    ->where('perpost', $perpost)
+                    ->where('cpny_id', $cpny)
+                    ->where('status', 'C')
+                    ->when($bu, fn ($q) => $q->where('business_unit_id', $bu))
+                    ->when($deptfin, fn ($q) => $q->where('department_fin_id', $deptfin))
+                    ->when($account, fn ($q) => $q->where('account_id', $account))
+                    ->when($actdescr, fn ($q) => $q->where('activity_descr', $actdescr))
+                    ->when($activity, fn ($q) => $q->where('activity_id', $activity));
+
+                $row = $q->first();
+
+                if (!$row) {
+                    return 0.0;
+                }
+
+                $totalBudget = (float) ($row->totalbudget ?? 0);
+                $totalAdditional = (float) ($row->totalbudget_add ?? 0);
+                $totalReserve = (float) ($row->total_reserve ?? 0);
+                $totalUsed = (float) ($row->total_used ?? 0);
+
+                return ($totalBudget + $totalAdditional) - ($totalReserve + $totalUsed);
+            };
+
+            /*
+            |--------------------------------------------------------------------------
+            | Insert detail IMBudget
+            |--------------------------------------------------------------------------
+            */
+            $sumExpense = 0.0;
+            $sumRemain = 0.0;
+            $sumNeeded = 0.0;
+            $sumRequested = 0.0;
+            $inserted = 0;
+
+            foreach ($groups as $g) {
+                $expense = round((float) $g['sum'], 2);
+
+                $remain = round((float) $getBudgetRemain(
+                    $g['perpost'],
+                    $g['cpny'],
+                    $g['bu'],
+                    $g['deptfin'],
+                    $g['account'],
+                    $g['activity'],
+                    $g['actdescr']
+                ), 2);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Hitung kebutuhan IM Budget
+                |--------------------------------------------------------------------------
+                | remain = sisa budget actual dari ms_budget
+                | expense = nilai request RFP Non Purchase
+                |
+                | Jika remain 0 dan expense > 0, maka needed = expense.
+                | Jika remain negatif, maka needed = abs(remain) + expense.
+                | Jika remain positif, maka needed = expense - remain.
+                |--------------------------------------------------------------------------
+                */
+                $budgetRemain = $remain;
+
+                if ($budgetRemain < 0) {
+                    $needed = abs($budgetRemain) + $expense;
+                } else {
+                    $needed = max($expense - $budgetRemain, 0.0);
+                }
+
+                $needed = round($needed, 2);
+
+                if ($needed <= 0) {
+                    continue;
+                }
+
+                $detail = new TrIMBudgetdetail();
+                $detail->imbudgetid = $docid;
+                $detail->doctype = $imdoctype;
+
+                $detail->csid = null;
+                $detail->sppbjktid = null;
+                $detail->spbid = null;
+                $detail->issueid = null;
+                $detail->rfp_id = null;
+                $detail->rfpnonpurchaseid = $sourceDocid;
+                $detail->calrnonpurchaseid = null;
+
+                $detail->budget_perpost = $g['perpost'];
+                $detail->budget_cpny_id = $g['cpny'];
+                $detail->budget_business_unit_id = $g['bu'];
+                $detail->budget_department_fin_id = $g['deptfin'];
+                $detail->budget_account_id = $g['account'];
+                $detail->budget_activity_id = $g['activity'];
+                $detail->budget_activity_descr = $g['actdescr'];
+
+                $detail->amount_expense = $expense;
+                $detail->budget_remain = $budgetRemain;
+                $detail->budget_needed = $needed;
+                $detail->budget_requested = $needed;
+
+                $detail->note = null;
+                $detail->status = 'P';
+                $detail->created_by = $username;
+                $detail->created_at = $dt;
+                $detail->save();
+
+                $sumExpense += $expense;
+                $sumRemain += $budgetRemain;
+                $sumNeeded += $needed;
+                $sumRequested += $needed;
+                $inserted++;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Kalau tidak ada kekurangan budget, rollback
+            |--------------------------------------------------------------------------
+            */
+            if ($inserted <= 0 || $sumNeeded <= 0) {
+                DB::connection('pgsql')->rollBack();
+
+                throw new \Exception("Tidak ada kekurangan budget untuk RFP Non Purchase {$sourceDocid}.");
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update total header
+            |--------------------------------------------------------------------------
+            */
+            $header->total_amount_expense = round($sumExpense, 2);
+            $header->total_budget_remain = round($sumRemain, 2);
+            $header->total_budget_needed = round($sumNeeded, 2);
+            $header->total_budget_requested = round($sumRequested, 2);
+            $header->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update source RFP Non Purchase
+            |--------------------------------------------------------------------------
+            */
+            $rfpnonpurch->imbudgetid = $header->imbudgetid;
+            $rfpnonpurch->status_imbudget = 'H';
+            $rfpnonpurch->updated_by = $username;
+            $rfpnonpurch->updated_at = $dt;
+            $rfpnonpurch->save();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Send email HOLD IMBudget
+            |--------------------------------------------------------------------------
+            */
+            $eid = Hashids::encode($header->id);
+
+            $status = $header->status;
+
+            $subjectMap = [
+                'P' => 'Waiting Approval',
+                'R' => 'Rejected Approval',
+                'D' => 'Revise Approval',
+                'A' => 'Approved',
+                'C' => 'Completed',
+                'H' => 'On Hold',
+                'X' => 'Cancelled',
+            ];
+
+            $recipientUsernames = array_values(array_filter(array_map(
+                fn ($x) => trim((string) $x),
+                explode(',', (string) $header->user_peminta)
+            )));
+
+            if (empty($recipientUsernames) && !empty($rfpnonpurch->created_by)) {
+                $recipientUsernames = [$rfpnonpurch->created_by];
+            }
+
+            $mailName = (string) $header->user_peminta;
+            $mailInfo = 'Request IM Budget RFP Non Purchase ' . $sourceDocid . ' - Dept ' . $header->department_id;
+
+            $data = [
+                'docid' => $docid,
+                'cpnyid' => $header->cpny_id,
+                'deptname' => $header->department_id,
+                'date' => $header->imbudgetdate,
+                'name' => $mailName,
+                'createdby' => $username,
+                'info' => $mailInfo,
+                'status' => $status,
+                'docname' => 'IM Budget',
+                'url' => url('/editimbudgets/' . $eid),
+            ];
+
+            $emails = User::query()
+                ->whereIn('username', $recipientUsernames)
+                ->where('status', 'A')
+                ->pluck('notification_email')
+                ->filter(fn ($e) => trim((string) $e) !== '')
+                ->unique()
+                ->values();
+
+            foreach ($emails as $email) {
+                Mail::send('emails.mailapprovehold', $data, function ($message) use ($email, $data, $subjectMap, $status) {
+                    $message->to($email)
+                        ->subject($data['docid'] . ' - ' . ($subjectMap[$status] ?? 'Notification') . ' IM Budget')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                });
+            }
+
+            DB::connection('pgsql')->commit();
+
+            return $header;
+
+        } catch (\Throwable $e) {
+            DB::connection('pgsql')->rollBack();
+            report($e);
+
+            throw $e;
+        }
+    }
 
 
     public function editIMBudget($hash)
@@ -975,9 +1427,273 @@ class IMBudgetController extends Controller
     }
 
 
-
-
     public function showIMBudget($hash)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $imbudget = TrIMBudget::with([
+            'creator:username,name'
+        ])->findOrFail($id);
+
+        $imbudgetdetail = TrIMBudgetdetail::where('imbudgetid', $imbudget->imbudgetid)
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Budget Type Badge
+        |--------------------------------------------------------------------------
+        | Rule:
+        | jika ada detail budget_remain > 0  => Over Budget
+        | jika semua budget_remain <= 0      => Unbudget
+        */
+        $hasOverBudget = $imbudgetdetail->contains(function ($row) {
+            return (float) ($row->budget_remain ?? 0) > 0;
+        });
+
+        $budgetType = $hasOverBudget ? 'Over Budget' : 'Unbudget';
+
+        $budgetClasses = match ($budgetType) {
+            'Over Budget' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+            'Unbudget'    => 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
+            default       => '',
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | Attachments
+        |--------------------------------------------------------------------------
+        */
+        $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $attachments = collect();
+
+        if ($rows->isNotEmpty()) {
+            $config = config('filesystems.disks.gcs');
+            $keyFilePath = $config['key_file'];
+
+            if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+                $keyFilePath = base_path($keyFilePath);
+            }
+
+            $storage = new StorageClient([
+                'projectId'   => $config['project_id'],
+                'keyFilePath' => $keyFilePath,
+            ]);
+
+            $bucket = $storage->bucket($config['bucket']);
+
+            $attachments = $rows->map(function ($r) use ($bucket) {
+                $objectPath = rtrim($r->folder, '/') . '/' . $r->filename;
+                $object = $bucket->object($objectPath);
+
+                $signedUrl = null;
+
+                try {
+                    $signedUrl = $object->signedUrl(
+                        new \DateTimeImmutable('+10 minutes'),
+                        ['version' => 'v4']
+                    );
+                } catch (\Throwable $e) {
+                    \Log::warning('Signed URL gagal', [
+                        'path' => $objectPath,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                return (object) [
+                    'display_name' => $r->attachment_name ?: $r->filename,
+                    'created_by'   => $r->created_by,
+                    'created_at'   => $r->created_at,
+                    'url'          => $signedUrl,
+                    'folder'       => $r->folder,
+                    'filename'     => $r->filename,
+                    'extention'    => $r->extention,
+                    'size'         => $r->filesize,
+                ];
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Source Document Mapping
+        |--------------------------------------------------------------------------
+        | IMBudget sekarang bisa dibuat dari:
+        | CS  => csid + sppbjktid
+        | RFP => rfpnonpurchaseid
+        | RP  => rfp_id
+        | CA  => calrnonpurchaseid
+        |--------------------------------------------------------------------------
+        */
+        $imDoctype = strtoupper(trim((string) ($imbudget->doctype ?? '')));
+
+        $eid_cs = null;
+        $eid_sppbjkt = null;
+        $eid_rfp = null;
+        $eid_rfpnonpurchase = null;
+        $eid_calrnonpurchase = null;
+
+        $prefix = null;
+        $srcHeader = null;
+        $srcDetails = null;
+        $docid = null;
+        $sourceLabel = null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Source: CS
+        |--------------------------------------------------------------------------
+        */
+        if ($imDoctype === 'CS' || !empty($imbudget->csid)) {
+            $sourceLabel = 'CS';
+
+            if (!empty($imbudget->csid)) {
+                $cs = TrCS::where('csid', $imbudget->csid)->first();
+                $eid_cs = $cs ? Hashids::encode($cs->id) : null;
+                $docid = $imbudget->csid;
+            }
+
+            $prefix = strtoupper(substr((string) $imbudget->sppbjktid, 0, 2));
+
+            if (!empty($imbudget->sppbjktid)) {
+                if ($prefix === 'PB') {
+                    $srcHeader = TrSPPB::with(['requestType', 'creator', 'purchaser'])
+                        ->where('sppbid', $imbudget->sppbjktid)
+                        ->first();
+
+                    $docid = $srcHeader->sppbid ?? $imbudget->sppbjktid;
+
+                } elseif ($prefix === 'PJ') {
+                    $srcHeader = TrSPPJ::with(['requestType', 'creator', 'purchaser'])
+                        ->where('sppjid', $imbudget->sppbjktid)
+                        ->first();
+
+                    $docid = $srcHeader->sppjid ?? $imbudget->sppbjktid;
+
+                } elseif ($prefix === 'PK') {
+                    $srcHeader = TrSPPK::with(['requestType', 'creator', 'purchaser'])
+                        ->where('sppkid', $imbudget->sppbjktid)
+                        ->first();
+
+                    $docid = $srcHeader->sppkid ?? $imbudget->sppbjktid;
+
+                } elseif ($prefix === 'PT') {
+                    $srcHeader = TrSPPT::with(['requestType', 'creator', 'purchaser'])
+                        ->where('spptid', $imbudget->sppbjktid)
+                        ->first();
+
+                    $docid = $srcHeader->spptid ?? $imbudget->sppbjktid;
+                }
+
+                $eid_sppbjkt = $srcHeader ? Hashids::encode($srcHeader->id) : null;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Source: RFP Non Purchase
+        |--------------------------------------------------------------------------
+        */
+        elseif ($imDoctype === 'RFP' || !empty($imbudget->rfpnonpurchaseid)) {
+            $sourceLabel = 'RFP Non Purchase';
+            $prefix = 'RFP';
+            $docid = $imbudget->rfpnonpurchaseid;
+
+            if (!empty($imbudget->rfpnonpurchaseid) && class_exists(\App\Models\TrRfpNonPurch::class)) {
+                $srcHeader = \App\Models\TrRfpNonPurch::where('rfpnonpurchaseid', $imbudget->rfpnonpurchaseid)
+                    ->first();
+
+                $eid_rfpnonpurchase = $srcHeader ? Hashids::encode($srcHeader->id) : null;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Source: RFP Purchase / RP
+        |--------------------------------------------------------------------------
+        */
+        elseif ($imDoctype === 'RP' || !empty($imbudget->rfp_id)) {
+            $sourceLabel = 'RFP';
+            $prefix = 'RP';
+            $docid = $imbudget->rfp_id;
+
+            if (!empty($imbudget->rfp_id) && class_exists(\App\Models\TrRfp::class)) {
+                $srcHeader = \App\Models\TrRfp::where('rfp_id', $imbudget->rfp_id)
+                    ->first();
+
+                $eid_rfp = $srcHeader ? Hashids::encode($srcHeader->id) : null;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Source: CALR Non Purchase
+        |--------------------------------------------------------------------------
+        */
+        elseif ($imDoctype === 'CA' || !empty($imbudget->calrnonpurchaseid)) {
+            $sourceLabel = 'CALR Non Purchase';
+            $prefix = 'CA';
+            $docid = $imbudget->calrnonpurchaseid;
+
+            if (!empty($imbudget->calrnonpurchaseid) && class_exists(\App\Models\TrCalrNonPurch::class)) {
+                $srcHeader = \App\Models\TrCalrNonPurch::where('calrnonpurchaseid', $imbudget->calrnonpurchaseid)
+                    ->first();
+
+                $eid_calrnonpurchase = $srcHeader ? Hashids::encode($srcHeader->id) : null;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Fallback supaya tidak error Invalid doc type
+        |--------------------------------------------------------------------------
+        */
+        else {
+            $sourceLabel = $imDoctype ?: 'Unknown';
+            $prefix = $imDoctype ?: null;
+
+            $docid = $imbudget->csid
+                ?: $imbudget->rfpnonpurchaseid
+                ?: $imbudget->rfp_id
+                ?: $imbudget->calrnonpurchaseid
+                ?: $imbudget->sppbjktid
+                ?: null;
+        }
+
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $canUpload = $imbudget->user_peminta === $loginUsername;
+
+        return view('pages.imbudgets.showimbudgets', compact(
+            'imbudget',
+            'attachments',
+            'imbudgetdetail',
+            'hash',
+            'canUpload',
+            'eid_cs',
+            'eid_sppbjkt',
+            'eid_rfp',
+            'eid_rfpnonpurchase',
+            'eid_calrnonpurchase',
+            'prefix',
+            'docid',
+            'sourceLabel',
+            'srcHeader',
+            'srcDetails',
+            'budgetType',
+            'budgetClasses'
+        ));
+    }
+
+    public function showIMBudget_xxx($hash)
     {
         $user = Auth::user();
 

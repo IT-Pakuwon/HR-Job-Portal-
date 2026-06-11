@@ -40,13 +40,56 @@
                 <div class="flex h-[400px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
-                        <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                        {{-- <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span
                                 class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
 
                             {{ $imbudget->imbudgetid }}
+
+                            @if (!empty($budgetType))
+                                <span
+                                    class="{{ $budgetClasses }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
+                                    {{ $budgetType }}
+                                </span>
+                            @endif
+                        </h1> --}}
+
+                        @php
+                            $imDoctype = strtoupper(trim((string) ($imbudget->doctype ?? '')));
+
+                            $doctypeLabel = match ($imDoctype) {
+                                'CS'  => 'CS',
+                                'RFP' => 'RFP Non Purchase',
+                                'RP'  => 'RFP',
+                                'CA'  => 'CALR Non Purchase',
+                                default => null,
+                            };
+
+                            $doctypeClasses = match ($imDoctype) {
+                                'CS'  => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+                                'RFP' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+                                'RP'  => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300',
+                                'CA'  => 'bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-300',
+                                default => '',
+                            };
+                        @endphp
+
+                        <h1 class="flex flex-wrap items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+                            <span
+                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
+                                ID
+                            </span>
+
+                            {{ $imbudget->imbudgetid }}
+
+                            @if (!empty($doctypeLabel))
+                                <span
+                                    class="{{ $doctypeClasses }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
+                                    {{ $doctypeLabel }}
+                                </span>
+                            @endif
 
                             @if (!empty($budgetType))
                                 <span
@@ -92,7 +135,7 @@
                         </div>
                     </header>
                     <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
-                        @php
+                        {{-- @php
                             // Build the SPPB/J/K/T link
                             $routeMap = [
                                 'PB' => 'showsppbs',
@@ -159,6 +202,157 @@
                                     'is_raw' => true,
                                 ],
                             ];
+                        @endphp --}}
+                        @php
+                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
+                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
+                            $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
+
+                            $imDoctype = strtoupper(trim((string) ($imbudget->doctype ?? '')));
+
+                            $fields = [
+                                ['icon' => 'building-office', 'label' => 'Company', 'value' => $imbudget->cpny_id],
+                                ['icon' => 'squares-2x2', 'label' => 'Department', 'value' => $imbudget->department_id],
+                                [
+                                    'icon' => 'calendar',
+                                    'label' => 'Date',
+                                    'value' => !empty($imbudget->imbudgetdate)
+                                        ? \Carbon\Carbon::parse($imbudget->imbudgetdate)->format('j F Y')
+                                        : null,
+                                ],
+                                [
+                                    'icon' => 'user',
+                                    'label' => 'User Peminta',
+                                    'value' => optional($imbudget->userpeminta)->name
+                                        ? ucwords(strtolower(optional($imbudget->userpeminta)->name))
+                                        : $imbudget->user_peminta,
+                                ],
+                            ];
+
+                            /*
+                            |--------------------------------------------------------------------------
+                            | Source Document berdasarkan doctype
+                            |--------------------------------------------------------------------------
+                            | Jika value null/kosong, tidak ditampilkan.
+                            */
+
+                            // CS
+                            if ($imDoctype === 'CS' && !empty($imbudget->csid)) {
+                                $csUrl = !empty($eid_cs) ? url("/showcs/{$eid_cs}") : null;
+
+                                $csLink = $csUrl
+                                    ? '<a href="' . e($csUrl) . '" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
+                                        . e($imbudget->csid) .
+                                    '</a>'
+                                    : e($imbudget->csid);
+
+                                $fields[] = [
+                                    'icon' => 'document-text',
+                                    'label' => 'CS',
+                                    'value' => $csLink,
+                                    'is_raw' => true,
+                                ];
+                            }
+
+                            // SPPB / SPPJ / SPPK / SPPT khusus CS
+                            if ($imDoctype === 'CS' && !empty($imbudget->sppbjktid)) {
+                                $routeMap = [
+                                    'PB' => 'showsppbs',
+                                    'PJ' => 'showsppjs',
+                                    'PK' => 'showsppks',
+                                    'PT' => 'showsppts',
+                                ];
+
+                                $routeBase = $routeMap[$prefix ?? ''] ?? null;
+                                $docUrl = !empty($routeBase) && !empty($eid_sppbjkt)
+                                    ? url("/{$routeBase}/{$eid_sppbjkt}")
+                                    : null;
+
+                                $docBtn = $docUrl
+                                    ? '<a href="' . e($docUrl) . '" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
+                                        . e($imbudget->sppbjktid) .
+                                    '</a>'
+                                    : e($imbudget->sppbjktid);
+
+                                $fields[] = [
+                                    'icon' => 'document-text',
+                                    'label' => 'SPPBJKT ID',
+                                    'value' => $docBtn,
+                                    'is_raw' => true,
+                                ];
+                            }
+
+                            // RFP Non Purchase
+                            if ($imDoctype === 'RFP' && !empty($imbudget->rfpnonpurchaseid)) {
+                                $rfpNpUrl = !empty($eid_rfpnonpurchase ?? null)
+                                    ? url('/showrfpnonpurch/' . $eid_rfpnonpurchase)
+                                    : null;
+
+                                $rfpNpLink = $rfpNpUrl
+                                    ? '<a href="' . e($rfpNpUrl) . '" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
+                                        . e($imbudget->rfpnonpurchaseid) .
+                                    '</a>'
+                                    : e($imbudget->rfpnonpurchaseid);
+
+                                $fields[] = [
+                                    'icon' => 'document-text',
+                                    'label' => 'RFP Non Purchase ID',
+                                    'value' => $rfpNpLink,
+                                    'is_raw' => true,
+                                ];
+                            }
+
+                            // RFP / RP
+                            if ($imDoctype === 'RP' && !empty($imbudget->rfp_id)) {
+                                $rfpUrl = !empty($eid_rfp ?? null)
+                                    ? url('/showrfp/' . $eid_rfp)
+                                    : null;
+
+                                $rfpLink = $rfpUrl
+                                    ? '<a href="' . e($rfpUrl) . '" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
+                                        . e($imbudget->rfp_id) .
+                                    '</a>'
+                                    : e($imbudget->rfp_id);
+
+                                $fields[] = [
+                                    'icon' => 'document-text',
+                                    'label' => 'RFP ID',
+                                    'value' => $rfpLink,
+                                    'is_raw' => true,
+                                ];
+                            }
+
+                            // CALR Non Purchase
+                            if ($imDoctype === 'CA' && !empty($imbudget->calrnonpurchaseid)) {
+                                $calrUrl = !empty($eid_calrnonpurchase ?? null)
+                                    ? url('/showcalrnonpurch/' . $eid_calrnonpurchase)
+                                    : null;
+
+                                $calrLink = $calrUrl
+                                    ? '<a href="' . e($calrUrl) . '" target="_blank" rel="noopener"
+                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
+                                        . e($imbudget->calrnonpurchaseid) .
+                                    '</a>'
+                                    : e($imbudget->calrnonpurchaseid);
+
+                                $fields[] = [
+                                    'icon' => 'document-text',
+                                    'label' => 'CALR Non Purchase ID',
+                                    'value' => $calrLink,
+                                    'is_raw' => true,
+                                ];
+                            }
+
+                            // Hapus field yang value-nya null/kosong
+                            $fields = collect($fields)
+                                ->filter(function ($f) {
+                                    return isset($f['value']) && trim(strip_tags((string) $f['value'])) !== '';
+                                })
+                                ->values();
                         @endphp
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
