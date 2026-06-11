@@ -468,7 +468,12 @@ const ticketTable = $("#ticketTable").DataTable({
                         `;
                 }
 
-                const isOverdue = isOverdueDate(data) && row.status !== "C";
+                const responseDate = row.response_working_start ?? null;
+                const isOverdue = row.status_pekerjaan === "CREATED"
+                    ? isOverdueDate(data)
+                    : responseDate
+                        ? new Date(responseDate) > new Date(data)
+                        : false;
 
                 return `
                         <div class="flex flex-col leading-tight">
