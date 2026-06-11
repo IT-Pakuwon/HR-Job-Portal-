@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 use App\Models\MsTenant;
 
@@ -90,7 +91,7 @@ class TenantController extends Controller
         $t = MsTenant::findOrFail($id);
 
         $request->validate([
-            'unit_id'    => 'required|string|max:50|unique:pgsql.ms_tenant,unit_id,' . $t->id,
+            'unit_id'    => ['required', 'string', 'max:50', Rule::unique(MsTenant::class, 'unit_id')->ignore($t->id)],
             'cpny_id'    => 'required|string|max:10',
             'store_name' => 'required|string|max:200',
             'floor_id'   => 'nullable|string|max:50',

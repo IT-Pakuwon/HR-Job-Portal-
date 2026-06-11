@@ -348,7 +348,8 @@ class TicketController extends Controller
             })
 
             ->addColumn('response_working_start', function ($row) {
-                return optional($row->responseActivity)->working_start_date;
+                $ws = optional($row->responseActivity)->working_start_date;
+                return $ws ? $ws->toISOString() : null;
             })
 
             ->addColumn('actions', function ($row) {
