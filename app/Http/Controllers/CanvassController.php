@@ -40,6 +40,8 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Vinkla\Hashids\Facades\Hashids;
+use App\Models\MsKontrakPrefix;
+
 
 class CanvassController extends Controller
 {
@@ -9041,6 +9043,23 @@ class CanvassController extends Controller
         return true;
     }
 
+    private function makeNoSk_xxx(string $cpnyId, Carbon $now): string
+    {
+        // contoh format (aku rapikan dikit): 024/SK/AW/II/2025
+        $roman = $this->monthToRoman((int) $now->format('n'));
+        $year = $now->format('Y');
+
+        // ✅ running 3 digit per BULAN
+        $seq = $this->nextAutoNumber('SK', (int) $now->format('Y'), (int) $now->format('n'), 3);
+
+        return str_pad((string) $seq, 3, '0', STR_PAD_LEFT)
+            .'/PROC'
+            .'/'.strtoupper(trim($cpnyId))
+            .'/SK'
+            .'/'.$roman
+            .'/'.$year;
+    }
+
     private function monthToRoman(int $m): string
     {
         $map = [
@@ -9068,7 +9087,7 @@ class CanvassController extends Controller
      * - KO: reset per YEAR+MONTH (pad 4 digit)
      * - SK: reset per YEAR (pad 3 digit).
      */
-    private function nextAutoNumber(string $doctype, int $year, int $month, int $pad): int
+    private function nextAutoNumber_xxx(string $doctype, int $year, int $month, int $pad): int
     {
         $doctype = strtoupper(trim($doctype));
         $descr = $this->doctypeDescr($doctype);
@@ -9106,9 +9125,9 @@ class CanvassController extends Controller
 
             return $next;
         });
-    }
+    }    
 
-    private function makeKontrakId(Carbon $now): string
+    private function makeKontrakId_xxx(Carbon $now): string
     {
         $yy = $now->format('y');
         $mm = $now->format('m');
@@ -9118,24 +9137,70 @@ class CanvassController extends Controller
         return 'KO'.$yy.$mm.str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
     }
 
-    private function makeNoSk_xxx(string $cpnyId, Carbon $now): string
+    private function nextAutoNumber(string $doctype, int $year, int $month, int $pad = 4): int
     {
-        // contoh format (aku rapikan dikit): 024/SK/AW/II/2025
-        $roman = $this->monthToRoman((int) $now->format('n'));
-        $year = $now->format('Y');
+        $doctype = strtoupper(trim($doctype));
+        $descr   = $this->doctypeDescr($doctype);
+        $user    = auth()->user()->username ?? 'system';
 
-        // ✅ running 3 digit per BULAN
-        $seq = $this->nextAutoNumber('SK', (int) $now->format('Y'), (int) $now->format('n'), 3);
+        $year  = (int) $year;
+        $month = (int) $month;
 
-        return str_pad((string) $seq, 3, '0', STR_PAD_LEFT)
-            .'/PROC'
-            .'/'.strtoupper(trim($cpnyId))
-            .'/SK'
-            .'/'.$roman
-            .'/'.$year;
+        return DB::connection('pgsql2')->transaction(function () use ($doctype, $descr, $year, $month, $user) {
+
+            $row = Autonbr::on('pgsql2')
+                ->where('doctype', $doctype)
+                ->where('year', $year)
+                ->where('month', $month)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$row) {
+                Autonbr::on('pgsql2')->create([
+                    'doctype'       => $doctype,
+                    'doctype_descr' => $descr,
+                    'year'          => $year,
+                    'month'         => $month,
+                    'number'        => 1,
+                    'status'        => 'A',
+                    'created_by'    => $user,
+                    'updated_by'    => $user,
+                ]);
+
+                return 1;
+            }
+
+            $next = ((int) $row->number) + 1;
+
+            $row->update([
+                'number'        => $next,
+                'doctype_descr' => $row->doctype_descr ?: $descr,
+                'updated_by'    => $user,
+            ]);
+
+            return $next;
+        });
     }
 
-    private function makeNoSk(string $cpnyId, Carbon $now, $details): string
+    private function makeKontrakId(): string
+    {
+        // WAJIB pakai tanggal hari ini / bulan berjalan
+        $now = Carbon::now();
+
+        $yy = $now->format('y'); // 26
+        $mm = $now->format('m'); // 06
+
+        $seq = $this->nextAutoNumber(
+            'KO',
+            (int) $now->format('Y'),
+            (int) $now->format('n'),
+            4
+        );
+
+        return 'KO' . $yy . $mm . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function makeNoSk_zzz(string $cpnyId, Carbon $now, $details): string
     {
         $roman = $this->monthToRoman((int) $now->format('n'));
         $year  = $now->format('Y');
@@ -9169,6 +9234,76 @@ class CanvassController extends Controller
             . '/PROC'
             . '/' . strtoupper(trim($cpnyId))
             . '-' . $bussunit
+            . '/SK'
+            . '/' . $roman
+            . '/' . $year;
+    }
+
+    private function makeNoSk(string $cpnyId, Carbon $now, $details): string
+    {
+        $roman = $this->monthToRoman((int) $now->format('n'));
+        $year  = $now->format('Y');
+
+        $details = collect($details);
+
+        $businessUnits = $details
+            ->pluck('budget_business_unit_id')
+            ->filter(fn ($val) => !is_null($val) && trim((string) $val) !== '')
+            ->map(fn ($val) => strtoupper(trim((string) $val)))
+            ->unique()
+            ->values();
+
+        if ($businessUnits->count() > 1) {
+            Log::warning('Multiple budget_business_unit_id found when generating No SK', [
+                'cpny_id'         => $cpnyId,
+                'business_units'  => $businessUnits->toArray(),
+            ]);
+        }
+
+        $bussunit = $businessUnits->first();
+
+        if (!$bussunit) {
+            Log::warning('budget_business_unit_id not found when generating No SK', [
+                'cpny_id' => $cpnyId,
+            ]);
+
+            $bussunit = '-';
+        }
+
+        /*
+        * Ambil prefix dari ms_kontrak_prefix
+        * contoh hasil: EP-EPMALL
+        */
+        $kontrakPrefix = MsKontrakPrefix::query()
+            ->whereRaw('UPPER(TRIM(business_unit_id)) = ?', [$bussunit])
+            ->where('status', 'A')
+            ->value('autonbr_kontrak_prefix');
+
+        /*
+        * Fallback kalau master prefix belum ada
+        * supaya No SK tetap bisa terbentuk
+        */
+        if (!$kontrakPrefix) {
+            Log::warning('autonbr_kontrak_prefix not found in ms_kontrak_prefix', [
+                'cpny_id'            => $cpnyId,
+                'business_unit_id'   => $bussunit,
+            ]);
+
+            $kontrakPrefix = strtoupper(trim($cpnyId)) . '-' . $bussunit;
+        }
+
+        $kontrakPrefix = strtoupper(trim($kontrakPrefix));
+
+        $seq = $this->nextAutoNumber(
+            'SK',
+            (int) $now->format('Y'),
+            (int) $now->format('n'),
+            3
+        );
+
+        return str_pad((string) $seq, 3, '0', STR_PAD_LEFT)
+            . '/PROC'
+            . '/' . $kontrakPrefix
             . '/SK'
             . '/' . $roman
             . '/' . $year;
@@ -9210,8 +9345,8 @@ class CanvassController extends Controller
             ->first();
         $user_approval = $u_approval->aprv_username ?? null;
 
-        // $now   = Carbon::now();
-        $now = Carbon::create(2026, 2, 5, 10, 0, 0);
+        $now   = Carbon::now();
+        // $now = Carbon::create(2026, 2, 5, 10, 0, 0);
         // dd($now);
         $cpny = strtoupper((string) ($cs->cpny_id ?? $cs->cpnyid ?? ''));
 
@@ -9228,7 +9363,7 @@ class CanvassController extends Controller
                 }
 
                 // Generate nomor
-                $kontrakId = $this->makeKontrakId($now);     // KO26010001
+                $kontrakId = $this->makeKontrakId();     // KO26010001
                 // $noSk = $this->makeNoSk($cpny, $now);   // SK/024/AW/X/2025
                 $noSk = $this->makeNoSk($cpny, $now, $rows);
 

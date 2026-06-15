@@ -40,6 +40,7 @@ use PDF;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Models\BudgetDetail;
 use App\Models\MsPurchSetting;
+use App\Models\TrIMBudget;
 
 class RfpNonPurchController extends Controller
 {
@@ -198,7 +199,7 @@ class RfpNonPurchController extends Controller
                 'r.paymentdate',
                 'r.created_by'
             )
-            ->orderBy('r.datediperlukan', 'desc')
+            ->orderBy('r.rfpnonpurchaseid', 'desc')
             ->skip($start)
             ->take($length)
             ->get();
@@ -416,59 +417,137 @@ class RfpNonPurchController extends Controller
                 ]);
             }
 
+            // // =========================
+            // // DETAIL ONLY RFP
+            // // =========================
+            // $totalAmountRequest = 0;
+
+            // if ($doctype === 'RFP') {
+            //     $descs = $request->rfpnonpurchase_descr ?? [];
+            //     $prices = $request->price ?? [];
+
+            //     $coaIds = $request->coa_id ?? [];
+            //     $activityIds = $request->activity_id ?? [];
+            //     $busUnitIds = $request->business_unit_id_detail ?? [];
+            //     $deptFinIds = $request->department_fin_id ?? [];
+            //     $actDescrs = $request->activity_descr ?? [];
+
+            //     $rowCount = count($descs);
+
+            //     for ($i = 0; $i < $rowCount; $i++) {
+            //         $desc = trim($descs[$i] ?? '');
+            //         $amount = $toFloat($prices[$i] ?? 0);
+
+            //         if (!$desc || $amount <= 0) {
+            //             continue;
+            //         }
+
+            //         $totalAmountRequest += $amount;
+
+            //         TrRfpNonPurchDetail::create([
+            //             'rfpnonpurchaseid' => $docid,
+            //             'keperluan_detail' => $desc,
+            //             'amount_request' => $amount,
+
+            //             'budget_perpost' => $year,
+            //             'budget_cpny_id' => $request->cpnyid,
+            //             'budget_business_unit_id' => $busUnitIds[$i] ?? null,
+            //             'budget_department_fin_id' => $deptFinIds[$i] ?? null,
+            //             'budget_account_id' => $coaIds[$i] ?? null,
+            //             'budget_activity_id' => $activityIds[$i] ?? null,
+            //             'budget_activity_descr' => $actDescrs[$i] ?? null,
+
+            //             'status' => 'P',
+            //             'created_by' => $username,
+            //         ]);
+            //     }
+
+            //     $header->amountrequestpayment = $totalAmountRequest;
+            //     $header->save();
+            // }
+
+            // if ($doctype === 'RCA') {
+            //     $header->amountrequestpayment = $toFloat($request->amountrequestpayment);
+            //     $header->save();
+            // }
+
             // =========================
-            // DETAIL ONLY RFP
+            // DETAIL RFP / RCA
             // =========================
             $totalAmountRequest = 0;
 
-            if ($doctype === 'RFP') {
-                $descs = $request->rfpnonpurchase_descr ?? [];
-                $prices = $request->price ?? [];
+            $descs = $request->rfpnonpurchase_descr ?? [];
+            $prices = $request->price ?? [];
 
-                $coaIds = $request->coa_id ?? [];
-                $activityIds = $request->activity_id ?? [];
-                $busUnitIds = $request->business_unit_id_detail ?? [];
-                $deptFinIds = $request->department_fin_id ?? [];
-                $actDescrs = $request->activity_descr ?? [];
+            $coaIds = $request->coa_id ?? [];
+            $activityIds = $request->activity_id ?? [];
+            $busUnitIds = $request->business_unit_id_detail ?? [];
+            $deptFinIds = $request->department_fin_id ?? [];
+            $actDescrs = $request->activity_descr ?? [];
 
-                $rowCount = count($descs);
+            $rowCount = count($prices);
+            $insertedDetail = 0;
 
-                for ($i = 0; $i < $rowCount; $i++) {
-                    $desc = trim($descs[$i] ?? '');
-                    $amount = $toFloat($prices[$i] ?? 0);
+            for ($i = 0; $i < $rowCount; $i++) {
+                $desc = trim((string) ($descs[$i] ?? ''));
+                $amount = $toFloat($prices[$i] ?? 0);
 
-                    if (!$desc || $amount <= 0) {
-                        continue;
-                    }
-
-                    $totalAmountRequest += $amount;
-
-                    TrRfpNonPurchDetail::create([
-                        'rfpnonpurchaseid' => $docid,
-                        'keperluan_detail' => $desc,
-                        'amount_request' => $amount,
-
-                        'budget_perpost' => $year,
-                        'budget_cpny_id' => $request->cpnyid,
-                        'budget_business_unit_id' => $busUnitIds[$i] ?? null,
-                        'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                        'budget_account_id' => $coaIds[$i] ?? null,
-                        'budget_activity_id' => $activityIds[$i] ?? null,
-                        'budget_activity_descr' => $actDescrs[$i] ?? null,
-
-                        'status' => 'P',
-                        'created_by' => $username,
-                    ]);
+                if ($amount <= 0) {
+                    continue;
                 }
 
-                $header->amountrequestpayment = $totalAmountRequest;
-                $header->save();
+                /*
+                |--------------------------------------------------------------------------
+                | Khusus RFP, description wajib.
+                | Khusus RCA, keperluan_detail dibuat null.
+                |--------------------------------------------------------------------------
+                */
+                if ($doctype === 'RFP' && $desc === '') {
+                    continue;
+                }
+
+                $totalAmountRequest += $amount;
+                $insertedDetail++;
+
+                TrRfpNonPurchDetail::create([
+                    'rfpnonpurchaseid' => $docid,
+
+                    // RFP simpan description, RCA null
+                    'keperluan_detail' => $doctype === 'RCA'
+                        ? null
+                        : $desc,
+
+                    // RCA isi refid BUDGET-RFCA
+                    'refid' => $doctype === 'RCA'
+                        ? 'BUDGET-RFCA'
+                        : null,
+
+                    'amount_request' => $amount,
+
+                    'budget_perpost' => $year,
+                    'budget_cpny_id' => $request->cpnyid,
+                    'budget_business_unit_id' => $busUnitIds[$i] ?? null,
+                    'budget_department_fin_id' => $deptFinIds[$i] ?? null,
+                    'budget_account_id' => $coaIds[$i] ?? null,
+                    'budget_activity_id' => $activityIds[$i] ?? null,
+                    'budget_activity_descr' => $actDescrs[$i] ?? null,
+
+                    'status' => 'P',
+                    'created_by' => $username,
+                ]);
             }
 
-            if ($doctype === 'RCA') {
-                $header->amountrequestpayment = $toFloat($request->amountrequestpayment);
-                $header->save();
+            if ($insertedDetail <= 0) {
+                DB::rollBack();
+
+                return response()->json([
+                    'message' => "Minimal 1 detail {$doctype} harus diisi.",
+                ], 422);
             }
+
+            // Total header dari detail, baik RFP maupun RCA
+            $header->amountrequestpayment = $totalAmountRequest;
+            $header->save();
 
             // =========================
             // APPROVAL
@@ -718,6 +797,23 @@ class RfpNonPurchController extends Controller
         $docid = $rfpnonpurch->rfpnonpurchaseid;
 
         // =========================
+        // IM BUDGET LINK
+        // =========================
+        $imbudgetUrl = null;
+        $imbudgetHash = null;
+
+        if (!empty($rfpnonpurch->imbudgetid)) {
+            $imbudget = TrIMBudget::query()
+                ->where('imbudgetid', $rfpnonpurch->imbudgetid)
+                ->first();
+
+            if ($imbudget) {
+                $imbudgetHash = Hashids::encode($imbudget->id);
+                $imbudgetUrl = url('/showimbudgets/' . $imbudgetHash);
+            }
+        }
+
+        // =========================
         // DETAIL ONLY RFP
         // =========================
         $details = collect();
@@ -922,7 +1018,9 @@ class RfpNonPurchController extends Controller
             'userdept',
             'userdept2',
             'rfpnonpurchSteps',
-            'deposit'
+            'deposit',
+            'imbudgetUrl',
+            'imbudgetHash'
         ));
     }
 
