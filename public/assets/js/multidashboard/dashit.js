@@ -185,7 +185,19 @@
         function buildDataTable(data, tab) {
 
         if ($.fn.DataTable.isDataTable("#dashboardTable") && tableBuiltForTab === tab) {
-            dashboardTable.clear().rows.add(data).draw(false);
+            const savedPage    = dashboardTable.page();
+            const savedPageLen = dashboardTable.page.len();
+
+            dashboardTable.clear().rows.add(data);
+            dashboardTable.page.len(savedPageLen);
+            dashboardTable.draw(false);
+
+            const totalPages = dashboardTable.page.info().pages;
+            const targetPage = Math.min(savedPage, Math.max(0, totalPages - 1));
+            if (totalPages > 0 && dashboardTable.page() !== targetPage) {
+                dashboardTable.page(targetPage).draw(false);
+            }
+
             return;
         }
 
