@@ -2561,6 +2561,11 @@ class TicketController extends Controller
 
         while ($counted < $slaDays) {
             $date->addDay();
+
+            if ($date->isWeekend()) {
+                continue;
+            }
+
             if (!in_array($date->format('Y-m-d'), $holidays)) {
                 $counted++;
             }

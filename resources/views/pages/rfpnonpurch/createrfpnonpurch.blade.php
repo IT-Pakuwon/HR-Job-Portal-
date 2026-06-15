@@ -210,7 +210,7 @@
                             </div>
 
                             {{-- Keperluan --}}
-                            <div class="flex flex-col gap-2">
+                            <div id="headerKeperluanBox" class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Keperluan
                                 </label>
@@ -279,7 +279,7 @@
                                             <thead class="bg-gray-100/10">
                                                 <tr>
                                                     <th class="border p-3 text-center">No</th>
-                                                    <th class="req border p-3 text-left">Description</th>
+                                                    <th id="detailDescrHeader" class="req border p-3 text-left">Description</th>
                                                     <th class="req border p-3 text-right">Price</th>
                                                     <th class="req border p-3 text-left budget-col">Budget</th>
                                                     <th class="border p-3 text-center"></th>
@@ -510,10 +510,15 @@
         };
 
         window.applyBudgetColumnVisibility = function () {
-            const type = $('#rfpnonpurchase_type').val();
             const isBudget = window.isBudgetSelected();
 
-            if (type === 'RFP' && isBudget) {
+            // Detail selalu tampil untuk RFP dan RCA
+            $('#detailSection').removeClass('hidden');
+            $('#rfpnonpurchTable')
+                .find('textarea, input, select, button')
+                .prop('disabled', false);
+
+            if (isBudget) {
                 $('#businessUnitBox').removeClass('hidden');
                 $('#business_unit_id').prop('required', true);
 
@@ -657,26 +662,11 @@
                 </tr>
             `;
         }
-
+       
         function validateDetails() {
             clearAllErrors();
 
             let validRows = 0;
-
-            const type = $('#rfpnonpurchase_type').val();
-
-            if (type === 'RCA') {
-
-                const amount = parseNumber($('#amountrequestpayment').val());
-
-                if (!amount || amount <= 0) {
-                    addError($('#amountrequestpayment'), 'Amount Request Payment wajib diisi.');
-                    toastr.error('Amount Request Payment wajib diisi.');
-                    return false;
-                }
-
-                return true;
-            }
 
             $('#rfpnonpurchTable tr.rfpnonpurch-row').each(function () {
                 const $row = $(this);
@@ -688,7 +678,8 @@
                 const desc = ($desc.val() || '').trim();
                 const price = parseNumber($price.val());
                 const coaId = ($row.find('.coaIdField').val() || '').trim();
-                const isBudget = window.isBudgetSelected();                
+
+                const isBudget = window.isBudgetSelected();
                 const isEmptyRow = !desc && !price && !coaId;
 
                 if (isEmptyRow) return;
@@ -1309,6 +1300,17 @@
             $('#rfpnonpurchForm').on('submit', function (e) {
                 e.preventDefault();
 
+                const type = $('#rfpnonpurchase_type').val();
+
+                if (type === 'RCA') {
+                    const keperluanFromDetail = $('.rfpnonpurchaseDescrField')
+                        .first()
+                        .val()
+                        .trim();
+
+                    $('#keperluan').val(keperluanFromDetail);
+                }
+
                 if (!validateDetails()) return;
                 if (!validateAttachments()) return;
 
@@ -1372,43 +1374,73 @@
                     maximumFractionDigits: 2
                 });
             }
+          
 
             // =====================================================
             // RFP / RCA MODE
             // =====================================================
             function toggleRfpRcaMode() {
-
                 const type = $('#rfpnonpurchase_type').val();
 
-                if (type === 'RFP') {
+                // Detail selalu tampil untuk RFP dan RCA
+                $('#detailSection').removeClass('hidden');
+                $('#rfpnonpurchTable')
+                    .find('textarea, input, select, button')
+                    .prop('disabled', false);
 
-                    $('#detailSection').removeClass('hidden');
-                    $('#rfpnonpurchTable').find('textarea, input, select, button').prop('disabled', false);
+                if (type === 'RCA') {
+                    /*
+                    |--------------------------------------------------------------------------
+                    | RCA
+                    |--------------------------------------------------------------------------
+                    | - Header Keperluan hidden
+                    | - Description detail berubah label jadi Keperluan
+                    | - Add Row hidden
+                    | - Value header keperluan nanti diisi otomatis dari detail saat submit
+                    |--------------------------------------------------------------------------
+                    */
+                    $('#headerKeperluanBox').addClass('hidden');
+                    $('#keperluan')
+                        .prop('required', false)
+                        .val('');
 
-                    $('#tanggalRealisasiBox').addClass('hidden');
-                    $('#datepenyelesaian')
-                        .val('')
-                        .prop('required', false);
+                    $('#detailDescrHeader').text('Keperluan');
+
+                    $('.rfpnonpurchaseDescrField')
+                        .attr('placeholder', 'Input keperluan...')
+                        .prop('required', true);
+
+                    $('#addImBudgetNonPurch').addClass('hidden');
+
+                    $('#rfpnonpurchTable tr.rfpnonpurch-row').not(':first').remove();
+                        updateRowNumbers();
+                        updateRemoveButtons();
+                        calculateGrandTotal();
+
+                    $('#tanggalRealisasiBox').removeClass('hidden');
+                    $('#datepenyelesaian').prop('required', false);
 
                     $('#amountRequestPaymentBox').addClass('hidden');
                     $('#amountrequestpayment')
                         .val('')
                         .prop('required', false);
 
-                } else if (type === 'RCA') {
-
-                    $('#detailSection').addClass('hidden');
-                    $('#rfpnonpurchTable').find('textarea, input, select, button').prop('disabled', true);
-
-                    $('#tanggalRealisasiBox').removeClass('hidden');
-                    $('#datepenyelesaian')
-                        .prop('required', true);
-
-                    $('#amountRequestPaymentBox').removeClass('hidden');
-                    $('#amountrequestpayment')
-                        .prop('required', true);
-
                 } else {
+                    /*
+                    |--------------------------------------------------------------------------
+                    | RFP normal
+                    |--------------------------------------------------------------------------
+                    */
+                    $('#headerKeperluanBox').removeClass('hidden');
+                    $('#keperluan').prop('required', true);
+
+                    $('#detailDescrHeader').text('Description');
+
+                    $('.rfpnonpurchaseDescrField')
+                        .attr('placeholder', 'Input description...')
+                        .prop('required', false);
+
+                    $('#addImBudgetNonPurch').removeClass('hidden');
 
                     $('#tanggalRealisasiBox').addClass('hidden');
                     $('#datepenyelesaian')
@@ -1423,39 +1455,21 @@
 
                 toggleBudgetMode();
             }
-
             // =====================================================
             // BUDGET MODE
             // =====================================================
             function toggleBudgetMode() {
-
-                const type = $('#rfpnonpurchase_type').val();
-
                 const isBudget = window.isBudgetSelected();
 
-                // =====================================================
-                // BUSINESS UNIT
-                // =====================================================
-                if (type === 'RFP' && isBudget) {
+                // Detail selalu tampil untuk RFP dan RCA
+                $('#detailSection').removeClass('hidden');
+                $('#rfpnonpurchTable')
+                    .find('textarea, input, select, button')
+                    .prop('disabled', false);
 
+                if (isBudget) {
                     $('#businessUnitBox').removeClass('hidden');
-
-                    $('#business_unit_id')
-                        .prop('required', true);
-
-                } else {
-
-                    $('#businessUnitBox').addClass('hidden');
-
-                    $('#business_unit_id')
-                        .prop('required', false)
-                        .val('');
-                }
-
-                // =====================================================
-                // BUDGET COLUMN
-                // =====================================================
-                if (type === 'RFP' && isBudget) {
+                    $('#business_unit_id').prop('required', true);
 
                     $('.budget-col').removeClass('hidden');
 
@@ -1465,8 +1479,12 @@
 
                     $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                         .prop('disabled', false);
-
                 } else {
+                    $('#businessUnitBox').addClass('hidden');
+
+                    $('#business_unit_id')
+                        .prop('required', false)
+                        .val('');
 
                     $('.budget-col').addClass('hidden');
 
@@ -1477,29 +1495,6 @@
                     $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                         .val('')
                         .prop('disabled', true);
-                }
-
-                // =====================================================
-                // RCA MODE
-                // =====================================================
-                if (type === 'RCA') {
-
-                    $('#detailSection').addClass('hidden');
-
-                    $('#rfpnonpurchTable')
-                        .find('textarea, input, select, button')
-                        .prop('disabled', true);
-
-                    $('#grandTotalDisplay').text('0,00');
-                    $('#grandTotalInput').val('0');
-
-                } else {
-
-                    $('#detailSection').removeClass('hidden');
-
-                    $('#rfpnonpurchTable')
-                        .find('.rfpnonpurchaseDescrField, .priceField, .removeImBudgetNonPurch')
-                        .prop('disabled', false);
                 }
             }
             

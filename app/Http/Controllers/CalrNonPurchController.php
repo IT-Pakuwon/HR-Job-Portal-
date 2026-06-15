@@ -1082,6 +1082,12 @@ class CalrNonPurchController extends Controller
             | Karena model detail yang diberikan adalah TrRfpNonPurchDetail,
             | maka refid diisi dengan nomor CAR agar detail settlement bisa ditrace.
             */
+            $budgetRfca = TrRfpNonPurchDetail::query()
+                ->where('rfpnonpurchaseid', $rfp->rfpnonpurchaseid)
+                ->where('refid', 'BUDGET-RFCA')
+                ->orderBy('id')
+                ->first();
+
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
                 $priceRaw = $prices[$i] ?? null;
@@ -1102,13 +1108,20 @@ class CalrNonPurchController extends Controller
                     // price dari CALR detail
                     'amount_request_penyelesaian' => $price,
 
-                    'budget_perpost' => $year,
-                    'budget_cpny_id' => $rfp->cpny_id,
-                    'budget_business_unit_id' => null,
-                    'budget_department_fin_id' => null,
-                    'budget_account_id' => null,
-                    'budget_activity_id' => null,
-                    'budget_activity_descr' => null,
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Budget diambil dari detail RCA awal refid = BUDGET-RFCA
+                    |--------------------------------------------------------------------------
+                    | Jika tidak ketemu, fallback ke default lama.
+                    |--------------------------------------------------------------------------
+                    */
+                    'budget_perpost' => $budgetRfca->budget_perpost ?? $year,
+                    'budget_cpny_id' => $budgetRfca->budget_cpny_id ?? $rfp->cpny_id,
+                    'budget_business_unit_id' => $budgetRfca->budget_business_unit_id ?? null,
+                    'budget_department_fin_id' => $budgetRfca->budget_department_fin_id ?? null,
+                    'budget_account_id' => $budgetRfca->budget_account_id ?? null,
+                    'budget_activity_id' => $budgetRfca->budget_activity_id ?? null,
+                    'budget_activity_descr' => $budgetRfca->budget_activity_descr ?? null,
 
                     // refid untuk menandai detail ini milik CAR/CALR mana
                     'refid' => $docid,

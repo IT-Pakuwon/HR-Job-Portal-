@@ -1422,6 +1422,20 @@
 
     </div>
 
+    {{-- ATTACHMENT PREVIEW MODAL --}}
+    <div id="attachmentPreviewModal"
+        class="fixed inset-0 z-[10002] hidden items-center justify-center bg-black/80 p-4">
+
+        <button type="button" onclick="closeAttachmentPreview()"
+            class="absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/20">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div id="attachmentPreviewContent" class="w-full max-w-5xl">
+        </div>
+
+    </div>
+
     <script>
         window.statusFilter = '';
         window.table = null;

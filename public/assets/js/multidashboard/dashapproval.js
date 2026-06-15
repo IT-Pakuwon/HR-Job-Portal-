@@ -9,12 +9,38 @@
 
     let countdown = 20;
     let countdownTimer = null;
+    let allDoctypeOptions = [];
 
     const urls = {
         summary: "/approval-dashboard/summary-json",
         waiting: "/approval-dashboard/waiting-json",
         history: "/approval-dashboard/approve-json",
     };
+
+    function storeDoctypeOptions() {
+        allDoctypeOptions = [];
+        $("#approvalDoctype option").each(function () {
+            allDoctypeOptions.push({ value: $(this).val(), text: $(this).text() });
+        });
+    }
+
+    function filterDoctypeOptions(data) {
+        const present = new Set(
+            data.map(row => (row.docid || "").match(/^[A-Z]+/)?.[0]).filter(Boolean)
+        );
+
+        const $sel = $("#approvalDoctype");
+        const current = $sel.val();
+
+        $sel.empty();
+        allDoctypeOptions.forEach(opt => {
+            if (opt.value === "ALL" || present.has(opt.value)) {
+                $sel.append(new Option(opt.text, opt.value));
+            }
+        });
+
+        $sel.val(present.has(current) ? current : "ALL");
+    }
 
     function updateRefreshTime() {
         const el = document.getElementById("approvalRefreshTime");
@@ -180,6 +206,40 @@
                 {
                     data: "infohd",
                     title: "Description"
+                },
+
+                {
+                    data: "status",
+                    title: "Status",
+                    render: function (v, type, row) {
+                        const isDark = document.documentElement.classList.contains("dark");
+
+                        const badge = (text, bg, color) =>
+                            `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block rounded-full px-3 py-1 text-center text-xs font-semibold whitespace-nowrap">${text}</span>`;
+
+                        const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+
+                        if (
+                            doctype === "CS" &&
+                            row.flag_imbudget &&
+                            row.imbudgetid &&
+                            row.status_imbudget !== "C"
+                        ) {
+                            return isDark
+                                ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
+                                : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
+                        }
+
+                        const map = isDark ? {
+                            P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)",  color: "#93c5fd" },
+                            A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",   color: "#86efac" },
+                        } : {
+                            P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)",   color: "#2563eb" },
+                            A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",    color: "#16a34a" },
+                        };
+                        const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+                        return badge(s.text, s.bg, s.color);
+                    }
                 }
 
             ],
@@ -253,10 +313,11 @@
             })
             .then(res => {
 
-                buildDataTable(
-                    res.data || [],
-                    tab
-                );
+                const rows = res.data || [];
+
+                buildDataTable(rows, tab);
+
+                filterDoctypeOptions(rows);
 
                 updateRefreshTime();
 
@@ -376,6 +437,8 @@
         if (!$("#approvalTable").length) {
             return;
         }
+
+        storeDoctypeOptions();
 
         bindEvents();
 

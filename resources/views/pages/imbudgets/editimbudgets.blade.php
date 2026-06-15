@@ -13,16 +13,53 @@
 
                     <div class="w-full rounded-xl bg-white p-4 dark:bg-gray-800">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-                            <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
+                            @php
+                                $imDoctype = strtoupper(trim((string) ($imbudget->doctype ?? '')));
+
+                                $doctypeLabel = match ($imDoctype) {
+                                    'CS'  => 'CS',
+                                    'RFP' => 'RFP Non Purchase',
+                                    'RP'  => 'RFP',
+                                    'CA'  => 'CALR Non Purchase',
+                                    default => null,
+                                };
+
+                                $doctypeClasses = match ($imDoctype) {
+                                    'CS'  => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+                                    'RFP' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+                                    'RP'  => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300',
+                                    'CA'  => 'bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-300',
+                                    default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+                                };
+                            @endphp
+
+                            <h2 class="flex flex-wrap items-center gap-2 text-base font-extrabold text-gray-800 dark:text-white">
                                 <span
                                     class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                     ID
                                 </span>
-                                {{ $imbudget->imbudgetid }} -
-                                <a href="{{ url('/showcs/' . $eidcs) }}" target="_blank"
-                                    class="w-full rounded-lg border border-gray-300 bg-indigo-50 p-2.5 font-semibold text-indigo-700 hover:underline dark:border-gray-600 dark:bg-gray-700 dark:text-indigo-400">
-                                    {{ $imbudget->csid }}
-                                </a>
+
+                                <span>{{ $imbudget->imbudgetid }}</span>
+
+                                @if (!empty($doctypeLabel))
+                                    <span class="{{ $doctypeClasses }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
+                                        {{ $doctypeLabel }}
+                                    </span>
+                                @endif
+
+                                @if (!empty($sourceDocid))
+                                    @if (!empty($sourceUrl))
+                                        <a href="{{ $sourceUrl }}" target="_blank" rel="noopener"
+                                            class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:underline dark:bg-indigo-900/30 dark:text-indigo-300">
+                                            {{ $sourceDocid }}
+                                        </a>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800/40 dark:text-gray-300">
+                                            {{ $sourceDocid }}
+                                        </span>
+                                    @endif
+                                @endif
                             </h2>
                         </div>
 

@@ -262,7 +262,7 @@
                         d.scope = scopeFilter ?? '';
                     }
                 },
-                order: [[2, 'desc']],
+                order: [[1, 'desc']],
                 columns: [
                     { data: null, defaultContent: '' },
 

@@ -241,7 +241,7 @@
 
                                 <div class="mb-2 flex items-center justify-between">
                                     <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                        Total Amount
+                                        Total Amount CALR
                                     </span>
                                     <span id="settlementDisplay" class="text-sm font-bold text-indigo-600">
                                         0,00

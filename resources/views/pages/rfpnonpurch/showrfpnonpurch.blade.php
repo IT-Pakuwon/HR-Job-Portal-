@@ -88,6 +88,20 @@
                                 ? 'Rp ' . number_format((float) $rfpnonpurch->amountpenyelesaian, 2, ',', '.')
                                 : '-';
 
+                            $imbudgetLink = '-';
+
+                            if (!empty($rfpnonpurch->imbudgetid)) {
+                                if (!empty($imbudgetUrl)) {
+                                    $imbudgetLink =
+                                        '<a href="' . e($imbudgetUrl) . '" target="_blank" rel="noopener"
+                                            class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">'
+                                            . e($rfpnonpurch->imbudgetid) .
+                                        '</a>';
+                                } else {
+                                    $imbudgetLink = e($rfpnonpurch->imbudgetid);
+                                }
+                            }
+
                             $fields = [
                                 ['label' => 'Company', 'value' => $rfpnonpurch->cpny_id ?: '-'],
                                 ['label' => 'Department', 'value' => $rfpnonpurch->department_id ?: '-'],
@@ -100,6 +114,14 @@
                                 ['label' => 'Please Pay To', 'value' => $rfpnonpurch->pleasepayto ?: '-'],
                                 ['label' => 'Amount Request Payment', 'value' => $amountRequest],
                             ];
+
+                            if (!empty($rfpnonpurch->imbudgetid)) {
+                                $fields[] = [
+                                    'label' => 'IM Budget ID',
+                                    'value' => $imbudgetLink,
+                                    'is_raw' => true,
+                                ];
+                            }
 
                             if ($isRCA) {
                                 $fields[] = [
