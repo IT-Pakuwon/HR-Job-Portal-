@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrApproval;
+use App\Models\TrCS;
 use App\Models\ViewDasAll;
 use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
@@ -208,7 +209,7 @@ class ApprovalDashboardController extends Controller
         }
 
         $data = $data
-            ->map(function ($r) use ($approvalMap) {
+            ->map(function ($r) use ($approvalMap, $status) {
                 $docidKey = strtoupper(
                     trim($r->docid)
                 );
@@ -223,10 +224,34 @@ class ApprovalDashboardController extends Controller
                     'departementid' => $r->departementid,
                     'infohd' => $r->infohd,
                     'url' => $r->url,
+                    'status' => $status,
                 ];
             })
             ->sortByDesc(fn ($r) => $r['docdate'] ?? '')
             ->values();
+
+        $csDocids = $data
+            ->filter(fn ($r) => str_starts_with(strtoupper($r['docid'] ?? ''), 'CS'))
+            ->pluck('docid')
+            ->values();
+
+        if ($csDocids->isNotEmpty()) {
+            $csM = new TrCS();
+            $imBudgetMap = DB::connection($csM->getConnectionName() ?: config('database.default'))
+                ->table($csM->getTable())
+                ->whereIn('csid', $csDocids->all())
+                ->select('csid', 'flag_imbudget', 'imbudgetid', 'status_imbudget')
+                ->get()
+                ->keyBy(fn ($r) => strtoupper(trim($r->csid)));
+
+            $data = $data->map(function ($r) use ($imBudgetMap) {
+                $cs = $imBudgetMap->get(strtoupper(trim($r['docid'] ?? '')));
+                $r['flag_imbudget']   = $cs?->flag_imbudget   ?? null;
+                $r['imbudgetid']      = $cs?->imbudgetid      ?? null;
+                $r['status_imbudget'] = $cs?->status_imbudget ?? null;
+                return $r;
+            })->values();
+        }
 
         Log::info('approvalDashboard', [
             'user' => $user->username,
