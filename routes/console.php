@@ -18,7 +18,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-
 // // tiap 5 menit
 // Schedule::command('sync:users-das-to-pg --chunk=500')
 //     ->everyFiveMinutes()

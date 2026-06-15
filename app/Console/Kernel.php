@@ -45,6 +45,12 @@ class Kernel extends ConsoleKernel
             ->at('07:05')
             ->withoutOverlapping();
 
+        // Auto Process IFCA Supplier
+        $schedule->command('ifca:supplier-auto-process')
+            ->everySixHours()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/ifca-supplier-auto.log'));
+
         // // Sync user DAS ke PostgreSQL tiap 5 menit
         // $schedule->command('sync:users-das-to-pg --chunk=500')
         //     ->everyFiveMinutes()

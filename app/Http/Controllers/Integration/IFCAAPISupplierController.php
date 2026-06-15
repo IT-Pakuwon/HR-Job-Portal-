@@ -548,4 +548,249 @@ class IFCAAPISupplierController extends Controller
             ];
         }
     }
+
+    public function SchedulerProcessSupplier(): array
+    {
+        $username = 'scheduler';
+
+        // 3 hari sebelum hari ini s/d hari ini
+        $fromDt = now()->subDays(3)->startOfDay();
+        $toDt   = now()->endOfDay();
+
+        // 1) Ambil vendor aktif dari 3 hari sebelumnya sampai hari ini
+        $vendors = MsVendor::query()
+            ->select([
+                'id',
+                'vendor_id',
+                'vendor_name',
+                'npwp',
+                'vendor_addr1',
+                'vendor_addr2',
+                'contact_person',
+                'contact_number1',
+                'contact_number2',
+                'post_cd',
+                'fax_no',
+                'contact_email',
+                'created_at',
+                'status',
+            ])
+            ->where('status', 'A')
+            ->whereBetween('created_at', [$fromDt, $toDt])
+            ->orderBy('vendor_id')
+            ->get();
+
+        if ($vendors->isEmpty()) {
+            return [
+                'ok' => true,
+                'message' => 'Tidak ada vendor aktif dalam range 3 hari.',
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_vendor' => 0,
+                'total_h' => 0,
+                'inserted_H_to_P' => 0,
+                'sent_success_P_to_C' => 0,
+                'sent_failed_still_P' => 0,
+                'skipped_existing_staging' => 0,
+            ];
+        }
+
+        $supplierCds = $vendors
+            ->pluck('vendor_id')
+            ->map(fn ($v) => (string) $v)
+            ->values()
+            ->all();
+
+        // 2) Cek supplier yang SUDAH ADA di staging
+        $existingSupplierCds = StagingIfcaPoSupplier::query()
+            ->whereIn('supplier_cd', $supplierCds)
+            ->pluck('supplier_cd')
+            ->map(fn ($v) => (string) $v)
+            ->values()
+            ->all();
+
+        // 3) Ambil hanya vendor yang BELUM ADA di staging
+        // Inilah status H
+        $vendorsH = $vendors
+            ->filter(function ($v) use ($existingSupplierCds) {
+                return !in_array((string) $v->vendor_id, $existingSupplierCds, true);
+            })
+            ->values();
+
+        if ($vendorsH->isEmpty()) {
+            return [
+                'ok' => true,
+                'message' => 'Tidak ada supplier status H. Semua vendor dalam range sudah ada di staging.',
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_vendor' => $vendors->count(),
+                'total_h' => 0,
+                'inserted_H_to_P' => 0,
+                'sent_success_P_to_C' => 0,
+                'sent_failed_still_P' => 0,
+                'skipped_existing_staging' => count($existingSupplierCds),
+            ];
+        }
+
+        $insertedH = 0;
+        $sentOkP   = 0;
+        $sentFailP = 0;
+
+        $createdSupplierCds = [];
+
+        // 4) Insert hanya supplier H ke staging
+        $stagingConn = (new StagingIfcaPoSupplier)->getConnectionName();
+        DB::connection($stagingConn)->beginTransaction();
+
+        try {
+            foreach ($vendorsH as $v) {
+                $supplierCd = (string) $v->vendor_id;
+
+                // Safety check tambahan agar tidak double kalau ada proses lain bersamaan
+                $alreadyExists = StagingIfcaPoSupplier::query()
+                    ->where('supplier_cd', $supplierCd)
+                    ->exists();
+
+                if ($alreadyExists) {
+                    continue;
+                }
+
+                StagingIfcaPoSupplier::query()->create([
+                    'supplier_cd'     => $supplierCd,
+                    'supplier_nm'     => (string) $v->vendor_name,
+                    'npwp'            => (string) ($v->npwp ?? ''),
+                    'address1'        => (string) ($v->vendor_addr1 ?? ''),
+                    'address2'        => (string) ($v->vendor_addr2 ?? ''),
+                    'category'        => 'C',
+                    'currency_cd'     => 'IDR',
+                    'credit_terms'    => '14',
+                    'contact_person'  => (string) ($v->contact_person ?? ''),
+                    'contact_number1' => (string) ($v->contact_number1 ?? ''),
+                    'contact_number2' => (string) ($v->contact_number2 ?? ''),
+                    'post_cd'         => (string) ($v->post_cd ?? ''),
+                    'fax_no'          => (string) ($v->fax_no ?? ''),
+                    'email_addr'      => (string) ($v->contact_email ?? ''),
+
+                    'nik'             => '',
+                    'address3'        => '',
+                    'birth_date'      => null,
+                    'birth_place'     => '-',
+                    'gender'          => '-',
+                    'nationality_cd'  => '-',
+                    'religion_cd'     => '-',
+                    'marital_status'  => '-',
+                    'siujk_no'        => '',
+                    'siujk_date_exp'  => null,
+
+                    'process_flag'    => 'N',
+                    'status'          => 'A',
+
+                    'created_by'      => $username,
+                    'created_at'      => now(),
+                    'updated_by'      => $username,
+                    'updated_at'      => now(),
+                ]);
+
+                $createdSupplierCds[] = $supplierCd;
+                $insertedH++;
+            }
+
+            DB::connection($stagingConn)->commit();
+        } catch (\Throwable $e) {
+            DB::connection($stagingConn)->rollBack();
+
+            return [
+                'ok' => false,
+                'message' => 'Gagal insert staging supplier: ' . $e->getMessage(),
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_vendor' => $vendors->count(),
+                'total_h' => $vendorsH->count(),
+                'inserted_H_to_P' => $insertedH,
+                'sent_success_P_to_C' => $sentOkP,
+                'sent_failed_still_P' => $sentFailP,
+                'skipped_existing_staging' => count($existingSupplierCds),
+            ];
+        }
+
+        if (empty($createdSupplierCds)) {
+            return [
+                'ok' => true,
+                'message' => 'Tidak ada supplier baru yang berhasil dibuat di staging.',
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_vendor' => $vendors->count(),
+                'total_h' => $vendorsH->count(),
+                'inserted_H_to_P' => $insertedH,
+                'sent_success_P_to_C' => $sentOkP,
+                'sent_failed_still_P' => $sentFailP,
+                'skipped_existing_staging' => count($existingSupplierCds),
+            ];
+        }
+
+        // 5) Ambil token IFCA
+        try {
+            $token = $this->getIfcaToken($username);
+        } catch (\Throwable $e) {
+            return [
+                'ok' => false,
+                'message' => 'Gagal ambil token IFCA: ' . $e->getMessage(),
+                'period_from' => $fromDt->format('Y-m-d H:i:s'),
+                'period_to' => $toDt->format('Y-m-d H:i:s'),
+                'total_vendor' => $vendors->count(),
+                'total_h' => $vendorsH->count(),
+                'inserted_H_to_P' => $insertedH,
+                'sent_success_P_to_C' => $sentOkP,
+                'sent_failed_still_P' => $sentFailP,
+                'skipped_existing_staging' => count($existingSupplierCds),
+            ];
+        }
+
+        // 6) Send hanya supplier yang baru dibuat oleh scheduler ini
+        $items = StagingIfcaPoSupplier::query()
+            ->whereIn('supplier_cd', $createdSupplierCds)
+            ->where('process_flag', 'N')
+            ->get();
+
+        foreach ($items as $item) {
+            $res = $this->sendSupplierAPI($item, $token, $username);
+
+            if ($res['ok']) {
+                StagingIfcaPoSupplier::query()
+                    ->where('supplier_cd', $item->supplier_cd)
+                    ->update([
+                        'process_flag' => 'Y',
+                        'process_dt'   => now(),
+                        'process_note' => null,
+                        'updated_by'   => $username,
+                        'updated_at'   => now(),
+                    ]);
+
+                $sentOkP++;
+            } else {
+                StagingIfcaPoSupplier::query()
+                    ->where('supplier_cd', $item->supplier_cd)
+                    ->update([
+                        'process_note' => substr((string) ($res['response_body'] ?? 'ERROR'), 0, 255),
+                        'updated_by'   => $username,
+                        'updated_at'   => now(),
+                    ]);
+
+                $sentFailP++;
+            }
+        }
+
+        return [
+            'ok' => true,
+            'message' => 'Auto scheduler supplier selesai.',
+            'period_from' => $fromDt->format('Y-m-d H:i:s'),
+            'period_to' => $toDt->format('Y-m-d H:i:s'),
+            'total_vendor' => $vendors->count(),
+            'total_h' => $vendorsH->count(),
+            'inserted_H_to_P' => $insertedH,
+            'sent_success_P_to_C' => $sentOkP,
+            'sent_failed_still_P' => $sentFailP,
+            'skipped_existing_staging' => count($existingSupplierCds),
+        ];
+    }
 }
