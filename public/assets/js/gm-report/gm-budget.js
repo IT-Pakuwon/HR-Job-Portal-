@@ -7,27 +7,34 @@
     var utils     = window.gmUtils;
     var PAGE_SIZE = 10;
 
-    var charts   = { donut: null, trend: null };
-    var xhrSum   = null, xhrDept = null, xhrAct = null, xhrMonth = null;
-    var deptRows = [], deptPage = 1, deptSort = null;
-    var actRows  = [], actPage  = 1, actSort  = null;
+    var charts        = { donut: null, trend: null };
+    var xhrSum        = null, xhrDept = null, xhrAct = null, xhrMonth = null;
+    var deptRows      = [], deptPage = 1, deptSort = null;
+    var actRows       = [], actPage  = 1, actSort  = null;
+    var lastDonutData = null; // { used, reserve, remaining } — kept for resize re-render
+    var donutLegendPos = null; // track current rendered legend position
 
     // ── Donut chart (Used / Reserved / Remaining) ──────────────────────────────
-    function renderDonut(used, reserve, remaining) {
-        var dark        = utils.isDark();
-        var hasReserve  = reserve > 0;
+    function buildDonutOpts(used, reserve, remaining, containerWidth) {
+        var dark       = utils.isDark();
+        var hasReserve = reserve > 0;
         var series = hasReserve
             ? [Math.max(0, Math.round(used)), Math.max(0, Math.round(reserve)), Math.max(0, Math.round(remaining))]
             : [Math.max(0, Math.round(used)), Math.max(0, Math.round(remaining))];
         var labels = hasReserve ? ['Used', 'Reserved', 'Remaining'] : ['Used', 'Remaining'];
         var colors = hasReserve ? ['#EF4444', '#F59E0B', '#10B981'] : ['#EF4444', '#10B981'];
 
-        var dark = utils.isDark();
-        var opts = {
+        // Legend goes to bottom when there isn't enough horizontal room;
+        // right is the default for wide cards (> 460 px).
+        var wide       = containerWidth > 460;
+        var legendPos  = wide ? 'right' : 'bottom';
+        var chartH     = wide ? 210 : (containerWidth < 340 ? 300 : 260);
+
+        return {
             series : series,
             labels : labels,
             chart: {
-                type: 'donut', height: 210,
+                type: 'donut', height: chartH,
                 toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
                 foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 600 },
@@ -36,7 +43,7 @@
             plotOptions: {
                 pie: {
                     donut: {
-                        size: '70%',
+                        size: wide ? '70%' : '65%',
                         labels: {
                             show: true,
                             total: {
@@ -50,7 +57,7 @@
                                 },
                             },
                             value: {
-                                fontSize: '16px', fontWeight: 700,
+                                fontSize: wide ? '16px' : '14px', fontWeight: 700,
                                 color: dark ? '#F8FAFC' : '#0F172A',
                                 formatter: function (v) { return utils.idr(parseFloat(v)); },
                             },
@@ -62,32 +69,56 @@
             stroke: { width: 0 },
             tooltip: {
                 theme: dark ? 'dark' : 'light',
-                fixed: { enabled: true, position: 'topLeft', offsetX: 10, offsetY: 10 },
+                fixed: wide
+                    ? { enabled: true, position: 'topLeft', offsetX: 10, offsetY: 10 }
+                    : { enabled: false },
                 y: {
-                    formatter: function (v, opts) {
-                        if (!opts || !opts.w || !opts.w.globals) return utils.idr(v);
-                        var series = opts.w.globals.series || [];
-                        var total  = series.reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0);
-                        var pct    = total > 0 ? (v / total * 100).toFixed(1) : '0.0';
+                    formatter: function (v, o) {
+                        if (!o || !o.w || !o.w.globals) return utils.idr(v);
+                        var s     = o.w.globals.series || [];
+                        var total = s.reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0);
+                        var pct   = total > 0 ? (v / total * 100).toFixed(1) : '0.0';
                         return utils.idr(v) + ' (' + pct + '%)';
                     },
                 },
             },
             legend: {
-                show: true, position: 'right', fontSize: '12px',
-                markers: { radius: 6 }, itemMargin: { horizontal: 8, vertical: 4 },
-                formatter: function (seriesName, opts) {
-                    if (!opts || !opts.w || !opts.w.globals) return seriesName;
-                    var series = opts.w.globals.series || [];
-                    var total  = series.reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0);
-                    var val    = parseFloat(series[opts.seriesIndex]) || 0;
-                    var pct    = total > 0 ? (val / total * 100).toFixed(1) : '0.0';
+                show: true,
+                position: legendPos,
+                horizontalAlign: wide ? 'right' : 'center',
+                fontSize: '12px',
+                markers: { radius: 6 },
+                itemMargin: { horizontal: wide ? 8 : 10, vertical: 4 },
+                formatter: function (seriesName, o) {
+                    if (!o || !o.w || !o.w.globals) return seriesName;
+                    var s     = o.w.globals.series || [];
+                    var total = s.reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0);
+                    var val   = parseFloat(s[o.seriesIndex]) || 0;
+                    var pct   = total > 0 ? (val / total * 100).toFixed(1) : '0.0';
                     return seriesName + ' <b>' + pct + '%</b>';
                 },
             },
         };
+    }
+
+    function renderDonut(used, reserve, remaining) {
         var el = document.getElementById('gmBudgetDonut');
         if (!el) return;
+
+        lastDonutData = { used: used, reserve: reserve, remaining: remaining };
+
+        var containerW = el.offsetWidth || 400;
+        var wide       = containerW > 460;
+        var legendPos  = wide ? 'right' : 'bottom';
+        var opts       = buildDonutOpts(used, reserve, remaining, containerW);
+
+        // Destroy & recreate when legend position changes (updateOptions can't switch sides)
+        if (charts.donut && donutLegendPos !== legendPos) {
+            charts.donut.destroy();
+            charts.donut = null;
+        }
+        donutLegendPos = legendPos;
+
         if (charts.donut) { charts.donut.updateOptions(opts); return; }
         charts.donut = new ApexCharts(el, opts);
         charts.donut.render();
@@ -360,6 +391,34 @@
             plotOptions: {
                 bar: { columnWidth: '50%', borderRadius: 3 },
             },
+            responsive: [
+                {
+                    // narrow sidebar column (xl left-col) or phone portrait
+                    breakpoint: 480,
+                    options: {
+                        chart: { height: 190 },
+                        xaxis: { tickAmount: 4, labels: { style: { fontSize: '8px' } } },
+                        legend: {
+                            show: true, position: 'bottom', horizontalAlign: 'center',
+                            fontSize: '10px', itemMargin: { horizontal: 6 },
+                        },
+                        grid: { padding: { left: 0, right: 4 } },
+                        yaxis: [
+                            { tickAmount: 3, labels: { style: { fontSize: '8px' }, formatter: function (v) { return utils.idr(v); } } },
+                            { show: false },
+                        ],
+                    },
+                },
+                {
+                    // small tablet / large phone landscape
+                    breakpoint: 768,
+                    options: {
+                        chart: { height: 210 },
+                        xaxis: { tickAmount: 5 },
+                        legend: { position: 'top', horizontalAlign: 'center', fontSize: '10px' },
+                    },
+                },
+            ],
         };
 
         var el = document.getElementById('gmMonthlyTrend');
@@ -399,6 +458,30 @@
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }
 
+    // ── Donut resize watcher — re-renders when the grid column changes width ──
+    // Uses ResizeObserver (supported on all modern browsers). Falls back to a
+    // debounced window resize listener for older environments.
+    function watchDonutResize() {
+        var el = document.getElementById('gmBudgetDonut');
+        if (!el) return;
+
+        var debounceTimer = null;
+        function onResize() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function () {
+                if (lastDonutData) {
+                    renderDonut(lastDonutData.used, lastDonutData.reserve, lastDonutData.remaining);
+                }
+            }, 150);
+        }
+
+        if (window.ResizeObserver) {
+            new ResizeObserver(onResize).observe(el);
+        } else {
+            window.addEventListener('resize', onResize);
+        }
+    }
+
     // ── Listen for filter change — fired by gm-filter.js ──────────────────────
     // Registered immediately (before DOMContentLoaded) so it's always ready
     // before the first gmDispatchFilter() call from gm-filter's init.
@@ -413,6 +496,7 @@
     // ── Init ──────────────────────────────────────────────────────────────────
     function init() {
         watchDarkMode();
+        watchDonutResize();
 
         deptSort = utils.bindTableSort(
             'gmDeptTableBody',
