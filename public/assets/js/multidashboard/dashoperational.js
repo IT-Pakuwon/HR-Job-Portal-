@@ -5,6 +5,7 @@
     let dataRequest = null;
     let dashboardTable = null;
     let tableBuiltForTab = null;
+    let countdownTimer = null;
 
     const urls = {
         summary: "/operational-dashboard/summary-json",
@@ -14,12 +15,32 @@
         doctypes: "/operational-dashboard/approval-doctypes",
     };
 
-    function updateRefreshTime() {
+    function startCountdown(seconds) {
+        clearInterval(countdownTimer);
+        let remaining = seconds;
         const el = document.getElementById("dashboardRefreshTime");
-
         if (!el) return;
-
-        el.innerText = new Date().toLocaleTimeString();
+        function fmt(n) {
+            const m = String(Math.floor(n / 60)).padStart(2, "0");
+            const s = String(n % 60).padStart(2, "0");
+            return `${m}:${s}`;
+        }
+        el.innerText = fmt(remaining);
+        countdownTimer = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+                el.innerText = fmt(0);
+                if (!document.hidden) {
+                    loadSummary();
+                    loadTab(activeTab);
+                } else {
+                    startCountdown(seconds);
+                }
+            } else {
+                el.innerText = fmt(remaining);
+            }
+        }, 1000);
     }
 
     function loadSummary() {
@@ -47,7 +68,7 @@
 
                 $("#workOrderCount").text(data.work_order || 0);
 
-                updateRefreshTime();
+                startCountdown(20);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") {
@@ -119,6 +140,31 @@
                         data: "infohd",
                         title: "Description",
                     },
+
+                    {
+                        data: "status",
+                        title: "Status",
+                        render: function (v, type, row) {
+                            const isDark = document.documentElement.classList.contains("dark");
+                            const badge = (text, bg, color) =>
+                                `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block rounded-full px-3 py-1 text-center text-xs font-semibold whitespace-nowrap">${text}</span>`;
+                            const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+                            if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
+                                return isDark
+                                    ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
+                                    : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
+                            }
+                            const map = isDark ? {
+                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
+                                A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
+                            } : {
+                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
+                                A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
+                            };
+                            const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+                            return badge(s.text, s.bg, s.color);
+                        },
+                    },
                 ];
 
                 break;
@@ -164,6 +210,31 @@
                     {
                         data: "infohd",
                         title: "Description",
+                    },
+
+                    {
+                        data: "status",
+                        title: "Status",
+                        render: function (v, type, row) {
+                            const isDark = document.documentElement.classList.contains("dark");
+                            const badge = (text, bg, color) =>
+                                `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block rounded-full px-3 py-1 text-center text-xs font-semibold whitespace-nowrap">${text}</span>`;
+                            const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+                            if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
+                                return isDark
+                                    ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
+                                    : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
+                            }
+                            const map = isDark ? {
+                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
+                                A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
+                            } : {
+                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
+                                A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
+                            };
+                            const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+                            return badge(s.text, s.bg, s.color);
+                        },
                     },
                 ];
 
@@ -368,7 +439,7 @@
 
                 buildDataTable(rows, tab);
 
-                updateRefreshTime();
+                startCountdown(20);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") {
@@ -431,17 +502,6 @@
         });
     }
 
-    function autoRefresh() {
-        setInterval(() => {
-            if (document.hidden) {
-                return;
-            }
-
-            loadSummary();
-            loadTab(activeTab);
-        }, 20000);
-    }
-
     function init() {
         if (!$("#dashboardTable").length) {
             return;
@@ -456,8 +516,6 @@
         $("#dashboardFilter").closest(".lg\\:col-span-5").hide();
 
         activateTab("approval");
-
-        autoRefresh();
     }
     $(document).ready(function () {
         init();

@@ -169,7 +169,7 @@ class DocumentNotificationService
                               ->where('updated_at', '>=', now()->subDays(90))
                     )->orWhere(fn($inner) =>
                         $inner->whereIn('status_pekerjaan', $oneDayStatuses)
-                              ->where('updated_at', '>=', now()->subDay())
+                              ->where('updated_at', '>=', \Carbon\Carbon::yesterday()->startOfDay())
                     )
                 )
                 ->select('id', 'ticketid', 'cpny_id', 'status_pekerjaan', 'pic_ticket', 'updated_at', 'updated_by')
