@@ -20,7 +20,7 @@
             <span class="h-2 w-2 rounded-lg bg-green-500"></span>
 
             <span class="text-slate-500 dark:text-slate-400">
-                Last Refresh
+                Next Refresh
             </span>
 
             <span id="dashboardRefreshTime" class="font-semibold text-slate-900 dark:text-white">

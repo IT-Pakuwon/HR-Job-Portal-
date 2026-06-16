@@ -15,7 +15,7 @@
             class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <span class="h-2 w-2 rounded-lg bg-green-500"></span>
             <span class="text-slate-500 dark:text-slate-400">
-                Last Refresh
+                Next Refresh
             </span>
             <span id="dashboardRefreshTime" class="font-semibold text-slate-900 dark:text-white">
                 --

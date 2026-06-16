@@ -308,17 +308,21 @@ class CostControlDashboardController extends Controller
     {
         abort_unless($request->ajax(), 404);
 
-        $data = collect(
-            $this->approvalController
-                ->waitingJson($request)
-                ->getData(true)['data'] ?? []
-        )->merge(
-            collect(
+        $tab = $request->query('tab', 'approval');
+
+        if ($tab === 'approval-history') {
+            $data = collect(
                 $this->approvalController
                     ->approveJson($request)
                     ->getData(true)['data'] ?? []
-            )
-        );
+            );
+        } else {
+            $data = collect(
+                $this->approvalController
+                    ->waitingJson($request)
+                    ->getData(true)['data'] ?? []
+            );
+        }
 
         $docids = $data
             ->pluck('docid')

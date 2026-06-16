@@ -6,6 +6,7 @@
     let dashboardTable = null;
     let tableBuiltForTab = null;
     let rawImBudgetData = [];
+    let countdownTimer = null;
 
     const urls = {
         summary:        "/cost-control-dashboard/summary-json",
@@ -18,10 +19,32 @@
         doctypes:       "/cost-control-dashboard/approval-doctypes-json",
     };
 
-    function updateRefreshTime() {
+    function startCountdown(seconds) {
+        clearInterval(countdownTimer);
+        let remaining = seconds;
         const el = document.getElementById("dashboardRefreshTime");
         if (!el) return;
-        el.innerText = new Date().toLocaleTimeString();
+        function fmt(n) {
+            const m = String(Math.floor(n / 60)).padStart(2, "0");
+            const s = String(n % 60).padStart(2, "0");
+            return `${m}:${s}`;
+        }
+        el.innerText = fmt(remaining);
+        countdownTimer = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+                el.innerText = fmt(0);
+                if (!document.hidden) {
+                    loadSummary();
+                    loadTab(activeTab);
+                } else {
+                    startCountdown(seconds);
+                }
+            } else {
+                el.innerText = fmt(remaining);
+            }
+        }, 1000);
     }
 
     function formatCurrency(value) {
@@ -58,7 +81,7 @@
                 $("#budgetCount").text(formatCurrency(data.budget));
                 $("#imBudgetCount").text(data.im_budget || 0);
 
-                updateRefreshTime();
+                startCountdown(20);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") console.error(err);
@@ -116,7 +139,7 @@
     // ─── Doctype filter ──────────────────────────────────────────────────────────
 
     function loadDocTypes() {
-        fetch(urls.doctypes, {
+        fetch(urls.doctypes + "?tab=" + activeTab, {
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 Accept: "application/json",
@@ -145,7 +168,19 @@
 
     function buildDataTable(data, tab) {
         if ($.fn.DataTable.isDataTable("#dashboardTable") && tableBuiltForTab === tab) {
-            dashboardTable.clear().rows.add(data).draw(false);
+            const savedPage    = dashboardTable.page();
+            const savedPageLen = dashboardTable.page.len();
+
+            dashboardTable.clear().rows.add(data);
+            dashboardTable.page.len(savedPageLen);
+            dashboardTable.draw(false);
+
+            const totalPages = dashboardTable.page.info().pages;
+            const targetPage = Math.min(savedPage, Math.max(0, totalPages - 1));
+            if (totalPages > 0 && dashboardTable.page() !== targetPage) {
+                dashboardTable.page(targetPage).draw(false);
+            }
+
             return;
         }
 
@@ -166,6 +201,30 @@
                     { data: "cpnyid",         title: "Company" },
                     { data: "departementid",  title: "Department" },
                     { data: "infohd",         title: "Description" },
+                    {
+                        data: "status",
+                        title: "Status",
+                        render: function (v, type, row) {
+                            const isDark = document.documentElement.classList.contains("dark");
+                            const badge = (text, bg, color) =>
+                                `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block rounded-full px-3 py-1 text-center text-xs font-semibold whitespace-nowrap">${text}</span>`;
+                            const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+                            if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
+                                return isDark
+                                    ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
+                                    : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
+                            }
+                            const map = isDark ? {
+                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
+                                A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
+                            } : {
+                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
+                                A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
+                            };
+                            const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+                            return badge(s.text, s.bg, s.color);
+                        },
+                    },
                 ];
                 break;
 
@@ -176,6 +235,30 @@
                     { data: "cpnyid",         title: "Company" },
                     { data: "departementid",  title: "Department" },
                     { data: "infohd",         title: "Description" },
+                    {
+                        data: "status",
+                        title: "Status",
+                        render: function (v, type, row) {
+                            const isDark = document.documentElement.classList.contains("dark");
+                            const badge = (text, bg, color) =>
+                                `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block rounded-full px-3 py-1 text-center text-xs font-semibold whitespace-nowrap">${text}</span>`;
+                            const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+                            if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
+                                return isDark
+                                    ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
+                                    : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
+                            }
+                            const map = isDark ? {
+                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
+                                A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
+                            } : {
+                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
+                                A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
+                            };
+                            const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+                            return badge(s.text, s.bg, s.color);
+                        },
+                    },
                 ];
                 break;
 
@@ -311,7 +394,7 @@
                 }
 
                 buildDataTable(rows, tab);
-                updateRefreshTime();
+                startCountdown(20);
             })
             .catch((err) => {
                 if (err.name !== "AbortError") console.error(err);
