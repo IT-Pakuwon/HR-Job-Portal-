@@ -356,4 +356,5 @@ class GmReportController extends Controller
             'total_budget' => round((float) ($row->total_budget ?? 0)),
         ]);
     }
+
 }
