@@ -12,6 +12,18 @@
             <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
                 32 Templates
             </span>
+
+            {{-- BigQuery Explorer button --}}
+            <button id="bqExplorerBtn"
+                onclick="bqExplorer.open()"
+                class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95 dark:bg-blue-500 dark:hover:bg-blue-600">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16"/>
+                </svg>
+                BigQuery Explorer
+            </button>
+
             <a href="{{ route('card-chart.drag-dashboard') }}"
                class="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 active:scale-95 dark:bg-violet-500 dark:hover:bg-violet-600">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 20 20">
@@ -21,6 +33,228 @@
                 Customize Drag Dashboard
             </a>
         </div>
+
+        {{-- ── BigQuery Explorer Modal ─────────────────────────────────────────── --}}
+        <div id="bqModal"
+             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl dark:bg-slate-900 flex flex-col max-h-[85vh]">
+
+                {{-- Header --}}
+                <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-500/20">
+                            <svg class="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white">BigQuery Explorer</h3>
+                            <p id="bqProjectLabel" class="text-xs text-slate-400">Loading project...</p>
+                        </div>
+                    </div>
+                    <button onclick="bqExplorer.close()"
+                            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Breadcrumb --}}
+                <div id="bqBreadcrumb" class="hidden items-center gap-1 border-b border-slate-100 px-6 py-2 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                    <button onclick="bqExplorer.goHome()" class="hover:text-blue-600">Datasets</button>
+                    <span id="bqBreadDataset" class="hidden">
+                        <span class="mx-1">›</span>
+                        <span id="bqBreadDatasetName" class="font-semibold text-slate-700 dark:text-slate-200"></span>
+                    </span>
+                    <span id="bqBreadTable" class="hidden">
+                        <span class="mx-1">›</span>
+                        <span id="bqBreadTableName" class="font-semibold text-slate-700 dark:text-slate-200"></span>
+                    </span>
+                </div>
+
+                {{-- Body --}}
+                <div id="bqBody" class="flex-1 overflow-y-auto px-6 py-4 space-y-2 min-h-50">
+                    <div class="flex items-center justify-center py-12 text-slate-400 text-sm">
+                        <svg class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                        Connecting to BigQuery...
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- BigQuery Explorer JS --}}
+        <script>
+        const bqExplorer = (() => {
+            const modal     = document.getElementById('bqModal');
+            const body      = document.getElementById('bqBody');
+            const crumb     = document.getElementById('bqBreadcrumb');
+            const crumbDs   = document.getElementById('bqBreadDataset');
+            const crumbDsNm = document.getElementById('bqBreadDatasetName');
+            const crumbTb   = document.getElementById('bqBreadTable');
+            const crumbTbNm = document.getElementById('bqBreadTableName');
+            const projLabel = document.getElementById('bqProjectLabel');
+
+            const tablesUrl = "{{ route('card-chart.bigquery-tables') }}";
+            const schemaUrl = "{{ route('card-chart.bigquery-schema') }}";
+
+            let allTables = {};
+
+            function loading(msg = 'Loading...') {
+                body.innerHTML = `<div class="flex items-center justify-center py-12 text-slate-400 text-sm">
+                    <svg class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>${msg}</div>`;
+            }
+
+            function error(msg) {
+                body.innerHTML = `<div class="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-400">
+                    <strong>Error:</strong> ${msg}</div>`;
+            }
+
+            function showDatasets() {
+                crumb.classList.add('hidden');
+                crumbDs.classList.add('hidden');
+                crumbTb.classList.add('hidden');
+
+                const entries = Object.entries(allTables);
+                if (!entries.length) {
+                    body.innerHTML = `<p class="py-8 text-center text-sm text-slate-400">No datasets found.</p>`;
+                    return;
+                }
+
+                body.innerHTML = entries.map(([ds, tables]) => `
+                    <button onclick="bqExplorer.openDataset('${ds}')"
+                        class="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-500 dark:hover:bg-blue-500/10">
+                        <svg class="h-5 w-5 flex-shrink-0 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                        </svg>
+                        <div class="flex-1">
+                            <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">${ds}</p>
+                            <p class="text-xs text-slate-400">${tables.length} table${tables.length !== 1 ? 's' : ''}</p>
+                        </div>
+                        <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>`).join('');
+            }
+
+            function openDataset(dsId) {
+                crumb.classList.remove('hidden');
+                crumbDs.classList.remove('hidden');
+                crumbTb.classList.add('hidden');
+                crumbDsNm.textContent = dsId;
+
+                const tables = allTables[dsId] || [];
+                if (!tables.length) {
+                    body.innerHTML = `<p class="py-8 text-center text-sm text-slate-400">No tables in this dataset.</p>`;
+                    return;
+                }
+
+                body.innerHTML = tables.map(t => `
+                    <button onclick="bqExplorer.openTable('${dsId}','${t}')"
+                        class="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-left transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-blue-500 dark:hover:bg-blue-500/10">
+                        <svg class="h-5 w-5 flex-shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 4v16M6 4h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+                        </svg>
+                        <span class="flex-1 text-sm font-medium text-slate-800 dark:text-slate-100">${t}</span>
+                        <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>`).join('');
+            }
+
+            async function openTable(dsId, tableId) {
+                crumbTb.classList.remove('hidden');
+                crumbTbNm.textContent = tableId;
+                loading('Loading schema...');
+
+                try {
+                    const res  = await fetch(`${schemaUrl}?dataset=${encodeURIComponent(dsId)}&table=${encodeURIComponent(tableId)}`);
+                    const data = await res.json();
+
+                    if (data.status !== 'ok') { error(data.message); return; }
+
+                    const cols = data.columns;
+                    if (!cols.length) {
+                        body.innerHTML = `<p class="py-8 text-center text-sm text-slate-400">No columns found.</p>`;
+                        return;
+                    }
+
+                    const typeColor = t => ({
+                        STRING:'bg-green-100 text-green-700',INTEGER:'bg-blue-100 text-blue-700',
+                        INT64:'bg-blue-100 text-blue-700',FLOAT:'bg-purple-100 text-purple-700',
+                        FLOAT64:'bg-purple-100 text-purple-700',BOOLEAN:'bg-yellow-100 text-yellow-700',
+                        BOOL:'bg-yellow-100 text-yellow-700',TIMESTAMP:'bg-orange-100 text-orange-700',
+                        DATE:'bg-orange-100 text-orange-700',RECORD:'bg-red-100 text-red-700',
+                    }[t] || 'bg-slate-100 text-slate-700');
+
+                    body.innerHTML = `
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200 dark:border-slate-700 text-xs font-bold uppercase tracking-wide text-slate-400">
+                                    <th class="pb-2 text-left">#</th>
+                                    <th class="pb-2 text-left">Column</th>
+                                    <th class="pb-2 text-left">Type</th>
+                                    <th class="pb-2 text-left">Mode</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${cols.map((c, i) => `
+                                <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                    <td class="py-2 pr-3 text-slate-400 text-xs">${i + 1}</td>
+                                    <td class="py-2 pr-4 font-mono font-semibold text-slate-800 dark:text-slate-100">${c.name}</td>
+                                    <td class="py-2 pr-4">
+                                        <span class="rounded-md px-2 py-0.5 text-xs font-semibold ${typeColor(c.type)}">${c.type}</span>
+                                    </td>
+                                    <td class="py-2 text-xs text-slate-400">${c.mode}</td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>`;
+                } catch (e) { error(e.message); }
+            }
+
+            async function open() {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                loading('Connecting to BigQuery...');
+
+                try {
+                    const res  = await fetch(tablesUrl);
+                    const data = await res.json();
+
+                    if (data.status !== 'ok') { error(data.message); return; }
+
+                    allTables = data.tables;
+                    projLabel.textContent = 'Project: {{ env("GCS_PROJECT_ID", "ifca-pkwjakarta") }}';
+                    showDatasets();
+                } catch (e) { error(e.message); }
+            }
+
+            function close() {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            function goHome() {
+                crumbDs.classList.add('hidden');
+                crumbTb.classList.add('hidden');
+                crumb.classList.add('hidden');
+                showDatasets();
+            }
+
+            // Close on backdrop click
+            modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+            return { open, close, openDataset, openTable, goHome };
+        })();
+        </script>
     </div>
 
     {{-- ─── KPI / STAT CARDS ─────────────────────────────────────────────────── --}}
