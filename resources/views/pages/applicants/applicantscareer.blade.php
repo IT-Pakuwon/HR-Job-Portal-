@@ -1,799 +1,1099 @@
- <div class="max-w-9xl mx-auto w-full">
-    <div class="grid w-full grid-cols-1 gap-5 xl:grid-cols-12">
+        <div class="max-w-9xl mx-auto w-full px-2 py-1 sm:px-6 lg:px-2">
+            <div class="gap">
+                <div
+                    class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-2 xl:row-span-2 xl:flex-row">
+                    <div class="flex w-full flex-col">
+                        {{-- Personal Information --}}
+                        <div x-data="{ isOpen: true }" class="pb-4">
+                            <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                                <header class="flex items-center justify-between px-6 py-2">
+                                    {{-- <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
+                                               🆔{{ $applicant->applicant_id }}</h2> --}}
+                                    <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
+                                        Personal
+                                        Information</h2>
+                                    <form id="applicantprofile" class="flex-shrink-0">
+                                        @csrf
+                                        <input type="hidden" name="applicant_id"
+                                            value="{{ $applicant->applicant_id ?? '' }}">
+                                        <input type="hidden" name="job_title" value="{{ $career->job_title ?? '' }}">
+                                        <input type="hidden" name="cpnyid" value="{{ $career->cpnyid ?? '' }}">
+                                        <input type="hidden" name="departementid"
+                                            value="{{ $career->departementid ?? '' }}">
+                                        <input type="hidden" name="job_level" value="{{ $career->job_level ?? '' }}">
+                                        <button type="submit"
+                                            class="inline-flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700">
+                                            Preview
+                                        </button>
+                                    </form>
+                                </header>
+                                <div class="p-4">
+                                    <div x-show="isOpen" x-transition.opacity>
+                                        <div class="overflow-x-auto">
+                                            <div class="grid grid-cols-1 gap-4 md:grid-cols-1">
+                                                <div class="grid grid-cols-2 gap-4">
+                                                    <div
+                                                        class="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        {{-- <img src="#" alt="Applicant Photo" class="w-50 h-50 rounded-full object-cover">      --}}
+                                                        <img src="{{ $photo }}" alt="Applicant Photo"
+                                                            onerror="this.onerror=null;this.src='{{ asset('images/sample.png') }}';"
+                                                            class="w-50 h-50 rounded-full object-cover">
+                                                    </div>
+                                                    <div class="grid-row-2 grid gap-4">
+                                                        <div
+                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                            <i
+                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Full
+                                                                    Name</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->full_name }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
+                                                            <i
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Email</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->email_address }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Phone Number -->
+                                                        <div
+                                                            class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                            <i
+                                                                class="lucide lucide-phone h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Phone
+                                                                    Number</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->phone_number }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
 
-                <div class="flex flex-col gap-5 xl:col-span-6">
+                                                        <!-- Mobile Number -->
+                                                        <div
+                                                            class="mt-2 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                            <i
+                                                                class="lucide lucide-smartphone h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Mobile
+                                                                    Number</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->mobile_phone }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                    {{-- ── PROFILE HERO ──────────────────────────────────────────── --}}
-                    <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-
-                        {{-- Banner --}}
-                        <div class="relative h-28 bg-gradient-to-br from-slate-800 via-indigo-700 to-violet-600">
-                            <div class="absolute inset-0" style="background-image:radial-gradient(circle at 15% 60%,rgba(165,180,252,.35) 0,transparent 55%),radial-gradient(circle at 85% 20%,rgba(139,92,246,.3) 0,transparent 50%)"></div>
-                            {{-- Preview button inside banner --}}
-                            <form id="applicantprofile" class="absolute right-4 top-4 flex-shrink-0">
-                                @csrf
-                                <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
-                                <input type="hidden" name="job_title"    value="{{ $career->job_title ?? '' }}">
-                                <input type="hidden" name="cpnyid"       value="{{ $career->cpnyid ?? '' }}">
-                                <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
-                                <input type="hidden" name="job_level"    value="{{ $career->job_level ?? '' }}">
-                                <button type="submit"
-                                    class="inline-flex items-center gap-1.5 rounded-lg border border-white/30 bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/30">
-                                    &#128196; Preview PDF
-                                </button>
-                            </form>
-                        </div>
-
-                        {{-- Photo + Name --}}
-                        <div class="px-6 pb-6">
-                            <div class="relative z-10 -mt-14 mb-4">
-                                <img src="{{ $photo }}" alt="{{ $applicant->full_name }}"
-                                    onerror="this.onerror=null;this.src='{{ asset('images/sample.png') }}';"
-                                    class="h-28 w-28 rounded-lg border-4 border-white object-cover   dark:border-gray-800">
-                            </div>
-
-                            <h1 class="text-xl font-bold leading-tight text-gray-900 dark:text-white">{{ $applicant->full_name }}</h1>
-                            <p class="mt-0.5 text-sm text-indigo-600 dark:text-indigo-400">{{ $applicant->email_address }}</p>
-
-                            {{-- Stats --}}
-                            <div class="mt-5 flex gap-0 border-t border-gray-100 pt-4 dark:border-gray-700">
-                                <div class="flex-1 text-center">
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $applicant->age }}</p>
-                                    <p class="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Age</p>
-                                </div>
-                                <div class="flex-1 border-x border-gray-100 text-center dark:border-gray-700">
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $applicant->height }}</p>
-                                    <p class="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Height (cm)</p>
-                                </div>
-                                <div class="flex-1 text-center">
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $applicant->weight }}</p>
-                                    <p class="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Weight (kg)</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ── PERSONAL DETAILS ─────────────────────────────────────── --}}
-                    <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-                        <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                            <span class="h-4 w-1 rounded-lg bg-indigo-500"></span>
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Personal Details</h3>
-                        </div>
-                        <div class="p-6">
-                            <dl class="grid grid-cols-2 gap-x-6 gap-y-5">
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Birth Place</dt>
-                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant->birth_place ?: '—' }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Date of Birth</dt>
-                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
-                                        {{ \Carbon\Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y') }}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Gender</dt>
-                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant->gender ?: '—' }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Blood Type</dt>
-                                    <dd class="mt-1">
-                                        @if($applicant->blood_type)
-                                            <span class="inline-flex rounded-lg bg-red-50 px-2.5 py-0.5 text-xs font-bold text-red-600 dark:bg-red-900/30 dark:text-red-400">{{ $applicant->blood_type }}</span>
-                                        @else
-                                            <span class="text-sm text-gray-400">—</span>
-                                        @endif
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Citizenship</dt>
-                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant->citizenship ?: '—' }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">KTP ID</dt>
-                                    <dd class="mt-1 break-all text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant->ktp_id ?: '—' }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Marital Status</dt>
-                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant->martial_status ?: '—' }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Religion</dt>
-                                    <dd class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant->religion ?: '—' }}</dd>
-                                </div>
-                            </dl>
-                        </div>
-                    </div>
-
-                    {{-- ── CONTACT & ADDRESS ────────────────────────────────────── --}}
-                    <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-                        <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                            <span class="h-4 w-1 rounded-lg bg-emerald-500"></span>
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Contact & Address</h3>
-                        </div>
-                        <div class="divide-y divide-gray-50 dark:divide-gray-700">
-                            <div class="grid grid-cols-2 gap-4 px-6 py-4">
-                                <div>
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Phone</p>
-                                    <p class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant->phone_number ?: '—' }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Mobile</p>
-                                    <p class="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">{{ $applicant->mobile_phone ?: '—' }}</p>
-                                </div>
-                            </div>
-                            <div class="px-6 py-4">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Domicile Address <span class="font-normal normal-case italic">(KTP)</span></p>
-                                <p class="mt-1 text-sm text-gray-800 dark:text-gray-100">{{ $applicant->id_address ?: '—' }}</p>
-                            </div>
-                            <div class="px-6 py-4">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Residential Address</p>
-                                <p class="mt-1 text-sm text-gray-800 dark:text-gray-100">
-                                    {{ trim(($applicant->domicile_address ?? '') . ' ' . ($applicant->domicile_city ?? '')) ?: '—' }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ── SOCIAL MEDIA ─────────────────────────────────────────── --}}
-                    <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-                        <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                            <span class="h-4 w-1 rounded-lg bg-pink-500"></span>
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Social Media</h3>
-                        </div>
-                        <div class="grid grid-cols-2 gap-px bg-gray-100 dark:bg-gray-700">
-                            <div class="bg-white px-5 py-4 dark:bg-gray-800">
-                                <div class="mb-1 flex items-center gap-2">
-                                    <span class="flex h-5 w-5 items-center justify-center rounded bg-[#1877F2] text-[9px] font-black text-white">f</span>
-                                    <span class="text-xs font-semibold text-gray-500">Facebook</span>
-                                </div>
-                                <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_facebook_account ?: '—' }}</p>
-                            </div>
-                            <div class="bg-white px-5 py-4 dark:bg-gray-800">
-                                <div class="mb-1 flex items-center gap-2">
-                                    <span class="flex h-5 w-5 items-center justify-center rounded bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-[9px] font-black text-white">ig</span>
-                                    <span class="text-xs font-semibold text-gray-500">Instagram</span>
-                                </div>
-                                <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_instagram_account ?: '—' }}</p>
-                            </div>
-                            <div class="bg-white px-5 py-4 dark:bg-gray-800">
-                                <div class="mb-1 flex items-center gap-2">
-                                    <span class="flex h-5 w-5 items-center justify-center rounded bg-black text-[9px] font-black text-white">&#120143;</span>
-                                    <span class="text-xs font-semibold text-gray-500">Twitter / X</span>
-                                </div>
-                                <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_x_account ?: '—' }}</p>
-                            </div>
-                            <div class="bg-white px-5 py-4 dark:bg-gray-800">
-                                <div class="mb-1 flex items-center gap-2">
-                                    <span class="flex h-5 w-5 items-center justify-center rounded bg-[#0A66C2] text-[9px] font-black text-white">in</span>
-                                    <span class="text-xs font-semibold text-gray-500">LinkedIn</span>
-                                </div>
-                                <p class="break-all text-sm text-gray-800 dark:text-gray-200">{{ $applicant->sosmed_linkedin_account ?: '—' }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ── DETAIL INFORMATION ────────────────────────────────────── --}}
-                    <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-                        <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                            <span class="h-4 w-1 rounded-lg bg-amber-500"></span>
-                            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Detail Information</h3>
-                        </div>
-                        <div class="p-6">
-                            <div class="mb-4 rounded-lg bg-emerald-50 p-4 dark:bg-emerald-900/20">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Expected Salary</p>
-                                <p class="mt-1.5 text-base font-bold text-emerald-700 dark:text-emerald-300">
-                                    Rp {{ isset($applicant->expected_thp) && $applicant->expected_thp ? number_format((int)$applicant->expected_thp, 0, ',', '.') : '—' }}
-                                </p>
-                            </div>
-                            <dl class="grid grid-cols-1 gap-4">
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Career Achievement</dt>
-                                    <dd class="mt-1 text-sm text-gray-800 dark:text-gray-100">{{ $applicant->applicant_achievement ?? '—' }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Job Source Information</dt>
-                                    <dd class="mt-1 text-sm text-gray-800 dark:text-gray-100">{{ $applicant->source_information ?? '—' }}</dd>
-                                </div>
-                            </dl>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="flex flex-col gap-5 min-w-0 xl:col-span-6">
-
-                    {{-- ── TAB GROUP 1 ───────────────────────────────────────────── --}}
-                    <div x-data="{ activeTab: 'Education' }" class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-
-                        {{-- Tab bar --}}
-                        <div class="border-b border-gray-100 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/40">
-                            <nav class="-mb-px flex overflow-x-auto">
-                                @foreach ([
-                                    ['key'=>'Education',     'label'=>'Education'],
-                                    ['key'=>'WorkExperience','label'=>'Work Experience'],
-                                    ['key'=>'Skill',         'label'=>'Skill & Language'],
-                                    ['key'=>'Certificate',   'label'=>'Certificate'],
-                                    ['key'=>'sdanw',         'label'=>'Strengths & Weaknesses'],
-                                ] as $t)
-                                <button @click="activeTab = '{{ $t['key'] }}'"
-                                    :class="activeTab === '{{ $t['key'] }}'
-                                        ? 'border-b-[3px] border-indigo-500 text-indigo-600 bg-white dark:bg-gray-800 dark:text-indigo-400 font-semibold'
-                                        : 'border-b-[3px] border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
-                                    class="whitespace-nowrap px-5 py-3.5 text-sm transition-colors duration-150 focus:outline-none">
-                                    {{ $t['label'] }}
-                                </button>
-                                @endforeach
-                            </nav>
-                        </div>
-
-                        <div class="p-6">
-
-                            {{-- Education --}}
-                            <div x-show="activeTab === 'Education'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                <div class="space-y-0">
-                                    @forelse ($applicant_education as $education)
-                                    <div class="relative flex gap-4 pb-5 last:pb-0">
-                                        {{-- Timeline stem --}}
-                                        <div class="flex flex-col items-center">
-                                            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600   dark:bg-indigo-900/40 dark:text-indigo-300">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
-                                                </svg>
-                                            </div>
-                                            @if (!$loop->last)
-                                                <div class="mt-1 w-px flex-1 bg-gradient-to-b from-indigo-200 to-transparent dark:from-indigo-700"></div>
-                                            @endif
-                                        </div>
-                                        {{-- Card --}}
-                                        <div class="flex-1 rounded-lg border border-gray-100 bg-gray-50 p-4 transition hover:border-indigo-200 hover:bg-indigo-50/30 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-indigo-700 dark:hover:bg-indigo-900/10">
-                                            <div class="flex flex-wrap items-start justify-between gap-3">
-                                                <div class="min-w-0">
-                                                    <p class="truncate font-semibold text-gray-900 dark:text-white">{{ $education->education_name }}</p>
-                                                    <span class="mt-1.5 inline-flex items-center rounded-lg bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
-                                                        {{ $education->education_type }}
-                                                    </span>
                                                 </div>
-                                                <div class="flex flex-shrink-0 flex-col items-end gap-1.5">
-                                                    <span class="flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-xs font-medium text-gray-500   ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-600 dark:text-gray-400">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                                        </svg>
-                                                        {{ $education->start_year }} &mdash; {{ $education->end_year }}
-                                                    </span>
-                                                    @if ($education->education_score)
-                                                    <span class="flex items-center gap-1 rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-600 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:ring-amber-700">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                                        </svg>
-                                                        GPA {{ $education->education_score }}
-                                                    </span>
-                                                    @endif
+                                                <div class="grid grid-cols-2 gap-4">
+                                                    <div
+                                                        class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Birth
+                                                                    Place</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->birth_place }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">DOB</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ \Carbon\Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y') }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Gender</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->gender }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Blood
+                                                                    Type</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->blood_type }}</p>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-1 gap-4">
+                                                    <div
+                                                        class="grid grid-cols-3 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Age</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->age }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Height</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->height }} cm</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Weight</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->weight }} kg</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-4">
+                                                    <div
+                                                        class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Citizenship</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->citizenship }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">KTP
+                                                                    ID</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->ktp_id }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Marital
+                                                                    Status</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->martial_status }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Religion</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->religion }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                    <div class="flex items-center gap-2">
+                                                        <i
+                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                        <div>
+                                                            <span
+                                                                class="text-sm text-gray-500 dark:text-gray-400">Domicile
+                                                                Address</span>
+                                                            <p class="text-sm italic text-gray-400">Listed on
+                                                                official ID (KTP).</p>
+                                                            <p
+                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                {{ $applicant->id_address }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <i
+                                                            class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                        <div>
+                                                            <span
+                                                                class="text-sm text-gray-500 dark:text-gray-400">Residential
+                                                                Address</span>
+                                                            <p class="text-sm italic text-gray-400">Current
+                                                                residential address.</p>
+                                                            <p
+                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                {{ $applicant->domicile_address }}
+                                                                {{ $applicant->domicile_city }}</p>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                                <div class="grid grid-cols-1 gap-4">
+                                                    <div
+                                                        class="grid grid-cols-2 gap-4 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Facebook</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->sosmed_facebook_account }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Instagram</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->sosmed_instagram_account }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">Twitter</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->sosmed_x_account }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <i
+                                                                class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                            <div>
+                                                                <span
+                                                                    class="text-sm text-gray-500 dark:text-gray-400">LinkedIn</span>
+                                                                <p
+                                                                    class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                    {{ $applicant->sosmed_linkedin_account }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    @empty
-                                    <div class="py-10 text-center">
-                                        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
-                                            </svg>
+                                </div>
+                                <header
+                                    class="flex items-center px-6 py-2">
+                                        <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
+                                            Detail
+                                            Information</h2>
+                                </header>
+                                <div class="p-4">
+                                    <div class="overflow-x-auto">
+                                        <div class="grid grid-cols-1 gap-4 md:grid-cols-1">
+                                            <div class="grid grid-cols-2 gap-4">
+
+                                                <div
+                                                    class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                    <i
+                                                        class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                    <div>
+                                                        <span class="text-sm text-gray-500 dark:text-gray-400">Last
+                                                            Salary</span>
+                                                        <p
+                                                            class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                            {{-- Rp. {{ $applicant->existing_last_thp }} --}}
+                                                            Rp.
+                                                            {{ isset($applicant->existing_last_thp) ? number_format((int) $applicant->existing_last_thp, 0, ',', '.') : '-' }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
+                                                    <i
+                                                        class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                    <div>
+                                                        <span class="text-sm text-gray-500 dark:text-gray-400">Expected
+                                                            Salary</span>
+                                                        <p
+                                                            class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                            {{-- Rp. {{ $applicant->expected_thp }} --}}
+                                                            Rp.
+                                                            {{ isset($applicant->expected_thp) ? number_format((int) $applicant->expected_thp, 0, ',', '.') : '-' }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-1 gap-4">
+                                                <div
+                                                    class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800">
+                                                    <i
+                                                        class="lucide lucide-bar-chart-2 h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                    <div>
+                                                        <span
+                                                            class="text-sm text-gray-500 dark:text-gray-400">Expectations</span>
+                                                        <p
+                                                            class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                            {{-- {{ $applicant->expectations }} --}}
+                                                            Rp.
+                                                            {{ isset($applicant->expectations) ? number_format((int) $applicant->expectations, 0, ',', '.') : '-' }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex gap-4 w-full justify-between">
+                                                    <div
+                                                        class="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
+                                                        <i
+                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                        <div>
+                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Career
+                                                                Achievement</span>
+                                                            <p class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                {{ $applicant->applicant_achievement ?? '-' }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-200/10 p-3 dark:border-gray-700 dark:bg-gray-800"">
+                                                        <i
+                                                            class="lucide lucide-map-pin h-6 w-6 text-gray-600 dark:text-gray-300"></i>
+                                                        <div>
+                                                            <span class="text-sm text-gray-500 dark:text-gray-400">Job Information
+                                                            </span>
+                                                            <p
+                                                                class="w-full break-all text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                                {{ $applicant->source_information }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
                                         </div>
-                                        <p class="text-sm italic text-gray-400">No education data available</p>
                                     </div>
-                                    @endforelse
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            {{-- Work Experience --}}
-                            <div x-show="activeTab === 'WorkExperience'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                <div class="space-y-4">
-                                    @forelse ($applicant_working as $working)
-                                    <div class="rounded-lg border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/30">
-                                        <div class="flex items-start justify-between gap-4">
-                                            <div>
-                                                <p class="font-semibold text-gray-900 dark:text-white">{{ $working->job_title }}</p>
-                                                <p class="text-sm font-medium text-indigo-600 dark:text-indigo-400">{{ $working->company_name }}</p>
-                                            </div>
-                                            @if ($working->is_current)
-                                                <span class="flex-shrink-0 rounded-lg bg-green-100 px-2.5 py-0.5 text-xs font-bold text-green-700 dark:bg-green-900/30 dark:text-green-400">Currently Working</span>
-                                            @endif
+                    <div class="flex w-full flex-col">
+                        <div x-data="{ activeTab: 'Education' }" class="rounded-xl bg-white dark:bg-gray-800">
+
+                           <header
+                                class="flex items-center px-6 py-2">
+                                <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
+                                    <button @click="activeTab = 'Education'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Education',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Education'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Education
+                                    </button>
+                                    <button @click="activeTab = 'WorkExperience'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab
+                                            === 'WorkExperience',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'WorkExperience'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Work Experience
+                                    </button>
+                                    <button @click="activeTab = 'Skill'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Skill',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Skill'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Skill & Languange
+                                    </button>
+                                    <button @click="activeTab = 'Certificate'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Certificate',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Certificate'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Certificate
+                                    </button>
+                                    <button @click="activeTab = 'sdanw'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'sdanw',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'sdanw'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Strengths & Weaknesses
+                                    </button>
+
+                                </nav>
+                            </header>
+
+                            <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-4 dark:bg-gray-800">
+                                <div x-show="activeTab === 'Education'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                            <tr>
+                                                <th class="border px-4 py-2">Name</th>
+                                                <th class="border px-4 py-2">Type</th>
+                                                <th class="border px-4 py-2">Start</th>
+                                                <th class="border px-4 py-2">End</th>
+                                                <th class="border px-4 py-2">Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-700 dark:text-gray-300">
+                                            @foreach ($applicant_education as $education)
+                                                <tr
+                                                    class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                    <td class="border px-4 py-2">
+                                                        {{ $education->education_name }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $education->education_type }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $education->start_year }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $education->end_year }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $education->education_score }}</td>
+
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'WorkExperience'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                             <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                    <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                                        <tr>
+                                                            <th class="border px-4 py-2">Company</th>
+                                                            <th class="border px-4 py-2">Job Title</th>
+                                                            <th class="border px-4 py-2">Start</th>
+                                                            <th class="border px-4 py-2">End</th>
+                                                            <th class="border px-4 py-2">Still Working</th> <!-- ✅ ADD -->
+                                                            <th class="border px-4 py-2">Superior Name</th>
+                                                            <th class="border px-4 py-2">Reason For Leaving</th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody class="text-gray-700 dark:text-gray-300">
+                                                        @foreach ($applicant_working as $working)
+                                                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->company_name }}
+                                                                </td>
+
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->job_title }}
+                                                                </td>
+
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->start_date }}
+                                                                </td>
+
+                                                                <!-- ✅ END DATE -->
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->end_date ?? '-' }}
+                                                                </td>
+
+                                                                <!-- ✅ STILL WORKING -->
+                                                                <td class="border px-4 py-2 text-center">
+                                                                    @if ($working->is_current)
+                                                                        <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                                                                            Yes
+                                                                        </span>
+                                                                    @else
+                                                                        <span class="px-2 py-1 text-xs bg-gray-100 text-gray-500 rounded">
+                                                                            No
+                                                                        </span>
+                                                                    @endif
+                                                                </td>
+
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->superior_name ?? '-' }}
+                                                                </td>
+
+                                                                <!-- ✅ REASON -->
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $working->reason_for_leaving ?? '-' }}
+                                                                </td>
+
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                </div>
+
+                                <div x-show="activeTab === 'Skill'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <div>
+                                        <div>
+                                            <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">Skill
+                                                <table
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                    <thead
+                                                        class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                                        <tr>
+                                                            <th class="border px-4 py-2">Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="text-gray-700 dark:text-gray-300">
+                                                        @foreach ($applicant_skill as $skill)
+                                                            <tr
+                                                                class="font-light odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $skill->skill_descr }}
+                                                                </td>
+
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
                                         </div>
-                                        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $working->start_date }} — {{ $working->is_current ? 'Present' : ($working->end_date ?? '—') }}
-                                        </p>
-                                        @if($working->superior_name || $working->reason_for_leaving || $working->last_thp)
-                                        <div class="mt-3 grid grid-cols-1 gap-3 border-t border-gray-200 pt-3 dark:border-gray-600 sm:grid-cols-3">
-                                            @if($working->superior_name)
-                                            <div>
-                                                <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Superior</p>
-                                                <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-300">{{ $working->superior_name }}</p>
-                                            </div>
-                                            @endif
-                                            @if($working->reason_for_leaving)
-                                            <div>
-                                                <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Reason for Leaving</p>
-                                                <p class="mt-0.5 text-sm text-gray-700 dark:text-gray-300">{{ $working->reason_for_leaving }}</p>
-                                            </div>
-                                            @endif
-                                            @if($working->last_thp)
-                                            <div>
-                                                <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Last THP</p>
-                                                <p class="mt-0.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                                                    Rp {{ number_format((int)$working->last_thp, 0, ',', '.') }}
-                                                </p>
-                                            </div>
-                                            @endif
+                                        <hr class="py-4">
+                                        <div>
+                                            <h2 class="text-base font-semibold text-gray-700 dark:text-gray-100">
+                                                Languange
+                                                <table
+                                                    class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                                    <thead
+                                                        class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                                        <tr>
+                                                            <th class="border px-4 py-2">Name</th>
+                                                            <th class="border px-4 py-2">Score</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="text-gray-700 dark:text-gray-300">
+                                                        @foreach ($applicant_language as $language)
+                                                            <tr
+                                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $language->language_descr }}</td>
+                                                                <td class="border px-4 py-2">
+                                                                    {{ $language->language_score }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
                                         </div>
-                                        @endif
                                     </div>
-                                    @empty
-                                    <div class="py-8 text-center text-sm italic text-gray-400">No work experience data available</div>
-                                    @endforelse
                                 </div>
-                            </div>
 
-                            {{-- Skill & Language --}}
-                            <div x-show="activeTab === 'Skill'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                <div class="mb-6">
-                                    <p class="mb-1 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Skills</p>
-                                    @forelse ($applicant_skill as $skill)
-                                        <div class="flex items-start gap-2.5 border-b border-gray-100 py-2 last:border-0 dark:border-gray-700/40">
-                                            <svg class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $skill->skill_descr }}</span>
-                                        </div>
-                                    @empty
-                                        <p class="py-2 text-sm italic text-gray-400">No skill data available</p>
-                                    @endforelse
-                                </div>
-                                <div class="border-t border-gray-100 pt-5 dark:border-gray-700">
-                                    <p class="mb-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Languages</p>
-                                    <div class="space-y-2">
-                                        @forelse ($applicant_language as $language)
-                                        <div class="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3 dark:bg-gray-700/40">
-                                            <span class="text-sm font-medium text-gray-800 dark:text-gray-100">{{ $language->language_descr }}</span>
-                                            <span class="rounded-lg bg-blue-100 px-3 py-0.5 text-xs font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{{ $language->language_score }}</span>
-                                        </div>
-                                        @empty
-                                        <p class="text-sm italic text-gray-400">No language data available</p>
-                                        @endforelse
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Certificate --}}
-                            <div x-show="activeTab === 'Certificate'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                <div class="space-y-0">
-                                    @forelse ($applicant_course as $course)
-                                    <div class="relative flex gap-4 pb-5 last:pb-0">
-                                        <div class="flex flex-col items-center">
-                                            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600   dark:bg-violet-900/40 dark:text-violet-300">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                                                </svg>
-                                            </div>
-                                            @if (!$loop->last)
-                                                <div class="mt-1 w-px flex-1 bg-gradient-to-b from-violet-200 to-transparent dark:from-violet-700"></div>
-                                            @endif
-                                        </div>
-                                        <div class="flex-1 rounded-lg border border-gray-100 bg-gray-50 p-4 transition hover:border-violet-200 hover:bg-violet-50/30 dark:border-gray-700 dark:bg-gray-700/30 dark:hover:border-violet-700 dark:hover:bg-violet-900/10">
-                                            <div class="flex flex-wrap items-start justify-between gap-3">
-                                                <div class="min-w-0">
-                                                    <p class="font-semibold text-gray-900 dark:text-white">{{ $course->course_name }}</p>
-                                                    <span class="mt-1.5 inline-flex items-center rounded-lg bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+                                <div x-show="activeTab === 'Certificate'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                            <tr>
+                                                <th class="border px-4 py-2">Name</th>
+                                                <th class="border px-4 py-2">Type</th>
+                                                <th class="border px-4 py-2">Start</th>
+                                                <th class="border px-4 py-2">End</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-700 dark:text-gray-300">
+                                            @foreach ($applicant_course as $course)
+                                                <tr
+                                                    class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                    <td class="border px-4 py-2">
+                                                        {{ $course->course_name }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
                                                         {{ $course->course_type }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $course->start_year }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $course->end_year }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'sdanw'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                            <tr>
+                                                <th class="border px-4 py-2">Type</th>
+                                                <th class="border px-4 py-2">Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-700 dark:text-gray-300">
+                                            @foreach ($applicant_sw as $sw)
+                                                <tr
+                                                    class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                    <td class="border px-4 py-2">{{ $sw->sw_type }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">{{ $sw->sw_descr }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div x-data="{ activeTab: 'Family' }" class=" bg-white dark:bg-gray-800">
+
+                            <header
+                                class="flex items-center px-6 py-2">
+                                <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
+                                    <button @click="activeTab = 'Family'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Family',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Family'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Family Information
+                                    </button>
+                                    <button @click="activeTab = 'MaritalStatus'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab
+                                            === 'MaritalStatus',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'MaritalStatus'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Marital Status
+                                    </button>
+                                    <button @click="activeTab = 'Emergency'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Emergency',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Skill'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Emergency Contact
+                                    </button>
+                                    <button @click="activeTab = 'Relative'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Relative',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Relative'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Relative Information
+                                    </button>
+                                    <button @click="activeTab = 'License'"
+                                        :class="{
+                                            'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'License',
+                                            'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'License'
+                                        }"
+                                        class="flex-1 whitespace-nowrap px-4 py-2 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
+                                        Driver License
+                                    </button>
+                                </nav>
+                            </header>
+
+                            <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-4 dark:bg-gray-800">
+                                <div x-show="activeTab === 'Family'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                            <tr>
+                                                <th class="border px-4 py-2">Nama</th>
+                                                <th class="border px-4 py-2">Hubungan</th>
+                                                <th class="border px-4 py-2">Jenis Kelamin</th>
+                                                <th class="border px-4 py-2">Tanggal Lahir</th>
+                                                <th class="border px-4 py-2">Pendidikan</th>
+                                                <th class="border px-4 py-2">Pekerjaan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-700 dark:text-gray-300">
+                                            @foreach ($applicant_family as $family)
+                                                <tr
+                                                    class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->family_name }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->family_type }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->family_gender }}
+                                                    </td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->family_birt_of_date }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->family_education }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->family_profession }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'MaritalStatus'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                            <tr>
+                                                <th class="border px-4 py-2">Nama</th>
+                                                <th class="border px-4 py-2">Hubungan</th>
+                                                <th class="border px-4 py-2">Jenis Kelamin</th>
+                                                <th class="border px-4 py-2">Tanggal Lahir</th>
+                                                <th class="border px-4 py-2">Pendidikan</th>
+                                                <th class="border px-4 py-2">Pekerjaan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-700 dark:text-gray-300">
+                                            @foreach ($applicant_marital as $family)
+                                                <tr
+                                                    class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->core_family_name }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->core_family_type }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->core_family_gender }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->core_family_birt_of_date }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->core_family_education }}</td>
+                                                    <td class="border px-4 py-2">
+                                                        {{ $family->core_family_profession }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'Emergency'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                            <tr>
+                                                <th class="border px-4 py-2">Name</th>
+                                                <th class="border px-4 py-2">Relation</th>
+                                                <th class="border px-4 py-2">Phone</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-700 dark:text-gray-300">
+                                            <tr
+                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                <td class="border px-4 py-2">
+                                                    {{ $applicant->urgent_contact_name }}</td>
+                                                <td class="border px-4 py-2">
+                                                    {{ $applicant->urgent_contact_relation }}</td>
+                                                <td class="border px-4 py-2">
+                                                    {{ $applicant->urgent_phone }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'Relative'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="min-w-full border border-gray-300 text-sm dark:border-gray-700">
+                                        <thead class="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-700">
+                                            <tr>
+                                                <th class="border px-4 py-2">Name</th>
+                                                <th class="border px-4 py-2">Division</th>
+                                                <th class="border px-4 py-2">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-gray-700 dark:text-gray-300">
+                                            <tr
+                                                class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-800 dark:even:bg-gray-900">
+                                                <td class="border px-4 py-2">
+                                                    {{ $applicant->relative_work_name }}</td>
+                                                <td class="border px-4 py-2">
+                                                    {{ $applicant->relative_work_division }}</td>
+                                                <td class="border px-4 py-2">
+                                                    {{ $applicant->relative_work_status }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div x-show="activeTab === 'License'"
+                                    x-transition:enter="transition ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-2"
+                                    x-transition:enter-end="opacity-100 translate-y-0"
+                                    x-transition:leave="transition ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0"
+                                    x-transition:leave-end="opacity-0 translate-y-2">
+                                    <table class="min-w-full text-sm border-separate border-spacing-y-2">
+
+                                        <thead class="text-xs uppercase text-gray-500 dark:text-gray-400">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left">License</th>
+                                                <th class="px-4 py-2 text-center">Status</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody class="text-gray-700 dark:text-gray-300">
+
+                                          @forelse (($applicant->driverLicenses ?? collect()) as $license)
+                                                <tr class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
+
+                                                    <!-- LICENSE -->
+                                                    <td class="px-4 py-3 font-medium">
+                                                        {{ $license->driver_license_descr ?? '-' }}
+                                                    </td>
+
+                                                    <!-- STATUS -->
+                                                    <td class="px-4 py-3 text-center">
+                                                        @if ($license->status)
+                                                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">
+                                                                Active
+                                                            </span>
+                                                        @else
+                                                            <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-500">
+                                                                Inactive
+                                                            </span>
+                                                        @endif
+                                                    </td>
+
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="2" class="text-center py-4 text-gray-400 italic">
+                                                        No driver license data
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-hidden rounded-xl bg-white dark:bg-gray-800">
+                            <hr class="mx-6 dark:border-gray-500">
+                            <div class="p-4">
+                                <div class="overflow-x-auto">
+
+                                    <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                        Attachment
+                                    </label>
+
+                                    <table class="mt-4 min-w-full text-sm border-separate border-spacing-y-2">
+
+                                        <thead class="text-xs uppercase text-gray-500 dark:text-gray-400">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left">Document</th>
+                                                <th class="px-4 py-2 text-left">File</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <tr class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
+
+                                                <td class="px-4 py-3 font-medium">
+                                                    CV
+                                                </td>
+
+                                                <td class="px-4 py-3">
+                                                    @if ($cv)
+                                                        <a href="{{ $cv }}" target="_blank"
+                                                            class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+
+                                                            📄 Download CV
+                                                        </a>
+                                                    @else
+                                                        <span class="text-gray-400 italic">
+                                                            No file uploaded
+                                                        </span>
+                                                    @endif
+                                                </td>
+
+                                            </tr>
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                 <div class="overflow-x-auto">
+                                    <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                        Reference Information
+                                    </label>
+
+                                    <table class="mt-4 min-w-full text-sm border-separate border-spacing-y-2">
+
+                                        <thead class="text-xs uppercase text-gray-500 dark:text-gray-400">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left">Name</th>
+                                                <th class="px-4 py-2 text-left">Division</th>
+                                                <th class="px-4 py-2 text-left">Contact</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <tr class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
+
+                                                <td class="px-4 py-3 font-medium">
+                                                    {{ $applicant->reference_name ?? '-' }}
+                                                </td>
+
+                                                <td class="px-4 py-3 text-gray-500">
+                                                    {{ $applicant->reference_division ?? '-' }}
+                                                </td>
+
+                                                <td class="px-4 py-3">
+                                                    <span class="text-indigo-600 font-medium">
+                                                        {{ $applicant->reference_contact_number ?? '-' }}
                                                     </span>
-                                                </div>
-                                                <span class="flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-xs font-medium text-gray-500   ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-600 dark:text-gray-400">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                                    </svg>
-                                                    {{ $course->start_year }} &mdash; {{ $course->end_year }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @empty
-                                    <div class="py-10 text-center">
-                                        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                                            </svg>
-                                        </div>
-                                        <p class="text-sm italic text-gray-400">No certificate data available</p>
-                                    </div>
-                                    @endforelse
+                                                </td>
+
+                                            </tr>
+                                        </tbody>
+
+                                    </table>
+
                                 </div>
                             </div>
-
-                            {{-- Strengths & Weaknesses --}}
-                            <div x-show="activeTab === 'sdanw'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                @if($applicant_sw->isEmpty())
-                                    <p class="py-8 text-center text-sm italic text-gray-400">No strengths &amp; weaknesses data available</p>
-                                @else
-                                    @php
-                                        $strengths  = $applicant_sw->where('sw_type', 'S');
-                                        $weaknesses = $applicant_sw->where('sw_type', '!=', 'S');
-                                    @endphp
-                                    @if($strengths->isNotEmpty())
-                                        <p class="mb-1 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Strengths</p>
-                                        @foreach ($strengths as $sw)
-                                            <div class="flex items-start gap-2.5 border-b border-gray-100 py-2 last:border-0 dark:border-gray-700/40">
-                                                <svg class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ $sw->sw_descr }}</span>
-                                            </div>
-                                        @endforeach
-                                    @endif
-                                    @if($weaknesses->isNotEmpty())
-                                        <p class="mb-1 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Weaknesses</p>
-                                        @foreach ($weaknesses as $sw)
-                                            <div class="flex items-start gap-2.5 border-b border-gray-100 py-2 last:border-0 dark:border-gray-700/40">
-                                                <svg class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ $sw->sw_descr }}</span>
-                                            </div>
-                                        @endforeach
-                                    @endif
-                                @endif
-                            </div>
-
                         </div>
                     </div>
-
-                    {{-- ── TAB GROUP 2 ───────────────────────────────────────────── --}}
-                    <div x-data="{ activeTab: 'Family' }" class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-
-                        <div class="border-b border-gray-100 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/40">
-                            <nav class="-mb-px flex overflow-x-auto">
-                                @foreach ([
-                                    ['key'=>'Family',       'label'=>'Family Information'],
-                                    ['key'=>'MaritalStatus','label'=>'Marital Status'],
-                                    ['key'=>'Emergency',    'label'=>'Emergency Contact'],
-                                    ['key'=>'Relative',     'label'=>'Relative Information'],
-                                    ['key'=>'License',      'label'=>'Driver License'],
-                                ] as $t)
-                                <button @click="activeTab = '{{ $t['key'] }}'"
-                                    :class="activeTab === '{{ $t['key'] }}'
-                                        ? 'border-b-[3px] border-indigo-500 text-indigo-600 bg-white dark:bg-gray-800 dark:text-indigo-400 font-semibold'
-                                        : 'border-b-[3px] border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
-                                    class="whitespace-nowrap px-5 py-3.5 text-sm transition-colors duration-150 focus:outline-none">
-                                    {{ $t['label'] }}
-                                </button>
-                                @endforeach
-                            </nav>
-                        </div>
-
-                        <div class="p-6">
-
-                            {{-- Family --}}
-                            <div x-show="activeTab === 'Family'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                <div class="space-y-3">
-                                    @forelse ($applicant_family as $family)
-                                    @php
-                                        $initials = collect(explode(' ', $family->family_name))->map(fn($w) => strtoupper($w[0] ?? ''))->take(2)->implode('');
-                                        $colors = ['bg-indigo-100 text-indigo-700','bg-emerald-100 text-emerald-700','bg-rose-100 text-rose-700','bg-amber-100 text-amber-700','bg-cyan-100 text-cyan-700','bg-violet-100 text-violet-700'];
-                                        $color = $colors[$loop->index % count($colors)];
-                                    @endphp
-                                    <div class="flex items-start gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4 transition hover:border-indigo-100 hover:bg-indigo-50/20 dark:border-gray-700 dark:bg-gray-700/30">
-                                        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-sm font-bold {{ $color }} dark:opacity-80">
-                                            {{ $initials ?: '?' }}
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <span class="font-semibold text-gray-900 dark:text-white">{{ $family->family_name }}</span>
-                                                @if ($family->family_type)
-                                                <span class="rounded-lg bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">{{ $family->family_type }}</span>
-                                                @endif
-                                            </div>
-                                            <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-                                                @if ($family->family_gender)
-                                                <span class="flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                    {{ $family->family_gender }}
-                                                </span>
-                                                @endif
-                                                @if ($family->family_birt_of_date)
-                                                <span class="flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                    {{ $family->family_birt_of_date }}
-                                                </span>
-                                                @endif
-                                                @if ($family->family_education)
-                                                <span class="flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
-                                                    {{ $family->family_education }}
-                                                </span>
-                                                @endif
-                                                @if ($family->family_profession)
-                                                <span class="flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                    {{ $family->family_profession }}
-                                                </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @empty
-                                    <div class="py-10 text-center">
-                                        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        </div>
-                                        <p class="text-sm italic text-gray-400">No family data available</p>
-                                    </div>
-                                    @endforelse
-                                </div>
-                            </div>
-
-                            {{-- Marital Status --}}
-                            <div x-show="activeTab === 'MaritalStatus'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                <div class="space-y-3">
-                                    @forelse ($applicant_marital as $family)
-                                    @php
-                                        $initials = collect(explode(' ', $family->core_family_name))->map(fn($w) => strtoupper($w[0] ?? ''))->take(2)->implode('');
-                                        $colors = ['bg-rose-100 text-rose-700','bg-pink-100 text-pink-700','bg-fuchsia-100 text-fuchsia-700','bg-purple-100 text-purple-700'];
-                                        $color = $colors[$loop->index % count($colors)];
-                                    @endphp
-                                    <div class="flex items-start gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4 transition hover:border-rose-100 hover:bg-rose-50/20 dark:border-gray-700 dark:bg-gray-700/30">
-                                        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-sm font-bold {{ $color }} dark:opacity-80">
-                                            {{ $initials ?: '?' }}
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <span class="font-semibold text-gray-900 dark:text-white">{{ $family->core_family_name }}</span>
-                                                @if ($family->core_family_type)
-                                                <span class="rounded-lg bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">{{ $family->core_family_type }}</span>
-                                                @endif
-                                            </div>
-                                            <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-                                                @if ($family->core_family_gender)
-                                                <span class="flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                    {{ $family->core_family_gender }}
-                                                </span>
-                                                @endif
-                                                @if ($family->core_family_birt_of_date)
-                                                <span class="flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                    {{ $family->core_family_birt_of_date }}
-                                                </span>
-                                                @endif
-                                                @if ($family->core_family_education)
-                                                <span class="flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
-                                                    {{ $family->core_family_education }}
-                                                </span>
-                                                @endif
-                                                @if ($family->core_family_profession)
-                                                <span class="flex items-center gap-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                    {{ $family->core_family_profession }}
-                                                </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @empty
-                                    <div class="py-10 text-center">
-                                        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                                        </div>
-                                        <p class="text-sm italic text-gray-400">No marital data available</p>
-                                    </div>
-                                    @endforelse
-                                </div>
-                            </div>
-
-                            {{-- Emergency Contact --}}
-                            <div x-show="activeTab === 'Emergency'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                <div class="rounded-lg border border-amber-200 bg-amber-50 p-6 dark:border-amber-700 dark:bg-amber-900/10">
-                                    <p class="mb-4 text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">&#128680; Emergency Contact</p>
-                                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                        <div>
-                                            <p class="text-xs font-semibold uppercase tracking-wider text-amber-500">Name</p>
-                                            <p class="mt-1 text-base font-semibold text-gray-800 dark:text-gray-100">{{ $applicant->urgent_contact_name ?: '—' }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-semibold uppercase tracking-wider text-amber-500">Relation</p>
-                                            <p class="mt-1 text-base font-semibold text-gray-800 dark:text-gray-100">{{ $applicant->urgent_contact_relation ?: '—' }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-semibold uppercase tracking-wider text-amber-500">Phone</p>
-                                            <p class="mt-1 text-base font-semibold text-gray-800 dark:text-gray-100">{{ $applicant->urgent_phone ?: '—' }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Relative Information --}}
-                            <div x-show="activeTab === 'Relative'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                @if ($applicant->relative_work_name)
-                                <div class="flex items-start gap-4 rounded-lg border border-cyan-100 bg-cyan-50/50 p-5 dark:border-cyan-900/40 dark:bg-cyan-900/10">
-                                    <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-cyan-100 text-cyan-600 dark:bg-cyan-900/40 dark:text-cyan-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="font-semibold text-gray-900 dark:text-white">{{ $applicant->relative_work_name }}</p>
-                                        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-gray-500 dark:text-gray-400">
-                                            @if ($applicant->relative_work_division)
-                                            <span class="flex items-center gap-1.5">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                                {{ $applicant->relative_work_division }}
-                                            </span>
-                                            @endif
-                                            @if ($applicant->relative_work_status)
-                                            <span class="inline-flex items-center rounded-lg bg-cyan-100 px-2.5 py-0.5 text-xs font-semibold text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
-                                                {{ $applicant->relative_work_status }}
-                                            </span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                                @else
-                                <div class="py-10 text-center">
-                                    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                    </div>
-                                    <p class="text-sm italic text-gray-400">No relative information available</p>
-                                </div>
-                                @endif
-                            </div>
-
-                            {{-- Driver License --}}
-                            <div x-show="activeTab === 'License'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
-                                @forelse (($applicant->driverLicenses ?? collect()) as $license)
-                                <div class="mb-3 last:mb-0 flex items-center justify-between rounded-lg border bg-gray-50 px-5 py-4 transition
-                                    {{ $license->status ? 'border-green-200 hover:border-green-300 hover:bg-green-50/30 dark:border-green-800 dark:bg-green-900/10' : 'border-gray-200 hover:bg-gray-100/60 dark:border-gray-700 dark:bg-gray-700/30' }}">
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg {{ $license->status ? 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-300' : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400' }}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
-                                            </svg>
-                                        </div>
-                                        <span class="font-semibold text-gray-800 dark:text-gray-100">
-                                            SIM {{ $license->driver_license_descr ?? '—' }}
-                                        </span>
-                                    </div>
-                                    @if ($license->status)
-                                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-green-100 px-3 py-1 text-xs font-bold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                            <span class="h-1.5 w-1.5 rounded-lg bg-green-500"></span> Active
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500 dark:bg-gray-700 dark:text-gray-400">
-                                            <span class="h-1.5 w-1.5 rounded-lg bg-gray-400"></span> Inactive
-                                        </span>
-                                    @endif
-                                </div>
-                                @empty
-                                <div class="py-10 text-center">
-                                    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/></svg>
-                                    </div>
-                                    <p class="text-sm italic text-gray-400">No driver license data available</p>
-                                </div>
-                                @endforelse
-                            </div>
-
-                        </div>
-                    </div>
-
-                    {{-- ── ATTACHMENT & REFERENCE ────────────────────────────────── --}}
-                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-
-                        {{-- Attachment --}}
-                        <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-                            <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                                <span class="h-4 w-1 rounded-lg bg-violet-500"></span>
-                                <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Attachment</h3>
-                            </div>
-                            <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                                @foreach ([
-                                    ['label' => 'Curriculum Vitae',  'url' => $cv,       'color' => 'bg-red-100 dark:bg-red-900/30'],
-                                    ['label' => 'Transkrip Nilai',   'url' => $transkip, 'color' => 'bg-amber-100 dark:bg-amber-900/30'],
-                                    ['label' => 'Ijazah',            'url' => $ijazah,   'color' => 'bg-emerald-100 dark:bg-emerald-900/30'],
-                                ] as $doc)
-                                <div class="flex items-center justify-between px-5 py-3.5">
-                                    <div class="flex items-center gap-3">
-                                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $doc['color'] }} text-lg">&#128196;</span>
-                                        <div>
-                                            <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ $doc['label'] }}</p>
-                                            <p class="text-xs text-gray-400">PDF Document</p>
-                                        </div>
-                                    </div>
-                                    @if ($doc['url'])
-                                        <a href="{{ $doc['url'] }}" target="_blank"
-                                            class="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700">
-                                            Download
-                                        </a>
-                                    @else
-                                        <span class="text-xs italic text-gray-400">No file</span>
-                                    @endif
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-
-                        {{-- Reference Information --}}
-                        <div class="overflow-hidden rounded-lg bg-white   dark:bg-gray-800">
-                            <div class="flex items-center gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-700">
-                                <span class="h-4 w-1 rounded-lg bg-cyan-500"></span>
-                                <h3 class="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">Reference Information</h3>
-                            </div>
-                            <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                                @forelse ($applicant_reference as $ref)
-                                <div class="flex items-start gap-4 px-6 py-4">
-                                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100 text-cyan-600 dark:bg-cyan-900/40 dark:text-cyan-300 text-sm font-bold">
-                                        {{ strtoupper(substr($ref->reference_name, 0, 1)) }}
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="font-semibold text-gray-900 dark:text-white">{{ $ref->reference_name }}</p>
-                                        <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-                                            @if ($ref->reference_job_position)
-                                            <span>{{ $ref->reference_job_position }}</span>
-                                            @endif
-                                            @if ($ref->reference_company_name)
-                                            <span class="font-medium text-indigo-600 dark:text-indigo-400">{{ $ref->reference_company_name }}</span>
-                                            @endif
-                                            @if ($ref->reference_relation)
-                                            <span class="rounded-full bg-cyan-100 px-2 py-0.5 font-semibold text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">{{ $ref->reference_relation }}</span>
-                                            @endif
-                                        </div>
-                                        @if ($ref->reference_phone_number)
-                                        <p class="mt-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
-                                            &#128222; {{ $ref->reference_phone_number }}
-                                        </p>
-                                        @endif
-                                    </div>
-                                </div>
-                                @empty
-                                <div class="py-8 text-center">
-                                    <p class="text-sm italic text-gray-400">No reference data available</p>
-                                </div>
-                                @endforelse
-                            </div>
-                        </div>
-
-                    </div>
-
                 </div>
+
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+                <script src="https://unpkg.com/lucide@latest"></script>
+                <script>
+                    lucide.createIcons();
+                </script>
+
+                <script>
+                    $('#applicantprofile').on('submit', function(e) {
+                        e.preventDefault();
+                        var form = $(this);
+
+                        $.ajax({
+                            url: "{{ route('applicantprofile.pdf') }}",
+                            method: 'POST',
+                            data: form.serialize(),
+                            xhrFields: {
+                                responseType: 'blob'
+                            },
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(blob, status, xhr) {
+                                // Cek apakah response berupa PDF atau error JSON
+                                var contentType = xhr.getResponseHeader('Content-Type');
+                                if (contentType && contentType.indexOf('application/pdf') !== -1) {
+                                    const url = window.URL.createObjectURL(blob);
+                                    window.open(url, '_blank');
+                                } else {
+                                    // Jika error JSON
+                                    var reader = new FileReader();
+                                    reader.onload = function() {
+                                        var resp = JSON.parse(reader.result);
+                                        alert(resp.message || 'Gagal generate PDF');
+                                    };
+                                    reader.readAsText(blob);
+                                }
+                            },
+                            error: function(xhr) {
+                                alert('Gagal generate PDF. Pastikan data sudah lengkap.');
+                            }
+                        });
+                    });
+                </script>
+
             </div>
-</div>
-
-        <script src="https://unpkg.com/lucide@latest"></script>
-        <script>if(typeof lucide !== 'undefined') lucide.createIcons();</script>
-
-        <script>
-            $('#applicantprofile').on('submit', function(e) {
-                e.preventDefault();
-                var form = $(this);
-                $.ajax({
-                    url: "{{ route('applicantprofile.pdf') }}",
-                    method: 'POST',
-                    data: form.serialize(),
-                    xhrFields: { responseType: 'blob' },
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                    success: function(blob, status, xhr) {
-                        var ct = xhr.getResponseHeader('Content-Type');
-                        if (ct && ct.indexOf('application/pdf') !== -1) {
-                            window.open(window.URL.createObjectURL(blob), '_blank');
-                        } else {
-                            var reader = new FileReader();
-                            reader.onload = function() {
-                                var resp = JSON.parse(reader.result);
-                                alert(resp.message || 'Gagal generate PDF');
-                            };
-                            reader.readAsText(blob);
-                        }
-                    },
-                    error: function() { alert('Gagal generate PDF. Pastikan data sudah lengkap.'); }
-                });
-            });
-        </script>
+        </div>
