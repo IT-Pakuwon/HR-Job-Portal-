@@ -3398,7 +3398,7 @@
                     showOverlay('Cancelling Document');
 
                     $.ajax({
-                        url: "{{ route('sppjs.cancel', $hash) }}",
+                        url: "{{ route('sppts.cancel', $hash) }}",
                         type: "POST",
                         data: {
                             _method: "PUT",
@@ -3412,7 +3412,7 @@
                                     icon: 'success'
                                 }).then(() => {
                                     window.location.href =
-                                        "{{ route('sppjs') }}";
+                                        "{{ route('sppts') }}";
                                 });
                             } else {
                                 Swal.fire('Failed', res?.message ||
