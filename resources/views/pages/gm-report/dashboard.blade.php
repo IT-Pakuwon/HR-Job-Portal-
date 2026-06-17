@@ -18,18 +18,18 @@
             </div>
 
             {{-- Inline anchor — filter lives here when header is visible --}}
-            <div class="flex items-center gap-2">
-                <div id="gmFilterAnchor">
+            <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-start">
+                <div id="gmFilterAnchor" class="w-full sm:w-auto">
                     <x-dashboard-filter.dashboard-filter />
                 </div>
 
                 {{-- Export dropdown --}}
-                <div class="relative" id="gmExportWrap">
+                <div class="relative w-full sm:w-auto" id="gmExportWrap">
                     <button id="gmExportBtn" type="button"
                             onclick="document.getElementById('gmExportDropdown').classList.toggle('hidden')"
-                            class="flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white
+                            class="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white
                                    px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm
-                                   transition hover:bg-slate-50
+                                   transition hover:bg-slate-50 sm:w-auto sm:justify-start
                                    dark:border-slate-700/60 dark:bg-slate-900 dark:text-slate-300
                                    dark:hover:bg-slate-800/50">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
@@ -109,6 +109,15 @@
             lg      : 4 col  — [Summary|Donut|Trend(×2)] / [Dept(×2)|Activity(×2)]
             xl      : 5 col  — Charts sidebar col-1 (rows 1–3) | Dept cols 2–3 | Activity cols 4–5
         --}}
+        <div class="mt-2 space-y-1.5">
+
+            {{-- Section header --}}
+            <div class="flex items-center gap-2 pt-1">
+                <h2 class="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">Budget</h2>
+                <span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-600
+                             dark:bg-amber-500/10 dark:text-amber-400">Overview</span>
+            </div>
+
         <div class="grid grid-cols-1 gap-3
                     sm:grid-cols-2
                     md:grid-cols-4
@@ -197,23 +206,51 @@
 
         </div>
 
+        </div>{{-- /Budget wrapper --}}
+
         {{-- ── PG Card Section ──────────────────────────────────────────────── --}}
-        <div class="mt-2 space-y-3">
+        {{--
+            Breakpoint layout summary:
+            default : 1 col  — all cards stacked
+            sm      : 2 col  — [Total Coupon | By Mall] / Top 10 charts full-width stacked
+            md      : 4 col  — [Total Coupon (×2) | By Mall (×2)] / [Top10Cust (×2) | Top10Ten (×2)]
+            lg      : 4 col  — same as md
+            xl      : 5 col  — [Col 1: Total Coupon (row 1) + By Mall (row 2)] [Cols 2-3: Top 10 Customer (rows 1-2)] [Cols 4-5: Top 10 Tenant (rows 1-2)]
+        --}}
+
+        {{-- Tab + metric styles (scoped to PG Card section) --}}
+        <style>
+            .pgcard-tab-active  { background:rgb(238 233 255/1);color:#7c3aed;font-weight:700; }
+            .dark .pgcard-tab-active  { background:rgb(139 92 246/.15);color:#a78bfa; }
+            .pgcard-tab-idle    { color:#94a3b8; }
+            .pgcard-tab-idle:hover    { background:rgb(241 245 249/1);color:#475569; }
+            .dark .pgcard-tab-idle:hover { background:rgb(51 65 85/.5);color:#cbd5e1; }
+            .pgcard-metric-active { background:rgb(220 252 231/1);color:#15803d;font-weight:700; }
+            .dark .pgcard-metric-active { background:rgb(16 185 129/.15);color:#34d399; }
+            .pgcard-metric-idle { color:#94a3b8; }
+            .pgcard-metric-idle:hover { background:rgb(241 245 249/1);color:#475569; }
+            .dark .pgcard-metric-idle:hover { background:rgb(51 65 85/.5);color:#cbd5e1; }
+        </style>
+
+        <div class="mt-2 space-y-1.5">
 
             {{-- Section header --}}
             <div class="flex items-center gap-2 pt-1">
                 <h2 class="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">PG Card</h2>
                 <span class="rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-600
-                             dark:bg-violet-500/10 dark:text-violet-400">
-                    Analytics
-                </span>
+                             dark:bg-violet-500/10 dark:text-violet-400">Analytics</span>
             </div>
 
-            {{-- Coupon STYW 2026 — 2 cards --}}
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {{-- Single responsive grid — mirrors Budget section pattern --}}
+            <div class="grid grid-cols-1 gap-3
+                        sm:grid-cols-2
+                        md:grid-cols-4
+                        lg:grid-cols-4
+                        xl:grid-cols-5">
 
-                {{-- Card 1: Total + Status --}}
+                {{-- 1. Total Coupon — sidebar top --}}
                 <x-card-chart.card-shell
+                    class="sm:col-span-1 md:col-span-2 xl:col-span-1 xl:row-start-1"
                     subtitle="PG Card · STYW 2026"
                     title="Total Coupon"
                     gradient="linear-gradient(to right,#8B5CF6,#EC4899)"
@@ -223,92 +260,51 @@
                            class="text-4xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">
                             …
                         </p>
-                        <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Coupon records (filtered)</p>
+                        <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Valid coupon records (filtered)</p>
                         <div id="pgcardCouponStatus" class="mt-3 flex flex-wrap gap-1.5"></div>
-                        <div id="pgcardCampaignNames" class="mt-2 flex flex-wrap gap-1.5"></div>
                     </div>
                 </x-card-chart.card-shell>
 
-                {{-- Card 2: Donut by mall (unfiltered) --}}
+                {{-- 2. By Mall donut — sidebar bottom --}}
                 <x-card-chart.card-shell
+                    class="sm:col-span-1 md:col-span-2 xl:col-span-1 xl:row-start-2"
                     subtitle="PG Card · STYW 2026"
                     title="By Mall"
                     gradient="linear-gradient(to right,#06B6D4,#8B5CF6)"
                 >
+                    <x-slot:headerEnd>
+                        <select id="pgcardMallStatusFilter"
+                            class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            <option value="VALID">Valid</option>
+                            <option value="">All Status</option>
+                            <option value="EXPIRED">Expired</option>
+                            <option value="INVALID">Invalid</option>
+                            <option value="-">Waiting for Processed</option>
+                        </select>
+                    </x-slot:headerEnd>
                     <div class="px-3 pb-3 pt-0">
                         <div id="pgcardCouponDonut" style="min-height:220px"></div>
                     </div>
                 </x-card-chart.card-shell>
 
-            </div>
-
-            {{-- Tab + metric styles (scoped to PG Card section) --}}
-            <style>
-                .pgcard-tab-active {
-                    background: rgb(238 233 255 / 1);
-                    color: #7c3aed;
-                    font-weight: 700;
-                }
-                .dark .pgcard-tab-active {
-                    background: rgb(139 92 246 / 0.15);
-                    color: #a78bfa;
-                }
-                .pgcard-tab-idle { color: #94a3b8; }
-                .pgcard-tab-idle:hover {
-                    background: rgb(241 245 249 / 1);
-                    color: #475569;
-                }
-                .dark .pgcard-tab-idle:hover {
-                    background: rgb(51 65 85 / 0.5);
-                    color: #cbd5e1;
-                }
-                .pgcard-metric-active {
-                    background: rgb(220 252 231 / 1);
-                    color: #15803d;
-                    font-weight: 700;
-                }
-                .dark .pgcard-metric-active {
-                    background: rgb(16 185 129 / 0.15);
-                    color: #34d399;
-                }
-                .pgcard-metric-idle { color: #94a3b8; }
-                .pgcard-metric-idle:hover {
-                    background: rgb(241 245 249 / 1);
-                    color: #475569;
-                }
-                .dark .pgcard-metric-idle:hover {
-                    background: rgb(51 65 85 / 0.5);
-                    color: #cbd5e1;
-                }
-            </style>
-
-            {{-- Top 10 Customer + Top 10 Tenant charts --}}
-            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
-
-                {{-- Top 10 Customer (per mall) --}}
+                {{-- 3. Top 10 Customer — centre column --}}
                 <x-card-chart.card-shell
+                    class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-2 xl:row-start-1 xl:row-span-2"
                     subtitle="PG Card"
                     title="Top 10 Customer"
                     gradient="linear-gradient(to right,#8B5CF6,#EC4899)"
                 >
                     <x-slot:headerEnd>
                         <div class="flex items-center gap-2">
-                            {{-- Mall tabs — populated dynamically by gm-pgcard.js --}}
                             <div id="pgcardCustTab_container" class="flex items-center gap-1"></div>
-                            {{-- Divider --}}
                             <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
-                            {{-- Metric toggle --}}
                             <div class="flex items-center gap-1">
                                 <button id="pgcardCustMetric_transaction" type="button"
                                         class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                        title="Sort by transaction count">
-                                    By Transaction
-                                </button>
+                                        title="Sort by transaction count">By Transaction</button>
                                 <button id="pgcardCustMetric_spending" type="button"
                                         class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                        title="Sort by total spending (Rp)">
-                                    By Spending
-                                </button>
+                                        title="Sort by total spending (Rp)">By Spending</button>
                             </div>
                         </div>
                     </x-slot:headerEnd>
@@ -317,30 +313,24 @@
                     </div>
                 </x-card-chart.card-shell>
 
-                {{-- Top 10 Tenant (per mall) --}}
+                {{-- 4. Top 10 Tenant — right column --}}
                 <x-card-chart.card-shell
+                    class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-4 xl:row-start-1 xl:row-span-2"
                     subtitle="PG Card"
                     title="Top 10 Tenant"
                     gradient="linear-gradient(to right,#06B6D4,#3B82F6)"
                 >
                     <x-slot:headerEnd>
                         <div class="flex items-center gap-2">
-                            {{-- Mall tabs — populated dynamically by gm-pgcard.js --}}
                             <div id="pgcardTenTab_container" class="flex items-center gap-1"></div>
-                            {{-- Divider --}}
                             <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
-                            {{-- Metric toggle --}}
                             <div class="flex items-center gap-1">
                                 <button id="pgcardTenMetric_transaction" type="button"
                                         class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                        title="Sort by transaction count">
-                                    By Transaction
-                                </button>
+                                        title="Sort by transaction count">By Transaction</button>
                                 <button id="pgcardTenMetric_spending" type="button"
                                         class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                        title="Sort by total spending (Rp)">
-                                    By Spending
-                                </button>
+                                        title="Sort by total spending (Rp)">By Spending</button>
                             </div>
                         </div>
                     </x-slot:headerEnd>
