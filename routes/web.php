@@ -1186,7 +1186,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/parking-kendaraan/{id}/toggle-status', [ParkingRegistrationController::class, 'toggleStatusParkingKendaraan'])->name('parkingkendaraan.toggleStatus');
     Route::put('/parking-kendaraan/{id}/no-kartu', [ParkingRegistrationController::class, 'updateNoKartuParkingKendaraan'])->name('parkingkendaraan.updateNoKartu');
 
-    Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv');
+    Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv')->withoutMiddleware(['auth']);
 
     Route::middleware(['auth'])->group(function () {
         Route::controller(VoucherTaxiController::class)->group(function () {
