@@ -386,6 +386,7 @@ class StockJobsController extends Controller
         $orderBy       = $columns[$orderColIndex] ?? 'created_at';
 
         $rows = $q->orderBy($orderBy, $orderDir)
+            ->orderBy('id', 'asc')
             ->skip($start)
             ->take($length)
             ->get();
