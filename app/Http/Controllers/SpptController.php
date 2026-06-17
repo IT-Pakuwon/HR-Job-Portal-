@@ -2711,8 +2711,11 @@ class SpptController extends Controller
                     'status' => $h->status,
                     'completed_by' => $h->completed_by,
                     'completed_at' => $fmt($h->completed_at),
-                    'is_approved' => $approved($h),
-                    'last_approval' => $this->getLastApprovalInfo($h->csid),
+                    'is_approved'     => $approved($h),
+                    'last_approval'   => $this->getLastApprovalInfo($h->csid),
+                    'flag_imbudget'   => (bool) $h->flag_imbudget,
+                    'imbudgetid'      => $h->imbudgetid,
+                    'status_imbudget' => $h->status_imbudget,
                 ] : null,
                 'details' => $details,
             ]);

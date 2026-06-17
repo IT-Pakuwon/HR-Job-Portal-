@@ -2474,8 +2474,11 @@ class SppbController extends Controller
                     'is_approved' => $approved($h),
 
                     // ✅ tambah ini
-                    'last_approval' => $getLastApproval($h->csid),
-                    'approval_list' => $getApprovalList($h->csid),
+                    'last_approval'   => $getLastApproval($h->csid),
+                    'approval_list'   => $getApprovalList($h->csid),
+                    'flag_imbudget'   => (bool) $h->flag_imbudget,
+                    'imbudgetid'      => $h->imbudgetid,
+                    'status_imbudget' => $h->status_imbudget,
                 ] : null,
                 'details' => $d,
             ]);

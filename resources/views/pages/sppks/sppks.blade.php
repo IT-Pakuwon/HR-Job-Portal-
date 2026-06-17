@@ -517,6 +517,20 @@
   const approvals = header.approval_list || [];
               let approvalHtml = '';
 
+            let imBudgetHtml = '';
+            if (header.flag_imbudget && header.imbudgetid && header.status_imbudget !== 'C') {
+                imBudgetHtml = `
+                    <div class="sm:col-span-2 mt-3 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm dark:border-yellow-700/40 dark:bg-yellow-900/20">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="h-2 w-2 rounded-full bg-yellow-500"></div>
+                                <div class="font-semibold text-yellow-700 dark:text-yellow-400">Waiting IM Budget</div>
+                            </div>
+                            <div class="text-xs font-semibold text-yellow-600 dark:text-yellow-500">${esc(header.imbudgetid)}</div>
+                        </div>
+                    </div>
+                `;
+            }
 
                     if (approvals.length > 0) {
 
@@ -623,6 +637,7 @@
                                                                                                     <span class="font-semibold text-gray-800 dark:text-white">${esc(header.keperluan || '-')}</span>
                                                                                                 </div>` : ''}
 
+                        ${imBudgetHtml}
                         ${approvalHtml}
                     </div>
                 </div>
