@@ -731,35 +731,23 @@ class GmReportController extends Controller
             // One query: count by mall + status — serves both filtered total and unfiltered donut
             $sql = <<<SQL
                 SELECT
-                    COALESCE(d.directory_code, 'Unknown')   AS mall_code,
-                    COALESCE(d.directory_name, 'Unknown')   AS mall_name,
-                    COALESCE(mc.status, '-')                AS status,
-                    COUNT(*)                                AS cnt
-                FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
+                    COALESCE(d.directory_code, 'Unknown')      AS mall_code,
+                    COALESCE(d.directory_name, 'Unknown')      AS mall_name,
+                    COALESCE(CAST(c.status AS STRING), '-')    AS status,
+                    COUNT(*)                                   AS cnt
+                FROM `{$project}.{$dataset}.pgcard_detail_member_coupon_styw_2026` c
                 LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
-                    ON d.id = mc.print_directory_id
-                WHERE mc.deleted_at IS NULL
-                GROUP BY d.directory_code, d.directory_name, mc.status
+                    ON d.id = c.print_directory_id
+                GROUP BY d.directory_code, d.directory_name, c.status
                 ORDER BY mall_code, status
             SQL;
 
-            $sqlCampaigns = <<<SQL
-                SELECT DISTINCT cam.name
-                FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
-                INNER JOIN `{$project}.{$dataset}.pgcard_campaigns_src` cam
-                    ON cam.id = mc.campaign_id
-                WHERE mc.deleted_at IS NULL
-                  AND cam.deleted_at IS NULL
-                  AND cam.name IS NOT NULL
-                ORDER BY cam.name
-            SQL;
-
-            $rows          = $bq->query($sql);
-            $campaignNames = array_column(iterator_to_array($bq->query($sqlCampaigns)), 'name');
+            $rows = $bq->query($sql);
 
             $byMall          = [];   // all malls, for donut (unfiltered)
             $byStatusFiltered = [];  // status breakdown for allowed malls
-            $totalFiltered   = 0;
+            $byMallStatus     = [];  // full mall+status breakdown for client-side donut filtering
+            $totalFiltered    = 0;
 
             foreach ($rows as $row) {
                 $code    = (string) ($row['mall_code'] ?? 'Unknown');
@@ -767,11 +755,8 @@ class GmReportController extends Controller
                 $status  = (string) ($row['status']    ?? '-');
                 $cnt     = (int)    ($row['cnt']        ?? 0);
 
-                // by_mall (always, for donut)
-                if (!isset($byMall[$code])) {
-                    $byMall[$code] = ['mall_code' => $code, 'mall_name' => $name, 'count' => 0];
-                }
-                $byMall[$code]['count'] += $cnt;
+                // full mall+status breakdown (unfiltered by company — for donut)
+                $byMallStatus[] = ['mall_code' => $code, 'mall_name' => $name, 'status' => $status, 'count' => $cnt];
 
                 // filtered total + status — only include allowed malls
                 $allowed = $malls === null || in_array($code, $malls, true);
@@ -790,13 +775,12 @@ class GmReportController extends Controller
                 'data' => [
                     'total_filtered'     => $totalFiltered,
                     'by_status_filtered' => $byStatusOut,
-                    'by_mall'            => array_values($byMall),
-                    'campaign_names'     => $campaignNames,
+                    'by_mall_status'     => $byMallStatus,
                 ],
             ]);
         } catch (\Throwable $e) {
             return response()->json([
-                'data'  => ['total_filtered' => 0, 'by_status_filtered' => [], 'by_mall' => []],
+                'data'  => ['total_filtered' => 0, 'by_status_filtered' => [], 'by_mall_status' => []],
                 'error' => $e->getMessage(),
             ]);
         }

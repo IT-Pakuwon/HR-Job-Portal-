@@ -60,17 +60,17 @@
 @endonce
 
 {{-- ── Outer flex wrapper — wraps to multiple lines instead of scrolling ──────── --}}
-<div class="flex flex-wrap items-center gap-2">
+<div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
 
     {{-- ── Main filter pill ─────────────────────────────────────────────────── --}}
     {{--
-        Mobile  (< sm): flex-col — two rows: [Company | Date] / [Dept | Refresh]
-        Desktop (sm+) : flex-row — single row pill as before
+        Mobile  (< sm): flex-col full-width — two rows: [Company | Date] / [Dept | Refresh]
+        Desktop (sm+) : flex-row auto-width single row pill
     --}}
-    <div class="flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm sm:flex-row dark:border-slate-700/60 dark:bg-slate-900">
+    <div class="flex w-full flex-col rounded-2xl border border-slate-200 bg-white shadow-sm sm:w-auto sm:flex-row dark:border-slate-700/60 dark:bg-slate-900">
 
         {{-- ── Group 1: Company + Date ───────────────────────────────────────── --}}
-        <div class="flex items-center divide-x divide-slate-200 border-b border-slate-200 sm:border-b-0 dark:divide-slate-700/60 dark:border-slate-700/60">
+        <div class="flex w-full items-center divide-x divide-slate-200 border-b border-slate-200 sm:w-auto sm:border-b-0 dark:divide-slate-700/60 dark:border-slate-700/60">
 
             {{-- 1a. Company — locked badge (shown by JS when user has only one company) --}}
             <div id="gmCompanyLocked"
@@ -165,7 +165,7 @@
 
         {{-- ── Group 2: Department + Refresh ────────────────────────────────── --}}
         {{-- On sm+: left border separates this group from Group 1 --}}
-        <div class="flex items-center divide-x divide-slate-200 sm:border-l sm:border-slate-200 dark:divide-slate-700/60 dark:sm:border-slate-700/60">
+        <div class="flex w-full items-center divide-x divide-slate-200 sm:w-auto sm:border-l sm:border-slate-200 dark:divide-slate-700/60 dark:sm:border-slate-700/60">
 
             {{-- 3. Department — button + floating panel --}}
             <div class="relative">

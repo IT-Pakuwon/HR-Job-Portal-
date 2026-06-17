@@ -5,7 +5,7 @@
     // Routes: window.gmRoutes.summary, .byDept, .byActivity
     var routes    = window.gmRoutes || {};
     var utils     = window.gmUtils;
-    var PAGE_SIZE = 10;
+    var PAGE_SIZE = 15;
 
     var charts        = { donut: null, trend: null };
     var xhrSum        = null, xhrDept = null, xhrAct = null, xhrMonth = null;

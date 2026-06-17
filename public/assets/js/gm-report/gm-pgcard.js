@@ -394,18 +394,25 @@
         });
     }
 
-    function renderCampaignNames(names) {
-        var el = document.getElementById('pgcardCampaignNames');
-        if (!el) return;
-        el.innerHTML = '';
-        (names || []).forEach(function (name) {
-            var tag = document.createElement('span');
-            tag.style.cssText = 'display:inline-flex;align-items:center;padding:2px 8px;'
-                + 'border-radius:9999px;font-size:9px;font-weight:600;letter-spacing:0.02em;'
-                + 'background:#8B5CF61a;color:#8B5CF6;border:1px solid #8B5CF630;';
-            tag.textContent = name;
-            el.appendChild(tag);
+
+    var byMallStatus = [];  // [{mall_code, mall_name, status, count}] — full breakdown for client-side filtering
+
+    function mallStatusFilter() {
+        var sel = document.getElementById('pgcardMallStatusFilter');
+        return sel ? sel.value : 'VALID';
+    }
+
+    function applyMallStatusFilter(statusVal) {
+        var grouped = {};
+        byMallStatus.forEach(function (row) {
+            if (statusVal === '' || row.status === statusVal) {
+                if (!grouped[row.mall_code]) {
+                    grouped[row.mall_code] = { mall_code: row.mall_code, mall_name: row.mall_name, count: 0 };
+                }
+                grouped[row.mall_code].count += row.count;
+            }
         });
+        return Object.values(grouped);
     }
 
     function loadCouponStyw() {
@@ -419,12 +426,25 @@
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 var d = res.data || {};
-                utils.setText('pgcardCouponTotal', Number(d.total_filtered || 0).toLocaleString('id-ID'));
+
+                // Total = VALID count only
+                var validRow = (d.by_status_filtered || []).find(function (s) { return s.status === 'VALID'; });
+                utils.setText('pgcardCouponTotal', Number((validRow && validRow.count) || 0).toLocaleString('id-ID'));
+
                 renderCouponStatus(d.by_status_filtered || []);
-                renderCouponDonut(d.by_mall || []);
-                renderCampaignNames(d.campaign_names || []);
+
+                byMallStatus = d.by_mall_status || [];
+                renderCouponDonut(applyMallStatusFilter(mallStatusFilter()));
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('pgcard coupon:', e); });
+    }
+
+    function bindMallStatusFilter() {
+        var sel = document.getElementById('pgcardMallStatusFilter');
+        if (!sel) return;
+        sel.addEventListener('change', function () {
+            renderCouponDonut(applyMallStatusFilter(this.value));
+        });
     }
 
     // ── Dark-mode watcher ──────────────────────────────────────────────────────
@@ -438,10 +458,10 @@
 
     // ── Reload on dashboard filter change ─────────────────────────────────────
     function reloadAll() {
-        customerData   = {};
-        tenantData     = {};
-        activeCustomer = null;
-        activeTenant   = null;
+        customerData       = {};
+        tenantData         = {};
+        activeCustomer     = null;
+        activeTenant       = null;
         if (charts.customer) { charts.customer.destroy(); charts.customer = null; }
         if (charts.tenant)   { charts.tenant.destroy();   charts.tenant   = null; }
         if (charts.coupon)   { charts.coupon.destroy();   charts.coupon   = null; }
@@ -461,6 +481,7 @@
     // ── Init ──────────────────────────────────────────────────────────────────
     function init() {
         bindMetrics();
+        bindMallStatusFilter();
         setActiveMetric('pgcardCustMetric', metricCustomer);
         setActiveMetric('pgcardTenMetric',  metricTenant);
         watchDarkMode();
