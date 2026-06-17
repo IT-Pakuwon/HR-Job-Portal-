@@ -425,7 +425,7 @@
                     },
                     {
                         data: 'jobposting_status',
-                        render: function(data) {
+                        render: function(data, type, row) {
 
                             let text = '';
                             let cls = '';
@@ -433,6 +433,9 @@
                            if (!data) {
                                 text = 'Not Posted';
                                 cls = 'bg-gray-200 text-gray-700';
+                            } else if (data === 'U') {
+                                text = 'Unposted';
+                                cls = 'bg-gray-200 text-gray-600';
                             } else if (data === 'P') {
                                 text = 'Posted';
                                 cls = 'bg-blue-200 text-blue-800';
@@ -440,11 +443,16 @@
                                 text = 'Closed';
                                 cls = 'bg-green-200 text-green-800';
                             } else if (data === 'X') {
-                                text = 'Cancelled'; // ✅ ADD THIS
+                                text = 'Cancelled';
                                 cls = 'bg-red-200 text-red-800';
                             } else if (data === 'H') {
                                 text = 'Hold';
                                 cls = 'bg-orange-200 text-orange-800';
+                                const reason = row.jobposting_reason ?? null;
+                                const reasonIcon = reason
+                                    ? ` <span class="jp-reason-icon cursor-pointer ml-1 align-middle" title="${reason}" data-reason="${reason}">ℹ️</span>`
+                                    : '';
+                                return `<span class="px-2 py-1 rounded ${cls}">${text}${reasonIcon}</span>`;
                             } else {
                                 text = data;
                                 cls = 'bg-gray-200 text-gray-700';
@@ -461,212 +469,190 @@
                             if (!row.jobposting_status) return `<span class="text-gray-400 text-sm">-</span>`;
                             if (row.status !== 'C') return `<span class="text-gray-300 text-xs">-</span>`;
 
-                            let buttons = `<div class="flex items-center gap-2 justify-end">`;
-
-                            // 🔵 POSTED → can Close + Cancel
-                            if (row.jobposting_status === 'P') {
-                                buttons += `
-                                    <button
-                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                        bg-red-100 text-red-700 hover:bg-red-200 transition"
-                                        data-docid="${row.docid}"
-                                        data-status="P"
-                                    >
-                                        🔒 Close
-                                    </button>
-                                `;
-
-                                buttons += `
-                                    <button
-                                        class="cancel-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                        bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                                        data-docid="${row.docid}"
-                                    >
-                                        ✖ Cancel
-                                    </button>
-                                `;
-                            }
-
-                            // 🟢 CLOSED → can Reopen + Cancel
-                            if (row.jobposting_status === 'C') {
-                                buttons += `
-                                <button
-                                    class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                    bg-green-100 text-green-700 hover:bg-green-200 transition"
-                                    data-docid="${row.docid}"
-                                    data-status="C"
-                                >
-                                    🔓 Reopen
-                                </button>
-                                `;
-
-                                buttons += `
-                                    <button
-                                        class="cancel-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                        bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                                        data-docid="${row.docid}"
-                                    >
-                                        ✖ Cancel
-                                    </button>
-                                `;
-                            }
-
-                            if (row.jobposting_status === 'H') {
-                                buttons += `
-                                    <button
-                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                        bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
-                                        data-docid="${row.docid}"
-                                        data-status="H"
-                                    >
-                                        🔄 Open
-                                    </button>
-                                `;
-                            }
-
-                            // ❌ CANCELLED → no action
+                            // ❌ CANCELLED → no action (terminal)
                             if (row.jobposting_status === 'X') {
                                 return `<span class="text-red-500 text-xs font-semibold">Cancelled</span>`;
                             }
 
-                            buttons += `</div>`;
-                            return buttons;
+                            const s = row.jobposting_status;
+                            const id = row.docid;
+
+                            const actionMap = {
+                                U: [
+                                    { label: '📢 Post',    action: 'post',   cls: 'text-blue-700'  },
+                                    { label: '🔒 Close',   action: 'close',  cls: 'text-red-700'   },
+                                    { label: '⏸ Hold',    action: 'hold',   cls: 'text-amber-700' },
+                                    { label: '✖ Cancel',  action: 'cancel', cls: 'text-gray-600'  },
+                                ],
+                                P: [
+                                    { label: '🔒 Close',   action: 'close',  cls: 'text-red-700'   },
+                                    { label: '⏸ Hold',    action: 'hold',   cls: 'text-amber-700' },
+                                    { label: '📥 Unpost', action: 'unpost', cls: 'text-yellow-700' },
+                                    { label: '✖ Cancel',  action: 'cancel', cls: 'text-gray-600'  },
+                                ],
+                                C: [
+                                    { label: '🔓 Reopen',  action: 'reopen', cls: 'text-green-700' },
+                                    { label: '📥 Unpost', action: 'unpost', cls: 'text-yellow-700' },
+                                    { label: '✖ Cancel',  action: 'cancel', cls: 'text-gray-600'  },
+                                ],
+                                H: [
+                                    { label: '🔄 Open',    action: 'open',   cls: 'text-blue-700'  },
+                                    { label: '📥 Unpost', action: 'unpost', cls: 'text-yellow-700' },
+                                ],
+                            };
+
+                            const items = actionMap[s] ?? [];
+                            if (!items.length) return `<span class="text-gray-300 text-xs">-</span>`;
+
+                            const menuItems = items.map(i =>
+                                `<button class="jp-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 ${i.cls}"
+                                    data-docid="${id}" data-status="${s}" data-action="${i.action}">${i.label}</button>`
+                            ).join('');
+
+                            return `
+                                <div class="jp-dropdown inline-block text-left">
+                                    <button class="jp-dropdown-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition border border-gray-300"
+                                        data-docid="${id}">
+                                        Action ▾
+                                    </button>
+                                </div>
+                            `;
                         }
                     }
                 ]
             });
 
-                $('#personnelsTable').on('click', '.toggle-status', function() {
+                // Buat satu elemen menu fixed yang di-share semua baris
+                const $jpMenu = $(`
+                    <div id="jp-fixed-menu" class="hidden fixed z-[9999] w-40 rounded-md shadow-lg bg-white border border-gray-200 py-1">
+                    </div>
+                `).appendTo('body');
 
-                    let btn = $(this);
-                    let docid = btn.data('docid');
-                    let currentStatus = btn.data('status');
+                const actionLabels = {
+                    post:   { label: '📢 Post',    cls: 'text-blue-700'   },
+                    close:  { label: '🔒 Close',   cls: 'text-red-700'    },
+                    hold:   { label: '⏸ Hold',    cls: 'text-amber-700'  },
+                    unpost: { label: '📥 Unpost',  cls: 'text-yellow-700' },
+                    cancel: { label: '✖ Cancel',  cls: 'text-gray-600'   },
+                    reopen: { label: '🔓 Reopen',  cls: 'text-green-700'  },
+                    open:   { label: '🔄 Open',    cls: 'text-blue-700'   },
+                };
 
-                    let title = '';
-                    let text = '';
-                    let showHoldClose = false;
+                const statusActions = {
+                    U: ['post', 'close', 'hold', 'cancel'],
+                    P: ['close', 'hold', 'unpost', 'cancel'],
+                    C: ['reopen', 'unpost', 'cancel'],
+                    H: ['open', 'unpost'],
+                };
 
-                    // 🔥 Decide popup based on current status
-                    if (currentStatus === 'P') {
-                        title = 'Select Action';
-                        text = 'Do you want to HOLD or CLOSE this job posting?';
-                        showHoldClose = true;
-                    } else if (currentStatus === 'C') {
-                        title = 'Reopen Job Posting';
-                        text = 'Do you want to reopen this job posting?';
-                    } else if (currentStatus === 'H') {
-                        title = 'Open Job Posting';
-                        text = 'Do you want to post this job again?';
+                // Toggle dropdown open/close
+                $('#personnelsTable').on('click', '.jp-dropdown-toggle', function(e) {
+                    e.stopPropagation();
+
+                    const btn      = $(this);
+                    const docid    = btn.data('docid');
+                    const jpStatus = btn.closest('tr').find('[data-jp-status]').data('jp-status')
+                                  || btn.closest('td').prev('[data-jp-status]').data('jp-status')
+                                  || btn.closest('tr').find('.jp-status-cell').data('jp-status');
+
+                    // Ambil status dari data yg sudah di-render di kolom Job Posting Status
+                    const rowData  = personnelsTable.row(btn.closest('tr')).data();
+                    const s        = rowData ? rowData.jobposting_status : null;
+
+                    if (!s || !statusActions[s]) {
+                        $jpMenu.addClass('hidden');
+                        return;
                     }
 
+                    // Build menu items
+                    const items = statusActions[s].map(action => {
+                        const cfg = actionLabels[action];
+                        return `<button class="jp-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 ${cfg.cls}"
+                            data-docid="${docid}" data-status="${s}" data-action="${action}">${cfg.label}</button>`;
+                    }).join('');
+
+                    $jpMenu.html(items);
+
+                    // Posisi fixed berdasarkan koordinat tombol
+                    const rect = this.getBoundingClientRect();
+                    $jpMenu.css({
+                        top:  rect.bottom + window.scrollY,
+                        left: rect.right - 160 + window.scrollX,
+                    });
+
+                    const isVisible = !$jpMenu.hasClass('hidden');
+                    $jpMenu.toggleClass('hidden', isVisible);
+                });
+
+                // Show hold reason on click
+                $('#personnelsTable').on('click', '.jp-reason-icon', function(e) {
+                    e.stopPropagation();
+                    const reason = $(this).data('reason');
                     Swal.fire({
-                        title,
-                        text,
+                        title: 'Hold Reason',
+                        text: reason,
+                        icon: 'info',
+                        confirmButtonColor: '#f59e0b',
+                    });
+                });
+
+                // Close dropdown saat klik di luar
+                $(document).on('click', function() {
+                    $jpMenu.addClass('hidden');
+                });
+
+                // Handle pilihan dari dropdown
+                $(document).on('click', '.jp-action-item', function(e) {
+                    e.stopPropagation();
+                    $jpMenu.addClass('hidden');
+
+                    const btn    = $(this);
+                    const docid  = btn.data('docid');
+                    const status = btn.data('status');
+                    const action = btn.data('action');
+
+                    const confirmMap = {
+                        post:   { title: 'Post Job Posting',    text: 'Publish this job posting?',              confirmText: 'Yes, Post',    color: '#2563eb', targetStatus: 'P', successText: 'Posted'    },
+                        close:  { title: 'Close Job Posting',   text: 'Close this job posting?',                confirmText: 'Yes, Close',   color: '#dc2626', targetStatus: 'C', successText: 'Closed'    },
+                        reopen: { title: 'Reopen Job Posting',  text: 'Reopen this job posting?',               confirmText: 'Yes, Reopen',  color: '#16a34a', targetStatus: 'P', successText: 'Reopened'  },
+                        open:   { title: 'Open Job Posting',    text: 'Post this job again?',                   confirmText: 'Yes, Open',    color: '#2563eb', targetStatus: 'P', successText: 'Opened'    },
+                        unpost: { title: 'Unpost Job Posting',  text: 'Move back to Unposted?',                 confirmText: 'Yes, Unpost',  color: '#ca8a04', targetStatus: 'U', successText: 'Unposted'  },
+                        cancel: { title: 'Cancel Job Posting',  text: 'You are about to cancel this posting.',  confirmText: 'Yes, Cancel',  color: '#6b7280', targetStatus: 'X', successText: 'Cancelled' },
+                    };
+
+                    if (action === 'hold') {
+                        Swal.fire({
+                            title: 'Reason for Hold',
+                            input: 'textarea',
+                            inputPlaceholder: 'Enter reason...',
+                            inputAttributes: { 'aria-label': 'Reason' },
+                            showCancelButton: true,
+                            confirmButtonText: 'Submit',
+                            confirmButtonColor: '#f59e0b',
+                            preConfirm: (value) => {
+                                if (!value) Swal.showValidationMessage('Reason is required');
+                                return value;
+                            }
+                        }).then((res) => {
+                            if (res.isConfirmed) processStatus(docid, 'H', 'Put on Hold', btn, res.value);
+                        });
+                        return;
+                    }
+
+                    const cfg = confirmMap[action];
+                    if (!cfg) return;
+
+                    Swal.fire({
+                        title: cfg.title,
+                        text: cfg.text,
                         icon: 'question',
                         showCancelButton: true,
-                        showDenyButton: showHoldClose,
-
-                        confirmButtonText: showHoldClose ? 'Close' : 'Yes',
-                        denyButtonText: 'Hold',
-                        cancelButtonText: 'Cancel',
-
-                        confirmButtonColor: '#dc2626',
-                        denyButtonColor: '#f59e0b'
+                        confirmButtonText: cfg.confirmText,
+                        confirmButtonColor: cfg.color,
                     }).then((result) => {
-
-                        // 🔴 CLOSE
-                        if (showHoldClose && result.isConfirmed) {
-                            processStatus(docid, 'C', 'Closed', btn);
-                        }
-
-                        // 🟡 HOLD → NEED REASON
-                        else if (showHoldClose && result.isDenied) {
-
-                            Swal.fire({
-                                title: 'Reason for Hold',
-                                input: 'textarea',
-                                inputPlaceholder: 'Enter reason...',
-                                inputAttributes: {
-                                    'aria-label': 'Reason'
-                                },
-                                showCancelButton: true,
-                                confirmButtonText: 'Submit',
-                                confirmButtonColor: '#f59e0b',
-                                preConfirm: (value) => {
-                                    if (!value) {
-                                        Swal.showValidationMessage('Reason is required');
-                                    }
-                                    return value;
-                                }
-                            }).then((res) => {
-
-                                if (!res.isConfirmed) return;
-
-                                let reason = res.value;
-
-                                processStatus(docid, 'H', 'Put on Hold', btn, reason);
-                            });
-                        }
-
-                        // 🔵 REOPEN / OPEN
-                        else {
-                            if (!result.isConfirmed) return;
-
-                            let status = null;
-                            let successText = '';
-
-                            if (currentStatus === 'C') {
-                                status = 'P';
-                                successText = 'Reopened';
-                            } else if (currentStatus === 'H') {
-                                status = 'P';
-                                successText = 'Opened';
-                            }
-
-                            processStatus(docid, status, successText, btn);
-                        }
+                        if (result.isConfirmed) processStatus(docid, cfg.targetStatus, cfg.successText, btn);
                     });
                 });
-
-                $('#personnelsTable').on('click', '.cancel-status', function () {
-
-                let btn = $(this);
-                let docid = btn.data('docid');
-
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'You are about to cancel this job posting.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#6b7280',
-                    confirmButtonText: 'Yes, cancel it!'
-                }).then((result) => {
-
-                    if (!result.isConfirmed) return;
-
-                    btn.prop('disabled', true).html('Processing...');
-
-                    $.post('/jobposting/toggle-status', {
-                        docid,
-                        status: 'X', // 🔥 CANCELLED
-                        _token: '{{ csrf_token() }}'
-                    })
-                    .done(() => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Cancelled',
-                            timer: 1200,
-                            showConfirmButton: false
-                        });
-
-                        personnelsTable.ajax.reload(null, false);
-                    })
-                    .fail(() => {
-                        Swal.fire('Failed', 'Something went wrong', 'error');
-                        btn.prop('disabled', false);
-                    });
-                });
-            });
 
             // Event listener untuk klik pada baris grup (collapse/expand) untuk personnelsTable
             $('#personnelsTable tbody').on('click', 'tr.group-row', function() {

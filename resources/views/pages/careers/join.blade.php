@@ -42,10 +42,8 @@
 <div class="mt-6 w-full rounded-xl bg-white p-4 dark:bg-gray-800" id="docid_onboarding"
     data-docid="{{ optional($onboarding)->docid }}">
 
-    <header class="mb-6 flex items-center gap-2"> {{-- Section header with enhanced styling --}}
-        <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">
-            <span class="text-green-500">✅</span> Checklist Onboarding
-        </h3>
+    <header class="mb-4 flex items-center gap-2">
+        <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Checklist Onboarding</h3>
     </header>
 
     <form id="checklistForm">
@@ -55,7 +53,7 @@
 
         <div class="mt-8 flex justify-end">
             <button type="submit"
-                class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
                 Save Checklist
             </button>
         </div>
@@ -88,7 +86,7 @@
 
         <div class="mt-6 flex justify-end">
             <button type="submit" id="btnSaveSchedule"
-                class="inline-flex items-center rounded-xl bg-emerald-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
                 <span class="sch-text">Save Schedule & Send Email</span>
                 <svg class="sch-spin ml-2 hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"

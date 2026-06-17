@@ -11,6 +11,7 @@ use App\Models\ApplicantMarital;
 use App\Models\ApplicantSkill;
 use App\Models\ApplicantSW;
 use App\Models\ApplicantWorking;
+use App\Models\GroupAccspecific;
 use App\Models\SelfPosting;
 use App\Models\User;
 use Google\Cloud\Storage\StorageClient;
@@ -30,16 +31,43 @@ class SelfRegisterApplicantController extends Controller
                 : redirect()->route('login')->with('error', 'Your session has expired. Please sign in again.');
         }
 
-        $q = DB::connection('mysql3')->table('viewselfregister');
+        $base = DB::connection('mysql3')
+            ->table('viewselfregister as vc')
+            ->leftJoin('hr_ms_applicant_tagging as tag', function ($join) {
+                $join->on('vc.docid', '=', 'tag.docid')
+                    ->where('tag.status', '!=', 'X');
+            })
+            ->leftJoin('hr_trx_job_apply as map', function ($join) {
+                $join->on('vc.docid', '=', 'map.docid')
+                    ->where('map.status', '!=', 'X');
+            })
+            ->leftJoin('hr_trx_selfposting as sp', 'vc.docid', '=', 'sp.docid');
 
-        $all = (clone $q)->count();
+        $all       = (clone $base)->count();
+        $unchecked = (clone $base)->where(function ($q) {
+            $q->where('sp.is_read', 'N')->orWhereNull('sp.is_read');
+        })->count();
+        $checked   = (clone $base)->where('sp.is_read', 'Y')->whereIn('vc.status', ['H', 'P'])->count();
+        $reject    = (clone $base)->where('vc.status', 'R')->count();
+        $mapped    = (clone $base)->whereNotNull('map.jobid')->count();
+        $unmapped  = (clone $base)->whereNull('map.jobid')->count();
+        $tagged    = (clone $base)->whereNotNull('tag.id')->count();
+        $untagged  = (clone $base)->whereNull('tag.id')->count();
 
-        return view('pages.selfregister.selfapplicant', compact('all'));
+        $divisions = \App\Models\MsDivision::where('status', 'A')
+            ->orderBy('division_name')
+            ->get(['division_id', 'division_name']);
+
+        return view('pages.selfregister.selfapplicant', compact(
+            'all', 'unchecked', 'checked', 'reject', 'mapped', 'unmapped', 'tagged', 'untagged', 'divisions'
+        ));
     }
 
     public function json(Request $request)
     {
-        $status = $request->query('status'); // '', 'HP', 'R', 'C'
+        $status           = $request->query('status');
+        $divisionFilter   = trim((string) $request->input('division_filter', ''));
+        $departmentFilter = trim((string) $request->input('department_filter', ''));
 
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
@@ -61,22 +89,44 @@ class SelfRegisterApplicantController extends Controller
 
         $base = DB::connection('mysql3')
             ->table('viewselfregister as vc')
-
-            ->leftJoin('hr_trx_selfposting as sp', 'vc.docid', '=', 'sp.docid')
+            ->leftJoin('hr_ms_applicant_tagging as tag', function ($join) {
+                $join->on('vc.docid', '=', 'tag.docid')
+                    ->where('tag.status', '!=', 'X');
+            })
             ->leftJoin('hr_trx_job_apply as map', function ($join) {
                 $join->on('vc.docid', '=', 'map.docid')
                     ->where('map.status', '!=', 'X');
             })
-
-            ->leftJoin('hr_trx_jobposting as jp', 'map.jobid', '=', 'jp.docid');
+            ->leftJoin('hr_trx_jobposting as jp', 'map.jobid', '=', 'jp.docid')
+            ->leftJoin('hr_trx_selfposting as sp', 'vc.docid', '=', 'sp.docid');
 
         // Filter status card
         if (!empty($status)) {
-            if ($status === 'HP') {
-                $base->whereIn('vc.status', ['H', 'P']);
+            if ($status === 'is_read_N') {
+                $base->where(function ($q) {
+                    $q->where('sp.is_read', 'N')->orWhereNull('sp.is_read');
+                });
+            } elseif ($status === 'is_read_Y') {
+                $base->where('sp.is_read', 'Y')
+                    ->whereIn('vc.status', ['H', 'P']);
+            } elseif ($status === 'mapping') {
+                $base->whereNotNull('map.jobid');
+            } elseif ($status === 'unmapping') {
+                $base->whereNull('map.jobid');
+            } elseif ($status === 'tagged') {
+                $base->whereNotNull('tag.id');
+            } elseif ($status === 'untagged') {
+                $base->whereNull('tag.id');
             } else {
                 $base->where('vc.status', $status);
-            } // R / C / dll
+            }
+        }
+
+        if ($divisionFilter !== '') {
+            $base->where('tag.division_id_tagging', $divisionFilter);
+        }
+        if ($departmentFilter !== '') {
+            $base->where('tag.departementid_tagging', $departmentFilter);
         }
 
         $recordsTotal = (clone $base)->count();
@@ -136,8 +186,10 @@ class SelfRegisterApplicantController extends Controller
             'vc.weight',
             'vc.company_name',
             'vc.status',
-            'sp.division_id as division_name',
-            'sp.departementid as department_name',
+            'sp.is_read',
+            'tag.id as tag_id',
+            'tag.division_id_tagging as division_id',
+            'tag.departementid_tagging as department_id',
 
             'map.jobid as jobposting_docid',
             'jp.job_title',
@@ -146,22 +198,36 @@ class SelfRegisterApplicantController extends Controller
             ->orderBy($orderBy, $orderDir)
             ->get();
 
-        $data = $rows->map(function ($r) {
+        // Pre-fetch division and department names for tagged rows
+        $divisionIds   = $rows->pluck('division_id')->filter()->unique()->values()->all();
+        $departmentIds = $rows->pluck('department_id')->filter()->unique()->values()->all();
+
+        $divisionMap = \App\Models\MsDivision::whereIn('division_id', $divisionIds)
+            ->pluck('division_name', 'division_id');
+
+        $departmentMap = \App\Models\DepartmentHR::whereIn('department_id', $departmentIds)
+            ->pluck('department_name', 'department_id');
+
+        $data = $rows->map(function ($r) use ($divisionMap, $departmentMap) {
             return [
-                'eid' => Hashids::encode($r->id),
-                'docid' => $r->docid,
-                'apply_date' => $r->apply_date,
-                'fullname' => $r->fullname,
+                'eid'           => Hashids::encode($r->id),
+                'docid'         => $r->docid,
+                'apply_date'    => $r->apply_date,
+                'fullname'      => $r->fullname,
                 'education_name' => $r->education_name,
-                'religion' => $r->religion,
-                'height' => $r->height,
-                'weight' => $r->weight,
-                'company_name' => $r->company_name,
-                'division_name' => $r->division_name,
-                'department_name' => $r->department_name,
-                'status' => $r->status,
+                'religion'      => $r->religion,
+                'height'        => $r->height,
+                'weight'        => $r->weight,
+                'company_name'  => $r->company_name,
+                'division_id'   => $r->division_id,
+                'department_id' => $r->department_id,
+                'division_name' => $divisionMap[$r->division_id]   ?? null,
+                'department_name' => $departmentMap[$r->department_id] ?? null,
+                'is_tagged'     => !empty($r->tag_id),
+                'status'        => $r->status,
+                'is_read'       => $r->is_read,
                 'jobposting_docid' => $r->jobposting_docid,
-                'job_name' => $r->job_title
+                'job_name'      => $r->job_title
                     ? $r->job_title.' (Lvl '.$r->job_level.')'
                     : null,
             ];
@@ -188,6 +254,16 @@ class SelfRegisterApplicantController extends Controller
 
         $career = SelfPosting::findOrFail($id);
 
+        $hasGroupAccess = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'STEP')
+            ->where('status', 'A')
+            ->first();
+
+        if ($hasGroupAccess) {
+            $career->is_read = 'Y';
+            $career->save();
+        }
+
         $applicant = Applicant::where('applicant_id', $career->applicant_id)->first();
         $applicant_family = ApplicantFamily::where('applicant_id', $career->applicant_id)->get();
         $applicant_marital = ApplicantMarital::where('applicant_id', $career->applicant_id)->get();
@@ -212,10 +288,11 @@ class SelfRegisterApplicantController extends Controller
         $photo = null;
         $cv = null;
         $coverletter = null;
+        $transkip = null;
+        $ijazah = null;
 
         if (!empty($applicant->upload_photo)) {
             $object = $bucket->object($applicant->upload_photo);
-            // signedUrl expects DateTimeInterface
             $photo = $object->signedUrl($expiration);
         }
 
@@ -224,9 +301,24 @@ class SelfRegisterApplicantController extends Controller
             $cv = $object->signedUrl($expiration);
         }
 
+        if (!empty($applicant->upload_coverletter)) {
+            $object = $bucket->object($applicant->upload_coverletter);
+            $coverletter = $object->signedUrl($expiration);
+        }
+
+        if (!empty($applicant->upload_transkip_nilai)) {
+            $object = $bucket->object($applicant->upload_transkip_nilai);
+            $transkip = $object->signedUrl($expiration);
+        }
+
+        if (!empty($applicant->upload_ijazah)) {
+            $object = $bucket->object($applicant->upload_ijazah);
+            $ijazah = $object->signedUrl($expiration);
+        }
+
         return view('pages.selfregister.showapplicant', compact(
             'hash', 'career', 'applicant', 'applicant_family', 'applicant_marital', 'applicant_education', 'applicant_working', 'applicant_language', 'applicant_course', 'applicant_sw',
-            'applicant_skill', 'year', 'photo', 'cv', 'coverletter'
+            'applicant_skill', 'year', 'photo', 'cv', 'coverletter', 'transkip', 'ijazah'
         ));
     }
 
@@ -499,5 +591,119 @@ class SelfRegisterApplicantController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function getDepartments(Request $request)
+    {
+        $divisionId = $request->query('division_id');
+
+        $query = \App\Models\DepartmentHR::where('status', 'A')
+            ->select('department_id', 'department_name');
+
+        if ($divisionId) {
+            $query->where('division_id', $divisionId);
+        }
+
+        return response()->json($query->orderBy('department_name')->get());
+    }
+
+    public function storeTag(Request $request)
+    {
+        $request->validate([
+            'applicant_id' => 'required',
+            'division_id'  => 'required|string',
+            'department_id' => 'required|string',
+        ]);
+
+        $decoded = Hashids::decode($request->applicant_id);
+        $id = $decoded[0] ?? null;
+
+        if (!$id) {
+            return response()->json(['error' => 'Invalid ID'], 400);
+        }
+
+        $self = DB::connection('mysql3')
+            ->table('viewselfregister')
+            ->where('id', $id)
+            ->first();
+
+        if (!$self) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $posting = DB::connection('mysql3')
+            ->table('hr_trx_selfposting')
+            ->where('docid', $self->docid)
+            ->first();
+
+        $user = auth()->user()->username ?? 'system';
+
+        DB::connection('mysql3')->beginTransaction();
+        try {
+            // Soft-delete semua tag aktif sebelumnya
+            DB::connection('mysql3')
+                ->table('hr_ms_applicant_tagging')
+                ->where('docid', $self->docid)
+                ->where('status', '!=', 'X')
+                ->update([
+                    'status'       => 'X',
+                    'updated_user' => $user,
+                    'updated_at'   => now(),
+                ]);
+
+            // Insert tag baru
+            DB::connection('mysql3')->table('hr_ms_applicant_tagging')->insert([
+                'docid'                 => $self->docid,
+                'applicant_id'          => $posting->applicant_id ?? null,
+                'division_id_tagging'   => $request->division_id,
+                'departementid_tagging' => $request->department_id,
+                'status'                => 'A',
+                'created_user'          => $user,
+                'created_at'            => now(),
+                'updated_user'          => $user,
+                'updated_at'            => now(),
+            ]);
+
+            DB::connection('mysql3')->commit();
+        } catch (\Exception $e) {
+            DB::connection('mysql3')->rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function storeReject(Request $request)
+    {
+        $request->validate([
+            'applicant_id' => 'required',
+        ]);
+
+        $decoded = Hashids::decode($request->applicant_id);
+        $id = $decoded[0] ?? null;
+
+        if (!$id) {
+            return response()->json(['error' => 'Invalid ID'], 400);
+        }
+
+        $self = DB::connection('mysql3')
+            ->table('viewselfregister')
+            ->where('id', $id)
+            ->first();
+
+        if (!$self) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        DB::connection('mysql3')
+            ->table('hr_trx_selfposting')
+            ->where('docid', $self->docid)
+            ->update([
+                'status'       => 'R',
+                'updated_user' => auth()->user()->username ?? 'system',
+                'updated_at'   => now(),
+            ]);
+
+        return response()->json(['success' => true]);
     }
 }
