@@ -36,6 +36,7 @@ use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\GaDashboardController;
+use App\Http\Controllers\WarehouseDashboardController;
 use App\Http\Controllers\BigQueryController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
@@ -1610,6 +1611,17 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/booking-car-json', 'bookingCarJson')->name('ga.booking-car');
             Route::get('/parking-json', 'parkingJson')->name('ga.parking');
             Route::get('/approval-doctypes', 'approvalDocTypes')->name('ga.approval-doctypes');
+        });
+
+        Route::prefix('warehouse-dashboard')->controller(WarehouseDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('warehouse.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('warehouse.approval');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('warehouse.approval-history');
+            Route::get('/sppb-on-progress-json', 'sppbOnProgressJson')->name('warehouse.sppb-on-progress');
+            Route::get('/po-solomon-json', 'poSolomonJson')->name('warehouse.po-solomon');
+            Route::get('/grn-solomon-json', 'grnSolomonJson')->name('warehouse.grn-solomon');
+            Route::get('/issue-solomon-json', 'issueSolomonJson')->name('warehouse.issue-solomon');
+            Route::get('/approval-doctypes', 'approvalDocTypes')->name('warehouse.approval-doctypes');
         });
 
         Route::prefix('hr-dashboard')->controller(HrDashboardController::class)->name('hr-dashboard.')->group(function () {
