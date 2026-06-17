@@ -565,6 +565,7 @@ class GmReportController extends Controller
     public function pgcardTopCustomers(Request $request)
     {
         try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
             $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
             $malls  = $this->allowedPgcardMalls($cpnyId);
 
@@ -587,6 +588,7 @@ class GmReportController extends Controller
                         SELECT directory_id, member_id, merchant_id,
                             ROW_NUMBER() OVER (PARTITION BY directory_id, member_id ORDER BY COUNT(*) DESC) AS rn
                         FROM `{$project}.{$dataset}.pgcard_member_transactions_src`
+                        WHERE DATE(transaction_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
                         GROUP BY directory_id, member_id, merchant_id
                     ) WHERE rn = 1
                 ),
@@ -595,6 +597,7 @@ class GmReportController extends Controller
                         SELECT directory_id, member_id, merchant_id,
                             ROW_NUMBER() OVER (PARTITION BY directory_id, member_id ORDER BY SUM(amount) DESC) AS rn
                         FROM `{$project}.{$dataset}.pgcard_member_transactions_src`
+                        WHERE DATE(transaction_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
                         GROUP BY directory_id, member_id, merchant_id
                     ) WHERE rn = 1
                 )
@@ -626,6 +629,7 @@ class GmReportController extends Controller
                     LEFT JOIN top_merch_amt ta
                         ON ta.directory_id = t.directory_id AND ta.member_id = t.member_id
                     LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` ma ON ma.id = ta.merchant_id
+                    WHERE DATE(t.transaction_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
                     GROUP BY t.directory_id, t.member_id, d.directory_code, d.directory_name
                 )
                 WHERE txn_rank <= 10 OR amt_rank <= 10
@@ -643,6 +647,7 @@ class GmReportController extends Controller
     public function pgcardTopTenants(Request $request)
     {
         try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
             $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
             $malls  = $this->allowedPgcardMalls($cpnyId);
 
@@ -665,6 +670,7 @@ class GmReportController extends Controller
                         SELECT directory_id, merchant_id, member_id,
                             ROW_NUMBER() OVER (PARTITION BY directory_id, merchant_id ORDER BY COUNT(*) DESC) AS rn
                         FROM `{$project}.{$dataset}.pgcard_member_transactions_src`
+                        WHERE DATE(transaction_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
                         GROUP BY directory_id, merchant_id, member_id
                     ) WHERE rn = 1
                 ),
@@ -673,6 +679,7 @@ class GmReportController extends Controller
                         SELECT directory_id, merchant_id, member_id,
                             ROW_NUMBER() OVER (PARTITION BY directory_id, merchant_id ORDER BY SUM(amount) DESC) AS rn
                         FROM `{$project}.{$dataset}.pgcard_member_transactions_src`
+                        WHERE DATE(transaction_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
                         GROUP BY directory_id, merchant_id, member_id
                     ) WHERE rn = 1
                 )
@@ -704,6 +711,7 @@ class GmReportController extends Controller
                     LEFT JOIN top_cust_amt tc_amt
                         ON tc_amt.directory_id = t.directory_id AND tc_amt.merchant_id = t.merchant_id
                     LEFT JOIN `{$project}.{$dataset}.pgcard_members_src` ca ON ca.id = tc_amt.member_id
+                    WHERE DATE(t.transaction_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
                     GROUP BY t.directory_id, t.merchant_id, d.directory_code, d.directory_name
                 )
                 WHERE txn_rank <= 10 OR amt_rank <= 10
@@ -721,6 +729,7 @@ class GmReportController extends Controller
     public function pgcardCouponStyw(Request $request)
     {
         try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
             $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
             $malls  = $this->allowedPgcardMalls($cpnyId); // null = all, [] = none, [...] = list
 
@@ -738,6 +747,7 @@ class GmReportController extends Controller
                 FROM `{$project}.{$dataset}.pgcard_detail_member_coupon_styw_2026` c
                 LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
                     ON d.id = c.print_directory_id
+                WHERE DATE(c.transaction_date_gmt7) BETWEEN '{$dateFrom}' AND '{$dateTo}'
                 GROUP BY d.directory_code, d.directory_name, c.status
                 ORDER BY mall_code, status
             SQL;

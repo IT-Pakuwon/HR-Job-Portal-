@@ -1410,15 +1410,16 @@ class ReceiptController extends Controller
             ->where('cpny_id', $rcp->cpny_id)
             ->first();
 
-        $rcpdetails = TrReceiptdetail::leftJoin(
-                'tr_po_detail as pod',
-                fn ($j) => $j->on('pod.ponbr', 'tr_receipt_detail.ponbr')
-                              ->on('pod.po_no', 'tr_receipt_detail.po_no')
-            )
-            ->where('tr_receipt_detail.receiptnbr', $rcp->receiptnbr)
-            ->orderBy('tr_receipt_detail.receipt_no', 'asc')
-            ->select('tr_receipt_detail.*', 'pod.ponote_detail')
+        $rcpdetails = TrReceiptdetail::where('receiptnbr', $rcp->receiptnbr)
+            ->whereNull('deleted_at')
+            ->orderBy('receipt_no', 'asc')
             ->get();
+
+        if ($po) {
+            $poNotes = TrPOdetail::where('ponbr', $po->ponbr)
+                ->pluck('ponote_detail', 'po_no');
+            $rcpdetails->each(fn($d) => $d->ponote_detail = $poNotes[$d->po_no] ?? null);
+        }
 
         $company = MsCompany::where('cpny_id', $rcp->cpny_id)->first();
 

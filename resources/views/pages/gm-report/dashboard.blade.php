@@ -19,7 +19,7 @@
 
             {{-- Inline anchor — filter lives here when header is visible --}}
             <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-start">
-                <div id="gmFilterAnchor" class="w-full sm:w-auto">
+                <div id="gmFilterAnchor" class="flex w-full sm:w-auto">
                     <x-dashboard-filter.dashboard-filter />
                 </div>
 
@@ -100,6 +100,29 @@
                     dark:border-slate-700/50 dark:bg-slate-900/90">
         </div>
 
+        {{-- ── Mobile Section Tabs — hidden on lg+ ──────────────────────────── --}}
+        <style>
+            .gm-sec-tab { border-bottom: 2px solid transparent; }
+            .gm-sec-tab-active { color:#7c3aed; border-bottom-color:#7c3aed; }
+            .gm-sec-tab-idle   { color:#94a3b8; }
+            .gm-sec-tab-idle:hover { color:#475569; background:rgb(241 245 249/.6); border-radius:4px 4px 0 0; }
+            .dark .gm-sec-tab-active { color:#a78bfa; border-bottom-color:#a78bfa; }
+            .dark .gm-sec-tab-idle:hover { color:#cbd5e1; background:rgb(51 65 85/.4); }
+        </style>
+        <div id="gmSectionTabs"
+             class="sticky top-0 z-30 -mx-2 flex lg:hidden
+                    border-b border-slate-200 bg-white/95 backdrop-blur-sm
+                    dark:border-slate-700/60 dark:bg-slate-900/95">
+            <button data-tab="budget"
+                    class="gm-sec-tab gm-sec-tab-active flex-1 py-2.5 text-xs font-bold uppercase tracking-widest transition">
+                Budget
+            </button>
+            <button data-tab="pgcard"
+                    class="gm-sec-tab gm-sec-tab-idle flex-1 py-2.5 text-xs font-bold uppercase tracking-widest transition">
+                PG Card
+            </button>
+        </div>
+
         {{-- ── Budget Section ───────────────────────────────────────────────────── --}}
         {{--
             Breakpoint layout summary:
@@ -109,7 +132,7 @@
             lg      : 4 col  — [Summary|Donut|Trend(×2)] / [Dept(×2)|Activity(×2)]
             xl      : 5 col  — Charts sidebar col-1 (rows 1–3) | Dept cols 2–3 | Activity cols 4–5
         --}}
-        <div class="mt-2 space-y-1.5">
+        <div id="gm-section-budget" class="mt-2 space-y-1.5">
 
             {{-- Section header --}}
             <div class="flex items-center gap-2 pt-1">
@@ -232,7 +255,7 @@
             .dark .pgcard-metric-idle:hover { background:rgb(51 65 85/.5);color:#cbd5e1; }
         </style>
 
-        <div class="mt-2 space-y-1.5">
+        <div id="gm-section-pgcard" class="mt-2 space-y-1.5">
 
             {{-- Section header --}}
             <div class="flex items-center gap-2 pt-1">

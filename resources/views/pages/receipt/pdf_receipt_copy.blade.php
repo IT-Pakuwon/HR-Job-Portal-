@@ -110,6 +110,11 @@
                             <span class="text-sm text-gray-500 dark:text-gray-400">
                                 Note: {{ $item->receiptnote_detail }}
                             </span>
+                            @if (!empty($item->ponote_detail))
+                                <div style="margin-top:4px;font-size:11px;">
+                                    <strong>PO Note:</strong> {{ $item->ponote_detail }}
+                                </div>
+                            @endif
                         </td>
                         <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->siteid }}</td>
                         <td style="border:1px solid #000;text-align:center;padding:4px;">{{ $item->uom }}</td>
