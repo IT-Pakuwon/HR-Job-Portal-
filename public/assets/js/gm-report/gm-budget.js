@@ -248,7 +248,6 @@
 
                 setTrend('gmUtilTrend', pct);
                 renderDonut(d.total_used, d.total_reserve, d.total_remaining);
-                utils.setText('gmRefreshTime', new Date().toLocaleTimeString());
             })
             .catch(function (e) { if (e.name !== 'AbortError') console.error('budget summary:', e); });
     }

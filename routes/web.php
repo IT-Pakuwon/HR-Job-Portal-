@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\AssetManagementController;
 use App\Http\Controllers\AccessRequestController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\ApplicantController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\ApprovalDashboardController;
 use App\Http\Controllers\AssessmentController;
+use App\Http\Controllers\AssetManagementController;
 use App\Http\Controllers\AssetsLocationController;
 use App\Http\Controllers\AssignListController;
 use App\Http\Controllers\AttachmentMasterController;
@@ -32,10 +32,11 @@ use App\Http\Controllers\CostControlDashboardController;
 use App\Http\Controllers\CsJobController;
 use App\Http\Controllers\CsListController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
+use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\GaDashboardController;
+use App\Http\Controllers\BigQueryController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
@@ -303,7 +304,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/careers/json', [CareerController::class, 'json'])->name('careers.json');
     Route::get('/createcareers', [CareerController::class, 'createCareer']);
     Route::post('/careers', [CareerController::class, 'storeCareer'])->name('careers.store');
-    Route::get('/showcareers/{hash}', [CareerController::class, 'showCareer']);
+    Route::get('/showcareers/{hash}', [CareerController::class, 'showCareer'])->name('showcareers.show');
     Route::get('/career/{id}/comments', [CareerController::class, 'fetchComments']);
     Route::post('/career/{id}/comments', [CareerController::class, 'storeComment']);
     Route::post('/career/{id}/approve', [CareerController::class, 'approveCareer']);
@@ -363,6 +364,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
     Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');
     Route::get('/jobapplicant/applicants/{jobId}', [JobapplicantController::class, 'JobApplicants'])->name('jobapplicant.applicants');
+    Route::post('/jobapplicant/remap', [JobapplicantController::class, 'storeRemap'])->name('jobapplicant.remap');
     // Route::get('/jobapplicant/counts', [JobapplicantController::class, 'getCounts'])->name('jobapplicant.counts');
 
     Route::get('/job-filters/tl', [JobapplicantController::class, 'jobTitleLevels'])->name('jobfilters.tl');
@@ -1534,17 +1536,30 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/budget-years', 'budgetYears')->name('gm.budget-years');
                 Route::get('/api/departments', 'departments')->name('gm.departments');
                 Route::get('/api/budget-by-month', 'budgetByMonth')->name('gm.budget-by-month');
+
+                // PG Card API endpoints
+                Route::get('/api/pgcard-top-customers', 'pgcardTopCustomers')->name('gm.pgcard-top-customers');
+                Route::get('/api/pgcard-top-tenants',   'pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
+                Route::get('/api/pgcard-coupon-styw',   'pgcardCouponStyw')  ->name('gm.pgcard-coupon-styw');
+
+                // Export endpoints
+                Route::get('/export/pdf',  'exportPdf') ->name('gm.export.pdf');
+                Route::get('/export/csv',  'exportCsv') ->name('gm.export.csv');
+                Route::get('/export/xlsx', 'exportXlsx')->name('gm.export.xlsx');
             });
 
-        Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
+        Route::prefix('card-chart')
+            ->middleware('access:CARDCHAT,VIEW')
+            ->group(function () {
+                Route::get('/catalog',        fn() => view('pages.card-chart.index'))         ->name('card-chart.catalog');
+                Route::get('/drag-dashboard', fn() => view('pages.card-chart.drag-dashboard'))->name('card-chart.drag-dashboard');
 
-        Route::get('/card-chart/catalog', function () {
-            return view('pages.card-chart.index');
-        })->middleware('access:CARDCHAT,VIEW')->name('card-chart.catalog');
-
-        Route::get('/card-chart/drag-dashboard', function () {
-            return view('pages.card-chart.drag-dashboard');
-        })->middleware('access:CARDCHAT,VIEW')->name('card-chart.drag-dashboard');
+                Route::controller(BigQueryController::class)->group(function () {
+                    Route::get('/api/bigquery-test',   'test')  ->name('card-chart.bigquery-test');
+                    Route::get('/api/bigquery-tables', 'tables')->name('card-chart.bigquery-tables');
+                    Route::get('/api/bigquery-schema', 'schema')->name('card-chart.bigquery-schema');
+                });
+            });
 
         Route::get('/settings/account', [ProfileController::class, 'show'])->name('profile.showx');
 
@@ -1555,6 +1570,8 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
+
+        Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
 
         Route::prefix('it-dashboard')->controller(ItDashboardController::class)->name('it-dashboard.')->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('summary-json');

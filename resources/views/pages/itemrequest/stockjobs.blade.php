@@ -623,13 +623,45 @@
                             extend: 'excelHtml5',
                             text: '↓ Excel',
                             title: 'List_Stock',
-                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700'
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                format: {
+                                    body: function(data, row, column, node) {
+                                        var str = String(data || '')
+                                            .replace(/<[^>]*>/g, '')
+                                            .replace(/&amp;/g, '&')
+                                            .replace(/&lt;/g, '<')
+                                            .replace(/&gt;/g, '>')
+                                            .replace(/&quot;/g, '"')
+                                            .replace(/&#039;/g, "'")
+                                            .replace(/\r?\n/g, ' ')
+                                            .trim();
+                                        return str;
+                                    }
+                                }
+                            }
                         },
                         {
                             extend: 'csvHtml5',
                             text: '↓ CSV',
                             title: 'List_Stock',
-                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700'
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                format: {
+                                    body: function(data, row, column, node) {
+                                        var str = String(data || '')
+                                            .replace(/<[^>]*>/g, '')
+                                            .replace(/&amp;/g, '&')
+                                            .replace(/&lt;/g, '<')
+                                            .replace(/&gt;/g, '>')
+                                            .replace(/&quot;/g, '"')
+                                            .replace(/&#039;/g, "'")
+                                            .replace(/\r?\n/g, ' ')
+                                            .trim();
+                                        return str;
+                                    }
+                                }
+                            }
                         }
                     ],
                     ajax: {

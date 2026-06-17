@@ -198,6 +198,15 @@
 
     @stack('scripts')
 
+    {{-- Global session-expired handler: redirect to login on 401 for any AJAX call --}}
+    <script>
+        $(document).ajaxError(function (event, xhr) {
+            if (xhr.status === 401) {
+                window.location.href = '{{ route('login') }}';
+            }
+        });
+    </script>
+
 </body>
 
 </html>

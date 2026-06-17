@@ -226,10 +226,5 @@
 
     </div>{{-- /Main filter pill --}}
 
-    {{-- ── Last-updated indicator ────────────────────────────────────────────── --}}
-    <div class="flex-1 items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
-        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" style="animation:gm-pulse 2s infinite"></span>
-        <span id="gmRefreshTime" class="font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">--:--</span>
-    </div>
 
 </div>
