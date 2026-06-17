@@ -3,7 +3,7 @@
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
     <div class="max-w-9xl mx-auto p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
 
             {{-- All Status --}}
             <a href="#" class="status-filter group block h-full" data-status="">
@@ -80,21 +80,6 @@
                 </div>
             </a>
 
-            {{-- Transferred --}}
-            <a href="#" class="status-filter group block h-full" data-status="T">
-                <div
-                    class="status-card flex h-full items-center gap-3 rounded-lg border border-violet-700 bg-violet-200/20 p-3 text-violet-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-violet-100 hover:shadow-md active:scale-95">
-
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🔄</div>
-
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Transfer</p>
-                    </div>
-
-                    <p class="shrink-0 text-base font-bold">{{ $transferred }}</p>
-                </div>
-            </a>
-
         </div>
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div
@@ -164,9 +149,6 @@
                             <th scope="col" class="w-32 px-4 py-3 text-center">
                                 Step
                             </th>
-                            <th scope="col" class="w-28 px-4 py-3 text-center">
-                                Action
-                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
@@ -178,61 +160,6 @@
 
     </div>
 
-    <!-- Remap Modal -->
-    <div id="remapModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
-        <div class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0" id="remapModalContent">
-            <div class="mb-5 flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Remap Applicant</h2>
-                    <p class="text-sm text-gray-500">Old mapping → <strong>Transfer Candidate</strong>. New job apply will be created.</p>
-                </div>
-                <button id="closeRemapModal" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
-            </div>
-
-            <input type="hidden" id="remapApplyId">
-
-            <div class="mb-5 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 flex items-start gap-3">
-                <span class="mt-0.5 text-amber-500 text-base">📌</span>
-                <div class="flex-1">
-                    <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Current Job Applied</p>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                        <div>
-                            <span class="text-xs text-gray-400">Job ID</span>
-                            <p class="font-medium text-gray-800" id="remapCurrentJobId">—</p>
-                        </div>
-                        <div>
-                            <span class="text-xs text-gray-400">Job Title</span>
-                            <p class="font-medium text-gray-800" id="remapCurrentJobTitle">—</p>
-                        </div>
-                        <div>
-                            <span class="text-xs text-gray-400">Company</span>
-                            <p class="text-gray-700" id="remapCurrentCompany">—</p>
-                        </div>
-                        <div>
-                            <span class="text-xs text-gray-400">Division</span>
-                            <p class="text-gray-700" id="remapCurrentDivision">—</p>
-                        </div>
-                        <div class="col-span-2">
-                            <span class="text-xs text-gray-400">Department</span>
-                            <p class="text-gray-700" id="remapCurrentDepartment">—</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Select New Job Posting</label>
-                <select id="remapJobSelect" style="width:100%">
-                    <option value="">Select Job Posting</option>
-                </select>
-            </div>
-
-            <div class="flex justify-end gap-3">
-                <button id="closeRemapModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
-                <button id="saveRemap" class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Save Remap</button>
-            </div>
-        </div>
-    </div>
 
     <script>
         var currentUser = "{{ auth()->user()->username }}";
@@ -681,23 +608,7 @@
                         render: function(data) {
                             const label = stepLabelMap[data] || data;
                             return `<span class="inline-flex justify-center items-center w-[120px] bg-blue-300/30 text-blue-600 text-sm font-semibold px-3 py-1.5 text-center rounded whitespace-normal break-words"> ${label} </span>`;
-                        }
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            if (row.status === 'R' || row.status === 'C') {
-                                return `<span class="text-xs text-gray-400">—</span>`;
-                            }
-                            return `<button class="remap-btn inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200"
-                                data-id="${row.eid}" data-docid="${row.docid}"
-                                data-job-id="${row.docidposting}" data-job-title="${row.job_title || ''}"
-                                data-company="${row.posting_cpnyid || ''}" data-division="${row.division_name || ''}" data-department="${row.department_name || ''}">
-                                🔄 Remap
-                            </button>`;
+
                         }
                     }
                 ],
@@ -805,89 +716,6 @@
                 $(this).addClass('active');
                 currentStatus = $(this).data('status') || '';
                 applicantTable.ajax.reload();
-            });
-
-            // ── REMAP ─────────────────────────────────────────────────
-            function openRemapModal() {
-                $('#remapModal').removeClass('hidden').addClass('flex');
-                setTimeout(() => {
-                    $('#remapModalContent').removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100');
-                }, 10);
-            }
-
-            function closeRemapModal() {
-                $('#remapModalContent').removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
-                setTimeout(() => {
-                    $('#remapModal').addClass('hidden').removeClass('flex');
-                }, 200);
-            }
-
-            $('#closeRemapModal, #closeRemapModalBtn').on('click', closeRemapModal);
-
-            function loadRemapJobPostings() {
-                $.ajax({
-                    url: "{{ route('jobposting.list') }}",
-                    type: 'GET',
-                    success: function(res) {
-                        const $sel = $('#remapJobSelect');
-                        $sel.empty().append('<option value="">Select Job Posting</option>');
-                        res.forEach(item => {
-                            const badge = item.status === 'U' ? '[Unposted]' : '[Posted]';
-                            $sel.append(`<option value="${item.docid}">${item.docid} - ${item.job_name} ${badge}</option>`);
-                        });
-                        if ($sel.hasClass('select2-hidden-accessible')) $sel.select2('destroy');
-                        $sel.select2({
-                            dropdownParent: $('#remapModal'),
-                            placeholder: '🔍 Search Job Posting...',
-                            width: '100%',
-                            allowClear: true,
-                        });
-                    }
-                });
-            }
-
-            $(document).on('click', '.remap-btn', function() {
-                const $btn = $(this);
-                $('#remapApplyId').val($btn.data('id'));
-                $('#remapCurrentJobId').text($btn.data('jobId') || '—');
-                $('#remapCurrentJobTitle').text($btn.data('jobTitle') || '—');
-                $('#remapCurrentCompany').text($btn.data('company') || '—');
-                $('#remapCurrentDivision').text($btn.data('division') || '—');
-                $('#remapCurrentDepartment').text($btn.data('department') || '—');
-                loadRemapJobPostings();
-                openRemapModal();
-            });
-
-            $('#saveRemap').on('click', function() {
-                const applyId  = $('#remapApplyId').val();
-                const newJobId = $('#remapJobSelect').val();
-
-                if (!newJobId) {
-                    Swal.fire('Incomplete', 'Please select a job posting.', 'warning');
-                    return;
-                }
-
-                Swal.fire({
-                    title: 'Remap Applicant?',
-                    text: 'Current mapping will be set to Transfer Candidate and a new apply record will be created.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, Remap',
-                    confirmButtonColor: '#4f46e5',
-                }).then(result => {
-                    if (!result.isConfirmed) return;
-                    $.post("{{ route('jobapplicant.remap') }}", {
-                        apply_id:  applyId,
-                        new_jobid: newJobId,
-                        _token: '{{ csrf_token() }}'
-                    }).done(function() {
-                        closeRemapModal();
-                        Swal.fire({ icon: 'success', title: 'Remapped!', timer: 1200, showConfirmButton: false });
-                        applicantTable.ajax.reload(null, false);
-                    }).fail(function(xhr) {
-                        Swal.fire('Error', xhr.responseJSON?.error || 'Remap failed.', 'error');
-                    });
-                });
             });
         });
         // Make each row of .status-filter independent
