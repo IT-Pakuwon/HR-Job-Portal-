@@ -187,8 +187,7 @@
                                                 class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                                                 Username
                                             </label>
-                                            <input id="username" name="username" type="text" placeholder="johndoe"
-                                                required
+                                            <input id="username" name="username" type="text" placeholder="Auto-filled from email (or type manually)"
                                                 class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
                                         </div>
 
@@ -596,6 +595,8 @@
                 $('#appForm')[0].reset();
 
                 $('#id').val('');
+                $('#username').val('');
+                usernameManuallyEdited = false;
 
                 $('#homepage').val(null).trigger('change');
 
@@ -751,6 +752,22 @@
                         $overlay.removeClass('flex').addClass('hidden');
                     }
                 });
+            });
+
+            let usernameManuallyEdited = false;
+
+            $('#username').on('input', function() {
+                usernameManuallyEdited = $(this).val().trim() !== '';
+            });
+
+            $('#email').on('input', function() {
+                if (!usernameManuallyEdited) {
+                    $('#username').val($(this).val().split('@')[0] || '');
+                }
+            });
+
+            $('#addAppBtn').on('click.resetUsernameFlag', function() {
+                usernameManuallyEdited = false;
             });
 
             $('#closeModal, #closeModalFooter').on('click', function() {
