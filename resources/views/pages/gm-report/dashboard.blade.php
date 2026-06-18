@@ -24,13 +24,13 @@
         {{-- ── Page Header ──────────────────────────────────────────────────────── --}}
         {{-- gmPageHeader is observed: when it leaves the viewport the filter
              teleports into #gmFilterFloat (fixed); when it re-enters it comes back --}}
-        <div id="gmPageHeader" class="flex flex-col gap-2">
+        <div id="gmPageHeader" class="flex flex-col">
 
             {{-- Row 1: Title (left) + Filter + Export (right) --}}
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                        GM Report Dashboard
+                        GM DASBOARD
                     </h1>
                 </div>
 
