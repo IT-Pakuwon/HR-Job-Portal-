@@ -1159,7 +1159,7 @@
                     mode = 'normal';
                     statusFilter = selectedStatus ?? '';
 
-                    $('#pageTitle').text('Request SPPB');
+                    $('#pageTitle').text('Request SPPK');
 
                     $('#createBtn').css('display', '');
                     $('#allFilters').addClass('hidden');

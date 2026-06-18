@@ -25,20 +25,21 @@ class ApprovalDashboardController extends Controller
         $approved = $this->getApprovalCollection($request, 'A');
 
         $today = now()->toDateString();
+        $threeDaysAgo = now()->subDays(3)->toDateString();
 
         return response()->json([
             'data' => [
                 'waiting' => $waiting->count(),
 
-                'approved_today' => $approved
+                'long_waiting' => $waiting
                     ->filter(fn ($row) => !empty($row['docdate'])
-                        && substr($row['docdate'], 0, 10) === $today
+                        && substr($row['docdate'], 0, 10) <= $threeDaysAgo
                     )
                     ->count(),
 
-                'approved_month' => $approved
+                'approved_today' => $approved
                     ->filter(fn ($row) => !empty($row['docdate'])
-                        && date('Y-m', strtotime($row['docdate'])) === now()->format('Y-m')
+                        && substr($row['docdate'], 0, 10) === $today
                     )
                     ->count(),
             ],
