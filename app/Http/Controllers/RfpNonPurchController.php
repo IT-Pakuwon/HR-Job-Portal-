@@ -818,9 +818,19 @@ class RfpNonPurchController extends Controller
         // =========================
         $details = collect();
 
-        if ($doctype === 'RFP') {
-            $details = TrRfpNonPurchDetail::query()
-                ->where('rfpnonpurchaseid', $docid)
+        // if ($doctype === 'RFP') {
+            // $details = TrRfpNonPurchDetail::query()
+            //     ->where('rfpnonpurchaseid', $docid)
+            //     ->orderBy('id')
+            //     ->get();
+            $detailsQuery = TrRfpNonPurchDetail::query()
+                ->where('rfpnonpurchaseid', $docid);
+
+            if ($doctype === 'RCA') {
+                $detailsQuery->where('refid', 'BUDGET-RFCA');
+            }
+
+            $details = $detailsQuery
                 ->orderBy('id')
                 ->get();
 
@@ -895,7 +905,7 @@ class RfpNonPurchController extends Controller
                     $item->budget_remaining = 0;
                 }
             }
-        }
+        // }
 
         // =========================
         // ATTACHMENTS

@@ -36,6 +36,7 @@ use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\GaDashboardController;
+use App\Http\Controllers\WarehouseDashboardController;
 use App\Http\Controllers\BigQueryController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
@@ -1084,6 +1085,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/locations/by-company', [MasterController::class, 'Location'])->name('locations.byCompany');
     Route::get('/sublocations/by-location', [MasterController::class, 'SubLocation'])->name('sublocations.byLocation');
     Route::get('/departments/{cpny_id}', [MasterController::class, 'DepartmentFin'])->name('finance.departments.byCompany');
+
     Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');
     Route::get('/coa/by-wo', [MasterController::class, 'CoaBudgetWo'])->name('coa.byWo');
     Route::get('/coa/by-wo-spb', [MasterController::class, 'CoaBudgetWoSPB'])->name('coa.byWoSPB');
@@ -1185,7 +1187,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/parking-kendaraan/{id}/toggle-status', [ParkingRegistrationController::class, 'toggleStatusParkingKendaraan'])->name('parkingkendaraan.toggleStatus');
     Route::put('/parking-kendaraan/{id}/no-kartu', [ParkingRegistrationController::class, 'updateNoKartuParkingKendaraan'])->name('parkingkendaraan.updateNoKartu');
 
-    Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv');
+    Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv')->withoutMiddleware(['auth']);
 
     Route::middleware(['auth'])->group(function () {
         Route::controller(VoucherTaxiController::class)->group(function () {
@@ -1442,28 +1444,30 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::controller(MeetingController::class)->group(function () {
-            Route::get('/meeting', 'index')->name('meeting');
-            Route::get('/inforoom_{id}', 'getRoom');
+            Route::middleware('access:MEETING,VIEW')->group(function () {
+                Route::get('/meeting', 'index')->name('meeting');
+                Route::get('/inforoom_{id}', 'getRoom');
+                Route::get('/meetinglist/json', 'json')->name('meetinglist.json');
+                Route::get('/calendar-json', 'calendarJson')->name('meeting.calendarJson');
+                Route::get('/get-accessories/{id}', 'getAccessories');
+                Route::get('/meetingteams', 'MeetingTeams')->name('meetingteams');
+                Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
+            });
 
-            Route::post('/savemeeting', 'storeMeeting')->name('meeting.store');
-            Route::put('/updatemeeting/{id}', 'updateMeeting')->name('updatemeeting');
+            Route::middleware('access:MEETING,CREATE')->group(function () {
+                Route::post('/savemeeting', 'storeMeeting')->name('meeting.store');
+                Route::post('/saveteams', 'storeTeams')->name('teams.store');
+            });
 
-            Route::get('/meetinglist/json', 'json')->name('meetinglist.json');
-            Route::get('/calendar-json', 'calendarJson')->name('meeting.calendarJson');
+            Route::middleware('access:MEETING,EDIT')->group(function () {
+                Route::put('/updatemeeting/{id}', 'updateMeeting')->name('updatemeeting');
+                Route::put('/updateteams/{id}', 'updateTeams');
+                Route::post('/update-zoom/{id}', 'updateZoomLink');
+            });
 
-            Route::get('/get-accessories/{id}', 'getAccessories');
-
-            Route::get('/meetingteams', 'MeetingTeams')->name('meetingteams');
-
-            Route::post('/saveteams', 'storeTeams')->name('teams.store');
-
-            Route::put('/updateteams/{id}', 'updateTeams');
-
-            Route::post('/cancel-meeting/{id}', 'cancelMeeting');
-
-            Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
-
-            Route::post('/update-zoom/{id}', 'updateZoomLink');
+            Route::middleware('access:MEETING,DELETE')->group(function () {
+                Route::post('/cancel-meeting/{id}', 'cancelMeeting');
+            });
         });
 
         Route::controller(MeetingRoomSetupController::class)->prefix('meetingroom/setup')->name('meetingroom.setup.')->group(function () {
@@ -1540,7 +1544,8 @@ Route::middleware(['auth'])->group(function () {
                 // PG Card API endpoints
                 Route::get('/api/pgcard-top-customers', 'pgcardTopCustomers')->name('gm.pgcard-top-customers');
                 Route::get('/api/pgcard-top-tenants',   'pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
-                Route::get('/api/pgcard-coupon-styw',   'pgcardCouponStyw')  ->name('gm.pgcard-coupon-styw');
+                Route::get('/api/pgcard-coupon-styw',         'pgcardCouponStyw')        ->name('gm.pgcard-coupon-styw');
+                Route::get('/api/pgcard-coupon-styw-compare', 'pgcardCouponStywCompare')->name('gm.pgcard-coupon-styw-compare');
 
                 // Export endpoints
                 Route::get('/export/pdf',  'exportPdf') ->name('gm.export.pdf');
@@ -1610,6 +1615,17 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/booking-car-json', 'bookingCarJson')->name('ga.booking-car');
             Route::get('/parking-json', 'parkingJson')->name('ga.parking');
             Route::get('/approval-doctypes', 'approvalDocTypes')->name('ga.approval-doctypes');
+        });
+
+        Route::prefix('warehouse-dashboard')->controller(WarehouseDashboardController::class)->group(function () {
+            Route::get('/summary-json', 'summaryJson')->name('warehouse.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('warehouse.approval');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('warehouse.approval-history');
+            Route::get('/sppb-on-progress-json', 'sppbOnProgressJson')->name('warehouse.sppb-on-progress');
+            Route::get('/po-solomon-json', 'poSolomonJson')->name('warehouse.po-solomon');
+            Route::get('/grn-solomon-json', 'grnSolomonJson')->name('warehouse.grn-solomon');
+            Route::get('/issue-solomon-json', 'issueSolomonJson')->name('warehouse.issue-solomon');
+            Route::get('/approval-doctypes', 'approvalDocTypes')->name('warehouse.approval-doctypes');
         });
 
         Route::prefix('hr-dashboard')->controller(HrDashboardController::class)->name('hr-dashboard.')->group(function () {

@@ -898,34 +898,158 @@
 
     {{-- Approve / Reject / Revise --}}
     <script>
+        // $(document).on('click', '#approveBtn', function() {
+        //     approveCalrNonPurch(calrid);
+        // });
+
+        // function approveCalrNonPurch(docid) {
+        //     showOverlay('Approving');
+
+        //     $.ajax({
+        //         url: `/calrnonpurch/${encodeURIComponent(docid)}/approve`,
+        //         type: 'POST',
+        //         data: {
+        //             _token: '{{ csrf_token() }}',
+        //             docid: docid
+        //         },
+        //         success: function(response) {
+        //             if (response.success) {
+        //                 toastr.success('CALR Non Purchase approved successfully!');
+        //                 closeOrRedirect('/calrnonpurch');
+        //             } else {
+        //                 toastr.error(response.message || 'Failed to approve.');
+        //             }
+        //         },
+        //         error: function(xhr) {
+        //             toastr.error(xhr.responseJSON?.error || xhr.responseJSON?.message ||
+        //                 'Unable to approve CALR Non Purchase.');
+        //         },
+        //         complete: function() {
+        //             hideOverlay();
+        //         }
+        //     });
+        // }
+
         $(document).on('click', '#approveBtn', function() {
-            approveCalrNonPurch(calrid);
+            approveCalrNonPurchWithIMCheck(calrid);
         });
 
-        function approveCalrNonPurch(docid) {
-            showOverlay('Approving');
+        function approveCalrNonPurchWithIMCheck(docid, confirmGenerateIM = false) {
+            $('#approveBtn')
+                .prop('disabled', true)
+                .addClass('pointer-events-none opacity-60');
+
+            showOverlay(confirmGenerateIM ? 'Generating IM Budget' : 'Approving');
 
             $.ajax({
                 url: `/calrnonpurch/${encodeURIComponent(docid)}/approve`,
                 type: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
-                    docid: docid
+                    docid: docid,
+                    confirm_generate_im: confirmGenerateIM ? 1 : 0
                 },
                 success: function(response) {
-                    if (response.success) {
-                        toastr.success('CALR Non Purchase approved successfully!');
+                    /*
+                    |--------------------------------------------------------------------------
+                    | CASE: perlu konfirmasi generate IM Budget
+                    |--------------------------------------------------------------------------
+                    */
+                    if (response?.need_confirm_generate_im) {
+                        hideOverlay();
+
+                        $('#approveBtn')
+                            .prop('disabled', false)
+                            .removeClass('pointer-events-none opacity-60');
+
+                        Swal.fire({
+                            title: 'Generate IM Budget?',
+                            text: response.message || 'Dokumen ini membutuhkan IM Budget. Generate sekarang?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, generate',
+                            cancelButtonText: 'No'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                approveCalrNonPurchWithIMCheck(docid, true);
+                            }
+                        });
+
+                        return;
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | CASE: IM masih on progress
+                    |--------------------------------------------------------------------------
+                    */
+                    if (response?.code === 'IM_IN_PROGRESS') {
+                        hideOverlay();
+
+                        $('#approveBtn')
+                            .prop('disabled', false)
+                            .removeClass('pointer-events-none opacity-60');
+
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tidak bisa approve',
+                            text: response.message || 'Masih On Progress IM Budget.'
+                        });
+
+                        return;
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | CASE: IM berhasil dibuat, approval ditahan
+                    |--------------------------------------------------------------------------
+                    */
+                    if (response?.code === 'IM_CREATED_HOLD') {
+                        hideOverlay();
+
+                        toastr.success(response.message || 'IM Budget berhasil dibuat.');
+
+                        if (response.imbudget_show_url) {
+                            window.location.href = response.imbudget_show_url;
+                        } else {
+                            closeOrRedirect('/calrnonpurch');
+                        }
+
+                        return;
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | CASE: approve normal
+                    |--------------------------------------------------------------------------
+                    */
+                    hideOverlay();
+
+                    if (response?.success) {
+                        toastr.success(response.message || 'CALR Non Purchase approved successfully!');
                         closeOrRedirect('/calrnonpurch');
                     } else {
-                        toastr.error(response.message || 'Failed to approve.');
+                        $('#approveBtn')
+                            .prop('disabled', false)
+                            .removeClass('pointer-events-none opacity-60');
+
+                        toastr.error(response?.message || 'Failed to approve CALR Non Purchase.');
                     }
                 },
                 error: function(xhr) {
-                    toastr.error(xhr.responseJSON?.error || xhr.responseJSON?.message ||
-                        'Unable to approve CALR Non Purchase.');
-                },
-                complete: function() {
                     hideOverlay();
+
+                    $('#approveBtn')
+                        .prop('disabled', false)
+                        .removeClass('pointer-events-none opacity-60');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Approve gagal',
+                        text: xhr.responseJSON?.error ||
+                            xhr.responseJSON?.message ||
+                            'Unable to approve CALR Non Purchase.'
+                    });
                 }
             });
         }

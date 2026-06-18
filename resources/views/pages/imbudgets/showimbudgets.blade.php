@@ -40,21 +40,7 @@
                 <div class="flex h-[400px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
-                        {{-- <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
-                            <span
-                                class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
-                                ID
-                            </span>
-
-                            {{ $imbudget->imbudgetid }}
-
-                            @if (!empty($budgetType))
-                                <span
-                                    class="{{ $budgetClasses }} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">
-                                    {{ $budgetType }}
-                                </span>
-                            @endif
-                        </h1> --}}
+               
 
                         @php
                             $imDoctype = strtoupper(trim((string) ($imbudget->doctype ?? '')));
@@ -134,75 +120,7 @@
                             </a>
                         </div>
                     </header>
-                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
-                        {{-- @php
-                            // Build the SPPB/J/K/T link
-                            $routeMap = [
-                                'PB' => 'showsppbs',
-                                'PJ' => 'showsppjs',
-                                'PK' => 'showsppks',
-                                'PT' => 'showsppts',
-                            ];
-
-                            $routeBase = $routeMap[$prefix] ?? null;
-
-                            // NOTE: eid_sppbjkt itu hash string, jadi pakai langsung
-                            $docUrl =
-                                !empty($routeBase) && !empty($eid_sppbjkt) ? url("/{$routeBase}/{$eid_sppbjkt}") : null;
-
-                            $docBtn = $docUrl
-                                ? '<a href="' .
-                                    e($docUrl) .
-                                    '" target="_blank" rel="noopener"
-                                    class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                    e($docid) .
-                                    '</a>'
-                                : e($docid);
-
-                            // Default supaya tidak undefined
-                            $csLink = '-';
-                            if (!empty($imbudget->csid)) {
-                                $csUrl = !empty($eid_cs) ? url("/showcs/{$eid_cs}") : null;
-
-                                $csLink = $csUrl
-                                    ? '<a href="' .
-                                        e($csUrl) .
-                                        '" target="_blank" rel="noopener"
-                                        class="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                        e($imbudget->csid) .
-                                        '</a>'
-                                    : e($imbudget->csid);
-                            }
-
-                            // Reusable class system
-                            $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
-                            $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
-                            $value = 'break-words font-medium text-gray-900 dark:text-gray-300 sm:flex-1';
-
-                            $fields = [
-                                ['icon' => 'building-office', 'label' => 'Company', 'value' => $imbudget->cpny_id],
-                                ['icon' => 'squares-2x2', 'label' => 'Department', 'value' => $imbudget->department_id],
-                                [
-                                    'icon' => 'calendar',
-                                    'label' => 'Date',
-                                    'value' => \Carbon\Carbon::parse($imbudget->imbudgetdate)->format('j F Y'),
-                                ],
-                                [
-                                    'icon' => 'user',
-                                    'label' => 'User Peminta',
-                                    'value' => ucwords(strtolower(optional($imbudget->userpeminta)->name)),
-                                ],
-
-                                // HTML links (raw)
-                                ['icon' => 'document-text', 'label' => 'CS', 'value' => $csLink, 'is_raw' => true],
-                                [
-                                    'icon' => 'document-text',
-                                    'label' => 'SPPBJKT ID',
-                                    'value' => $docBtn,
-                                    'is_raw' => true,
-                                ],
-                            ];
-                        @endphp --}}
+                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">                        
                         @php
                             $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';
@@ -285,7 +203,7 @@
                             }
 
                             // RFP Non Purchase
-                            if ($imDoctype === 'RFP' && !empty($imbudget->rfpnonpurchaseid)) {
+                            if ($imDoctype === 'RFP' || $imDoctype === 'RCA' || !empty($imbudget->rfpnonpurchaseid)) {
                                 $rfpNpUrl = !empty($eid_rfpnonpurchase ?? null)
                                     ? url('/showrfpnonpurch/' . $eid_rfpnonpurchase)
                                     : null;
@@ -299,7 +217,7 @@
 
                                 $fields[] = [
                                     'icon' => 'document-text',
-                                    'label' => 'RFP Non Purchase ID',
+                                    'label' => 'Ref Nbr Non Purchase',
                                     'value' => $rfpNpLink,
                                     'is_raw' => true,
                                 ];

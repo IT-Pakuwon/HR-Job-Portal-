@@ -117,7 +117,9 @@ class UsersController extends Controller
             $divisionIdsString = implode(',', $request->division_id);
 
             $email    = $request->email;
-            $username = explode('@', $email)[0];
+            $username = $request->filled('username')
+                ? trim($request->username)
+                : explode('@', $email)[0];
 
             $password = Hash::make("pakuwon1234#");
 
@@ -226,6 +228,7 @@ class UsersController extends Controller
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
+            'username' => $user->username,
             'email' => $user->email,
             'npk' => $user->npk,
             'jabatan' => $user->jabatan,
@@ -262,12 +265,17 @@ class UsersController extends Controller
 
             $user = User::findOrFail($id);
 
+            $oldUsername = $user->username;
+            $newUsername = $request->filled('username')
+                ? trim($request->username)
+                : $oldUsername;
+
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
             $divisionIdsString = implode(',', $request->division_id);
             $businessUnitIdsString = implode(',', $request->business_unit_id);
 
-            $user->update([
+            $updateData = [
                 'name' => strtoupper($request->name),
                 'email' => $request->email,
                 'cpny_id' => $companyIdsString,
@@ -279,17 +287,25 @@ class UsersController extends Controller
                 'npk' => $request->npk,
                 'jabatan' => $request->jabatan,
                 'updated_by' => $loginUser->username,
-            ]);
+            ];
+
+            if ($newUsername !== $oldUsername) {
+                $updateData['username'] = $newUsername;
+                // Cascade username ke tabel terkait sebelum delete/insert
+                SysUserRole::where('username', $oldUsername)->update(['username' => $newUsername]);
+            }
+
+            $user->update($updateData);
 
             // DELETE OLD ACCESS (company / dept)
-            Usercpny::where('username', $user->username)->delete();
-            Userdept::where('username', $user->username)->delete();
-            Userdivision::where('username', $user->username)->delete();
-            Userbusinessunit::where('username', $user->username)->delete();
+            Usercpny::where('username', $oldUsername)->delete();
+            Userdept::where('username', $oldUsername)->delete();
+            Userdivision::where('username', $oldUsername)->delete();
+            Userbusinessunit::where('username', $oldUsername)->delete();
 
             foreach ($request->cpny_id as $cpny) {
                 Usercpny::create([
-                    'username'   => $user->username,
+                    'username'   => $newUsername,
                     'cpny_id'    => $cpny,
                     'status'     => 'A',
                     'created_by' => $loginUser->username,
@@ -298,7 +314,7 @@ class UsersController extends Controller
 
             foreach ($request->department_id as $dept) {
                 Userdept::create([
-                    'username'      => $user->username,
+                    'username'      => $newUsername,
                     'department_id' => $dept,
                     'status'        => 'A',
                     'created_by'    => $loginUser->username,
@@ -307,28 +323,23 @@ class UsersController extends Controller
 
             foreach ($request->division_id as $div) {
                 Userdivision::create([
-                    'username'   => $user->username,
+                    'username'   => $newUsername,
                     'division_id'=> $div,
                     'status'     => 'A',
                     'created_by' => $loginUser->username,
                 ]);
             }
 
-
-            // USERBUSINESSUNIT (dengan cpny_id)
             $buIds = $request->business_unit_id;
-
-            // ambil mapping cpny_id per business_unit_id (1 query)
             $buCpnyMap = BusinessUnit::query()
                 ->whereIn('business_unit_id', $buIds)
                 ->pluck('cpny_id', 'business_unit_id');
 
-            // insert rows
             foreach ($buIds as $bu) {
                 $cpnyIdForBu = $buCpnyMap[$bu] ?? null;
 
                 Userbusinessunit::create([
-                    'username'         => $user->username,
+                    'username'         => $newUsername,
                     'cpny_id'          => $cpnyIdForBu,
                     'business_unit_id' => $bu,
                     'status'           => 'A',
@@ -336,14 +347,13 @@ class UsersController extends Controller
                 ]);
             }
 
-
             // ✅ RESET + INSERT ULANG SYS_USER_ROLE
-            SysUserRole::where('username', $user->username)->delete();
+            SysUserRole::where('username', $newUsername)->delete();
 
             if ($request->filled('role_ids')) {
                 foreach ($request->role_ids as $roleId) {
                     SysUserRole::create([
-                        'username'   => $user->username,
+                        'username'   => $newUsername,
                         'role_id'    => $roleId,
                         'status'     => 'A',
                         'created_by' => $loginUser->username,

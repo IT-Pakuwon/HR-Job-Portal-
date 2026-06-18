@@ -1,265 +1,266 @@
-<div class="max-w-9xl mx-auto w-full overflow-hidden rounded-lg bg-white   dark:bg-gray-800 ">
-
-    {{-- ── Document header grid ────────────────────────────────────── --}}
-    <div class="grid grid-cols-2 gap-2 border-b border-gray-100 px-4 py-2.5 dark:border-gray-700/60 lg:grid-cols-4">
-        <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Document</p>
-            <div class="flex items-center gap-2">
-                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $career->docid ?? '-' }}</p>
-                @if($remapped_from || $remapped_to)
-                    <span class="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
-                        🔄 Remapped
-                    </span>
-                @endif
+<style>
+    table {
+        margin: 0 !important;
+        padding: 0 !important;
+        border-collapse: collapse;
+        background: transparent !important;
+    }
+</style>
+<div class="max-w-9xl mx-auto w-full p-4"> {{-- Adjusted padding for better fit --}}
+    <div class="rounded-lg bg-white pb-4 dark:bg-gray-800">
+        <div
+            class="shadow-xs grid grid-cols-1 gap-4 rounded-lg p-4 text-sm text-gray-700 md:grid-cols-2 lg:grid-cols-4 dark:text-gray-300">
+            <div><strong>Doc ID</strong>: {{ $career->docid ?? '-' }} / {{ $career->apply_date ?? '-' }}
             </div>
-            <p class="text-[10px] text-gray-400">{{ $career->apply_date ?? '' }}</p>
-            @if($remapped_from)
-                <p class="mt-0.5 text-[10px] text-violet-500">from {{ $remapped_from->jobid }}
-                    @if($remapped_from->job_title) — {{ $remapped_from->job_title }}@endif
-                </p>
-            @elseif($remapped_to)
-                <p class="mt-0.5 text-[10px] text-violet-500">to {{ $remapped_to->jobid }}
-                    @if($remapped_to->job_title) — {{ $remapped_to->job_title }}@endif
-                </p>
-            @endif
-        </div>
-        <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Company</p>
-            <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ $career->cpnyid ?? '-' }}</p>
-        </div>
-        <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Position</p>
-            <p class="text-sm font-semibold text-indigo-600 dark:text-indigo-400">{{ $career->job_title ?? '-' }}</p>
-        </div>
-        <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Applicant</p>
-            <p class="text-sm font-semibold text-gray-700 dark:text-gray-200">{{ $career->fullname ?? '-' }}</p>
+            <div><strong>Company</strong>: {{ $career->cpnyid ?? '-' }}</div>
+            <div><strong>Job Title</strong>: {{ $career->job_title ?? '-' }}</div>
+            <div><strong>Name Applicant</strong>: {{ $career->fullname ?? '-' }}</div>
         </div>
     </div>
+    <div x-data="{ subtab: 'step', init: function() { this.$watch('subtab', () => { this.$el.scrollIntoView({ behavior: 'smooth' }); }); } }" class="w-full space-y-4">
 
-    <div x-data="{ subtab: 'step', init: function() { this.$watch('subtab', () => { this.$el.scrollIntoView({ behavior: 'smooth' }); }); } }" class="w-full">
-
-        {{-- ── Sub-tabs + progress ─────────────────────────────────────── --}}
-        @php
-            $totalSteps   = $jobapplystep->count();
-            $approvedCount = $jobapplystep->where('status', 'A')->count();
-            $rejectedCount = $jobapplystep->where('status', 'R')->count();
-            $progressPct  = $totalSteps > 0 ? round(($approvedCount / $totalSteps) * 100) : 0;
-        @endphp
-        <div class="flex items-center gap-3 border-b border-gray-100 px-3 py-2.5 dark:border-gray-700/60">
-
-            {{-- Tab tray full width --}}
-            <div class="flex flex-1 items-center gap-0.5 rounded-lg bg-gray-200 p-1 dark:bg-gray-900">
-                <button @click="subtab = 'step'"
-                    :class="subtab === 'step'
-                        ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
-                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
-                    Workflow
-                </button>
-                @if ($canAccessSchedule)
-                <button @click="subtab = 'schedule'"
-                    :class="subtab === 'schedule'
-                        ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
-                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
-                    Schedule
-                </button>
-                @endif
-                @if ($canAccessChecklist)
-                <button @click="subtab = 'checklist'"
-                    :class="subtab === 'checklist'
-                        ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
-                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
-                    Checklist
-                </button>
-                @endif
-                @if ($canAccessInterviewHC)
+        <div
+            class="mb-4 flex flex-wrap justify-center space-x-0 border-b border-gray-200 sm:justify-start sm:space-x-4 dark:border-gray-700">
+            <button @click="subtab = 'step'"
+                :class="subtab === 'step' ?
+                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                    'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                Step
+            </button>
+            @if ($canAccessSchedule)
+            <button @click="subtab = 'schedule'"
+                :class="subtab === 'schedule'
+                    ?
+                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                    'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                Schedule
+            </button>
+            @endif
+            @if ($canAccessChecklist)
+            <button @click="subtab = 'checklist'"
+                :class="subtab === 'checklist' ?
+                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                    'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                Checklist
+            </button>
+            @endif
+            @if ($canAccessInterviewHC)
                 <button @click="subtab = 'assessment'"
-                    :class="subtab === 'assessment'
-                        ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
-                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
-                    Interview HC
+                    :class="subtab === 'assessment' ?
+                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                        'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                    class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                    Form Interview HC
                 </button>
-                @endif
-                @if ($canAccessInterviewUser)
-                <button @click="subtab = 'assessmentuser'"
-                    :class="subtab === 'assessmentuser'
-                        ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
-                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
-                    Interview User
-                </button>
-                @endif
-                @if ($canAccessPayroll)
+            @endif
+            @if ($canAccessInterviewUser)
+            <button @click="subtab = 'assessmentuser'"
+                :class="subtab === 'assessmentuser' ?
+                    'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                    'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
+                Form Interview User
+            </button>
+            @endif
+            @if ($canAccessPayroll)
                 <button @click="subtab = 'payroll'"
-                    :class="subtab === 'payroll'
-                        ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
-                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    :class="subtab === 'payroll' ?
+                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                        'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                    class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                     Payroll
                 </button>
-                @endif
-                @if ($canAccessJoin)
+            @endif
+            @if ($canAccessJoin)
                 <button @click="subtab = 'join'"
-                    :class="subtab === 'join'
-                        ? 'bg-white text-gray-900 shadow dark:bg-gray-700 dark:text-white'
-                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
-                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                    :class="subtab === 'join' ?
+                        'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400' :
+                        'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'"
+                    class="whitespace-nowrap px-3 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none sm:px-4 sm:text-sm">
                     Join
                 </button>
-                @endif
-            </div>
-
-            {{-- Progress summary --}}
-            <div class="flex items-center gap-2.5">
-                <span class="text-[10px] font-semibold tabular-nums text-gray-400 dark:text-gray-500">
-                    {{ $approvedCount }}/{{ $totalSteps }}
-                    @if($rejectedCount > 0)
-                        <span class="text-red-400">&nbsp;&bull; {{ $rejectedCount }}R</span>
-                    @endif
-                </span>
-                @php
-                    $barColor = $rejectedCount > 0 ? 'bg-red-400' : ($progressPct === 100 ? 'bg-emerald-500' : 'bg-gray-400');
-                @endphp
-                <div class="h-1 w-16 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
-                    <div class="h-full rounded-full transition-all duration-500 {{ $barColor }}"
-                        style="width: {{ $progressPct }}%">
-                    </div>
-                </div>
-            </div>
+            @endif
         </div>
 
         <div>
-            {{-- ── Workflow tab ─────────────────────────────────────────── --}}
-            <div x-show="subtab === 'step'" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+            <div x-show="subtab === 'step'" x-transition:enter="transition ease-out duration-300 transform"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200 transform"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="min-h-[200px] rounded-lg bg-white dark:bg-gray-800">
+                {{-- Min height for smoother transitions --}}
+                {{-- Main content wrapper with flexbox for equal height columns --}}
+                <div class="flex h-full flex-col gap-4 md:h-[450px] md:flex-row"> {{-- Added h-full & md:h-[450px] here --}}
+                    <div class="flex w-full flex-shrink-0 flex-grow md:w-1/2"> {{-- Added flex-grow, flex-shrink-0 --}}
+                        <div class="w-full overflow-x-auto rounded-lg px-4">
+                            {{-- Added w-full here --}}
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
+                                        <th class="px-4 py-3 text-left font-semibold">No</th>
+                                        <th class="px-4 py-3 text-left font-semibold">Activity</th>
+                                        <th class="px-4 py-3 text-left font-semibold">User</th>
+                                        <th class="px-4 py-3 text-left font-semibold">Date</th>
+                                        <th class="px-4 py-3 text-left font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    @php
+                                        $firstPendingShown = false;
 
-                @php
-                    $firstPendingShown = false;
-                    $step3 = $jobapplystep->firstWhere('step_order', 3);
-                    $step5 = $jobapplystep->firstWhere('step_order', 5);
-                    $step3Approved = $step3 ? $step3->status === 'A' : true;
-                    $step5Approved = $step5 ? $step5->status === 'A' : true;
-                @endphp
+                                        // status gatekeeper
+                                        $step3 = $jobapplystep->firstWhere('step_order', 3);
+                                        $step5 = $jobapplystep->firstWhere('step_order', 5);
+                                        $step3Approved = $step3 ? $step3->status === 'A' : true; // jika tidak ada step 3, jangan blok
+                                        $step5Approved = $step5 ? $step5->status === 'A' : true; // jika tidak ada step 5, jangan blok
+                                    @endphp
 
-                <div class="grid grid-cols-12">
+                                    @foreach ($jobapplystep as $step)
+                                        @php
+                                            $order = (int) $step->step_order;
 
-                    {{-- ── Step list ────────────────────────────────────── --}}
-                    <div class="col-span-12 lg:col-span-6">
-                        @foreach ($jobapplystep as $step)
-                            @php
-                                $order         = (int) $step->step_order;
-                                $blockedByGate = (!$step3Approved && $order > 3) || (!$step5Approved && $order > 5);
-                                $isGateStep    = in_array($order, [3, 5], true);
-                                $shouldHideBtn = $isGateStep || $blockedByGate;
-                                $isActive      = $step->status === 'P' && !$shouldHideBtn && !$firstPendingShown;
-                                $isFuture      = $step->status === 'P' && ($shouldHideBtn || $firstPendingShown);
-                            @endphp
+                                            // blokir tombol jika:
+                                            // - ini step 3 atau 5, atau
+                                            // - step > 3 saat step 3 belum approved, atau
+                                            // - step > 5 saat step 5 belum approved
+                                            $blockedByGate =
+                                                (!$step3Approved && $order > 3) || (!$step5Approved && $order > 5);
+                                            $isGateStep = in_array($order, [3, 5], true);
+                                            $shouldHideBtn = $isGateStep || $blockedByGate;
+                                        @endphp
 
-                            <div class="flex items-center gap-4 border-b border-gray-100 px-5 py-3.5 transition-colors last:border-0 dark:border-gray-700/40
-                                @if($isActive) bg-gray-50 dark:bg-gray-700/20
-                                @elseif($isFuture) opacity-40
-                                @endif">
+                                        <tr
+                                            class="text-gray-800 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700">
+                                            <td class="whitespace-nowrap px-4 py-3">{{ $step->step_order }}
+                                            </td>
+                                            <td class="whitespace-nowrap px-4 py-3">{{ $step->step_descr }}
+                                            </td>
+                                            <td class="whitespace-nowrap px-4 py-3">{{ $step->aprvusername }}
+                                            </td>
+                                            <td class="whitespace-nowrap px-4 py-3">{{ $step->aprvuserdate }}
+                                            </td>
+                                            <td class="whitespace-nowrap px-4 py-3">
+                                                @if ($step->status === 'P')
+                                                    @if (!$shouldHideBtn && !$firstPendingShown)
+                                                        @php $firstPendingShown = true; @endphp
+                                                        <div class="flex flex-col gap-2 sm:flex-row sm:gap-2">
+                                                            <button id="approveBtn"
+                                                                class="inline-flex items-center gap-1 rounded-md bg-green-500/15 px-3 py-2 text-sm font-medium text-green-700 transition hover:bg-green-600 hover:text-white focus:outline-none">
+                                                                Approve
+                                                            </button>
+                                                            <button id="rejectBtn"
+                                                                class="inline-flex items-center gap-1 rounded-md bg-red-500/15 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-600 hover:text-white focus:outline-none">
+                                                                Reject
+                                                            </button>
+                                                        </div>
+                                                    @else
+                                                        <span
+                                                            class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                            Pending
+                                                        </span>
+                                                    @endif
+                                                @elseif ($step->status === 'A')
+                                                    <div class="flex items-center gap-2">
+                                                        <span
+                                                            class="inline-flex items-center rounded-md bg-green-100 px-2 py-1 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                            Approved
+                                                        </span>
+                                                        {{-- <button id="rollbackBtn"
+                                                            class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5  text-sm  font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            Rollback
+                                                        </button> --}}
+                                                        <button
+                                                            class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-sm font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            Rollback
+                                                        </button>
 
-                                {{-- Status icon --}}
-                                <div class="shrink-0">
-                                    @if($step->status === 'A')
-                                        <div class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500">
-                                            <svg class="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                        </div>
-                                    @elseif($step->status === 'R')
-                                        <div class="flex h-7 w-7 items-center justify-center rounded-full bg-red-500">
-                                            <svg class="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                        </div>
-                                    @elseif($isActive)
-                                        <div class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-gray-900 dark:border-white">
-                                            <span class="h-2 w-2 rounded-full bg-gray-900 dark:bg-white"></span>
-                                        </div>
-                                    @else
-                                        <div class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-gray-200 dark:border-gray-600">
-                                            <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500">{{ $order }}</span>
-                                        </div>
-                                    @endif
-                                </div>
+                                                    </div>
+                                                @elseif ($step->status === 'R')
+                                                    <div class="flex items-center gap-2">
+                                                        <span
+                                                            class="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-sm font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
+                                                            Rejected
+                                                        </span>
+                                                        {{-- <button id="rollbackBtn"
+                                                            class="inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5  text-sm  font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            Rollback
+                                                        </button> --}}
+                                                        <button
+                                                            class="rollbackBtn inline-flex items-center gap-1 rounded-md bg-yellow-500/15 px-3 py-1.5 text-sm font-medium text-yellow-700 transition hover:bg-yellow-600 hover:text-white focus:outline-none">
+                                                            Rollback
+                                                        </button>
+                                                    </div>
+                                                @elseif ($step->status === 'D')
+                                                    <span
+                                                        class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-sm font-medium text-blue-700 ring-1 ring-inset ring-blue-600/10">
+                                                        Revised
+                                                    </span>
+                                                @else
+                                                    <span
+                                                        class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                        Pending
+                                                    </span>
+                                                @endif
+                                            </td>
 
-                                {{-- Step name + meta --}}
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm @if($isActive) font-semibold text-gray-900 dark:text-white @elseif($step->status === 'A') font-medium text-gray-600 dark:text-gray-300 @else font-normal text-gray-500 @endif">
-                                        {{ $step->step_descr }}
-                                    </p>
-                                    @if($step->aprvusername || $step->aprvuserdate)
-                                        <p class="mt-0.5 text-xs text-gray-400">
-                                            {{ $step->aprvusername }}@if($step->aprvusername && $step->aprvuserdate) &nbsp;·&nbsp; @endif{{ $step->aprvuserdate }}
-                                        </p>
-                                    @endif
-                                </div>
+                                        </tr>
+                                    @endforeach
 
-                                {{-- Action / Status --}}
-                                <div class="shrink-0 flex items-center gap-2">
-                                    @if ($career->status === 'T')
-                                        {{-- Old apply (transferred) — read-only --}}
-                                        @if ($step->status === 'A')
-                                            <span class="rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-600">Approved</span>
-                                        @elseif ($step->status === 'R')
-                                            <span class="rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-semibold text-red-500">Rejected</span>
-                                        @elseif ($step->status === 'X')
-                                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-400">Cancelled</span>
-                                        @endif
-                                    @else
-                                        @if ($step->status === 'P')
-                                            @if (!$shouldHideBtn && !$firstPendingShown)
-                                                @php $firstPendingShown = true; @endphp
-                                                <button id="approveBtn"
-                                                    class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                    Approve
-                                                </button>
-                                                <button id="rejectBtn"
-                                                    class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-500 transition hover:border-red-300 hover:text-red-500 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400">
-                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                    Reject
-                                                </button>
-                                            @endif
-                                        @elseif ($step->status === 'A')
-                                            <button class="rollbackBtn inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-500 transition hover:border-amber-300 hover:text-amber-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400">
-                                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
-                                                Rollback
-                                            </button>
-                                        @elseif ($step->status === 'R')
-                                            <button class="rollbackBtn inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-gray-500 transition hover:border-amber-300 hover:text-amber-600 focus:outline-none active:scale-95 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400">
-                                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
-                                                Rollback
-                                            </button>
-                                        @elseif ($step->status === 'D')
-                                            <span class="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-600">Revised</span>
-                                        @endif
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                    <div class="flex w-full flex-shrink-0 flex-grow md:w-1/3">
+                        <div x-data="{ isOpen: true }"
+                            class="flex w-full flex-col rounded-lg border border-gray-200 dark:border-gray-700">
+                            <header
+                                class="flex cursor-pointer items-center justify-between rounded-t-lg bg-gray-50 px-5 py-3 dark:bg-gray-700"
+                                @click="isOpen = !isOpen">
+                                <h2
+                                    class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-100">
+                                    💬 Comments
+                                </h2>
+                                <button
+                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                    <span x-show="isOpen" class="transform transition-transform duration-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="2" stroke="currentColor" class="h-5 w-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </span>
+                                    <span x-show="!isOpen" class="transform transition-transform duration-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="2" stroke="currentColor" class="h-5 w-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                                        </svg>
+                                    </span>
+                                </button>
+                            </header>
 
-                    {{-- ── Comments ─────────────────────────────────────── --}}
-                    <div class="col-span-12 lg:col-span-6 border-t border-gray-100 dark:border-gray-700/40 lg:col-span-3 lg:border-l lg:border-t-0">
-                        <div x-data="{ isOpen: true }">
-                            <button class="flex w-full items-center justify-between px-5 py-3.5" @click="isOpen = !isOpen">
-                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Comments</span>
-                                <svg x-show="isOpen" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-                                <svg x-show="!isOpen" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
-                            </button>
-                            <div x-show="isOpen" x-collapse.duration.200ms class="flex flex-col border-t border-gray-100 dark:border-gray-700/40">
-                                <div id="commentList" class="flex flex-col space-y-2 px-4 py-3 dark:bg-gray-800" style="max-height:420px;overflow-y:auto;">
-                                    <p class="animate-pulse text-center text-xs italic text-gray-400">Loading...</p>
+                            <div x-show="isOpen" x-collapse.duration.300ms
+                                class="flex flex-grow flex-col overflow-hidden">
+
+                                {{-- LIST KOMENTAR (diisi via jQuery / AJAX) --}}
+                                <div id="commentList"
+                                    class="flex flex-grow flex-col space-y-3 overflow-y-auto bg-white p-4 dark:bg-gray-800">
+                                    <p class="animate-pulse text-center italic text-gray-500">
+                                        Loading comments...
+                                    </p>
                                 </div>
-                                <div class="flex gap-2 border-t border-gray-100 p-3 dark:border-gray-700/40">
+
+                                {{-- INPUT + BUTTON POST (dipakai jQuery) --}}
+                                <div
+                                    class="flex items-center gap-2 border-t border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-700">
                                     <input id="commentInput" type="text" placeholder="Write a comment..."
-                                        class="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs placeholder-gray-400 focus:border-gray-400 focus:bg-white focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                        class="flex-1 rounded-lg border-gray-300 bg-white p-2 text-gray-800 focus:border-indigo-400 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                     <button id="postCommentBtn" type="button"
-                                        class="shrink-0 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 active:scale-95 dark:bg-white dark:text-gray-900">
-                                        Post
+                                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-700 active:scale-95">
+                                        Post 🚀
                                     </button>
                                 </div>
                             </div>
@@ -269,45 +270,55 @@
                 </div>
             </div>
 
-            <div x-show="subtab === 'schedule'" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                class="min-h-[200px] rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div x-show="subtab === 'schedule'" x-transition:enter="transition ease-out duration-300 transform"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200 transform"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="min-h-[200px] rounded-lg bg-white p-4 shadow-inner dark:bg-gray-800">
                 @include('pages.careers.schedule')
             </div>
 
-            <div x-show="subtab === 'checklist'" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                class="min-h-[200px] rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div x-show="subtab === 'checklist'" x-transition:enter="transition ease-out duration-300 transform"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200 transform"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="min-h-[200px] rounded-lg bg-white p-4 shadow-inner dark:bg-gray-800">
                 @include('pages.careers.checklist')
             </div>
 
-            <div x-show="subtab === 'assessment'" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                class="min-h-[200px] rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div x-show="subtab === 'assessment'" x-transition:enter="transition ease-out duration-300 transform"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200 transform"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="min-h-[200px] rounded-lg bg-white p-4 shadow-inner dark:bg-gray-800">
                 @include('pages.careers.assessmenthc')
             </div>
-
-            <div x-show="subtab === 'assessmentuser'" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                class="min-h-[200px] rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div x-show="subtab === 'assessmentuser'" x-transition:enter="transition ease-out duration-300 transform"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200 transform"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="min-h-[200px] rounded-lg bg-white p-4 shadow-inner dark:bg-gray-800">
                 @include('pages.careers.assessmentuser')
             </div>
-
-            <div x-show="subtab === 'psychotest'" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                class="min-h-[200px] rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div x-show="subtab === 'psychotest'" x-transition:enter="transition ease-out duration-300 transform"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200 transform"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="min-h-[200px] rounded-lg bg-white p-4 shadow-inner dark:bg-gray-800">
                 @include('pages.careers.psychotest')
             </div>
-
-            <div x-show="subtab === 'payroll'" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                class="min-h-[200px] w-full rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div x-show="subtab === 'payroll'" x-transition:enter="transition ease-out duration-300 transform"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200 transform"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="min-h-[200px] w-full rounded-lg bg-white p-4 shadow-inner dark:bg-gray-800">
                 @include('pages.careers.payroll')
             </div>
-
-            <div x-show="subtab === 'join'" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                class="min-h-[200px] rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div x-show="subtab === 'join'" x-transition:enter="transition ease-out duration-300 transform"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200 transform"
+                x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                class="min-h-[200px] rounded-lg bg-white p-4 shadow-inner dark:bg-gray-800">
                 @include('pages.careers.join')
             </div>
         </div>
@@ -363,16 +374,15 @@
     </div>
 </div>
 
-@push('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-@endpush
-
-@push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
+<!-- Toastr CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<!-- Toastr JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script>lucide.createIcons();</script>
-@endpush
 
 <script>
     $(document).ready(function() {
@@ -402,7 +412,7 @@
 
                             commentList.append(`
                                 <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                    <p class=" text-sm  font-semibold">${comment.username}
+                                    <p class=" text-sm  font-semibold">${comment.username} 
                                         <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                     </p>
                                     <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -478,7 +488,7 @@
 
 <script>
     $(document).on("click", "#approveBtn", function() {
-        let docid = "{{ $career->docid }}"; // Ambil Task ID dari modal
+        let docid = "{{ $career->docid }}"; // Ambil Task ID dari modal        
         approveCareer(docid);
     });
 
@@ -566,7 +576,7 @@
                 return;
             }
 
-            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 
@@ -659,7 +669,7 @@
                 return;
             }
 
-            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
+            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
             // Tampilkan spinner di kanan bawah
             $spinner.fadeIn();
 

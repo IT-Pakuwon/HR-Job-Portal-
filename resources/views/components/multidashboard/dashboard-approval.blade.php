@@ -81,17 +81,17 @@
 
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-500">
-                        Approved Today
+                        Waiting &gt; 3 Days
                     </div>
 
-                    <div id="approvedTodayCount"
+                    <div id="longWaitingCount"
                         class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
                         0
                     </div>
                 </div>
 
-                <div class="rounded-lg bg-blue-500/10 p-2.5">
-                    📋
+                <div class="rounded-lg bg-amber-500/10 p-2.5">
+                    ⏰
                 </div>
 
             </div>
@@ -105,17 +105,17 @@
 
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-500">
-                        This Month
+                        Approved Today
                     </div>
 
-                    <div id="approvedMonthCount"
+                    <div id="approvedTodayCount"
                         class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
                         0
                     </div>
                 </div>
 
-                <div class="rounded-lg bg-violet-500/10 p-2.5">
-                    📊
+                <div class="rounded-lg bg-blue-500/10 p-2.5">
+                    📋
                 </div>
 
             </div>

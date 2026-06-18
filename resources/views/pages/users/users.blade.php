@@ -185,6 +185,15 @@
                                         <div>
                                             <label
                                                 class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                Username
+                                            </label>
+                                            <input id="username" name="username" type="text" placeholder="Auto-filled from email (or type manually)"
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                                                 Email Address
                                             </label>
                                             <input id="email" name="email" type="email"
@@ -586,6 +595,8 @@
                 $('#appForm')[0].reset();
 
                 $('#id').val('');
+                $('#username').val('');
+                usernameManuallyEdited = false;
 
                 $('#homepage').val(null).trigger('change');
 
@@ -625,6 +636,7 @@
 
                     $('#id').val(app.id);
                     $('#name').val(app.name);
+                    $('#username').val(app.username);
                     $('#email').val(app.email);
                     $('#npk').val(app.npk);
 
@@ -740,6 +752,22 @@
                         $overlay.removeClass('flex').addClass('hidden');
                     }
                 });
+            });
+
+            let usernameManuallyEdited = false;
+
+            $('#username').on('input', function() {
+                usernameManuallyEdited = $(this).val().trim() !== '';
+            });
+
+            $('#email').on('input', function() {
+                if (!usernameManuallyEdited) {
+                    $('#username').val($(this).val().split('@')[0] || '');
+                }
+            });
+
+            $('#addAppBtn').on('click.resetUsernameFlag', function() {
+                usernameManuallyEdited = false;
             });
 
             $('#closeModal, #closeModalFooter').on('click', function() {

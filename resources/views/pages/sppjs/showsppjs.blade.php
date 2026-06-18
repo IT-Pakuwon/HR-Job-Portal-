@@ -53,8 +53,8 @@
                         @endphp
 
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
-
-                            @if (!is_null($sppj->is_urgent))
+                            
+                            @if ($sppj->is_urgent === 't' || $sppj->is_urgent === true)
                                 <span
                                     class="inline-flex animate-pulse items-center rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
                                     🚨 URGENT

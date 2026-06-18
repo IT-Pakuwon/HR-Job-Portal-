@@ -6,6 +6,7 @@
     var utils  = window.gmUtils;
 
     var charts         = { customer: null, tenant: null, coupon: null };
+    var couponSelected = null; // { label, val } when a segment is clicked, null = show total
     var customerData   = {};   // { mall_code: { mall_name, data: [{label,value,total_amount,txn_rank,amt_rank}] } }
     var tenantData     = {};
     var activeCustomer = null;
@@ -321,6 +322,8 @@
         var series    = byMall.map(function (m) { return m.count; });
         var colors    = byMall.map(function (m) { return MALL_COLORS[m.mall_code] || '#94A3B8'; });
 
+        couponSelected = null; // reset on every re-render
+
         charts.coupon = new ApexCharts(el, {
             series: series,
             labels: labels,
@@ -331,6 +334,26 @@
                 foreColor: dark ? '#94A3B8' : '#64748B',
                 background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 500 },
+                events: {
+                    dataPointSelection: function (e, ctx, cfg) {
+                        var pts    = cfg.selectedDataPoints;
+                        var hasSel = pts && pts[0] && pts[0].length > 0;
+                        couponSelected = hasSel ? {
+                            label: cfg.w.globals.labels[pts[0][0]],
+                            val:   cfg.w.globals.series[pts[0][0]],
+                        } : null;
+                        ctx.updateOptions({
+                            plotOptions: { pie: { donut: { labels: { total: {
+                                label: couponSelected ? couponSelected.label : 'Total',
+                                formatter: function (w) {
+                                    return couponSelected
+                                        ? Number(couponSelected.val).toLocaleString('id-ID')
+                                        : Number(w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0)).toLocaleString('id-ID');
+                                },
+                            }}}}}
+                        }, false, false);
+                    },
+                },
             },
             colors: colors,
             plotOptions: {
@@ -342,13 +365,22 @@
                             total: {
                                 show: true, showAlways: true, label: 'Total',
                                 fontSize: '11px', fontWeight: 600,
-                                color: dark ? '#94A3B8' : '#64748B',
+                                color: dark ? '#CBD5E1' : '#64748B',
                                 formatter: function (w) {
                                     var t = w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0);
                                     return Number(t).toLocaleString('id-ID');
                                 },
                             },
-                            value: { fontSize: '14px', fontWeight: 700 },
+                            name: {
+                                show: true,
+                                fontSize: '11px', fontWeight: 600,
+                                color: dark ? '#CBD5E1' : '#64748B',
+                            },
+                            value: {
+                                fontSize: '14px', fontWeight: 700,
+                                color: dark ? '#F1F5F9' : '#0F172A',
+                                formatter: function (v) { return Number(v).toLocaleString('id-ID'); },
+                            },
                         },
                     },
                 },
@@ -447,6 +479,139 @@
         });
     }
 
+    // ── Query comparison (Option A vs Option B) ───────────────────────────────
+
+    function renderCompareStatus(containerId, byStatus) {
+        var el = document.getElementById(containerId);
+        if (!el) return;
+        el.innerHTML = '';
+        (byStatus || []).forEach(function (item) {
+            var col  = statusColor(item.status);
+            var label = STATUS_LABELS[item.status] || item.status;
+            var pill = document.createElement('span');
+            pill.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:2px 8px;'
+                + 'border-radius:9999px;font-size:10px;font-weight:600;'
+                + 'background:' + col + '1a;color:' + col + ';';
+            pill.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:' + col + ';display:inline-block;"></span>'
+                + utils.escHtml(label) + ' · ' + Number(item.count).toLocaleString('id-ID');
+            el.appendChild(pill);
+        });
+    }
+
+    var compareCharts = { a: null, b: null };
+
+    function renderCompareDonut(containerId, byMall, chartKey) {
+        var el = document.getElementById(containerId);
+        if (!el) return;
+        if (compareCharts[chartKey]) { compareCharts[chartKey].destroy(); compareCharts[chartKey] = null; }
+
+        if (!byMall || !byMall.length) {
+            el.innerHTML = '<div class="flex h-full items-center justify-center text-xs text-slate-400">No data</div>';
+            return;
+        }
+
+        var dark   = utils.isDark();
+        var labels = byMall.map(function (m) { return m.mall_name || m.mall_code; });
+        var series = byMall.map(function (m) { return m.count; });
+        var colors = byMall.map(function (m) { return MALL_COLORS[m.mall_code] || '#94A3B8'; });
+
+        compareCharts[chartKey] = new ApexCharts(el, {
+            series: series,
+            labels: labels,
+            chart: {
+                type: 'donut', height: 160,
+                toolbar: { show: false },
+                fontFamily: 'Inter, sans-serif',
+                foreColor: dark ? '#94A3B8' : '#64748B',
+                background: 'transparent',
+                animations: { enabled: true, easing: 'easeinout', speed: 500 },
+            },
+            colors: colors,
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '65%',
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true, showAlways: true, label: 'Total',
+                                fontSize: '10px', fontWeight: 600,
+                                color: dark ? '#CBD5E1' : '#64748B',
+                                formatter: function (w) {
+                                    return Number(w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0)).toLocaleString('id-ID');
+                                },
+                            },
+                            name: { show: true, fontSize: '10px', fontWeight: 600, color: dark ? '#CBD5E1' : '#64748B' },
+                            value: {
+                                fontSize: '12px', fontWeight: 700,
+                                color: dark ? '#F1F5F9' : '#0F172A',
+                                formatter: function (v) { return Number(v).toLocaleString('id-ID'); },
+                            },
+                        },
+                    },
+                },
+            },
+            dataLabels: { enabled: false },
+            legend: { show: false },
+            tooltip: {
+                theme: dark ? 'dark' : 'light',
+                y: { formatter: function (v) { return Number(v).toLocaleString('id-ID') + ' coupons'; } },
+            },
+            stroke: { width: 2, colors: [dark ? '#0f172a' : '#ffffff'] },
+        });
+        compareCharts[chartKey].render();
+    }
+
+    function loadCompare() {
+        var btn    = document.getElementById('pgcardRunCompare');
+        var status = document.getElementById('pgcardCompareStatus');
+        var result = document.getElementById('pgcardCompareResult');
+
+        if (btn) btn.disabled = true;
+        if (status) status.textContent = 'Running both queries…';
+        if (result) result.classList.add('hidden');
+
+        fetch(routes.pgcardCouponStywCompare + utils.buildParams(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (res.error) {
+                    if (status) status.textContent = 'Error: ' + res.error;
+                    if (btn) btn.disabled = false;
+                    return;
+                }
+
+                var a = res.optionA || {};
+                var b = res.optionB || {};
+
+                utils.setText('pgcardCompareTotalA', Number(a.total_valid || 0).toLocaleString('id-ID'));
+                utils.setText('pgcardCompareTotalB', Number(b.total_valid || 0).toLocaleString('id-ID'));
+                utils.setText('pgcardCompareTimeA',  (a.time_ms || 0).toLocaleString('id-ID') + ' ms');
+                utils.setText('pgcardCompareTimeB',  (b.time_ms || 0).toLocaleString('id-ID') + ' ms');
+
+                renderCompareStatus('pgcardCompareStatusA', a.by_status || []);
+                renderCompareStatus('pgcardCompareStatusB', b.by_status || []);
+                renderCompareDonut('pgcardCompareDonutA', a.by_mall || [], 'a');
+                renderCompareDonut('pgcardCompareDonutB', b.by_mall || [], 'b');
+
+                var faster = a.time_ms <= b.time_ms ? 'A' : 'B';
+                var diff   = Math.abs((a.time_ms || 0) - (b.time_ms || 0));
+                if (status) status.textContent = 'Done — Option ' + faster + ' was faster by ' + diff.toLocaleString('id-ID') + ' ms';
+                if (result) result.classList.remove('hidden');
+                if (btn) btn.disabled = false;
+            })
+            .catch(function (e) {
+                if (status) status.textContent = 'Request failed: ' + e.message;
+                if (btn) btn.disabled = false;
+            });
+    }
+
+    function bindCompare() {
+        var btn = document.getElementById('pgcardRunCompare');
+        if (btn) btn.addEventListener('click', loadCompare);
+    }
+
     // ── Dark-mode watcher ──────────────────────────────────────────────────────
     function watchDarkMode() {
         new MutationObserver(function () {
@@ -482,6 +647,7 @@
     function init() {
         bindMetrics();
         bindMallStatusFilter();
+        bindCompare();
         setActiveMetric('pgcardCustMetric', metricCustomer);
         setActiveMetric('pgcardTenMetric',  metricTenant);
         watchDarkMode();

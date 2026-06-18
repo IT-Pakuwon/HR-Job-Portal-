@@ -55,6 +55,8 @@ const ticketTable = $("#ticketTable").DataTable({
 
             d.category_id = $("#filter_category_id").val();
 
+            d.cpny_id = $("#filter_company_id").val();
+
             d.date_from = $("#filter_date_from").val();
 
             d.date_to = $("#filter_date_to").val();
@@ -963,6 +965,7 @@ $(document).on('click', '#btn_reset_filter', function () {
     $('#filter_status').val('');
     $('#filter_status_pekerjaan').val('');
     $('#filter_category_id').val('');
+    $('#filter_company_id').val('');
     $('#filter_date_from').val('');
     $('#filter_date_to').val('');
     ticketStatusFilter = '';

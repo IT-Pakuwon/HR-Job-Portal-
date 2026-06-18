@@ -124,8 +124,8 @@
                 const data = res.data || {};
 
                 $("#waitingCount").text(data.waiting || 0);
+                $("#longWaitingCount").text(data.long_waiting || 0);
                 $("#approvedTodayCount").text(data.approved_today || 0);
-                $("#approvedMonthCount").text(data.approved_month || 0);
 
                 updateRefreshTime();
 

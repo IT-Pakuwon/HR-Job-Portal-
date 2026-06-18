@@ -13,7 +13,9 @@
                             </h2>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+                        {{-- Row 1 --}}
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+                            {{-- Company --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
                                 <select name="cpnyid" id="cpnyid"
@@ -27,15 +29,7 @@
                                 </select>
                             </div>
 
-                            {{-- <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
-                                </select>
-                            </div> --}}
-
+                            {{-- Department --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
                                 <select name="departementid" id="departementid"
@@ -49,6 +43,7 @@
                                 </select>
                             </div>
 
+                            {{-- Type Payment --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Type Payment</label>
                                 <select name="rfpnonpurchase_type" id="rfpnonpurchase_type"
@@ -60,19 +55,6 @@
                                 </select>
                             </div>
 
-                            {{-- <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Group Biaya</label>
-                                <select name="groupbiaya_id" id="groupbiaya_id"
-                                    class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    required>
-                                    <option value="">Select Group</option>
-                                    @foreach ($groupbiaya as $g)
-                                        <option value="{{ $g->groupbiaya_id }}" {{ $g->groupbiaya_id == $rfpnonpurch->groupbiaya_id ? 'selected' : '' }}>
-                                            {{ $g->groupbiayadescr }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div> --}}
                             {{-- Group Biaya --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Group Biaya</label>
@@ -91,6 +73,16 @@
                                 </select>
                             </div>
 
+                            {{-- Tanggal Diperlukan --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tanggal Diperlukan
+                                </label>
+                                <input type="date" name="datediperlukan" id="datediperlukan" required
+                                    value="{{ $rfpnonpurch->datediperlukan ? \Carbon\Carbon::parse($rfpnonpurch->datediperlukan)->format('Y-m-d') : '' }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
                             {{-- Business Unit --}}
                             <div class="hidden flex flex-col gap-2" id="businessUnitBox">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
@@ -103,104 +95,56 @@
 
                         {{-- Deposit Information --}}
                         <div id="depositFieldsBox"
-                            class="hidden mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            class="hidden mt-4 grid min-w-[1200px] grid-cols-6 gap-4 overflow-x-auto">
 
-                            {{-- Customer Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Customer Name
-                                </label>
-                                <input type="text"
-                                    name="customername"
-                                    id="customername"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer Name</label>
+                                <input type="text" name="customername" id="customername"
                                     value="{{ $rfpnonpurch->customername }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
                             </div>
 
-                            {{-- Store Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Store Name
-                                </label>
-                                <input type="text"
-                                    name="storename"
-                                    id="storename"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Store Name</label>
+                                <input type="text" name="storename" id="storename"
                                     value="{{ $rfpnonpurch->storename }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
                             </div>
 
-                            {{-- Unit ID --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Unit ID
-                                </label>
-                                <input type="text"
-                                    name="unitid"
-                                    id="unitid"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unit ID</label>
+                                <input type="text" name="unitid" id="unitid"
                                     value="{{ $rfpnonpurch->unitid }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
                             </div>
 
-                            {{-- Transfer To --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Transfer To
-                                </label>
-                                <input type="text"
-                                    name="transferto"
-                                    id="transferto"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Transfer To</label>
+                                <input type="text" name="transferto" id="transferto"
                                     value="{{ $rfpnonpurch->transferto }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
                             </div>
 
-                            {{-- Bank Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Bank Name
-                                </label>
-                                <input type="text"
-                                    name="bankname"
-                                    id="bankname"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
+                                <input type="text" name="bankname" id="bankname"
                                     value="{{ $rfpnonpurch->bankname }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
                             </div>
 
-                            {{-- Bank Account --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Bank Account
-                                </label>
-                                <input type="text"
-                                    name="bankacct"
-                                    id="bankacct"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Account</label>
+                                <input type="text" name="bankacct" id="bankacct"
                                     value="{{ $rfpnonpurch->bankacct }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
                             </div>
-
                         </div>
 
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Diperlukan</label>
-                                <input type="date" name="datediperlukan" id="datediperlukan" required
-                                    value="{{ $rfpnonpurch->datediperlukan ? \Carbon\Carbon::parse($rfpnonpurch->datediperlukan)->format('Y-m-d') : '' }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
-                            </div>
+                        {{-- Row Payment Info --}}
+                        <div id="paymentInfoRow"
+                            class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
 
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Dibayarkan Kepada</label>
-                                <textarea name="pleasepayto" id="pleasepayto" rows="2" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm"
-                                    placeholder="Input nama / detail penerima pembayaran...">{{ $rfpnonpurch->pleasepayto }}</textarea>
-                            </div>
-
-                            <div class="flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Keperluan</label>
-                                <textarea name="keperluan" id="keperluan" rows="2" required
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm"
-                                    placeholder="Input keperluan...">{{ $rfpnonpurch->keperluan }}</textarea>
-                            </div>
-
+                            {{-- Amount Request Payment - hidden, sama seperti create --}}
                             <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Amount Request Payment
@@ -210,14 +154,35 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm"
                                     placeholder="0,00">
                             </div>
-                        </div>
 
-                        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-3">
+                            {{-- Tanggal Realisasi --}}
                             <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Realisasi</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tanggal Realisasi
+                                </label>
                                 <input type="date" name="datepenyelesaian" id="datepenyelesaian"
                                     value="{{ $rfpnonpurch->datepenyelesaian ? \Carbon\Carbon::parse($rfpnonpurch->datepenyelesaian)->format('Y-m-d') : '' }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
+                            {{-- Dibayarkan Kepada --}}
+                            <div class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Dibayarkan Kepada
+                                </label>
+                                <textarea name="pleasepayto" id="pleasepayto" rows="2" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm"
+                                    placeholder="Input nama / detail penerima pembayaran...">{{ $rfpnonpurch->pleasepayto }}</textarea>
+                            </div>
+
+                            {{-- Keperluan --}}
+                            <div id="headerKeperluanBox" class="flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Keperluan
+                                </label>
+                                <textarea name="keperluan" id="keperluan" rows="2" required
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm"
+                                    placeholder="Input keperluan...">{{ $rfpnonpurch->keperluan }}</textarea>
                             </div>
 
                             @php
@@ -225,8 +190,11 @@
                                 $selectedTembusan = array_filter(array_map('trim', explode(',', $rfpnonpurch->imnonpurchase_tembusan ?? '')));
                             @endphp
 
+                            {{-- Kepada --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Kepada</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Kepada
+                                </label>
                                 <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
                                     class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
                                     multiple>
@@ -238,8 +206,11 @@
                                 </select>
                             </div>
 
+                            {{-- Tembusan --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tembusan</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tembusan
+                                </label>
                                 <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
                                     class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
                                     multiple>
@@ -274,7 +245,7 @@
                                             <thead class="bg-gray-100/10">
                                                 <tr>
                                                     <th class="border p-3 text-center">No</th>
-                                                    <th class="req border p-3 text-left">Description</th>
+                                                    <th id="detailDescrHeader" class="req border p-3 text-left">Description</th>
                                                     <th class="req border p-3 text-right">Price</th>
                                                     <th class="req border p-3 text-left budget-col">Budget</th>
                                                     <th class="border p-3 text-center"></th>
@@ -289,7 +260,7 @@
                                                         <td class="border p-3">
                                                             <textarea name="rfpnonpurchase_descr[]" rows="2"
                                                                 class="rfpnonpurchaseDescrField w-full resize-y border-none bg-transparent p-2 focus:outline-none focus:ring-0"
-                                                                placeholder="Input description...">{{ $d->keperluan_detail }}</textarea>
+                                                                placeholder="Input description...">{{ strtoupper($rfpnonpurch->rfpnonpurchase_type) === 'RCA' ? ($d->keperluan_detail ?: $rfpnonpurch->keperluan) : $d->keperluan_detail }}</textarea>
                                                         </td>
 
                                                         <td class="border p-3">
@@ -650,11 +621,8 @@
         function validateDetails() {
             clearAllErrors();
 
-            if ($('#rfpnonpurchase_type').val() === 'RCA') {
-                return true;
-            }
-
             let validRows = 0;
+            const type = $('#rfpnonpurchase_type').val();
 
             $('#rfpnonpurchTable tr.rfpnonpurch-row').each(function () {
                 const $row = $(this);
@@ -666,13 +634,15 @@
                 const price = parseNumber($price.val());
                 const coaId = ($row.find('.coaIdField').val() || '').trim();
 
+                const isBudget = String($('#groupbiaya_id option:selected').data('is-budget')) === '1';
                 const isEmptyRow = !desc && !price && !coaId;
+
                 if (isEmptyRow) return;
 
                 let rowErr = false;
 
                 if (!desc) {
-                    addError($desc, 'Description wajib diisi.');
+                    addError($desc, type === 'RCA' ? 'Keperluan wajib diisi.' : 'Description wajib diisi.');
                     rowErr = true;
                 }
 
@@ -681,10 +651,7 @@
                     rowErr = true;
                 }
 
-                const type = $('#rfpnonpurchase_type').val();
-                const isBudget = String($('#groupbiaya_id option:selected').data('is-budget')) === '1';
-
-                if (type === 'RFP' && isBudget && !coaId) {
+                if (isBudget && !coaId) {
                     addError($coa, 'Budget wajib dipilih.');
                     rowErr = true;
                 }
@@ -698,8 +665,12 @@
             }
 
             const $first = $('#rfpnonpurchForm .is-invalid').first();
+
             if ($first.length) {
-                $('html,body').animate({ scrollTop: $first.offset().top - 120 }, 300);
+                $('html,body').animate({
+                    scrollTop: $first.offset().top - 120
+                }, 300);
+
                 $first.trigger('focus');
                 toastr.error('Mohon perbaiki field yang ditandai merah.');
                 return false;
@@ -1095,63 +1066,112 @@
                 }
             }
 
-            function toggleBudgetMode() {
+            function toggleRfpRcaMode() {
                 const type = $('#rfpnonpurchase_type').val();
+
+                // Detail selalu tampil untuk RFP dan RCA
+                $('#detailSection').removeClass('hidden');
+                $('#rfpnonpurchTable')
+                    .find('textarea, input, select, button')
+                    .prop('disabled', false);
+
+                if (type === 'RCA') {
+                    // Header Keperluan hidden
+                    $('#headerKeperluanBox').addClass('hidden');
+                    $('#keperluan').prop('required', false);
+
+                    // Label detail berubah
+                    $('#detailDescrHeader').text('Keperluan');
+                    $('.rfpnonpurchaseDescrField')
+                        .attr('placeholder', 'Input keperluan...')
+                        .prop('required', true);
+
+                    // RCA hanya 1 row, Add Row hidden
+                    $('#addImBudgetNonPurch').addClass('hidden');
+                    $('#rfpnonpurchTable tr.rfpnonpurch-row').not(':first').remove();
+
+                    updateRowNumbers();
+                    updateRemoveButtons();
+                    calculateGrandTotal();
+
+                    $('#tanggalRealisasiBox').removeClass('hidden');
+                    $('#datepenyelesaian').prop('required', false);
+
+                    $('#amountRequestPaymentBox').addClass('hidden');
+                    $('#amountrequestpayment')
+                        .val('')
+                        .prop('required', false);
+
+                } else {
+                    // RFP normal
+                    $('#headerKeperluanBox').removeClass('hidden');
+                    $('#keperluan').prop('required', true);
+
+                    $('#detailDescrHeader').text('Description');
+                    $('.rfpnonpurchaseDescrField')
+                        .attr('placeholder', 'Input description...')
+                        .prop('required', false);
+
+                    $('#addImBudgetNonPurch').removeClass('hidden');
+
+                    $('#tanggalRealisasiBox').addClass('hidden');
+                    $('#datepenyelesaian')
+                        .val('')
+                        .prop('required', false);
+
+                    $('#amountRequestPaymentBox').addClass('hidden');
+                    $('#amountrequestpayment')
+                        .val('')
+                        .prop('required', false);
+                }
+
+                toggleBudgetMode();
+            }
+
+            function toggleBudgetMode() {
                 const isBudget = String($('#groupbiaya_id option:selected').data('is-budget')) === '1';
 
-                if (type === 'RFP' && isBudget) {
+                // Detail selalu tampil untuk RFP dan RCA
+                $('#detailSection').removeClass('hidden');
+                $('#rfpnonpurchTable')
+                    .find('textarea, input, select, button')
+                    .prop('disabled', false);
+
+                if (isBudget) {
                     $('#businessUnitBox').removeClass('hidden');
                     $('#business_unit_id').prop('required', true);
 
                     $('.budget-col').removeClass('hidden');
-                    $('#descCol').removeClass('w-[75%]').addClass('w-[65%]');
+
+                    $('#descCol')
+                        .removeClass('w-[75%]')
+                        .addClass('w-[65%]');
 
                     $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                         .prop('disabled', false);
                 } else {
                     $('#businessUnitBox').addClass('hidden');
-                    $('#business_unit_id').prop('required', false).val('');
+
+                    $('#business_unit_id')
+                        .prop('required', false)
+                        .val('');
 
                     $('.budget-col').addClass('hidden');
-                    $('#descCol').removeClass('w-[65%]').addClass('w-[75%]');
+
+                    $('#descCol')
+                        .removeClass('w-[65%]')
+                        .addClass('w-[75%]');
 
                     $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                         .val('')
                         .prop('disabled', true);
                 }
 
-                if (type === 'RFP') {
-                    $('#detailSection').removeClass('hidden');
-                    $('#rfpnonpurchTable')
-                        .find('.rfpnonpurchaseDescrField, .priceField, .removeImBudgetNonPurch')
-                        .prop('disabled', false);
+                if ($('#rfpnonpurchase_type').val() === 'RCA') {
+                    $('#addImBudgetNonPurch').addClass('hidden');
+                    $('#detailDescrHeader').text('Keperluan');
                 }
-
-                if (type === 'RCA') {
-                    $('#detailSection').addClass('hidden');
-                    $('#rfpnonpurchTable')
-                        .find('textarea, input, select, button')
-                        .prop('disabled', true);
-
-                    $('#grandTotalDisplay').text('0,00');
-                    $('#grandTotalInput').val('0');
-                }
-            }
-
-            // function toggleDepositFields() {
-            //     const isDeposit = String($('#groupbiaya_id option:selected').data('is-deposit')) === '1';
-
-            //     if (isDeposit) {
-            //         $('#depositFieldsBox').removeClass('hidden');
-            //         $('#depositFieldsBox').find('input').prop('required', true);
-            //     } else {
-            //         $('#depositFieldsBox').addClass('hidden');
-            //         $('#depositFieldsBox').find('input').prop('required', false).val('');
-            //     }
-            // }
-
-            // $('#rfpnonpurchase_type').on('change', toggleRfpRcaMode);
-            // toggleRfpRcaMode();
+            }        
 
             $('#rfpnonpurchase_type').on('change', function () {
                 toggleRfpRcaMode();
@@ -1164,6 +1184,9 @@
             });
 
             $('#addImBudgetNonPurch').on('click', function () {
+                if ($('#rfpnonpurchase_type').val() === 'RCA') {
+                    return;
+                }
                 const nextNo = $('#rfpnonpurchTable tr.rfpnonpurch-row').length + 1;
 
                 $('#rfpnonpurchTable').append(newRowTemplate(nextNo));
@@ -1211,6 +1234,18 @@
 
             $('#rfpnonpurchForm').on('submit', function (e) {
                 e.preventDefault();
+
+                const type = $('#rfpnonpurchase_type').val();
+
+                if (type === 'RCA') {
+                    const keperluanFromDetail = $('.rfpnonpurchaseDescrField')
+                        .first()
+                        .val()
+                        .trim();
+
+                    $('#keperluan').val(keperluanFromDetail);
+                }
+
 
                 if (!validateDetails()) return;
                 // if (!validateAttachments()) return;

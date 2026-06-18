@@ -12,10 +12,7 @@ class TrCalrNonPurch extends Model
     protected $table = "tr_calr_nonpurchase";
 
     protected $fillable = [
-        'calrnonpurchaseid', 'rfpnonpurchaseid', 'calrnonpurchasedate', 'datebataspenyelesaian', 'cpny_id', 'department_id', 'location_id', 
-        'user_peminta', 'keperluan', 'amountrfp', 'amountsettlement', 'amountdiff', 'status', 'userreceive', 'receivedate', 'statusreceive', 'userpayment', 
-        'paymentdate', 'paymenttype', 'amountpayment', 'amountpenyelesaian', 'statuspayment', 'created_by', 'created_at', 
-        'updated_by', 'updated_at', 'deleted_by', 'deleted_at', 'completed_by', 'completed_at'
+        'calrnonpurchaseid', 'calrnonpurchasedate', 'rfpnonpurchaseid', 'datebataspenyelesaian', 'cpny_id', 'department_id', 'location_id', 'user_peminta', 'flag_imbudget', 'imbudgetid', 'status_imbudget', 'keperluan', 'amountrfp', 'amountsettlement', 'amountdiff', 'status', 'userreceive', 'receivedate', 'statusreceive', 'userpayment', 'paymentdate', 'paymenttype', 'amountpayment', 'amountpenyelesaian', 'statuspayment', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at', 'completed_by', 'completed_at'
     ];
 
     public function creator()

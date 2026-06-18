@@ -249,7 +249,6 @@ class PersonnelController extends Controller
 
                 // 🔥 FIX HERE
                 'jobposting_status' => $jobposting->status ?? null,
-                'jobposting_reason' => $jobposting->reason ?? null,
                 'can_toggle' => $hasPostingAccess,
             ];
         });
@@ -2160,7 +2159,7 @@ class PersonnelController extends Controller
                 'experience_start' => $personnel->experience_start,
                 'experience_end' => $personnel->experience_end,
                 'created_user' => $user->username,
-                'status' => 'U',
+                'status' => 'P',
             ]);
 
             $jobres = JobResponsiblities::where('docid', $id)
@@ -2590,7 +2589,7 @@ class PersonnelController extends Controller
         // 1. VALIDATE
         $request->validate([
             'docid' => 'required',
-            'status' => 'required|in:U,P,C,H,X',
+            'status' => 'required|in:P,C,H,X',
             'reason' => 'nullable|string|required_if:status,H',
         ]);
 

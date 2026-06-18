@@ -157,14 +157,16 @@
                             @endforeach
                         </div>
 
-                        <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                            <div class="flex items-center gap-2 text-gray-500">
-                                <span class="text-sm font-medium">Keperluan</span>
+                        @if (!$isRCA)
+                            <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
+                                <div class="flex items-center gap-2 text-gray-500">
+                                    <span class="text-sm font-medium">Keperluan</span>
+                                </div>
+                                <span class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-300">
+                                    {{ $rfpnonpurch->keperluan ?: '-' }}
+                                </span>
                             </div>
-                            <span class="whitespace-pre-line break-words text-sm font-medium text-gray-900 dark:text-gray-300">
-                                {{ $rfpnonpurch->keperluan ?: '-' }}
-                            </span>
-                        </div>
+                        @endif
 
                         @if ($deposit)
                             <div class="col-span-2 mt-4 rounded-md bg-blue-50 p-3 dark:bg-gray-700">
@@ -211,27 +213,39 @@
                             });
                         @endphp
 
-                        @if ($rfpnonpurch->rfpnonpurchase_type === 'RFP')
+                        @if (in_array(strtoupper((string) $rfpnonpurch->rfpnonpurchase_type), ['RFP', 'RCA']))
                             <div class="col-span-2 mt-4 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                                <div class="mb-3 flex items-center justify-between">
-                                    <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
-                                        Detail RFP Non Purchase
-                                    </h3>
-                                </div>
+
+                                @if (!$isRCA)
+                                    <div class="mb-3 flex items-center justify-between">
+                                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
+                                            Detail RFP Non Purchase
+                                        </h3>
+                                    </div>
+                                @endif
 
                                 <div class="overflow-x-auto">
                                     <table class="w-full table-fixed text-sm">
                                         <colgroup>
-                                            <col class="w-[50px]">
-                                            <col class="w-[40%]">
+                                            @if (!$isRCA)
+                                                <col class="w-[50px]">
+                                            @endif
+
+                                            <col class="{{ $isRCA ? 'w-[45%]' : 'w-[40%]' }}">
                                             <col class="w-[180px]">
                                             <col class="w-[420px]">
                                         </colgroup>
 
                                         <thead class="border-b text-gray-600 dark:text-gray-300">
                                             <tr>
-                                                <th class="p-2 text-center">No</th>
-                                                <th class="p-2 text-left">Description</th>
+                                                @if (!$isRCA)
+                                                    <th class="p-2 text-center">No</th>
+                                                @endif
+
+                                                <th class="p-2 text-left">
+                                                    {{ $isRCA ? 'Keperluan' : 'Description' }}
+                                                </th>
+
                                                 <th class="p-2 text-right">Amount Request</th>
                                                 <th class="p-2 text-left">Budget</th>
                                             </tr>
@@ -240,10 +254,12 @@
                                         <tbody class="divide-y dark:divide-gray-600">
                                             @forelse ($details as $i => $d)
                                                 <tr>
-                                                    <td class="p-2 text-center">{{ $i + 1 }}</td>
+                                                    @if (!$isRCA)
+                                                        <td class="p-2 text-center">{{ $i + 1 }}</td>
+                                                    @endif
 
                                                     <td class="p-2">
-                                                        {{ $d->keperluan_detail ?: '-' }}
+                                                        {{ $isRCA ? ($rfpnonpurch->keperluan ?: '-') : ($d->keperluan_detail ?: '-') }}
                                                     </td>
 
                                                     <td class="p-2 text-right">
@@ -306,7 +322,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="4" class="p-3 text-center italic text-gray-500">
+                                                    <td colspan="{{ $isRCA ? 3 : 4 }}" class="p-3 text-center italic text-gray-500">
                                                         No detail found.
                                                     </td>
                                                 </tr>
@@ -772,27 +788,7 @@
                 }
             });
 
-            // $(document).on("click", "#approveBtn", function() {
-            //     $.ajax({
-            //         url: `/rfpnonpurch/${rfpid}/approve`,
-            //         type: "POST",
-            //         data: {
-            //             _token: csrf,
-            //             rfpid: rfpid
-            //         },
-            //         success: function(response) {
-            //             if (response.success) {
-            //                 toastr.success("RFP approved successfully!");
-            //                 closeOrRedirect("/rfpnonpurch");
-            //             } else {
-            //                 toastr.error(response.message || "Failed to approve RFP.");
-            //             }
-            //         },
-            //         error: function(xhr) {
-            //             toastr.error(xhr.responseJSON?.message || "Unable to approve RFP.");
-            //         }
-            //     });
-            // });
+           
             $(document).on("click", "#approveBtn", function() {
                 approveRfpNonPurchWithIMCheck(rfpid);
             });

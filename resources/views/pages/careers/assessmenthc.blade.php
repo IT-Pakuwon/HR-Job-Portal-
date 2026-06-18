@@ -5,68 +5,74 @@
     <input type="hidden" name="result_status" id="resultStatusHC" value="NOT SUITABLE">
     <input type="hidden" name="docid" value="{{ $career->docid }}">
 
-    {{-- ── Info header ─────────────────────────────────────────────── --}}
-    <div class="grid grid-cols-2 gap-2 border-b border-gray-100 px-4 py-2.5 dark:border-gray-700/60 lg:grid-cols-4">
-        <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Nama Interview</p>
-            <p class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+    <table>
+        <tr>
+            <td>
+                <strong>Nama Interview</strong><br>(Interview Name) :
                 {{ $tr_assessment && $tr_assessment->user ? $tr_assessment->user : $user->name }}
-            </p>
-        </div>
-        <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Tanggal &amp; Jam</p>
-            <div class="mt-0.5 flex items-center gap-2">
+            </td>
+            <td colspan="2"></td>
+            <td><strong>Posisi yang Diinginkan</strong><br>(Position Applied For)</td>
+            <td><strong>STANDAR SCORING :</strong></td>
+            <td colspan="2" id="resultTextHC"><strong>NOT SUITABLE</strong></td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Tanggal Wawancara</strong><br>(Date of Interview) :
                 <input type="date" name="interview_date"
                     value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('Y-m-d') : '' }}"
-                    required
-                    class="rounded border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-700 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                    required>
+            </td>
+            <td></td>
+            <td>
+                <strong>Jam</strong><br>( Time ) :
                 <input type="time" name="interview_time"
                     value="{{ $tr_assessment && $tr_assessment->assessment_date ? \Carbon\Carbon::parse($tr_assessment->assessment_date)->format('H:i') : '' }}"
-                    required
-                    class="rounded border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-700 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-            </div>
-        </div>
-        <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Standar Scoring</p>
-            <p class="text-sm font-semibold text-gray-800 dark:text-gray-100" id="resultTextHC">NOT SUITABLE</p>
-        </div>
-        <div class="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-700/30">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Jumlah Nilai</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalScoreHC">0</p>
-        </div>
-    </div>
+                    required>
+            </td>
+            <td></td>
+            <td><strong>Jumlah Nilai</strong><br>(Total Score)</td>
+            <td id="totalScoreHC"><strong>0</strong></td>
+        </tr>
+    </table>
 
-    <table class="w-full border-collapse">
-        <thead>
-            <tr class="border-b border-gray-100 dark:border-gray-700/60">
-                <th class="w-1/5 py-2.5 pl-5 pr-3 text-left text-[10px] font-bold uppercase tracking-widest text-gray-400">Kriteria</th>
-                @php $scoreHeaders = $assessmentGroups[0]['options'] ?? []; @endphp
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr class="bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-700">
+                <th class="px-4 py-3 text-left font-semibold">Kriteria</th>
+                @php
+                    // Ambil skor dari group pertama, diasumsikan semua group punya struktur skor yang sama
+                    $scoreHeaders = $assessmentGroups[0]['options'] ?? [];
+                @endphp
                 @foreach ($scoreHeaders as $option)
-                    <th class="px-2 py-2.5 text-center text-[10px] font-bold text-gray-400">{{ $option['assessment_score'] }}</th>
+                    <th>{{ $option['assessment_score'] }}</th>
                 @endforeach
-                <th class="w-12 py-2.5 pl-2 pr-5 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">Nilai</th>
+                <th class="px-4 py-3 text-left font-semibold">Nilai</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/40">
+
+        <tbody>
             @foreach ($assessmentGroups as $groupIndex => $group)
-                @php $selectedScore = $group['selected_score'] ?? 0; @endphp
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/20">
-                    <td class="py-3 pl-5 pr-3 align-middle text-xs font-semibold text-gray-800 dark:text-gray-100">
-                        {{ $group['assessment_group'] }}
-                    </td>
+                @php
+                    $selectedScore = $group['selected_score'] ?? 0; // nilai default jika tidak ada
+                @endphp
+                <tr>
+                    <td style="vertical-align: middle;"><strong>{{ $group['assessment_group'] }}</strong></td>
+
                     @foreach ($group['options'] as $score => $option)
-                        <td class="px-2 py-3 text-center align-middle">
-                            <label class="flex cursor-pointer flex-col items-center gap-1 text-[10px] leading-tight text-gray-500 dark:text-gray-400">
-                                <span>{{ $option['assessment_descr'] }}</span>
+                        <td style="text-align: center; vertical-align: middle;">
+                            <label
+                                style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px;">
+                                <span style="margin-bottom: 4px;">{{ $option['assessment_descr'] }}</span>
                                 <input type="radio" name="scores[{{ $groupIndex }}]" value="{{ $score }}"
                                     {{ $selectedScore == $score ? 'checked' : '' }}
                                     onclick="updateScoreHC({{ $groupIndex }}, {{ $score }})">
                             </label>
                         </td>
                     @endforeach
-                    <td id="scoreCellHC-{{ $groupIndex }}" class="py-3 pl-2 pr-5 text-center align-middle text-sm font-bold text-gray-800 dark:text-gray-100">
-                        {{ $selectedScore }}
-                    </td>
+
+                    <td id="scoreCellHC-{{ $groupIndex }}" style="text-align: center; vertical-align: middle;">
+                        {{ $selectedScore }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -109,7 +115,7 @@
 
     <div class="mt-6 flex justify-end"> {{-- Container to align button to the right --}}
         <button type="submit"
-            class="inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900">
+            class="hover: inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
             Save
         </button>
     </div>

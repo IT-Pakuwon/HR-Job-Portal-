@@ -36,9 +36,6 @@ class MeetingController extends Controller
             $date = now()->startOfDay();
         }
 
-        $dayStart = $date->copy()->startOfDay();
-        $dayEnd = $date->copy()->endOfDay();
-
         $rooms = MsMeetingRoom::query()
             ->where('status', 'A')
             ->orderByRaw('CAST(room_id AS INTEGER) ASC')
@@ -127,27 +124,6 @@ class MeetingController extends Controller
                 ];
             });
 
-        $calendarEvents = $meetings->map(function ($m) {
-            return [
-                'id' => $m['hash'],
-
-                'resourceId' => $m['room_id'],
-
-                'start' => $m['start'],
-
-                'end' => $m['end'],
-
-                'title' => $m['title'],
-
-                'extendedProps' => [
-                    'user' => $m['title'],
-                    'room' => $m['room_name'] ?? '',
-                    'type' => $m['type'] ?? 'internal',
-                    'isTeams' => $m['isTeams'] ?? false,
-                ],
-            ];
-        })->values();
-
         $users = User::query()
             ->where('status', 'A')
             ->orderBy('name')
@@ -170,10 +146,9 @@ class MeetingController extends Controller
             ->where('status', 'A')
             ->first();
 
-        $dateblock = date(
-            'Y-m-d',
-            strtotime($date_block->setting_value_string)
-        );
+        $dateblock = $date_block
+            ? date('Y-m-d', strtotime($date_block->setting_value_string))
+            : now()->format('Y-m-d');
 
         $user = auth()->user();
 
@@ -182,18 +157,14 @@ class MeetingController extends Controller
             ->where('role_id', 'CSACCESS')
             ->pluck('role_id');
 
-        $bookingSetting = MsDasSetting::query()
-            ->where('status', 'A')
-            ->first();
-
         // default +15 days
         $maxBookingDate = now()
             ->addDays(15)
             ->endOfDay();
 
-        if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
+        if ($date_block && !empty($date_block->setting_value_string)) {
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->addDays((int) $date_block->setting_value_string)
                 ->endOfDay();
         }
 
@@ -234,9 +205,6 @@ class MeetingController extends Controller
             $date = now()->startOfDay();
         }
 
-        $dayStart = $date->copy()->startOfDay();
-        $dayEnd = $date->copy()->endOfDay();
-
         $rooms = MsMeetingRoom::query()
             ->whereIn('status', ['T', 'Z'])
           ->orderByRaw('CAST(room_id AS INTEGER) ASC')
@@ -267,12 +235,13 @@ class MeetingController extends Controller
         ->orderBy('acc_name')
         ->get();
 
-        // $dateblock = now()->format('Y-m-d');
         $date_block = MsDasSetting::query()
             ->where('status', 'A')
             ->first();
 
-        $dateblock = date('Y-m-d', strtotime($date_block->setting_value_string));
+        $dateblock = $date_block
+            ? date('Y-m-d', strtotime($date_block->setting_value_string))
+            : now()->format('Y-m-d');
 
         $user = auth()->user();
 
@@ -319,6 +288,7 @@ class MeetingController extends Controller
 
         $roomMap = MsMeetingRoom::pluck('room_name', 'room_id');
         $roomColors = MsMeetingRoom::pluck('eventcolor', 'room_id');
+        $roomStatus = MsMeetingRoom::pluck('status', 'room_id');
         $users = User::pluck('name', 'username');
 
         $accMap = MsMeetingAccessories::pluck('acc_name', 'acc_id');
@@ -327,7 +297,7 @@ class MeetingController extends Controller
             TrMeeting::where('status', '!=', 'X')
                 ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
                 ->get()
-                ->map(function ($m) use ($roomMap, $roomColors, $users, $accMap) {
+                ->map(function ($m) use ($roomMap, $roomColors, $roomStatus, $users, $accMap) {
                     $participants = DB::connection('pgsql5')
                         ->table('tr_meeting_participant')
                         ->where('docid', $m->docid)
@@ -375,6 +345,7 @@ class MeetingController extends Controller
                             'isTeams' => !empty($m->msteams_join_url),
                             'teams_url' => $m->msteams_join_url,
                             'description' => $m->meeting_descr,
+                            'roomStatus' => $roomStatus[$m->room_id] ?? null,
 
                             // ✅ NOW RETURNS NAMES (not IDs)
                             'accessories' => $accessories,
@@ -453,8 +424,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -673,8 +644,6 @@ class MeetingController extends Controller
                 ->where('room_id', $meeting->room_id)
                 ->value('room_name');
 
-            DB::connection('pgsql5')->commit();
-
             $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
 
             if (!empty($teamsResult['success'])) {
@@ -689,12 +658,12 @@ class MeetingController extends Controller
                     $meeting->msteams_meetingid = $teamsResult['msteams_meetingid'];
                 }
 
-                // 🔥 IMPORTANT: save owner (already set inside function)
                 $meeting->updated_by = $authUser->username ?? $username;
                 $meeting->updated_at = now();
-
-                $meeting->save(); // ✅ THIS saves msteams_owner too
+                $meeting->save();
             }
+
+            DB::connection('pgsql5')->commit();
 
             $this->sendMeetingEmail($meeting, 'create');
 
@@ -873,8 +842,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -1354,9 +1323,13 @@ class MeetingController extends Controller
             }
         }
 
-        // 🔥 ESCAPE TEXT (VERY IMPORTANT)
-        $title = addslashes($meeting->meeting_title);
-        $desc = addslashes($meeting->meeting_descr);
+        $escapeIcs = fn ($s) => str_replace(
+            ['\\', ',', ';', "\r\n", "\n"],
+            ['\\\\', '\\,', '\\;', '\\n', '\\n'],
+            (string) $s
+        );
+        $title = $escapeIcs($meeting->meeting_title);
+        $desc  = $escapeIcs($meeting->meeting_descr);
 
         if (!empty($meeting->msteams_join_url)) {
             $desc .= "\\nJoin Teams: {$meeting->msteams_join_url}";
@@ -1860,8 +1833,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -2152,28 +2125,24 @@ class MeetingController extends Controller
                 || (string) $oldEnd !== (string) $meeting->end_meeting_time
                 || (string) $oldRoom !== (string) $meeting->room_id;
 
-            if (
-                ($scheduleOrRoomChanged || $accessoryChanged)
-                && !empty($meeting->acc_id)
-            ) {
-                $accessoryChanged = (string) $oldAccId !== (string) $meeting->acc_id;
-
+            if ($accessoryChanged && empty($meeting->acc_id) && $meeting->msteams_event_id) {
+                // All accessories removed — cancel the orphaned Teams meeting
+                $this->deleteMicrosoftTeamsMeeting($meeting);
+                $meeting->msteams_event_id = null;
+                $meeting->msteams_join_url = null;
+                $meeting->msteams_passcode = null;
+                $meeting->msteams_meetingid = null;
+                $meeting->save();
+            } elseif (($scheduleOrRoomChanged || $accessoryChanged) && !empty($meeting->acc_id)) {
                 if ($accessoryChanged && $meeting->msteams_event_id) {
-                    // 🔥 DELETE OLD
                     $this->deleteMicrosoftTeamsMeeting($meeting);
-
-                    // 🔥 RESET
                     $meeting->msteams_event_id = null;
                     $meeting->msteams_join_url = null;
-
-                    // 🔥 CREATE NEW
                     $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
                 } else {
                     if ($meeting->msteams_event_id) {
-                        // 🔥 NORMAL UPDATE
                         $teamsResult = $this->updateMicrosoftTeamsMeeting($meeting);
                     } else {
-                        // 🔥 CREATE
                         $teamsResult = $this->createTeamsMeetingFromAccessory($meeting);
                     }
                 }
@@ -2293,8 +2262,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
