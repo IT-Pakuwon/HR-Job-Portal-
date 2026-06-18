@@ -187,12 +187,21 @@ class TicketController extends Controller
                 'status_pekerjaan',
                 'ENVISION CHECKED / SOLVED'
             )->count(),
+
+            'my_ticket' => TrTicket::query()
+                ->where('pic_ticket', $user->username)
+                ->count(),
         ];
 
         $categories = MsTicketCategory::query()
             ->where('status', 'A')
             ->orderBy('ticket_category_name')
             ->get(['ticket_categoryid', 'ticket_category_name']);
+
+        $allCompanies = MsCompany::query()
+            ->where('status', 'A')
+            ->orderBy('cpny_name')
+            ->get(['cpny_id', 'cpny_name']);
 
         return view('pages.ticket.ticket', [
             'title' => 'Ticket',
@@ -201,6 +210,7 @@ class TicketController extends Controller
             'departments' => $departments,
             'counts' => $counts,
             'categories' => $categories,
+            'allCompanies' => $allCompanies,
         ]);
     }
 
@@ -307,6 +317,10 @@ class TicketController extends Controller
                 'ticket_categoryid',
                 $request->category_id
             );
+        }
+
+        if ($request->filled('my_ticket') && $request->my_ticket === '1') {
+            $query->where('pic_ticket', $user->username);
         }
 
         return DataTables::of($query)
@@ -2296,6 +2310,10 @@ class TicketController extends Controller
 
         $counts['envision_solved'] = $base()
             ->where('status_pekerjaan', 'ENVISION CHECKED / SOLVED')
+            ->count();
+
+        $counts['my_ticket'] = TrTicket::query()
+            ->where('pic_ticket', $user->username)
             ->count();
 
         return response()->json($counts);

@@ -45,7 +45,13 @@ const ticketTable = $("#ticketTable").DataTable({
         url: "/ticket/json",
 
         data: function (d) {
-            d.status = ticketStatusFilter;
+            if (ticketStatusFilter === 'MY_TICKET') {
+                d.status   = '';
+                d.my_ticket = '1';
+            } else {
+                d.status    = ticketStatusFilter;
+                d.my_ticket = '';
+            }
 
             d.search = $("#filter_search").val();
 
@@ -54,6 +60,8 @@ const ticketTable = $("#ticketTable").DataTable({
             d.status_pekerjaan = $("#filter_status_pekerjaan").val();
 
             d.category_id = $("#filter_category_id").val();
+
+            d.cpny_id = $("#filter_company_id").val();
 
             d.date_from = $("#filter_date_from").val();
 
@@ -963,6 +971,7 @@ $(document).on('click', '#btn_reset_filter', function () {
     $('#filter_status').val('');
     $('#filter_status_pekerjaan').val('');
     $('#filter_category_id').val('');
+    $('#filter_company_id').val('');
     $('#filter_date_from').val('');
     $('#filter_date_to').val('');
     ticketStatusFilter = '';

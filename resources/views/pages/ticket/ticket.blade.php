@@ -18,7 +18,7 @@
 
         {{-- Status Filter --}}
         <div
-            class="{{ $isIT ? '2xl:grid-cols-11' : '2xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            class="{{ $isIT ? '2xl:grid-cols-12' : '2xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
 
             {{-- All --}}
             <button type="button" class="text-left">
@@ -49,6 +49,38 @@
                 </a>
 
             </button>
+
+            @if ($isIT)
+                {{-- My Ticket --}}
+                <button type="button" class="text-left">
+
+                    <a href="#" class="ticket-status-filter group block h-full" data-status="MY_TICKET">
+
+                        <div
+                            class="ticket-status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
+
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">
+                                👤
+                            </div>
+
+                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
+
+                                <p class="whitespace-normal break-words text-sm font-medium">
+                                    My Ticket
+                                </p>
+
+                            </div>
+
+                            <p class="shrink-0 text-base font-bold" data-count="my_ticket">
+                                {{ $counts['my_ticket'] ?? 0 }}
+                            </p>
+
+                        </div>
+
+                    </a>
+
+                </button>
+            @endif
 
             @if ($isIT)
                 {{-- Created --}}
@@ -361,7 +393,7 @@
             <div
                 class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
 
-                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+                <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
 
                     {{-- Search --}}
                     <div>
@@ -484,6 +516,32 @@
                             @foreach ($categories as $cat)
                                 <option value="{{ $cat->ticket_categoryid }}">
                                     {{ $cat->ticket_category_name }}
+                                </option>
+                            @endforeach
+
+                        </select>
+
+                    </div>
+
+                    {{-- Company --}}
+                    <div>
+
+                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">
+
+                            Company
+
+                        </label>
+
+                        <select id="filter_company_id"
+                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+
+                            <option value="">
+                                All Company
+                            </option>
+
+                            @foreach ($allCompanies as $company)
+                                <option value="{{ $company->cpny_id }}">
+                                    {{ $company->cpny_name }}
                                 </option>
                             @endforeach
 
