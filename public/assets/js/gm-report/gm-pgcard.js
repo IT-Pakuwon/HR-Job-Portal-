@@ -6,6 +6,7 @@
     var utils  = window.gmUtils;
 
     var charts         = { customer: null, tenant: null, coupon: null };
+    var couponSelected = null; // { label, val } when a segment is clicked, null = show total
     var customerData   = {};   // { mall_code: { mall_name, data: [{label,value,total_amount,txn_rank,amt_rank}] } }
     var tenantData     = {};
     var activeCustomer = null;
@@ -321,6 +322,8 @@
         var series    = byMall.map(function (m) { return m.count; });
         var colors    = byMall.map(function (m) { return MALL_COLORS[m.mall_code] || '#94A3B8'; });
 
+        couponSelected = null; // reset on every re-render
+
         charts.coupon = new ApexCharts(el, {
             series: series,
             labels: labels,
@@ -331,6 +334,26 @@
                 foreColor: dark ? '#94A3B8' : '#64748B',
                 background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 500 },
+                events: {
+                    dataPointSelection: function (e, ctx, cfg) {
+                        var pts    = cfg.selectedDataPoints;
+                        var hasSel = pts && pts[0] && pts[0].length > 0;
+                        couponSelected = hasSel ? {
+                            label: cfg.w.globals.labels[pts[0][0]],
+                            val:   cfg.w.globals.series[pts[0][0]],
+                        } : null;
+                        ctx.updateOptions({
+                            plotOptions: { pie: { donut: { labels: { total: {
+                                label: couponSelected ? couponSelected.label : 'Total',
+                                formatter: function (w) {
+                                    return couponSelected
+                                        ? Number(couponSelected.val).toLocaleString('id-ID')
+                                        : Number(w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0)).toLocaleString('id-ID');
+                                },
+                            }}}}}
+                        }, false, false);
+                    },
+                },
             },
             colors: colors,
             plotOptions: {
@@ -342,13 +365,22 @@
                             total: {
                                 show: true, showAlways: true, label: 'Total',
                                 fontSize: '11px', fontWeight: 600,
-                                color: dark ? '#94A3B8' : '#64748B',
+                                color: dark ? '#CBD5E1' : '#64748B',
                                 formatter: function (w) {
                                     var t = w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0);
                                     return Number(t).toLocaleString('id-ID');
                                 },
                             },
-                            value: { fontSize: '14px', fontWeight: 700 },
+                            name: {
+                                show: true,
+                                fontSize: '11px', fontWeight: 600,
+                                color: dark ? '#CBD5E1' : '#64748B',
+                            },
+                            value: {
+                                fontSize: '14px', fontWeight: 700,
+                                color: dark ? '#F1F5F9' : '#0F172A',
+                                formatter: function (v) { return Number(v).toLocaleString('id-ID'); },
+                            },
                         },
                     },
                 },
