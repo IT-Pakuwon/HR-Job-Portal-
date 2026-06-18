@@ -185,6 +185,16 @@
                                         <div>
                                             <label
                                                 class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                Username
+                                            </label>
+                                            <input id="username" name="username" type="text" placeholder="johndoe"
+                                                required
+                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                                                 Email Address
                                             </label>
                                             <input id="email" name="email" type="email"
@@ -625,6 +635,7 @@
 
                     $('#id').val(app.id);
                     $('#name').val(app.name);
+                    $('#username').val(app.username);
                     $('#email').val(app.email);
                     $('#npk').val(app.npk);
 
