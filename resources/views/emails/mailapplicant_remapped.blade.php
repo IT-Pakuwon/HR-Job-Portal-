@@ -14,6 +14,7 @@
 
         <div style="background-color: #f0f4ff; border-left: 4px solid #4f46e5; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
             <p style="margin: 0; font-size: 16px; font-weight: bold; color: #4f46e5;">{{ $job_title }}</p>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #555;">{{ $division }} &mdash; {{ $department }}</p>
         </div>
 
         <p>Your previously submitted application data is still valid — <strong>you do not need to fill in the form again</strong>. Our recruitment team will continue the process and contact you regarding the next steps.</p>
