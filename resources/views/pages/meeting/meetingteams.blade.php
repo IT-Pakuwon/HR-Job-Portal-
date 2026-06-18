@@ -545,6 +545,16 @@
                 },
                 select: function(info) {
 
+                    if (!info.resource) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Select from Timeline view',
+                            text: 'Please use the Timeline Day view to book a room so that the room can be identified.'
+                        });
+                        calendarInstance.unselect();
+                        return;
+                    }
+
                     const start = moment(info.startStr);
                     const end = moment(info.endStr);
 
@@ -552,8 +562,7 @@
 
                     // Fill form
                     $('#datetimes').val(
-                        start.format('YYYY-MM-DD hh:mm A') + ' - ' + end.format(
-                            'YYYY-MM-DD hh:mm A')
+                        start.format('YYYY-MM-DD HH:mm') + ' - ' + end.format('YYYY-MM-DD HH:mm')
                     );
 
                     $('#room_id').val(info.resource.id);
@@ -971,17 +980,17 @@
             // 🔥 START PICKER
             flatpickr("#edit_start_datetime", {
                 enableTime: true,
-                dateFormat: "Y-m-d h:i K",
-                time_24hr: false,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
                 defaultDate: event ? event.start : null
             });
 
             // 🔥 END PICKER
             flatpickr("#edit_end_datetime", {
                 enableTime: true,
-                dateFormat: "Y-m-d h:i K",
-                time_24hr: false,
-                defaultDate: event ? event.end : null
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                defaultDate: event ? (event.end || null) : null
             });
         }
 
@@ -1212,7 +1221,7 @@ function copyLink(link, encoded = false) {
             document.getElementById('view_time').innerText =
                 moment(event.start).format('ddd, DD MMM YYYY HH:mm') +
                 ' → ' +
-                moment(event.end).format('HH:mm');
+                (event.end ? moment(event.end).format('HH:mm') : '-');
 
             document.getElementById('view_room').innerText = props.room || '-';
             document.getElementById('view_desc').innerText = props.description || '-';
@@ -1249,6 +1258,7 @@ function copyLink(link, encoded = false) {
         }
 
         function closeViewModal() {
+            closeEditMode();
             const modal = document.getElementById('viewMeetingModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');

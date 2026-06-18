@@ -314,7 +314,7 @@
                                                     {{ $u->name }} ({{ $u->meeting_email }})
                                                 </option>
                                             @endforeach
-                                        </select required>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -836,9 +836,6 @@
                 document.getElementById('view_count').innerText =
                     `${total} ${total > 1 ? 'Participants' : 'Participant'}`;
 
-                document.getElementById('view_count_badge').innerText =
-                    props.participant_count || participantsList.length || 0;
-
                 // =========================
                 // DETECT TYPE (IMPORTANT)
                 // =========================
@@ -998,31 +995,6 @@
                 //     };
                 // });
 
-                document.getElementById('copyTeamsBtn')?.addEventListener('click', function() {
-
-                    const link = document.getElementById('teamsLink').href;
-
-                    if (!link || link === '#') return;
-
-                    navigator.clipboard.writeText(link)
-                        .then(() => {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Copied!',
-                                text: 'Teams link copied to clipboard',
-                                timer: 1500,
-                                showConfirmButton: false
-                            });
-                        })
-                        .catch(() => {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: 'Could not copy link'
-                            });
-                        });
-                });
-
                 let expanded = false;
 
                 function renderParticipants() {
@@ -1089,47 +1061,21 @@
             },
 
                 eventDrop: function(info) {
-
-                    const event = info.event;
-
-                    const resourceId =
-                        event.getResources()?.[0]?.id ||
-                        event.extendedProps.room_id ||
-                        null;
-
-                    if (!window.allowedRooms.includes(String(resourceId))) {
-
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Restricted Room',
-                            text: "Sorry, you can't book this room because you don't have access permission. Please contact the receptionist in your area for assistance."
-                        });
-
-                        info.revert();
-                        return;
-                    }
+                    info.revert();
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Use Edit to reschedule',
+                        text: 'Drag-and-drop does not save changes. Please click a meeting and use the Edit button to update its time or room.'
+                    });
                 },
 
                 eventResize: function(info) {
-
-                    const event = info.event;
-
-                    const resourceId =
-                        event.getResources()?.[0]?.id ||
-                        event.extendedProps.room_id ||
-                        null;
-
-                    if (!window.allowedRooms.includes(String(resourceId))) {
-
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Restricted Room',
-                            text: "Sorry, you can't book this room because you don't have access permission. Please contact the receptionist in your area for assistance."
-                        });
-
-                        info.revert();
-                        return;
-                    }
+                    info.revert();
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Use Edit to resize',
+                        text: 'Resize does not save changes. Please click a meeting and use the Edit button to update its duration.'
+                    });
                 },
 
             // select: function(info) {
@@ -1559,8 +1505,8 @@
 
                 formData.append(
                     'datetimes',
-                    moment(start).format('YYYY-MM-DD hh:mm A') + ' - ' +
-                    moment(end).format('YYYY-MM-DD hh:mm A')
+                    moment(start).format('YYYY-MM-DD HH:mm') + ' - ' +
+                    moment(end).format('YYYY-MM-DD HH:mm')
                 );
 
                 const url = window.isEditMode ?
@@ -1639,6 +1585,14 @@
                     }
                     window.accTom.refreshOptions(false);
                 });
+        });
+
+        document.getElementById('copyTeamsBtn')?.addEventListener('click', function() {
+            const link = document.getElementById('teamsLink').href;
+            if (!link || link === '#') return;
+            navigator.clipboard.writeText(link)
+                .then(() => Swal.fire({ icon: 'success', title: 'Copied!', text: 'Teams link copied to clipboard', timer: 1500, showConfirmButton: false }))
+                .catch(() => Swal.fire({ icon: 'error', title: 'Failed', text: 'Could not copy link' }));
         });
 
         document.getElementById('cancelMeetingBtn')?.addEventListener('click', function() {
@@ -1925,8 +1879,8 @@
 
         document.getElementById('participant').value = participants.length;
 
-        const internalList = participants.filter(p => (p.type || 'internal') === 'internal');
-        const externalList = participants.filter(p => (p.type || 'external') === 'external');
+        const internalList = participants.filter(p => p.type !== 'external');
+        const externalList = participants.filter(p => p.type === 'external');
 
 
         if (window.userTom) {

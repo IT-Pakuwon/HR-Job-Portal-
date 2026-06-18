@@ -422,8 +422,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -840,8 +840,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -1831,8 +1831,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -2260,8 +2260,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
