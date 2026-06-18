@@ -20,6 +20,7 @@ use App\Models\TrCalrNonPurch;
 use App\Models\SysUserRole;
 use App\Models\TrRfpNonPurchDetail;
 use App\Models\MsCompany;
+use App\Models\MsPurchSetting;
 
 class CalrNonPurchController extends Controller
 {
@@ -1562,7 +1563,7 @@ class CalrNonPurchController extends Controller
         ]);
     }
 
-    public function approveCalrNonPurch(Request $request, $docid)
+    public function approveCalrNonPurch_xxx(Request $request, $docid)
     {
         $user = $request->user();
 
@@ -1829,6 +1830,250 @@ class CalrNonPurchController extends Controller
         return response()->json([
             'success' => true,
             'message' => $docName . ' approved successfully',
+        ]);
+    }
+
+    public function approveCalrNonPurch(Request $request, $docid)
+    {
+        $user = $request->user();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Doctype Approval CALR Non Purchase
+        |--------------------------------------------------------------------------
+        | Sesuaikan kalau di approval kamu pakai 'CALR' bukan 'CAR'.
+        |--------------------------------------------------------------------------
+        */
+        $doctype = 'CAR';
+
+        $calr = TrCalrNonPurch::with('creator')
+            ->where('calrnonpurchaseid', $docid)
+            ->first();
+
+        if (!$calr) {
+            return response()->json([
+                'success' => false,
+                'message' => 'CALR Non Purchase not found',
+            ], 404);
+        }
+
+        $eid = Hashids::encode($calr->id);
+        $docUrl = url('/showcalrnonpurch/' . $eid);
+        $fullname = data_get($calr, 'creator.name') ?: $calr->created_by;
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOGIKA IM BUDGET
+        |--------------------------------------------------------------------------
+        | Ambil approval level user saat ini.
+        |--------------------------------------------------------------------------
+        */
+        $uname = (string) ($user->username ?? '');
+
+        $pending = TrApproval::where('refnbr', $calr->calrnonpurchaseid)
+            ->where('aprv_doctype', $doctype)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->whereRaw('aprv_username ILIKE ?', [
+                '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $uname) . '%'
+            ])
+            ->orderBy('aprv_leveling', 'asc')
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        $currentLevel = (float) ($pending->aprv_leveling ?? 0);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Setting level generate IM Budget
+        |--------------------------------------------------------------------------
+        | Ganti IMGENCALRNP kalau setting_id kamu beda.
+        |--------------------------------------------------------------------------
+        */
+        $imGenerateLevel = (float) (MsPurchSetting::where('setting_id', 'IMGENCALRNP')
+            ->value('setting_value_int') ?? 0);
+
+        $flagIM = $this->isTruthy($calr->flag_imbudget ?? false);
+        $existingIM = $calr->imbudgetid ?? null;
+        $statusIM = $calr->status_imbudget ?? null;
+
+        $needCheckIM = $flagIM
+            && $imGenerateLevel > 0
+            && $currentLevel >= $imGenerateLevel;
+
+        $needGenerateNow = $needCheckIM
+            && empty($existingIM);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Jika IM sudah ada tapi belum complete, stop approve
+        |--------------------------------------------------------------------------
+        */
+        if ($needCheckIM && !empty($existingIM) && $statusIM !== 'C') {
+            return response()->json([
+                'success' => false,
+                'code' => 'IM_IN_PROGRESS',
+                'message' => 'Tidak bisa approve. Masih On Progress IM Budget.',
+            ], 409);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Jika perlu generate IM dan belum confirm, return popup konfirmasi
+        |--------------------------------------------------------------------------
+        */
+        if ($needGenerateNow) {
+            if (!$request->boolean('confirm_generate_im')) {
+                return response()->json([
+                    'success' => true,
+                    'need_confirm_generate_im' => true,
+                    'message' => 'Generate IM Budget sekarang?',
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | User confirm generate IM Budget
+            |--------------------------------------------------------------------------
+            */
+            try {
+                /*
+                |--------------------------------------------------------------------------
+                | Panggil function generate IM Budget dari CALR Non Purchase
+                |--------------------------------------------------------------------------
+                | Pastikan function ini sudah ada.
+                |--------------------------------------------------------------------------
+                */
+                $imbudget = app(IMBudgetController::class)
+                    ->generateIMBudgetFromCalrNonPurch($calr, $user, now());
+
+                if (!$imbudget || empty($imbudget->imbudgetid)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal generate IM Budget dari CALR Non Purchase.',
+                    ], 500);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Pastikan status IM Hold
+                |--------------------------------------------------------------------------
+                */
+                $imbudget->status = 'H';
+                $imbudget->save();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Update CALR source
+                |--------------------------------------------------------------------------
+                */
+                $calr->imbudgetid = $imbudget->imbudgetid;
+                $calr->status_imbudget = 'H';
+                $calr->updated_by = $user->username;
+                $calr->updated_at = now();
+                $calr->save();
+
+                return response()->json([
+                    'success' => true,
+                    'code' => 'IM_CREATED_HOLD',
+                    'message' => "IM Budget berhasil dibuat ({$imbudget->imbudgetid}) dan di-HOLD.",
+                    'imbudgetid' => $imbudget->imbudgetid,
+                    'imbudget_show_url' => url('/showcalrnonpurch/' . $eid),
+                ]);
+            } catch (\Throwable $e) {
+                \Log::error('Generate IM from approveCalrNonPurch failed', [
+                    'calrnonpurchaseid' => $calr->calrnonpurchaseid,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal generate IM Budget: ' . $e->getMessage(),
+                ], 500);
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Lanjut approve normal
+        |--------------------------------------------------------------------------
+        | Kalau flag IM true dan IM sudah C, baru akan masuk ke sini.
+        |--------------------------------------------------------------------------
+        */
+        $result = app(ApprovalController::class)->approveStep(
+            $calr->calrnonpurchaseid,
+            $doctype,
+            $user->username,
+            $user->name,
+
+            /*
+            |--------------------------------------------------------------------------
+            | COMPLETE CALLBACK
+            |--------------------------------------------------------------------------
+            */
+            function (string $refnbr, Carbon $now) use ($calr, $fullname, $docUrl) {
+                $username = auth()->user()->username ?? 'system';
+
+                $calr->status = 'C';
+                $calr->completed_by = $calr->completed_by ?: $username;
+                $calr->completed_at = $now;
+                $calr->updated_by = $username;
+                $calr->updated_at = $now;
+                $calr->save();
+
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $calr->calrnonpurchaseid,
+                    'CALR Non Purchase',
+                    'C',
+                    $calr->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid' => $calr->cpny_id ?? '',
+                        'deptname' => $calr->department_id ?? '',
+                        'date' => $calr->calrnonpurchasedate,
+                        'info' => $calr->keperluan,
+                        'fullname' => $fullname,
+                        'name' => $fullname,
+                        'createdby' => $fullname,
+                    ]
+                );
+            },
+
+            /*
+            |--------------------------------------------------------------------------
+            | NEXT APPROVER CALLBACK
+            |--------------------------------------------------------------------------
+            */
+            function ($next, Carbon $now) use ($calr, $docUrl) {
+                app(ApprovalController::class)->notifyFirstApprover(
+                    $calr->calrnonpurchaseid,
+                    'CAR',
+                    'P',
+                    'CALR Non Purchase',
+                    $docUrl,
+                    [
+                        'info' => $calr->keperluan,
+                        'createdby' => $calr->created_by,
+                        'date' => $now->toDateTimeString(),
+                    ]
+                );
+
+                $calr->completed_by = auth()->user()->username;
+                $calr->completed_at = $now;
+                $calr->save();
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Approve failed',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'CALR Non Purchase approved successfully',
         ]);
     }
 
@@ -2686,5 +2931,14 @@ class CalrNonPurchController extends Controller
         } else {
             return "Terlalu Besar";
         }
+    }
+
+    private function isTruthy($value): bool
+    {
+        return in_array(
+            strtolower(trim((string) $value)),
+            ['1', 'true', 't', 'yes', 'y', 'on'],
+            true
+        );
     }
 }

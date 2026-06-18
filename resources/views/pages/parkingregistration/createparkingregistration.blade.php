@@ -462,32 +462,32 @@
 
         function setFileCell($cell, $input, show, required = false) {
             if (show) {
-                $cell.removeClass('hidden');
+                $cell.removeClass('hidden').show();
                 $input.prop('required', required);
             } else {
                 $input.val('');
                 $input.prop('required', false);
-                $cell.addClass('hidden');
+                $cell.addClass('hidden').hide();
             }
         }
 
         function setFileHeader(showStnk, showIdCard, showBuktiBayar) {
             if (showStnk) {
-                $('.stnkHeader').removeClass('hidden');
+                $('.stnkHeader').removeClass('hidden').show();
             } else {
-                $('.stnkHeader').addClass('hidden');
+                $('.stnkHeader').addClass('hidden').hide();
             }
 
             if (showIdCard) {
-                $('.idcardHeader').removeClass('hidden');
+                $('.idcardHeader').removeClass('hidden').show();
             } else {
-                $('.idcardHeader').addClass('hidden');
+                $('.idcardHeader').addClass('hidden').hide();
             }
 
             if (showBuktiBayar) {
-                $('.buktiBayarHeader').removeClass('hidden');
+                $('.buktiBayarHeader').removeClass('hidden').show();
             } else {
-                $('.buktiBayarHeader').addClass('hidden');
+                $('.buktiBayarHeader').addClass('hidden').hide();
             }
         }
 
@@ -566,7 +566,7 @@
             |--------------------------------------------------------------------------
             */
             if (parkingType === 'CHANGECARD') {
-                setFileHeader(true, false, true);
+                setFileHeader(false, false, true);
             }
 
             $('#parkingDetailTable .parking-detail-row').each(function () {
@@ -642,7 +642,7 @@
                 if (parkingType === 'CHANGECARD') {
                     setReadonlyVehicle($row, true);
 
-                    setFileCell($stnkCell, $stnkInput, true, true);
+                    setFileCell($stnkCell, $stnkInput, false, false);
                     setFileCell($idcardCell, $idcardInput, false, false);
                     setFileCell($buktiCell, $buktiInput, true, false);
                 }
@@ -1015,11 +1015,44 @@
             applyParkingTypeDetailMode();
         });
 
-        function toggleNonEmployeeExtraFields() {
-            const isEmp = isEmployeeWorkerType();
-            const workerType = String($('#worker_type').val() || '').trim();
+        // function toggleNonEmployeeExtraFields() {
+        //     const isEmp = isEmployeeWorkerType();
+        //     const workerType = String($('#worker_type').val() || '').trim();
 
-            if (workerType !== '' && !isEmp) {
+        //     if (workerType !== '' && !isEmp) {
+        //         $('#nonEmployeeExtraSection').removeClass('hidden');
+
+        //         $('#startdate').prop('required', true);
+        //         $('#enddate').prop('required', true);
+        //     } else {
+        //         $('#nonEmployeeExtraSection').addClass('hidden');
+
+        //         $('#startdate').prop('required', false).val('');
+        //         $('#enddate').prop('required', false).val('');
+        //         $('#info').val('');
+        //     }
+        // }
+
+        function toggleNonEmployeeExtraFields() {
+            const parkingType = currentParkingType();
+            const workerType  = String($('#worker_type').val() || '').trim();
+            const isEmp       = isEmployeeWorkerType();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Date Range + Info tampil jika:
+            | 1. Worker Type selain EMPLOYEE
+            | 2. Parking Type TEMPREQUEST + Worker Type EMPLOYEE
+            |--------------------------------------------------------------------------
+            */
+            const showExtraSection =
+                workerType !== '' &&
+                (
+                    !isEmp ||
+                    (parkingType === 'TEMPREQUEST' && isEmp)
+                );
+
+            if (showExtraSection) {
                 $('#nonEmployeeExtraSection').removeClass('hidden');
 
                 $('#startdate').prop('required', true);

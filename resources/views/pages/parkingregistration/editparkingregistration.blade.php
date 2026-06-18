@@ -614,32 +614,32 @@
             const hasOld = String($cell.find('input[type="hidden"][name^="old_attach"]').val() || '').trim() !== '';
 
             if (show) {
-                $cell.removeClass('hidden');
+                $cell.removeClass('hidden').show();
                 $input.prop('required', required && !hasOld);
             } else {
                 $input.val('');
                 $input.prop('required', false);
-                $cell.addClass('hidden');
+                $cell.addClass('hidden').hide();
             }
         }
 
         function setFileHeader(showStnk, showIdCard, showBuktiBayar) {
             if (showStnk) {
-                $('.stnkHeader').removeClass('hidden');
+                $('.stnkHeader').removeClass('hidden').show();
             } else {
-                $('.stnkHeader').addClass('hidden');
+                $('.stnkHeader').addClass('hidden').hide();
             }
 
             if (showIdCard) {
-                $('.idcardHeader').removeClass('hidden');
+                $('.idcardHeader').removeClass('hidden').show();
             } else {
-                $('.idcardHeader').addClass('hidden');
+                $('.idcardHeader').addClass('hidden').hide();
             }
 
             if (showBuktiBayar) {
-                $('.buktiBayarHeader').removeClass('hidden');
+                $('.buktiBayarHeader').removeClass('hidden').show();
             } else {
-                $('.buktiBayarHeader').addClass('hidden');
+                $('.buktiBayarHeader').addClass('hidden').hide();
             }
         }
 
@@ -677,18 +677,39 @@
         function applyParkingTypeDetailMode() {
             const parkingType = currentParkingType();
 
+            /*
+            |--------------------------------------------------------------------------
+            | Default NEWREQUEST / TEMPREQUEST
+            |--------------------------------------------------------------------------
+            */
             setFileHeader(true, true, true);
 
+            /*
+            |--------------------------------------------------------------------------
+            | RENEWAL
+            |--------------------------------------------------------------------------
+            */
             if (parkingType === 'RENEWAL') {
                 setFileHeader(false, false, false);
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | CHANGENOPOL
+            |--------------------------------------------------------------------------
+            */
             if (parkingType === 'CHANGENOPOL') {
                 setFileHeader(true, false, true);
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | CHANGECARD / Pergantian Kartu
+            | Attach STNK dan Attach ID Card hidden
+            |--------------------------------------------------------------------------
+            */
             if (parkingType === 'CHANGECARD') {
-                setFileHeader(true, false, true);
+                setFileHeader(false, false, true);
             }
 
             $('#parkingDetailTable .parking-detail-row').each(function () {
@@ -708,6 +729,11 @@
                 const $idcardInput = $row.find('.attachIdcardInput');
                 const $buktiInput = $row.find('.attachBuktiBayarInput');
 
+                /*
+                |--------------------------------------------------------------------------
+                | Reset default NEWREQUEST / TEMPREQUEST
+                |--------------------------------------------------------------------------
+                */
                 $oldNopolWrapper.addClass('hidden');
                 $oldJenisWrapper.addClass('hidden');
                 $nopolFinalLabel.addClass('hidden');
@@ -719,6 +745,11 @@
                 setFileCell($idcardCell, $idcardInput, true, true);
                 setFileCell($buktiCell, $buktiInput, true, false);
 
+                /*
+                |--------------------------------------------------------------------------
+                | RENEWAL
+                |--------------------------------------------------------------------------
+                */
                 if (parkingType === 'RENEWAL') {
                     setReadonlyVehicle($row, true);
 
@@ -727,6 +758,11 @@
                     setFileCell($buktiCell, $buktiInput, false, false);
                 }
 
+                /*
+                |--------------------------------------------------------------------------
+                | CHANGENOPOL
+                |--------------------------------------------------------------------------
+                */
                 if (parkingType === 'CHANGENOPOL') {
                     $oldNopolWrapper.removeClass('hidden');
                     $oldJenisWrapper.removeClass('hidden');
@@ -741,10 +777,15 @@
                     setFileCell($buktiCell, $buktiInput, true, false);
                 }
 
+                /*
+                |--------------------------------------------------------------------------
+                | CHANGECARD / Pergantian Kartu
+                |--------------------------------------------------------------------------
+                */
                 if (parkingType === 'CHANGECARD') {
                     setReadonlyVehicle($row, true);
 
-                    setFileCell($stnkCell, $stnkInput, true, true);
+                    setFileCell($stnkCell, $stnkInput, false, false);
                     setFileCell($idcardCell, $idcardInput, false, false);
                     setFileCell($buktiCell, $buktiInput, true, false);
                 }
@@ -1115,16 +1156,31 @@
         });
 
         function toggleNonEmployeeExtraFields() {
-            const isEmp = isEmployeeWorkerType();
-            const workerType = String($('#worker_type').val() || '').trim();
+            const parkingType = currentParkingType();
+            const workerType  = String($('#worker_type').val() || '').trim();
+            const isEmp       = isEmployeeWorkerType();
 
-            if (workerType !== '' && !isEmp) {
-                $('#nonEmployeeExtraSection').removeClass('hidden');
+            /*
+            |--------------------------------------------------------------------------
+            | Date Range + Info tampil jika:
+            | 1. Worker Type selain EMPLOYEE
+            | 2. Parking Type TEMPREQUEST + Worker Type EMPLOYEE/Karyawan
+            |--------------------------------------------------------------------------
+            */
+            const showExtraSection =
+                workerType !== '' &&
+                (
+                    !isEmp ||
+                    (parkingType === 'TEMPREQUEST' && isEmp)
+                );
+
+            if (showExtraSection) {
+                $('#nonEmployeeExtraSection').removeClass('hidden').show();
 
                 $('#startdate').prop('required', true);
                 $('#enddate').prop('required', true);
             } else {
-                $('#nonEmployeeExtraSection').addClass('hidden');
+                $('#nonEmployeeExtraSection').addClass('hidden').hide();
 
                 $('#startdate').prop('required', false);
                 $('#enddate').prop('required', false);
