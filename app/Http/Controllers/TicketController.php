@@ -237,10 +237,11 @@ class TicketController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where(
-                'status_pekerjaan',
-                $request->status
-            );
+            if ($request->status === 'MY_TICKET') {
+                $query->where('pic_ticket', $user->username);
+            } else {
+                $query->where('status_pekerjaan', $request->status);
+            }
         }
 
         if ($request->filled('status_filter')) {
@@ -317,10 +318,6 @@ class TicketController extends Controller
                 'ticket_categoryid',
                 $request->category_id
             );
-        }
-
-        if ($request->filled('my_ticket') && $request->my_ticket === '1') {
-            $query->where('pic_ticket', $user->username);
         }
 
         return DataTables::of($query)

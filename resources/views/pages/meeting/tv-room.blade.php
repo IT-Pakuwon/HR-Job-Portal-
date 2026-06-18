@@ -410,14 +410,14 @@
 
                     @if ($meeting->checkin == 'N' && $meeting->checkout == 'N')
                         <button class="action-btn checkin"
-                            onclick="checkin({{ $meeting->meeting_id ?? $meeting->id }})">
+                            onclick="checkin({{ $meeting->meeting_id ?? $meeting->id ?? 0 }})">
                             Check In
                         </button>
                     @endif
 
                     @if ($meeting->checkout == 'N' && $meeting->checkin == 'Y')
                         <button class="action-btn checkout"
-                            onclick="checkout({{ $meeting->meeting_id ?? $meeting->id }})">
+                            onclick="checkout({{ $meeting->meeting_id ?? $meeting->id ?? 0 }})">
                             Check Out
                         </button>
                     @endif
@@ -517,33 +517,33 @@
     },60000);
 
     function checkin(id){
-
+        if (!id) return;
         $.ajax({
-            url:"{{ url('/checkinroomx') }}_"+id,
-            type:"GET",
-            data:{
-                checkin:"Y"
+            url: "{{ url('/checkinroomx') }}/" + id,
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                checkin: "Y"
             },
-            success:function(){
+            success: function(){
                 location.reload();
             }
         });
-
     }
 
     function checkout(id){
-
+        if (!id) return;
         $.ajax({
-            url:"{{ url('/checkoutroomx') }}_"+id,
-            type:"GET",
-            data:{
-                checkout:"Y"
+            url: "{{ url('/checkoutroomx') }}/" + id,
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                checkout: "Y"
             },
-            success:function(){
+            success: function(){
                 location.reload();
             }
         });
-
     }
 
 </script>

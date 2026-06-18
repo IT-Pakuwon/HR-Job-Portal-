@@ -288,6 +288,7 @@ class MeetingController extends Controller
 
         $roomMap = MsMeetingRoom::pluck('room_name', 'room_id');
         $roomColors = MsMeetingRoom::pluck('eventcolor', 'room_id');
+        $roomStatus = MsMeetingRoom::pluck('status', 'room_id');
         $users = User::pluck('name', 'username');
 
         $accMap = MsMeetingAccessories::pluck('acc_name', 'acc_id');
@@ -296,7 +297,7 @@ class MeetingController extends Controller
             TrMeeting::where('status', '!=', 'X')
                 ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
                 ->get()
-                ->map(function ($m) use ($roomMap, $roomColors, $users, $accMap) {
+                ->map(function ($m) use ($roomMap, $roomColors, $roomStatus, $users, $accMap) {
                     $participants = DB::connection('pgsql5')
                         ->table('tr_meeting_participant')
                         ->where('docid', $m->docid)
@@ -344,6 +345,7 @@ class MeetingController extends Controller
                             'isTeams' => !empty($m->msteams_join_url),
                             'teams_url' => $m->msteams_join_url,
                             'description' => $m->meeting_descr,
+                            'roomStatus' => $roomStatus[$m->room_id] ?? null,
 
                             // ✅ NOW RETURNS NAMES (not IDs)
                             'accessories' => $accessories,
@@ -422,8 +424,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -840,8 +842,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -1831,8 +1833,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -2260,8 +2262,8 @@ class MeetingController extends Controller
         }
 
         try {
-            $startMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($startRaw));
-            $endMeeting = Carbon::createFromFormat('Y-m-d h:i A', trim($endRaw));
+            $startMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($startRaw));
+            $endMeeting = Carbon::createFromFormat('Y-m-d H:i', trim($endRaw));
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,

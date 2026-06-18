@@ -2,26 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Exports\GmReportExport;
 use App\Models\BudgetDetail;
 use App\Models\DepartmentFin;
 use App\Models\User;
-use App\Exports\GmReportExport;
 use App\Services\BigQueryService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class GmReportController extends Controller
 {
     // ── PG Card constants ─────────────────────────────────────────────────────
-    private const PGCARD_PROJECT  = 'ifca-pkwjakarta';
-    private const PGCARD_DATASET  = 'pgcard';
+    private const PGCARD_PROJECT = 'ifca-pkwjakarta';
+    private const PGCARD_DATASET = 'pgcard';
 
     // Maps HR company code → pgcard directory_code
     private const PGCARD_COMPANY_MAP = [
-        'AW'  => 'GC',
-        'EP'  => 'KK',
+        'AW' => 'GC',
+        'EP' => 'KK',
         'PSA' => 'PBM',
         'GPS' => 'PMB',
     ];
@@ -30,19 +30,27 @@ class GmReportController extends Controller
 
     private function csvToArray($val): array
     {
-        if ($val === null) return [];
+        if ($val === null) {
+            return [];
+        }
         $s = trim((string) $val);
-        if ($s === '') return [];
+        if ($s === '') {
+            return [];
+        }
+
         return collect(explode(',', $s))
-            ->map(fn($x) => strtoupper(trim($x)))
+            ->map(fn ($x) => strtoupper(trim($x)))
             ->filter()->unique()->values()->all();
     }
 
     private function allowedCompanies(): array
     {
         $user = Auth::user();
-        if (!$user) return [];
+        if (!$user) {
+            return [];
+        }
         $u = User::query()->where('username', $user->username)->first();
+
         return $this->csvToArray(optional($u)->cpny_id);
     }
 
@@ -50,11 +58,11 @@ class GmReportController extends Controller
      * Returns the pgcard directory_codes the current user may see.
      * null  = no restriction (show all malls)
      * []    = no access
-     * ['GC', 'KK'] = filter to these codes only
+     * ['GC', 'KK'] = filter to these codes only.
      */
     private function allowedPgcardMalls(?string $cpnyId): ?array
     {
-        $map     = self::PGCARD_COMPANY_MAP;
+        $map = self::PGCARD_COMPANY_MAP;
         $allowed = $this->allowedCompanies(); // HR company codes user is assigned to
 
         // Specific company filter requested
@@ -63,6 +71,7 @@ class GmReportController extends Controller
             if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
                 return []; // user doesn't have access to this company
             }
+
             return [$requested];
         }
 
@@ -72,7 +81,7 @@ class GmReportController extends Controller
         }
 
         return array_values(array_filter(
-            array_map(fn($code) => $map[$code] ?? null, $allowed)
+            array_map(fn ($code) => $map[$code] ?? null, $allowed)
         ));
     }
 
@@ -87,68 +96,71 @@ class GmReportController extends Controller
         } elseif (!empty($allowed)) {
             $q->whereIn('cpny_id', $allowed);
         }
+
         return $q;
     }
 
     private function buildExprs(string $dateFrom, string $dateTo): array
     {
-        $from      = \Carbon\Carbon::parse($dateFrom);
-        $to        = \Carbon\Carbon::parse($dateTo);
+        $from = \Carbon\Carbon::parse($dateFrom);
+        $to = \Carbon\Carbon::parse($dateTo);
         $monthFrom = (int) $from->format('n');
-        $monthTo   = (int) $to->format('n');
-        $sameYear  = $from->year === $to->year;
+        $monthTo = (int) $to->format('n');
+        $sameYear = $from->year === $to->year;
 
         // Full year or cross-year → annual total columns
         if (!$sameYear || ($monthFrom === 1 && $monthTo === 12)) {
             return [
-                'budget'  => 'COALESCE(SUM(totalbudget), 0)',
-                'add'     => 'COALESCE(SUM(totalbudget_add), 0)',
-                'used'    => 'COALESCE(SUM(total_used), 0)',
+                'budget' => 'COALESCE(SUM(totalbudget), 0)',
+                'add' => 'COALESCE(SUM(totalbudget_add), 0)',
+                'used' => 'COALESCE(SUM(total_used), 0)',
                 'reserve' => 'COALESCE(SUM(total_reserve), 0)',
             ];
         }
 
         // Single or multi-month range → sum period columns
-        $months   = range($monthFrom, $monthTo);
+        $months = range($monthFrom, $monthTo);
         $buildSum = function (string $col) use ($months): string {
             $terms = array_map(
-                fn($m) => 'COALESCE(period' . str_pad($m, 2, '0', STR_PAD_LEFT) . "_{$col}, 0)",
+                fn ($m) => 'COALESCE(period'.str_pad($m, 2, '0', STR_PAD_LEFT)."_{$col}, 0)",
                 $months
             );
-            return 'COALESCE(SUM(' . implode(' + ', $terms) . '), 0)';
+
+            return 'COALESCE(SUM('.implode(' + ', $terms).'), 0)';
         };
 
         return [
-            'budget'  => $buildSum('budget'),
-            'add'     => $buildSum('budget_add'),
-            'used'    => $buildSum('used'),
+            'budget' => $buildSum('budget'),
+            'add' => $buildSum('budget_add'),
+            'used' => $buildSum('used'),
             'reserve' => $buildSum('reserve'),
         ];
     }
 
     private function parseFilters(Request $request): array
     {
-        $y        = date('Y');
+        $y = date('Y');
         $dateFrom = $request->input('date_from') ?: "{$y}-01-01";
-        $dateTo   = $request->input('date_to')   ?: "{$y}-12-31";
+        $dateTo = $request->input('date_to') ?: "{$y}-12-31";
 
         return [
             'dateFrom' => $dateFrom,
-            'dateTo'   => $dateTo,
-            'cpnyId'   => $request->input('cpny_id') ?: null,
-            'depts'    => array_filter((array) $request->input('departments', [])),
+            'dateTo' => $dateTo,
+            'cpnyId' => $request->input('cpny_id') ?: null,
+            'depts' => array_filter((array) $request->input('departments', [])),
         ];
     }
 
     private function applyDateFilter($q, string $dateFrom, string $dateTo)
     {
         $fromYear = substr($dateFrom, 0, 4);
-        $toYear   = substr($dateTo,   0, 4);
+        $toYear = substr($dateTo, 0, 4);
 
         if ($fromYear === $toYear) {
-            return $q->whereRaw("LEFT(perpost::text, 4) = ?", [$fromYear]);
+            return $q->whereRaw('LEFT(perpost::text, 4) = ?', [$fromYear]);
         }
-        return $q->whereRaw("LEFT(perpost::text, 4) BETWEEN ? AND ?", [$fromYear, $toYear]);
+
+        return $q->whereRaw('LEFT(perpost::text, 4) BETWEEN ? AND ?', [$fromYear, $toYear]);
     }
 
     public function dashboard()
@@ -157,6 +169,7 @@ class GmReportController extends Controller
         if (!$user) {
             return redirect()->route('login');
         }
+
         return view('pages.gm-report.dashboard', [
             'user' => $user,
         ]);
@@ -169,12 +182,14 @@ class GmReportController extends Controller
         $q = BudgetDetail::query()->select('cpny_id')
             ->where('status', 'C')->whereNotNull('cpny_id');
 
-        if (!empty($allowed)) $q->whereIn('cpny_id', $allowed);
+        if (!empty($allowed)) {
+            $q->whereIn('cpny_id', $allowed);
+        }
 
         $list = $q->distinct()->orderBy('cpny_id')->pluck('cpny_id');
 
         return response()->json([
-            'data'   => $list,
+            'data' => $list,
             'locked' => count($allowed) === 1,
             'single' => count($allowed) === 1 ? $allowed[0] : null,
         ]);
@@ -187,10 +202,12 @@ class GmReportController extends Controller
         $allowed = $this->allowedCompanies();
 
         $q = BudgetDetail::query()->where('status', 'C')->whereNotNull('perpost');
-        if (!empty($allowed)) $q->whereIn('cpny_id', $allowed);
+        if (!empty($allowed)) {
+            $q->whereIn('cpny_id', $allowed);
+        }
 
-        $years = $q->selectRaw("DISTINCT LEFT(perpost::text, 4) AS year")
-            ->orderByRaw("LEFT(perpost::text, 4) DESC")
+        $years = $q->selectRaw('DISTINCT LEFT(perpost::text, 4) AS year')
+            ->orderByRaw('LEFT(perpost::text, 4) DESC')
             ->pluck('year')->filter()->values();
 
         return response()->json(['data' => $years]);
@@ -222,8 +239,8 @@ class GmReportController extends Controller
             ->get()
             ->keyBy('department_fin_id');
 
-        $list = $ids->map(fn($id) => [
-            'id'   => $id,
+        $list = $ids->map(fn ($id) => [
+            'id' => $id,
             'name' => optional($names->get($id))->department_name ?: $id,
         ]);
 
@@ -237,7 +254,7 @@ class GmReportController extends Controller
         ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId, 'depts' => $depts]
             = $this->parseFilters($request);
         $allowed = $this->allowedCompanies();
-        $exprs   = $this->buildExprs($dateFrom, $dateTo);
+        $exprs = $this->buildExprs($dateFrom, $dateTo);
 
         $q = BudgetDetail::query()->where('status', 'C');
         $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
@@ -254,19 +271,19 @@ class GmReportController extends Controller
             {$exprs['reserve']} AS total_reserve
         ")->first();
 
-        $totalFinal     = (float)($row->total_budget ?? 0) + (float)($row->total_budget_add ?? 0);
-        $totalReserve   = (float)($row->total_reserve ?? 0);
-        $totalUsed      = (float)($row->total_used    ?? 0);
+        $totalFinal = (float) ($row->total_budget ?? 0) + (float) ($row->total_budget_add ?? 0);
+        $totalReserve = (float) ($row->total_reserve ?? 0);
+        $totalUsed = (float) ($row->total_used ?? 0);
         $totalRemaining = $totalFinal - $totalReserve - $totalUsed;
         $utilizationPct = $totalFinal > 0 ? round(($totalUsed / $totalFinal) * 100, 1) : 0;
 
         return response()->json([
             'data' => [
-                'date_from'       => $dateFrom,
-                'date_to'         => $dateTo,
-                'total_budget'    => $totalFinal,
-                'total_used'      => $totalUsed,
-                'total_reserve'   => $totalReserve,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'total_budget' => $totalFinal,
+                'total_used' => $totalUsed,
+                'total_reserve' => $totalReserve,
                 'total_remaining' => $totalRemaining,
                 'utilization_pct' => $utilizationPct,
             ],
@@ -281,11 +298,11 @@ class GmReportController extends Controller
             = $this->parseFilters($request);
 
         $allowed = $this->allowedCompanies();
-        $exprs   = $this->buildExprs($dateFrom, $dateTo);
+        $exprs = $this->buildExprs($dateFrom, $dateTo);
 
         $finalExpr = "({$exprs['budget']}+{$exprs['add']})";
-        $remExpr   = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
-        $usedPct   = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
+        $remExpr = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
+        $usedPct = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
                            THEN ROUND(({$exprs['used']} / ({$exprs['budget']}+{$exprs['add']})) * 100, 1)
                            ELSE 0 END";
 
@@ -320,11 +337,11 @@ class GmReportController extends Controller
             = $this->parseFilters($request);
 
         $allowed = $this->allowedCompanies();
-        $exprs   = $this->buildExprs($dateFrom, $dateTo);
+        $exprs = $this->buildExprs($dateFrom, $dateTo);
 
         $finalExpr = "({$exprs['budget']}+{$exprs['add']})";
-        $remExpr   = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
-        $usedPct   = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
+        $remExpr = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
+        $usedPct = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
                            THEN ROUND(({$exprs['used']} / ({$exprs['budget']}+{$exprs['add']})) * 100, 1)
                            ELSE 0 END";
 
@@ -358,10 +375,17 @@ class GmReportController extends Controller
     {
         $abs = abs($val);
         $pfx = $val < 0 ? '-' : '';
-        if ($abs >= 1e12) return $pfx . 'Rp ' . number_format($abs / 1e12, 1, ',', '.') . 'T';
-        if ($abs >= 1e9)  return $pfx . 'Rp ' . number_format($abs / 1e9,  1, ',', '.') . 'M';
-        if ($abs >= 1e6)  return $pfx . 'Rp ' . number_format($abs / 1e6,  1, ',', '.') . 'Jt';
-        return $pfx . 'Rp ' . number_format(round($abs), 0, ',', '.');
+        if ($abs >= 1e12) {
+            return $pfx.'Rp '.number_format($abs / 1e12, 1, ',', '.').'T';
+        }
+        if ($abs >= 1e9) {
+            return $pfx.'Rp '.number_format($abs / 1e9, 1, ',', '.').'M';
+        }
+        if ($abs >= 1e6) {
+            return $pfx.'Rp '.number_format($abs / 1e6, 1, ',', '.').'Jt';
+        }
+
+        return $pfx.'Rp '.number_format(round($abs), 0, ',', '.');
     }
 
     private function gatherExportData(Request $request): array
@@ -369,7 +393,7 @@ class GmReportController extends Controller
         ['dateFrom' => $dateFrom, 'dateTo' => $dateTo, 'cpnyId' => $cpnyId, 'depts' => $depts]
             = $this->parseFilters($request);
         $allowed = $this->allowedCompanies();
-        $exprs   = $this->buildExprs($dateFrom, $dateTo);
+        $exprs = $this->buildExprs($dateFrom, $dateTo);
 
         $baseQ = function () use ($allowed, $cpnyId, $dateFrom, $dateTo, $depts) {
             $q = BudgetDetail::query()->where('status', 'C');
@@ -378,6 +402,7 @@ class GmReportController extends Controller
             if (!empty($depts)) {
                 $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
             }
+
             return $q;
         };
 
@@ -389,16 +414,16 @@ class GmReportController extends Controller
             {$exprs['reserve']} AS total_reserve
         ")->first();
 
-        $totalFinal     = (float) ($row->total_budget     ?? 0) + (float) ($row->total_budget_add ?? 0);
-        $totalReserve   = (float) ($row->total_reserve    ?? 0);
-        $totalUsed      = (float) ($row->total_used       ?? 0);
+        $totalFinal = (float) ($row->total_budget ?? 0) + (float) ($row->total_budget_add ?? 0);
+        $totalReserve = (float) ($row->total_reserve ?? 0);
+        $totalUsed = (float) ($row->total_used ?? 0);
         $totalRemaining = $totalFinal - $totalReserve - $totalUsed;
         $utilizationPct = $totalFinal > 0 ? round(($totalUsed / $totalFinal) * 100, 1) : 0;
 
         // By Department
         $finalExpr = "({$exprs['budget']}+{$exprs['add']})";
-        $remExpr   = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
-        $usedPct   = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
+        $remExpr = "({$exprs['budget']}+{$exprs['add']}-{$exprs['used']}-{$exprs['reserve']})";
+        $usedPct = "CASE WHEN ({$exprs['budget']}+{$exprs['add']}) > 0
                            THEN ROUND(({$exprs['used']} / ({$exprs['budget']}+{$exprs['add']})) * 100, 1)
                            ELSE 0 END";
 
@@ -431,48 +456,48 @@ class GmReportController extends Controller
             ->get();
 
         // Monthly Trend
-        $year    = substr($dateFrom, 0, 4);
+        $year = substr($dateFrom, 0, 4);
         $selects = ['COALESCE(SUM(totalbudget), 0) + COALESCE(SUM(totalbudget_add), 0) AS total_budget'];
-        for ($m = 1; $m <= 12; $m++) {
-            $mm        = str_pad($m, 2, '0', STR_PAD_LEFT);
+        for ($m = 1; $m <= 12; ++$m) {
+            $mm = str_pad($m, 2, '0', STR_PAD_LEFT);
             $selects[] = "COALESCE(SUM(period{$mm}_used), 0) AS m{$mm}";
         }
 
         $monthQ = BudgetDetail::query()->where('status', 'C');
         $monthQ = $this->applyCompanyFilter($monthQ, $allowed, $cpnyId);
-        $monthQ->whereRaw("LEFT(perpost::text, 4) = ?", [$year]);
+        $monthQ->whereRaw('LEFT(perpost::text, 4) = ?', [$year]);
         if (!empty($depts)) {
             $monthQ->whereIn('department_fin_id', array_map('strtoupper', $depts));
         }
 
-        $monthRaw   = $monthQ->selectRaw(implode(', ', $selects))->first();
+        $monthRaw = $monthQ->selectRaw(implode(', ', $selects))->first();
         $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        $monthRows  = [];
+        $monthRows = [];
         $cumulative = 0;
 
-        for ($m = 1; $m <= 12; $m++) {
-            $mm          = str_pad($m, 2, '0', STR_PAD_LEFT);
-            $used        = (float) ($monthRaw->{"m{$mm}"} ?? 0);
+        for ($m = 1; $m <= 12; ++$m) {
+            $mm = str_pad($m, 2, '0', STR_PAD_LEFT);
+            $used = (float) ($monthRaw->{"m{$mm}"} ?? 0);
             $cumulative += $used;
             $monthRows[] = ['month' => $monthNames[$m - 1], 'used' => round($used), 'cumulative' => round($cumulative)];
         }
 
         return [
-            'dateFrom'    => $dateFrom,
-            'dateTo'      => $dateTo,
-            'cpnyId'      => $cpnyId,
-            'year'        => $year,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'cpnyId' => $cpnyId,
+            'year' => $year,
             'totalBudget' => round($totalFinal),
-            'summary'     => [
-                'total_budget'    => $totalFinal,
-                'total_used'      => $totalUsed,
-                'total_reserve'   => $totalReserve,
+            'summary' => [
+                'total_budget' => $totalFinal,
+                'total_used' => $totalUsed,
+                'total_reserve' => $totalReserve,
                 'total_remaining' => $totalRemaining,
                 'utilization_pct' => $utilizationPct,
             ],
-            'deptRows'    => $deptRows,
-            'actRows'     => $actRows,
-            'monthRows'   => $monthRows,
+            'deptRows' => $deptRows,
+            'actRows' => $actRows,
+            'monthRows' => $monthRows,
         ];
     }
 
@@ -480,25 +505,26 @@ class GmReportController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $data     = $this->gatherExportData($request);
+        $data = $this->gatherExportData($request);
         $data['fmt'] = fn (float $v) => $this->formatIdr($v);
-        $pdf      = Pdf::loadView('pages.gm-report.export-pdf', $data)
+        $pdf = Pdf::loadView('pages.gm-report.export-pdf', $data)
                        ->setPaper('a4', 'landscape');
-        $filename = 'gm-report-' . $data['dateFrom'] . '-to-' . $data['dateTo'] . '.pdf';
+        $filename = 'gm-report-'.$data['dateFrom'].'-to-'.$data['dateTo'].'.pdf';
+
         return $pdf->download($filename);
     }
 
     public function exportCsv(Request $request)
     {
-        $data     = $this->gatherExportData($request);
-        $filename = 'gm-report-' . $data['dateFrom'] . '-to-' . $data['dateTo'] . '.csv';
+        $data = $this->gatherExportData($request);
+        $filename = 'gm-report-'.$data['dateFrom'].'-to-'.$data['dateTo'].'.csv';
 
         return response()->streamDownload(function () use ($data) {
             $out = fopen('php://output', 'w');
             fputs($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
 
             fputcsv($out, ['GM Report Dashboard']);
-            fputcsv($out, ['Period', $data['dateFrom'] . ' to ' . $data['dateTo']]);
+            fputcsv($out, ['Period', $data['dateFrom'].' to '.$data['dateTo']]);
             fputcsv($out, ['Company', $data['cpnyId'] ?: 'All Companies']);
             fputcsv($out, ['Generated', now()->format('d/m/Y H:i')]);
             fputcsv($out, []);
@@ -510,7 +536,7 @@ class GmReportController extends Controller
             fputcsv($out, ['Total Used',      round($s['total_used']),      $this->formatIdr($s['total_used'])]);
             fputcsv($out, ['Total Reserved',  round($s['total_reserve']),   $this->formatIdr($s['total_reserve'])]);
             fputcsv($out, ['Total Remaining', round($s['total_remaining']), $this->formatIdr($s['total_remaining'])]);
-            fputcsv($out, ['Utilization %',   $s['utilization_pct'],        $s['utilization_pct'] . '%']);
+            fputcsv($out, ['Utilization %',   $s['utilization_pct'],        $s['utilization_pct'].'%']);
             fputcsv($out, []);
 
             fputcsv($out, ['=== BY DEPARTMENT ===']);
@@ -518,9 +544,9 @@ class GmReportController extends Controller
             foreach ($data['deptRows'] as $r) {
                 fputcsv($out, [
                     $r->department_fin_id ?? '',
-                    round((float) ($r->total_final     ?? 0)),
-                    round((float) ($r->total_used      ?? 0)),
-                    round((float) ($r->total_reserve   ?? 0)),
+                    round((float) ($r->total_final ?? 0)),
+                    round((float) ($r->total_used ?? 0)),
+                    round((float) ($r->total_reserve ?? 0)),
                     round((float) ($r->total_remaining ?? 0)),
                     (float) ($r->used_pct ?? 0),
                 ]);
@@ -532,16 +558,16 @@ class GmReportController extends Controller
             foreach ($data['actRows'] as $r) {
                 fputcsv($out, [
                     $r->activity_descr ?? $r->activity_id ?? '',
-                    round((float) ($r->total_final     ?? 0)),
-                    round((float) ($r->total_used      ?? 0)),
-                    round((float) ($r->total_reserve   ?? 0)),
+                    round((float) ($r->total_final ?? 0)),
+                    round((float) ($r->total_used ?? 0)),
+                    round((float) ($r->total_reserve ?? 0)),
                     round((float) ($r->total_remaining ?? 0)),
                     (float) ($r->used_pct ?? 0),
                 ]);
             }
             fputcsv($out, []);
 
-            fputcsv($out, ['=== MONTHLY TREND (' . $data['year'] . ') ===']);
+            fputcsv($out, ['=== MONTHLY TREND ('.$data['year'].') ===']);
             fputcsv($out, ['Month', 'Used (IDR)', 'Cumulative (IDR)']);
             foreach ($data['monthRows'] as $r) {
                 fputcsv($out, [$r['month'], $r['used'], $r['cumulative']]);
@@ -553,8 +579,9 @@ class GmReportController extends Controller
 
     public function exportXlsx(Request $request)
     {
-        $data     = $this->gatherExportData($request);
-        $filename = 'gm-report-' . $data['dateFrom'] . '-to-' . $data['dateTo'] . '.xlsx';
+        $data = $this->gatherExportData($request);
+        $filename = 'gm-report-'.$data['dateFrom'].'-to-'.$data['dateTo'].'.xlsx';
+
         return Excel::download(new GmReportExport($data), $filename);
     }
 
@@ -567,17 +594,17 @@ class GmReportController extends Controller
         try {
             ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
             $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
-            $malls  = $this->allowedPgcardMalls($cpnyId);
+            $malls = $this->allowedPgcardMalls($cpnyId);
 
             if ($malls !== null && empty($malls)) {
                 return response()->json(['data' => []]);
             }
 
             $mallCond = $malls !== null
-                ? "AND d.directory_code IN ('" . implode("','", array_map('addslashes', $malls)) . "')"
+                ? "AND d.directory_code IN ('".implode("','", array_map('addslashes', $malls))."')"
                 : '';
 
-            $bq      = new BigQueryService();
+            $bq = new BigQueryService();
             $project = self::PGCARD_PROJECT;
             $dataset = self::PGCARD_DATASET;
 
@@ -649,17 +676,17 @@ class GmReportController extends Controller
         try {
             ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
             $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
-            $malls  = $this->allowedPgcardMalls($cpnyId);
+            $malls = $this->allowedPgcardMalls($cpnyId);
 
             if ($malls !== null && empty($malls)) {
                 return response()->json(['data' => []]);
             }
 
             $mallCond = $malls !== null
-                ? "AND d.directory_code IN ('" . implode("','", array_map('addslashes', $malls)) . "')"
+                ? "AND d.directory_code IN ('".implode("','", array_map('addslashes', $malls))."')"
                 : '';
 
-            $bq      = new BigQueryService();
+            $bq = new BigQueryService();
             $project = self::PGCARD_PROJECT;
             $dataset = self::PGCARD_DATASET;
 
@@ -731,9 +758,9 @@ class GmReportController extends Controller
         try {
             ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
             $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
-            $malls  = $this->allowedPgcardMalls($cpnyId); // null = all, [] = none, [...] = list
+            $malls = $this->allowedPgcardMalls($cpnyId); // null = all, [] = none, [...] = list
 
-            $bq      = new BigQueryService();
+            $bq = new BigQueryService();
             $project = self::PGCARD_PROJECT;
             $dataset = self::PGCARD_DATASET;
 
@@ -754,16 +781,16 @@ class GmReportController extends Controller
 
             $rows = $bq->query($sql);
 
-            $byMall          = [];   // all malls, for donut (unfiltered)
+            $byMall = [];   // all malls, for donut (unfiltered)
             $byStatusFiltered = [];  // status breakdown for allowed malls
-            $byMallStatus     = [];  // full mall+status breakdown for client-side donut filtering
-            $totalFiltered    = 0;
+            $byMallStatus = [];  // full mall+status breakdown for client-side donut filtering
+            $totalFiltered = 0;
 
             foreach ($rows as $row) {
-                $code    = (string) ($row['mall_code'] ?? 'Unknown');
-                $name    = (string) ($row['mall_name'] ?? $code);
-                $status  = (string) ($row['status']    ?? '-');
-                $cnt     = (int)    ($row['cnt']        ?? 0);
+                $code = (string) ($row['mall_code'] ?? 'Unknown');
+                $name = (string) ($row['mall_name'] ?? $code);
+                $status = (string) ($row['status'] ?? '-');
+                $cnt = (int) ($row['cnt'] ?? 0);
 
                 // full mall+status breakdown (unfiltered by company — for donut)
                 $byMallStatus[] = ['mall_code' => $code, 'mall_name' => $name, 'status' => $status, 'count' => $cnt];
@@ -783,17 +810,117 @@ class GmReportController extends Controller
 
             return response()->json([
                 'data' => [
-                    'total_filtered'     => $totalFiltered,
+                    'total_filtered' => $totalFiltered,
                     'by_status_filtered' => $byStatusOut,
-                    'by_mall_status'     => $byMallStatus,
+                    'by_mall_status' => $byMallStatus,
                 ],
             ]);
         } catch (\Throwable $e) {
             return response()->json([
-                'data'  => ['total_filtered' => 0, 'by_status_filtered' => [], 'by_mall_status' => []],
+                'data' => ['total_filtered' => 0, 'by_status_filtered' => [], 'by_mall_status' => []],
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    // ── API: PG Card — Query comparison (Option A view vs Option B src) ─────────
+
+    public function pgcardCouponStywCompare(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $malls = $this->allowedPgcardMalls($cpnyId);
+
+            $bq = new BigQueryService();
+            $project = self::PGCARD_PROJECT;
+            $dataset = self::PGCARD_DATASET;
+
+            $sqlA = <<<SQL
+                SELECT
+                    COALESCE(d.directory_code, 'Unknown')      AS mall_code,
+                    COALESCE(d.directory_name, 'Unknown')      AS mall_name,
+                    COALESCE(CAST(c.status AS STRING), '-')    AS status,
+                    COUNT(*)                                   AS cnt
+                FROM `{$project}.{$dataset}.pgcard_detail_member_coupon_styw_2026` c
+                LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+                    ON d.id = c.print_directory_id
+                WHERE DATE(c.transaction_date_gmt7) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                GROUP BY d.directory_code, d.directory_name, c.status
+                ORDER BY mall_code, status
+            SQL;
+
+            $sqlB = <<<SQL
+                SELECT
+                    COALESCE(d.directory_code, 'Unknown')      AS mall_code,
+                    COALESCE(d.directory_name, 'Unknown')      AS mall_name,
+                    COALESCE(CAST(mc.status AS STRING), '-')   AS status,
+                    COUNT(*)                                   AS cnt
+                FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
+                JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                    ON t.id = mc.transaction_id
+                JOIN `{$project}.{$dataset}.pgcard_campaigns_src` camp
+                    ON camp.id = mc.campaign_id
+                LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+                    ON d.id = mc.print_directory_id
+                WHERE DATE(t.transaction_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  AND LOWER(camp.name) LIKE '%shop till you win%'
+                GROUP BY d.directory_code, d.directory_name, mc.status
+                ORDER BY mall_code, status
+            SQL;
+
+            $startA = microtime(true);
+            $rowsA = $bq->query($sqlA);
+            $timeA = round((microtime(true) - $startA) * 1000);
+
+            $startB = microtime(true);
+            $rowsB = $bq->query($sqlB);
+            $timeB = round((microtime(true) - $startB) * 1000);
+
+            return response()->json([
+                'optionA' => array_merge(['time_ms' => $timeA], $this->summarizeCouponRows($rowsA, $malls)),
+                'optionB' => array_merge(['time_ms' => $timeB], $this->summarizeCouponRows($rowsB, $malls)),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function summarizeCouponRows(array $rows, ?array $malls): array
+    {
+        $byStatus = [];
+        $byMall   = [];
+        $totalValid = 0;
+
+        foreach ($rows as $row) {
+            $code    = (string) ($row['mall_code'] ?? 'Unknown');
+            $name    = (string) ($row['mall_name'] ?? $code);
+            $status  = (string) ($row['status']    ?? '-');
+            $cnt     = (int)    ($row['cnt']        ?? 0);
+            $allowed = $malls === null || in_array($code, $malls, true);
+
+            if ($allowed) {
+                $byStatus[$status] = ($byStatus[$status] ?? 0) + $cnt;
+                if ($status === 'VALID') {
+                    $totalValid += $cnt;
+                    if (!isset($byMall[$code])) {
+                        $byMall[$code] = ['mall_code' => $code, 'mall_name' => $name, 'count' => 0];
+                    }
+                    $byMall[$code]['count'] += $cnt;
+                }
+            }
+        }
+
+        $byStatusOut = [];
+        foreach ($byStatus as $s => $c) {
+            $byStatusOut[] = ['status' => $s, 'count' => $c];
+        }
+
+        return [
+            'total_valid' => $totalValid,
+            'by_status'   => $byStatusOut,
+            'by_mall'     => array_values($byMall),
+        ];
     }
 
     private function pgcardGroupByMall(array $rows): array
@@ -802,21 +929,23 @@ class GmReportController extends Controller
 
         foreach ($rows as $row) {
             $code = (string) ($row['mall_code'] ?? '');
-            if (!$code || strtolower($code) === 'default') continue;
+            if (!$code || strtolower($code) === 'default') {
+                continue;
+            }
 
             if (!isset($result[$code])) {
                 $result[$code] = [
                     'mall_name' => (string) ($row['mall_name'] ?? $code),
-                    'data'      => [],
+                    'data' => [],
                 ];
             }
 
             $result[$code]['data'][] = [
-                'label'        => (string) ($row['label']        ?? ''),
-                'value'        => (int)    ($row['value']        ?? 0),
-                'total_amount' => (int)    ($row['total_amount'] ?? 0),
-                'txn_rank'     => (int)    ($row['txn_rank']     ?? 99),
-                'amt_rank'     => (int)    ($row['amt_rank']     ?? 99),
+                'label' => (string) ($row['label'] ?? ''),
+                'value' => (int) ($row['value'] ?? 0),
+                'total_amount' => (int) ($row['total_amount'] ?? 0),
+                'txn_rank' => (int) ($row['txn_rank'] ?? 99),
+                'amt_rank' => (int) ($row['amt_rank'] ?? 99),
                 'top_merchant_txn' => (string) ($row['top_merchant_txn'] ?? ''),
                 'top_merchant_amt' => (string) ($row['top_merchant_amt'] ?? ''),
                 'top_customer_txn' => (string) ($row['top_customer_txn'] ?? ''),
@@ -835,19 +964,19 @@ class GmReportController extends Controller
             = $this->parseFilters($request);
 
         $allowed = $this->allowedCompanies();
-        $year    = substr($dateFrom, 0, 4);
+        $year = substr($dateFrom, 0, 4);
 
         $selects = [
             'COALESCE(SUM(totalbudget), 0) + COALESCE(SUM(totalbudget_add), 0) AS total_budget',
         ];
-        for ($m = 1; $m <= 12; $m++) {
-            $mm        = str_pad($m, 2, '0', STR_PAD_LEFT);
+        for ($m = 1; $m <= 12; ++$m) {
+            $mm = str_pad($m, 2, '0', STR_PAD_LEFT);
             $selects[] = "COALESCE(SUM(period{$mm}_used), 0) AS m{$mm}";
         }
 
         $q = BudgetDetail::query()->where('status', 'C');
         $q = $this->applyCompanyFilter($q, $allowed, $cpnyId);
-        $q->whereRaw("LEFT(perpost::text, 4) = ?", [$year]);
+        $q->whereRaw('LEFT(perpost::text, 4) = ?', [$year]);
 
         if (!empty($depts)) {
             $q->whereIn('department_fin_id', array_map('strtoupper', $depts));
@@ -855,27 +984,26 @@ class GmReportController extends Controller
 
         $row = $q->selectRaw(implode(', ', $selects))->first();
 
-        $months     = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        $data       = [];
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $data = [];
         $cumulative = 0;
 
-        for ($m = 1; $m <= 12; $m++) {
-            $mm          = str_pad($m, 2, '0', STR_PAD_LEFT);
-            $used        = (float) ($row->{"m{$mm}"} ?? 0);
+        for ($m = 1; $m <= 12; ++$m) {
+            $mm = str_pad($m, 2, '0', STR_PAD_LEFT);
+            $used = (float) ($row->{"m{$mm}"} ?? 0);
             $cumulative += $used;
-            $data[]      = [
-                'month'      => $months[$m - 1],
-                'used'       => round($used),
+            $data[] = [
+                'month' => $months[$m - 1],
+                'used' => round($used),
                 'cumulative' => round($cumulative),
             ];
         }
 
         return response()->json([
-            'data'         => $data,
-            'year'         => $year,
+            'data' => $data,
+            'year' => $year,
             'total_budget' => round((float) ($row->total_budget ?? 0)),
         ]);
     }
-
 }

@@ -318,6 +318,58 @@
                     </div>
                 </x-card-chart.card-shell>
 
+                {{-- 5. Query Comparison — full width row --}}
+                <x-card-chart.card-shell
+                    class="sm:col-span-2 md:col-span-4 xl:col-span-5 xl:row-start-3"
+                    subtitle="PG Card · STYW 2026"
+                    title="Query Performance Comparison"
+                    gradient="linear-gradient(to right,#F59E0B,#EF4444)"
+                >
+                    <div class="px-5 pb-5 pt-2">
+                        <div class="flex items-center gap-3 mb-4">
+                            <button id="pgcardRunCompare" type="button"
+                                class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-600 active:scale-95 transition">
+                                ▶ Run Comparison
+                            </button>
+                            <span id="pgcardCompareStatus" class="text-xs text-slate-400 dark:text-slate-500 italic"></span>
+                        </div>
+                        <div id="pgcardCompareResult" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {{-- Option A --}}
+                            <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Option A — View Table</span>
+                                    <span id="pgcardCompareTimeA" class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">—</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-mono mb-3">pgcard_detail_member_coupon_styw_2026</p>
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-1">
+                                        <p id="pgcardCompareTotalA" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">—</p>
+                                        <p class="text-[10px] text-slate-400 mt-0.5 mb-2">VALID coupons</p>
+                                        <div id="pgcardCompareStatusA" class="flex flex-wrap gap-1.5"></div>
+                                    </div>
+                                    <div id="pgcardCompareDonutA" style="min-width:160px;min-height:160px"></div>
+                                </div>
+                            </div>
+                            {{-- Option B --}}
+                            <div class="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Option B — Direct from Src Tables</span>
+                                    <span id="pgcardCompareTimeB" class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">—</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 font-mono mb-3">pgcard_member_coupons_src + pgcard_member_transactions_src + pgcard_campaigns_src</p>
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-1">
+                                        <p id="pgcardCompareTotalB" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">—</p>
+                                        <p class="text-[10px] text-slate-400 mt-0.5 mb-2">VALID coupons</p>
+                                        <div id="pgcardCompareStatusB" class="flex flex-wrap gap-1.5"></div>
+                                    </div>
+                                    <div id="pgcardCompareDonutB" style="min-width:160px;min-height:160px"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </x-card-chart.card-shell>
+
                 {{-- 4. Top 10 Tenant — right column --}}
                 <x-card-chart.card-shell
                     class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-4 xl:row-start-1 xl:row-span-2"
@@ -362,7 +414,8 @@
             byMonth           : "{{ route('gm.budget-by-month') }}",
             pgcardTopCustomers: "{{ route('gm.pgcard-top-customers') }}",
             pgcardTopTenants  : "{{ route('gm.pgcard-top-tenants') }}",
-            pgcardCouponStyw  : "{{ route('gm.pgcard-coupon-styw') }}",
+            pgcardCouponStyw        : "{{ route('gm.pgcard-coupon-styw') }}",
+            pgcardCouponStywCompare : "{{ route('gm.pgcard-coupon-styw-compare') }}",
         };
     </script>
 

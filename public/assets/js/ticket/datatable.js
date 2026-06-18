@@ -45,13 +45,7 @@ const ticketTable = $("#ticketTable").DataTable({
         url: "/ticket/json",
 
         data: function (d) {
-            if (ticketStatusFilter === 'MY_TICKET') {
-                d.status   = '';
-                d.my_ticket = '1';
-            } else {
-                d.status    = ticketStatusFilter;
-                d.my_ticket = '';
-            }
+            d.status = ticketStatusFilter;
 
             d.search = $("#filter_search").val();
 

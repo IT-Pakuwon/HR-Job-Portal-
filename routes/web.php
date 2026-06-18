@@ -1544,7 +1544,8 @@ Route::middleware(['auth'])->group(function () {
                 // PG Card API endpoints
                 Route::get('/api/pgcard-top-customers', 'pgcardTopCustomers')->name('gm.pgcard-top-customers');
                 Route::get('/api/pgcard-top-tenants',   'pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
-                Route::get('/api/pgcard-coupon-styw',   'pgcardCouponStyw')  ->name('gm.pgcard-coupon-styw');
+                Route::get('/api/pgcard-coupon-styw',         'pgcardCouponStyw')        ->name('gm.pgcard-coupon-styw');
+                Route::get('/api/pgcard-coupon-styw-compare', 'pgcardCouponStywCompare')->name('gm.pgcard-coupon-styw-compare');
 
                 // Export endpoints
                 Route::get('/export/pdf',  'exportPdf') ->name('gm.export.pdf');

@@ -524,7 +524,7 @@
 
                     @csrf
 
-                    <input type="hidden" id="edit_room_id">
+                    <input type="hidden" id="edit_room_id" name="edit_room_id">
 
                     <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
 
@@ -646,7 +646,7 @@
 
                     @csrf
 
-                    <input type="hidden" id="edit_accessories_id">
+                    <input type="hidden" id="edit_accessories_id" name="edit_accessories_id">
 
                     <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
 
@@ -791,7 +791,7 @@
 
                     @csrf
 
-                    <input type="hidden" id="access_room_id">
+                    <input type="hidden" id="access_room_id" name="access_room_id">
 
                     <div class="p-6">
 
@@ -845,6 +845,9 @@
 
 
 
+
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
     <script>
         /*
@@ -1233,6 +1236,8 @@
         $('#createRoomForm').submit(function(e) {
 
             e.preventDefault();
+
+            $('input[name="eventcolor"]').val($('#roomColorText').val());
 
             $.ajax({
 
@@ -1763,10 +1768,12 @@
 
         }
 
-        $('#room_access_user').select2({
-            dropdownParent: $('#roomAccessModal'),
-            width: '100%',
-            placeholder: 'Select allowed users'
+        const roomAccessUserTom = new TomSelect('#room_access_user', {
+            plugins: ['remove_button'],
+            create: false,
+            persist: false,
+            placeholder: 'Select allowed users',
+            maxOptions: 1000
         });
 
         function openRoomAccessModal() {
@@ -1782,11 +1789,7 @@
                 .removeClass('flex')
                 .addClass('hidden');
 
-            $('#roomAccessForm')[0].reset();
-
-            $('#room_access_user')
-                .val(null)
-                .trigger('change');
+            roomAccessUserTom.clear(true);
         }
 
         function manageRoomAccess(roomId) {
@@ -1812,9 +1815,10 @@
 
                     Swal.close();
 
-                    $('#room_access_user')
-                        .val(response.data)
-                        .trigger('change');
+                    roomAccessUserTom.clear(true);
+                    (response.data || []).forEach(function(val) {
+                        roomAccessUserTom.addItem(val, true);
+                    });
 
                     openRoomAccessModal();
 
