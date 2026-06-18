@@ -310,6 +310,11 @@ class AccessRequestController extends Controller
             'details.*.categoryid' => ['required', 'string'],
         ]);
 
+        $approvalCtl = app(ApprovalController::class);
+
+        // validasi setup approval exist sebelum transaksi dimulai
+        $approvalCtl->loadLines($doctype, $request->cpny_id, $request->department_id);
+
         DB::beginTransaction();
 
         try {
@@ -400,14 +405,6 @@ class AccessRequestController extends Controller
                 ->unique()
                 ->values()
                 ->toArray();
-
-            $approvalCtl = app(ApprovalController::class);
-
-            $approvalCtl->loadLines(
-                $doctype,
-                $request->cpny_id,
-                $request->department_id
-            );
 
             $ctx = [
                 'approval_conditions' => $approvalConditions,
