@@ -691,8 +691,10 @@
             const action = document.getElementById('link_action_area');
 
             const isAdmin = !!action;
-            const isTeams = props.isTeams;
-            const isZoom = !props.isTeams;
+            // Use roomStatus ('T' = Teams, 'Z' = Zoom) to determine type,
+            // so a Teams room pending link doesn't fall through to Zoom UI.
+            const isTeams = props.roomStatus === 'T';
+            const isZoom  = props.roomStatus === 'Z';
 
             // =========================
             // 🟦 TEAMS (AUTO - NO PROCESS)
