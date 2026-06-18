@@ -511,8 +511,8 @@ function renderDiscussionMessages(messages = []) {
         container.append(`
             <div class="flex ${isMine ? "justify-end" : "justify-start"}">
                 <div class="max-w-[82%] rounded-2xl px-4 py-3 shadow-[0_8px_25px_rgba(0,0,0,.18)]
-                    ${isMine ? "bg-blue-600 text-white rounded-br-md" : "bg-white/[0.04] border border-white/[0.06] text-slate-200 rounded-bl-md"}">
-                    <div class="mb-0 flex items-center gap-2 text-[11px] font-medium ${isMine ? "text-blue-100" : "text-slate-500"}">
+                    ${isMine ? "bg-blue-600 text-white rounded-br-md" : "bg-white border border-slate-200 text-slate-700 dark:bg-white/[0.04] dark:border-white/[0.06] dark:text-slate-200 rounded-bl-md"}">
+                    <div class="mb-0 flex items-center gap-2 text-[11px] font-medium ${isMine ? "text-blue-100" : "text-slate-500 dark:text-slate-400"}">
                         <span>${item.username ?? "-"}</span>
                         <span>•</span>
                         <span>${formatDate(item.message_date ?? item.created_at)}</span>

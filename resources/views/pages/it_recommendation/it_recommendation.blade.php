@@ -670,12 +670,12 @@
 
                         <div class="flex items-end gap-2">
 
-                            <textarea id="discussionInput" rows="1" placeholder="Write message..." class="flex-1 rounded-lg">
-                            </textarea>
+                            <textarea id="discussionInput" rows="1" placeholder="Write message..."
+                                class="min-h-[46px] flex-1 resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500"></textarea>
 
                             <button type="button" id="btnSendDiscussion"
-                                class="h-11 w-11 rounded-lg bg-slate-900 text-white">
-                                <i class="fa-solid fa-paper-plane"></i>
+                                class="h-11 w-11 rounded-lg bg-slate-900 text-white dark:bg-blue-600 dark:hover:bg-blue-500">
+                                <i class="fa-solid fa-paper-plane text-sm"></i>
                             </button>
 
                         </div>
