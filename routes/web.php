@@ -1085,6 +1085,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/locations/by-company', [MasterController::class, 'Location'])->name('locations.byCompany');
     Route::get('/sublocations/by-location', [MasterController::class, 'SubLocation'])->name('sublocations.byLocation');
     Route::get('/departments/{cpny_id}', [MasterController::class, 'DepartmentFin'])->name('finance.departments.byCompany');
+
     Route::get('/coa/by-dept', [MasterController::class, 'CoaBudget'])->name('coa.byDept');
     Route::get('/coa/by-wo', [MasterController::class, 'CoaBudgetWo'])->name('coa.byWo');
     Route::get('/coa/by-wo-spb', [MasterController::class, 'CoaBudgetWoSPB'])->name('coa.byWoSPB');
@@ -1443,28 +1444,30 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::controller(MeetingController::class)->group(function () {
-            Route::get('/meeting', 'index')->name('meeting');
-            Route::get('/inforoom_{id}', 'getRoom');
+            Route::middleware('access:MEETING,VIEW')->group(function () {
+                Route::get('/meeting', 'index')->name('meeting');
+                Route::get('/inforoom_{id}', 'getRoom');
+                Route::get('/meetinglist/json', 'json')->name('meetinglist.json');
+                Route::get('/calendar-json', 'calendarJson')->name('meeting.calendarJson');
+                Route::get('/get-accessories/{id}', 'getAccessories');
+                Route::get('/meetingteams', 'MeetingTeams')->name('meetingteams');
+                Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
+            });
 
-            Route::post('/savemeeting', 'storeMeeting')->name('meeting.store');
-            Route::put('/updatemeeting/{id}', 'updateMeeting')->name('updatemeeting');
+            Route::middleware('access:MEETING,CREATE')->group(function () {
+                Route::post('/savemeeting', 'storeMeeting')->name('meeting.store');
+                Route::post('/saveteams', 'storeTeams')->name('teams.store');
+            });
 
-            Route::get('/meetinglist/json', 'json')->name('meetinglist.json');
-            Route::get('/calendar-json', 'calendarJson')->name('meeting.calendarJson');
+            Route::middleware('access:MEETING,EDIT')->group(function () {
+                Route::put('/updatemeeting/{id}', 'updateMeeting')->name('updatemeeting');
+                Route::put('/updateteams/{id}', 'updateTeams');
+                Route::post('/update-zoom/{id}', 'updateZoomLink');
+            });
 
-            Route::get('/get-accessories/{id}', 'getAccessories');
-
-            Route::get('/meetingteams', 'MeetingTeams')->name('meetingteams');
-
-            Route::post('/saveteams', 'storeTeams')->name('teams.store');
-
-            Route::put('/updateteams/{id}', 'updateTeams');
-
-            Route::post('/cancel-meeting/{id}', 'cancelMeeting');
-
-            Route::get('/teamslist/json', 'jsonTeams')->name('teamslist.json');
-
-            Route::post('/update-zoom/{id}', 'updateZoomLink');
+            Route::middleware('access:MEETING,DELETE')->group(function () {
+                Route::post('/cancel-meeting/{id}', 'cancelMeeting');
+            });
         });
 
         Route::controller(MeetingRoomSetupController::class)->prefix('meetingroom/setup')->name('meetingroom.setup.')->group(function () {

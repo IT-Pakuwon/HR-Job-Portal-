@@ -13,6 +13,7 @@
     var actRows       = [], actPage  = 1, actSort  = null;
     var lastDonutData = null; // { used, reserve, remaining } — kept for resize re-render
     var donutLegendPos = null; // track current rendered legend position
+    var donutSelected  = null; // { label, val } when a segment is clicked, null = show total
 
     // ── Donut chart (Used / Reserved / Remaining) ──────────────────────────────
     function buildDonutOpts(used, reserve, remaining, containerWidth) {
@@ -38,6 +39,26 @@
                 toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
                 foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 600 },
+                events: {
+                    dataPointSelection: function (e, ctx, cfg) {
+                        var pts    = cfg.selectedDataPoints;
+                        var hasSel = pts && pts[0] && pts[0].length > 0;
+                        donutSelected = hasSel ? {
+                            label: cfg.w.globals.labels[pts[0][0]],
+                            val:   cfg.w.globals.series[pts[0][0]],
+                        } : null;
+                        ctx.updateOptions({
+                            plotOptions: { pie: { donut: { labels: { total: {
+                                label: donutSelected ? donutSelected.label : 'Total',
+                                formatter: function (w) {
+                                    return donutSelected
+                                        ? utils.idr(donutSelected.val)
+                                        : utils.idr(w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0));
+                                },
+                            }}}}}
+                        }, false, false);
+                    },
+                },
             },
             colors: colors,
             plotOptions: {
@@ -49,16 +70,21 @@
                             total: {
                                 show: true, showAlways: true, label: 'Total',
                                 fontSize: '12px', fontWeight: 600,
-                                color: dark ? '#94A3B8' : '#64748B',
+                                color: dark ? '#CBD5E1' : '#64748B',
                                 formatter: function (w) {
                                     return utils.idr(
                                         w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0)
                                     );
                                 },
                             },
+                            name: {
+                                show: true,
+                                fontSize: '12px', fontWeight: 600,
+                                color: dark ? '#CBD5E1' : '#64748B',
+                            },
                             value: {
                                 fontSize: wide ? '16px' : '14px', fontWeight: 700,
-                                color: dark ? '#F8FAFC' : '#0F172A',
+                                color: dark ? '#F1F5F9' : '#0F172A',
                                 formatter: function (v) { return utils.idr(parseFloat(v)); },
                             },
                         },
@@ -452,7 +478,21 @@
                 tooltip: { theme: dark ? 'dark' : 'light' },
                 grid:    { borderColor: dark ? '#334155' : '#F1F5F9' },
             };
-            if (charts.donut) charts.donut.updateOptions({ chart: themeOpts.chart, tooltip: themeOpts.tooltip });
+            if (charts.donut) charts.donut.updateOptions({
+                chart:   themeOpts.chart,
+                tooltip: themeOpts.tooltip,
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            labels: {
+                                total: { color: dark ? '#CBD5E1' : '#64748B' },
+                                name:  { color: dark ? '#CBD5E1' : '#64748B' },
+                                value: { color: dark ? '#F1F5F9' : '#0F172A' },
+                            },
+                        },
+                    },
+                },
+            });
             if (charts.trend) charts.trend.updateOptions(themeOpts);
         }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     }

@@ -1,96 +1,115 @@
 <x-app-layout>
 
+    {{-- ── Section tab styles ──────────────────────────────────────────────────── --}}
+    <style>
+        .gm-section-tab {
+            padding: 10px 2px;
+            margin-right: 28px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #94a3b8;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color 0.15s, border-color 0.15s;
+            white-space: nowrap;
+        }
+        .gm-section-tab:hover { color: #334155; }
+        .dark .gm-section-tab:hover { color: #cbd5e1; }
+        .gm-section-tab.active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
+        .dark .gm-section-tab.active { color: #818cf8; border-bottom-color: #818cf8; }
+    </style>
+
     <div class="max-w-9xl mx-auto w-full space-y-2 p-2">
 
         {{-- ── Page Header ──────────────────────────────────────────────────────── --}}
         {{-- gmPageHeader is observed: when it leaves the viewport the filter
              teleports into #gmFilterFloat (fixed); when it re-enters it comes back --}}
-        <div id="gmPageHeader" class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div id="gmPageHeader" class="flex flex-col gap-2">
 
-            <div>
-                <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                    GM Report Dashboard
-                </h1>
-                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                    Overview
-                    <span id="gmPeriodLabel" class="ml-1 text-violet-500"></span>
-                </p>
-            </div>
-
-            {{-- Inline anchor — filter lives here when header is visible --}}
-            <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-start">
-                <div id="gmFilterAnchor" class="flex w-full sm:w-auto">
-                    <x-dashboard-filter.dashboard-filter />
+            {{-- Row 1: Title (left) + Filter + Export (right) --}}
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                        GM Report Dashboard
+                    </h1>
                 </div>
 
-                {{-- Export dropdown --}}
-                <div class="relative w-full sm:w-auto" id="gmExportWrap">
-                    <button id="gmExportBtn" type="button"
-                            onclick="document.getElementById('gmExportDropdown').classList.toggle('hidden')"
-                            class="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white
-                                   px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm
-                                   transition hover:bg-slate-50 sm:w-auto sm:justify-start
-                                   dark:border-slate-700/60 dark:bg-slate-900 dark:text-slate-300
-                                   dark:hover:bg-slate-800/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
-                             stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Export
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-60" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <div id="gmExportDropdown"
-                         class="hidden absolute right-0 top-full z-50 mt-1.5 min-w-[140px]
-                                rounded-xl border border-slate-200/80 bg-white py-1 shadow-lg
-                                dark:border-slate-700/60 dark:bg-slate-800">
-
-                        <a id="gmExport_pdf" href="#"
-                           class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700
-                                  hover:bg-red-50 hover:text-red-600
-                                  dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                    <div id="gmFilterAnchor" class="flex w-full sm:w-auto">
+                        <x-dashboard-filter.dashboard-filter />
+                    </div>
+                    <div class="relative w-full sm:w-auto" id="gmExportWrap">
+                        <button id="gmExportBtn" type="button"
+                                onclick="document.getElementById('gmExportDropdown').classList.toggle('hidden')"
+                                class="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-slate-200 bg-white
+                                       px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm
+                                       transition hover:bg-slate-50 sm:w-auto sm:justify-start
+                                       dark:border-slate-700/60 dark:bg-slate-900 dark:text-slate-300
+                                       dark:hover:bg-slate-800/50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0
-                                         0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Export PDF
-                        </a>
-
-                        <a id="gmExport_csv" href="#"
-                           class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700
-                                  hover:bg-emerald-50 hover:text-emerald-600
-                                  dark:text-slate-300 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1
-                                         1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z" />
+                            Export
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-60" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
-                            Export CSV
-                        </a>
-
-                        <a id="gmExport_xlsx" href="#"
-                           class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700
-                                  hover:bg-violet-50 hover:text-violet-600
-                                  dark:text-slate-300 dark:hover:bg-violet-500/10 dark:hover:text-violet-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2
-                                         2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            Export XLSX
-                        </a>
+                        </button>
+                        <div id="gmExportDropdown"
+                             class="hidden absolute right-0 top-full z-50 mt-1.5 min-w-35
+                                    rounded-xl border border-slate-200/80 bg-white py-1 shadow-lg
+                                    dark:border-slate-700/60 dark:bg-slate-800">
+                            <a id="gmExport_pdf" href="#"
+                               class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700
+                                      hover:bg-red-50 hover:text-red-600
+                                      dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0
+                                             0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                Export PDF
+                            </a>
+                            <a id="gmExport_csv" href="#"
+                               class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700
+                                      hover:bg-emerald-50 hover:text-emerald-600
+                                      dark:text-slate-300 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1
+                                             1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Export CSV
+                            </a>
+                            <a id="gmExport_xlsx" href="#"
+                               class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-slate-700
+                                      hover:bg-violet-50 hover:text-violet-600
+                                      dark:text-slate-300 dark:hover:bg-violet-500/10 dark:hover:text-violet-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2
+                                             2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Export XLSX
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {{-- Row 2: Tabs only — border-b is the underline track --}}
+            <div class="flex items-end border-b border-slate-200 dark:border-slate-700/60">
+                <button id="gmTab_all"    type="button" class="gm-section-tab">All</button>
+                <button id="gmTab_budget" type="button" class="gm-section-tab">Budget</button>
+                <button id="gmTab_pgcard" type="button" class="gm-section-tab">PG Card</button>
+            </div>
+
+        </div>{{-- /gmPageHeader --}}
 
         {{-- Fixed floating container — filter moves here once header scrolls away --}}
         <div id="gmFilterFloat"
@@ -109,14 +128,7 @@
             lg      : 4 col  — [Summary|Donut|Trend(×2)] / [Dept(×2)|Activity(×2)]
             xl      : 5 col  — Charts sidebar col-1 (rows 1–3) | Dept cols 2–3 | Activity cols 4–5
         --}}
-        <div class="mt-2 space-y-1.5">
-
-            {{-- Section header --}}
-            <div class="flex items-center gap-2 pt-1">
-                <h2 class="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">Budget</h2>
-                <span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-600
-                             dark:bg-amber-500/10 dark:text-amber-400">Overview</span>
-            </div>
+        <div id="gmSectionBudget" class="mt-2 space-y-1.5">
 
         <div class="grid grid-cols-1 gap-3
                     sm:grid-cols-2
@@ -232,14 +244,7 @@
             .dark .pgcard-metric-idle:hover { background:rgb(51 65 85/.5);color:#cbd5e1; }
         </style>
 
-        <div class="mt-2 space-y-1.5">
-
-            {{-- Section header --}}
-            <div class="flex items-center gap-2 pt-1">
-                <h2 class="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">PG Card</h2>
-                <span class="rounded-full bg-violet-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-600
-                             dark:bg-violet-500/10 dark:text-violet-400">Analytics</span>
-            </div>
+        <div id="gmSectionPgcard" class="mt-2 space-y-1.5">
 
             {{-- Single responsive grid — mirrors Budget section pattern --}}
             <div class="grid grid-cols-1 gap-3
@@ -435,6 +440,41 @@
         });
 
         obs.observe(header);
+    })();
+    </script>
+
+    {{-- ── Section tab switcher ───────────────────────────────────────────────── --}}
+    <script>
+    (function () {
+        var sections = { budget: 'gmSectionBudget', pgcard: 'gmSectionPgcard' };
+        var headers  = { budget: 'gmSectionBudgetHeader', pgcard: 'gmSectionPgcardHeader' };
+        var tabIds   = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard'];
+
+        function switchTab(key) {
+            tabIds.forEach(function (id) {
+                var btn = document.getElementById(id);
+                if (btn) btn.classList.toggle('active', id === 'gmTab_' + key);
+            });
+            Object.keys(sections).forEach(function (sec) {
+                var section = document.getElementById(sections[sec]);
+                var header  = document.getElementById(headers[sec]);
+                var hidden  = key !== 'all' && key !== sec;
+                if (section) section.classList.toggle('hidden', hidden);
+                if (header)  header.classList.toggle('hidden', key !== 'all');
+            });
+            try { localStorage.setItem('gmActiveTab', key); } catch (e) {}
+        }
+
+        tabIds.forEach(function (id) {
+            var btn = document.getElementById(id);
+            if (btn) btn.addEventListener('click', function () {
+                switchTab(id.replace('gmTab_', ''));
+            });
+        });
+
+        var saved = 'all';
+        try { saved = localStorage.getItem('gmActiveTab') || 'all'; } catch (e) {}
+        switchTab(saved);
     })();
     </script>
 
