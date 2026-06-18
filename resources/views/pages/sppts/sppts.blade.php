@@ -1205,7 +1205,7 @@ const approvals = header.approval_list || [];
                     mode = 'normal';
                     statusFilter = selectedStatus ?? '';
 
-                    $('#pageTitle').text('Request SPPB');
+                    $('#pageTitle').text('Request SPPT');
 
                     $('#createBtn').css('display', '');
                     $('#allFilters').addClass('hidden');
