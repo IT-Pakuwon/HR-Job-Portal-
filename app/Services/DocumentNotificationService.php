@@ -376,14 +376,28 @@ class DocumentNotificationService
                 $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
 
                 $bastJobs = \App\Models\TrPOterm::query()
-                    ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
-                    ->when(!empty($deptList), fn ($q) => $q->whereIn('department_id', $deptList))
-                    ->where('flag_bast', true)
-                    ->whereNull('bastid')
-                    ->where('status', 'A')
-                    ->orderBy('updated_at', 'desc')
+                    ->from('tr_po_term')
+                    ->leftJoin('tr_po as po', function ($join) {
+                        $join->on('po.ponbr',   '=', 'tr_po_term.ponbr')
+                             ->on('po.cpny_id', '=', 'tr_po_term.cpny_id')
+                             ->on('po.csid',    '=', 'tr_po_term.csid');
+                    })
+                    ->when(!empty($cpnyList), fn ($q) => $q->whereIn('tr_po_term.cpny_id', $cpnyList))
+                    ->when(!empty($deptList), fn ($q) => $q->whereIn('tr_po_term.department_id', $deptList))
+                    ->where('tr_po_term.flag_bast', true)
+                    ->whereNull('tr_po_term.bastid')
+                    ->where('tr_po_term.status', 'A')
+                    ->whereRaw("NOW()::date <= po.spkendtworkingdate - 7")
+                    ->orderBy('tr_po_term.updated_at', 'desc')
                     ->limit(5)
-                    ->select('id', 'ponbr', 'cpny_id', 'terms_name', 'vendorname', 'updated_at')
+                    ->select(
+                        'tr_po_term.id',
+                        'tr_po_term.ponbr',
+                        'tr_po_term.cpny_id',
+                        'tr_po_term.terms_name',
+                        'tr_po_term.vendorname',
+                        'tr_po_term.updated_at'
+                    )
                     ->get();
 
                 $data = $data->concat($bastJobs->map(fn ($r) => [

@@ -221,186 +221,200 @@
         </div>{{-- /Budget wrapper --}}
 
         {{-- ── PG Card Section ──────────────────────────────────────────────── --}}
-        {{--
-            Breakpoint layout summary:
-            default : 1 col  — all cards stacked
-            sm      : 2 col  — [Total Coupon | By Mall] / Top 10 charts full-width stacked
-            md      : 4 col  — [Total Coupon (×2) | By Mall (×2)] / [Top10Cust (×2) | Top10Ten (×2)]
-            lg      : 4 col  — same as md
-            xl      : 5 col  — [Col 1: Total Coupon (row 1) + By Mall (row 2)] [Cols 2-3: Top 10 Customer (rows 1-2)] [Cols 4-5: Top 10 Tenant (rows 1-2)]
-        --}}
+                {{--
+                    Breakpoint layout summary:
+                    default : 1 col  — all cards stacked
+                    sm      : 2 col  — [Total Coupon | By Mall] / Top 10 charts full-width stacked
+                    md      : 4 col  — [Total Coupon (×2) | By Mall (×2)] / [Top10Cust (×2) | Top10Ten (×2)]
+                    lg      : 4 col  — same as md
+                    xl      : 5 col  — [Col 1: Total Coupon (row 1) + By Mall (row 2)] [Cols 2-3: Top 10 Customer (rows 1-2)] [Cols 4-5: Top 10 Tenant (rows 1-2)]
+                --}}
 
-        {{-- Tab + metric styles (scoped to PG Card section) --}}
-        <style>
-            .pgcard-tab-active  { background:rgb(238 233 255/1);color:#7c3aed;font-weight:700; }
-            .dark .pgcard-tab-active  { background:rgb(139 92 246/.15);color:#a78bfa; }
-            .pgcard-tab-idle    { color:#94a3b8; }
-            .pgcard-tab-idle:hover    { background:rgb(241 245 249/1);color:#475569; }
-            .dark .pgcard-tab-idle:hover { background:rgb(51 65 85/.5);color:#cbd5e1; }
-            .pgcard-metric-active { background:rgb(220 252 231/1);color:#15803d;font-weight:700; }
-            .dark .pgcard-metric-active { background:rgb(16 185 129/.15);color:#34d399; }
-            .pgcard-metric-idle { color:#94a3b8; }
-            .pgcard-metric-idle:hover { background:rgb(241 245 249/1);color:#475569; }
-            .dark .pgcard-metric-idle:hover { background:rgb(51 65 85/.5);color:#cbd5e1; }
-        </style>
+                {{-- Tab + metric styles (scoped to PG Card section) --}}
+                <style>
+                    .pgcard-tab-active  { background:rgb(238 233 255/1);color:#7c3aed;font-weight:700; }
+                    .dark .pgcard-tab-active  { background:rgb(139 92 246/.15);color:#a78bfa; }
+                    .pgcard-tab-idle    { color:#94a3b8; }
+                    .pgcard-tab-idle:hover    { background:rgb(241 245 249/1);color:#475569; }
+                    .dark .pgcard-tab-idle:hover { background:rgb(51 65 85/.5);color:#cbd5e1; }
+                    .pgcard-metric-active { background:rgb(220 252 231/1);color:#15803d;font-weight:700; }
+                    .dark .pgcard-metric-active { background:rgb(16 185 129/.15);color:#34d399; }
+                    .pgcard-metric-idle { color:#94a3b8; }
+                    .pgcard-metric-idle:hover { background:rgb(241 245 249/1);color:#475569; }
+                    .dark .pgcard-metric-idle:hover { background:rgb(51 65 85/.5);color:#cbd5e1; }
+                </style>
 
-        <div id="gmSectionPgcard" class="mt-2 space-y-1.5">
+                <div id="gmSectionPgcard" class="mt-2 space-y-1.5">
 
-            {{-- Single responsive grid — mirrors Budget section pattern --}}
-            <div class="grid grid-cols-1 gap-3
-                        sm:grid-cols-2
-                        md:grid-cols-4
-                        lg:grid-cols-4
-                        xl:grid-cols-5">
+                    {{-- Single responsive grid — mirrors Budget section pattern --}}
+                    <div class="grid grid-cols-1 gap-3
+                                sm:grid-cols-2
+                                md:grid-cols-4
+                                lg:grid-cols-4
+                                xl:grid-cols-5">
 
-                {{-- 1. Total Coupon — sidebar top --}}
-                <x-card-chart.card-shell
-                    class="sm:col-span-1 md:col-span-2 xl:col-span-1 xl:row-start-1"
-                    subtitle="PG Card · STYW 2026"
-                    title="Total Coupon"
-                    gradient="linear-gradient(to right,#8B5CF6,#EC4899)"
-                >
-                    <div class="px-5 pb-5 pt-2">
-                        <p id="pgcardCouponTotal"
-                           class="text-4xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">
-                            …
-                        </p>
-                        <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Valid coupon records (filtered)</p>
-                        <div id="pgcardCouponStatus" class="mt-3 flex flex-wrap gap-1.5"></div>
-                    </div>
-                </x-card-chart.card-shell>
-
-                {{-- 2. By Mall donut — sidebar bottom --}}
-                <x-card-chart.card-shell
-                    class="sm:col-span-1 md:col-span-2 xl:col-span-1 xl:row-start-2"
-                    subtitle="PG Card · STYW 2026"
-                    title="By Mall"
-                    gradient="linear-gradient(to right,#06B6D4,#8B5CF6)"
-                >
-                    <x-slot:headerEnd>
-                        <select id="pgcardMallStatusFilter"
-                            class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                            <option value="VALID">Valid</option>
-                            <option value="">All Status</option>
-                            <option value="EXPIRED">Expired</option>
-                            <option value="INVALID">Invalid</option>
-                            <option value="-">Waiting for Processed</option>
-                        </select>
-                    </x-slot:headerEnd>
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="pgcardCouponDonut" style="min-height:220px"></div>
-                    </div>
-                </x-card-chart.card-shell>
-
-                {{-- 3. Top 10 Customer — centre column --}}
-                <x-card-chart.card-shell
-                    class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-2 xl:row-start-1 xl:row-span-2"
-                    subtitle="PG Card"
-                    title="Top 10 Customer"
-                    gradient="linear-gradient(to right,#8B5CF6,#EC4899)"
-                >
-                    <x-slot:headerEnd>
-                        <div class="flex items-center gap-2">
-                            <div id="pgcardCustTab_container" class="flex items-center gap-1"></div>
-                            <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
-                            <div class="flex items-center gap-1">
-                                <button id="pgcardCustMetric_transaction" type="button"
-                                        class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                        title="Sort by transaction count">By Transaction</button>
-                                <button id="pgcardCustMetric_spending" type="button"
-                                        class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                        title="Sort by total spending (Rp)">By Spending</button>
+                        {{-- 1. Total Coupon — sidebar top --}}
+                        <x-card-chart.card-shell
+                            class="sm:col-span-1 md:col-span-2 xl:col-span-1 xl:row-start-1"
+                            subtitle="PG Card · STYW 2026"
+                            title="Total Coupon"
+                            gradient="linear-gradient(to right,#8B5CF6,#EC4899)"
+                        >
+                            <div class="px-5 pb-5 pt-2">
+                                <p id="pgcardCouponTotal"
+                                class="text-4xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">
+                                    …
+                                </p>
+                                <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Valid coupon records (filtered)</p>
+                                <div id="pgcardCouponStatus" class="mt-3 flex flex-wrap gap-1.5"></div>
                             </div>
-                        </div>
-                    </x-slot:headerEnd>
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="pgcardCustomerChart" style="min-height:310px"></div>
-                    </div>
-                </x-card-chart.card-shell>
+                        </x-card-chart.card-shell>
 
-                {{-- 5. Query Comparison — full width row --}}
-                {{-- <x-card-chart.card-shell
-                    class="sm:col-span-2 md:col-span-4 xl:col-span-5 xl:row-start-3"
-                    subtitle="PG Card · STYW 2026"
-                    title="Query Performance Comparison"
-                    gradient="linear-gradient(to right,#F59E0B,#EF4444)"
-                >
-                    <div class="px-5 pb-5 pt-2">
-                        <div class="flex items-center gap-3 mb-4">
-                            <button id="pgcardRunCompare" type="button"
-                                class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-600 active:scale-95 transition">
-                                ▶ Run Comparison
-                            </button>
-                            <span id="pgcardCompareStatus" class="text-xs text-slate-400 dark:text-slate-500 italic"></span>
-                        </div>
-                        <div id="pgcardCompareResult" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- 2. By Mall donut — sidebar bottom --}}
+                        <x-card-chart.card-shell
+                            class="sm:col-span-1 md:col-span-2 xl:col-span-1 xl:row-start-2"
+                            subtitle="PG Card · STYW 2026"
+                            title="By Mall"
+                            gradient="linear-gradient(to right,#06B6D4,#8B5CF6)"
+                        >
+                            <x-slot:headerEnd>
+                                <select id="pgcardMallStatusFilter"
+                                    class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                    <option value="VALID">Valid</option>
+                                    <option value="">All Status</option>
+                                    <option value="EXPIRED">Expired</option>
+                                    <option value="INVALID">Invalid</option>
+                                    <option value="-">Waiting for Processed</option>
+                                </select>
+                            </x-slot:headerEnd>
+                            <div class="px-3 pb-3 pt-0">
+                                <div id="pgcardCouponDonut" style="min-height:220px"></div>
+                            </div>
+                        </x-card-chart.card-shell>
 
-                            <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Option A — View Table</span>
-                                    <span id="pgcardCompareTimeA" class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">—</span>
-                                </div>
-                                <p class="text-[10px] text-slate-400 font-mono mb-3">pgcard_detail_member_coupon_styw_2026</p>
-                                <div class="flex items-start gap-4">
-                                    <div class="flex-1">
-                                        <p id="pgcardCompareTotalA" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">—</p>
-                                        <p class="text-[10px] text-slate-400 mt-0.5 mb-2">VALID coupons</p>
-                                        <div id="pgcardCompareStatusA" class="flex flex-wrap gap-1.5"></div>
+                        {{-- 3. Top 10 Customer — centre column --}}
+                        <x-card-chart.card-shell
+                            class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-2 xl:row-start-1 xl:row-span-2"
+                            subtitle="PG Card"
+                            title="Top 10 Customer"
+                            gradient="linear-gradient(to right,#8B5CF6,#EC4899)"
+                        >
+                            <x-slot:headerEnd>
+                                <div class="flex items-center gap-2">
+                                    <div id="pgcardCustTab_container" class="flex items-center gap-1"></div>
+                                    <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+                                    <div class="flex items-center gap-1">
+                                        <button id="pgcardCustMetric_transaction" type="button"
+                                                class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
+                                                title="Sort by transaction count">By Transaction</button>
+                                        <button id="pgcardCustMetric_spending" type="button"
+                                                class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
+                                                title="Sort by total spending (Rp)">By Spending</button>
                                     </div>
-                                    <div id="pgcardCompareDonutA" style="min-width:160px;min-height:160px"></div>
                                 </div>
+                            </x-slot:headerEnd>
+                            <div class="px-3 pb-3 pt-0">
+                                <div id="pgcardCustomerChart" style="min-height:310px"></div>
                             </div>
+                        </x-card-chart.card-shell>
 
-                            <div class="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Option B — Direct from Src Tables</span>
-                                    <span id="pgcardCompareTimeB" class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">—</span>
+                        {{-- 5. Query Comparison — full width row --}}
+                        {{-- <x-card-chart.card-shell
+                            class="sm:col-span-2 md:col-span-4 xl:col-span-5 xl:row-start-3"
+                            subtitle="PG Card · STYW 2026"
+                            title="Query Performance Comparison"
+                            gradient="linear-gradient(to right,#F59E0B,#EF4444)"
+                        >
+                            <div class="px-5 pb-5 pt-2">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <button id="pgcardRunCompare" type="button"
+                                        class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-600 active:scale-95 transition">
+                                        ▶ Run Comparison
+                                    </button>
+                                    <span id="pgcardCompareStatus" class="text-xs text-slate-400 dark:text-slate-500 italic"></span>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-mono mb-3">pgcard_member_coupons_src + pgcard_member_transactions_src + pgcard_campaigns_src</p>
-                                <div class="flex items-start gap-4">
-                                    <div class="flex-1">
-                                        <p id="pgcardCompareTotalB" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">—</p>
-                                        <p class="text-[10px] text-slate-400 mt-0.5 mb-2">VALID coupons</p>
-                                        <div id="pgcardCompareStatusB" class="flex flex-wrap gap-1.5"></div>
+                                <div id="pgcardCompareResult" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                                    <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Option A — View Table</span>
+                                            <span id="pgcardCompareTimeA" class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">—</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 font-mono mb-3">pgcard_detail_member_coupon_styw_2026</p>
+                                        <div class="flex items-start gap-4">
+                                            <div class="flex-1">
+                                                <p id="pgcardCompareTotalA" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">—</p>
+                                                <p class="text-[10px] text-slate-400 mt-0.5 mb-2">VALID coupons</p>
+                                                <div id="pgcardCompareStatusA" class="flex flex-wrap gap-1.5"></div>
+                                            </div>
+                                            <div id="pgcardCompareDonutA" style="min-width:160px;min-height:160px"></div>
+                                        </div>
                                     </div>
-                                    <div id="pgcardCompareDonutB" style="min-width:160px;min-height:160px"></div>
+
+                                    <div class="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Option B — Direct from Src Tables</span>
+                                            <span id="pgcardCompareTimeB" class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">—</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 font-mono mb-3">pgcard_member_coupons_src + pgcard_member_transactions_src + pgcard_campaigns_src</p>
+                                        <div class="flex items-start gap-4">
+                                            <div class="flex-1">
+                                                <p id="pgcardCompareTotalB" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">—</p>
+                                                <p class="text-[10px] text-slate-400 mt-0.5 mb-2">VALID coupons</p>
+                                                <div id="pgcardCompareStatusB" class="flex flex-wrap gap-1.5"></div>
+                                            </div>
+                                            <div id="pgcardCompareDonutB" style="min-width:160px;min-height:160px"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </x-card-chart.card-shell> --}}
+                        </x-card-chart.card-shell> --}}
 
-                {{-- 4. Top 10 Tenant — right column --}}
-                <x-card-chart.card-shell
-                    class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-4 xl:row-start-1 xl:row-span-2"
-                    subtitle="PG Card"
-                    title="Top 10 Tenant"
-                    gradient="linear-gradient(to right,#06B6D4,#3B82F6)"
-                >
-                    <x-slot:headerEnd>
-                        <div class="flex items-center gap-2">
-                            <div id="pgcardTenTab_container" class="flex items-center gap-1"></div>
-                            <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
-                            <div class="flex items-center gap-1">
-                                <button id="pgcardTenMetric_transaction" type="button"
-                                        class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                        title="Sort by transaction count">By Transaction</button>
-                                <button id="pgcardTenMetric_spending" type="button"
-                                        class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                        title="Sort by total spending (Rp)">By Spending</button>
+                        {{-- 4. Top 10 Tenant — right column --}}
+                        <x-card-chart.card-shell
+                            class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-4 xl:row-start-1 xl:row-span-2"
+                            subtitle="PG Card"
+                            title="Top 10 Tenant"
+                            gradient="linear-gradient(to right,#06B6D4,#3B82F6)"
+                        >
+                            <x-slot:headerEnd>
+                                <div class="flex items-center gap-2">
+                                    <div id="pgcardTenTab_container" class="flex items-center gap-1"></div>
+                                    <div class="h-4 w-px bg-slate-200 dark:bg-slate-700"></div>
+                                    <div class="flex items-center gap-1">
+                                        <button id="pgcardTenMetric_transaction" type="button"
+                                                class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
+                                                title="Sort by transaction count">By Transaction</button>
+                                        <button id="pgcardTenMetric_spending" type="button"
+                                                class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
+                                                title="Sort by total spending (Rp)">By Spending</button>
+                                    </div>
+                                </div>
+                            </x-slot:headerEnd>
+                            <div class="px-3 pb-3 pt-0">
+                                <div id="pgcardTenantChart" style="min-height:310px"></div>
                             </div>
-                        </div>
-                    </x-slot:headerEnd>
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="pgcardTenantChart" style="min-height:310px"></div>
+                        </x-card-chart.card-shell>
+
+                        {{-- 5. Transactions by Campaign — full-width bottom row --}}
+                        <x-card-chart.card-shell
+                            class="sm:col-span-2 md:col-span-4 xl:col-span-5 xl:row-start-3"
+                            subtitle="PG Card · STYW 2026"
+                            title="Transactions by Campaign"
+                            gradient="linear-gradient(to right,#10B981,#06B6D4)"
+                        >
+                            <div class="px-3 pb-3 pt-0">
+                                <div id="pgcardCampaignChart" style="min-height:280px"></div>
+                            </div>
+                        </x-card-chart.card-shell>
+
                     </div>
-                </x-card-chart.card-shell>
 
-            </div>
-
-        </div>
+                </div>
 
     </div>
+
+
 
     {{-- ── Route registry (shared across all GM section scripts) ─────────────── --}}
     <script>

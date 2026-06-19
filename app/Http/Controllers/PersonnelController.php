@@ -289,7 +289,12 @@ class PersonnelController extends Controller
 
         $subgradings = StoSubGrading::select('subgrade_id', 'subgrade_name', 'group_grade')
             ->where('status', 'A')
-            ->orderBy('grade_id', 'ASC')
+            ->orderBy('subgrade_id', 'ASC')
+            ->get();
+
+        $activeUsers = User::select('username', 'name')
+            ->where('status', 'A')
+            ->orderBy('name', 'ASC')
             ->get();
 
         // 1) ambil division_id user dari PostgreSQL
@@ -309,7 +314,7 @@ class PersonnelController extends Controller
             ->orderBy('division_name')
             ->get();
 
-        return view('pages.personnels.createpersonnels', compact('companies', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'skillTags', 'division', 'subgradings', 'userdivison'));
+        return view('pages.personnels.createpersonnels', compact('companies', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'skillTags', 'division', 'subgradings', 'userdivison', 'activeUsers'));
     }
 
     public function createPersonnelx()
@@ -683,7 +688,7 @@ class PersonnelController extends Controller
 
         $subgradings = StoSubGrading::select('subgrade_id', 'subgrade_name', 'group_grade')
             ->where('status', 'A')
-            ->orderBy('grade_id', 'ASC')
+            ->orderBy('subgrade_id', 'ASC')
             ->get();
 
         $userDivisionIds = Userdivision::query()
@@ -729,6 +734,11 @@ class PersonnelController extends Controller
             ->values()
             ->toArray();
 
+        $activeUsers = User::select('username', 'name')
+            ->where('status', 'A')
+            ->orderBy('name', 'ASC')
+            ->get();
+
         return view('pages.personnels.editpersonnels', [
             'companies' => $companies,
             'usercpny' => $usercpny,
@@ -744,6 +754,7 @@ class PersonnelController extends Controller
             'jobres' => collect($jobres),
             'jobqua' => collect($jobqua),
             'selectedTags' => is_array($selectedTags) ? $selectedTags : [],
+            'activeUsers' => $activeUsers,
             'hash' => $hash,
         ]);
     }
@@ -771,7 +782,7 @@ class PersonnelController extends Controller
 
         $subgradings = StoSubGrading::select('subgrade_id', 'subgrade_name', 'group_grade')
             ->where('status', 'A')
-            ->orderBy('grade_id', 'ASC')
+            ->orderBy('subgrade_id', 'ASC')
             ->get();
 
         // division user-based
@@ -815,6 +826,11 @@ class PersonnelController extends Controller
             ->pluck('job_tags')
             ->toArray();
 
+        $activeUsers = User::select('username', 'name')
+            ->where('status', 'A')
+            ->orderBy('name', 'ASC')
+            ->get();
+
         return view('pages.personnels.editpersonnels', compact(
             'companies',
             'usercpny',
@@ -830,6 +846,7 @@ class PersonnelController extends Controller
             'jobres',
             'jobqua',
             'selectedTags',
+            'activeUsers',
             'hash'
         ));
     }
@@ -857,7 +874,7 @@ class PersonnelController extends Controller
         // subgradings sama seperti create (ambil group_grade)
         $subgradings = StoSubGrading::select('subgrade_id', 'subgrade_name', 'group_grade')
             ->where('status', 'A')
-            ->orderBy('grade_id', 'ASC')
+            ->orderBy('subgrade_id', 'ASC')
             ->get();
 
         // division user-based sama seperti create
