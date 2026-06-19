@@ -292,7 +292,7 @@ class PersonnelController extends Controller
             ->where('status', 'A')
             ->orderBy('subgrade_id', 'ASC')
             ->get();
-
+// dd($subgradings);
         $activeUsers = User::select('username', 'name')
             ->where('status', 'A')
             ->orderBy('name', 'ASC')
@@ -339,8 +339,6 @@ class PersonnelController extends Controller
 
     public function storePersonnel(Request $request)
     {
-        // dd($request->all());
-
         // Validasi input
         $request->validate([
             'cpnyid' => 'required|string',
@@ -358,7 +356,19 @@ class PersonnelController extends Controller
             'attachments.*' => 'file|max:2048', // Validasi file, max 2MB
         ]);
 
-        $positionCondition = strtolower($request->job_type.' '.$request->group_grade);
+        $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
+            ->where('status', 'A')
+            ->first();
+
+        if (!$grading) {
+            return response()->json([
+                'message' => 'Job level tidak valid untuk subgrade yang dipilih.',
+            ], 422);
+        }
+
+        $groupGrade = (string) ($grading->group_grade ?? '');
+        // $positionCondition = strtolower(trim($request->job_type.' '.$groupGrade));
+        $positionCondition = strtolower(trim($groupGrade));
         $doctype = 'PRF';
         $user = $request->user();
         $username = $user->username ?? 'system';
@@ -378,7 +388,7 @@ class PersonnelController extends Controller
                 $q->where('aprv_type', 'Normal')
                 ->orWhere(function ($q2) use ($positionCondition) {
                     $q2->where('aprv_type', 'Condition')
-                        ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
+                        ->where('aprv_condition', $positionCondition);
                 });
             })
             ->count();
@@ -391,6 +401,32 @@ class PersonnelController extends Controller
 
         DB::beginTransaction();
         try {
+            // // Generate task ID
+            // $autonbr = Autonbr::lockForUpdate()
+            //     ->where('doctype', $doctype)
+            //     ->where('year', $year)
+            //     ->where('month', $month)
+            //     ->where('status', 'A')
+            //     ->first();
+
+            // if (!$autonbr) {
+            //     $autonbr = Autonbr::create([
+            //         'doctype' => $doctype,
+            //         'year' => $year,
+            //         'month' => $month,
+            //         'status' => 'A',
+            //         'number' => 1
+            //     ]);
+            //     $urutan = 1;
+            // } else {
+            //     $urutan = $autonbr->number + 1;
+            //     $autonbr->number = $urutan;
+            //     $autonbr->save();
+            // }
+
+            // $tglbln = substr($year, 2) . $month;
+            // $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -404,10 +440,6 @@ class PersonnelController extends Controller
             $docid = $doctype.$tglbln.sprintf('%03d', $urutan);
 
             $title = StoDepartement::where('departement_id', $request->job_title)
-                ->where('status', 'A')
-                ->first();
-
-            $grading = StoSubGrading::where('subgrade_id', $request->subgrade_id)
                 ->where('status', 'A')
                 ->first();
 
@@ -439,23 +471,10 @@ class PersonnelController extends Controller
                 'status' => $request->status ?? 'P',
             ]);
 
-            // $msApprovalLines = MsApproval::where('status', 'A')
-            //     ->where('aprv_cpnyid', $request->cpnyid)
-            //     ->where('aprv_departementid', $request->departementid)
-            //     ->where('aprv_doctype', $doctype)
-            //     ->where(function ($q) use ($positionCondition) {
-            //         $q->where('aprv_type', 'Normal')
-            //         ->orWhere(function ($q2) use ($positionCondition) {
-            //             $q2->where('aprv_type', 'Condition')
-            //                 ->where('aprv_condition', $positionCondition);
-            //         });
-            //     })
-            //     ->orderBy('aprv_leveling', 'ASC')
-            //     ->get();
-            $msApproval = MsApproval::where('aprv_doctype', $doctype)
+            $msApprovalLines = MsApproval::where('status', 'A')
                 ->where('aprv_cpnyid', $request->cpnyid)
                 ->where('aprv_departementid', $request->departementid)
-                ->where('status', 'A')
+                ->where('aprv_doctype', $doctype)
                 ->where(function ($q) use ($positionCondition) {
                     $q->where('aprv_type', 'Normal')
                     ->orWhere(function ($q2) use ($positionCondition) {
@@ -463,7 +482,7 @@ class PersonnelController extends Controller
                             ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
                     });
                 })
-                ->orderBy('aprv_leveling', 'asc')
+                ->orderBy('aprv_leveling', 'ASC')
                 ->get();
 
             // insert tr_approval
@@ -995,7 +1014,8 @@ class PersonnelController extends Controller
 
             // $groupGrade = (string)($grading->group_grade ?? ''); // ex: "Staff" / "Manager"
             $groupGrade = (string) ($grading->group_grade ?? '');
-            $positionCondition = strtolower(trim($request->job_type.' '.$groupGrade));
+            // $positionCondition = strtolower(trim($request->job_type.' '.$groupGrade));
+            $positionCondition = strtolower(trim($groupGrade));
 
             // Update header personnel
             $personnel->update([
