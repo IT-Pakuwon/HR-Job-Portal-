@@ -319,7 +319,7 @@
                 </x-card-chart.card-shell>
 
                 {{-- 5. Query Comparison — full width row --}}
-                <x-card-chart.card-shell
+                {{-- <x-card-chart.card-shell
                     class="sm:col-span-2 md:col-span-4 xl:col-span-5 xl:row-start-3"
                     subtitle="PG Card · STYW 2026"
                     title="Query Performance Comparison"
@@ -334,7 +334,7 @@
                             <span id="pgcardCompareStatus" class="text-xs text-slate-400 dark:text-slate-500 italic"></span>
                         </div>
                         <div id="pgcardCompareResult" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {{-- Option A --}}
+
                             <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4">
                                 <div class="flex items-center justify-between mb-1">
                                     <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Option A — View Table</span>
@@ -350,7 +350,7 @@
                                     <div id="pgcardCompareDonutA" style="min-width:160px;min-height:160px"></div>
                                 </div>
                             </div>
-                            {{-- Option B --}}
+
                             <div class="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4">
                                 <div class="flex items-center justify-between mb-1">
                                     <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Option B — Direct from Src Tables</span>
@@ -368,7 +368,7 @@
                             </div>
                         </div>
                     </div>
-                </x-card-chart.card-shell>
+                </x-card-chart.card-shell> --}}
 
                 {{-- 4. Top 10 Tenant — right column --}}
                 <x-card-chart.card-shell
