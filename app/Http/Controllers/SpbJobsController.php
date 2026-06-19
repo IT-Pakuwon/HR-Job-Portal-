@@ -23,60 +23,7 @@ use Vinkla\Hashids\Facades\Hashids;
 
 class SpbJobsController extends Controller
 {
-    public function index_xxx()
-    {
-        $user = Auth::user();
-        if (!$user) {
-            return redirect()->route('login');
-        }
-
-        $u = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
-
-        // 1. Issue New Jobs (TrSPB) : status='C', status_sppb='Open'
-        $issuejobsnew = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-            ->where('status', 'C')
-            ->where('status_issue', 'Open')
-            ->count();
-
-        // 2. Issue Jobs (TrSPB) : status='C', status_sppb <> 'Open'
-        $issuejobs = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-            ->where('status', 'C')
-            ->where('status_issue', 'Partial')
-            ->count();
-
-        // 3. SPPB Jobs (TrSPB) : status='C', totalspbqty - totalissueqty - totalsppbqty > 0
-        $sppbjobs = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-            ->where('status', 'C')
-            ->whereRaw('(totalspbqty - totalissueqty - totalsppbqty) > 0')
-            ->count();
-
-        // 4. Issue On Progress (TrIssue) : status='P' (tanpa filter sppbid)
-        $issueprogress = TrIssue::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-            ->where('created_by', $u)
-            ->where('status', 'P')
-            ->count();
-
-        // 5. SPPB On Progress (TrSPPB) : status='P'
-        $sppbprogress = TrSPPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-            ->where('spbid', '!=', null)
-            ->where('status', 'P')
-            ->count();
-
-        $spbprogress = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-            ->where('status', 'P')
-            ->count();
-
-        return view('pages.spbjobs.spbjobs', compact(
-            'issuejobsnew',  // Issue New Jobs
-            'issuejobs', // Issue Jobs
-            'sppbjobs', // SPPB Jobs
-            'issueprogress',   // Issue On Progress
-            'sppbprogress',      // SPPB On Progress
-            'spbprogress'        // SPB On Progress
-        ));
-    }
-
+    
     public function index()
     {
         $user = Auth::user();
@@ -165,510 +112,7 @@ class SpbJobsController extends Controller
             'status_sppb_progress'
         ));
     }
-
-    // public function json(Request $req)
-    // {
-    //     $scope = strtolower((string) $req->query('scope', 'issuejobsnew'));
-    //     $user = Auth::user();
-    //     $u = $user->username ?? '';
-    //     $cpny_id = $user->cpny_id ?? '';
-
-    //     $draw = (int) $req->input('draw', 1);
-    //     $start = (int) $req->input('start', 0);
-    //     $length = (int) $req->input('length', 25);
-    //     $search = trim((string) $req->input('search.value', ''));
-    //     $dateFrom = $req->query('date_from');
-    //     $dateTo = $req->query('date_to');
-
-    //     // Map label issuetype
-    //     $typeLabel = [
-    //         'IS' => 'Issue',
-    //         'RI' => 'Return Issue',
-    //     ];
-
-    //     $mode = null; // 'spb', 'issue', 'sppb'
-    //     $base = null;
-    //     $orderColumns = [];
-
-    //     // ================= SWITCH per scope =================
-    //     switch ($scope) {
-    //         // ---------- SPB-based scopes ----------
-    //         case 'issuejobsnew':      // Issue New Jobs
-    //         case 'issuejobs':     // Issue Jobs
-    //         case 'onprogress':     // SPPB Jobs
-    //             $mode = 'spb';
-
-    //             $base = TrSPB::with(['department', 'wo'])// 🔥 TAMBAHKAN INI
-    //                 ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-    //                 ->select([
-    //                     'id',
-    //                     'spbid',
-    //                     'spbdate',
-    //                     'cpny_id',
-    //                     'department_id',   // buat urutan, nanti nama department_name diisi saat transform
-    //                     'keperluan',
-    //                     'created_by',
-    //                     'status',
-    //                     'status_issue',
-    //                     'status_sppb',
-    //                     'totalspbqty',
-    //                     'totalissueqty',
-    //                     'totalsppbqty',
-    //                 ])
-    //                 // Issue New Jobs
-    //                 ->when($scope === 'issuejobsnew', function ($q) {
-    //                     $q->where('status', 'C')
-    //                       ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
-    //                       ->where('status_issue', 'Open');
-    //                 })
-    //                 // Issue Jobs
-    //                 ->when($scope === 'issuejobs', function ($q) {
-    //                     $q->where('status', 'C')
-    //                       ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
-    //                       ->where('status_issue', 'Partial');
-    //                 })
-
-    //                 // SPPB Jobs
-    //                 ->when($scope === 'onprogress', function ($q) {
-    //                     $q->where('status', 'C')
-    //                        ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
-    //                        ->whereIn('status_sppb', ['Open', 'Partial']);
-    //                     // $q->where('status', 'C')
-    //                     //   ->whereRaw('(totalspbqty - totalissueqty - totalsppbqty) > 0');
-    //                 });
-
-    //             $orderColumns = [
-    //                 0 => 'id',
-    //                 1 => 'spbid',
-    //                 2 => 'spbdate',
-    //                 3 => 'cpny_id',
-    //                 4 => 'keperluan',
-    //                 5 => 'created_by',
-    //             ];
-
-    //             if ($search !== '') {
-    //                 $base->where(function ($q) use ($search) {
-    //                     $q->where('spbid', 'ilike', "%{$search}%")
-    //                       ->orWhere('cpny_id', 'ilike', "%{$search}%")
-    //                       ->orWhere('keperluan', 'ilike', "%{$search}%")
-    //                       ->orWhere('created_by', 'ilike', "%{$search}%")
-    //                       ->orWhereRaw("TO_CHAR(spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
-    //                 });
-    //             }
-    //             break;
-
-    //             // ---------- Issue On Progress ----------
-    //         case 'issueprogress':       // Issue On Progress (TrIssue)
-    //             $mode = 'issue';
-
-    //             $base = TrIssue::query()
-    //                 ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-    //                 ->where('created_by', $u)
-    //                 ->where('status', 'P')
-    //                 ->select([
-    //                     'id', 'issueid', 'issuedate', 'issuetype', 'spbid', 'cpny_id', 'department_id', 'created_by', 'status',
-    //                 ]);
-
-    //             $orderColumns = [
-    //                 0 => 'id',
-    //                 1 => 'issueid',
-    //                 2 => 'issuedate',
-    //                 3 => 'issuetype',
-    //                 4 => 'spbid',
-    //                 5 => 'cpny_id',
-    //                 6 => 'created_by',
-    //             ];
-
-    //             if ($search !== '') {
-    //                 $base->where(function ($q) use ($search) {
-    //                     $q->where('issueid', 'ilike', "%{$search}%")
-    //                       ->orWhere('spbid', 'ilike', "%{$search}%")
-    //                       ->orWhere('issuetype', 'ilike', "%{$search}%")
-    //                       ->orWhereRaw(
-    //                           "CASE WHEN issuetype='IS' THEN 'Issue' WHEN issuetype='RI' THEN 'Return Issue' ELSE issuetype END ILIKE ?",
-    //                           ["%{$search}%"]
-    //                       )
-    //                       ->orWhere('cpny_id', 'ilike', "%{$search}%")
-    //                       ->orWhere('created_by', 'ilike', "%{$search}%")
-    //                       ->orWhereRaw("TO_CHAR(issuedate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
-    //                 });
-    //             }
-    //             break;
-
-    //             // ---------- SPPB On Progress ----------
-    //         case 'sppbprogress':         // SPPB On Progress (TrSPPB)
-    //             $mode = 'sppb';
-
-    //             $base = TrSPPB::with('requestType')
-    //                 ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-    //                 ->where('spbid', '!=', null)
-    //                 ->where('status', 'P');   // SPPB On Progress
-
-    //             $orderColumns = [
-    //                 0 => 'id',
-    //                 1 => 'sppbid',
-    //                 2 => 'sppbdate',
-    //                 3 => 'cpny_id',
-    //                 4 => 'department_id',
-    //                 5 => 'requesttypeid',   // buat urutan, nanti nama requesttype_name diisi saat transform
-    //                 6 => 'keperluan',
-    //                 7 => 'status',
-    //                 8 => 'created_by',
-    //             ];
-
-    //             if ($search !== '') {
-    //                 $base->where(function ($q) use ($search) {
-    //                     $q->where('sppbid', 'ilike', "%{$search}%")
-    //                     ->orWhere('cpny_id', 'ilike', "%{$search}%")
-    //                     ->orWhere('department_id', 'ilike', "%{$search}%")
-    //                     ->orWhere('keperluan', 'ilike', "%{$search}%")
-    //                     ->orWhere('created_by', 'ilike', "%{$search}%")
-    //                     ->orWhereRaw("TO_CHAR(sppbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
-    //                 })->orWhereHas('requestType', function ($qr) use ($search) {
-    //                     $qr->where('requesttype_name', 'ilike', "%{$search}%");
-    //                 });
-    //             }
-    //             break;
-    //         case 'spbprogress':   // SPB On Progress (TrSPB)
-    //             $mode = 'spb';
-
-    //             $base = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-    //                 ->where('status', 'P')
-    //                 ->select([
-    //                     'id',
-    //                     'spbid',
-    //                     'spbdate',
-    //                     'cpny_id',
-    //                     'department_id',
-    //                     'keperluan',
-    //                     'created_by',
-    //                     'status',
-    //                     'status_issue',
-    //                     'status_sppb',
-    //                     'totalspbqty',
-    //                     'totalissueqty',
-    //                     'totalsppbqty',
-    //                 ]);
-
-    //             $orderColumns = [
-    //                 0 => 'id',
-    //                 1 => 'spbid',
-    //                 2 => 'spbdate',
-    //                 3 => 'cpny_id',
-    //                 4 => 'keperluan',
-    //                 5 => 'created_by',
-    //             ];
-
-    //             if ($search !== '') {
-    //                 $base->where(function ($q) use ($search) {
-    //                     $q->where('spbid', 'ilike', "%{$search}%")
-    //                     ->orWhere('cpny_id', 'ilike', "%{$search}%")
-    //                     ->orWhere('keperluan', 'ilike', "%{$search}%")
-    //                     ->orWhere('created_by', 'ilike', "%{$search}%")
-    //                     ->orWhereRaw("TO_CHAR(spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
-    //                 });
-    //             }
-
-    //             break;
-
-    //         case 'spball':   // SPB All (Completed + On Progress)
-    //             $mode = 'spb';
-
-    //             $base = TrSPB::with('department') // 👈 tambah relasi
-    //                 ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-    //                 ->whereIn('status', ['C', 'P'])   // C = Completed, P = On Progress
-    //                 ->select([
-    //                     'id',
-    //                     'spbid',
-    //                     'spbdate',
-    //                     'cpny_id',
-    //                     'department_id',
-    //                     'keperluan',
-    //                     'created_by',
-    //                     'status',
-    //                     'status_issue',
-    //                     'status_sppb',
-    //                     'totalspbqty',
-    //                     'totalissueqty',
-    //                     'totalsppbqty',
-    //                 ]);
-
-    //             $orderColumns = [
-    //                 0 => 'id',
-    //                 1 => 'spbid',
-    //                 2 => 'spbdate',
-    //                 3 => 'cpny_id',
-    //                 4 => 'department_id',   // buat urutan, nanti nama department_name diisi saat transform
-    //                 5 => 'keperluan',
-    //                 6 => 'created_by',
-    //             ];
-
-    //             if ($search !== '') {
-    //                 $base->where(function ($q) use ($search) {
-    //                     $q->where('spbid', 'ilike', "%{$search}%")
-    //                     ->orWhere('cpny_id', 'ilike', "%{$search}%")
-    //                     ->orWhere('keperluan', 'ilike', "%{$search}%")
-    //                     ->orWhere('created_by', 'ilike', "%{$search}%")
-    //                     ->orWhereRaw("TO_CHAR(spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
-    //                 });
-    //             }
-
-    //             break;
-
-    //         case 'woflow':   // WO -> SPB / SPPB
-    //             $mode = 'spb';
-
-    //             $base = TrSPB::with('department')
-    //                 ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-    //                 ->whereNotNull('woid')   // 🔥 hanya yang punya WO
-    //                 ->where(function ($q) {
-    //                     $q->whereIn('status', ['P', 'C'])
-    //                     ->orWhereIn('status_sppb', ['P', 'C']);
-    //                 })
-    //                 ->select([
-    //                     'id',
-    //                     'spbid',
-    //                     'spbdate',
-    //                     'cpny_id',
-    //                     'department_id',
-    //                     'woid',              // 🔥 penting
-    //                     'keperluan',
-    //                     'created_by',
-    //                     'status',
-    //                     'status_issue',
-    //                     'status_sppb',
-    //                 ]);
-
-    //             $orderColumns = [
-    //                 0 => 'id',
-    //                 1 => 'spbid',
-    //                 2 => 'spbdate',
-    //                 3 => 'cpny_id',
-    //                 4 => 'department_id',
-    //                 5 => 'woid',   // 🔥 bisa order by WO
-    //                 6 => 'created_by',
-    //             ];
-
-    //             if ($search !== '') {
-    //                 $base->where(function ($q) use ($search) {
-    //                     $q->where('spbid', 'ilike', "%{$search}%")
-    //                     ->orWhere('woid', 'ilike', "%{$search}%")   // 🔥 search WO
-    //                     ->orWhere('cpny_id', 'ilike', "%{$search}%")
-    //                     ->orWhere('keperluan', 'ilike', "%{$search}%")
-    //                     ->orWhere('created_by', 'ilike', "%{$search}%")
-    //                     ->orWhereRaw("TO_CHAR(spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
-    //                 });
-    //             }
-
-    //             break;
-
-    //         case 'spbflow':   // SPB -> SPPB
-    //             $mode = 'spb';
-
-    //             $base = TrSPB::with('department')
-    //                 ->leftJoin('tr_sppb as sppb', 'sppb.spbid', '=', 'tr_spb.spbid')
-    //                 ->when($cpny_id, fn ($q) => $q->where('tr_spb.cpny_id', $cpny_id))
-    //                 ->where(function ($q) {
-    //                     $q->whereNotNull('sppb.sppbid')  // already has SPPB
-    //                       ->orWhereIn('tr_spb.status_sppb', ['Open', 'Partial', 'Full']);
-    //                 })
-    //                 ->select([
-    //                     'tr_spb.id',
-    //                     'tr_spb.spbid',
-    //                     'tr_spb.spbdate',
-    //                     'tr_spb.cpny_id',
-    //                     'tr_spb.department_id',
-    //                     'tr_spb.keperluan',
-    //                     'tr_spb.created_by',
-    //                     'tr_spb.status',
-    //                     'tr_spb.status_issue',
-    //                     'tr_spb.status_sppb',
-
-    //                     'sppb.id as sppb_id',
-    //                     'sppb.sppbid',
-    //                 ]);
-
-    //             $orderColumns = [
-    //                 0 => 'tr_spb.id',
-    //                 1 => 'tr_spb.spbid',
-    //                 2 => 'sppb.sppbid',
-    //                 3 => 'tr_spb.spbdate',
-    //                 4 => 'tr_spb.cpny_id',
-    //                 5 => 'tr_spb.department_id',
-    //                 6 => 'tr_spb.created_by',
-    //             ];
-
-    //             if ($search !== '') {
-    //                 $base->where(function ($q) use ($search) {
-    //                     $q->where('tr_spb.spbid', 'ilike', "%{$search}%")
-    //                       ->orWhere('sppb.sppbid', 'ilike', "%{$search}%")
-    //                       ->orWhere('tr_spb.cpny_id', 'ilike', "%{$search}%")
-    //                       ->orWhere('tr_spb.keperluan', 'ilike', "%{$search}%")
-    //                       ->orWhere('tr_spb.created_by', 'ilike', "%{$search}%")
-    //                       ->orWhereRaw("TO_CHAR(tr_spb.spbdate,'YYYY-MM-DD') ILIKE ?", ["%{$search}%"]);
-    //                 });
-    //             }
-
-    //             break;
-    //         default:
-    //             // fallback ke Issue New Jobs
-    //             $mode = 'spb';
-    //             $scope = 'issuejobsnew';
-    //             $base = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
-    //                 ->where('status', 'C')
-    //                 ->where('status_sppb', 'Open')
-    //                 ->select(['id', 'spbid', 'spbdate', 'cpny_id', 'keperluan', 'created_by', 'status']);
-    //             $orderColumns = [
-    //                 0 => 'id',
-    //                 1 => 'spbid',
-    //                 2 => 'spbdate',
-    //                 3 => 'cpny_id',
-    //                 4 => 'keperluan',
-    //                 5 => 'created_by',
-    //             ];
-    //             break;
-    //     }
-
-    //     // ================= Hitung total & filtered =================
-    //     $recordsTotal = (clone $base)->count();
-    //     $recordsFiltered = (clone $base)->count();
-
-    //     // ================= Ordering =================
-    //     $orderIdx = (int) $req->input('order.0.column', 2);
-    //     $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-
-    //     // tentukan kolom order
-    //     if (!empty($orderColumns[$orderIdx])) {
-    //         $orderCol = $orderColumns[$orderIdx];
-    //     } else {
-    //         // fallback kalau index tidak ada
-    //         if ($mode === 'spb') {
-    //             $orderCol = 'spbdate';
-    //         } elseif ($mode === 'issue') {
-    //             $orderCol = 'issuedate';
-    //         } elseif ($mode === 'sppb') {
-    //             $orderCol = 'sppbdate';
-    //         } else {
-    //             // kalau masih belum jelas, ambil kolom pertama dari array atau 'id'
-    //             $orderCol = reset($orderColumns) ?: 'id';
-    //         }
-    //     }
-
-    //     $query = $base->orderBy($orderCol, $orderDir);
-
-    //     // order kedua
-    //     if ($mode === 'spb') {
-    //         $query->orderBy('spbid', 'desc');
-    //     } elseif ($mode === 'issue') {
-    //         $query->orderBy('issueid', 'desc');
-    //     } elseif ($mode === 'sppb') {
-    //         $query->orderBy('sppbid', 'desc');
-    //     }
-
-    //     // ================= Date Range Filter =================
-    //     if ($dateFrom || $dateTo) {
-    //         $base->where(function ($q) use ($dateFrom, $dateTo) {
-    //             if ($dateFrom && $dateTo) {
-    //                 $q->whereBetween('created_at', [
-    //                     Carbon::parse($dateFrom)->startOfDay(),
-    //                     Carbon::parse($dateTo)->endOfDay(),
-    //                 ]);
-    //             } elseif ($dateFrom) {
-    //                 $q->where('created_at', '>=',
-    //                     Carbon::parse($dateFrom)->startOfDay());
-    //             } elseif ($dateTo) {
-    //                 $q->where('created_at', '<=',
-    //                     Carbon::parse($dateTo)->endOfDay());
-    //             }
-    //         });
-    //     }
-    //     // ================= Paging & ambil data =================
-    //     if ($mode === 'sppb') {
-    //         $data = $query
-    //             ->skip($start)
-    //             ->take($length)
-    //             ->get();
-
-    //         $data->transform(function ($row) {
-    //             // format tanggal
-    //             $sppbdate = $row->sppbdate instanceof Carbon
-    //                 ? $row->sppbdate
-    //                 : ($row->sppbdate ? Carbon::parse($row->sppbdate) : null);
-
-    //             $row->sppbdate_fmt = $sppbdate ? $sppbdate->format('Y-m-d') : null;
-    //             $row->sppbdate = $row->sppbdate_fmt;
-
-    //             // ambil nama request type dari relasi
-    //             $row->requesttype_name = optional($row->requestType)->requesttype_name ?? '';
-
-    //             // hash id
-    //             $row->eid = Hashids::encode($row->id);
-
-    //             // opsional: sembunyikan relasi
-    //             unset($row->requestType);
-
-    //             return $row;
-    //         });
-
-    //         $rows = $data;
-    //     } else {
-    //         $rows = $query->skip($start)->take($length)->get();
-
-    //         if ($mode === 'spb') {
-    //             $rows->transform(function ($r) {
-    //                 // format tanggal dan override spbdate supaya pasti string
-    //                 $spbdate = $r->spbdate instanceof Carbon
-    //                     ? $r->spbdate
-    //                     : ($r->spbdate ? Carbon::parse($r->spbdate) : null);
-
-    //                 $r->spbdate_fmt = $spbdate ? $spbdate->format('Y-m-d') : null;
-    //                 $r->spbdate = $r->spbdate_fmt; // <-- pakai langsung di frontend
-
-    //                 // pastikan keperluan tidak null
-    //                 if (!isset($r->keperluan)) {
-    //                     $r->keperluan = '';
-    //                 }
-
-    //                 // hashid SPB
-    //                 $r->spb_eid = Hashids::encode((string) $r->id);
-
-    //                 // 🔥 SPB HASH
-    //                 $r->spb_eid = Hashids::encode((string) $r->id);
-
-    //                 // 🔥 WO HASH (TAMBAHKAN DI SINI)
-    //                 $r->wo_hash = $r->wo
-    //                     ? Hashids::encode($r->wo->id)
-    //                     : null;
-    //                 $r->department_name = optional($r->department)->department_name ?? '';
-
-    //                 unset($r->department);
-
-    //                 return $r;
-    //             });
-    //         } elseif ($mode === 'issue') {
-    //             $rows->transform(function ($r) use ($typeLabel) {
-    //                 $issuedate = $r->issuedate instanceof Carbon
-    //                     ? $r->issuedate
-    //                     : ($r->issuedate ? Carbon::parse($r->issuedate) : null);
-
-    //                 $r->issuedate_fmt = $issuedate ? $issuedate->format('Y-m-d') : null;
-    //                 $r->issuedate = $r->issuedate_fmt;
-
-    //                 $r->issue_eid = Hashids::encode((string) $r->id);
-    //                 $r->issuetype = $typeLabel[$r->issuetype] ?? $r->issuetype;
-
-    //                 return $r;
-    //             });
-    //         }
-    //     }
-
-    //     return response()->json([
-    //         'draw' => $draw,
-    //         'recordsTotal' => $recordsTotal,
-    //         'recordsFiltered' => $recordsFiltered,
-    //         'data' => $rows,
-    //     ]);
-    // }
+    
 
     public function json(Request $req)
     {
@@ -921,6 +365,7 @@ class SpbJobsController extends Controller
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
                 $q->where('spbid', 'ilike', "%$search%")
+                  ->orWhere('created_by', 'ilike', "%$search%")
                   ->orWhere('cpny_id', 'ilike', "%$search%")
                   ->orWhere('keperluan', 'ilike', "%$search%");
             });
@@ -1224,277 +669,68 @@ class SpbJobsController extends Controller
             'spb' => $spb->fresh(),
             'details' => $details,
             'attachments' => $attachments,
-
-            // optional debug:
-            // 'meta' => [
-            //     'cpnyid' => $cpnyid,
-            //     'business_unit_id' => $businessUnitId,
-            //     'integration_type' => $integrationType,
-            //     'site_filter' => $siteFilter,
-            //     'model' => $model ? class_basename($model) : null,
-            // ],
+        
         ]);
     }
 
-    public function createIssue_old(Request $req)
+    public function completeRemainingQty(Request $request, string $spbid)
     {
-        $hash = (string) $req->query('spbid', '');
-        $decoded = Hashids::decode($hash);
+        $spb = TrSPB::where('spbid', $spbid)->first();
 
-        abort_if(empty($decoded) || empty($decoded[0]), 404, 'SPB ID required');
-        $spbId = (int) $decoded[0];
-
-        $spb = TrSPB::select(['id', 'spbid', 'spbdate', 'cpny_id', 'department_id', 'keperluan'])
-            ->where('id', $spbId)
-            ->first();
-
-        abort_if(!$spb, 404, 'SPB not found');
-
-        // Recalc header/status biar status & total selalu up-to-date
-        $this->recalcSpbHeaderAndStatus($spb->spbid);
-
-        // =========================================================
-        // ✅ qty_sisa untuk ISSUE harus mengurangi sppb_qty juga
-        // =========================================================
-        $details = TrSPBdetail::select([
-            'id',
-            'spbid',
-            'spb_no',
-            'inventoryid',
-            'inventory_descr',
-            'note',
-            'siteid',
-            DB::raw("COALESCE(uom,'') AS uom"),
-            DB::raw('COALESCE(qty,0) AS qty_original'),
-            DB::raw('COALESCE(issue_qty,0) AS qty_issued'),
-            DB::raw('COALESCE(sppb_qty,0) AS qty_sppb'),          // ✅ tambah
-            DB::raw('COALESCE(spb_completeqty,0) AS qty_completed'),
-            DB::raw('COALESCE(return_qty,0) AS qty_returned'),
-            DB::raw('
-                    GREATEST(
-                        COALESCE(qty,0)
-                        - (COALESCE(issue_qty,0) + COALESCE(spb_completeqty,0))
-                        - COALESCE(sppb_qty,0),
-                        0
-                    ) AS qty_sisa
-                '),
-        ])
-            ->where('spbid', $spb->spbid)
-            ->orderBy('id')
-            ->get()
-            ->filter(fn ($r) => (float) $r->qty_sisa > 0)
-            ->map(function ($r) {
-                $r->qty_original = (float) $r->qty_original;
-                $r->qty_sisa = (float) $r->qty_sisa;
-
-                return $r;
-            })
-            ->values();
-
-        // =========================================================
-        // ✅ Tambahkan stock_unit (UOM stock) dari View SQLSrv per company
-        // =========================================================
-        $cpnyid = strtoupper(trim((string) $spb->cpny_id));
-
-        $model = null;
-
-        switch ($cpnyid) {
-            case 'AW':
-                $model = \App\Models\ViewInventoryAW::class;
-                break;
-
-            case 'EP':
-                $model = \App\Models\ViewInventoryEPH::class;
-                break;
-
-            case 'O8':
-                $model = \App\Models\ViewInventoryO8::class;
-                break;
-
-            case 'PSA':
-                $model = \App\Models\ViewInventoryPSA::class;
-                break;
-
-            case 'GPS':
-                $model = \App\Models\ViewInventoryGPSIfca::class;
-                break;
-
-            default:
-                $model = null;
-                break;
+        if (!$spb) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'SPB not found.',
+            ], 404);
         }
 
-        // default biar blade aman
-        $details = $details->map(function ($d) {
-            $d->stock_unit = null;
+        try {
+            DB::connection('pgsql')->transaction(function () use ($spb, $request) {
+                $spb = TrSPB::where('spbid', $spb->spbid)
+                    ->lockForUpdate()
+                    ->first();
 
-            return $d;
-        });
+                $details = TrSPBdetail::where('spbid', $spb->spbid)->get();
+                $changed = 0;
 
-        if ($model && $details->isNotEmpty()) {
-            $invIds = $details->pluck('inventoryid')
-                ->map(fn ($v) => strtoupper(trim((string) $v)))
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
+                foreach ($details as $d) {
+                    $qty = (float) ($d->qty ?? 0);
+                    $issueQty = (float) ($d->issue_qty ?? 0);
+                    $sppbQty = (float) ($d->sppb_qty ?? 0);
+                    $closedQty = (float) ($d->spb_completeqty ?? 0);
+                    $remaining = max($qty - $issueQty - $sppbQty - $closedQty, 0);
 
-            if (!empty($invIds)) {
-                // ⚠️ SESUAIKAN ALIAS KOLOM DI VIEW SQL SERVER KAMU
-                // - invtid  : inventory id di SQLSrv
-                // - stock   : UOM stock (atau stock_unit kalau namanya beda)
-                $uomRows = $model::query()
-                    ->selectRaw('UPPER(LTRIM(RTRIM(invtid))) AS invtid_key, stock AS stock_unit')
-                    ->whereIn('invtid', $invIds)
-                    // kalau view kamu memang punya kolom cpnyid, boleh aktifkan:
-                    // ->when($cpnyid !== '', fn($q) => $q->where('cpnyid', $cpnyid))
-                    ->get();
+                    if ($remaining <= 0) {
+                        continue;
+                    }
 
-                $uomMap = $uomRows->mapWithKeys(function ($r) {
-                    return [(string) $r->invtid_key => ($r->stock_unit ?? null)];
-                });
+                    $d->spb_completeqty = (float) ($closedQty + $remaining);
+                    $d->status = 'C'; 
+                    $d->updated_by = $request->user()->username ?? 'system';
+                    $d->updated_at = now();
+                    $d->save();
+                    $changed++;
+                }
 
-                $details = $details->map(function ($d) use ($uomMap) {
-                    $key = strtoupper(trim((string) $d->inventoryid));
-                    $d->stock_unit = $uomMap->get($key);
+                if ($changed === 0) {
+                    throw new \RuntimeException('Tidak ada qty sisa yang bisa di-complete.');
+                }
 
-                    return $d;
-                })->values();
-            }
+                $this->recalcSpbHeaderAndStatus($spb->spbid);
+            });
+
+            return response()->json([
+                'ok' => true,
+                'message' => 'Qty sisa SPB berhasil di-complete.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         }
-
-        $attachments = [];
-
-        return view('pages.spbjobs.createissue', [
-            'spb' => $spb->fresh(),
-            'details' => $details,
-            'attachments' => $attachments,
-        ]);
     }
-
-    public function createIssue_xxx(Request $req)
-    {
-        $spbid = (string) $req->query('spbid', '');
-        $id = Hashids::decode($spbid);
-        abort_if(empty($id), 404, 'SPB ID required');
-
-        $spb = TrSPB::select(['id', 'spbid', 'spbdate', 'cpny_id', 'department_id', 'keperluan'])
-            ->where('id', $id[0]) // ✅ decode hashids biasanya array
-            ->first();
-
-        abort_if(!$spb, 404, 'SPB not found');
-
-        $this->recalcSpbHeaderAndStatus($spb->spbid);
-
-        $details = TrSPBdetail::select([
-            'id',
-            'spbid',
-            'spb_no',
-            'inventoryid',
-            'inventory_descr',
-            'siteid',
-            DB::raw("COALESCE(uom,'') AS uom"),
-            DB::raw('COALESCE(qty,0) AS qty_original'),
-            DB::raw('COALESCE(issue_qty,0) AS qty_issued'),
-            DB::raw('COALESCE(spb_completeqty,0) AS qty_completed'),
-            DB::raw('COALESCE(return_qty,0) AS qty_returned'),
-            DB::raw('
-                    GREATEST(
-                        COALESCE(qty,0)
-                        - COALESCE(issue_qty,0)
-                        - COALESCE(spb_completeqty,0)
-                        + COALESCE(return_qty,0),
-                        0
-                    ) AS qty_sisa
-                '),
-        ])
-            ->where('spbid', $spb->spbid)
-            ->orderBy('id')
-            ->get()
-            ->filter(fn ($r) => (float) $r->qty_sisa > 0)
-            ->map(function ($r) {
-                $r->qty = (float) $r->qty_sisa;
-
-                return $r;
-            })
-            ->values();
-
-        // =========================================================
-        // ✅ Tambahkan stock_unit berdasarkan cpny_id dari View SQLSrv
-        // =========================================================
-        $cpnyid = strtoupper(trim((string) $spb->cpny_id));
-
-        $model = null;
-        switch ($cpnyid) {
-            case 'AW':
-                $model = \App\Models\ViewInventoryAW::class;
-                break;
-            case 'EP':
-                $model = \App\Models\ViewInventoryEPH::class;
-                break;
-            case 'O8':
-                $model = \App\Models\ViewInventoryO8::class;
-                break;
-            case 'PSA':
-                $model = \App\Models\ViewInventoryPSA::class;
-                break;
-            case 'GPS':
-                $model = \App\Models\ViewInventoryGPSIfca::class;
-                break;
-            default:
-                $model = null;
-                break;
-        }
-
-        if ($model && $details->isNotEmpty()) {
-            $invIds = $details->pluck('inventoryid')
-                ->map(fn ($v) => strtoupper(trim((string) $v)))
-                ->filter()
-                ->unique()
-                ->values();
-
-            if ($invIds->isNotEmpty()) {
-                // ⚠️ GANTI NAMA KOLOM STOCK UNIT DI VIEW SQL SERVER KAMU DI SINI
-                $uomRows = $model::query()
-                    ->selectRaw('
-                        invtid,
-                        stock AS stock
-                    ')
-                    ->whereIn('invtid', $invIds)
-                    ->when($cpnyid !== '', fn ($q) => $q->where('cpnyid', $cpnyid))
-                    ->get();
-
-                $uomMap = $uomRows->mapWithKeys(function ($r) {
-                    $key = strtoupper(trim((string) $r->invtid));
-
-                    return [$key => ($r->stock ?? null)];
-                });
-
-                // inject ke detail
-                $details = $details->map(function ($d) use ($uomMap) {
-                    $key = strtoupper(trim((string) $d->inventoryid));
-                    $d->stock = $uomMap->get($key); // bisa null kalau tidak ketemu
-
-                    return $d;
-                })->values();
-            }
-        } else {
-            // kalau company tidak ada view-nya → tetap set null biar blade aman
-            $details = $details->map(function ($d) {
-                $d->stock = null;
-
-                return $d;
-            })->values();
-        }
-
-        $attachments = [];
-
-        return view('pages.spbjobs.createissue', [
-            'spb' => $spb->fresh(),
-            'details' => $details,
-            'attachments' => $attachments,
-        ]);
-    }
+   
 
     protected function recalcSpbHeaderAndStatus(string $spbid): void
     {
@@ -1505,11 +741,19 @@ class SpbJobsController extends Controller
 
         $agg = TrSPBdetail::where('spbid', $spbid)
             ->selectRaw('
-                COALESCE(SUM(qty),0)             AS total_spbqty,
-                COALESCE(SUM(issue_qty),0)       AS total_issueqty,
-                COALESCE(SUM(return_qty),0)      AS total_returnqty,
-                COALESCE(SUM(sppb_qty),0)        AS total_sppbqty,
-                COALESCE(SUM(spb_completeqty),0) AS total_completeqty
+                COALESCE(SUM(qty),0) AS total_spbqty,
+                COALESCE(SUM(issue_qty),0) AS total_issueqty,
+                COALESCE(SUM(return_qty),0) AS total_returnqty,
+                COALESCE(SUM(sppb_qty),0) AS total_sppbqty,
+                COALESCE(
+                    SUM(
+                        LEAST(
+                            qty,
+                            COALESCE(issue_qty,0) + COALESCE(sppb_qty,0) + COALESCE(spb_completeqty,0)
+                        )
+                    ),
+                    0
+                ) AS total_completeqty
             ')
             ->first();
 
@@ -1536,10 +780,13 @@ class SpbJobsController extends Controller
             $basis = 0;
         }
 
-        // --- status_issue ---
-        if ($issueQty <= 0) {
+        // status_issue harus didasarkan pada qty yang benar-benar fulfilled,
+        // yaitu issue + sppb + manual close (spb_completeqty).
+        $fulfilledQty = min($spbqty, $issueQty + $sppbQty + $completeQty);
+
+        if ($fulfilledQty <= 0) {
             $statusIssue = 'Open';
-        } elseif ($issueQty >= $basis) {
+        } elseif ($spbqty > 0 && $fulfilledQty >= $spbqty) {
             $statusIssue = 'Completed';
         } else {
             $statusIssue = 'Partial';
@@ -1548,7 +795,7 @@ class SpbJobsController extends Controller
         // --- status_sppb ---
         if ($sppbQty <= 0) {
             $statusSppb = 'Open';
-        } elseif ($sppbQty >= $basis) {
+        } elseif ($spbqty > 0 && $sppbQty >= $spbqty) {
             $statusSppb = 'Full';
         } else {
             $statusSppb = 'Partial';
@@ -2090,11 +1337,21 @@ class SpbJobsController extends Controller
 
         // === Refresh total header SPB (pakai schema baru) ===
         $agg = TrSPBdetail::where('spbid', $sppb->spbid)
-            ->selectRaw('COALESCE(SUM(qty),0)                    AS total_spbqty')
-            ->selectRaw('COALESCE(SUM(issue_qty),0)              AS total_issueqty')
-            ->selectRaw('COALESCE(SUM(return_qty),0)             AS total_returnqty')
-            ->selectRaw('COALESCE(SUM(sppb_qty),0)               AS total_sppbqty')
-            ->selectRaw('COALESCE(SUM(LEAST(issue_qty, qty)),0)  AS total_completeqty')
+            ->selectRaw('COALESCE(SUM(qty),0) AS total_spbqty')
+            ->selectRaw('COALESCE(SUM(issue_qty),0) AS total_issueqty')
+            ->selectRaw('COALESCE(SUM(return_qty),0) AS total_returnqty')
+            ->selectRaw('COALESCE(SUM(sppb_qty),0) AS total_sppbqty')
+            ->selectRaw('
+                COALESCE(
+                    SUM(
+                        LEAST(
+                            qty,
+                            COALESCE(issue_qty,0) + COALESCE(sppb_qty,0) + COALESCE(spb_completeqty,0)
+                        )
+                    ),
+                    0
+                ) AS total_completeqty
+            ')
             ->first();
 
         $totalSpbQty = (float) $agg->total_spbqty;
@@ -2107,16 +1364,7 @@ class SpbJobsController extends Controller
         $spb->totalissueqty = $totalIssueQty;
         $spb->totalreturnqty = $totalReturnQty;
         $spb->totalsppbqty = $totalSppbQty;
-        $spb->totalcompleteqty = $totalCompleteQty;
-
-        // ===== status_issue (Open / Partial / Completed) =====
-        // if ($totalIssueQty <= 0) {
-        //     $spb->status_issue = 'Open';
-        // } elseif ($totalSpbQty > 0 && $totalIssueQty >= $totalSpbQty) {
-        //     $spb->status_issue = 'Completed';
-        // } else {
-        //     $spb->status_issue = 'Partial';
-        // }
+        $spb->totalcompleteqty = $totalCompleteQty;   
 
         // ===== status_sppb (Open / Partial / Full) =====
         if ($totalSppbQty <= 0) {

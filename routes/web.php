@@ -872,6 +872,7 @@ Route::middleware(['auth'])->group(function () {
         // Create Issue
         Route::get('/issue/create', [SpbJobsController::class, 'createIssue'])->name('issue.create');
         // Create SPPB from SPB Job
+        Route::post('/issue/{spbid}/complete-remaining', [SpbJobsController::class, 'completeRemainingQty'])->name('issue.complete-remaining');
         Route::get('/sppb/create', [SpbJobsController::class, 'createSPPB'])->name('sppb.create');
         Route::post('/sppb', [SpbJobsController::class, 'storeSPPB'])->name('sppb.store');
     });

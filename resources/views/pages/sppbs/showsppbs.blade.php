@@ -183,6 +183,40 @@
                                 </div>
                             @endif
 
+                            {{-- ITR --}}
+                            @if (!empty($itrData) && !empty($itrHash))
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-heroicon-o-document-text class="h-5 w-5 text-gray-400" />
+                                        <span>ITR ID</span>
+                                    </div>
+
+                                    <span class="{{ $value }}">
+                                        <a href="{{ url('/showitrecommendation/' . $itrHash) }}" target="_blank"
+                                            class="font-semibold text-indigo-600 hover:underline">
+                                            {{ $itrData->docid }}
+                                        </a>
+                                    </span>
+                                </div>
+                            @endif
+
+                            {{-- Ticket --}}
+                            @if (!empty($ticketData) && !empty($ticketHash))
+                                <div class="{{ $row }}">
+                                    <div class="{{ $label }}">
+                                        <x-heroicon-o-ticket class="h-5 w-5 text-gray-400" />
+                                        <span>Ticket ID</span>
+                                    </div>
+
+                                    <span class="{{ $value }}">
+                                        <a href="{{ url('/showticket/' . $ticketHash) }}" target="_blank"
+                                            class="font-semibold text-indigo-600 hover:underline">
+                                            {{ $ticketData->ticketid }}
+                                        </a>
+                                    </span>
+                                </div>
+                            @endif
+
                             {{-- Request Type + Purpose --}}
                             <div class="col-span-2 flex flex-col gap-3 sm:flex-row">
 

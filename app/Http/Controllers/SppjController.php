@@ -1607,7 +1607,52 @@ class SppjController extends Controller
             }
         }
 
-        return view('pages.sppjs.showsppjs', compact('sppj', 'attachmentPJ', 'attachmentWO', 'sppjdetail', 'bq', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash'
+        $itrData = null;
+        $itrHash = null;
+
+        if (!empty($sppj->itrecommendid)) {
+            $itrData = TrItrecommend::query()
+                ->select('id', 'docid')
+                ->where('docid', $sppj->itrecommendid)
+                ->first();
+
+            if ($itrData) {
+                $itrHash = Hashids::encode($itrData->id);
+            }
+        }
+
+        $ticketData = null;
+        $ticketHash = null;
+
+        if (!empty($sppj->ticketid)) {
+            $ticketData = TrTicket::query()
+                ->select('id', 'ticketid')
+                ->where('ticketid', $sppj->ticketid)
+                ->first();
+
+            if ($ticketData) {
+                $ticketHash = Hashids::encode($ticketData->id);
+            }
+        }
+
+        return view('pages.sppjs.showsppjs', compact(
+            'sppj',
+            'attachmentPJ',
+            'attachmentWO',
+            'sppjdetail',
+            'bq',
+            'hash',
+            'canUpload',
+            'akses_cc',
+            'userCpny',
+            'userBu',
+            'userDeptFin',
+            'woData',
+            'woHash',
+            'itrData',
+            'itrHash',
+            'ticketData',
+            'ticketHash'
         ));
     }
 

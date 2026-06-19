@@ -237,13 +237,24 @@
                             </button>
                         </details>
 
-                        <div class="flex w-full justify-end gap-4 pt-4">
-                            <a href="{{ url()->previous() }}"
-                                class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Cancel</a>
-                            <button type="submit" id="submitBtn"
-                                class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                <span id="btnText">Submit Approval</span>
-                            </button>
+                        <div class="flex w-full items-center justify-between gap-4 pt-4">
+                            <div>
+                                @if ($details->isNotEmpty())
+                                    <button type="button" id="completeRemainingBtn"
+                                        data-url="{{ route('issue.complete-remaining', ['spbid' => $spb->spbid]) }}"
+                                        class="flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300">
+                                        Completed Qty SPB
+                                    </button>
+                                @endif
+                            </div>
+                            <div class="flex gap-4">
+                                <a href="{{ url()->previous() }}"
+                                    class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Cancel</a>
+                                <button type="submit" id="submitBtn"
+                                    class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    <span id="btnText">Submit Approval</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -460,6 +471,48 @@
                 return warningItems;
             }
 
+
+            $('#completeRemainingBtn').on('click', function(e) {
+                e.preventDefault();
+
+                const url = $(this).data('url');
+                if (!url) return;
+
+                Swal.fire({
+                    title: 'Completed Qty SPB?',
+                    text: 'Apakah Anda yakin ingin meng-complete seluruh qty sisa SPB ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Complete',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    showOverlay('Completing remaining...');
+
+                    $.ajax({
+                            url: url,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}'
+                            }
+                        })
+                        .done(function(res) {
+                            if (window.toastr) {
+                                toastr.success(res.message || 'Qty sisa berhasil di-complete.');
+                            }
+                            // window.location.reload();
+                            window.location.href = "{{ route('spbjobs') }}";
+                        })
+                        .fail(function(xhr) {
+                            const msg = xhr.responseJSON?.message || 'Gagal complete qty sisa.';
+                            if (window.toastr) toastr.error(msg);
+                        })
+                        .always(function() {
+                            hideOverlay();
+                        });
+                });
+            });
 
             $('#issueForm').on('submit', function(e) {
                 e.preventDefault();
