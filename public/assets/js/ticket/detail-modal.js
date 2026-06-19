@@ -728,7 +728,8 @@ function renderTicketTimeline(timelines = []) {
     }
 
     timelines.forEach(function (item, index) {
-        const user = item.pic || item.created_by || "System";
+        const submittedBy = item.submitted_by || item.created_by || "System";
+        const assignedTo  = item.pic && item.pic !== submittedBy ? item.pic : null;
 
         const date = item.datetime
             ? formatDateTime(item.datetime)
@@ -1145,16 +1146,18 @@ container.append(`
                                 dark:text-gray-500
                             ">
 
-                                <span class="
-                                    truncate
-                                    max-w-[130px]
-                                ">
-                                    ${user}
+                                <span class="truncate max-w-[130px]">
+                                    ${submittedBy}
                                 </span>
 
-                                <span class="opacity-40">
-                                    •
-                                </span>
+                                ${assignedTo ? `
+                                    <i class="fa-solid fa-arrow-right text-[8px] opacity-50"></i>
+                                    <span class="truncate max-w-[130px] text-blue-500 dark:text-blue-400 font-medium">
+                                        ${assignedTo}
+                                    </span>
+                                ` : ''}
+
+                                <span class="opacity-40">•</span>
 
                                 <span>
                                     ${date}

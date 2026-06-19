@@ -366,6 +366,107 @@ class DocumentNotificationService
             Log::warning('DocumentNotificationService: TrAccess (IT role) fetch failed', ['err' => $e->getMessage()]);
         }
 
+        // ── 6. BAST Jobs: remind users who have pending BAST to create ──
+        try {
+            $userModel = \App\Models\User::whereRaw("lower(trim(coalesce(username,''))) = ?", [$username])->first();
+            if ($userModel) {
+                $cpnyRaw  = $userModel->cpny_id ?? '';
+                $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+                $deptRaw  = $userModel->department_id ?? '';
+                $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
+
+                $bastJobs = \App\Models\TrPOterm::query()
+                    ->from('tr_po_term')
+                    ->leftJoin('tr_po as po', function ($join) {
+                        $join->on('po.ponbr',   '=', 'tr_po_term.ponbr')
+                             ->on('po.cpny_id', '=', 'tr_po_term.cpny_id')
+                             ->on('po.csid',    '=', 'tr_po_term.csid');
+                    })
+                    ->when(!empty($cpnyList), fn ($q) => $q->whereIn('tr_po_term.cpny_id', $cpnyList))
+                    ->when(!empty($deptList), fn ($q) => $q->whereIn('tr_po_term.department_id', $deptList))
+                    ->where('tr_po_term.flag_bast', true)
+                    ->whereNull('tr_po_term.bastid')
+                    ->where('tr_po_term.status', 'A')
+                    ->whereRaw("NOW()::date <= po.spkendtworkingdate - 7")
+                    ->orderBy('tr_po_term.updated_at', 'desc')
+                    ->limit(5)
+                    ->select(
+                        'tr_po_term.id',
+                        'tr_po_term.ponbr',
+                        'tr_po_term.cpny_id',
+                        'tr_po_term.terms_name',
+                        'tr_po_term.vendorname',
+                        'tr_po_term.updated_at'
+                    )
+                    ->get();
+
+                $data = $data->concat($bastJobs->map(fn ($r) => [
+                    'key'        => 'BAST_JOB_' . $r->id,
+                    'hid'        => Hashids::encode((string) $r->id),
+                    'docid'      => $r->ponbr . ($r->terms_name ? ' · ' . $r->terms_name : ''),
+                    'status'     => 'BAST_JOB',
+                    'label'      => 'BAST Job',
+                    'message'    => 'Your work is almost done, please check this BAST that you need to create.',
+                    'cpnyid'     => $r->cpny_id,
+                    'href'       => '/bast/create?term=' . Hashids::encode((string) $r->id),
+                    'url'        => '/bast/create?term=',
+                    'by'         => $r->vendorname,
+                    'updated_at' => $r->updated_at,
+                ]));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: BAST Jobs fetch failed', ['err' => $e->getMessage()]);
+        }
+
+        // ── 7. BAST Approval Level 1: notify level-1 approvers on pending BAST ──
+        try {
+            $aprM    = new TrApproval();
+            $aprConn = $aprM->getConnectionName() ?: config('database.default');
+            $tblApr  = $aprM->getTable();
+
+            $aprvRows = DB::connection($aprConn)->table($tblApr)
+                ->select('refnbr', 'aprv_cpnyid')
+                ->whereRaw("lower(trim(coalesce(aprv_username,''))) = ?", [$username])
+                ->where('aprv_doctype', 'BA')
+                ->where('status', 'P')
+                ->whereNotNull('aprv_datebefore')
+                ->whereNull('aprv_dateafter')
+                ->whereRaw("CAST(aprv_leveling AS NUMERIC) = 1.0")
+                ->get();
+
+            if ($aprvRows->isNotEmpty()) {
+                $bastIds = $aprvRows->pluck('refnbr')->filter()->unique()->values()->all();
+
+                $basts = \App\Models\TrBast::whereIn('bastid', $bastIds)
+                    ->where('status', 'P')
+                    ->select('id', 'bastid', 'cpny_id', 'updated_at', 'created_by')
+                    ->get()
+                    ->keyBy('bastid');
+
+                $data = $data->concat(
+                    $aprvRows->map(function ($row) use ($basts) {
+                        $bast = $basts->get($row->refnbr);
+                        if (!$bast) return null;
+                        return [
+                            'key'        => 'BAST_APRV1_' . $bast->bastid,
+                            'hid'        => Hashids::encode((string) $bast->id),
+                            'docid'      => $bast->bastid,
+                            'status'     => 'BAST_APRV1',
+                            'label'      => 'BAST Approval',
+                            'message'    => 'Your work is done, please check this BAST that you need to approve.',
+                            'cpnyid'     => $bast->cpny_id,
+                            'href'       => null,
+                            'url'        => '/showbast',
+                            'by'         => $bast->created_by,
+                            'updated_at' => $bast->updated_at,
+                        ];
+                    })->filter()
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: BAST Approval Level 1 fetch failed', ['err' => $e->getMessage()]);
+        }
+
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();
     }
 }

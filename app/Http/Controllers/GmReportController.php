@@ -764,62 +764,106 @@ class GmReportController extends Controller
             $project = self::PGCARD_PROJECT;
             $dataset = self::PGCARD_DATASET;
 
-            // One query: count by mall + status — serves both filtered total and unfiltered donut
+            // One query: count by mall + status + campaign — serves donut, status pills, and campaign chart
             $sql = <<<SQL
                 WITH base AS (
                     SELECT DISTINCT
                         mc.id                 AS member_coupon_id,
                         mc.status,
                         mc.print_directory_id,
+                        mc.campaign_id,
                         ph.user_id,
+                        t.member_id           AS txn_member_id,
+                        t.merchant_id         AS txn_merchant_id,
                         DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok') AS transaction_date_gmt7
                     FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
-                    LEFT JOIN `{$project}.{$dataset}.pgcard_prizes_src` prizes
-                        ON prizes.id = mc.prize_id
+                    INNER JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                        ON t.id = mc.transaction_id
                     LEFT JOIN `{$project}.{$dataset}.pgcard_coupon_printed_histories_src` ph
                         ON ph.member_coupon_id = mc.id
-                    LEFT JOIN `{$project}.{$dataset}.xv_pgcard_member` member
-                        ON member.id = mc.member_id
-                    LEFT JOIN `{$project}.{$dataset}.pgcard_campaigns_src` campaign
-                        ON campaign.id = mc.campaign_id
-                    LEFT JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
-                        ON t.id = mc.transaction_id
-                    LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` directories
-                        ON directories.id = t.directory_id
-                    WHERE campaign.id IN (110, 111, 112, 113, 114, 115, 121, 122, 123, 124)
+                    WHERE mc.campaign_id IN (110, 111, 112, 113, 114, 115, 121, 122, 123, 124)
+                      AND DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok')) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                ),
+                top_customer_per_campaign AS (
+                    SELECT campaign_id, top_customer FROM (
+                        SELECT
+                            b.campaign_id,
+                            COALESCE(m.fullname, CAST(b.txn_member_id AS STRING)) AS top_customer,
+                            ROW_NUMBER() OVER (PARTITION BY b.campaign_id ORDER BY COUNT(*) DESC) AS rn
+                        FROM base b
+                        LEFT JOIN `{$project}.{$dataset}.pgcard_members_src` m ON m.id = b.txn_member_id
+                        GROUP BY b.campaign_id, b.txn_member_id, m.fullname
+                    ) WHERE rn = 1
+                ),
+                top_merchant_per_campaign AS (
+                    SELECT campaign_id, top_merchant FROM (
+                        SELECT
+                            b.campaign_id,
+                            COALESCE(mr.merchant_name, CAST(b.txn_merchant_id AS STRING)) AS top_merchant,
+                            ROW_NUMBER() OVER (PARTITION BY b.campaign_id ORDER BY COUNT(*) DESC) AS rn
+                        FROM base b
+                        LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` mr ON mr.id = b.txn_merchant_id
+                        GROUP BY b.campaign_id, b.txn_merchant_id, mr.merchant_name
+                    ) WHERE rn = 1
                 )
                 SELECT
-                    COALESCE(d.directory_code, 'Unknown')      AS mall_code,
-                    COALESCE(d.directory_name, 'Unknown')      AS mall_name,
-                    COALESCE(CAST(b.status AS STRING), '-')    AS status,
-                    COUNT(*)                                   AS cnt
+                    COALESCE(d.directory_code, 'Unknown')                      AS mall_code,
+                    COALESCE(d.directory_name, 'Unknown')                      AS mall_name,
+                    COALESCE(CAST(b.status AS STRING), '-')                    AS status,
+                    CAST(b.campaign_id AS STRING)                              AS campaign_id,
+                    COALESCE(c.name, CAST(b.campaign_id AS STRING))            AS campaign_name,
+                    COALESCE(tc.top_customer, '-')                             AS top_customer,
+                    COALESCE(tm.top_merchant, '-')                             AS top_merchant,
+                    COUNT(*)                                                   AS cnt
                 FROM base b
                 LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
                     ON d.id = b.print_directory_id
-                WHERE DATE(b.transaction_date_gmt7) BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                GROUP BY d.directory_code, d.directory_name, b.status
+                LEFT JOIN `{$project}.{$dataset}.pgcard_campaigns_src` c
+                    ON c.id = b.campaign_id
+                LEFT JOIN top_customer_per_campaign tc ON tc.campaign_id = b.campaign_id
+                LEFT JOIN top_merchant_per_campaign tm ON tm.campaign_id = b.campaign_id
+                GROUP BY d.directory_code, d.directory_name, b.status, b.campaign_id, c.name, tc.top_customer, tm.top_merchant
                 ORDER BY mall_code, status
             SQL;
 
             $rows = $bq->query($sql);
 
-            $byMall = [];   // all malls, for donut (unfiltered)
-            $byStatusFiltered = [];  // status breakdown for allowed malls
-            $byMallStatus = [];  // full mall+status breakdown for client-side donut filtering
-            $totalFiltered = 0;
+            $byStatusFiltered = [];
+            $byMallStatus     = [];
+            $byCampaign       = [];
+            $totalFiltered    = 0;
 
             foreach ($rows as $row) {
-                $code = (string) ($row['mall_code'] ?? 'Unknown');
-                $name = (string) ($row['mall_name'] ?? $code);
-                $status = (string) ($row['status'] ?? '-');
-                $cnt = (int) ($row['cnt'] ?? 0);
+                $code        = (string) ($row['mall_code']     ?? 'Unknown');
+                $name        = (string) ($row['mall_name']     ?? $code);
+                $status      = (string) ($row['status']        ?? '-');
+                $campaignId  = (string) ($row['campaign_id']   ?? '');
+                $campaignNm  = (string) ($row['campaign_name'] ?? $campaignId);
+                $topCustomer = (string) ($row['top_customer']  ?? '-');
+                $topMerchant = (string) ($row['top_merchant']  ?? '-');
+                $cnt         = (int)   ($row['cnt']            ?? 0);
 
                 // full mall+status breakdown (unfiltered by company — for donut)
                 $byMallStatus[] = ['mall_code' => $code, 'mall_name' => $name, 'status' => $status, 'count' => $cnt];
 
+                // per-campaign totals — top_customer/top_merchant are campaign-level,
+                // same value on every row for a given campaign_id, set once on first encounter
+                if ($campaignId !== '') {
+                    if (!isset($byCampaign[$campaignId])) {
+                        $byCampaign[$campaignId] = [
+                            'campaign_id'   => $campaignId,
+                            'campaign_name' => $campaignNm,
+                            'top_customer'  => $topCustomer,
+                            'top_merchant'  => $topMerchant,
+                            'count'         => 0,
+                        ];
+                    }
+                    $byCampaign[$campaignId]['count'] += $cnt;
+                }
+
                 // filtered total + status — only include allowed malls
-                $allowed = $malls === null || in_array($code, $malls, true);
-                if ($allowed) {
+                $isAllowed = $malls === null || in_array($code, $malls, true);
+                if ($isAllowed) {
                     $totalFiltered += $cnt;
                     $byStatusFiltered[$status] = ($byStatusFiltered[$status] ?? 0) + $cnt;
                 }
@@ -830,16 +874,25 @@ class GmReportController extends Controller
                 $byStatusOut[] = ['status' => $status, 'count' => $count];
             }
 
+            $byCampaignOut = array_values($byCampaign);
+            usort($byCampaignOut, fn ($a, $b) => (int) $a['campaign_id'] - (int) $b['campaign_id']);
+
             return response()->json([
                 'data' => [
-                    'total_filtered' => $totalFiltered,
+                    'total_filtered'     => $totalFiltered,
                     'by_status_filtered' => $byStatusOut,
-                    'by_mall_status' => $byMallStatus,
+                    'by_mall_status'     => $byMallStatus,
+                    'by_campaign'        => $byCampaignOut,
                 ],
             ]);
         } catch (\Throwable $e) {
             return response()->json([
-                'data' => ['total_filtered' => 0, 'by_status_filtered' => [], 'by_mall_status' => []],
+                'data' => [
+                    'total_filtered'     => 0,
+                    'by_status_filtered' => [],
+                    'by_mall_status'     => [],
+                    'by_campaign'        => [],
+                ],
                 'error' => $e->getMessage(),
             ]);
         }

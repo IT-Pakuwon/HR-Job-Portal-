@@ -137,8 +137,13 @@
                                         <label
                                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate
                                             Superior</label>
-                                        <input type="text" name="immediate_superior" id="immediate_superior"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                        <select name="immediate_superior" id="immediate_superior"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">Select User</option>
+                                            @foreach ($activeUsers as $u)
+                                                <option value="{{ $u->username }}">{{ $u->name }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Superior
@@ -855,7 +860,7 @@
 
                 // SET subgrade_id
                 const subgradeId = selected.data('subgrade-id') || '';
-                $('#subgrade_id').val(subgradeId);
+                $('#subgrade_id').val(subgradeId).trigger('change');
 
                 if (parentId) {
                     $.ajax({
@@ -898,7 +903,7 @@
                             }
                         },
                         error: function() {
-                            $('#immediate_superior').val('');
+                            $('#immediate_superior').val('').trigger('change');
                             $('#state_position').val('');
                             $('#experience_start').val('');
                             $('#experience_position').val('');
@@ -953,6 +958,16 @@
             });
             $dept.select2({
                 placeholder: 'Select Department',
+                width: '100%',
+                allowClear: true
+            });
+            $('#subgrade_id').select2({
+                placeholder: 'Select Job Level',
+                width: '100%',
+                allowClear: false
+            });
+            $('#immediate_superior').select2({
+                placeholder: 'Select User',
                 width: '100%',
                 allowClear: true
             });

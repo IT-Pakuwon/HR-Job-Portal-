@@ -796,6 +796,10 @@ $("#editRecommendationForm").on("submit", async function (e) {
 
         closeEditRecommendationModal(true);
 
+        if (typeof table !== 'undefined') {
+            table.ajax.reload(null, false);
+        }
+
         if (currentDetailHash) {
             setTimeout(async () => {
                 await loadDetail(currentDetailHash);

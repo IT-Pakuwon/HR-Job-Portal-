@@ -165,9 +165,16 @@
                                         <label
                                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Immediate
                                             Superior</label>
-                                        <input type="text" name="immediate_superior" id="immediate_superior"
-                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                            value="{{ old('immediate_superior', $personnel->immediate_superior) }}">
+                                        <select name="immediate_superior" id="immediate_superior"
+                                            class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                            <option value="">Select User</option>
+                                            @foreach ($activeUsers as $u)
+                                                <option value="{{ $u->username }}"
+                                                    @selected((string) $u->username === (string) old('immediate_superior', $personnel->immediate_superior))>
+                                                    {{ $u->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
 
                                     <div class="flex flex-col gap-2">
@@ -601,6 +608,16 @@
             });
             $('#departementid').select2({
                 placeholder: 'Select Department',
+                width: '100%',
+                allowClear: true
+            });
+            $('#subgrade_id').select2({
+                placeholder: 'Select Job Level',
+                width: '100%',
+                allowClear: false
+            });
+            $('#immediate_superior').select2({
+                placeholder: 'Select User',
                 width: '100%',
                 allowClear: true
             });
