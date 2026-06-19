@@ -2630,9 +2630,11 @@ class TicketController extends Controller
                 'status' => $activity->status_pekerjaan
                     ?: '-',
 
-                'pic' => $activity->pic_ticket
-                    ?: $activity->created_by
+                'submitted_by' => $activity->created_by
                     ?: 'System',
+
+                'pic' => $activity->pic_ticket
+                    ?: null,
 
                 'datetime' => $activity->response_date
                     ? Carbon::parse(

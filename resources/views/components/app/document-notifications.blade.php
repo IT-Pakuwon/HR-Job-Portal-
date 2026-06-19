@@ -63,7 +63,7 @@
 
             <template x-for="item in items" :key="item.key">
                 <li>
-                    <a :href="`${item.url}/${item.hid}`"
+                    <a :href="item.href || `${item.url}/${item.hid}`"
                         @click="open = false"
                         class="group flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors">
 
@@ -116,6 +116,12 @@
                                 <template x-if="statusCfg(item.status).cat === 'cancel'">
                                     <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </template>
+                                {{-- BAST Approval Level 1: clipboard-check (teal) --}}
+                                <template x-if="statusCfg(item.status).cat === 'bast_approve'">
+                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                     </svg>
                                 </template>
                             </div>
@@ -216,6 +222,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </template>
+                    {{-- BAST Approval Level 1: clipboard-check (teal) --}}
+                    <template x-if="statusCfg(toast.item?.status).cat === 'bast_approve'">
+                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                    </template>
                 </div>
 
                 <div class="min-w-0 flex-1">
@@ -231,7 +243,7 @@
                     </div>
                     <p x-text="toast.item?.docid" class="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
                     <p x-text="toast.item?.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
-                    <a :href="toast.item ? `${toast.item.url}/${toast.item.hid}` : '#'"
+                    <a :href="toast.item ? (toast.item.href || `${toast.item.url}/${toast.item.hid}`) : '#'"
                         @click="toast.show = false"
                         :class="statusCfg(toast.item?.status).iconText"
                         class="mt-2 inline-flex items-center gap-1 text-xs font-semibold hover:underline">
@@ -289,6 +301,9 @@ function docNotifications() {
                 'ACC_P': { iconBg: 'bg-amber-100 dark:bg-amber-900/30',    iconText: 'text-amber-600 dark:text-amber-400',    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',       bar: 'bg-amber-500',   cat: 'warn'    },
                 'ACC_C': { iconBg: 'bg-green-100 dark:bg-green-900/30',    iconText: 'text-green-600 dark:text-green-400',    badge: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',       bar: 'bg-green-500',   cat: 'success' },
                 'ACC_F': { iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', iconText: 'text-emerald-600 dark:text-emerald-400', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400', bar: 'bg-emerald-500', cat: 'success' },
+                // BAST statuses
+                'BAST_JOB':   { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'hold'    },
+                'BAST_APRV1': { iconBg: 'bg-teal-100 dark:bg-teal-900/30',    iconText: 'text-teal-600 dark:text-teal-400',    badge: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',         bar: 'bg-teal-500',   cat: 'bast_approve' },
             };
             return map[status] || { iconBg: 'bg-gray-100 dark:bg-gray-700', iconText: 'text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400', bar: 'bg-gray-500', cat: 'default' };
         },

@@ -315,7 +315,7 @@ function submitResponseTicket() {
             showSuccess(res.message || "Ticket responded successfully.");
 
             if (typeof loadTicketDetail === "function") {
-                const currentDetailEid = $("#detail_ticket_eid").val();
+                const currentDetailEid = $("#comment_ticket_id").val();
 
                 if (currentDetailEid) {
                     loadTicketDetail(currentDetailEid);

@@ -506,7 +506,7 @@ function submitPendingTicket() {
             ) {
 
                 const currentDetailEid =
-                    $('#detail_ticket_eid')
+                    $('#comment_ticket_id')
                         .val();
 
                 if (currentDetailEid) {

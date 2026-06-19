@@ -241,7 +241,7 @@ function submitProcessTicket() {
 
             // Reload detail modal if open
             if (typeof loadTicketDetail === "function") {
-                const currentDetailEid = $("#detail_ticket_eid").val();
+                const currentDetailEid = $("#comment_ticket_id").val();
                 if (currentDetailEid) loadTicketDetail(currentDetailEid);
             }
 
