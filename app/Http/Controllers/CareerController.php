@@ -1365,21 +1365,6 @@ class CareerController extends Controller
             return response()->json(['error' => 'Applicant email not found.'], 404);
         }
 
-<<<<<<< Updated upstream
-        $encryptedDocId = Crypt::encryptString($career->applicant_id);
-
-        $data = [
-            'name' => $applicant->full_name ?? 'Pelamar',
-            // 'url' => url('http://careerjakarta.pakuwon.local/checkform') // gunakan URL lengkap
-            'url'  => url("https://careerjakarta.pakuwon.com/checkform/{$encryptedDocId}")
-        ];
-
-        Mail::send('emails.mailapplicant', $data, function ($message) use ($applicant,$data) {
-            $message->to($applicant->email_address)
-                    ->subject('📩 Lengkapi Aplikasi Anda di Pakuwon Career');
-            $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
-        });
-=======
         $is_remapped = DB::connection('mysql3')
             ->table('hr_trx_job_apply')
             ->where('docid', $career->docid)
@@ -1430,7 +1415,6 @@ class CareerController extends Controller
                 $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
             });
         }
->>>>>>> Stashed changes
 
         return response()->json(['success' => 'Email has been sent to applicant.']);
     }
