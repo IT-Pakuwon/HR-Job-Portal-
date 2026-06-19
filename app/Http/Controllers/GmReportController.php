@@ -766,16 +766,38 @@ class GmReportController extends Controller
 
             // One query: count by mall + status — serves both filtered total and unfiltered donut
             $sql = <<<SQL
+                WITH base AS (
+                    SELECT DISTINCT
+                        mc.id                 AS member_coupon_id,
+                        mc.status,
+                        mc.print_directory_id,
+                        ph.user_id,
+                        DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok') AS transaction_date_gmt7
+                    FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_prizes_src` prizes
+                        ON prizes.id = mc.prize_id
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_coupon_printed_histories_src` ph
+                        ON ph.member_coupon_id = mc.id
+                    LEFT JOIN `{$project}.{$dataset}.xv_pgcard_member` member
+                        ON member.id = mc.member_id
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_campaigns_src` campaign
+                        ON campaign.id = mc.campaign_id
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                        ON t.id = mc.transaction_id
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` directories
+                        ON directories.id = t.directory_id
+                    WHERE campaign.id IN (110, 111, 112, 113, 114, 115, 121, 122, 123, 124)
+                )
                 SELECT
                     COALESCE(d.directory_code, 'Unknown')      AS mall_code,
                     COALESCE(d.directory_name, 'Unknown')      AS mall_name,
-                    COALESCE(CAST(c.status AS STRING), '-')    AS status,
+                    COALESCE(CAST(b.status AS STRING), '-')    AS status,
                     COUNT(*)                                   AS cnt
-                FROM `{$project}.{$dataset}.pgcard_detail_member_coupon_styw_2026` c
+                FROM base b
                 LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
-                    ON d.id = c.print_directory_id
-                WHERE DATE(c.transaction_date_gmt7) BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                GROUP BY d.directory_code, d.directory_name, c.status
+                    ON d.id = b.print_directory_id
+                WHERE DATE(b.transaction_date_gmt7) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                GROUP BY d.directory_code, d.directory_name, b.status
                 ORDER BY mall_code, status
             SQL;
 
@@ -825,78 +847,95 @@ class GmReportController extends Controller
 
     // ── API: PG Card — Query comparison (Option A view vs Option B src) ─────────
 
-    public function pgcardCouponStywCompare(Request $request)
-    {
-        try {
-            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
-            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
-            $malls = $this->allowedPgcardMalls($cpnyId);
+    // public function pgcardCouponStywCompare(Request $request)
+    // {
+    //     try {
+    //         ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+    //         $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+    //         $malls = $this->allowedPgcardMalls($cpnyId);
 
-            $bq = new BigQueryService();
-            $project = self::PGCARD_PROJECT;
-            $dataset = self::PGCARD_DATASET;
+    //         $bq = new BigQueryService();
+    //         $project = self::PGCARD_PROJECT;
+    //         $dataset = self::PGCARD_DATASET;
 
-            $sqlA = <<<SQL
-                SELECT
-                    COALESCE(d.directory_code, 'Unknown')      AS mall_code,
-                    COALESCE(d.directory_name, 'Unknown')      AS mall_name,
-                    COALESCE(CAST(c.status AS STRING), '-')    AS status,
-                    COUNT(*)                                   AS cnt
-                FROM `{$project}.{$dataset}.pgcard_detail_member_coupon_styw_2026` c
-                LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
-                    ON d.id = c.print_directory_id
-                WHERE DATE(c.transaction_date_gmt7) BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                GROUP BY d.directory_code, d.directory_name, c.status
-                ORDER BY mall_code, status
-            SQL;
+    //         $sqlA = <<<SQL
+    //             SELECT
+    //                 COALESCE(d.directory_code, 'Unknown')      AS mall_code,
+    //                 COALESCE(d.directory_name, 'Unknown')      AS mall_name,
+    //                 COALESCE(CAST(c.status AS STRING), '-')    AS status,
+    //                 COUNT(*)                                   AS cnt
+    //             FROM `{$project}.{$dataset}.pgcard_detail_member_coupon_styw_2026` c
+    //             LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+    //                 ON d.id = c.print_directory_id
+    //             WHERE DATE(c.transaction_date_gmt7) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+    //             GROUP BY d.directory_code, d.directory_name, c.status
+    //             ORDER BY mall_code, status
+    //         SQL;
 
-            $sqlB = <<<SQL
-                SELECT
-                    COALESCE(d.directory_code, 'Unknown')      AS mall_code,
-                    COALESCE(d.directory_name, 'Unknown')      AS mall_name,
-                    COALESCE(CAST(mc.status AS STRING), '-')   AS status,
-                    COUNT(*)                                   AS cnt
-                FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
-                JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
-                    ON t.id = mc.transaction_id
-                JOIN `{$project}.{$dataset}.pgcard_campaigns_src` camp
-                    ON camp.id = mc.campaign_id
-                LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
-                    ON d.id = mc.print_directory_id
-                WHERE DATE(t.transaction_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                  AND LOWER(camp.name) LIKE '%shop till you win%'
-                GROUP BY d.directory_code, d.directory_name, mc.status
-                ORDER BY mall_code, status
-            SQL;
+    //         $sqlB = <<<SQL
+    //             WITH base AS (
+    //                 SELECT DISTINCT
+    //                     mc.id                 AS member_coupon_id,
+    //                     mc.status,
+    //                     mc.print_directory_id,
+    //                     ph.user_id,
+    //                     DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok') AS transaction_date_gmt7
+    //                 FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
+    //                 LEFT JOIN `{$project}.{$dataset}.pgcard_prizes_src` prizes
+    //                     ON prizes.id = mc.prize_id
+    //                 LEFT JOIN `{$project}.{$dataset}.pgcard_coupon_printed_histories_src` ph
+    //                     ON ph.member_coupon_id = mc.id
+    //                 LEFT JOIN `{$project}.{$dataset}.xv_pgcard_member` member
+    //                     ON member.id = mc.member_id
+    //                 LEFT JOIN `{$project}.{$dataset}.pgcard_campaigns_src` campaign
+    //                     ON campaign.id = mc.campaign_id
+    //                 LEFT JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
+    //                     ON t.id = mc.transaction_id
+    //                 LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` directories
+    //                     ON directories.id = t.directory_id
+    //                 WHERE campaign.id IN (110, 111, 112, 113, 114, 115, 121, 122, 123, 124)
+    //             )
+    //             SELECT
+    //                 COALESCE(d.directory_code, 'Unknown')      AS mall_code,
+    //                 COALESCE(d.directory_name, 'Unknown')      AS mall_name,
+    //                 COALESCE(CAST(b.status AS STRING), '-')    AS status,
+    //                 COUNT(*)                                   AS cnt
+    //             FROM base b
+    //             LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+    //                 ON d.id = b.print_directory_id
+    //             WHERE DATE(b.transaction_date_gmt7) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+    //             GROUP BY d.directory_code, d.directory_name, b.status
+    //             ORDER BY mall_code, status
+    //         SQL;
 
-            $startA = microtime(true);
-            $rowsA = $bq->query($sqlA);
-            $timeA = round((microtime(true) - $startA) * 1000);
+    //         $startA = microtime(true);
+    //         $rowsA = $bq->query($sqlA);
+    //         $timeA = round((microtime(true) - $startA) * 1000);
 
-            $startB = microtime(true);
-            $rowsB = $bq->query($sqlB);
-            $timeB = round((microtime(true) - $startB) * 1000);
+    //         $startB = microtime(true);
+    //         $rowsB = $bq->query($sqlB);
+    //         $timeB = round((microtime(true) - $startB) * 1000);
 
-            return response()->json([
-                'optionA' => array_merge(['time_ms' => $timeA], $this->summarizeCouponRows($rowsA, $malls)),
-                'optionB' => array_merge(['time_ms' => $timeB], $this->summarizeCouponRows($rowsB, $malls)),
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
+    //         return response()->json([
+    //             'optionA' => array_merge(['time_ms' => $timeA], $this->summarizeCouponRows($rowsA, $malls)),
+    //             'optionB' => array_merge(['time_ms' => $timeB], $this->summarizeCouponRows($rowsB, $malls)),
+    //         ]);
+    //     } catch (\Throwable $e) {
+    //         return response()->json(['error' => $e->getMessage()], 500);
+    //     }
+    // }
 
     private function summarizeCouponRows(array $rows, ?array $malls): array
     {
         $byStatus = [];
-        $byMall   = [];
+        $byMall = [];
         $totalValid = 0;
 
         foreach ($rows as $row) {
-            $code    = (string) ($row['mall_code'] ?? 'Unknown');
-            $name    = (string) ($row['mall_name'] ?? $code);
-            $status  = (string) ($row['status']    ?? '-');
-            $cnt     = (int)    ($row['cnt']        ?? 0);
+            $code = (string) ($row['mall_code'] ?? 'Unknown');
+            $name = (string) ($row['mall_name'] ?? $code);
+            $status = (string) ($row['status'] ?? '-');
+            $cnt = (int) ($row['cnt'] ?? 0);
             $allowed = $malls === null || in_array($code, $malls, true);
 
             if ($allowed) {
@@ -918,8 +957,8 @@ class GmReportController extends Controller
 
         return [
             'total_valid' => $totalValid,
-            'by_status'   => $byStatusOut,
-            'by_mall'     => array_values($byMall),
+            'by_status' => $byStatusOut,
+            'by_mall' => array_values($byMall),
         ];
     }
 
