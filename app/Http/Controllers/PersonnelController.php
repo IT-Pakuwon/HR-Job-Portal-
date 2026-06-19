@@ -378,7 +378,7 @@ class PersonnelController extends Controller
                 $q->where('aprv_type', 'Normal')
                 ->orWhere(function ($q2) use ($positionCondition) {
                     $q2->where('aprv_type', 'Condition')
-                        ->where('aprv_condition', $positionCondition);
+                        ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
                 });
             })
             ->count();
@@ -391,32 +391,6 @@ class PersonnelController extends Controller
 
         DB::beginTransaction();
         try {
-            // // Generate task ID
-            // $autonbr = Autonbr::lockForUpdate()
-            //     ->where('doctype', $doctype)
-            //     ->where('year', $year)
-            //     ->where('month', $month)
-            //     ->where('status', 'A')
-            //     ->first();
-
-            // if (!$autonbr) {
-            //     $autonbr = Autonbr::create([
-            //         'doctype' => $doctype,
-            //         'year' => $year,
-            //         'month' => $month,
-            //         'status' => 'A',
-            //         'number' => 1
-            //     ]);
-            //     $urutan = 1;
-            // } else {
-            //     $urutan = $autonbr->number + 1;
-            //     $autonbr->number = $urutan;
-            //     $autonbr->save();
-            // }
-
-            // $tglbln = substr($year, 2) . $month;
-            // $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
-
             $auto = $this->nextAutonbr(
                 $doctype,
                 $year,
@@ -465,18 +439,31 @@ class PersonnelController extends Controller
                 'status' => $request->status ?? 'P',
             ]);
 
-            $msApprovalLines = MsApproval::where('status', 'A')
+            // $msApprovalLines = MsApproval::where('status', 'A')
+            //     ->where('aprv_cpnyid', $request->cpnyid)
+            //     ->where('aprv_departementid', $request->departementid)
+            //     ->where('aprv_doctype', $doctype)
+            //     ->where(function ($q) use ($positionCondition) {
+            //         $q->where('aprv_type', 'Normal')
+            //         ->orWhere(function ($q2) use ($positionCondition) {
+            //             $q2->where('aprv_type', 'Condition')
+            //                 ->where('aprv_condition', $positionCondition);
+            //         });
+            //     })
+            //     ->orderBy('aprv_leveling', 'ASC')
+            //     ->get();
+            $msApproval = MsApproval::where('aprv_doctype', $doctype)
                 ->where('aprv_cpnyid', $request->cpnyid)
                 ->where('aprv_departementid', $request->departementid)
-                ->where('aprv_doctype', $doctype)
+                ->where('status', 'A')
                 ->where(function ($q) use ($positionCondition) {
                     $q->where('aprv_type', 'Normal')
                     ->orWhere(function ($q2) use ($positionCondition) {
                         $q2->where('aprv_type', 'Condition')
-                            ->where('aprv_condition', $positionCondition);
+                            ->whereRaw('LOWER(TRIM(aprv_condition)) = ?', [trim($positionCondition)]);
                     });
                 })
-                ->orderBy('aprv_leveling', 'ASC')
+                ->orderBy('aprv_leveling', 'asc')
                 ->get();
 
             // insert tr_approval

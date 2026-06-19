@@ -77,6 +77,26 @@
         });
     }
 
+    // ── Word-wrap + uppercase helper for Y-axis labels ───────────────────────
+    function wrapLabel(val, maxChars) {
+        if (!val) return '';
+        var s = (typeof val === 'string' ? val : String(val)).toUpperCase();
+        if (s.length <= maxChars) return s;
+        var words = s.split(' ');
+        var lines = [''];
+        words.forEach(function (word) {
+            var cur = lines[lines.length - 1];
+            if (!cur) {
+                lines[lines.length - 1] = word;
+            } else if (cur.length + 1 + word.length <= maxChars) {
+                lines[lines.length - 1] = cur + ' ' + word;
+            } else {
+                lines.push(word);
+            }
+        });
+        return lines.length > 1 ? lines : lines[0];
+    }
+
     // ── Bar chart options ─────────────────────────────────────────────────────
     function buildBarOpts(rows, color, metric) {
         var dark   = utils.isDark();
@@ -94,7 +114,7 @@
                 background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 600 },
             },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%' } },
+            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '65%' } },
             colors: [color],
             fill: {
                 type: 'gradient',
@@ -116,7 +136,12 @@
                 },
             },
             yaxis: {
-                labels: { style: { fontSize: '10px', fontWeight: 600 }, maxWidth: 110 },
+                labels: {
+                    align: 'left',
+                    style: { fontSize: '10px', fontWeight: 600 },
+                    maxWidth: 160,
+                    formatter: function (val) { return wrapLabel(val, 20); },
+                },
             },
             tooltip: {
                 theme: dark ? 'dark' : 'light',
@@ -150,7 +175,7 @@
                     return '<div style="padding:10px 14px;background:' + bg + ';border-radius:10px;min-width:180px;">'
                         + '<div style="font-size:11px;font-weight:700;color:' + text + ';margin-bottom:6px;white-space:normal;word-break:break-word;">' + name + '</div>'
                         + '<div style="font-size:10px;color:' + sub + ';margin-bottom:2px;">Transactions</div>'
-                        + '<div style="font-size:13px;font-weight:700;color:' + color + ';margin-bottom:6px;">' + txn + ' Transaction</div>'
+                        + '<div style="font-size:13px;font-weight:700;color:' + color + ';margin-bottom:6px;">' + txn + ' Transactions</div>'
                         + '<div style="font-size:10px;color:' + sub + ';margin-bottom:2px;">Total Spending</div>'
                         + '<div style="font-size:13px;font-weight:700;color:' + text + ';">' + amt + '</div>'
                         + extraHtml
@@ -172,8 +197,8 @@
                 formatter: function (v, o) {
                     var row = rows[o.dataPointIndex] || {};
                     return useAmt
-                        ? idr(v) + '  |  ' + Number(row.value || 0).toLocaleString('id-ID') + ' Transaction'
-                        : Number(v).toLocaleString('id-ID') + ' Transaction  |  ' + idr(row.total_amount || 0);
+                        ? idr(v) + '  |  ' + Number(row.value || 0).toLocaleString('id-ID') + ' Transactions'
+                        : Number(v).toLocaleString('id-ID') + ' Transactions  |  ' + idr(row.total_amount || 0);
                 },
             },
             legend: { show: false },
@@ -433,92 +458,141 @@
         '#3B82F6', '#EF4444', '#14B8A6', '#F97316', '#6366F1',
     ];
 
-    function renderCampaignChart(byCampaign) {
-        var el = document.getElementById('pgcardCampaignChart');
+    // HR company → mall code embedded in campaign names
+    var CAMPAIGN_MALL_MAP = { 'AW': '(GC)', 'EP': '(KK)', 'PSA': '(BM)', 'GPS': '(MB)' };
+    var ALL_MALL_CODES    = ['(GC)', '(KK)', '(BM)', '(MB)'];
+
+    var campaignMode  = 'campaign'; // 'campaign' | 'customer'
+    var rawByCampaign = [];
+
+    function hasMallCode(name) {
+        var up = (name || '').toUpperCase();
+        return ALL_MALL_CODES.some(function (c) { return up.indexOf(c.toUpperCase()) !== -1; });
+    }
+
+    function getVisibleCampaigns() {
+        var cpny     = (window.gmState && window.gmState.cpnyId) ? window.gmState.cpnyId.toUpperCase() : '';
+        var mallCode = cpny ? CAMPAIGN_MALL_MAP[cpny] : null;
+
+        if (campaignMode === 'customer') {
+            // By Customer — all campaigns always visible
+            return rawByCampaign;
+        }
+
+        // By Campaign
+        if (!cpny || !mallCode) {
+            // All Companies → show everything including grand prize
+            return rawByCampaign;
+        }
+        // Specific company → show only that mall's campaigns, grand prize hidden
+        return rawByCampaign.filter(function (r) {
+            return (r.campaign_name || '').toUpperCase().indexOf(mallCode.toUpperCase()) !== -1;
+        });
+    }
+
+    function drawCampaignChart() {
+        var data       = getVisibleCampaigns();
+        var isCustomer = campaignMode === 'customer';
+        var metric     = isCustomer ? 'unique_customers' : 'count';
+        var metricLbl  = isCustomer ? 'Customers' : 'Transactions';
+        var el         = document.getElementById('pgcardCampaignChart');
         if (!el) return;
         if (charts.campaign) { charts.campaign.destroy(); charts.campaign = null; }
 
-        if (!byCampaign || !byCampaign.length) {
+        if (!data.length) {
             el.innerHTML = '<div class="flex h-full items-center justify-center py-10 text-xs text-slate-400 dark:text-slate-500">No data</div>';
             return;
         }
 
-        var dark    = utils.isDark();
-        var labels  = byCampaign.map(function (r) { return r.campaign_name || ('Campaign ' + r.campaign_id); });
-        var values  = byCampaign.map(function (r) { return r.count; });
-        var colors  = byCampaign.map(function (_, i) { return CAMPAIGN_COLORS[i % CAMPAIGN_COLORS.length]; });
-        var total   = values.reduce(function (a, b) { return a + b; }, 0);
+        var dark   = utils.isDark();
+        var labels = data.map(function (r) { return r.campaign_name || ('Campaign ' + r.campaign_id); });
+        var values = data.map(function (r) { return r[metric] || 0; });
+        var colors = data.map(function (_, i) { return CAMPAIGN_COLORS[i % CAMPAIGN_COLORS.length]; });
+        var total  = values.reduce(function (a, b) { return a + b; }, 0);
 
         charts.campaign = new ApexCharts(el, {
-            series: [{ name: 'Transactions', data: values }],
+            series: [{ name: metricLbl, data: values }],
             chart: {
-                type: 'bar', height: 280,
-                toolbar: { show: false },
-                fontFamily: 'Inter, sans-serif',
-                foreColor: dark ? '#94A3B8' : '#64748B',
-                background: 'transparent',
+                type: 'bar', height: Math.max(280, data.length * 44 + 60),
+                toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
+                foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 600 },
             },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%', distributed: true } },
+            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '40%', distributed: true } },
             colors: colors,
             xaxis: {
                 categories: labels,
-                axisBorder: { show: false },
-                axisTicks:  { show: false },
+                axisBorder: { show: false }, axisTicks: { show: false },
                 labels: { style: { fontSize: '10px', fontWeight: 600 } },
             },
             yaxis: {
-                labels: { style: { fontSize: '10px', fontWeight: 600 }, maxWidth: 160 },
+                labels: {
+                    style: { fontSize: '10px', fontWeight: 600 },
+                    maxWidth: 220,
+                    formatter: function (val) { return wrapLabel(val, 24); },
+                },
             },
             dataLabels: {
-                enabled: true,
-                textAnchor: 'start',
-                offsetX: 4,
+                enabled: true, textAnchor: 'start', offsetX: 4,
                 style: { fontSize: '10px', fontWeight: 700, colors: [dark ? '#e2e8f0' : '#334155'] },
                 formatter: function (v) {
                     var pct = total > 0 ? ((v / total) * 100).toFixed(1) : '0.0';
-                    return Number(v).toLocaleString('id-ID') + ' Transaction (' + pct + '%)';
+                    return Number(v).toLocaleString('id-ID') + ' ' + metricLbl + ' (' + pct + '%)';
                 },
             },
             tooltip: {
                 fixed: { enabled: true, position: 'bottomRight', offsetX: -10, offsetY: -10 },
                 custom: function (opts) {
-                    var idx      = opts.dataPointIndex;
-                    var row      = byCampaign[idx] || {};
-                    var v        = row.count || 0;
-                    var pct      = total > 0 ? ((v / total) * 100).toFixed(1) : '0.0';
-                    var name     = utils.escHtml(row.campaign_name || ('Campaign ' + row.campaign_id));
-                    var customer = utils.escHtml(row.top_customer || '-');
-                    var merchant = utils.escHtml(row.top_merchant || '-');
-                    var color    = CAMPAIGN_COLORS[idx % CAMPAIGN_COLORS.length];
-                    var bg       = dark ? '#1e293b' : '#ffffff';
-                    var text     = dark ? '#f1f5f9' : '#0f172a';
-                    var sub      = dark ? '#94a3b8' : '#64748b';
-                    var sep      = '<div style="height:1px;background:' + (dark ? '#334155' : '#e2e8f0') + ';margin:8px 0;"></div>';
-                    return '<div style="padding:10px 14px;background:' + bg + ';border-radius:10px;'
-                        +   'min-width:210px;box-shadow:0 4px 16px rgba(0,0,0,.14);">'
-                        + '<div style="font-size:10px;font-weight:600;color:' + sub + ';margin-bottom:2px;">' + name + '</div>'
-                        + '<div style="font-size:15px;font-weight:800;color:' + color + ';line-height:1.1;">'
-                        +   Number(v).toLocaleString('id-ID') + ' txn</div>'
-                        + '<div style="font-size:10px;color:' + sub + ';margin-bottom:0;">(' + pct + '% of all campaigns)</div>'
-                        + sep
-                        + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:' + sub + ';margin-bottom:2px;">Top Customer</div>'
-                        + '<div style="font-size:11px;font-weight:700;color:' + text + ';margin-bottom:7px;">' + customer + '</div>'
-                        + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:' + sub + ';margin-bottom:2px;">Top Merchant</div>'
-                        + '<div style="font-size:11px;font-weight:700;color:' + text + ';">' + merchant + '</div>'
-                        + '</div>';
+                    var idx  = opts.dataPointIndex;
+                    var row  = data[idx] || {};
+                    var v    = row[metric] || 0;
+                    var pct  = total > 0 ? ((v / total) * 100).toFixed(1) : '0.0';
+                    var name = utils.escHtml(row.campaign_name || ('Campaign ' + row.campaign_id));
+                    var bg   = dark ? '#1e293b' : '#ffffff';
+                    var text = dark ? '#f1f5f9' : '#0f172a';
+                    var sub  = dark ? '#94a3b8' : '#64748b';
+                    var clr  = CAMPAIGN_COLORS[idx % CAMPAIGN_COLORS.length];
+                    var sep  = '<div style="height:1px;background:' + (dark ? '#334155' : '#e2e8f0') + ';margin:8px 0;"></div>';
+                    var html = '<div style="padding:10px 14px;background:' + bg + ';border-radius:10px;'
+                             + 'min-width:210px;box-shadow:0 4px 16px rgba(0,0,0,.14);">'
+                             + '<div style="font-size:10px;font-weight:600;color:' + sub + ';margin-bottom:2px;">' + name + '</div>'
+                             + '<div style="font-size:15px;font-weight:800;color:' + clr + ';line-height:1.1;">'
+                             +   Number(v).toLocaleString('id-ID') + ' ' + metricLbl + '</div>'
+                             + '<div style="font-size:10px;color:' + sub + ';margin-bottom:0;">(' + pct + '%)</div>'
+                             + sep;
+                    if (!isCustomer) {
+                        html += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:' + sub + ';margin-bottom:2px;">Top Customer</div>'
+                              + '<div style="font-size:11px;font-weight:700;color:' + text + ';margin-bottom:7px;">' + utils.escHtml(row.top_customer || '-') + '</div>'
+                              + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:' + sub + ';margin-bottom:2px;">Top Merchant</div>'
+                              + '<div style="font-size:11px;font-weight:700;color:' + text + ';">' + utils.escHtml(row.top_merchant || '-') + '</div>';
+                    }
+                    return html + '</div>';
                 },
             },
             grid: {
-                borderColor: dark ? '#334155' : '#F1F5F9',
-                strokeDashArray: 4,
-                xaxis: { lines: { show: true } },
-                yaxis: { lines: { show: false } },
+                borderColor: dark ? '#334155' : '#F1F5F9', strokeDashArray: 4,
+                xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } },
                 padding: { left: 4, right: 16 },
             },
             legend: { show: false },
         });
         charts.campaign.render();
+    }
+
+    function renderCampaignChart(byCampaign) {
+        rawByCampaign = byCampaign || [];
+        drawCampaignChart();
+    }
+
+    function setCampaignTab(mode) {
+        campaignMode = mode;
+        ['campaign', 'customer'].forEach(function (m) {
+            var btn = document.getElementById('pgcardCmpTab_' + m);
+            if (!btn) return;
+            btn.classList.toggle('pgcard-tab-active', m === mode);
+            btn.classList.toggle('pgcard-tab-idle',   m !== mode);
+        });
+        drawCampaignChart();
     }
 
     var byMallStatus = [];  // [{mall_code, mall_name, status, count}] — full breakdown for client-side filtering
@@ -747,6 +821,13 @@
         setActiveMetric('pgcardCustMetric', metricCustomer);
         setActiveMetric('pgcardTenMetric',  metricTenant);
         watchDarkMode();
+
+        // Campaign tab buttons
+        ['campaign', 'customer'].forEach(function (m) {
+            var btn = document.getElementById('pgcardCmpTab_' + m);
+            if (btn) btn.addEventListener('click', function () { setCampaignTab(m); });
+        });
+
         document.addEventListener('gm:filter', reloadAll);
         loadCustomers();
         loadTenants();
