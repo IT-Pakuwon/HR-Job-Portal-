@@ -18,6 +18,16 @@ class GmReportController extends Controller
     private const PGCARD_PROJECT = 'ifca-pkwjakarta';
     private const PGCARD_DATASET = 'pgcard';
 
+    // ── Isort constants ───────────────────────────────────────────────────────
+    private const ISORT_PROJECT     = 'ifca-pkwjakarta';
+    private const ISORT_DATASET     = 'isort';
+    private const ISORT_COMPANY_MAP = [
+        'AW'  => 'GC',
+        'EP'  => 'KK',
+        'PSA' => 'PBM',
+        'GPS' => 'PMB',
+    ];
+
     // Maps HR company code → pgcard directory_code
     private const PGCARD_COMPANY_MAP = [
         'AW' => 'GC',
@@ -78,6 +88,27 @@ class GmReportController extends Controller
         // No specific filter — apply user's company restrictions
         if (empty($allowed)) {
             return null; // super-admin / no restriction, show all
+        }
+
+        return array_values(array_filter(
+            array_map(fn ($code) => $map[$code] ?? null, $allowed)
+        ));
+    }
+
+    private function allowedIsortSites(?string $cpnyId): ?array
+    {
+        $map     = self::ISORT_COMPANY_MAP;
+        $allowed = $this->allowedCompanies();
+
+        if ($cpnyId && isset($map[$cpnyId])) {
+            if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
+                return [];
+            }
+            return [$map[$cpnyId]];
+        }
+
+        if (empty($allowed)) {
+            return null; // no restriction — show all sites
         }
 
         return array_values(array_filter(
@@ -585,6 +616,510 @@ class GmReportController extends Controller
         return Excel::download(new GmReportExport($data), $filename);
     }
 
+    // ── API: Isort — Available kaizen departments ────────────────────────────────
+
+    public function isortAvailableDepts(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites  = $this->allowedIsortSites($cpnyId);
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => []]);
+            }
+
+            $siteFilter = $sites !== null
+                ? "AND site IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
+                : '';
+
+            $bq = new BigQueryService();
+            $p  = self::ISORT_PROJECT;
+            $d  = self::ISORT_DATASET;
+
+            $sql = <<<SQL
+                SELECT DISTINCT kaizen_department
+                FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$siteFilter}
+                  AND kaizen_department IS NOT NULL
+                ORDER BY kaizen_department
+            SQL;
+
+            $rows = $bq->query($sql);
+            $data = array_values(array_filter(array_map(
+                fn ($r) => (string) ($r['kaizen_department'] ?? ''),
+                $rows
+            )));
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    private function buildIsortDeptFilter(Request $request): string
+    {
+        $depts = array_filter(array_map('trim', (array) $request->input('departments', [])));
+        if (empty($depts)) {
+            return '';
+        }
+
+        return "AND kaizen_department IN ('" . implode("','", array_map('addslashes', $depts)) . "')";
+    }
+
+    // ── API: Isort — Summary (from tb_kaizen_dashboard_summary_daily) ───────────
+
+    public function isortSummary(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites  = $this->allowedIsortSites($cpnyId);
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => ['total_case' => 0, 'total_open' => 0, 'total_closed' => 0, 'total_overdue' => 0, 'solved_hours' => 0, 'solved_case_count' => 0]]);
+            }
+
+            $siteFilter = $sites !== null
+                ? "AND site IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
+                : '';
+
+            $bq = new BigQueryService();
+            $p  = self::ISORT_PROJECT;
+            $d  = self::ISORT_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    COALESCE(SUM(total_case),               0) AS total_case,
+                    COALESCE(SUM(total_open),               0) AS total_open,
+                    COALESCE(SUM(total_closed),             0) AS total_closed,
+                    COALESCE(SUM(total_overdue),            0) AS total_overdue,
+                    COALESCE(SUM(solved_duration_hour_sum), 0) AS solved_hours,
+                    COALESCE(SUM(solved_case_count),        0) AS solved_case_count
+                FROM `{$p}.{$d}.tb_kaizen_dashboard_summary_daily`
+                WHERE issue_dt BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$siteFilter}
+                  {$this->buildIsortDeptFilter($request)}
+            SQL;
+
+            $rows = $bq->query($sql);
+            $row  = $rows[0] ?? [];
+
+            return response()->json([
+                'data' => [
+                    'total_case'        => (int)   ($row['total_case']        ?? 0),
+                    'total_open'        => (int)   ($row['total_open']        ?? 0),
+                    'total_closed'      => (int)   ($row['total_closed']      ?? 0),
+                    'total_overdue'     => (int)   ($row['total_overdue']     ?? 0),
+                    'solved_hours'      => (float) ($row['solved_hours']      ?? 0),
+                    'solved_case_count' => (int)   ($row['solved_case_count'] ?? 0),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: Isort — Kaizen by Type (name) ───────────────────────────────────────
+
+    public function isortKaizenByType(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId     = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites      = $this->allowedIsortSites($cpnyId);
+            $deptFilter = $this->buildIsortDeptFilter($request);
+            $stacked    = $cpnyId === null; // stacked when user hasn't filtered by specific company
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => [], 'stacked' => false, 'all_sites' => []]);
+            }
+
+            $siteFilter = $sites !== null
+                ? "AND site IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
+                : '';
+
+            $bq = new BigQueryService();
+            $p  = self::ISORT_PROJECT;
+            $d  = self::ISORT_DATASET;
+
+            if ($stacked) {
+                // Return per-site breakdown for stacked chart
+                $sql = <<<SQL
+                    SELECT
+                        COALESCE(kaizen_type, 'Unknown') AS kaizen_type,
+                        COALESCE(site, 'Unknown')        AS site,
+                        COUNT(*) AS cnt
+                    FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                    WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                      {$deptFilter}
+                    GROUP BY kaizen_type, site
+                SQL;
+
+                $allTypes = [];
+                $allSites = [];
+                foreach ($bq->query($sql) as $row) {
+                    $type = (string) ($row['kaizen_type'] ?? 'Unknown');
+                    $site = (string) ($row['site']        ?? 'Unknown');
+                    $cnt  = (int)    ($row['cnt']          ?? 0);
+                    if (!isset($allTypes[$type])) {
+                        $allTypes[$type] = ['kaizen_type' => $type, 'total' => 0, 'by_site' => []];
+                    }
+                    $allTypes[$type]['total']          += $cnt;
+                    $allTypes[$type]['by_site'][$site]  = ($allTypes[$type]['by_site'][$site] ?? 0) + $cnt;
+                    $allSites[$site] = true;
+                }
+                usort($allTypes, fn ($a, $b) => $b['total'] - $a['total']);
+                $sites_list = array_keys($allSites);
+                sort($sites_list);
+
+                return response()->json([
+                    'data'      => array_values(array_slice($allTypes, 0, 5)),
+                    'stacked'   => true,
+                    'all_sites' => $sites_list,
+                ]);
+            }
+
+            // Single-company: simple aggregation
+            $sql = <<<SQL
+                SELECT
+                    COALESCE(kaizen_type, 'Unknown') AS kaizen_type,
+                    COUNT(*) AS total
+                FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$siteFilter}
+                  {$deptFilter}
+                GROUP BY kaizen_type
+                ORDER BY total DESC
+                LIMIT 5
+            SQL;
+
+            $data = [];
+            foreach ($bq->query($sql) as $row) {
+                $data[] = [
+                    'kaizen_type' => (string) ($row['kaizen_type'] ?? 'Unknown'),
+                    'total'       => (int)    ($row['total']       ?? 0),
+                ];
+            }
+
+            return response()->json(['data' => $data, 'stacked' => false, 'all_sites' => []]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'stacked' => false, 'all_sites' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: Isort — Incidents by Name ────────────────────────────────────────────
+
+    public function isortIncidentsByName(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites  = $this->allowedIsortSites($cpnyId);
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => [], 'stacked' => false, 'all_sites' => []]);
+            }
+
+            $stacked    = $cpnyId === null; // stacked when no specific company selected
+            $bq         = new BigQueryService();
+            $p          = self::ISORT_PROJECT;
+            $d          = self::ISORT_DATASET;
+            $deptFilter = $this->buildIsortDeptFilter($request);
+
+            if ($stacked) {
+                // Return per-site breakdown — join via kaizen_id to get site from tb_detail_kaizen_dashboard
+                $sql = <<<SQL
+                    SELECT
+                        COALESCE(i.incident_name, 'Unknown') AS incident_name,
+                        COALESCE(dd.site, 'Unknown')         AS site,
+                        COUNT(*) AS cnt
+                    FROM `{$p}.{$d}.isort_kaizen_src` k
+                    LEFT JOIN (
+                        SELECT id, MAX(incident_name) AS incident_name
+                        FROM `{$p}.{$d}.isort_incidents_src`
+                        GROUP BY id
+                    ) i ON k.kejadian_id = i.id
+                    INNER JOIN (
+                        SELECT DISTINCT kaizen_id, site
+                        FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                        WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                          {$deptFilter}
+                    ) dd ON k.kaizen_id = dd.kaizen_id
+                    WHERE DATE(k.issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                      AND i.incident_name IS NOT NULL
+                    GROUP BY i.incident_name, dd.site
+                SQL;
+
+                $allIncidents = [];
+                $allSites     = [];
+                foreach ($bq->query($sql) as $row) {
+                    $name = (string) ($row['incident_name'] ?? 'Unknown');
+                    $site = (string) ($row['site']          ?? 'Unknown');
+                    $cnt  = (int)    ($row['cnt']            ?? 0);
+                    if (!isset($allIncidents[$name])) {
+                        $allIncidents[$name] = ['incident_name' => $name, 'total' => 0, 'by_site' => []];
+                    }
+                    $allIncidents[$name]['total']          += $cnt;
+                    $allIncidents[$name]['by_site'][$site]  = ($allIncidents[$name]['by_site'][$site] ?? 0) + $cnt;
+                    $allSites[$site] = true;
+                }
+                usort($allIncidents, fn ($a, $b) => $b['total'] - $a['total']);
+                $sites_list = array_keys($allSites);
+                sort($sites_list);
+
+                return response()->json([
+                    'data'      => array_values(array_slice($allIncidents, 0, 10)),
+                    'stacked'   => true,
+                    'all_sites' => $sites_list,
+                ]);
+            }
+
+            // Single-company: existing logic
+            $siteJoin = ($sites !== null || $deptFilter !== '')
+                ? "INNER JOIN (SELECT DISTINCT kaizen_id FROM `{$p}.{$d}.tb_detail_kaizen_dashboard` WHERE 1=1"
+                  . ($sites !== null ? " AND site IN ('" . implode("','", array_map('addslashes', $sites)) . "')" : '')
+                  . " {$deptFilter}) _sf ON k.kaizen_id = _sf.kaizen_id"
+                : '';
+
+            $sql = <<<SQL
+                SELECT
+                    COALESCE(i.incident_name, 'Unknown') AS incident_name,
+                    COUNT(*) AS total
+                FROM `{$p}.{$d}.isort_kaizen_src` k
+                LEFT JOIN (
+                    SELECT id, MAX(incident_name) AS incident_name
+                    FROM `{$p}.{$d}.isort_incidents_src`
+                    GROUP BY id
+                ) i ON k.kejadian_id = i.id
+                {$siteJoin}
+                WHERE DATE(k.issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  AND i.incident_name IS NOT NULL
+                GROUP BY i.incident_name
+                ORDER BY total DESC
+                LIMIT 10
+            SQL;
+
+            $data = [];
+            foreach ($bq->query($sql) as $row) {
+                $data[] = [
+                    'incident_name' => (string) ($row['incident_name'] ?? 'Unknown'),
+                    'total'         => (int)    ($row['total']         ?? 0),
+                ];
+            }
+
+            return response()->json(['data' => $data, 'stacked' => false, 'all_sites' => []]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'stacked' => false, 'all_sites' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: Isort — Top 10 Dept with type + incident breakdown ─────────────────
+
+    public function isortDeptSummary(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites  = $this->allowedIsortSites($cpnyId);
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => []]);
+            }
+
+            $siteFilter = $sites !== null
+                ? "AND site IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
+                : '';
+            $deptFilter = $this->buildIsortDeptFilter($request);
+
+            $bq = new BigQueryService();
+            $p  = self::ISORT_PROJECT;
+            $d  = self::ISORT_DATASET;
+
+            // Query 1: kaizen_type breakdown per department
+            $sqlType = <<<SQL
+                SELECT
+                    kaizen_department,
+                    COALESCE(kaizen_type, 'Unknown') AS kaizen_type,
+                    COUNT(*) AS cnt
+                FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$siteFilter}
+                  {$deptFilter}
+                GROUP BY kaizen_department, kaizen_type
+                ORDER BY kaizen_department, cnt DESC
+            SQL;
+
+            // Query 2: incident_name breakdown per department (via kaizen_id join)
+            $sqlIncident = <<<SQL
+                SELECT
+                    dd.kaizen_department,
+                    COALESCE(i.incident_name, 'Unknown') AS incident_name,
+                    COUNT(*) AS cnt
+                FROM `{$p}.{$d}.isort_kaizen_src` k
+                INNER JOIN (
+                    SELECT DISTINCT kaizen_id, kaizen_department
+                    FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                    WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                      {$siteFilter}
+                      {$deptFilter}
+                ) dd ON k.kaizen_id = dd.kaizen_id
+                LEFT JOIN (
+                    SELECT id, MAX(incident_name) AS incident_name
+                    FROM `{$p}.{$d}.isort_incidents_src`
+                    GROUP BY id
+                ) i ON k.kejadian_id = i.id
+                WHERE i.incident_name IS NOT NULL
+                GROUP BY dd.kaizen_department, i.incident_name
+                ORDER BY dd.kaizen_department, cnt DESC
+            SQL;
+
+            $typeRows     = $bq->query($sqlType);
+            $incidentRows = $bq->query($sqlIncident);
+
+            $depts    = [];
+            $stacked  = $cpnyId === null;
+            $allSites = [];
+
+            foreach ($typeRows as $row) {
+                $dept = (string) ($row['kaizen_department'] ?? '');
+                if (!isset($depts[$dept])) {
+                    $depts[$dept] = ['department' => $dept, 'total' => 0, 'by_type' => [], 'by_incident' => [], 'by_site' => []];
+                }
+                $cnt = (int) ($row['cnt'] ?? 0);
+                $depts[$dept]['total'] += $cnt;
+                $depts[$dept]['by_type'][] = [
+                    'kaizen_type' => (string) ($row['kaizen_type'] ?? 'Unknown'),
+                    'count'       => $cnt,
+                ];
+            }
+
+            foreach ($incidentRows as $row) {
+                $dept = (string) ($row['kaizen_department'] ?? '');
+                if (!isset($depts[$dept])) {
+                    $depts[$dept] = ['department' => $dept, 'total' => 0, 'by_type' => [], 'by_incident' => [], 'by_site' => []];
+                }
+                $depts[$dept]['by_incident'][] = [
+                    'incident_name' => (string) ($row['incident_name'] ?? 'Unknown'),
+                    'count'         => (int)    ($row['cnt']           ?? 0),
+                ];
+            }
+
+            // When all companies: add per-site totals per department for stacked bars
+            if ($stacked) {
+                $sqlSite = <<<SQL
+                    SELECT
+                        kaizen_department,
+                        COALESCE(site, 'Unknown') AS site,
+                        COUNT(*) AS cnt
+                    FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                    WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                      {$deptFilter}
+                    GROUP BY kaizen_department, site
+                SQL;
+
+                foreach ($bq->query($sqlSite) as $row) {
+                    $dept = (string) ($row['kaizen_department'] ?? '');
+                    $site = (string) ($row['site']              ?? 'Unknown');
+                    $cnt  = (int)    ($row['cnt']               ?? 0);
+                    if (isset($depts[$dept])) {
+                        $depts[$dept]['by_site'][$site] = ($depts[$dept]['by_site'][$site] ?? 0) + $cnt;
+                    }
+                    $allSites[$site] = true;
+                }
+            }
+
+            usort($depts, fn ($a, $b) => $b['total'] - $a['total']);
+            $sites_list = array_keys($allSites);
+            sort($sites_list);
+
+            return response()->json([
+                'data'      => array_values(array_slice($depts, 0, 10)),
+                'stacked'   => $stacked,
+                'all_sites' => $sites_list,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: Isort — Detail Records (from tb_detail_kaizen_dashboard) ────────────
+
+    public function isortDetail(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites  = $this->allowedIsortSites($cpnyId);
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => []]);
+            }
+
+            $siteFilter = $sites !== null
+                ? "AND site IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
+                : '';
+
+            $bq = new BigQueryService();
+            $p  = self::ISORT_PROJECT;
+            $d  = self::ISORT_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    site,
+                    kaizen_id,
+                    DATE(issue_date)  AS issue_date,
+                    DATE(solved_date) AS solved_date,
+                    kaizen_department,
+                    kaizen_type,
+                    area_name,
+                    location_name,
+                    item,
+                    subitem,
+                    keterangan,
+                    submitter,
+                    dept_submitter,
+                    status,
+                    kaizen_close_by,
+                    dept_kaizen_close_by
+                FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$siteFilter}
+                  {$this->buildIsortDeptFilter($request)}
+                ORDER BY issue_date DESC
+                LIMIT 1000
+            SQL;
+
+            $rows = $bq->query($sql);
+            $data = [];
+            foreach ($rows as $row) {
+                $data[] = [
+                    'site'                 => (string) ($row['site']                 ?? ''),
+                    'kaizen_id'            => (int)    ($row['kaizen_id']            ?? 0),
+                    'issue_date'           => (string) ($row['issue_date']           ?? ''),
+                    'solved_date'          => (string) ($row['solved_date']          ?? ''),
+                    'kaizen_department'    => (string) ($row['kaizen_department']    ?? ''),
+                    'kaizen_type'          => (string) ($row['kaizen_type']          ?? ''),
+                    'area_name'            => (string) ($row['area_name']            ?? ''),
+                    'location_name'        => (string) ($row['location_name']        ?? ''),
+                    'item'                 => (string) ($row['item']                 ?? ''),
+                    'subitem'              => (string) ($row['subitem']              ?? ''),
+                    'keterangan'           => (string) ($row['keterangan']           ?? ''),
+                    'submitter'            => (string) ($row['submitter']            ?? ''),
+                    'dept_submitter'       => (string) ($row['dept_submitter']       ?? ''),
+                    'status'               => (string) ($row['status']               ?? ''),
+                    'kaizen_close_by'      => (string) ($row['kaizen_close_by']      ?? ''),
+                    'dept_kaizen_close_by' => (string) ($row['dept_kaizen_close_by'] ?? ''),
+                ];
+            }
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
     // ── API: Cumulative budget used per month ─────────────────────────────────
 
     // ── API: PG Card — Top 10 customers per mall ──────────────────────────────
@@ -805,6 +1340,14 @@ class GmReportController extends Controller
                         LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` mr ON mr.id = b.txn_merchant_id
                         GROUP BY b.campaign_id, b.txn_merchant_id, mr.merchant_name
                     ) WHERE rn = 1
+                ),
+                unique_per_campaign_mall AS (
+                    SELECT
+                        campaign_id,
+                        print_directory_id,
+                        COUNT(DISTINCT txn_member_id) AS unique_customers
+                    FROM base
+                    GROUP BY campaign_id, print_directory_id
                 )
                 SELECT
                     COALESCE(d.directory_code, 'Unknown')                      AS mall_code,
@@ -814,7 +1357,8 @@ class GmReportController extends Controller
                     COALESCE(c.name, CAST(b.campaign_id AS STRING))            AS campaign_name,
                     COALESCE(tc.top_customer, '-')                             AS top_customer,
                     COALESCE(tm.top_merchant, '-')                             AS top_merchant,
-                    COUNT(*)                                                   AS cnt
+                    COUNT(*)                                                   AS cnt,
+                    COALESCE(MAX(uc.unique_customers), 0)                      AS unique_customers
                 FROM base b
                 LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
                     ON d.id = b.print_directory_id
@@ -822,6 +1366,8 @@ class GmReportController extends Controller
                     ON c.id = b.campaign_id
                 LEFT JOIN top_customer_per_campaign tc ON tc.campaign_id = b.campaign_id
                 LEFT JOIN top_merchant_per_campaign tm ON tm.campaign_id = b.campaign_id
+                LEFT JOIN unique_per_campaign_mall uc
+                    ON uc.campaign_id = b.campaign_id AND uc.print_directory_id = b.print_directory_id
                 GROUP BY d.directory_code, d.directory_name, b.status, b.campaign_id, c.name, tc.top_customer, tm.top_merchant
                 ORDER BY mall_code, status
             SQL;
@@ -846,26 +1392,31 @@ class GmReportController extends Controller
                 // full mall+status breakdown (unfiltered by company — for donut)
                 $byMallStatus[] = ['mall_code' => $code, 'mall_name' => $name, 'status' => $status, 'count' => $cnt];
 
-                // per-campaign totals — top_customer/top_merchant are campaign-level,
-                // same value on every row for a given campaign_id, set once on first encounter
-                if ($campaignId !== '') {
-                    if (!isset($byCampaign[$campaignId])) {
-                        $byCampaign[$campaignId] = [
-                            'campaign_id'   => $campaignId,
-                            'campaign_name' => $campaignNm,
-                            'top_customer'  => $topCustomer,
-                            'top_merchant'  => $topMerchant,
-                            'count'         => 0,
-                        ];
-                    }
-                    $byCampaign[$campaignId]['count'] += $cnt;
-                }
-
-                // filtered total + status — only include allowed malls
+                // Apply mall filter — counts campaign, total, and status only for allowed malls
                 $isAllowed = $malls === null || in_array($code, $malls, true);
                 if ($isAllowed) {
                     $totalFiltered += $cnt;
                     $byStatusFiltered[$status] = ($byStatusFiltered[$status] ?? 0) + $cnt;
+
+                    // Per-campaign totals filtered by directory (mall)
+                    if ($campaignId !== '') {
+                        $uc = (int) ($row['unique_customers'] ?? 0);
+                        if (!isset($byCampaign[$campaignId])) {
+                            $byCampaign[$campaignId] = [
+                                'campaign_id'      => $campaignId,
+                                'campaign_name'    => $campaignNm,
+                                'top_customer'     => $topCustomer,
+                                'top_merchant'     => $topMerchant,
+                                'count'            => 0,
+                                'unique_customers' => 0,
+                            ];
+                        }
+                        $byCampaign[$campaignId]['count'] += $cnt;
+                        // unique_customers is per (campaign, mall) — take max across status rows
+                        if ($uc > $byCampaign[$campaignId]['unique_customers']) {
+                            $byCampaign[$campaignId]['unique_customers'] = $uc;
+                        }
+                    }
                 }
             }
 

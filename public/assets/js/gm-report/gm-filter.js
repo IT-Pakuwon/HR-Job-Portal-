@@ -334,6 +334,36 @@
         document.addEventListener('click', closeAllPanels);
     }
 
+    // ── Public API — lets other scripts reload departments with a custom URL ─────
+    window.gmFilter = {
+        reloadDepts: function (url) {
+            if (url) {
+                fetch(url + '?' + 'date_from=' + encodeURIComponent(state.dateFrom)
+                        + '&date_to=' + encodeURIComponent(state.dateTo)
+                        + (state.cpnyId ? '&cpny_id=' + encodeURIComponent(state.cpnyId) : ''), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) {
+                        // res.data is an array of strings (isort) or objects {id,name} (HR)
+                        deptData = (res.data || []).map(function (item) {
+                            return typeof item === 'string'
+                                ? { id: item, name: item }
+                                : item;
+                        });
+                        state.depts = [];
+                        utils.setText('gmDeptLabel', 'All Departments');
+                        renderDeptPanel();
+                    })
+                    .catch(function () {});
+            } else {
+                state.depts = [];
+                utils.setText('gmDeptLabel', 'All Departments');
+                loadDepartments();
+            }
+        },
+    };
+
     // ── Init ──────────────────────────────────────────────────────────────────
     function init() {
         applyPreset('this-year');   // sets dateFrom/dateTo before first fetch

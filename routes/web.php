@@ -1541,6 +1541,14 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/departments', 'departments')->name('gm.departments');
                 Route::get('/api/budget-by-month', 'budgetByMonth')->name('gm.budget-by-month');
 
+                // Isort API endpoints
+                Route::get('/api/isort-summary',          'isortSummary')          ->name('gm.isort-summary');
+                Route::get('/api/isort-kaizen-by-type',   'isortKaizenByType')     ->name('gm.isort-kaizen-by-type');
+                Route::get('/api/isort-incidents',         'isortIncidentsByName')  ->name('gm.isort-incidents');
+                Route::get('/api/isort-dept-summary',      'isortDeptSummary')      ->name('gm.isort-dept-summary');
+                Route::get('/api/isort-available-depts',   'isortAvailableDepts')   ->name('gm.isort-available-depts');
+                Route::get('/api/isort-detail',            'isortDetail')           ->name('gm.isort-detail');
+
                 // PG Card API endpoints
                 Route::get('/api/pgcard-top-customers', 'pgcardTopCustomers')->name('gm.pgcard-top-customers');
                 Route::get('/api/pgcard-top-tenants',   'pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
