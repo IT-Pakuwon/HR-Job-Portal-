@@ -47,6 +47,7 @@ use App\Http\Controllers\IMBudgetNonPurchController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
 use App\Http\Controllers\Integration\IFCAAPIBASTController;
 use App\Http\Controllers\Integration\IFCAAPIGRNController;
+use App\Http\Controllers\Integration\IFCAAPIGRNReturnController;
 use App\Http\Controllers\Integration\IFCAAPIIssueController;
 use App\Http\Controllers\Integration\IFCAAPINonStockController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
@@ -2267,6 +2268,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/filters', [IFCAAPIGRNController::class, 'filters'])->name('filters');
             Route::get('list', [IFCAAPIGRNController::class, 'list'])->name('list');
             Route::post('process', [IFCAAPIGRNController::class, 'process'])->name('process');
+        });
+
+        // ✅ module: GRN Return API endpoints
+        Route::prefix('ifcaintegration/grnreturn')->name('ifcaintegration.grnreturn.')->group(function () {
+            Route::get('/filters', [IFCAAPIGRNReturnController::class, 'filters'])->name('filters');
+            Route::get('list', [IFCAAPIGRNReturnController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIGRNReturnController::class, 'process'])->name('process');
         });
 
         // ✅ module: BAST API endpoints
