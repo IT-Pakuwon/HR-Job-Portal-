@@ -49,6 +49,7 @@ use App\Http\Controllers\Integration\IFCAAPIBASTController;
 use App\Http\Controllers\Integration\IFCAAPIGRNController;
 use App\Http\Controllers\Integration\IFCAAPIGRNReturnController;
 use App\Http\Controllers\Integration\IFCAAPIIssueController;
+use App\Http\Controllers\Integration\IFCAAPIIssueReturnController;
 use App\Http\Controllers\Integration\IFCAAPINonStockController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
 use App\Http\Controllers\Integration\IFCAAPIStockController;
@@ -2289,6 +2290,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('filters', [IFCAAPIIssueController::class, 'filters'])->name('filters');
             Route::get('list', [IFCAAPIIssueController::class, 'list'])->name('list');
             Route::post('process', [IFCAAPIIssueController::class, 'process'])->name('process');
+        });
+
+        Route::prefix('ifcaintegration/issuereturn')->name('ifcaintegration.issuereturn.')->group(function () {
+            Route::get('filters', [IFCAAPIIssueReturnController::class, 'filters'])->name('filters');
+            Route::get('list', [IFCAAPIIssueReturnController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIIssueReturnController::class, 'process'])->name('process');
         });
 
         // ✅ module: ISSUE API endpoints (Solomon)

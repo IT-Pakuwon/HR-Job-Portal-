@@ -71,10 +71,11 @@
                                     Issue
                                 </button>
 
-                                <button type="button" data-tab="tab-receipt"
+                                <button type="button" data-tab="tab-issue-return"
                                     class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
-                                    Receipt (soon)
+                                    Issue Return
                                 </button>
+
                             </div>
                         </div>
                     </div>
@@ -162,6 +163,10 @@
                     @include('pages.integration.ifcaapiissue')
                 </div>
 
+                <div id="tab-issue-return" class="hidden">
+                    @include('pages.integration.ifcaapiissuereturn')
+                </div>
+
                 <div id="tab-po-sl" class="hidden">
                     @include('pages.integration.slapipo')
                 </div>
@@ -195,11 +200,10 @@
                 'tab-grn-return',
                 'tab-bast',
                 'tab-issue',
+                'tab-issue-return',
                 'tab-po-sl',
                 'tab-grn-sl',
-                'tab-issue-sl',
-                'tab-sttb-return',
-                'tab-receipt'
+                'tab-issue-sl'
             ];
 
             const tabPanels = panelIds
