@@ -554,6 +554,7 @@
                 },
             },
             tooltip: {
+                fixed: { enabled: true, position: 'topRight', offsetX: -8, offsetY: 8 },
                 custom: function (opts) {
                     var idx     = opts.dataPointIndex;
                     var row     = data[idx] || {};
