@@ -460,83 +460,53 @@
                             if (!row.can_toggle) return `<span class="text-gray-300 text-xs">-</span>`;
                             if (!row.jobposting_status) return `<span class="text-gray-400 text-sm">-</span>`;
                             if (row.status !== 'C') return `<span class="text-gray-300 text-xs">-</span>`;
+                            if (row.jobposting_status === 'X') return `<span class="text-red-500 text-xs font-semibold">Cancelled</span>`;
 
-                            let buttons = `<div class="flex items-center gap-2 justify-end">`;
+                            let items = '';
 
-                            // 🔵 POSTED → can Close + Cancel
                             if (row.jobposting_status === 'P') {
-                                buttons += `
-                                    <button
-                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                        bg-red-100 text-red-700 hover:bg-red-200 transition"
-                                        data-docid="${row.docid}"
-                                        data-status="P"
-                                    >
-                                        🔒 Close
-                                    </button>
-                                `;
-
-                                buttons += `
-                                    <button
-                                        class="cancel-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                        bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                                        data-docid="${row.docid}"
-                                    >
-                                        ✖ Cancel
-                                    </button>
-                                `;
+                                items += `<button class="toggle-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-600" data-docid="${row.docid}" data-status="P">🔒 Close</button>`;
+                                items += `<button class="cancel-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-600" data-docid="${row.docid}">✖ Cancel</button>`;
+                            } else if (row.jobposting_status === 'C') {
+                                items += `<button class="toggle-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-green-600" data-docid="${row.docid}" data-status="C">🔓 Reopen</button>`;
+                                items += `<button class="cancel-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-600" data-docid="${row.docid}">✖ Cancel</button>`;
+                            } else if (row.jobposting_status === 'H') {
+                                items += `<button class="toggle-status w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-blue-600" data-docid="${row.docid}" data-status="H">🔄 Open</button>`;
                             }
 
-                            // 🟢 CLOSED → can Reopen + Cancel
-                            if (row.jobposting_status === 'C') {
-                                buttons += `
-                                <button
-                                    class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                    bg-green-100 text-green-700 hover:bg-green-200 transition"
-                                    data-docid="${row.docid}"
-                                    data-status="C"
-                                >
-                                    🔓 Reopen
-                                </button>
-                                `;
-
-                                buttons += `
-                                    <button
-                                        class="cancel-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                        bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                                        data-docid="${row.docid}"
-                                    >
-                                        ✖ Cancel
-                                    </button>
-                                `;
-                            }
-
-                            if (row.jobposting_status === 'H') {
-                                buttons += `
-                                    <button
-                                        class="toggle-status inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md
-                                        bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
-                                        data-docid="${row.docid}"
-                                        data-status="H"
-                                    >
-                                        🔄 Open
-                                    </button>
-                                `;
-                            }
-
-                            // ❌ CANCELLED → no action
-                            if (row.jobposting_status === 'X') {
-                                return `<span class="text-red-500 text-xs font-semibold">Cancelled</span>`;
-                            }
-
-                            buttons += `</div>`;
-                            return buttons;
+                            return `
+                                <div class="jp-dropdown relative inline-block">
+                                    <button class="jp-toggle inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300">Action ▾</button>
+                                </div>
+                                <div class="jp-menu-data" data-docid="${row.docid}" style="display:none">${items}</div>`;
                         }
                     }
                 ]
             });
 
-                $('#personnelsTable').on('click', '.toggle-status', function() {
+            // ── FIXED DROPDOWN (personnels) ───────────────────────────
+            const $jpMenu = $('<div id="jp-fixed-menu" class="hidden fixed z-[9999] w-44 rounded-md shadow-lg bg-white border border-gray-200 py-1"></div>').appendTo('body');
+
+            $(document).on('click', '.jp-toggle', function(e) {
+                e.stopPropagation();
+                const docid = $(this).closest('.jp-dropdown').next('.jp-menu-data').data('docid');
+                const html  = $(`.jp-menu-data[data-docid="${docid}"]`).html();
+                $jpMenu.html(html || '');
+
+                const rect = this.getBoundingClientRect();
+                const jpW  = 176;
+                $jpMenu.css({
+                    top:  rect.bottom + 4,
+                    left: Math.max(8, Math.min(rect.right - jpW, window.innerWidth - jpW - 8)),
+                });
+
+                const isOpen = !$jpMenu.hasClass('hidden');
+                $jpMenu.toggleClass('hidden', isOpen);
+            });
+
+            $(document).on('click', function() { $jpMenu.addClass('hidden'); });
+
+                $(document).on('click', '.toggle-status', function() {
 
                     let btn = $(this);
                     let docid = btn.data('docid');
@@ -628,7 +598,7 @@
                     });
                 });
 
-                $('#personnelsTable').on('click', '.cancel-status', function () {
+                $(document).on('click', '.cancel-status', function () {
 
                 let btn = $(this);
                 let docid = btn.data('docid');
