@@ -1044,6 +1044,149 @@ class GmReportController extends Controller
         }
     }
 
+    // ── API: Isort — Top 10 Problem Areas (from tb_detail_kaizen_dashboard) ─────────
+
+    public function isortTopAreas(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId     = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites      = $this->allowedIsortSites($cpnyId);
+            $deptFilter = $this->buildIsortDeptFilter($request);
+            $stacked    = $cpnyId === null;
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => [], 'stacked' => false, 'all_sites' => []]);
+            }
+
+            $siteFilter = $sites !== null
+                ? "AND site IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
+                : '';
+
+            $bq = new BigQueryService();
+            $p  = self::ISORT_PROJECT;
+            $d  = self::ISORT_DATASET;
+
+            if ($stacked) {
+                $sql = <<<SQL
+                    SELECT
+                        COALESCE(area_name, 'Unknown') AS area_name,
+                        COALESCE(site, 'Unknown')      AS site,
+                        COUNT(*)                       AS cnt
+                    FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                    WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                      AND area_name IS NOT NULL
+                      {$deptFilter}
+                    GROUP BY area_name, site
+                SQL;
+
+                $allAreas = [];
+                $allSites = [];
+                foreach ($bq->query($sql) as $row) {
+                    $area = (string) ($row['area_name'] ?? 'Unknown');
+                    $site = (string) ($row['site']      ?? 'Unknown');
+                    $cnt  = (int)    ($row['cnt']        ?? 0);
+                    if (!isset($allAreas[$area])) {
+                        $allAreas[$area] = ['area_name' => $area, 'total' => 0, 'by_site' => []];
+                    }
+                    $allAreas[$area]['total']          += $cnt;
+                    $allAreas[$area]['by_site'][$site]  = ($allAreas[$area]['by_site'][$site] ?? 0) + $cnt;
+                    $allSites[$site] = true;
+                }
+                usort($allAreas, fn ($a, $b) => $b['total'] - $a['total']);
+                $sites_list = array_keys($allSites);
+                sort($sites_list);
+
+                return response()->json([
+                    'data'      => array_values(array_slice($allAreas, 0, 10)),
+                    'stacked'   => true,
+                    'all_sites' => $sites_list,
+                ]);
+            }
+
+            $sql = <<<SQL
+                SELECT
+                    COALESCE(area_name, 'Unknown') AS area_name,
+                    COUNT(*) AS total
+                FROM `{$p}.{$d}.tb_detail_kaizen_dashboard`
+                WHERE DATE(issue_date) BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  AND area_name IS NOT NULL
+                  {$siteFilter}
+                  {$deptFilter}
+                GROUP BY area_name
+                ORDER BY total DESC
+                LIMIT 10
+            SQL;
+
+            $data = [];
+            foreach ($bq->query($sql) as $row) {
+                $data[] = [
+                    'area_name' => (string) ($row['area_name'] ?? 'Unknown'),
+                    'total'     => (int)    ($row['total']     ?? 0),
+                ];
+            }
+
+            return response()->json(['data' => $data, 'stacked' => false, 'all_sites' => []]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'stacked' => false, 'all_sites' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: Isort — Monthly trend (from tb_kaizen_dashboard_summary_daily) ─────────
+
+    public function isortMonthlyTrend(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites  = $this->allowedIsortSites($cpnyId);
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => []]);
+            }
+
+            $siteFilter = $sites !== null
+                ? "AND site IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
+                : '';
+            $deptFilter = $this->buildIsortDeptFilter($request);
+
+            $bq = new BigQueryService();
+            $p  = self::ISORT_PROJECT;
+            $d  = self::ISORT_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    FORMAT_DATE('%Y-%m', issue_dt)   AS month,
+                    COALESCE(SUM(total_case),     0) AS total_case,
+                    COALESCE(SUM(total_closed),   0) AS total_closed,
+                    COALESCE(SUM(total_open),     0) AS total_open,
+                    COALESCE(SUM(total_overdue),  0) AS total_overdue
+                FROM `{$p}.{$d}.tb_kaizen_dashboard_summary_daily`
+                WHERE issue_dt BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  {$siteFilter}
+                  {$deptFilter}
+                GROUP BY month
+                ORDER BY month
+            SQL;
+
+            $rows = $bq->query($sql);
+            $data = [];
+            foreach ($rows as $row) {
+                $data[] = [
+                    'month'         => (string) ($row['month']         ?? ''),
+                    'total_case'    => (int)    ($row['total_case']    ?? 0),
+                    'total_closed'  => (int)    ($row['total_closed']  ?? 0),
+                    'total_open'    => (int)    ($row['total_open']    ?? 0),
+                    'total_overdue' => (int)    ($row['total_overdue'] ?? 0),
+                ];
+            }
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
     // ── API: Isort — Detail Records (from tb_detail_kaizen_dashboard) ────────────
 
     public function isortDetail(Request $request)
@@ -1286,6 +1429,231 @@ class GmReportController extends Controller
         }
     }
 
+    // ── API: PG Card — Overall KPI summary (transactions, spending, members) ──
+
+    public function pgcardKpiSummary(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $malls  = $this->allowedPgcardMalls($cpnyId);
+
+            if ($malls !== null && empty($malls)) {
+                return response()->json(['data' => ['total_txn' => 0, 'total_spending' => 0, 'active_members' => 0, 'avg_txn_value' => 0]]);
+            }
+
+            $mallCond = $malls !== null
+                ? "AND d.directory_code IN ('" . implode("','", array_map('addslashes', $malls)) . "')"
+                : '';
+
+            $bq      = new BigQueryService();
+            $project = self::PGCARD_PROJECT;
+            $dataset = self::PGCARD_DATASET;
+
+            // Totals query
+            $sqlTotals = <<<SQL
+                SELECT
+                    COUNT(*)                    AS total_txn,
+                    COUNT(DISTINCT t.member_id) AS active_members,
+                    COALESCE(SUM(t.amount), 0)  AS total_spending,
+                    COALESCE(AVG(t.amount), 0)  AS avg_txn_value
+                FROM `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                INNER JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+                    ON d.id = t.directory_id {$mallCond}
+                WHERE DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))
+                    BETWEEN '{$dateFrom}' AND '{$dateTo}'
+            SQL;
+
+            // Per-mall breakdown query
+            $sqlMall = <<<SQL
+                SELECT
+                    COALESCE(d.directory_code, 'Unknown')  AS mall_code,
+                    COUNT(*)                               AS txn_count,
+                    COALESCE(SUM(t.amount), 0)             AS total_spending,
+                    COUNT(DISTINCT t.member_id)            AS active_members
+                FROM `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                INNER JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+                    ON d.id = t.directory_id {$mallCond}
+                WHERE DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))
+                    BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                GROUP BY d.directory_code
+                ORDER BY txn_count DESC
+            SQL;
+
+            $row    = ($bq->query($sqlTotals))[0] ?? [];
+            $byMall = [];
+            foreach ($bq->query($sqlMall) as $mr) {
+                $byMall[] = [
+                    'mall_code'      => (string) ($mr['mall_code']      ?? ''),
+                    'txn_count'      => (int)    ($mr['txn_count']      ?? 0),
+                    'total_spending' => (float)  ($mr['total_spending'] ?? 0),
+                    'active_members' => (int)    ($mr['active_members'] ?? 0),
+                ];
+            }
+
+            // ── Insights query — only when a specific company is filtered ──────────
+            // Adds top customer/tenant names so the GM sidebar shows meaningful context.
+            $insights = null;
+            if ($malls !== null && !empty($malls)) {
+                $sqlInsights = <<<SQL
+                    WITH txn_base AS (
+                        SELECT t.member_id, t.merchant_id, t.amount
+                        FROM `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                        INNER JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+                            ON d.id = t.directory_id {$mallCond}
+                        WHERE DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))
+                            BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                    ),
+                    member_stats AS (
+                        SELECT member_id,
+                               COUNT(*)    AS txn_count,
+                               SUM(amount) AS total_spending,
+                               ROW_NUMBER() OVER (ORDER BY COUNT(*)    DESC) AS rank_txn,
+                               ROW_NUMBER() OVER (ORDER BY SUM(amount) DESC) AS rank_spending
+                        FROM txn_base GROUP BY member_id
+                    ),
+                    merchant_stats AS (
+                        SELECT merchant_id,
+                               COUNT(*)    AS txn_count,
+                               SUM(amount) AS total_spending,
+                               AVG(amount) AS avg_txn,
+                               ROW_NUMBER() OVER (ORDER BY COUNT(*)    DESC) AS rank_txn,
+                               ROW_NUMBER() OVER (ORDER BY SUM(amount) DESC) AS rank_spending,
+                               ROW_NUMBER() OVER (ORDER BY AVG(amount) DESC) AS rank_avg
+                        FROM txn_base GROUP BY merchant_id
+                    ),
+                    new_members AS (
+                        SELECT COUNT(DISTINCT member_id) AS cnt FROM (
+                            SELECT member_id,
+                                   MIN(DATE(DATETIME(TIMESTAMP(transaction_date), 'Asia/Bangkok'))) AS first_txn
+                            FROM `{$project}.{$dataset}.pgcard_member_transactions_src`
+                            GROUP BY member_id
+                        ) WHERE first_txn BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                    )
+                    SELECT 'top_customer_txn' AS metric,
+                           COALESCE(m.fullname, CAST(ms.member_id AS STRING)) AS name,
+                           CAST(ms.txn_count AS FLOAT64) AS value1, ms.total_spending AS value2
+                    FROM member_stats ms
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_members_src` m ON m.id = ms.member_id
+                    WHERE ms.rank_txn = 1
+                    UNION ALL
+                    SELECT 'top_customer_spending',
+                           COALESCE(m.fullname, CAST(ms.member_id AS STRING)),
+                           ms.total_spending, CAST(ms.txn_count AS FLOAT64)
+                    FROM member_stats ms
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_members_src` m ON m.id = ms.member_id
+                    WHERE ms.rank_spending = 1
+                    UNION ALL
+                    SELECT 'top_tenant_txn',
+                           COALESCE(mr.merchant_name, CAST(mts.merchant_id AS STRING)),
+                           CAST(mts.txn_count AS FLOAT64), mts.total_spending
+                    FROM merchant_stats mts
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` mr ON mr.id = mts.merchant_id
+                    WHERE mts.rank_txn = 1
+                    UNION ALL
+                    SELECT 'top_tenant_spending',
+                           COALESCE(mr.merchant_name, CAST(mts.merchant_id AS STRING)),
+                           mts.total_spending, CAST(mts.txn_count AS FLOAT64)
+                    FROM merchant_stats mts
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` mr ON mr.id = mts.merchant_id
+                    WHERE mts.rank_spending = 1
+                    UNION ALL
+                    SELECT 'top_tenant_avg',
+                           COALESCE(mr.merchant_name, CAST(mts.merchant_id AS STRING)),
+                           mts.avg_txn, CAST(mts.txn_count AS FLOAT64)
+                    FROM merchant_stats mts
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` mr ON mr.id = mts.merchant_id
+                    WHERE mts.rank_avg = 1
+                    UNION ALL
+                    SELECT 'new_members', NULL, CAST(nm.cnt AS FLOAT64), NULL FROM new_members nm
+                SQL;
+
+                $raw = [];
+                foreach ($bq->query($sqlInsights) as $iRow) {
+                    $raw[(string) ($iRow['metric'] ?? '')] = [
+                        'name'   => (string) ($iRow['name']   ?? ''),
+                        'value1' => (float)  ($iRow['value1'] ?? 0),
+                        'value2' => (float)  ($iRow['value2'] ?? 0),
+                    ];
+                }
+
+                $insights = [
+                    'top_customer_txn'      => $raw['top_customer_txn']      ?? null,
+                    'top_customer_spending' => $raw['top_customer_spending'] ?? null,
+                    'top_tenant_txn'        => $raw['top_tenant_txn']        ?? null,
+                    'top_tenant_spending'   => $raw['top_tenant_spending']   ?? null,
+                    'top_tenant_avg'        => $raw['top_tenant_avg']        ?? null,
+                    'new_members_count'     => (int) ($raw['new_members']['value1'] ?? 0),
+                ];
+            }
+
+            return response()->json([
+                'data' => [
+                    'total_txn'      => (int)   ($row['total_txn']      ?? 0),
+                    'active_members' => (int)   ($row['active_members'] ?? 0),
+                    'total_spending' => (float) ($row['total_spending'] ?? 0),
+                    'avg_txn_value'  => (float) ($row['avg_txn_value']  ?? 0),
+                    'by_mall'        => $byMall,
+                    'insights'       => $insights,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => ['total_txn' => 0, 'total_spending' => 0, 'active_members' => 0, 'avg_txn_value' => 0], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: PG Card — Monthly transaction trend ───────────────────────────────
+
+    public function pgcardMonthlyTrend(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $malls  = $this->allowedPgcardMalls($cpnyId);
+
+            if ($malls !== null && empty($malls)) {
+                return response()->json(['data' => []]);
+            }
+
+            $mallCond = $malls !== null
+                ? "AND d.directory_code IN ('" . implode("','", array_map('addslashes', $malls)) . "')"
+                : '';
+
+            $bq      = new BigQueryService();
+            $project = self::PGCARD_PROJECT;
+            $dataset = self::PGCARD_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    FORMAT_DATE('%Y-%m', DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))) AS month,
+                    COUNT(*)                    AS txn_count,
+                    COUNT(DISTINCT t.member_id) AS unique_members,
+                    COALESCE(SUM(t.amount), 0)  AS total_spending
+                FROM `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                INNER JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+                    ON d.id = t.directory_id {$mallCond}
+                WHERE DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))
+                    BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                GROUP BY month
+                ORDER BY month
+            SQL;
+
+            $data = [];
+            foreach ($bq->query($sql) as $row) {
+                $data[] = [
+                    'month'          => (string) ($row['month']          ?? ''),
+                    'txn_count'      => (int)    ($row['txn_count']      ?? 0),
+                    'unique_members' => (int)    ($row['unique_members'] ?? 0),
+                    'total_spending' => (float)  ($row['total_spending'] ?? 0),
+                ];
+            }
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
     // ── API: PG Card — Total coupon STYW 2026 ────────────────────────────────
 
     public function pgcardCouponStyw(Request $request)
@@ -1293,140 +1661,199 @@ class GmReportController extends Controller
         try {
             ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
             $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
-            $malls = $this->allowedPgcardMalls($cpnyId); // null = all, [] = none, [...] = list
+            $malls  = $this->allowedPgcardMalls($cpnyId);
 
-            $bq = new BigQueryService();
+            $bq      = new BigQueryService();
             $project = self::PGCARD_PROJECT;
             $dataset = self::PGCARD_DATASET;
 
-            // One query: count by mall + status + campaign — serves donut, status pills, and campaign chart
-            $sql = <<<SQL
+            // ── Query 1: coupon count by print-mall + status (donut & status pills) ──
+            $sqlDonut = <<<SQL
                 WITH base AS (
                     SELECT DISTINCT
-                        mc.id                 AS member_coupon_id,
+                        mc.id                 AS coupon_id,
                         mc.status,
-                        mc.print_directory_id,
-                        mc.campaign_id,
-                        ph.user_id,
-                        t.member_id           AS txn_member_id,
-                        t.merchant_id         AS txn_merchant_id,
-                        DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok') AS transaction_date_gmt7
+                        mc.print_directory_id
                     FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
                     INNER JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
                         ON t.id = mc.transaction_id
-                    LEFT JOIN `{$project}.{$dataset}.pgcard_coupon_printed_histories_src` ph
-                        ON ph.member_coupon_id = mc.id
                     WHERE mc.campaign_id IN (110, 111, 112, 113, 114, 115, 121, 122, 123, 124)
-                      AND DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok')) BETWEEN '{$dateFrom}' AND '{$dateTo}'
-                ),
-                top_customer_per_campaign AS (
-                    SELECT campaign_id, top_customer FROM (
-                        SELECT
-                            b.campaign_id,
-                            COALESCE(m.fullname, CAST(b.txn_member_id AS STRING)) AS top_customer,
-                            ROW_NUMBER() OVER (PARTITION BY b.campaign_id ORDER BY COUNT(*) DESC) AS rn
-                        FROM base b
-                        LEFT JOIN `{$project}.{$dataset}.pgcard_members_src` m ON m.id = b.txn_member_id
-                        GROUP BY b.campaign_id, b.txn_member_id, m.fullname
-                    ) WHERE rn = 1
-                ),
-                top_merchant_per_campaign AS (
-                    SELECT campaign_id, top_merchant FROM (
-                        SELECT
-                            b.campaign_id,
-                            COALESCE(mr.merchant_name, CAST(b.txn_merchant_id AS STRING)) AS top_merchant,
-                            ROW_NUMBER() OVER (PARTITION BY b.campaign_id ORDER BY COUNT(*) DESC) AS rn
-                        FROM base b
-                        LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` mr ON mr.id = b.txn_merchant_id
-                        GROUP BY b.campaign_id, b.txn_merchant_id, mr.merchant_name
-                    ) WHERE rn = 1
-                ),
-                unique_per_campaign_mall AS (
-                    SELECT
-                        campaign_id,
-                        print_directory_id,
-                        COUNT(DISTINCT txn_member_id) AS unique_customers
-                    FROM base
-                    GROUP BY campaign_id, print_directory_id
+                      AND DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))
+                          BETWEEN '{$dateFrom}' AND '{$dateTo}'
                 )
                 SELECT
-                    COALESCE(d.directory_code, 'Unknown')                      AS mall_code,
-                    COALESCE(d.directory_name, 'Unknown')                      AS mall_name,
-                    COALESCE(CAST(b.status AS STRING), '-')                    AS status,
-                    CAST(b.campaign_id AS STRING)                              AS campaign_id,
-                    COALESCE(c.name, CAST(b.campaign_id AS STRING))            AS campaign_name,
-                    COALESCE(tc.top_customer, '-')                             AS top_customer,
-                    COALESCE(tm.top_merchant, '-')                             AS top_merchant,
-                    COUNT(*)                                                   AS cnt,
-                    COALESCE(MAX(uc.unique_customers), 0)                      AS unique_customers
+                    COALESCE(d.directory_code, 'Unknown')   AS mall_code,
+                    COALESCE(d.directory_name, 'Unknown')   AS mall_name,
+                    COALESCE(CAST(b.status AS STRING), '-') AS status,
+                    COUNT(*)                                AS cnt
                 FROM base b
                 LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
                     ON d.id = b.print_directory_id
-                LEFT JOIN `{$project}.{$dataset}.pgcard_campaigns_src` c
-                    ON c.id = b.campaign_id
-                LEFT JOIN top_customer_per_campaign tc ON tc.campaign_id = b.campaign_id
-                LEFT JOIN top_merchant_per_campaign tm ON tm.campaign_id = b.campaign_id
-                LEFT JOIN unique_per_campaign_mall uc
-                    ON uc.campaign_id = b.campaign_id AND uc.print_directory_id = b.print_directory_id
-                GROUP BY d.directory_code, d.directory_name, b.status, b.campaign_id, c.name, tc.top_customer, tm.top_merchant
+                GROUP BY d.directory_code, d.directory_name, b.status
                 ORDER BY mall_code, status
             SQL;
 
-            $rows = $bq->query($sql);
-
             $byStatusFiltered = [];
             $byMallStatus     = [];
-            $byCampaign       = [];
             $totalFiltered    = 0;
 
-            foreach ($rows as $row) {
-                $code        = (string) ($row['mall_code']     ?? 'Unknown');
-                $name        = (string) ($row['mall_name']     ?? $code);
-                $status      = (string) ($row['status']        ?? '-');
-                $campaignId  = (string) ($row['campaign_id']   ?? '');
-                $campaignNm  = (string) ($row['campaign_name'] ?? $campaignId);
-                $topCustomer = (string) ($row['top_customer']  ?? '-');
-                $topMerchant = (string) ($row['top_merchant']  ?? '-');
-                $cnt         = (int)   ($row['cnt']            ?? 0);
+            foreach ($bq->query($sqlDonut) as $row) {
+                $code   = (string) ($row['mall_code'] ?? 'Unknown');
+                $name   = (string) ($row['mall_name'] ?? $code);
+                $status = (string) ($row['status']    ?? '-');
+                $cnt    = (int)    ($row['cnt']        ?? 0);
 
-                // full mall+status breakdown (unfiltered by company — for donut)
                 $byMallStatus[] = ['mall_code' => $code, 'mall_name' => $name, 'status' => $status, 'count' => $cnt];
 
-                // Apply mall filter — counts campaign, total, and status only for allowed malls
                 $isAllowed = $malls === null || in_array($code, $malls, true);
                 if ($isAllowed) {
                     $totalFiltered += $cnt;
                     $byStatusFiltered[$status] = ($byStatusFiltered[$status] ?? 0) + $cnt;
-
-                    // Per-campaign totals filtered by directory (mall)
-                    if ($campaignId !== '') {
-                        $uc = (int) ($row['unique_customers'] ?? 0);
-                        if (!isset($byCampaign[$campaignId])) {
-                            $byCampaign[$campaignId] = [
-                                'campaign_id'      => $campaignId,
-                                'campaign_name'    => $campaignNm,
-                                'top_customer'     => $topCustomer,
-                                'top_merchant'     => $topMerchant,
-                                'count'            => 0,
-                                'unique_customers' => 0,
-                            ];
-                        }
-                        $byCampaign[$campaignId]['count'] += $cnt;
-                        // unique_customers is per (campaign, mall) — take max across status rows
-                        if ($uc > $byCampaign[$campaignId]['unique_customers']) {
-                            $byCampaign[$campaignId]['unique_customers'] = $uc;
-                        }
-                    }
                 }
             }
+
+            // ── Query 2: campaign chart — VALID + Printed coupons, by txn directory ──
+            // txn_count  = qualifying transactions per (campaign, txn directory)
+            // cust_count = distinct members per (campaign, txn directory)
+            // *_total    = across ALL directories (for the no-filter case)
+            $sqlCampaign = <<<SQL
+                WITH valid_printed AS (
+                    SELECT DISTINCT
+                        mc.id          AS coupon_id,
+                        mc.campaign_id,
+                        t.member_id,
+                        t.merchant_id,
+                        t.directory_id AS txn_directory_id
+                    FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
+                    INNER JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                        ON t.id = mc.transaction_id
+                    WHERE mc.campaign_id IN (110, 111, 112, 113, 114, 115, 121, 122, 123, 124)
+                      AND mc.status = 'VALID'
+                      AND EXISTS (
+                          SELECT 1
+                          FROM `{$project}.{$dataset}.pgcard_coupon_printed_histories_src` ph
+                          WHERE ph.member_coupon_id = mc.id
+                      )
+                      AND DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))
+                          BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                ),
+                by_total AS (
+                    SELECT campaign_id,
+                           COUNT(*)                  AS txn_total,
+                           COUNT(DISTINCT member_id) AS cust_total
+                    FROM valid_printed
+                    GROUP BY campaign_id
+                ),
+                by_dir AS (
+                    SELECT
+                        vp.campaign_id,
+                        COALESCE(d.directory_code, 'Unknown') AS dir,
+                        COUNT(*)                              AS txn_count,
+                        COUNT(DISTINCT vp.member_id)          AS cust_count
+                    FROM valid_printed vp
+                    LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d
+                        ON d.id = vp.txn_directory_id
+                    GROUP BY vp.campaign_id, dir
+                ),
+                top_merchant AS (
+                    SELECT campaign_id, merchant_name FROM (
+                        SELECT
+                            vp.campaign_id,
+                            COALESCE(mr.merchant_name, CAST(vp.merchant_id AS STRING)) AS merchant_name,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY vp.campaign_id ORDER BY COUNT(*) DESC
+                            ) AS rn
+                        FROM valid_printed vp
+                        LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` mr
+                            ON mr.id = vp.merchant_id
+                        GROUP BY vp.campaign_id, vp.merchant_id, mr.merchant_name
+                    ) WHERE rn = 1
+                ),
+                top_customer AS (
+                    SELECT campaign_id, customer_name, txn_count FROM (
+                        SELECT
+                            vp.campaign_id,
+                            COALESCE(m.fullname, CAST(vp.member_id AS STRING)) AS customer_name,
+                            COUNT(*)                                            AS txn_count,
+                            ROW_NUMBER() OVER (
+                                PARTITION BY vp.campaign_id ORDER BY COUNT(*) DESC
+                            ) AS rn
+                        FROM valid_printed vp
+                        LEFT JOIN `{$project}.{$dataset}.pgcard_members_src` m
+                            ON m.id = vp.member_id
+                        GROUP BY vp.campaign_id, vp.member_id, m.fullname
+                    ) WHERE rn = 1
+                )
+                SELECT
+                    CAST(bd.campaign_id AS STRING)                     AS campaign_id,
+                    COALESCE(c.name, CAST(bd.campaign_id AS STRING))   AS campaign_name,
+                    bd.dir                                             AS txn_directory_code,
+                    bd.txn_count,
+                    bd.cust_count                                      AS customer_count,
+                    bt.txn_total,
+                    bt.cust_total                                      AS customer_total,
+                    COALESCE(tm.merchant_name, '-')                    AS top_merchant,
+                    COALESCE(tc.customer_name, '-')                    AS top_customer,
+                    COALESCE(tc.txn_count, 0)                          AS top_customer_txn
+                FROM by_dir bd
+                JOIN by_total bt ON bt.campaign_id = bd.campaign_id
+                LEFT JOIN `{$project}.{$dataset}.pgcard_campaigns_src` c ON c.id = bd.campaign_id
+                LEFT JOIN top_merchant tm ON tm.campaign_id = bd.campaign_id
+                LEFT JOIN top_customer tc ON tc.campaign_id = bd.campaign_id
+                ORDER BY bd.campaign_id, bd.txn_count DESC
+            SQL;
+
+            $byCampaign = [];
+            foreach ($bq->query($sqlCampaign) as $row) {
+                $cid     = (string) ($row['campaign_id']        ?? '');
+                $cname   = (string) ($row['campaign_name']      ?? $cid);
+                $dir     = (string) ($row['txn_directory_code'] ?? 'Unknown');
+                $txnDir  = (int)    ($row['txn_count']          ?? 0);
+                $custDir = (int)    ($row['customer_count']     ?? 0);
+                $txnTot  = (int)    ($row['txn_total']          ?? 0);
+                $custTot = (int)    ($row['customer_total']     ?? 0);
+
+                if (!isset($byCampaign[$cid])) {
+                    $byCampaign[$cid] = [
+                        'campaign_id'       => $cid,
+                        'campaign_name'     => $cname,
+                        'top_merchant'      => (string) ($row['top_merchant']    ?? '-'),
+                        'top_customer'      => (string) ($row['top_customer']    ?? '-'),
+                        'top_customer_txn'  => (int)    ($row['top_customer_txn'] ?? 0),
+                        '_txn_total'        => $txnTot,
+                        '_cust_total'       => $custTot,
+                        '_by_dir'           => [],
+                    ];
+                }
+                $byCampaign[$cid]['_by_dir'][$dir] = ['txn' => $txnDir, 'cust' => $custDir];
+            }
+
+            // Apply mall filter to produce final txn_count and customer_count per campaign
+            foreach ($byCampaign as &$camp) {
+                $dirs = $camp['_by_dir'];
+                if ($malls === null) {
+                    $camp['txn_count']      = $camp['_txn_total'];
+                    $camp['customer_count'] = $camp['_cust_total'];
+                } else {
+                    $txn = $cust = 0;
+                    foreach ($malls as $code) {
+                        $txn  += $dirs[$code]['txn']  ?? 0;
+                        $cust += $dirs[$code]['cust'] ?? 0;
+                    }
+                    $camp['txn_count']      = $txn;
+                    $camp['customer_count'] = $cust;
+                }
+                unset($camp['_txn_total'], $camp['_cust_total'], $camp['_by_dir']);
+            }
+            unset($camp);
+
+            $byCampaignOut = array_values($byCampaign);
+            usort($byCampaignOut, fn ($a, $b) => (int) $a['campaign_id'] - (int) $b['campaign_id']);
 
             $byStatusOut = [];
             foreach ($byStatusFiltered as $status => $count) {
                 $byStatusOut[] = ['status' => $status, 'count' => $count];
             }
-
-            $byCampaignOut = array_values($byCampaign);
-            usort($byCampaignOut, fn ($a, $b) => (int) $a['campaign_id'] - (int) $b['campaign_id']);
 
             return response()->json([
                 'data' => [
@@ -1446,6 +1873,79 @@ class GmReportController extends Controller
                 ],
                 'error' => $e->getMessage(),
             ]);
+        }
+    }
+
+    // ── API: PG Card — 10 sample transactions per campaign (debug) ───────────────
+
+    public function pgcardCampaignSamples(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+
+            $bq      = new BigQueryService();
+            $project = self::PGCARD_PROJECT;
+            $dataset = self::PGCARD_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    CAST(mc.campaign_id AS STRING)                                      AS campaign_id,
+                    COALESCE(c.name, CAST(mc.campaign_id AS STRING))                    AS campaign_name,
+                    COALESCE(d_txn.directory_code, 'Unknown')                           AS txn_directory_code,
+                    COALESCE(d_print.directory_code, 'Unknown')                         AS print_directory_code,
+                    FORMAT_DATETIME('%Y-%m-%d',
+                        DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))        AS transaction_date,
+                    COALESCE(m.fullname, CAST(t.member_id AS STRING))                   AS member_name,
+                    COALESCE(mr.merchant_name, CAST(t.merchant_id AS STRING))           AS merchant_name,
+                    t.amount,
+                    CAST(mc.status AS STRING)                                           AS coupon_status
+                FROM `{$project}.{$dataset}.pgcard_member_coupons_src` mc
+                INNER JOIN `{$project}.{$dataset}.pgcard_member_transactions_src` t
+                    ON t.id = mc.transaction_id
+                LEFT JOIN `{$project}.{$dataset}.pgcard_campaigns_src` c
+                    ON c.id = mc.campaign_id
+                LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d_txn
+                    ON d_txn.id = t.directory_id
+                LEFT JOIN `{$project}.{$dataset}.pgcard_directories_src` d_print
+                    ON d_print.id = mc.print_directory_id
+                LEFT JOIN `{$project}.{$dataset}.pgcard_members_src` m
+                    ON m.id = t.member_id
+                LEFT JOIN `{$project}.{$dataset}.pgcard_merchants_src` mr
+                    ON mr.id = t.merchant_id
+                WHERE mc.campaign_id IN (110, 111, 112, 113, 114, 115, 121, 122, 123, 124)
+                  AND DATE(DATETIME(TIMESTAMP(t.transaction_date), 'Asia/Bangkok'))
+                      BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                QUALIFY ROW_NUMBER() OVER (
+                    PARTITION BY mc.campaign_id ORDER BY t.transaction_date DESC
+                ) <= 10
+                ORDER BY campaign_id, transaction_date DESC
+            SQL;
+
+            $rows      = $bq->query($sql);
+            $byCampaign = [];
+            foreach ($rows as $row) {
+                $cid = (string) ($row['campaign_id'] ?? '');
+                if (!isset($byCampaign[$cid])) {
+                    $byCampaign[$cid] = [
+                        'campaign_id'   => $cid,
+                        'campaign_name' => (string) ($row['campaign_name'] ?? $cid),
+                        'samples'       => [],
+                    ];
+                }
+                $byCampaign[$cid]['samples'][] = [
+                    'txn_directory'    => (string) ($row['txn_directory_code']   ?? ''),
+                    'print_directory'  => (string) ($row['print_directory_code'] ?? ''),
+                    'transaction_date' => (string) ($row['transaction_date']     ?? ''),
+                    'member_name'      => (string) ($row['member_name']          ?? ''),
+                    'merchant_name'    => (string) ($row['merchant_name']        ?? ''),
+                    'amount'           => (float)  ($row['amount']               ?? 0),
+                    'coupon_status'    => (string) ($row['coupon_status']        ?? ''),
+                ];
+            }
+
+            return response()->json(['data' => array_values($byCampaign)]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
         }
     }
 

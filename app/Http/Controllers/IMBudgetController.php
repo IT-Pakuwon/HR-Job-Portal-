@@ -293,263 +293,7 @@ class IMBudgetController extends Controller
         $approvalCtl = app(ApprovalController::class);
         $approvalCtl->loadLines($doctype, $cpnyid, $departementid);
 
-        // DB::beginTransaction();
-        // try {
-
-        //     $auto = $this->nextAutonbr(
-        //         $doctype,
-        //         $year,
-        //         $month,
-        //         $username,
-        //         'IMBudget'
-        //     );
-        //     $urutan = (int) $auto['next'];
-
-        //     $tglbln = substr((string)$year, 2) . $month;   // YYMM
-        //     $docid  = $doctype . $tglbln . sprintf("%04d", $urutan);
-
-        //     // === 1) HEADER IMBudget ===
-        //     $header = new TrIMBudget();
-        //     $header->imbudgetid               = $docid;
-        //     $header->imbudgetdate             = $dt->toDateString();
-        //     $header->doctype                  = $imdoctype;
-        //     $header->csid                     = $csid;
-        //     $header->sppbjktid                = $sppbjktid;
-        //     $header->cpny_id                  = $cpnyid;
-        //     $header->department_id            = $departementid;
-        //     $header->user_peminta             = $user_peminta;
-        //     $header->keperluan                = $keperluan;
-        //     // $header->imbudgetnote             = $request->input('imbudgetnote');
-        //     $header->budget_perpost           = $perpost;
-        //     $header->total_budget_needed      = 0;
-        //     $header->total_budget_requested   = 0;
-        //     $header->status                   = 'H';
-        //     $header->created_by               = $username;
-        //     $header->save();
-
-        //     // === 2) AGREGASI DETAIL CS → GROUPING (amount_expense)
-        //     $rowAmount = function ($d) use ($toFloat) : float {
-        //         // pakai vendor selected: ambil vendortotalprice slot yg selected
-        //         for ($i = 1; $i <= 6; $i++) {
-        //             $sel = (bool) ($d->{"vendor{$i}selected"} ?? false);
-        //             if ($sel) {
-        //                 $tot = $toFloat($d->{"vendortotalprice{$i}"} ?? null);
-        //                 return $tot !== null ? max($tot, 0.0) : 0.0;
-        //             }
-        //         }
-
-        //         // fallback: qty * last price
-        //         $qty   = $toFloat($d->qty) ?? 0.0;
-        //         $price = $toFloat($d->inventory_last_price) ?? 0.0;
-        //         return max($qty * $price, 0.0);
-        //     };
-
-        //     // key grouping (harus include activity_descr supaya tidak ketabrak)
-        //     $groups = []; // key => ['sum'=>..., ...]
-        //     foreach ($rows as $d) {
-
-        //         $g_perpost  = $d->budget_perpost              ?? $perpost;
-        //         $g_cpny     = $d->budget_cpny_id              ?? $cpnyid;
-        //         $g_bu       = $d->budget_business_unit_id     ?? null;
-        //         $g_deptfin  = $d->budget_department_fin_id    ?? null;
-        //         $g_account  = $d->budget_account_id           ?? null;
-        //         $g_activity = $d->budget_activity_id          ?? null;
-        //         $g_actdescr = $d->budget_activity_descr       ?? null;
-
-        //         $amount = $rowAmount($d);
-        //         if ($amount <= 0) continue;
-
-        //         $key = implode('|', [
-        //             (string)$g_perpost,
-        //             (string)$g_cpny,
-        //             (string)$g_bu,
-        //             (string)$g_deptfin,
-        //             (string)$g_account,
-        //             (string)$g_activity,
-        //             (string)$g_actdescr,
-        //         ]);
-
-        //         if (!isset($groups[$key])) {
-        //             $groups[$key] = [
-        //                 'sum'      => 0.0,
-        //                 'perpost'  => $g_perpost,
-        //                 'cpny'     => $g_cpny,
-        //                 'bu'       => $g_bu,
-        //                 'deptfin'  => $g_deptfin,
-        //                 'account'  => $g_account,
-        //                 'activity' => $g_activity,
-        //                 'actdescr' => $g_actdescr,
-        //             ];
-        //         }
-
-        //         $groups[$key]['sum'] += $amount;
-        //     }
-
-        //     if (empty($groups)) {
-        //         DB::rollBack();
-        //         return response()->json([
-        //             'success' => false,
-        //             'message' => "Tidak ada nilai expense yang valid untuk CS {$csid}.",
-        //         ], 422);
-        //     }
-
-        //     // === Helper ambil remain dari ms_budget (pakai total* sesuai rule kamu)
-        //     $getBudgetRemain = function ($perpost, $cpny, $bu, $deptfin, $account, $activity, $actdescr) : float {
-
-        //         $q = BudgetDetail::query()
-        //             ->where('perpost', $perpost)
-        //             ->where('cpny_id', $cpny)
-        //             ->where('status', 'C')
-        //             ->when($bu,      fn($q) => $q->where('business_unit_id', $bu))
-        //             ->when($deptfin, fn($q) => $q->where('department_fin_id', $deptfin))
-        //             ->when($account, fn($q) => $q->where('account_id', $account))
-        //             ->when($actdescr, fn($q) => $q->where('activity_descr', $actdescr))
-        //             ->when($activity,fn($q) => $q->where('activity_id', $activity));
-
-        //         $row = $q->first();
-        //         if (!$row) return 0.0;
-
-        //         $totalBudget     = (float)($row->totalbudget     ?? 0);
-        //         $totalAdditional = (float)($row->totalbudget_add ?? 0);
-        //         $totalReserve    = (float)($row->total_reserve   ?? 0);
-        //         $totalUsed       = (float)($row->total_used      ?? 0);
-
-        //         $remain = ($totalBudget + $totalAdditional) - ($totalReserve + $totalUsed);
-        //         // return max($remain, 0.0);
-        //         return $remain;
-
-        //     };
-           
-        //     // === 3) INSERT DETAIL hasil GROUP & hitung totals
-        //     $sumNeeded    = 0.0;
-        //     $sumRequested = 0.0;
-
-        //     foreach ($groups as $g) {
-
-        //         $expense = (float) $g['sum'];
-
-        //         $remain = (float) $getBudgetRemain(
-        //             $g['perpost'],
-        //             $g['cpny'],
-        //             $g['bu'],
-        //             $g['deptfin'],
-        //             $g['account'],
-        //             $g['activity'],
-        //             $g['actdescr']
-        //         );
-
-        //         /*
-        //         * remain = sisa budget saat ini
-        //         * expense = nilai CS yang mau dipakai
-        //         * needed = kekurangan budget
-        //         */
-        //         $budgetRemain = $remain + $expense; // asumsi reserve belum masuk hitungan remain, jadi kita tambahkan dulu
-        //         $needed = max($expense - $budgetRemain, 0.0);
-
-        //         // Kalau hanya mau insert yang kekurangan budget
-        //         if ($needed <= 0) {
-        //             continue;
-        //         }
-
-        //         $detail = new TrIMBudgetdetail();
-        //         $detail->imbudgetid                  = $docid;
-        //         $detail->csid                        = $csid;
-        //         $detail->sppbjktid                   = $sppbjktid;
-        //         $detail->doctype                     = $imdoctype;
-
-        //         $detail->budget_perpost              = $g['perpost'];
-        //         $detail->budget_cpny_id              = $g['cpny'];
-        //         $detail->budget_business_unit_id     = $g['bu'];
-        //         $detail->budget_department_fin_id    = $g['deptfin'];
-        //         $detail->budget_account_id           = $g['account'];
-        //         $detail->budget_activity_id          = $g['activity'];
-        //         $detail->budget_activity_descr       = $g['actdescr'];
-
-        //         $detail->amount_expense              = $expense;
-        //         $detail->budget_remain               = $budgetRemain;
-        //         $detail->budget_needed               = $needed;
-        //         $detail->budget_requested            = $needed;
-
-        //         $detail->status                      = 'P';
-        //         $detail->created_by                  = $username;
-        //         $detail->save();
-
-        //         $sumRequested += $expense;
-        //         $sumNeeded    += $needed;
-        //     }
-
-        //     // foreach ($groups as $g) {
-
-        //     //     $expense = (float) $g['sum'];
-
-        //     //     $remain = (float) $getBudgetRemain(
-        //     //         $g['perpost'],
-        //     //         $g['cpny'],
-        //     //         $g['bu'],
-        //     //         $g['deptfin'],
-        //     //         $g['account'],
-        //     //         $g['activity'],
-        //     //         $g['actdescr']
-        //     //     );
-
-        //     //     /*
-        //     //     |--------------------------------------------------------------------------
-        //     //     | Hitung kebutuhan IM Budget
-        //     //     |--------------------------------------------------------------------------
-        //     //     | Jika budget remain minus, kekurangan = minus budget + expense.
-        //     //     | Jika budget remain positif, kekurangan = expense - remain.
-        //     //     */
-        //     //     $budgetRemain = round($remain, 2);
-        //     //     $expense = round($expense, 2);
-
-        //     //     if ($budgetRemain < 0) {
-        //     //         $needed = abs($budgetRemain) + $expense;
-        //     //     } else {
-        //     //         $needed = max($expense - $budgetRemain, 0.0);
-        //     //     }
-
-        //     //     $needed = round($needed, 2);
-
-        //     //     // Kalau tidak ada kekurangan budget, tidak perlu insert detail
-        //     //     if ($needed <= 0) {
-        //     //         continue;
-        //     //     }
-
-        //     //     $detail = new TrIMBudgetdetail();
-        //     //     $detail->imbudgetid                  = $docid;
-        //     //     $detail->csid                        = $csid;
-        //     //     $detail->sppbjktid                   = $sppbjktid;
-
-        //     //     $detail->budget_perpost              = $g['perpost'];
-        //     //     $detail->budget_cpny_id              = $g['cpny'];
-        //     //     $detail->budget_business_unit_id     = $g['bu'];
-        //     //     $detail->budget_department_fin_id    = $g['deptfin'];
-        //     //     $detail->budget_account_id           = $g['account'];
-        //     //     $detail->budget_activity_id          = $g['activity'];
-        //     //     $detail->budget_activity_descr       = $g['actdescr'];
-
-        //     //     $detail->amount_expense              = $expense;
-        //     //     $detail->budget_remain               = $budgetRemain;
-        //     //     $detail->budget_needed               = $needed;
-        //     //     $detail->budget_requested            = $needed;
-
-        //     //     $detail->status                      = 'P';
-        //     //     $detail->created_by                  = $username;
-        //     //     $detail->save();
-
-        //     //     // karena budget_requested = needed
-        //     //     $sumRequested += $needed;
-        //     //     $sumNeeded    += $needed;
-        //     // }
-
-        //     // kalau semua grup ternyata remain cukup, jangan bikin IMBudget kosong
-        //     if ($sumNeeded <= 0) {
-        //         DB::rollBack();
-        //         return response()->json([
-        //             'success' => false,
-        //             'message' => "Tidak ada kekurangan budget untuk CS {$csid} (remain cukup).",
-        //         ], 422);
-        //     }
+       
 
         DB::beginTransaction();
 
@@ -650,6 +394,7 @@ class IMBudgetController extends Controller
                 return ($totalBudget + $totalAdditional) - ($totalReserve + $totalUsed);
             };
 
+            
             /*
             |--------------------------------------------------------------------------
             | HITUNG DULU KEBUTUHAN IM BUDGET
@@ -682,26 +427,17 @@ class IMBudgetController extends Controller
                 |--------------------------------------------------------------------------
                 | Logic kekurangan budget
                 |--------------------------------------------------------------------------
-                | Jika remain minus, kekurangan = abs(remain) + expense.
-                | Jika remain positif, kekurangan = expense - remain.
+                | budget_remain = sisa budget yang tersedia (jika minus dibulatkan ke 0).
+                | budget_needed/requested = selisih expense - budget_remain.
                 |--------------------------------------------------------------------------
                 */
-                // $budgetRemain = $remain;
+                $budgetRemain = max(0.0, $remain);
+                $needed = max(0.0, $expense - $budgetRemain);
+                $requested = $needed;
 
-                // if ($budgetRemain < 0) {
-                //     $needed = abs($budgetRemain) + $expense;
-                // } else {
-                //     $needed = max($expense - $budgetRemain, 0.0);
-                // }
-
-                // $needed = round($needed, 2);
-
-                // if ($needed <= 0) {
-                //     continue;
-                // }
-
-                $budgetRemain = $remain + $expense; 
-                $needed = max($expense - $budgetRemain, 0.0);
+                if ($needed <= 0) {
+                    continue;
+                }
 
                 $needDetails[] = [
                     'budget_perpost' => $g['perpost'],
@@ -714,14 +450,10 @@ class IMBudgetController extends Controller
                     'amount_expense' => $expense,
                     'budget_remain' => $budgetRemain,
                     'budget_needed' => $needed,
-                    'budget_requested' => $needed,
+                    'budget_requested' => $requested,
                 ];
 
-                // $sumExpense += $expense;
-                // $sumRemain += $budgetRemain;
-                // $sumNeeded += $needed;
-                // $sumRequested += $needed;
-                $sumRequested += $expense;
+                $sumRequested += $requested;
                 $sumNeeded    += $needed;
             }
 
@@ -1320,27 +1052,17 @@ class IMBudgetController extends Controller
                 |--------------------------------------------------------------------------
                 | Logic kekurangan budget
                 |--------------------------------------------------------------------------
-                | Jika remain minus, kekurangan = abs(remain) + expense.
-                | Jika remain positif, kekurangan = expense - remain.
+                | budget_remain = sisa budget yang tersedia (jika minus dibulatkan ke 0).
+                | budget_needed/requested = selisih expense - budget_remain.
                 |--------------------------------------------------------------------------
                 */
+                $budgetRemain = max(0.0, $remain);
+                $needed = max(0.0, $expense - $budgetRemain);
+                $requested = $needed;
 
-                $budgetRemain = $remain + $expense; 
-                $needed = max($expense - $budgetRemain, 0.0);
-                // $budgetRemain = $remain;
-
-                // if ($budgetRemain < 0) {
-                //     $needed = abs($budgetRemain) + $expense;
-                // } else {
-                //     $needed = max($expense - $budgetRemain, 0.0);
-                // }
-
-                // $needed = round($needed, 2);
-
-                // if ($needed <= 0) {
-                //     continue;
-                // }
-
+                if ($needed <= 0) {
+                    continue;
+                }
 
                 $needDetails[] = [
                     'budget_perpost' => $g['perpost'],
@@ -1353,15 +1075,13 @@ class IMBudgetController extends Controller
                     'amount_expense' => $expense,
                     'budget_remain' => $budgetRemain,
                     'budget_needed' => $needed,
-                    'budget_requested' => $needed,
+                    'budget_requested' => $requested,
                 ];
 
-                // $sumExpense += $expense;
-                // $sumRemain += $budgetRemain;
-                // $sumNeeded += $needed;
-                // $sumRequested += $needed;
-                $sumRequested += $expense;
-                $sumNeeded    += $needed;
+                $sumExpense += $expense;
+                $sumRemain += $budgetRemain;
+                $sumNeeded += $needed;
+                $sumRequested += $requested;
             }
 
             /*
@@ -1807,26 +1527,17 @@ class IMBudgetController extends Controller
                 |--------------------------------------------------------------------------
                 | Logic kekurangan budget
                 |--------------------------------------------------------------------------
-                | Jika remain minus, kekurangan = abs(remain) + expense.
-                | Jika remain positif, kekurangan = expense - remain.
+                | budget_remain = sisa budget yang tersedia (jika minus dibulatkan ke 0).
+                | budget_needed/requested = selisih expense - budget_remain.
                 |--------------------------------------------------------------------------
                 */
+                $budgetRemain = max(0.0, $remain);
+                $needed = max(0.0, $expense - $budgetRemain);
+                $requested = $needed;
 
-                $budgetRemain = $remain + $expense; 
-                $needed = max($expense - $budgetRemain, 0.0);
-                // $budgetRemain = $remain;
-
-                // if ($budgetRemain < 0) {
-                //     $needed = abs($budgetRemain) + $expense;
-                // } else {
-                //     $needed = max($expense - $budgetRemain, 0.0);
-                // }
-
-                // $needed = round($needed, 2);
-
-                // if ($needed <= 0) {
-                //     continue;
-                // }
+                if ($needed <= 0) {
+                    continue;
+                }
 
                 $needDetails[] = [
                     'budget_perpost' => $g['perpost'],
@@ -1839,15 +1550,13 @@ class IMBudgetController extends Controller
                     'amount_expense' => $expense,
                     'budget_remain' => $budgetRemain,
                     'budget_needed' => $needed,
-                    'budget_requested' => $needed,
+                    'budget_requested' => $requested,
                 ];
 
-                // $sumExpense += $expense;
-                // $sumRemain += $budgetRemain;
-                // $sumNeeded += $needed;
-                // $sumRequested += $needed;
-                $sumRequested += $expense;
-                $sumNeeded    += $needed;
+                $sumExpense += $expense;
+                $sumRemain += $budgetRemain;
+                $sumNeeded += $needed;
+                $sumRequested += $requested;
             }
 
             /*
@@ -2763,11 +2472,13 @@ class IMBudgetController extends Controller
 
         $budgetType = $hasOverBudget ? 'Over Budget' : 'Unbudget';
 
-        $budgetClasses = match ($budgetType) {
-            'Over Budget' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
-            'Unbudget'    => 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
-            default       => '',
-        };
+        if ($budgetType === 'Over Budget') {
+            $budgetClasses = 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300';
+        } elseif ($budgetType === 'Unbudget') {
+            $budgetClasses = 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300';
+        } else {
+            $budgetClasses = '';
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -3034,11 +2745,13 @@ class IMBudgetController extends Controller
 
         $budgetType = $hasOverBudget ? 'Over Budget' : 'Unbudget';
 
-        $budgetClasses = match ($budgetType) {
-            'Over Budget' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
-            'Unbudget'    => 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
-            default       => '',
-        };
+        if ($budgetType === 'Over Budget') {
+            $budgetClasses = 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300';
+        } elseif ($budgetType === 'Unbudget') {
+            $budgetClasses = 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300';
+        } else {
+            $budgetClasses = '';
+        }
 
         // ---------- ambil lampiran dari tr_attachment ----------
         $rows = TrAttachment::where('refnbr', $imbudget->imbudgetid)
@@ -3896,14 +3609,19 @@ class IMBudgetController extends Controller
 
             foreach ($sorted as $a) {
 
-                $map = match ($a->status) {
-                    'A' => ['label' => 'Approved', 'status' => 'C'],
-                    'P' => ['label' => 'Waiting Approval', 'status' => 'P'],
-                    'R' => ['label' => 'Rejected', 'status' => 'R'],
-                    'D' => ['label' => 'Revised', 'status' => 'D'],
-                    'X' => ['label' => 'Cancelled', 'status' => 'X'],
-                    default => ['label' => 'Pending', 'status' => '_']
-                };
+                if ($a->status === 'A') {
+                    $map = ['label' => 'Approved', 'status' => 'C'];
+                } elseif ($a->status === 'P') {
+                    $map = ['label' => 'Waiting Approval', 'status' => 'P'];
+                } elseif ($a->status === 'R') {
+                    $map = ['label' => 'Rejected', 'status' => 'R'];
+                } elseif ($a->status === 'D') {
+                    $map = ['label' => 'Revised', 'status' => 'D'];
+                } elseif ($a->status === 'X') {
+                    $map = ['label' => 'Cancelled', 'status' => 'X'];
+                } else {
+                    $map = ['label' => 'Pending', 'status' => '_'];
+                }
 
                 $steps[] = [
                     'type' => 'approval',

@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
 
     {{-- ── Section tab styles ──────────────────────────────────────────────────── --}}
     <style>
@@ -253,48 +253,83 @@
             }
         </style>
 
-        <div id="gmSectionPgcard" class="mt-2 space-y-1.5">
+        <div id="gmSectionPgcard" class="mt-2 space-y-3">
 
-            {{-- Single responsive grid — mirrors Budget section pattern --}}
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5">
+            {{-- ── Row 1: 3 cols — KPI Sidebar | Top 10 Customer | Top 10 Tenant ──────
+                 lg+  : 3 equal columns
+                 sm   : sidebar full-width (spans 2), customer + tenant side by side
+                 xs   : all stacked
+            --}}
+            {{--
+                xs  : 1 col  — all stacked
+                sm  : 2 col  — sidebar full-width (span 2); Customer + Tenant side by side
+                lg+ : 3 col  — sidebar ⅓ | Customer ⅓ | Tenant ⅓
+            --}}
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" style="align-items:stretch">
 
-                {{-- 1. Total Coupon — sidebar top --}}
-                <x-card-chart.card-shell class="sm:col-span-1 md:col-span-2 xl:col-span-1 xl:row-start-1"
-                    subtitle="PG Card · STYW 2026" title="Total Coupon"
-                    gradient="linear-gradient(to right,#8B5CF6,#EC4899)">
-                    <div class="px-5 pb-5 pt-2">
-                        <p id="pgcardCouponTotal"
-                            class="text-4xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">
-                            …
-                        </p>
-                        <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Valid coupon records (filtered)</p>
-                        <div id="pgcardCouponStatus" class="mt-3 flex flex-wrap gap-1.5"></div>
+                {{-- Col 1: KPI Summary sidebar --}}
+                <div class="flex flex-col gap-3 sm:col-span-2 lg:col-span-1 h-full">
+
+                    <div class="relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+                        <div class="absolute inset-x-0 top-0 h-0.75" style="background:linear-gradient(to right,#8B5CF6,#EC4899,#06B6D4,#10B981)"></div>
+                        <div class="grid flex-1 grid-cols-1 divide-y divide-slate-100 dark:divide-slate-700/60">
+
+                            <div class="flex items-start gap-3 px-4 py-3">
+                                <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-50 dark:bg-violet-900/30">
+                                    <svg class="h-4 w-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Total Transactions</p>
+                                    <p id="pgcardKpiTxn" class="text-base font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">…</p>
+                                    <div id="pgcardKpiMallList" class="mt-1"></div>
+                                    <div id="pgcardInsightTxn"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3 px-4 py-3">
+                                <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-pink-50 dark:bg-pink-900/30">
+                                    <svg class="h-4 w-4 text-pink-500" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Total Spending</p>
+                                    <p id="pgcardKpiSpending" class="text-base font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">…</p>
+                                    <div id="pgcardKpiSpendingMallList" class="mt-1"></div>
+                                    <div id="pgcardInsightSpending"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3 px-4 py-3">
+                                <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-cyan-50 dark:bg-cyan-900/30">
+                                    <svg class="h-4 w-4 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Active Members</p>
+                                    <p id="pgcardKpiMembers" class="text-base font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">…</p>
+                                    <div id="pgcardKpiMembersMallList" class="mt-1"></div>
+                                    <div id="pgcardInsightMembers"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3 px-4 py-3">
+                                <span class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                                    <svg class="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Avg Transaction</p>
+                                    <p id="pgcardKpiAvg" class="text-base font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">…</p>
+                                    <div id="pgcardKpiAvgMallList" class="mt-1"></div>
+                                    <div id="pgcardInsightAvg"></div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
-                </x-card-chart.card-shell>
 
-                {{-- 2. By Mall donut — sidebar bottom --}}
-                <x-card-chart.card-shell class="sm:col-span-1 md:col-span-2 xl:col-span-1 xl:row-start-2"
-                    subtitle="PG Card · STYW 2026" title="By Mall"
-                    gradient="linear-gradient(to right,#06B6D4,#8B5CF6)">
-                    <x-slot:headerEnd>
-                        <select id="pgcardMallStatusFilter"
-                            class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                            <option value="VALID">Valid</option>
-                            <option value="">All Status</option>
-                            <option value="EXPIRED">Expired</option>
-                            <option value="INVALID">Invalid</option>
-                            <option value="-">Waiting for Processed</option>
-                        </select>
-                    </x-slot:headerEnd>
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="pgcardCouponDonut" style="min-height:220px"></div>
-                    </div>
-                </x-card-chart.card-shell>
+                </div>{{-- /Col 1 --}}
 
-                {{-- 3. Top 10 Customer — centre column --}}
-                <x-card-chart.card-shell
-                    class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-2 xl:row-span-2 xl:row-start-1"
-                    subtitle="PG Card" title="Top 10 Customer" gradient="linear-gradient(to right,#8B5CF6,#EC4899)">
+                {{-- Col 2: Top 10 Customer --}}
+                <x-card-chart.card-shell subtitle="PG Card" title="Top 10 Customer"
+                    gradient="linear-gradient(to right,#8B5CF6,#EC4899)" class="h-full flex flex-col">
                     <x-slot:headerEnd>
                         <div class="flex items-center gap-2">
                             <div id="pgcardCustTab_container" class="flex items-center gap-1"></div>
@@ -305,71 +340,18 @@
                                     title="Sort by transaction count">By Transaction</button>
                                 <button id="pgcardCustMetric_spending" type="button"
                                     class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                    title="Sort by total spending (Rp)">By Spending</button>
+                                    title="Sort by total spending">By Spending</button>
                             </div>
                         </div>
                     </x-slot:headerEnd>
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="pgcardCustomerChart" style="min-height:310px"></div>
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="pgcardCustomerChart" class="flex-1"></div>
                     </div>
                 </x-card-chart.card-shell>
 
-                {{-- 5. Query Comparison — full width row --}}
-                {{-- <x-card-chart.card-shell
-                            class="sm:col-span-2 md:col-span-4 xl:col-span-5 xl:row-start-3"
-                            subtitle="PG Card · STYW 2026"
-                            title="Query Performance Comparison"
-                            gradient="linear-gradient(to right,#F59E0B,#EF4444)"
-                        >
-                            <div class="px-5 pb-5 pt-2">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <button id="pgcardRunCompare" type="button"
-                                        class="rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white hover:bg-amber-600 active:scale-95 transition">
-                                        ▶ Run Comparison
-                                    </button>
-                                    <span id="pgcardCompareStatus" class="text-xs text-slate-400 dark:text-slate-500 italic"></span>
-                                </div>
-                                <div id="pgcardCompareResult" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                                    <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Option A — View Table</span>
-                                            <span id="pgcardCompareTimeA" class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">—</span>
-                                        </div>
-                                        <p class="text-[10px] text-slate-400 font-mono mb-3">pgcard_detail_member_coupon_styw_2026</p>
-                                        <div class="flex items-start gap-4">
-                                            <div class="flex-1">
-                                                <p id="pgcardCompareTotalA" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">—</p>
-                                                <p class="text-[10px] text-slate-400 mt-0.5 mb-2">VALID coupons</p>
-                                                <div id="pgcardCompareStatusA" class="flex flex-wrap gap-1.5"></div>
-                                            </div>
-                                            <div id="pgcardCompareDonutA" style="min-width:160px;min-height:160px"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Option B — Direct from Src Tables</span>
-                                            <span id="pgcardCompareTimeB" class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">—</span>
-                                        </div>
-                                        <p class="text-[10px] text-slate-400 font-mono mb-3">pgcard_member_coupons_src + pgcard_member_transactions_src + pgcard_campaigns_src</p>
-                                        <div class="flex items-start gap-4">
-                                            <div class="flex-1">
-                                                <p id="pgcardCompareTotalB" class="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">—</p>
-                                                <p class="text-[10px] text-slate-400 mt-0.5 mb-2">VALID coupons</p>
-                                                <div id="pgcardCompareStatusB" class="flex flex-wrap gap-1.5"></div>
-                                            </div>
-                                            <div id="pgcardCompareDonutB" style="min-width:160px;min-height:160px"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </x-card-chart.card-shell> --}}
-
-                {{-- 4. Top 10 Tenant — right column --}}
-                <x-card-chart.card-shell
-                    class="sm:col-span-2 md:col-span-2 xl:col-span-2 xl:col-start-4 xl:row-span-2 xl:row-start-1"
-                    subtitle="PG Card" title="Top 10 Tenant" gradient="linear-gradient(to right,#06B6D4,#3B82F6)">
+                {{-- Col 3: Top 10 Tenant --}}
+                <x-card-chart.card-shell subtitle="PG Card" title="Top 10 Tenant"
+                    gradient="linear-gradient(to right,#06B6D4,#3B82F6)" class="h-full flex flex-col">
                     <x-slot:headerEnd>
                         <div class="flex items-center gap-2">
                             <div id="pgcardTenTab_container" class="flex items-center gap-1"></div>
@@ -380,19 +362,56 @@
                                     title="Sort by transaction count">By Transaction</button>
                                 <button id="pgcardTenMetric_spending" type="button"
                                     class="pgcard-metric-idle rounded-lg px-2 py-1 text-[10px] font-semibold transition"
-                                    title="Sort by total spending (Rp)">By Spending</button>
+                                    title="Sort by total spending">By Spending</button>
                             </div>
                         </div>
                     </x-slot:headerEnd>
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="pgcardTenantChart" style="min-height:310px"></div>
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="pgcardTenantChart" class="flex-1"></div>
                     </div>
                 </x-card-chart.card-shell>
 
-                {{-- 5. Transactions by Campaign — full-width bottom row --}}
-                <x-card-chart.card-shell class="sm:col-span-2 md:col-span-4 xl:col-span-5 xl:row-start-3"
-                    subtitle="PG Card · STYW 2026" title="Campaign"
-                    gradient="linear-gradient(to right,#10B981,#06B6D4)">
+            </div>{{-- /Row 1 --}}
+
+            {{-- ── Row 2: 3 cols — Campaign | Monthly Trend | Total Coupon + By Mall ───
+                 lg+  : 3 equal columns
+                 sm   : campaign + trend side by side, coupon+mall full-width below
+                 xs   : all stacked
+            --}}
+            {{--
+                xs  : 1 col  — all stacked
+                sm  : 2 col  — Trend + Campaign side by side; Coupon+Mall full-width below
+                lg+ : 3 col  — Trend ⅓ | Campaign ⅓ | Coupon+Mall ⅓
+            --}}
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" style="align-items:stretch">
+                {{-- Col 1: Monthly Transaction Trend --}}
+                <x-card-chart.card-shell subtitle="PG Card" title="Monthly Transaction Trend"
+                    gradient="linear-gradient(to right,#8B5CF6,#3B82F6)" class="h-full flex flex-col">
+                    <x-slot:headerEnd>
+                        <div class="flex items-center gap-1">
+                            <button id="pgcardTrendTab_txn" type="button"
+                                class="pgcard-tab-active rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">
+                                Transactions
+                            </button>
+                            <button id="pgcardTrendTab_members" type="button"
+                                class="pgcard-tab-idle rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">
+                                Members
+                            </button>
+                            <button id="pgcardTrendTab_spending" type="button"
+                                class="pgcard-tab-idle rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">
+                                Spending
+                            </button>
+                        </div>
+                    </x-slot:headerEnd>
+                    {{-- flex-1 makes this div fill the remaining card height --}}
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="pgcardTrendChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+                {{-- Col 2: Campaign chart --}}
+                <x-card-chart.card-shell subtitle="PG Card · STYW 2026" title="Campaign"
+                    gradient="linear-gradient(to right,#10B981,#06B6D4)" class="h-full flex flex-col">
                     <x-slot:headerEnd>
                         <div class="flex items-center gap-1">
                             <button id="pgcardCmpTab_campaign" type="button"
@@ -405,106 +424,190 @@
                             </button>
                         </div>
                     </x-slot:headerEnd>
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="pgcardCampaignChart" style="min-height:280px"></div>
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="pgcardCampaignChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+                {{-- Col 3: Total Coupon + By Mall stacked — full-width at sm, ⅓ at lg --}}
+                <div class="flex flex-col gap-3 sm:col-span-2 lg:col-span-1 h-full">
+
+                    <x-card-chart.card-shell subtitle="PG Card · STYW 2026" title="Total Coupon"
+                        gradient="linear-gradient(to right,#8B5CF6,#EC4899)">
+                        <div class="px-5 pb-5 pt-2">
+                            <p id="pgcardCouponTotal"
+                                class="text-4xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">…</p>
+                            <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Valid coupon records (filtered)</p>
+                            <div id="pgcardCouponStatus" class="mt-3 flex flex-wrap gap-1.5"></div>
+                        </div>
+                    </x-card-chart.card-shell>
+
+                    {{-- By Mall grows to fill remaining column height --}}
+                    <x-card-chart.card-shell subtitle="PG Card · STYW 2026" title="By Mall"
+                        class="flex-1 flex flex-col"
+                        gradient="linear-gradient(to right,#06B6D4,#8B5CF6)">
+                        <x-slot:headerEnd>
+                            <select id="pgcardMallStatusFilter"
+                                class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                <option value="VALID">Valid</option>
+                                <option value="">All Status</option>
+                                <option value="EXPIRED">Expired</option>
+                                <option value="INVALID">Invalid</option>
+                                <option value="-">Waiting for Processed</option>
+                            </select>
+                        </x-slot:headerEnd>
+                        <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                            <div id="pgcardCouponDonut" class="flex-1"></div>
+                        </div>
+                    </x-card-chart.card-shell>
+
+                </div>{{-- /Col 3 --}}
+
+            </div>{{-- /Row 2 --}}
+
+
+        </div>
+
+
+        {{-- ── Isort Section ───────────────────────────────────────────────────── --}}
+        <div id="gmSectionIsort" class="mt-2 space-y-3">
+
+            {{-- ── KPI Strip — full width, 6 metrics ────────────────────────────── --}}
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
+                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
+                    style="background:linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444,#8B5CF6,#06B6D4)"></div>
+                <div class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-3 xl:grid-cols-6">
+
+                    {{-- Total Issue --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Issue</p>
+                            <p id="isortTotalCase" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Open Issue --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Open Issue</p>
+                            <p id="isortTotalOpen" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-amber-600 dark:text-amber-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Closed Issue --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Closed Issue</p>
+                            <p id="isortTotalClosed" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Overdue Issue --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-red-500">Overdue Issue</p>
+                            <p id="isortTotalOverdue" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-red-600 dark:text-red-400 sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Avg Resolution Time --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-violet-500">Avg Resolution</p>
+                            <p id="isortAvgResolution" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-violet-600 dark:text-violet-400 sm:text-2xl">—</p>
+                            <p id="isortAvgResolutionUnit" class="text-[10px] text-slate-400 dark:text-slate-500">hrs to close</p>
+                        </div>
+                    </div>
+
+                    {{-- Closure Rate --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 dark:bg-cyan-500/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-cyan-500">Closure Rate</p>
+                            <p id="isortClosureRate" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-cyan-600 dark:text-cyan-400 sm:text-2xl">—</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500">of total closed</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ── 3-column chart grid ────────────────────────────────────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
+
+                <x-card-chart.card-shell subtitle="Operation · Isort" title="Total Kaizen by Type"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#8B5CF6,#3B82F6)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="isortKaizenTypeChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+                <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Kaizen by Incident Type"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#EF4444,#F59E0B)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="isortIncidentChart" class="flex-1"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+                <x-card-chart.card-shell subtitle="Operation · Isort" title="Kaizen by Department"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#06B6D4,#8B5CF6,#EC4899)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="isortDeptChart" class="flex-1"></div>
                     </div>
                 </x-card-chart.card-shell>
 
             </div>
 
-        </div>
+            {{-- ── Row 3: Monthly Trend + Top 10 Problem Areas ───────────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
 
-        {{-- ── Isort Section ───────────────────────────────────────────────────── --}}
-        <div id="gmSectionIsort" class="mt-2 space-y-3">
-
-
-
-            {{-- Charts — 3 equal columns --}}
-            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
-
-                <div class="flex flex-col gap-3">
-                    {{-- KPI Summary --}}
-                    <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
-                        <div class="absolute inset-x-0 top-0 h-0.75" style="background:linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444)"></div>
-                        <div class="grid grid-cols-2 divide-x divide-y divide-slate-100 dark:divide-slate-700/60 sm:grid-cols-4 sm:divide-y-0">
-
-                            {{-- Total Case --}}
-                            <div class="flex items-center gap-3.5 px-5 py-4">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Issue</p>
-                                    <p id="isortTotalCase" class="mt-0.5 text-2xl font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white">—</p>
-                                </div>
-                            </div>
-
-                            {{-- Open --}}
-                            <div class="flex items-center gap-3.5 px-5 py-4">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-amber-500">Open Issue</p>
-                                    <p id="isortTotalOpen" class="mt-0.5 text-2xl font-extrabold tabular-nums tracking-tight text-amber-600 dark:text-amber-400">—</p>
-                                </div>
-                            </div>
-
-                            {{-- Closed --}}
-                            <div class="flex items-center gap-3.5 px-5 py-4">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Closed Issue</p>
-                                    <p id="isortTotalClosed" class="mt-0.5 text-2xl font-extrabold tabular-nums tracking-tight text-emerald-600 dark:text-emerald-400">—</p>
-                                </div>
-                            </div>
-
-                            {{-- Overdue --}}
-                            <div class="flex items-center gap-3.5 px-5 py-4">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-red-500">Overdue Issue</p>
-                                    <p id="isortTotalOverdue" class="mt-0.5 text-2xl font-extrabold tabular-nums tracking-tight text-red-600 dark:text-red-400">—</p>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                <x-card-chart.card-shell class="h-full" subtitle="Operation · Isort" title="Total Kaizen by Type"
-                    gradient="linear-gradient(to right,#8B5CF6,#3B82F6)">
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="isortKaizenTypeChart" style="min-height:380px"></div>
-                    </div>
-                </x-card-chart.card-shell>
-                </div>
-
-
-                <x-card-chart.card-shell class="h-full" subtitle="Operation · Isort" title="Top 10 Kaizen by Incident Type"
-                    gradient="linear-gradient(to right,#EF4444,#F59E0B)">
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="isortIncidentChart" style="min-height:380px"></div>
+                <x-card-chart.card-shell subtitle="Operation · Isort" title="Monthly Issue Trend"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#3B82F6,#10B981,#F59E0B,#EF4444)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="isortMonthlyTrendChart" class="flex-1"></div>
                     </div>
                 </x-card-chart.card-shell>
 
-                <x-card-chart.card-shell class="h-full" subtitle="Operation · Isort" title="Kaizen by Department"
-                    gradient="linear-gradient(to right,#06B6D4,#8B5CF6,#EC4899)">
-                    <div class="px-3 pb-3 pt-0">
-                        <div id="isortDeptChart" style="min-height:380px"></div>
+                {{-- <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Problem Areas"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#F59E0B,#EF4444,#8B5CF6)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="isortTopAreasChart" class="flex-1"></div>
                     </div>
-                </x-card-chart.card-shell>
+                </x-card-chart.card-shell> --}}
 
             </div>
 
@@ -524,15 +627,20 @@
             byDept: "{{ route('gm.budget-by-department') }}",
             byActivity: "{{ route('gm.budget-by-activity') }}",
             byMonth: "{{ route('gm.budget-by-month') }}",
+            pgcardKpiSummary: "{{ route('gm.pgcard-kpi-summary') }}",
+            pgcardMonthlyTrend: "{{ route('gm.pgcard-monthly-trend') }}",
             pgcardTopCustomers: "{{ route('gm.pgcard-top-customers') }}",
             pgcardTopTenants: "{{ route('gm.pgcard-top-tenants') }}",
             pgcardCouponStyw: "{{ route('gm.pgcard-coupon-styw') }}",
             pgcardCouponStywCompare: "{{ route('gm.pgcard-coupon-styw-compare') }}",
+            pgcardCampaignSamples: "{{ route('gm.pgcard-campaign-samples') }}",
             isortSummary: "{{ route('gm.isort-summary') }}",
             isortKaizenByType: "{{ route('gm.isort-kaizen-by-type') }}",
             isortIncidents: "{{ route('gm.isort-incidents') }}",
-            isortDeptSummary:     "{{ route('gm.isort-dept-summary') }}",
-            isortAvailableDepts:  "{{ route('gm.isort-available-depts') }}",
+            isortDeptSummary: "{{ route('gm.isort-dept-summary') }}",
+            isortAvailableDepts: "{{ route('gm.isort-available-depts') }}",
+            isortMonthlyTrend: "{{ route('gm.isort-monthly-trend') }}",
+            isortTopAreas: "{{ route('gm.isort-top-areas') }}",
         };
     </script>
 
@@ -638,7 +746,11 @@
                 try {
                     localStorage.setItem('gmActiveTab', key);
                 } catch (e) {}
-                document.dispatchEvent(new CustomEvent('gm:tab-switch', { detail: { tab: key } }));
+                document.dispatchEvent(new CustomEvent('gm:tab-switch', {
+                    detail: {
+                        tab: key
+                    }
+                }));
             }
 
             tabIds.forEach(function(id) {

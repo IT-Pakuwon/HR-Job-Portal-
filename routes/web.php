@@ -47,7 +47,9 @@ use App\Http\Controllers\IMBudgetNonPurchController;
 use App\Http\Controllers\Integration\AcumVmsStagingController;
 use App\Http\Controllers\Integration\IFCAAPIBASTController;
 use App\Http\Controllers\Integration\IFCAAPIGRNController;
+use App\Http\Controllers\Integration\IFCAAPIGRNReturnController;
 use App\Http\Controllers\Integration\IFCAAPIIssueController;
+use App\Http\Controllers\Integration\IFCAAPIIssueReturnController;
 use App\Http\Controllers\Integration\IFCAAPINonStockController;
 use App\Http\Controllers\Integration\IFCAAPIPOController;
 use App\Http\Controllers\Integration\IFCAAPIStockController;
@@ -872,6 +874,7 @@ Route::middleware(['auth'])->group(function () {
         // Create Issue
         Route::get('/issue/create', [SpbJobsController::class, 'createIssue'])->name('issue.create');
         // Create SPPB from SPB Job
+        Route::post('/issue/{spbid}/complete-remaining', [SpbJobsController::class, 'completeRemainingQty'])->name('issue.complete-remaining');
         Route::get('/sppb/create', [SpbJobsController::class, 'createSPPB'])->name('sppb.create');
         Route::post('/sppb', [SpbJobsController::class, 'storeSPPB'])->name('sppb.store');
     });
@@ -1542,18 +1545,23 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/budget-by-month', 'budgetByMonth')->name('gm.budget-by-month');
 
                 // Isort API endpoints
-                Route::get('/api/isort-summary',          'isortSummary')          ->name('gm.isort-summary');
-                Route::get('/api/isort-kaizen-by-type',   'isortKaizenByType')     ->name('gm.isort-kaizen-by-type');
-                Route::get('/api/isort-incidents',         'isortIncidentsByName')  ->name('gm.isort-incidents');
-                Route::get('/api/isort-dept-summary',      'isortDeptSummary')      ->name('gm.isort-dept-summary');
-                Route::get('/api/isort-available-depts',   'isortAvailableDepts')   ->name('gm.isort-available-depts');
-                Route::get('/api/isort-detail',            'isortDetail')           ->name('gm.isort-detail');
+                Route::get('/api/isort-summary','isortSummary')          ->name('gm.isort-summary');
+                Route::get('/api/isort-kaizen-by-type','isortKaizenByType')     ->name('gm.isort-kaizen-by-type');
+                Route::get('/api/isort-incidents','isortIncidentsByName')  ->name('gm.isort-incidents');
+                Route::get('/api/isort-dept-summary','isortDeptSummary')      ->name('gm.isort-dept-summary');
+                Route::get('/api/isort-available-depts','isortAvailableDepts')   ->name('gm.isort-available-depts');
+                Route::get('/api/isort-monthly-trend','isortMonthlyTrend')     ->name('gm.isort-monthly-trend');
+                Route::get('/api/isort-top-areas','isortTopAreas')         ->name('gm.isort-top-areas');
+                Route::get('/api/isort-detail','isortDetail')           ->name('gm.isort-detail');
 
                 // PG Card API endpoints
                 Route::get('/api/pgcard-top-customers', 'pgcardTopCustomers')->name('gm.pgcard-top-customers');
-                Route::get('/api/pgcard-top-tenants',   'pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
-                Route::get('/api/pgcard-coupon-styw',         'pgcardCouponStyw')        ->name('gm.pgcard-coupon-styw');
+                Route::get('/api/pgcard-top-tenants','pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
+                Route::get('/api/pgcard-kpi-summary','pgcardKpiSummary')        ->name('gm.pgcard-kpi-summary');
+                Route::get('/api/pgcard-monthly-trend','pgcardMonthlyTrend')      ->name('gm.pgcard-monthly-trend');
+                Route::get('/api/pgcard-coupon-styw','pgcardCouponStyw')        ->name('gm.pgcard-coupon-styw');
                 Route::get('/api/pgcard-coupon-styw-compare', 'pgcardCouponStywCompare')->name('gm.pgcard-coupon-styw-compare');
+                Route::get('/api/pgcard-campaign-samples','pgcardCampaignSamples')  ->name('gm.pgcard-campaign-samples');
 
                 // Export endpoints
                 Route::get('/export/pdf',  'exportPdf') ->name('gm.export.pdf');
@@ -2268,6 +2276,13 @@ Route::middleware(['auth'])->group(function () {
             Route::post('process', [IFCAAPIGRNController::class, 'process'])->name('process');
         });
 
+        // ✅ module: GRN Return API endpoints
+        Route::prefix('ifcaintegration/grnreturn')->name('ifcaintegration.grnreturn.')->group(function () {
+            Route::get('/filters', [IFCAAPIGRNReturnController::class, 'filters'])->name('filters');
+            Route::get('list', [IFCAAPIGRNReturnController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIGRNReturnController::class, 'process'])->name('process');
+        });
+
         // ✅ module: BAST API endpoints
         Route::prefix('ifcaintegration/bast')->name('ifcaintegration.bast.')->group(function () {
             Route::get('/filters', [IFCAAPIBASTController::class, 'filters'])->name('filters');
@@ -2280,6 +2295,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('filters', [IFCAAPIIssueController::class, 'filters'])->name('filters');
             Route::get('list', [IFCAAPIIssueController::class, 'list'])->name('list');
             Route::post('process', [IFCAAPIIssueController::class, 'process'])->name('process');
+        });
+
+        Route::prefix('ifcaintegration/issuereturn')->name('ifcaintegration.issuereturn.')->group(function () {
+            Route::get('filters', [IFCAAPIIssueReturnController::class, 'filters'])->name('filters');
+            Route::get('list', [IFCAAPIIssueReturnController::class, 'list'])->name('list');
+            Route::post('process', [IFCAAPIIssueReturnController::class, 'process'])->name('process');
         });
 
         // ✅ module: ISSUE API endpoints (Solomon)

@@ -5,34 +5,22 @@
     var routes = window.gmRoutes || {};
     var utils  = window.gmUtils;
 
-    var charts   = { kaizenType: null, incident: null, dept: null };
+    var charts   = { kaizenType: null, incident: null, dept: null, monthlyTrend: null, topAreas: null };
     var deptData = []; // full dept objects — read by custom tooltip
 
-    var xhrSummary    = null;
-    var xhrKaizenType = null;
-    var xhrIncident   = null;
-    var xhrDept       = null;
+    var xhrSummary      = null;
+    var xhrKaizenType   = null;
+    var xhrIncident     = null;
+    var xhrDept         = null;
+    var xhrMonthlyTrend = null;
+    var xhrTopAreas     = null;
 
-    var CHART_HEIGHT = 380; // fixed height so all 3 side-by-side charts are equal
+    function fullLabel(val) {
+        return (val || '').toString().toUpperCase();
+    }
 
-    // ── Word-wrap + uppercase helper for Y-axis labels ───────────────────────
-    function wrapLabel(val, maxChars) {
-        if (!val) return '';
-        var s = (typeof val === 'string' ? val : String(val)).toUpperCase();
-        if (s.length <= maxChars) return s;
-        var words = s.split(' ');
-        var lines = [''];
-        words.forEach(function (word) {
-            var cur = lines[lines.length - 1];
-            if (!cur) {
-                lines[lines.length - 1] = word;
-            } else if (cur.length + 1 + word.length <= maxChars) {
-                lines[lines.length - 1] = cur + ' ' + word;
-            } else {
-                lines.push(word);
-            }
-        });
-        return lines.length > 1 ? lines : lines[0];
+    function barHeight(n, extra) {
+        return Math.max(260, n * 42 + (extra || 40));
     }
 
     // Site → display color (consistent across all 3 charts)
@@ -51,12 +39,13 @@
         return {
             series: [{ name: 'Total', data: values }],
             chart: {
-                type: 'bar', height: CHART_HEIGHT,
+                type: 'bar', height: barHeight(categories.length), width: '100%',
                 toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
                 foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 500 },
+                redrawOnWindowResize: true, redrawOnParentResize: true,
             },
-            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '40%', distributed: true } },
+            plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '50%', distributed: true } },
             dataLabels: {
                 enabled: true,
                 style: { fontSize: '11px', fontWeight: 600, colors: ['#fff'] },
@@ -68,7 +57,7 @@
                 labels: { style: { fontSize: '11px' } },
                 axisBorder: { show: false }, axisTicks: { show: false },
             },
-            yaxis: { labels: { style: { fontSize: '11px' }, maxWidth: 180, formatter: function (v) { return wrapLabel(v, 20); } } },
+            yaxis: { labels: { align: 'left', style: { fontSize: '11px' }, maxWidth: 240, formatter: fullLabel } },
             grid: {
                 borderColor: dark ? '#334155' : '#E2E8F0',
                 xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } },
@@ -134,12 +123,13 @@
         return {
             series: series,
             chart: {
-                type: 'bar', height: CHART_HEIGHT, stacked: true,
+                type: 'bar', height: barHeight(categories.length, 80), width: '100%', stacked: true,
                 toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
                 foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 500 },
+                redrawOnWindowResize: true, redrawOnParentResize: true,
             },
-            plotOptions: { bar: { horizontal: true, borderRadius: 0, barHeight: '40%' } },
+            plotOptions: { bar: { horizontal: true, borderRadius: 0, barHeight: '50%' } },
             colors: colors,
             dataLabels: { enabled: false },
             xaxis: {
@@ -147,7 +137,7 @@
                 labels: { style: { fontSize: '11px' } },
                 axisBorder: { show: false }, axisTicks: { show: false },
             },
-            yaxis: { labels: { style: { fontSize: '11px' }, maxWidth: 180, formatter: function (v) { return wrapLabel(v, 20); } } },
+            yaxis: { labels: { align: 'left', style: { fontSize: '11px' }, maxWidth: 240, formatter: fullLabel } },
             grid: {
                 borderColor: dark ? '#334155' : '#E2E8F0',
                 xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } },
@@ -168,6 +158,19 @@
         };
     }
 
+    // ── Helper: width-responsive chart (reflows on container resize) ─────────
+    function createResponsiveChart(el, opts) {
+        var chart = new ApexCharts(el, opts);
+        chart.render();
+
+        var resizeObs = new ResizeObserver(function () {
+            try { chart.reflow(); } catch (e) {}
+        });
+        if (el.parentElement) resizeObs.observe(el.parentElement);
+
+        return chart;
+    }
+
     // ── Kaizen by Type chart ──────────────────────────────────────────────────
     function renderKaizenTypeChart(res) {
         var data     = (res && res.data)      || (Array.isArray(res) ? res : []);
@@ -176,7 +179,6 @@
         var el = document.getElementById('isortKaizenTypeChart');
         if (!el) return;
         if (!data.length) { el.innerHTML = '<p class="py-16 text-center text-xs text-slate-400">No data</p>'; return; }
-        el.style.minHeight = CHART_HEIGHT + 'px';
         if (charts.kaizenType) { charts.kaizenType.destroy(); charts.kaizenType = null; }
 
         var opts;
@@ -188,8 +190,7 @@
             var vals = data.map(function (r) { return r.total; });
             opts = buildBarOpts(cats, vals, null, 'kaizen');
         }
-        charts.kaizenType = new ApexCharts(el, opts);
-        charts.kaizenType.render();
+        charts.kaizenType = createResponsiveChart(el, opts);
     }
 
     // ── Incidents by Name chart ───────────────────────────────────────────────
@@ -200,7 +201,6 @@
         var el = document.getElementById('isortIncidentChart');
         if (!el) return;
         if (!data.length) { el.innerHTML = '<p class="py-16 text-center text-xs text-slate-400">No data</p>'; return; }
-        el.style.minHeight = CHART_HEIGHT + 'px';
         if (charts.incident) { charts.incident.destroy(); charts.incident = null; }
 
         var opts;
@@ -213,8 +213,7 @@
             var colors = ['#EF4444','#F59E0B','#10B981','#3B82F6','#8B5CF6','#EC4899','#06B6D4','#84CC16'];
             opts = buildBarOpts(cats, vals, colors, 'case(s)');
         }
-        charts.incident = new ApexCharts(el, opts);
-        charts.incident.render();
+        charts.incident = createResponsiveChart(el, opts);
     }
 
     // Stores current allSites list so the tooltip can show per-site breakdown
@@ -321,13 +320,14 @@
             opts = {
             series: [{ name: 'Total Kaizen', data: vals }],
             chart: {
-                type: 'bar', height: CHART_HEIGHT,
+                type: 'bar', height: barHeight(cats.length), width: '100%',
                 toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
                 foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
                 animations: { enabled: true, easing: 'easeinout', speed: 500 },
+                redrawOnWindowResize: true, redrawOnParentResize: true,
             },
             plotOptions: {
-                bar: { horizontal: true, borderRadius: 4, barHeight: '42%', distributed: true },
+                bar: { horizontal: true, borderRadius: 4, barHeight: '50%', distributed: true },
             },
             dataLabels: {
                 enabled: true,
@@ -340,7 +340,7 @@
                 labels: { style: { fontSize: '11px' } },
                 axisBorder: { show: false }, axisTicks: { show: false },
             },
-            yaxis: { labels: { style: { fontSize: '12px', fontWeight: 500 }, maxWidth: 200, formatter: function (v) { return wrapLabel(v, 18); } } },
+            yaxis: { labels: { align: 'left', style: { fontSize: '12px', fontWeight: 500 }, maxWidth: 240, formatter: fullLabel } },
             grid: {
                 borderColor: dark ? '#334155' : '#E2E8F0',
                 xaxis: { lines: { show: true } },
@@ -354,18 +354,106 @@
             };  // end single-bar opts
         }  // end else
 
-        el.style.minHeight = CHART_HEIGHT + 'px';
         if (charts.dept) { charts.dept.destroy(); charts.dept = null; }
-        charts.dept = new ApexCharts(el, opts);
-        charts.dept.render();
+        charts.dept = createResponsiveChart(el, opts);
     }
 
     // ── KPI summary cards ─────────────────────────────────────────────────────
     function renderSummary(d) {
-        utils.setText('isortTotalCase',    d.total_case    != null ? String(d.total_case)    : '—');
-        utils.setText('isortTotalOpen',    d.total_open    != null ? String(d.total_open)    : '—');
-        utils.setText('isortTotalClosed',  d.total_closed  != null ? String(d.total_closed)  : '—');
-        utils.setText('isortTotalOverdue', d.total_overdue != null ? String(d.total_overdue) : '—');
+        utils.setText('isortTotalCase',    d.total_case    != null ? Number(d.total_case).toLocaleString('id-ID')    : '—');
+        utils.setText('isortTotalOpen',    d.total_open    != null ? Number(d.total_open).toLocaleString('id-ID')    : '—');
+        utils.setText('isortTotalClosed',  d.total_closed  != null ? Number(d.total_closed).toLocaleString('id-ID')  : '—');
+        utils.setText('isortTotalOverdue', d.total_overdue != null ? Number(d.total_overdue).toLocaleString('id-ID') : '—');
+
+        // Avg Resolution Time
+        var solvedHours = parseFloat(d.solved_hours)      || 0;
+        var solvedCount = parseInt(d.solved_case_count, 10) || 0;
+        if (solvedCount > 0) {
+            var avgHrs = solvedHours / solvedCount;
+            var val, unit;
+            if (avgHrs < 1) {
+                val  = Math.round(avgHrs * 60).toString();
+                unit = 'min to close';
+            } else if (avgHrs < 48) {
+                val  = avgHrs.toFixed(1);
+                unit = 'hrs to close';
+            } else {
+                val  = (avgHrs / 24).toFixed(1);
+                unit = 'days to close';
+            }
+            utils.setText('isortAvgResolution',     val);
+            utils.setText('isortAvgResolutionUnit', unit);
+        } else {
+            utils.setText('isortAvgResolution',     '—');
+            utils.setText('isortAvgResolutionUnit', 'hrs to close');
+        }
+
+        // Closure Rate
+        var total  = parseInt(d.total_case,   10) || 0;
+        var closed = parseInt(d.total_closed, 10) || 0;
+        utils.setText('isortClosureRate', total > 0 ? Math.round((closed / total) * 100) + '%' : '—');
+    }
+
+    // ── Monthly Trend chart ───────────────────────────────────────────────────
+    function renderMonthlyTrendChart(data) {
+        var el = document.getElementById('isortMonthlyTrendChart');
+        if (!el) return;
+        if (!data.length) {
+            el.innerHTML = '<p class="py-16 text-center text-xs text-slate-400">No data</p>';
+            return;
+        }
+        if (charts.monthlyTrend) { charts.monthlyTrend.destroy(); charts.monthlyTrend = null; }
+
+        var dark = utils.isDark();
+        var cats = data.map(function (r) { return r.month; });
+
+        var opts = {
+            series: [
+                { name: 'Total',   data: data.map(function (r) { return r.total_case;    }) },
+                { name: 'Closed',  data: data.map(function (r) { return r.total_closed;  }) },
+                { name: 'Open',    data: data.map(function (r) { return r.total_open;    }) },
+                { name: 'Overdue', data: data.map(function (r) { return r.total_overdue; }) },
+            ],
+            chart: {
+                type: 'line', height: 260, width: '100%',
+                toolbar: { show: false }, fontFamily: 'Inter, sans-serif',
+                foreColor: dark ? '#94A3B8' : '#64748B', background: 'transparent',
+                animations: { enabled: true, easing: 'easeinout', speed: 600 },
+                redrawOnWindowResize: true, redrawOnParentResize: true,
+            },
+            stroke: { curve: 'smooth', width: [3, 2.5, 2, 2] },
+            colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'],
+            markers: { size: 4, strokeWidth: 0, hover: { size: 6 } },
+            xaxis: {
+                categories: cats,
+                labels: { style: { fontSize: '11px' } },
+                axisBorder: { show: false }, axisTicks: { show: false },
+            },
+            yaxis: {
+                labels: {
+                    style: { fontSize: '11px' },
+                    formatter: function (v) { return Math.round(v).toLocaleString('id-ID'); },
+                },
+                min: 0,
+            },
+            grid: {
+                borderColor: dark ? '#334155' : '#E2E8F0',
+                xaxis: { lines: { show: false } }, yaxis: { lines: { show: true } },
+            },
+            legend: {
+                show: true, position: 'top', horizontalAlign: 'right',
+                fontSize: '11px', fontWeight: 600,
+                markers: { radius: 4, size: 7 },
+                itemMargin: { horizontal: 10, vertical: 0 },
+            },
+            tooltip: {
+                theme: dark ? 'dark' : 'light',
+                shared: true, intersect: false,
+                y: { formatter: function (v) { return Number(v).toLocaleString('id-ID') + ' case(s)'; } },
+            },
+        };
+
+        charts.monthlyTrend = createResponsiveChart(el, opts);
     }
 
     // ── API loaders ───────────────────────────────────────────────────────────
@@ -419,14 +507,75 @@
             .catch(function (e) { if (e.name !== 'AbortError') console.error('isort dept-summary:', e); });
     }
 
+    // ── Top 10 Problem Areas chart ────────────────────────────────────────────
+    function renderTopAreasChart(res) {
+        var data     = (res && res.data)      || (Array.isArray(res) ? res : []);
+        var stacked  = res && res.stacked;
+        var allSites = (res && res.all_sites) || [];
+        var el = document.getElementById('isortTopAreasChart');
+        if (!el) return;
+        if (!data.length) { el.innerHTML = '<p class="py-16 text-center text-xs text-slate-400">No data</p>'; return; }
+        if (charts.topAreas) { charts.topAreas.destroy(); charts.topAreas = null; }
+
+        // Compact height: ~26px per bar so 10 items ≈ 300px — matches Monthly Trend card
+        var h = Math.max(280, data.length * 26 + 40);
+
+        var opts;
+        if (stacked && allSites.length > 1) {
+            var cats = data.map(function (r) { return r.area_name; });
+            opts = buildStackedOpts(cats, allSites, data, 'area_name',
+                makeStackedTooltip(data, allSites, 'area_name', 'issue(s)'));
+        } else {
+            var cats   = data.map(function (r) { return r.area_name; });
+            var vals   = data.map(function (r) { return r.total; });
+            var colors = ['#F59E0B','#EF4444','#8B5CF6','#06B6D4','#10B981','#3B82F6','#EC4899','#F97316','#84CC16','#14B8A6'];
+            opts = buildBarOpts(cats, vals, colors, 'issue(s)');
+        }
+        // Override chart height to compact value
+        opts.chart.height = h;
+        opts.plotOptions = opts.plotOptions || {};
+        opts.plotOptions.bar = opts.plotOptions.bar || {};
+        opts.plotOptions.bar.barHeight = '55%';
+
+        charts.topAreas = createResponsiveChart(el, opts);
+    }
+
+    function loadTopAreas() {
+        if (!routes.isortTopAreas) return;
+        if (xhrTopAreas) xhrTopAreas.abort();
+        xhrTopAreas = new AbortController();
+        fetch(routes.isortTopAreas + utils.buildParams(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+            signal: xhrTopAreas.signal,
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) { renderTopAreasChart(res); })
+            .catch(function (e) { if (e.name !== 'AbortError') console.error('isort top-areas:', e); });
+    }
+
+    function loadMonthlyTrend() {
+        if (!routes.isortMonthlyTrend) return;
+        if (xhrMonthlyTrend) xhrMonthlyTrend.abort();
+        xhrMonthlyTrend = new AbortController();
+        fetch(routes.isortMonthlyTrend + utils.buildParams(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+            signal: xhrMonthlyTrend.signal,
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (res) { renderMonthlyTrendChart(res.data || []); })
+            .catch(function (e) { if (e.name !== 'AbortError') console.error('isort monthly-trend:', e); });
+    }
+
     function loadAll() {
         loadSummary();
         loadKaizenByType();
         loadIncidents();
         loadDeptSummary();
+        loadMonthlyTrend();
+        loadTopAreas();
     }
 
-    // ── Department filter swap on tab change ──────────────────────────────────
+    // ── Department filter swap + chart resize on tab change ───────────────────
     document.addEventListener('gm:tab-switch', function (e) {
         var tab = e.detail && e.detail.tab;
         if (tab === 'isort' || tab === 'all') {
@@ -434,6 +583,14 @@
             if (window.gmFilter && routes.isortAvailableDepts) {
                 window.gmFilter.reloadDepts(routes.isortAvailableDepts);
             }
+            // Re-trigger chart layout — charts rendered while hidden need a size update
+            setTimeout(function () {
+                Object.keys(charts).forEach(function (key) {
+                    if (charts[key]) {
+                        try { charts[key].updateOptions({}); } catch (err) {}
+                    }
+                });
+            }, 50);
         } else {
             // Restore HR departments
             if (window.gmFilter) {

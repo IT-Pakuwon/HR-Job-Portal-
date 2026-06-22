@@ -1410,7 +1410,52 @@ class SppbController extends Controller
             }
         }
 
-        return view('pages.sppbs.showsppbs', compact('sppb', 'spbData', 'sppbdetail', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'attachmentPB', 'attachmentWO', 'woData', 'woHash'
+        $itrData = null;
+        $itrHash = null;
+
+        if (!empty($sppb->itrecommendid)) {
+            $itrData = TrItrecommend::query()
+                ->select('id', 'docid')
+                ->where('docid', $sppb->itrecommendid)
+                ->first();
+
+            if ($itrData) {
+                $itrHash = Hashids::encode($itrData->id);
+            }
+        }
+
+        $ticketData = null;
+        $ticketHash = null;
+
+        if (!empty($sppb->ticketid)) {
+            $ticketData = TrTicket::query()
+                ->select('id', 'ticketid')
+                ->where('ticketid', $sppb->ticketid)
+                ->first();
+
+            if ($ticketData) {
+                $ticketHash = Hashids::encode($ticketData->id);
+            }
+        }
+
+        return view('pages.sppbs.showsppbs', compact(
+            'sppb',
+            'spbData',
+            'sppbdetail',
+            'hash',
+            'canUpload',
+            'akses_cc',
+            'userCpny',
+            'userBu',
+            'userDeptFin',
+            'attachmentPB',
+            'attachmentWO',
+            'woData',
+            'woHash',
+            'itrData',
+            'itrHash',
+            'ticketData',
+            'ticketHash'
         ));
     }
 

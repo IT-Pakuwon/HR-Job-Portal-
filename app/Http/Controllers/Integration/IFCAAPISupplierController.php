@@ -549,6 +549,10 @@ class IFCAAPISupplierController extends Controller
         }
     }
 
+    // // ------------------------------------------------------------------------------------------------------------------
+    // // ------------------------------------------------------------------------------------------------------------------
+    // // ------------------------------------------------------------------------------------------------------------------
+
     public function SchedulerProcessSupplier(): array
     {
         $username = 'scheduler';
@@ -576,6 +580,7 @@ class IFCAAPISupplierController extends Controller
                 'status',
             ])
             ->where('status', 'A')
+            ->where('vendor_id', 'like', '%VV%')
             ->whereBetween('created_at', [$fromDt, $toDt])
             ->orderBy('vendor_id')
             ->get();

@@ -56,6 +56,11 @@
                                     GRN
                                 </button>
 
+                                <button type="button" data-tab="tab-grn-return"
+                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
+                                    GRN Return
+                                </button>
+
                                 <button type="button" data-tab="tab-bast"
                                     class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
                                     BAST
@@ -66,15 +71,11 @@
                                     Issue
                                 </button>
 
-                                <button type="button" data-tab="tab-sttb-return"
+                                <button type="button" data-tab="tab-issue-return"
                                     class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
-                                    STTB Return (soon)
+                                    Issue Return
                                 </button>
 
-                                <button type="button" data-tab="tab-receipt"
-                                    class="tab-btn rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:border-gray-200 hover:bg-white">
-                                    Receipt (soon)
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -150,12 +151,20 @@
                     @include('pages.integration.ifcaapigrn')
                 </div>
 
+                <div id="tab-grn-return" class="hidden">
+                    @include('pages.integration.ifcaapigrnreturn')
+                </div>
+
                 <div id="tab-bast" class="hidden">
                     @include('pages.integration.ifcaapibast')
                 </div>
 
                 <div id="tab-issue" class="hidden">
                     @include('pages.integration.ifcaapiissue')
+                </div>
+
+                <div id="tab-issue-return" class="hidden">
+                    @include('pages.integration.ifcaapiissuereturn')
                 </div>
 
                 <div id="tab-po-sl" class="hidden">
@@ -168,10 +177,6 @@
 
                 <div id="tab-issue-sl" class="hidden">
                     @include('pages.integration.slapissue')
-                </div>
-
-                <div id="tab-sttb-return" class="hidden rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500">
-                    STTB Return tab (soon)
                 </div>
 
                 <div id="tab-receipt" class="hidden rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-sm text-gray-500">
@@ -192,13 +197,13 @@
                 'tab-supplier',
                 'tab-po',
                 'tab-sttb',
+                'tab-grn-return',
                 'tab-bast',
                 'tab-issue',
+                'tab-issue-return',
                 'tab-po-sl',
                 'tab-grn-sl',
-                'tab-issue-sl',
-                'tab-sttb-return',
-                'tab-receipt'
+                'tab-issue-sl'
             ];
 
             const tabPanels = panelIds
