@@ -519,7 +519,7 @@ class BastController extends Controller
                     * Jadi applyBastApprovalSideEffects hanya jalan sekali,
                     * yaitu setelah approval level 1.00.
                     */
-                    if ((string) ($next['aprv_leveling'] ?? '') === '2.00') {
+                    if ((float) ($next['aprv_leveling'] ?? 0) > 1.00) {
                         $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
                     }
 

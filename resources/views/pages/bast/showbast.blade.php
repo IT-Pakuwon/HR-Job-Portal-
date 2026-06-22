@@ -908,26 +908,6 @@
         //     await loadRatings(bastid);
         // });
 
-        $(document).on('click', '#ratingOkBtn', function() {
-            const bastid = "{{ $bast->bastid }}";
-
-            if (ratingRows.some(r => r.rating_score < 1)) {
-                toastr.warning('Please rate all criteria.');
-                return;
-            }
-
-            const avg = ratingRows.reduce((a, b) => a + b.rating_score, 0) / ratingRows.length;
-
-            $.post(`/bast/${bastid}/approve`, {
-                _token: "{{ csrf_token() }}",
-                rating_vendor: avg.toFixed(2),
-                ratings_json: JSON.stringify(ratingRows)
-            }).done(() => {
-                toastr.success('Approved');
-                // window.location.href = '/bastlist';
-                closeOrRedirect("/bastlist");
-            });
-        });
     </script>
     <script>
         function openRatingModal() {
