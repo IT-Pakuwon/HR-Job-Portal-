@@ -16,6 +16,10 @@
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
         }
+
+        .select2-dropdown {
+            z-index: 99999 !important;
+        }
     </style>
     <div class="max-w-9xl mx-auto p-2">
 
@@ -543,13 +547,15 @@
                                 return `<span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-600">Rejected</span>`;
                             }
 
-                            // ✅ SUDAH MAPPED → Re-map / Undo
+                            // ✅ SUDAH MAPPED → Re-map / Undo / Reject
                             if (row.jobposting_docid) {
                                 const items = [
                                     `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-indigo-600"
                                         data-action="remap" data-id="${row.eid}" data-docid="${row.docid}">🔄 Re-map</button>`,
                                     `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-500"
                                         data-action="undo" data-id="${row.eid}" data-job="${row.jobposting_docid}">↩ Undo Mapping</button>`,
+                                    `<button class="slf-action-item w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-red-600"
+                                        data-action="reject" data-id="${row.eid}">✕ Reject</button>`,
                                 ].join('');
 
                                 return `
@@ -607,9 +613,10 @@
                 $slfMenu.html(html || '');
 
                 const rect = this.getBoundingClientRect();
+                const slfW = 176;
                 $slfMenu.css({
-                    top:  rect.bottom + window.scrollY,
-                    left: rect.right - 176 + window.scrollX,
+                    top:  rect.bottom + 4,
+                    left: Math.max(8, Math.min(rect.right - slfW, window.innerWidth - slfW - 8)),
                 });
 
                 const isOpen = !$slfMenu.hasClass('hidden');
@@ -701,12 +708,14 @@
                 placeholder: 'Filter by Division',
                 allowClear: true,
                 width: '100%',
+                dropdownParent: $('body'),
             });
 
             $('#filterDepartment').select2({
                 placeholder: 'Filter by Department',
                 allowClear: true,
                 width: '100%',
+                dropdownParent: $('body'),
             });
 
             $('#filterDivision').on('change', function () {
