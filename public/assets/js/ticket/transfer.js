@@ -358,9 +358,6 @@ function loadTransferPIC(ticket) {
 
             ticket_categoryid:
                 $('#transfer_ticket_categoryid').val(),
-
-            department_id:
-                ticket.department_id,
         },
 
         success(res) {
