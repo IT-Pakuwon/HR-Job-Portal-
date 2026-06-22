@@ -1545,18 +1545,23 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/budget-by-month', 'budgetByMonth')->name('gm.budget-by-month');
 
                 // Isort API endpoints
-                Route::get('/api/isort-summary',          'isortSummary')          ->name('gm.isort-summary');
-                Route::get('/api/isort-kaizen-by-type',   'isortKaizenByType')     ->name('gm.isort-kaizen-by-type');
-                Route::get('/api/isort-incidents',         'isortIncidentsByName')  ->name('gm.isort-incidents');
-                Route::get('/api/isort-dept-summary',      'isortDeptSummary')      ->name('gm.isort-dept-summary');
-                Route::get('/api/isort-available-depts',   'isortAvailableDepts')   ->name('gm.isort-available-depts');
-                Route::get('/api/isort-detail',            'isortDetail')           ->name('gm.isort-detail');
+                Route::get('/api/isort-summary','isortSummary')          ->name('gm.isort-summary');
+                Route::get('/api/isort-kaizen-by-type','isortKaizenByType')     ->name('gm.isort-kaizen-by-type');
+                Route::get('/api/isort-incidents','isortIncidentsByName')  ->name('gm.isort-incidents');
+                Route::get('/api/isort-dept-summary','isortDeptSummary')      ->name('gm.isort-dept-summary');
+                Route::get('/api/isort-available-depts','isortAvailableDepts')   ->name('gm.isort-available-depts');
+                Route::get('/api/isort-monthly-trend','isortMonthlyTrend')     ->name('gm.isort-monthly-trend');
+                Route::get('/api/isort-top-areas','isortTopAreas')         ->name('gm.isort-top-areas');
+                Route::get('/api/isort-detail','isortDetail')           ->name('gm.isort-detail');
 
                 // PG Card API endpoints
                 Route::get('/api/pgcard-top-customers', 'pgcardTopCustomers')->name('gm.pgcard-top-customers');
-                Route::get('/api/pgcard-top-tenants',   'pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
-                Route::get('/api/pgcard-coupon-styw',         'pgcardCouponStyw')        ->name('gm.pgcard-coupon-styw');
+                Route::get('/api/pgcard-top-tenants','pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
+                Route::get('/api/pgcard-kpi-summary','pgcardKpiSummary')        ->name('gm.pgcard-kpi-summary');
+                Route::get('/api/pgcard-monthly-trend','pgcardMonthlyTrend')      ->name('gm.pgcard-monthly-trend');
+                Route::get('/api/pgcard-coupon-styw','pgcardCouponStyw')        ->name('gm.pgcard-coupon-styw');
                 Route::get('/api/pgcard-coupon-styw-compare', 'pgcardCouponStywCompare')->name('gm.pgcard-coupon-styw-compare');
+                Route::get('/api/pgcard-campaign-samples','pgcardCampaignSamples')  ->name('gm.pgcard-campaign-samples');
 
                 // Export endpoints
                 Route::get('/export/pdf',  'exportPdf') ->name('gm.export.pdf');
