@@ -1544,6 +1544,7 @@ class PersonnelController extends Controller
             'jobtag'     => $jobtag,
             'canEdit'    => $canEdit,
             'isApprover' => $isApprover,
+            'hash'       => $hash,
         ]);
     }
 
