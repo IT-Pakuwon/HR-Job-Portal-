@@ -1554,6 +1554,9 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/isort-top-areas','isortTopAreas')         ->name('gm.isort-top-areas');
                 Route::get('/api/isort-detail','isortDetail')           ->name('gm.isort-detail');
 
+                // Parking API endpoints
+                Route::get('/api/parking-sites', 'parkingSites')->name('gm.parking-sites');
+
                 // PG Card API endpoints
                 Route::get('/api/pgcard-top-customers', 'pgcardTopCustomers')->name('gm.pgcard-top-customers');
                 Route::get('/api/pgcard-top-tenants','pgcardTopTenants')  ->name('gm.pgcard-top-tenants');
@@ -1562,6 +1565,12 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/pgcard-coupon-styw','pgcardCouponStyw')        ->name('gm.pgcard-coupon-styw');
                 Route::get('/api/pgcard-coupon-styw-compare', 'pgcardCouponStywCompare')->name('gm.pgcard-coupon-styw-compare');
                 Route::get('/api/pgcard-campaign-samples','pgcardCampaignSamples')  ->name('gm.pgcard-campaign-samples');
+
+                // Valet Parking API endpoints
+                Route::get('/api/valet-income-trend',     'valetIncomeTrend')     ->name('gm.valet-income-trend');
+                Route::get('/api/valet-peak-hour',        'valetPeakHour')        ->name('gm.valet-peak-hour');
+                Route::get('/api/valet-repetitive-nopol', 'valetRepetitiveNopol') ->name('gm.valet-repetitive-nopol');
+                Route::get('/api/valet-top-transactions', 'valetTopTransactions') ->name('gm.valet-top-transactions');
 
                 // Export endpoints
                 Route::get('/export/pdf',  'exportPdf') ->name('gm.export.pdf');

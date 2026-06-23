@@ -108,6 +108,8 @@
                 <button id="gmTab_budget" type="button" class="gm-section-tab">Budget</button>
                 <button id="gmTab_pgcard" type="button" class="gm-section-tab">PG Card</button>
                 <button id="gmTab_isort" type="button" class="gm-section-tab">Operation - Isort</button>
+                <button id="gmTab_parking" type="button" class="gm-section-tab">Parking</button>
+                <button id="gmTab_valet" type="button" class="gm-section-tab">Valet Parking</button>
             </div>
 
         </div>{{-- /gmPageHeader --}}
@@ -591,7 +593,7 @@
             </div>
 
             {{-- ── Row 3: Monthly Trend + Top 10 Problem Areas ───────────────────── --}}
-            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
+            {{-- <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
 
                 <x-card-chart.card-shell subtitle="Operation · Isort" title="Monthly Issue Trend"
                     class="h-full flex flex-col"
@@ -601,17 +603,276 @@
                     </div>
                 </x-card-chart.card-shell>
 
-                {{-- <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Problem Areas"
+                <x-card-chart.card-shell subtitle="Operation · Isort" title="Top 10 Problem Areas"
                     class="h-full flex flex-col"
                     gradient="linear-gradient(to right,#F59E0B,#EF4444,#8B5CF6)">
                     <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
                         <div id="isortTopAreasChart" class="flex-1"></div>
                     </div>
-                </x-card-chart.card-shell> --}}
+                </x-card-chart.card-shell>
+
+            </div> --}}
+
+        </div>{{-- /Isort Section --}}
+
+        {{-- ── Parking Section ──────────────────────────────────────────────────── --}}
+        <div id="gmSectionParking" class="mt-2 space-y-3">
+
+            {{-- KPI Strip --}}
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
+                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
+                    style="background:linear-gradient(to right,#0EA5E9,#10B981,#F59E0B,#6366F1)"></div>
+
+                {{-- Site tabs row --}}
+                <div class="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 dark:border-slate-700/60">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Parking · Site</span>
+                    <div id="parkingSiteTabsContainer" class="flex flex-wrap items-center gap-1">
+                        <span class="text-[10px] text-slate-400">Loading…</span>
+                    </div>
+                </div>
+
+                {{-- KPI metrics --}}
+                <div class="grid grid-cols-2 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-4">
+
+                    {{-- Total Income --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 dark:bg-sky-500/10">
+                            <svg class="h-4.5 w-4.5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Income</p>
+                            <p id="parkingKpiIncome" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Total Transactions --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+                            <svg class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Transactions</p>
+                            <p id="parkingKpiTxn" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Avg Duration --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
+                            <svg class="h-4.5 w-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Avg Duration</p>
+                            <p id="parkingKpiDuration" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Avg Income / Txn --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                            <svg class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Avg / Txn</p>
+                            <p id="parkingKpiAvg" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ── Row 1: Income Trend (full width) ──────────────────────────────── --}}
+            <x-card-chart.card-shell subtitle="Parking" title="Income Trend"
+                class="h-full flex flex-col"
+                gradient="linear-gradient(to right,#0EA5E9,#6366F1)">
+                <x-slot:headerEnd>
+                    <div class="flex items-center gap-1">
+                        <button id="parkingIncomePeriod_daily" type="button"
+                            class="pgcard-tab-active rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">Daily</button>
+                        <button id="parkingIncomePeriod_monthly" type="button"
+                            class="pgcard-tab-idle rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">Monthly</button>
+                    </div>
+                </x-slot:headerEnd>
+                <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                    <div id="parkingIncomeTrendChart" class="flex-1 min-h-65"></div>
+                </div>
+            </x-card-chart.card-shell>
+
+            {{-- ── Row 2: Peak Hour Heatmap + Vehicle Type ────────────────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
+
+                <x-card-chart.card-shell subtitle="Parking" title="Peak Hour Heatmap"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#F59E0B,#EF4444)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="parkingPeakHourChart" class="flex-1 min-h-65"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+                <x-card-chart.card-shell subtitle="Parking" title="Vehicle Type & Revenue Split"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#10B981,#0EA5E9)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="parkingVehicleTypeChart" class="flex-1 min-h-65"></div>
+                    </div>
+                </x-card-chart.card-shell>
 
             </div>
 
-        </div>{{-- /Isort Section --}}
+            {{-- ── Row 3: Payment Method + Member vs Non-member ───────────────────── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-2" style="align-items:stretch">
+
+                <x-card-chart.card-shell subtitle="Parking" title="Payment Method Breakdown"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#8B5CF6,#EC4899)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="parkingPaymentChart" class="flex-1 min-h-55"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+                <x-card-chart.card-shell subtitle="Parking" title="Member vs Non-Member"
+                    class="h-full flex flex-col"
+                    gradient="linear-gradient(to right,#6366F1,#10B981)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="parkingMemberChart" class="flex-1 min-h-55"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+            </div>
+
+            {{-- ── Row 4: Top Repetitive Nopol ────────────────────────────────────── --}}
+            <x-card-chart.card-shell subtitle="Parking" title="Top Repetitive Vehicles (Nopol > 1 Visit)"
+                class="h-full flex flex-col"
+                gradient="linear-gradient(to right,#EF4444,#F59E0B,#10B981)">
+                <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                    <div id="parkingRepetitiveChart" class="flex-1 min-h-60"></div>
+                </div>
+            </x-card-chart.card-shell>
+
+        </div>{{-- /Parking Section --}}
+
+        {{-- ── Valet Parking Section ──────────────────────────────────────────── --}}
+        <div id="gmSectionValet" class="mt-2 space-y-3">
+
+            {{-- KPI Strip --}}
+            <div class="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm dark:border-slate-700/60">
+                <div class="absolute inset-x-0 top-0 z-10 h-0.75"
+                    style="background:linear-gradient(to right,#10B981,#3B82F6,#8B5CF6)"></div>
+                <div class="grid grid-cols-1 gap-px bg-slate-100 dark:bg-slate-700/50 sm:grid-cols-3">
+
+                    {{-- Total Income --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10">
+                            <svg class="h-4.5 w-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Income</p>
+                            <p id="valetKpiIncome" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Total Transactions --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
+                            <svg class="h-4.5 w-4.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Total Transactions</p>
+                            <p id="valetKpiTxn" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                    {{-- Avg Income / Txn --}}
+                    <div class="flex min-w-0 items-center gap-3 bg-white px-4 py-3.5 dark:bg-slate-900 sm:gap-3.5 sm:px-5 sm:py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 dark:bg-violet-500/10">
+                            <svg class="h-4.5 w-4.5 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Avg / Transaction</p>
+                            <p id="valetKpiAvg" class="mt-0.5 text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-white sm:text-2xl">—</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- ── Row 1: Income Trend (full width, daily/monthly toggle) ─────────── --}}
+            <x-card-chart.card-shell subtitle="Valet Parking" title="Income Trend"
+                class="h-full flex flex-col"
+                gradient="linear-gradient(to right,#10B981,#3B82F6)">
+                <x-slot:headerEnd>
+                    <div class="flex items-center gap-1">
+                        <button id="valetTrendTab_daily" type="button"
+                            class="pgcard-tab-active rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">Daily</button>
+                        <button id="valetTrendTab_monthly" type="button"
+                            class="pgcard-tab-idle rounded-lg px-2.5 py-1 text-[10px] font-semibold transition">Monthly</button>
+                    </div>
+                </x-slot:headerEnd>
+                <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                    <div id="valetIncomeTrendChart" class="flex-1 min-h-65"></div>
+                </div>
+            </x-card-chart.card-shell>
+
+            {{-- ── Row 2: Peak Hour Heatmap (2/3) + Repeat Visitors table (1/3) ───── --}}
+            <div class="grid grid-cols-1 gap-3 lg:grid-cols-3" style="align-items:stretch">
+
+                <x-card-chart.card-shell subtitle="Valet Parking" title="Peak Hour Heatmap"
+                    class="h-full flex flex-col lg:col-span-2"
+                    gradient="linear-gradient(to right,#F59E0B,#EF4444)">
+                    <div class="flex-1 px-3 pb-3 pt-0 flex flex-col min-h-0">
+                        <div id="valetPeakHeatmap" class="flex-1 min-h-65"></div>
+                    </div>
+                </x-card-chart.card-shell>
+
+                <x-card-chart.dynamic-table-card
+                    subtitle="Valet Parking" title="Repeat Visitors"
+                    gradient="linear-gradient(to right,#8B5CF6,#EC4899)"
+                    tableBodyId="valetNopolBody"
+                    countBadgeId="valetNopolCount"
+                    paginationPrefix="valetNopol"
+                    :columns="[
+                        ['label' => '#'],
+                        ['label' => 'Nopol',  'key' => 'nopol'],
+                        ['label' => 'Owner',  'key' => 'owner'],
+                        ['label' => 'Visits', 'key' => 'visit_count', 'numeric' => true],
+                        ['label' => 'Total',  'key' => 'total_spent', 'numeric' => true],
+                    ]" />
+
+            </div>
+
+            {{-- ── Row 3: Top 10 Transactions (full width) ─────────────────────── --}}
+            <x-card-chart.dynamic-table-card
+                subtitle="Valet Parking" title="Top 10 Transactions by Amount"
+                gradient="linear-gradient(to right,#3B82F6,#10B981,#8B5CF6)"
+                tableBodyId="valetTopTxnBody"
+                countBadgeId="valetTopTxnCount"
+                paginationPrefix=""
+                :columns="[
+                    ['label' => '#'],
+                    ['label' => 'Nopol',      'key' => 'nopol'],
+                    ['label' => 'Owner',      'key' => 'owner'],
+                    ['label' => 'Location',   'key' => 'location'],
+                    ['label' => 'Check-in',   'key' => 'checkin_date'],
+                    ['label' => 'Duration',   'key' => 'duration_hour', 'numeric' => true],
+                    ['label' => 'Total',      'key' => 'total_amount',  'numeric' => true],
+                    ['label' => 'Voucher',    'key' => 'voucher_code'],
+                ]" />
+
+        </div>{{-- /Valet Section --}}
 
     </div>
 
@@ -641,6 +902,11 @@
             isortAvailableDepts: "{{ route('gm.isort-available-depts') }}",
             isortMonthlyTrend: "{{ route('gm.isort-monthly-trend') }}",
             isortTopAreas: "{{ route('gm.isort-top-areas') }}",
+            parkingSites: "{{ route('gm.parking-sites') }}",
+            valetIncomeTrend:    "{{ route('gm.valet-income-trend') }}",
+            valetPeakHour:       "{{ route('gm.valet-peak-hour') }}",
+            valetRepetitiveNopol:"{{ route('gm.valet-repetitive-nopol') }}",
+            valetTopTransactions:"{{ route('gm.valet-top-transactions') }}",
         };
     </script>
 
@@ -650,6 +916,8 @@
     <script src="{{ asset('assets/js/gm-report/gm-budget.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-pgcard.js') }}"></script>
     <script src="{{ asset('assets/js/gm-report/gm-isort.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-parking.js') }}"></script>
+    <script src="{{ asset('assets/js/gm-report/gm-valet.js') }}"></script>
 
     {{-- ── Export link updater ─────────────────────────────────────────────────
          Runs every time the filter changes so the download URL always carries
@@ -720,16 +988,20 @@
     <script>
         (function() {
             var sections = {
-                budget: 'gmSectionBudget',
-                pgcard: 'gmSectionPgcard',
-                isort: 'gmSectionIsort'
+                budget:  'gmSectionBudget',
+                pgcard:  'gmSectionPgcard',
+                isort:   'gmSectionIsort',
+                parking: 'gmSectionParking',
+                valet:   'gmSectionValet'
             };
             var headers = {
-                budget: 'gmSectionBudgetHeader',
-                pgcard: 'gmSectionPgcardHeader',
-                isort: 'gmSectionIsortHeader'
+                budget:  'gmSectionBudgetHeader',
+                pgcard:  'gmSectionPgcardHeader',
+                isort:   'gmSectionIsortHeader',
+                parking: 'gmSectionParkingHeader',
+                valet:   'gmSectionValetHeader'
             };
-            var tabIds = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard', 'gmTab_isort'];
+            var tabIds = ['gmTab_all', 'gmTab_budget', 'gmTab_pgcard', 'gmTab_isort', 'gmTab_parking', 'gmTab_valet'];
 
             function switchTab(key) {
                 tabIds.forEach(function(id) {

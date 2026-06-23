@@ -1265,6 +1265,275 @@ class GmReportController extends Controller
 
     // ── API: Cumulative budget used per month ─────────────────────────────────
 
+    // ── Valet Parking constants ───────────────────────────────────────────────
+    private const VALET_PROJECT = 'ifca-pkwjakarta';
+    private const VALET_DATASET = 'valet_parking';
+
+    // ── API: Valet — Income Trend (daily / monthly) ───────────────────────────
+    public function valetIncomeTrend(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+            $mode = in_array($request->input('mode'), ['daily', 'monthly'], true)
+                ? $request->input('mode') : 'daily';
+
+            $bq = new BigQueryService();
+            $p  = self::VALET_PROJECT;
+            $d  = self::VALET_DATASET;
+
+            $groupExpr = $mode === 'monthly'
+                ? "FORMAT_DATE('%Y-%m', checkin_date)"
+                : "FORMAT_DATE('%Y-%m-%d', checkin_date)";
+
+            $sql = <<<SQL
+                SELECT
+                    {$groupExpr}                      AS label,
+                    COALESCE(SUM(total_amount), 0)    AS income,
+                    COUNT(*)                          AS transactions,
+                    COALESCE(AVG(total_amount), 0)    AS avg_income
+                FROM `{$p}.{$d}.valet_parking_valets_src`
+                WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  AND is_done = 1
+                GROUP BY label
+                ORDER BY label
+            SQL;
+
+            $rows        = $bq->query($sql);
+            $data        = [];
+            $totalIncome = 0;
+            $totalTxn    = 0;
+
+            foreach ($rows as $r) {
+                $income       = (float) ($r['income']       ?? 0);
+                $txn          = (int)   ($r['transactions'] ?? 0);
+                $totalIncome += $income;
+                $totalTxn    += $txn;
+                $data[]       = [
+                    'label'        => (string) ($r['label']      ?? ''),
+                    'income'       => $income,
+                    'transactions' => $txn,
+                    'avg_income'   => (float) ($r['avg_income'] ?? 0),
+                ];
+            }
+
+            return response()->json([
+                'data'         => $data,
+                'mode'         => $mode,
+                'total_income' => $totalIncome,
+                'total_txn'    => $totalTxn,
+                'avg_income'   => $totalTxn > 0 ? round($totalIncome / $totalTxn) : 0,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: Valet — Peak Hour Heatmap (hour × day-of-week) ──────────────────
+    public function valetPeakHour(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+
+            $bq = new BigQueryService();
+            $p  = self::VALET_PROJECT;
+            $d  = self::VALET_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    EXTRACT(HOUR FROM checkin_time)      AS hour,
+                    EXTRACT(DAYOFWEEK FROM checkin_date) AS dow,
+                    COUNT(*)                             AS cnt
+                FROM `{$p}.{$d}.valet_parking_valets_src`
+                WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  AND is_done = 1
+                  AND checkin_time IS NOT NULL
+                GROUP BY hour, dow
+                ORDER BY dow, hour
+            SQL;
+
+            $rows = $bq->query($sql);
+            $data = array_map(fn ($r) => [
+                'hour' => (int) ($r['hour'] ?? 0),
+                'dow'  => (int) ($r['dow']  ?? 0),
+                'cnt'  => (int) ($r['cnt']  ?? 0),
+            ], $rows);
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: Valet — Repetitive License Plates ────────────────────────────────
+    public function valetRepetitiveNopol(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+
+            $bq = new BigQueryService();
+            $p  = self::VALET_PROJECT;
+            $d  = self::VALET_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    vehicle_license                            AS nopol,
+                    MAX(owner)                                 AS owner,
+                    COUNT(*)                                   AS visit_count,
+                    FORMAT_DATE('%Y-%m-%d', MAX(checkin_date)) AS last_visit,
+                    COALESCE(SUM(total_amount), 0)             AS total_spent,
+                    COALESCE(AVG(total_amount), 0)             AS avg_spent
+                FROM `{$p}.{$d}.valet_parking_valets_src`
+                WHERE checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  AND is_done = 1
+                  AND vehicle_license IS NOT NULL
+                  AND TRIM(vehicle_license) != ''
+                GROUP BY vehicle_license
+                HAVING COUNT(*) > 1
+                ORDER BY visit_count DESC
+                LIMIT 20
+            SQL;
+
+            $rows = $bq->query($sql);
+            $data = array_map(fn ($r) => [
+                'nopol'       => (string) ($r['nopol']       ?? ''),
+                'owner'       => (string) ($r['owner']       ?? ''),
+                'visit_count' => (int)    ($r['visit_count'] ?? 0),
+                'last_visit'  => (string) ($r['last_visit']  ?? ''),
+                'total_spent' => (float)  ($r['total_spent'] ?? 0),
+                'avg_spent'   => (float)  ($r['avg_spent']   ?? 0),
+            ], $rows);
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── API: Valet — Top 10 Transactions by Amount ────────────────────────────
+    public function valetTopTransactions(Request $request)
+    {
+        try {
+            ['dateFrom' => $dateFrom, 'dateTo' => $dateTo] = $this->parseFilters($request);
+
+            $bq = new BigQueryService();
+            $p  = self::VALET_PROJECT;
+            $d  = self::VALET_DATASET;
+
+            $sql = <<<SQL
+                SELECT
+                    v.vehicle_license                            AS nopol,
+                    v.owner,
+                    p.name                                       AS location,
+                    FORMAT_DATE('%Y-%m-%d', v.checkin_date)      AS checkin_date,
+                    FORMAT_DATETIME('%H:%M', v.checkin_time)     AS checkin_time_str,
+                    COALESCE(v.duration_hour, 0)                 AS duration_hour,
+                    COALESCE(v.duration_minute, 0)               AS duration_minute,
+                    COALESCE(v.total_amount, 0)                  AS total_amount,
+                    COALESCE(v.paid_amount, 0)                   AS paid_amount,
+                    COALESCE(v.voucher_code, '')                 AS voucher_code,
+                    COALESCE(v.status, '')                       AS status,
+                    COALESCE(v.status_paid, '')                  AS status_paid
+                FROM `{$p}.{$d}.valet_parking_valets_src` v
+                LEFT JOIN `{$p}.{$d}.valet_parking_places_src` p
+                    ON v.places_id = p.id
+                WHERE v.checkin_date BETWEEN '{$dateFrom}' AND '{$dateTo}'
+                  AND v.total_amount IS NOT NULL
+                ORDER BY v.total_amount DESC
+                LIMIT 10
+            SQL;
+
+            $rows = $bq->query($sql);
+            $data = array_map(fn ($r) => [
+                'nopol'            => (string) ($r['nopol']            ?? ''),
+                'owner'            => (string) ($r['owner']            ?? ''),
+                'location'         => (string) ($r['location']         ?? ''),
+                'checkin_date'     => (string) ($r['checkin_date']     ?? ''),
+                'checkin_time_str' => (string) ($r['checkin_time_str'] ?? ''),
+                'duration_hour'    => (int)    ($r['duration_hour']    ?? 0),
+                'duration_minute'  => (int)    ($r['duration_minute']  ?? 0),
+                'total_amount'     => (float)  ($r['total_amount']     ?? 0),
+                'paid_amount'      => (float)  ($r['paid_amount']      ?? 0),
+                'voucher_code'     => (string) ($r['voucher_code']     ?? ''),
+                'status'           => (string) ($r['status']           ?? ''),
+                'status_paid'      => (string) ($r['status_paid']      ?? ''),
+            ], $rows);
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
+    // ── Parking constants ─────────────────────────────────────────────────────
+    private const PARKING_PROJECT  = 'ifca-pkwjakarta';
+    private const PARKING_DATASET  = 'parking_centrepark';
+    private const PARKING_LOCATION = 'asia-southeast1'; // parking_centrepark dataset location — change if wrong
+
+    private function allowedParkingSites(?string $cpnyId): ?array
+    {
+        $allowed = $this->allowedCompanies();
+
+        $q = \App\Models\MsSite::where('site_parking', true)->where('status', 'A');
+
+        if ($cpnyId) {
+            if (!empty($allowed) && !in_array($cpnyId, $allowed, true)) {
+                return [];
+            }
+            $q->where('cpny_id', $cpnyId);
+        } elseif (!empty($allowed)) {
+            $q->whereIn('cpny_id', $allowed);
+        } else {
+            return null; // super-admin: no restriction
+        }
+
+        return $q->pluck('siteid')->filter()->unique()->values()->all();
+    }
+
+    private function buildParkingSiteFilter(?array $sites): string
+    {
+        return $sites !== null
+            ? "AND siteId IN ('" . implode("','", array_map('addslashes', $sites)) . "')"
+            : '';
+    }
+
+    // ── API: Parking — distinct siteIds visible to the current user ───────────
+    public function parkingSites(Request $request)
+    {
+        try {
+            $cpnyId = strtoupper(trim($request->input('cpny_id', ''))) ?: null;
+            $sites  = $this->allowedParkingSites($cpnyId);
+
+            if ($sites !== null && empty($sites)) {
+                return response()->json(['data' => []]);
+            }
+
+            $siteFilter = $this->buildParkingSiteFilter($sites);
+
+            $bq = new BigQueryService();
+            $p  = self::PARKING_PROJECT;
+            $d  = self::PARKING_DATASET;
+
+            // No date filter here — site list should always show all available sites
+            $sql = <<<SQL
+                SELECT DISTINCT siteId
+                FROM `{$p}.{$d}.parkingco_parking_slip_list_src`
+                WHERE siteId IS NOT NULL
+                  {$siteFilter}
+                ORDER BY siteId
+            SQL;
+
+            $rows = $bq->query($sql, [], self::PARKING_LOCATION);
+            $data = array_values(array_filter(array_map(
+                fn ($r) => (string) ($r['siteId'] ?? ''),
+                $rows
+            )));
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            return response()->json(['data' => [], 'error' => $e->getMessage()]);
+        }
+    }
+
     // ── API: PG Card — Top 10 customers per mall ──────────────────────────────
 
     public function pgcardTopCustomers(Request $request)
