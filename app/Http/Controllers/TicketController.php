@@ -1740,13 +1740,20 @@ class TicketController extends Controller
 
                 /*
             |--------------------------------------------------------------------------
-            | Reset SLA
+            | Preserve SLA — keep existing due date if already set (ticket has been
+            | responded), otherwise recalculate from Medium priority SLA days.
             |--------------------------------------------------------------------------
             */
 
-                'ticket_sla_days' => null,
+                'ticket_sla_days' => $ticket->ticket_sla_days
+                    ?? (MsTicketPriority::where('ticket_priority', 'Medium')->first()?->ticket_sla_days ?? 3),
 
-                'ticket_duedate' => null,
+                'ticket_duedate' => $ticket->ticket_duedate
+                    ?? $this->calculateDueDate(
+                        $ticket->ticket_sla_days
+                            ?? MsTicketPriority::where('ticket_priority', 'Medium')->first()?->ticket_sla_days
+                            ?? 3
+                    ),
 
                 /*
             |--------------------------------------------------------------------------
