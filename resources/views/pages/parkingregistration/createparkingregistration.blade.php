@@ -317,7 +317,8 @@
 
                                         <td class="stnkCell border p-3">
                                             <input type="file" name="detail_attach_stnk[]"
-                                                class="attachStnkInput parking-file-input">                                           
+                                                class="attachStnkInput parking-file-input">
+                                        </td>
 
                                         <td class="idcardCell border p-3">
                                             <input type="file" name="detail_attach_idcard[]"
@@ -444,6 +445,8 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        const parkingAttachSettings = @json($parkingAttachSettings ?? []);
+
         function isRenewalType() {
             return currentParkingType() === 'RENEWAL';
         }
@@ -489,6 +492,29 @@
             } else {
                 $('.buktiBayarHeader').addClass('hidden').hide();
             }
+
+            $('.stnkHeader').toggleClass('req', showStnk);
+            $('.idcardHeader').toggleClass('req', showIdCard);
+            $('.buktiBayarHeader').toggleClass('req', showBuktiBayar);
+        }
+
+        function currentAttachmentSetting() {
+            const key = `${currentParkingType()}|${currentWorkerType()}`;
+            const setting = parkingAttachSettings[key];
+
+            if (!setting) {
+                return {
+                    att_stnk: true,
+                    att_idcard: true,
+                    att_buktibayar: true
+                };
+            }
+
+            return {
+                att_stnk: Boolean(setting.att_stnk),
+                att_idcard: Boolean(setting.att_idcard),
+                att_buktibayar: Boolean(setting.att_buktibayar)
+            };
         }
 
         function resetParkingDetailRows() {
@@ -534,40 +560,13 @@
 
         function applyParkingTypeDetailMode() {
             const parkingType = currentParkingType();
+            const attachSetting = currentAttachmentSetting();
 
-            /*
-            |--------------------------------------------------------------------------
-            | Default header untuk NEWREQUEST / TEMPREQUEST
-            |--------------------------------------------------------------------------
-            */
-            setFileHeader(true, true, true);
-
-            /*
-            |--------------------------------------------------------------------------
-            | Header khusus RENEWAL
-            |--------------------------------------------------------------------------
-            */
-            if (parkingType === 'RENEWAL') {
-                setFileHeader(false, false, false);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Header khusus CHANGENOPOL
-            |--------------------------------------------------------------------------
-            */
-            if (parkingType === 'CHANGENOPOL') {
-                setFileHeader(true, false, true);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Header khusus CHANGECARD
-            |--------------------------------------------------------------------------
-            */
-            if (parkingType === 'CHANGECARD') {
-                setFileHeader(false, false, true);
-            }
+            setFileHeader(
+                attachSetting.att_stnk,
+                attachSetting.att_idcard,
+                attachSetting.att_buktibayar
+            );
 
             $('#parkingDetailTable .parking-detail-row').each(function () {
                 const $row = $(this);
@@ -598,9 +597,9 @@
 
                 setReadonlyVehicle($row, false);
 
-                setFileCell($stnkCell, $stnkInput, true, true);
-                setFileCell($idcardCell, $idcardInput, true, true);
-                setFileCell($buktiCell, $buktiInput, true, false);
+                setFileCell($stnkCell, $stnkInput, attachSetting.att_stnk, attachSetting.att_stnk);
+                setFileCell($idcardCell, $idcardInput, attachSetting.att_idcard, attachSetting.att_idcard);
+                setFileCell($buktiCell, $buktiInput, attachSetting.att_buktibayar, attachSetting.att_buktibayar);
 
                 /*
                 |--------------------------------------------------------------------------
@@ -609,10 +608,6 @@
                 */
                 if (parkingType === 'RENEWAL') {
                     setReadonlyVehicle($row, true);
-
-                    setFileCell($stnkCell, $stnkInput, false, false);
-                    setFileCell($idcardCell, $idcardInput, false, false);
-                    setFileCell($buktiCell, $buktiInput, false, false);
                 }
 
                 /*
@@ -628,10 +623,6 @@
                     $jenisFinalLabel.removeClass('hidden');
 
                     setReadonlyVehicle($row, false);
-
-                    setFileCell($stnkCell, $stnkInput, true, true);
-                    setFileCell($idcardCell, $idcardInput, false, false);
-                    setFileCell($buktiCell, $buktiInput, true, false);
                 }
 
                 /*
@@ -641,10 +632,6 @@
                 */
                 if (parkingType === 'CHANGECARD') {
                     setReadonlyVehicle($row, true);
-
-                    setFileCell($stnkCell, $stnkInput, false, false);
-                    setFileCell($idcardCell, $idcardInput, false, false);
-                    setFileCell($buktiCell, $buktiInput, true, false);
                 }
             });
         }
@@ -663,6 +650,13 @@
 
             return val === 'EMPLOYEE' || text.includes('KARYAWAN');
         }        
+
+        function isInternshipWorkerType() {
+            const val = currentWorkerType();
+            const text = String($('#worker_type option:selected').text() || '').toUpperCase();
+
+            return val === 'INTERNSHIP' || text.includes('INTERNSHIP') || text.includes('MAGANG');
+        }
 
         function isExistingParkingType() {
             const parkingType = currentParkingType();

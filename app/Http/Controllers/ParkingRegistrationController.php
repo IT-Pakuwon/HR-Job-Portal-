@@ -21,6 +21,7 @@ use App\Models\MsCategory;
 use App\Models\MsSite;
 use App\Models\MsParkingKendaraan;
 use App\Models\MsKendaraan;
+use App\Models\MsParkingSettingAttach;
 
 use Mail;
 use PDF;
@@ -588,6 +589,24 @@ class ParkingRegistrationController extends Controller
                 'cpny_id',
             ]);
 
+        $parkingAttachSettings = MsParkingSettingAttach::query()
+            ->where('status', 'A')
+            ->get(['parking_type', 'worker_type', 'att_stnk', 'att_idcard', 'att_buktibayar'])
+            ->mapWithKeys(function ($row) {
+                $key = strtoupper(trim((string) $row->parking_type)) . '|' . strtoupper(trim((string) $row->worker_type));
+
+                $toBool = fn ($value) => in_array(strtolower(trim((string) $value)), ['1', 'true', 't', 'yes', 'y'], true);
+
+                return [
+                    $key => [
+                        'att_stnk'       => $toBool($row->att_stnk),
+                        'att_idcard'     => $toBool($row->att_idcard),
+                        'att_buktibayar' => $toBool($row->att_buktibayar),
+                    ],
+                ];
+            })
+            ->all();
+
         return view('pages.parkingregistration.createparkingregistration', compact(
             'usercpny',
             'usercpny2',
@@ -596,7 +615,8 @@ class ParkingRegistrationController extends Controller
             'workerTypes',
             'parkingTypes',
             'sites',
-            'employees'
+            'employees',
+            'parkingAttachSettings'
         ));
     }
 
@@ -975,6 +995,17 @@ class ParkingRegistrationController extends Controller
     public function storeParkingRegistration(Request $request)
     {        
         $parkingType = strtoupper(trim((string) $request->parking_type));
+        $workerType = strtoupper(trim((string) $request->worker_type));
+        $attachSetting = MsParkingSettingAttach::query()
+            ->where('status', 'A')
+            ->whereRaw('UPPER(TRIM(parking_type)) = ?', [$parkingType])
+            ->whereRaw('UPPER(TRIM(worker_type)) = ?', [$workerType])
+            ->first();
+
+        $toBool = fn ($value) => in_array(strtolower(trim((string) $value)), ['1', 'true', 't', 'yes', 'y'], true);
+        $requiresStnk = $attachSetting ? $toBool($attachSetting->att_stnk) : true;
+        $requiresIdCard = $attachSetting ? $toBool($attachSetting->att_idcard) : true;
+        $requiresBuktiBayar = $attachSetting ? $toBool($attachSetting->att_buktibayar) : true;
 
         $rules = [
             'cpny_id'          => ['required', 'string'],
@@ -1005,20 +1036,47 @@ class ParkingRegistrationController extends Controller
             'attachments.*' => ['nullable', 'file', 'max:10240'],
         ];
 
-        if (in_array($parkingType, ['NEWREQUEST', 'TEMPREQUEST'], true)) {
+        if ($requiresStnk) {
             $rules['detail_attach_stnk'] = ['required', 'array', 'min:1'];
             $rules['detail_attach_stnk.*'] = ['required', 'file', 'max:10240'];
+        }
 
+        if ($requiresIdCard) {
             $rules['detail_attach_idcard'] = ['required', 'array', 'min:1'];
             $rules['detail_attach_idcard.*'] = ['required', 'file', 'max:10240'];
         }
 
-        if (in_array($parkingType, ['CHANGENOPOL', 'CHANGECARD'], true)) {
-            $rules['detail_attach_stnk'] = ['required', 'array', 'min:1'];
-            $rules['detail_attach_stnk.*'] = ['required', 'file', 'max:10240'];
+        if ($requiresBuktiBayar) {
+            $rules['detail_attach_bukti_bayar'] = ['required', 'array', 'min:1'];
+            $rules['detail_attach_bukti_bayar.*'] = ['required', 'file', 'max:10240'];
         }
 
         $request->validate($rules);
+
+        $detailNames = $request->input('detail_name', []);
+
+        foreach ($detailNames as $i => $detailName) {
+            $missing = [];
+
+            if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i")) {
+                $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
+            }
+
+            if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i")) {
+                $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
+            }
+
+            if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i")) {
+                $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
+            }
+
+            if (!empty($missing)) {
+                return response()->json([
+                    'message' => 'Mohon periksa input.',
+                    'errors'  => $missing,
+                ], 422);
+            }
+        }
 
         $user = $request->user();
 
@@ -1473,6 +1531,23 @@ class ParkingRegistrationController extends Controller
             ->orderBy('name')
             ->get(['username', 'name']);
 
+        $parkingAttachSettings = MsParkingSettingAttach::query()
+            ->where('status', 'A')
+            ->get(['parking_type', 'worker_type', 'att_stnk', 'att_idcard', 'att_buktibayar'])
+            ->mapWithKeys(function ($row) {
+                $key = strtoupper(trim((string) $row->parking_type)) . '|' . strtoupper(trim((string) $row->worker_type));
+                $toBool = fn ($value) => in_array(strtolower(trim((string) $value)), ['1', 'true', 't', 'yes', 'y'], true);
+
+                return [
+                    $key => [
+                        'att_stnk'       => $toBool($row->att_stnk),
+                        'att_idcard'     => $toBool($row->att_idcard),
+                        'att_buktibayar' => $toBool($row->att_buktibayar),
+                    ],
+                ];
+            })
+            ->all();
+
         /*
         |--------------------------------------------------------------------------
         | Signed URL untuk attachment detail lama
@@ -1507,6 +1582,7 @@ class ParkingRegistrationController extends Controller
             'parkingTypes',
             'workerTypes',
             'employees',
+            'parkingAttachSettings',
             'hash'
         ));
     }
@@ -1542,6 +1618,16 @@ class ParkingRegistrationController extends Controller
 
         $parkingType = strtoupper(trim((string) $request->parking_type));
         $workerType = strtoupper(trim((string) $request->worker_type));
+        $attachSetting = MsParkingSettingAttach::query()
+            ->where('status', 'A')
+            ->whereRaw('UPPER(TRIM(parking_type)) = ?', [$parkingType])
+            ->whereRaw('UPPER(TRIM(worker_type)) = ?', [$workerType])
+            ->first();
+
+        $toBool = fn ($value) => in_array(strtolower(trim((string) $value)), ['1', 'true', 't', 'yes', 'y'], true);
+        $requiresStnk = $attachSetting ? $toBool($attachSetting->att_stnk) : true;
+        $requiresIdCard = $attachSetting ? $toBool($attachSetting->att_idcard) : true;
+        $requiresBuktiBayar = $attachSetting ? $toBool($attachSetting->att_buktibayar) : true;
 
         $rules = [
             'cpny_id'          => ['required', 'string'],
@@ -1582,6 +1668,31 @@ class ParkingRegistrationController extends Controller
         ];
 
         $request->validate($rules);
+
+        $detailNames = $request->input('detail_name', []);
+
+        foreach ($detailNames as $i => $detailName) {
+            $missing = [];
+
+            if ($requiresStnk && !$request->hasFile("detail_attach_stnk.$i") && trim((string) $request->input("old_attach_stnk.$i")) === '') {
+                $missing["detail_attach_stnk.$i"] = ['Attach STNK wajib diisi.'];
+            }
+
+            if ($requiresIdCard && !$request->hasFile("detail_attach_idcard.$i") && trim((string) $request->input("old_attach_idcard.$i")) === '') {
+                $missing["detail_attach_idcard.$i"] = ['Attach ID Card wajib diisi.'];
+            }
+
+            if ($requiresBuktiBayar && !$request->hasFile("detail_attach_bukti_bayar.$i") && trim((string) $request->input("old_attach_bukti_bayar.$i")) === '') {
+                $missing["detail_attach_bukti_bayar.$i"] = ['Attach Bukti Bayar wajib diisi.'];
+            }
+
+            if (!empty($missing)) {
+                return response()->json([
+                    'message' => 'Mohon periksa input.',
+                    'errors'  => $missing,
+                ], 422);
+            }
+        }
 
         $dt = Carbon::now();
         $username = $user->username;
