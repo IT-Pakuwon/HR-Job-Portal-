@@ -368,37 +368,31 @@ class DocumentNotificationService
 
         // ── 6. BAST Jobs: remind users who have pending BAST to create ──
         try {
-            $userModel = \App\Models\User::whereRaw("lower(trim(coalesce(username,''))) = ?", [$username])->first();
-            if ($userModel) {
-                $cpnyRaw  = $userModel->cpny_id ?? '';
-                $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-                $deptRaw  = $userModel->department_id ?? '';
-                $deptList = $deptRaw !== '' ? array_map('trim', explode(',', $deptRaw)) : [];
+            $bastJobs = \App\Models\TrPOterm::query()
+                ->from('tr_po_term')
+                ->leftJoin('tr_po as po', function ($join) {
+                    $join->on('po.ponbr',   '=', 'tr_po_term.ponbr')
+                         ->on('po.cpny_id', '=', 'tr_po_term.cpny_id')
+                         ->on('po.csid',    '=', 'tr_po_term.csid');
+                })
+                ->whereRaw("lower(trim(coalesce(tr_po_term.user_peminta,''))) = ?", [$username])
+                ->where('tr_po_term.flag_bast', true)
+                ->whereNull('tr_po_term.bastid')
+                ->where('tr_po_term.status', 'A')
+                ->whereRaw("NOW()::date <= po.spkendtworkingdate - 7")
+                ->orderBy('tr_po_term.updated_at', 'desc')
+                ->limit(5)
+                ->select(
+                    'tr_po_term.id',
+                    'tr_po_term.ponbr',
+                    'tr_po_term.cpny_id',
+                    'tr_po_term.terms_name',
+                    'tr_po_term.vendorname',
+                    'tr_po_term.updated_at'
+                )
+                ->get();
 
-                $bastJobs = \App\Models\TrPOterm::query()
-                    ->from('tr_po_term')
-                    ->leftJoin('tr_po as po', function ($join) {
-                        $join->on('po.ponbr',   '=', 'tr_po_term.ponbr')
-                             ->on('po.cpny_id', '=', 'tr_po_term.cpny_id')
-                             ->on('po.csid',    '=', 'tr_po_term.csid');
-                    })
-                    ->when(!empty($cpnyList), fn ($q) => $q->whereIn('tr_po_term.cpny_id', $cpnyList))
-                    ->when(!empty($deptList), fn ($q) => $q->whereIn('tr_po_term.department_id', $deptList))
-                    ->where('tr_po_term.flag_bast', true)
-                    ->whereNull('tr_po_term.bastid')
-                    ->where('tr_po_term.status', 'A')
-                    ->whereRaw("NOW()::date <= po.spkendtworkingdate - 7")
-                    ->orderBy('tr_po_term.updated_at', 'desc')
-                    ->limit(5)
-                    ->select(
-                        'tr_po_term.id',
-                        'tr_po_term.ponbr',
-                        'tr_po_term.cpny_id',
-                        'tr_po_term.terms_name',
-                        'tr_po_term.vendorname',
-                        'tr_po_term.updated_at'
-                    )
-                    ->get();
+            if ($bastJobs->isNotEmpty()) {
 
                 $data = $data->concat($bastJobs->map(fn ($r) => [
                     'key'        => 'BAST_JOB_' . $r->id,

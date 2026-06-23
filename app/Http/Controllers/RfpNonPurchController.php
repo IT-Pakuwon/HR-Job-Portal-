@@ -971,6 +971,18 @@ class RfpNonPurchController extends Controller
         // =========================
         $canUpload = $rfpnonpurch->status === 'P';
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $isApprover = TrApproval::where('refnbr', $rfpnonpurch->rfpnonpurchaseid)
+            ->where('aprv_doctype', $doctype)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
@@ -1025,6 +1037,7 @@ class RfpNonPurchController extends Controller
             'stagingAttachments',
             'hash',
             'canUpload',
+            'isApprover',
             'userdept',
             'userdept2',
             'rfpnonpurchSteps',

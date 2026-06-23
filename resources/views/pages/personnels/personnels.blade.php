@@ -468,6 +468,7 @@
                             if (!row.can_toggle) return `<span class="text-gray-300 text-xs">-</span>`;
                             if (!row.jobposting_status) return `<span class="text-gray-400 text-sm">-</span>`;
                             if (row.status !== 'C') return `<span class="text-gray-300 text-xs">-</span>`;
+                            if (row.jobposting_status === 'X') return `<span class="text-red-500 text-xs font-semibold">Cancelled</span>`;
 
                             // ❌ CANCELLED → no action (terminal)
                             if (row.jobposting_status === 'X') {

@@ -455,6 +455,17 @@ class ReceiptController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $rcp->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $rcp->receiptnbr)
+            ->where('aprv_doctype', 'GR')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.receipt.showreceipt', [
             'rcp'            => $rcp,
             'rcpdetail'      => $rcpdetail,
@@ -464,6 +475,7 @@ class ReceiptController extends Controller
             'sppbUrl'        => $sppbUrl,
             'csUrl'          => $csUrl,
             'canUpload'      => $canUpload,
+            'isApprover'     => $isApprover,
         ]);
     }
 

@@ -2017,6 +2017,17 @@ class ParkingRegistrationController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = ($parkingRegistration->created_by === $loginUsername);
 
+        $isApprover = TrApproval::where('refnbr', $parkingRegistration->docid)
+            ->where('aprv_doctype', 'PKR')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         $siteParkingName = MsSite::where('siteid', $parkingRegistration->site_id_parking)
             ->value('site_name');
 
@@ -2036,6 +2047,7 @@ class ParkingRegistrationController extends Controller
             'attachments',
             'hash',
             'canUpload',
+            'isApprover',
             'siteParkingName',
             'parkingTypeName',
             'workerTypeName'

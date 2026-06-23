@@ -1040,6 +1040,17 @@ class WoController extends Controller
         $loginUsername2 = $user->username ?? $user->name ?? null;
         $canUpload = $wo->created_by === $loginUsername2;
 
+        $isApprover = TrApproval::where('refnbr', $wo->woid)
+            ->where('aprv_doctype', 'WO')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername2) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername2), array_map('strtolower', $list), true);
+            });
+
         $userdept = Userdept::where('username', '=', $user->username)->get();
         $userdept2 = Userdept::where('username', '=', $user->username)->first();
 
@@ -1048,6 +1059,7 @@ class WoController extends Controller
             'attachments',
             'hash',
             'canUpload',
+            'isApprover',
             'userdept',
             'userdept2',
             'canProcess',

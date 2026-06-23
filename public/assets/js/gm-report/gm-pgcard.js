@@ -13,9 +13,10 @@
     var activeTenant   = null;
     var metricCustomer = 'transaction';
     var metricTenant   = 'transaction';
-    var trendMetric    = 'txn_count';     // 'txn_count' | 'unique_members' | 'total_spending'
+    var trendMetric     = 'txn_count';     // 'txn_count' | 'unique_members' | 'total_spending'
     var rawTrendData    = [];
     var lastTrendHeight = 0;
+    var lastTrendMetric = '';
     var trendResizeObs  = null;
     var xhrCustomer    = null;
     var xhrTenant      = null;
@@ -553,6 +554,7 @@
                 },
             },
             tooltip: {
+                fixed: { enabled: true, position: 'topRight', offsetX: -8, offsetY: 8 },
                 custom: function (opts) {
                     var idx     = opts.dataPointIndex;
                     var row     = data[idx] || {};
@@ -795,10 +797,13 @@
         var h = el.offsetHeight || 0;
         if (h < 80) h = 300;   // fallback before layout has settled
 
-        // Skip re-render if height hasn't changed meaningfully (avoids ResizeObserver loops)
-        if (charts.trend && Math.abs(h - lastTrendHeight) < 10) return;
+        // Skip re-render only for resize-triggered calls (same height, same metric)
+        if (charts.trend && Math.abs(h - lastTrendHeight) < 10 && lastTrendMetric === trendMetric) return;
         lastTrendHeight = h;
-        // Cap height at 480px — prevents huge empty space when campaign card is very tall
+        lastTrendMetric = trendMetric;
+
+        if (charts.trend) { charts.trend.destroy(); charts.trend = null; }
+
         var trendH = Math.min(h, 480);
 
         var dark       = utils.isDark();
@@ -1072,6 +1077,7 @@
         tenantData     = {};
         rawTrendData    = [];
         lastTrendHeight = 0;
+        lastTrendMetric = '';
         if (trendResizeObs) { trendResizeObs.disconnect(); trendResizeObs = null; }
         activeCustomer = null;
         activeTenant   = null;

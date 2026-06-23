@@ -439,6 +439,17 @@ class BastController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $bast->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $bast->bastid)
+            ->where('aprv_doctype', 'BA')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.bast.showbast', [
             'bast' => $bast,
             'hash' => $hash,
@@ -449,6 +460,7 @@ class BastController extends Controller
             'ratingLegendName' => $ratingLegendName,
             'bastRatingRows' => $bastRatingRows,
             'canUpload' => $canUpload,
+            'isApprover' => $isApprover,
         ]);
     }
 
@@ -519,7 +531,7 @@ class BastController extends Controller
                     * Jadi applyBastApprovalSideEffects hanya jalan sekali,
                     * yaitu setelah approval level 1.00.
                     */
-                    if ((string) ($next['aprv_leveling'] ?? '') === '2.00') {
+                    if ((float) ($next['aprv_leveling'] ?? 0) > 1.00) {
                         $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
                     }
 
@@ -892,6 +904,14 @@ class BastController extends Controller
         $bast = TrBast::with(['creator', 'userpeminta', 'location', 'subLocation'])
             ->findOrFail($id);
 
+        $level1Approved = TrApproval::query()
+            ->where('refnbr', $bast->bastid)
+            ->where('status', 'A')
+            ->whereRaw('CAST(aprv_leveling AS numeric) = 1.00')
+            ->exists();
+
+        abort_if(!$level1Approved, 403, 'BAST belum dapat dicetak. Approval level 1 belum disetujui.');
+
         // Approval list
         // $approval = TrApproval::query()
         //     ->where('refnbr', $bast->bastid)
@@ -1019,6 +1039,14 @@ class BastController extends Controller
         // Ambil BAST + relasi
         $bast = TrBast::with(['creator', 'userpeminta', 'location', 'subLocation'])
             ->findOrFail($id);
+
+        $level1Approved = TrApproval::query()
+            ->where('refnbr', $bast->bastid)
+            ->where('status', 'A')
+            ->whereRaw('CAST(aprv_leveling AS numeric) = 1.00')
+            ->exists();
+
+        abort_if(!$level1Approved, 403, 'BAST belum dapat dicetak. Approval level 1 belum disetujui.');
 
         // Approval list
         $approval = TrApproval::query()

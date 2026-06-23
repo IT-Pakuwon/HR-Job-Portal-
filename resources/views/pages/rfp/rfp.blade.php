@@ -194,7 +194,7 @@
                 $dropdown
                     .css({
                         top: rect.bottom + 6 + 'px',
-                        left: Math.max(8, rect.right - 208) + 'px',
+                        left: Math.max(8, Math.min(rect.right - 208, window.innerWidth - 208 - 8)) + 'px',
                     })
                     .removeClass('hidden');
             });

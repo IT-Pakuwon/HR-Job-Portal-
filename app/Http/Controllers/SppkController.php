@@ -1558,6 +1558,18 @@ class SppkController extends Controller
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $sppk->created_by === $loginUsername;
+
+        $isApprover = TrApproval::where('refnbr', $sppk->sppkid)
+            ->where('aprv_doctype', 'PK')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         $akses_cc = SysUserRole::where('username', $user->username)
             ->where('role_id', 'COSTCTRLACCESS')
             ->first();
@@ -1584,7 +1596,7 @@ class SppkController extends Controller
             ->orderBy('department_fin_id')
             ->get();
 
-        return view('pages.sppks.showsppks', compact('sppk', 'attachments', 'sppkdetail', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin'));
+        return view('pages.sppks.showsppks', compact('sppk', 'attachments', 'sppkdetail', 'hash', 'canUpload', 'isApprover', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin'));
     }
 
     public function exportDetail($id)

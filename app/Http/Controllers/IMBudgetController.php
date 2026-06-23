@@ -2687,12 +2687,24 @@ class IMBudgetController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $imbudget->user_peminta === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $imbudget->imbudgetid)
+            ->where('aprv_doctype', 'IM')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.imbudgets.showimbudgets', compact(
             'imbudget',
             'attachments',
             'imbudgetdetail',
             'hash',
             'canUpload',
+            'isApprover',
             'eid_cs',
             'eid_sppbjkt',
             'eid_rfp',
