@@ -1523,14 +1523,27 @@ class PersonnelController extends Controller
             ->where('status', 'A')
             ->exists();
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $isApprover = TrApproval::where('refnbr', $personnel->docid)
+            ->where('aprv_doctype', 'PRF')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.personnels.showpersonnels', [
-            'personnel' => $personnel,
-            'jobres' => $jobres,
-            'jobqua' => $jobqua,
-            'approval' => $approval,
+            'personnel'  => $personnel,
+            'jobres'     => $jobres,
+            'jobqua'     => $jobqua,
+            'approval'   => $approval,
             'attachment' => $attachments,
-            'jobtag' => $jobtag,
-            'canEdit' => $canEdit,
+            'jobtag'     => $jobtag,
+            'canEdit'    => $canEdit,
+            'isApprover' => $isApprover,
         ]);
     }
 

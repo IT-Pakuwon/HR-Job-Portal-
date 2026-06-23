@@ -6331,6 +6331,22 @@ class CanvassController extends Controller
 
         $showImBudgetCancelInfo = !empty($cs->imbudgetid) && (bool) $cs->flag_imbudget === true;
 
+        $isApprover = false;
+        if ($loginUsername) {
+            $isApprover = TrApproval::where('refnbr', $cs->csid)
+                ->where('aprv_doctype', 'CS')
+                ->where('status', 'P')
+                ->whereNotNull('aprv_datebefore')
+                ->get()
+                ->contains(function ($row) use ($loginUsername) {
+                    $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                    $list = array_map('trim', $list);
+                    return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+                });
+        }
+
+        $hasBlockingIM = !empty($cs->imbudgetid) && $cs->status_imbudget !== 'C';
+
         return view('pages.canvass.showcs', [
             'cs' => $cs,
             'attachmentCS' => $attachmentCS,
@@ -6347,6 +6363,8 @@ class CanvassController extends Controller
             'eid_cs_prev' => $eid_cs_prev,
             'eid_imbudget' => $eid_imbudget,
             'showImBudgetCancelInfo' => $showImBudgetCancelInfo,
+            'isApprover' => $isApprover,
+            'hasBlockingIM' => $hasBlockingIM,
         ]);
     }
 

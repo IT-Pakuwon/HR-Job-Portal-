@@ -815,12 +815,24 @@ class ItemRequestController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = ($itemReq->created_by === $loginUsername);
 
+        $isApprover = TrApproval::where('refnbr', $itemReq->irid)
+            ->where('aprv_doctype', 'SR')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.itemrequest.showitemreq', compact(
             'itemReq',
             'itemReqDetail',
             'attachments',
             'hash',
-            'canUpload'
+            'canUpload',
+            'isApprover'
         ));
     }
 

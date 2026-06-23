@@ -1472,6 +1472,17 @@ class SpbController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $spb->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $spb->spbid)
+            ->where('aprv_doctype', 'RB')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         $akses_cc = SysUserRole::where('username', $user->username)
             ->where('role_id', 'COSTCTRLACCESS')
             ->first();
@@ -1512,7 +1523,7 @@ class SpbController extends Controller
         }
 
         // untuk konsistensi link detail, kirim balik hash apa adanya
-        return view('pages.spbs.showspbs', compact('spb', 'attachmentRB', 'attachmentWO', 'spbdetail', 'hash', 'canUpload', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash'));
+        return view('pages.spbs.showspbs', compact('spb', 'attachmentRB', 'attachmentWO', 'spbdetail', 'hash', 'canUpload', 'isApprover', 'akses_cc', 'userCpny', 'userBu', 'userDeptFin', 'woData', 'woHash'));
     }
 
     public function exportDetail($id)

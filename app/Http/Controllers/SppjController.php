@@ -1568,6 +1568,17 @@ class SppjController extends Controller
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $sppj->created_by === $loginUsername;
+
+        $isApprover = TrApproval::where('refnbr', $sppj->sppjid)
+            ->where('aprv_doctype', 'PJ')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
         $akses_cc = SysUserRole::where('username', $user->username)
             ->where('role_id', 'COSTCTRLACCESS')
             ->first();
@@ -1643,6 +1654,7 @@ class SppjController extends Controller
             'bq',
             'hash',
             'canUpload',
+            'isApprover',
             'akses_cc',
             'userCpny',
             'userBu',

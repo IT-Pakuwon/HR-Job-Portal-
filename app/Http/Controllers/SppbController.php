@@ -1438,6 +1438,17 @@ class SppbController extends Controller
             }
         }
 
+        $isApprover = TrApproval::where('refnbr', $sppb->sppbid)
+            ->where('aprv_doctype', 'PB')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.sppbs.showsppbs', compact(
             'sppb',
             'spbData',
@@ -1455,7 +1466,8 @@ class SppbController extends Controller
             'itrData',
             'itrHash',
             'ticketData',
-            'ticketHash'
+            'ticketHash',
+            'isApprover'
         ));
     }
 

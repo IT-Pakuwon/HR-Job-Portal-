@@ -1277,6 +1277,18 @@ class CalrNonPurchController extends Controller
 
         $canUpload = in_array($calr->status, ['P', 'D']);
 
+        $loginUsername = $user->username ?? $user->name ?? null;
+        $isApprover = TrApproval::where('refnbr', $calr->calrnonpurchaseid)
+            ->where('aprv_doctype', 'CAR')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         /*
         |--------------------------------------------------------------------------
         | CALR Progress Steps
@@ -1331,7 +1343,8 @@ class CalrNonPurchController extends Controller
             'hash',
             'doctype',
             'refnbr',
-            'canUpload'
+            'canUpload',
+            'isApprover'
         ));
     }   
 

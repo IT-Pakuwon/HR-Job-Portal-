@@ -384,13 +384,25 @@ class IssueController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $iss->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $iss->issueid)
+            ->where('aprv_doctype', 'IS')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.issue.showissue', [
             'iss'         => $iss,
             'issdetail'   => $issdetail,
             'hash'        => $hash,
             'eid_issueid' => $eid_issueid,
             'spbUrl'      => $spbUrl,
-            'canUpload'      => $canUpload,
+            'canUpload'   => $canUpload,
+            'isApprover'  => $isApprover,
         ]);
     }
 

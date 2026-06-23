@@ -546,6 +546,17 @@ class CalrController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload     = $calr->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $calr->calrid)
+            ->where('aprv_doctype', 'CA')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.calr.showcalr', [
             'calr'        => $calr,
             'hash'        => $hash,
@@ -555,7 +566,8 @@ class CalrController extends Controller
             'sppbUrl'     => $sppbUrl,
             'csUrl'       => $csUrl,
             'details'     => $details,
-            'canUpload'     => $canUpload,
+            'canUpload'   => $canUpload,
+            'isApprover'  => $isApprover,
         ]);
     }
 

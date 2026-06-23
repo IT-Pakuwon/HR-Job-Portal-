@@ -1,23 +1,10 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto p-2">
-        <div class="mb-4 flex items-center justify-end">
-            <div class="flex gap-3">
-                <button id="approveBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200">
-                    Approve
-                </button>
-
-                <button id="reviseBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-500 px-3 py-2 text-sm font-medium text-gray-100 transition-colors hover:bg-gray-600">
-                    Revise
-                </button>
-
-                <button id="rejectBtn"
-                    class="inline-flex items-center gap-1 rounded-md bg-red-100 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-200">
-                    Reject
-                </button>
-            </div>
-        </div>
+        <x-approval-actions
+            :status="$rfpnonpurch->status"
+            :is-approver="$isApprover"
+            :edit-url="url('/editrfpnonpurch/' . $hash)"
+        />
 
          <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">

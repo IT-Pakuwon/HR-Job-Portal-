@@ -439,6 +439,17 @@ class BastController extends Controller
         $loginUsername = $user->username ?? $user->name ?? null;
         $canUpload = $bast->created_by === $loginUsername;
 
+        $isApprover = TrApproval::where('refnbr', $bast->bastid)
+            ->where('aprv_doctype', 'BA')
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($loginUsername) {
+                $list = preg_split('/[;,]/', (string) $row->aprv_username);
+                $list = array_map('trim', $list);
+                return in_array(strtolower((string) $loginUsername), array_map('strtolower', $list), true);
+            });
+
         return view('pages.bast.showbast', [
             'bast' => $bast,
             'hash' => $hash,
@@ -449,6 +460,7 @@ class BastController extends Controller
             'ratingLegendName' => $ratingLegendName,
             'bastRatingRows' => $bastRatingRows,
             'canUpload' => $canUpload,
+            'isApprover' => $isApprover,
         ]);
     }
 
