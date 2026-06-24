@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
 use App\Models\BusinessUnit;
-use App\Models\IFCAViewIssue;
 use App\Models\MsIntegrationSetting;
 use App\Models\StagingIfcaIcStkIssue;
 use App\Models\StagingIfcaIcStkIssueReturn;
@@ -334,29 +333,6 @@ class IFCAAPIIssueReturnController extends Controller
         $skippedC     = 0;
         $skippedNoPrev = 0;
 
-        // Stage awal tetap disimpan untuk menentukan mana yang harus insert H->P.
-        // Setelah insert, dokumen H yang berhasil menjadi P akan langsung lanjut dikirim API P->C pada klik yang sama.
-        $initialStageMap = [];
-        foreach ($pairs as $p) {
-            $key = (string) $p['key'];
-            $st = $stMap->get($key);
-
-            $stage = 'H';
-            if ($st) {
-                $cnt  = (int) $st->cnt;
-                $cntC = (int) $st->cnt_c;
-                $cntP = (int) $st->cnt_p;
-
-                if ($cnt > 0 && $cntC === $cnt) {
-                    $stage = 'C';
-                } elseif ($cnt > 0 && $cntP > 0) {
-                    $stage = 'P';
-                }
-            }
-
-            $initialStageMap[$key] = $stage;
-        }
-
         $stagingConn = (new StagingIfcaIcStkIssueReturn)->getConnectionName();
         DB::connection($stagingConn)->beginTransaction();
 
@@ -366,9 +342,20 @@ class IFCAAPIIssueReturnController extends Controller
                 $doc  = (string)$p['issuereturn_id'];
                 $key  = (string)$p['key'];
 
-                $stage = $initialStageMap[$key] ?? 'H';
+                $st = $stMap->get($key);
+                $stage = 'H';
+                if ($st) {
+                    $cnt  = (int)$st->cnt;
+                    $cntC = (int)$st->cnt_c;
+                    $cntP = (int)$st->cnt_p;
 
-                // Tahap H->P saja. Dokumen yang sejak awal sudah P/C tidak disentuh di blok insert.
+                    if ($cnt > 0 && $cntC === $cnt) {
+                        $stage = 'C';
+                    } elseif ($cnt > 0 && $cntP > 0) {
+                        $stage = 'P';
+                    }
+                }
+
                 if ($stage !== 'H') {
                     continue;
                 }
@@ -421,28 +408,6 @@ class IFCAAPIIssueReturnController extends Controller
                         ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->issue_id . '||' . (string)$r->line_no . '||' . (string)$r->item_cd);
                 }
 
-                // Ambil unit_cost dari IFCA view issue berdasarkan issue sebelumnya:
-                // StagingIfcaIcStkIssue.entity_cd  = IFCAViewIssue.entity_cd
-                // StagingIfcaIcStkIssue.issue_id   = IFCAViewIssue.ref_no
-                // StagingIfcaIcStkIssue.item_cd    = IFCAViewIssue.item_cd
-                // Catatan: di IFCA konsepnya item_cd ini adalah invt_cd dari issue sebelumnya.
-                $unitCostMap = collect();
-                if ($prevIssueMap->isNotEmpty()) {
-                    $entities = $prevIssueMap->pluck('entity_cd')->filter()->unique()->values()->all();
-                    $refNos   = $prevIssueMap->pluck('issue_id')->filter()->unique()->values()->all();
-                    $itemCds  = $prevIssueMap->pluck('item_cd')->filter()->unique()->values()->all();
-
-                    if (!empty($entities) && !empty($refNos) && !empty($itemCds)) {
-                        $unitCostMap = IFCAViewIssue::query()
-                            ->select(['entity_cd', 'ref_no', 'item_cd', 'unit_cost'])
-                            ->whereIn('entity_cd', $entities)
-                            ->whereIn('ref_no', $refNos)
-                            ->whereIn('item_cd', $itemCds)
-                            ->get()
-                            ->keyBy(fn($r) => trim((string)$r->entity_cd) . '||' . trim((string)$r->ref_no) . '||' . trim((string)$r->item_cd));
-                    }
-                }
-
                 foreach ($lines as $ln) {
                     $prevIssue = trim((string)($ln->reference_no ?? ''));
                     $prevLine  = (string)(($ln->issue_line ?? null) ?: ($ln->ref_line_no ?? null) ?: ($ln->line_no ?? ''));
@@ -468,10 +433,6 @@ class IFCAAPIIssueReturnController extends Controller
                         continue;
                     }
 
-                    $costKey = trim((string)$prev->entity_cd) . '||' . trim((string)$prev->issue_id) . '||' . trim((string)$prev->item_cd);
-                    $ifcaIssueCost = $unitCostMap->get($costKey);
-                    $unitCost = (float)($ifcaIssueCost->unit_cost ?? 0);
-
                     StagingIfcaIcStkIssueReturn::create([
                         'cpny_id' => (string)$ln->cpny_id,
                         'entity_cd' => $this->s($entityCd, 20),
@@ -488,8 +449,7 @@ class IFCAAPIIssueReturnController extends Controller
                         // Join: return.reference_no = issue.issue_id,
                         //       return.issue_line   = issue.line_no,
                         //       return.item_cd      = issue.item_cd.
-                        // Untuk Issue Return, ic_location wajib diisi dari entity_cd.
-                        'ic_location' => $this->s($entityCd, 20),
+                        'ic_location' => (string)($prev->ic_location ?? ''),
                         'trx_cd'      => (string)($prev->trx_cd ?? ''),
                         'div_cd'      => (string)($prev->div_cd ?? ''),
                         'dept_cd'     => (string)($prev->dept_cd ?? ''),
@@ -500,7 +460,7 @@ class IFCAAPIIssueReturnController extends Controller
                         'item_remark' => (string)($ln->item_remark ?? ''),
                         'uom' => (string)($ln->uom ?? $ln->uom_cd ?? ''),
                         'receipt_qty' => (float)($ln->receipt_qty ?? $ln->return_qty ?? $ln->issue_qty ?? 0),
-                        'unit_cost' => $unitCost,
+                        'unit_cost' => (float)($ln->unit_cost ?? 0),
 
                         'process_flag' => 'N',
                         'create_date' => now(),
@@ -527,25 +487,44 @@ class IFCAAPIIssueReturnController extends Controller
             ], 500);
         }
 
-        // Tahap P->C langsung dijalankan pada klik yang sama.
-        // Dokumen yang awalnya H dan berhasil diinsert menjadi P akan ikut dikirim ke IFCA.
-        // Dokumen yang sejak awal sudah P juga tetap dikirim. Dokumen C diskip.
+        $stMapAfter = StagingIfcaIcStkIssueReturn::query()
+            ->select([
+                'cpny_id',
+                'issuereturn_id',
+                DB::raw('COUNT(*) as cnt'),
+                DB::raw("SUM(CASE WHEN status='C' THEN 1 ELSE 0 END) as cnt_c"),
+                DB::raw("SUM(CASE WHEN status='P' THEN 1 ELSE 0 END) as cnt_p"),
+            ])
+            ->whereIn(DB::raw("(cpny_id || '||' || issuereturn_id)"), $keys)
+            ->groupBy('cpny_id', 'issuereturn_id')
+            ->get()
+            ->keyBy(fn($r) => (string)$r->cpny_id . '||' . (string)$r->issuereturn_id);
+
         $sendPairs = [];
         foreach ($pairs as $p) {
-            $stage = $initialStageMap[(string) $p['key']] ?? 'H';
+            $st = $stMapAfter->get((string)$p['key']);
+            if (!$st) {
+                continue;
+            }
 
-            if ($stage === 'C') {
+            $cnt  = (int)$st->cnt;
+            $cntC = (int)$st->cnt_c;
+            $cntP = (int)$st->cnt_p;
+
+            if ($cnt > 0 && $cntC === $cnt) {
                 $skippedC++;
                 continue;
             }
 
-            $sendPairs[] = $p;
+            if ($cnt > 0 && $cntP > 0) {
+                $sendPairs[] = $p;
+            }
         }
 
         if (empty($sendPairs)) {
             return response()->json([
                 'ok' => true,
-                'message' => 'Tidak ada data Issue Return yang perlu diproses. Skip completed: ' . $skippedC . '. Skip no previous issue: ' . $skippedNoPrev,
+                'message' => 'Tidak ada data P yang perlu dikirim. Insert H->P: ' . $insertedHtoP . '. Skip no previous issue: ' . $skippedNoPrev . '. Skip completed: ' . $skippedC,
                 'summary' => compact('insertedHtoP', 'sentOkPtoC', 'sentFailP', 'skippedC', 'skippedNoPrev'),
             ]);
         }
