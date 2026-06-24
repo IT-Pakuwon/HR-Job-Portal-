@@ -263,7 +263,7 @@ const VoucherTaxiInit = {
     handleInitError(err) {
         const errorMsg = `Initialization failed: ${err.message}`;
 
-        // console.error(`[VoucherTaxi] ✗ ${errorMsg}`);
+        console.error(`[VoucherTaxi] ✗ ${errorMsg}`);
 
         VoucherTaxiInit.state.initialized = false;
 
@@ -271,7 +271,7 @@ const VoucherTaxiInit = {
         VoucherTaxi.toast('error', 'Failed to initialize application. Please refresh the page.');
 
         // Log detailed error
-        // console.error('[VoucherTaxi] Full error:', err);
+        console.error('[VoucherTaxi] Full error:', err);
 
         // Could send to error tracking service
         VoucherTaxiInit.reportError(err);

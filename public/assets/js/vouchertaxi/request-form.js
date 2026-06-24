@@ -50,7 +50,8 @@ const VoucherTaxiForm = {
         };
 
         // Static selects (options rendered by blade)
-        make($('#cpny_id'),         { placeholder: 'Select Company' });
+        // Only init Select2 on <select> — blade renders a hidden input when user has 1 company
+        if ($('#cpny_id').is('select')) make($('#cpny_id'), { placeholder: 'Select Company' });
         make($('#cpny_id_expense'), { placeholder: 'Select Company' });
 
         // Purpose — AJAX search (options NOT in blade, loaded on demand)
