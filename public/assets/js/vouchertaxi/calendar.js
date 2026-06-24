@@ -31,6 +31,11 @@ const VoucherTaxiCalendar = {
         const calendarEl = document.getElementById('calendar');
         if (!calendarEl) return;
 
+        if (typeof FullCalendar === 'undefined') {
+            console.error('[VoucherTaxi] FullCalendar is not loaded. Check CDN or network.');
+            throw new Error('FullCalendar library not loaded');
+        }
+
         VoucherTaxiCalendar.state.calendar = new FullCalendar.Calendar(calendarEl, {
             initialView:        'dayGridMonth',
             headerToolbar:      {
