@@ -46,8 +46,18 @@ class CalrListController extends Controller
             ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
             ->where('s.calr_gen', true)
             ->where('s.status_rfca', 'C')
+            ->whereRaw("UPPER(TRIM(COALESCE(tr_rfca.status, ''))) NOT IN ('X', 'L')")
             ->whereNull('tr_rfca.calrid')
             ->whereNull('c.calrid')
+            ->whereNotExists(function ($q) {
+                $q->selectRaw('1')
+                    ->from('tr_rfca as next_rfca')
+                    ->join('tr_calr as next_calr', function ($join) {
+                        $join->on('next_calr.rfcaid', '=', 'next_rfca.rfcaid')
+                            ->whereNotIn('next_calr.status', ['X', 'R']);
+                    })
+                    ->whereRaw("TRIM(COALESCE(next_rfca.prev_rfcaid, '')) = TRIM(COALESCE(tr_rfca.rfcaid, ''))");
+            })
             ->where('s.created_by', $u)
             ->count();
 
@@ -122,8 +132,18 @@ class CalrListController extends Controller
                 ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
                 ->where('s.calr_gen', 't')
                 ->where('s.status_rfca', 'C')
+                ->whereRaw("UPPER(TRIM(COALESCE(tr_rfca.status, ''))) NOT IN ('X', 'L')")
                 ->whereNull('tr_rfca.calrid')
                 ->whereNull('c.calrid')
+                ->whereNotExists(function ($q) {
+                    $q->selectRaw('1')
+                        ->from('tr_rfca as next_rfca')
+                        ->join('tr_calr as next_calr', function ($join) {
+                            $join->on('next_calr.rfcaid', '=', 'next_rfca.rfcaid')
+                                ->whereNotIn('next_calr.status', ['X', 'R']);
+                        })
+                        ->whereRaw("TRIM(COALESCE(next_rfca.prev_rfcaid, '')) = TRIM(COALESCE(tr_rfca.rfcaid, ''))");
+                })
                 ->where('s.created_by', $u)
                 ->select([
                     'tr_rfca.id',

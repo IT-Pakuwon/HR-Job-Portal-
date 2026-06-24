@@ -9,6 +9,7 @@ use App\Models\TrApproval;
 use App\Models\TrApprovalHistory;
 use App\Models\TrAttachment;
 use App\Models\TrRfp;
+use App\Models\TrRfpKontrakBudget;
 use App\Models\TrPO;
 use App\Models\TrCS;
 use App\Models\TrSPPB;
@@ -57,19 +58,23 @@ class RfpController extends Controller
             $deptIds = (array) $user->department_id;
         }
 
+        $hasRfpAllAccess = $user->hasRole('FINACCESS');
+        $hasApFinAccess = $user->hasRole('APFINACCESS');
+        $hasApTreAccess = $user->hasRole('APTREACCESS');
+
         $baseQuery = TrRfp::query()
             ->whereIn('cpny_id', $cpnyIds)
-            ->whereIn('department_id', $deptIds);
+            ->when(
+                !$hasRfpAllAccess,
+                fn ($q) => $q->whereIn('department_id', $deptIds)
+            );
 
         $all        = (clone $baseQuery)->count();
         $onProgress = (clone $baseQuery)->where('status', 'P')->count();
         $reject     = (clone $baseQuery)->where('status', 'R')->count();
         $revise     = (clone $baseQuery)->where('status', 'D')->count();
+        $hold       = (clone $baseQuery)->where('status', 'H')->count();
         $completed  = (clone $baseQuery)->where('status', 'C')->count();
-
-        $hasRfpAllAccess = $user->hasRole('FINACCESS');
-        $hasApFinAccess = $user->hasRole('APFINACCESS');
-        $hasApTreAccess = $user->hasRole('APTREACCESS');
 
         $rfpAll = 0;
         if ($hasRfpAllAccess) {
@@ -99,6 +104,7 @@ class RfpController extends Controller
             'onProgress',
             'reject',
             'revise',
+            'hold',
             'completed',
             'rfpAll',
             'hasRfpAllAccess',
@@ -131,6 +137,7 @@ class RfpController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
         $scope  = (string) $request->query('scope', '');
+        $hasRfpAllAccess = $user->hasRole('FINACCESS');
 
         $baseTable = (new TrRfp())->getTable(); // tr_rfp
 
@@ -156,7 +163,7 @@ class RfpController extends Controller
         $base = TrRfp::from($baseTable . ' as rfp')
             ->whereIn('rfp.cpny_id', $cpnyIds)
             ->when(
-                $scope !== 'rfp_all',
+                !$hasRfpAllAccess && $scope !== 'rfp_all',
                 fn ($q) => $q->whereIn('rfp.department_id', $deptIds)
             )
             ->when($scope === 'finance_received', function ($q) {
@@ -214,6 +221,7 @@ class RfpController extends Controller
             'rfp.ponbr',
             'rfp.kontrak_id',
             'rfp.ir_id',
+            'rfp.type_po',
             'rfp.vendor_name',
             'rfp.keperluan',
             'rfp.rfp_amount',
@@ -582,6 +590,317 @@ class RfpController extends Controller
             'typepayment',
             'rfpSteps'
         ));
+    }
+
+    public function createRfpKontrakBudget($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $rfp = TrRfp::with([
+            'creator:username,name',
+        ])->findOrFail($id);
+
+        abort_if(strtoupper(trim((string) $rfp->type_po)) !== 'KONTRAK', 404);
+
+        $budgets = TrRfpKontrakBudget::where('rfp_id', $rfp->rfp_id)
+            ->orderBy('budget_perpost')
+            ->orderBy('budget_account_id')
+            ->get();
+
+        $rows = TrAttachment::where('refnbr', $rfp->rfp_id)
+            ->where('status', 'A')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $config = config('filesystems.disks.gcs');
+        $keyFilePath = $config['key_file'];
+
+        if (!Str::startsWith($keyFilePath, ['/', 'C:\\', 'D:\\'])) {
+            $keyFilePath = base_path($keyFilePath);
+        }
+
+        $storage = new StorageClient([
+            'projectId' => $config['project_id'],
+            'keyFilePath' => $keyFilePath,
+        ]);
+
+        $bucket = $storage->bucket($config['bucket']);
+
+        $attachments = $rows->map(function ($r) use ($bucket) {
+            $objectPath = rtrim($r->folder, '/') . '/' . $r->filename;
+            $object = $bucket->object($objectPath);
+
+            $signedUrl = null;
+
+            try {
+                $signedUrl = $object->signedUrl(
+                    new \DateTimeImmutable('+10 minutes'),
+                    ['version' => 'v4']
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Signed URL gagal', [
+                    'path' => $objectPath,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            return (object) [
+                'display_name' => $r->attachment_name ?: $r->filename,
+                'created_by'   => $r->created_by,
+                'created_at'   => $r->created_at,
+                'url'          => $signedUrl,
+                'folder'       => $r->folder,
+                'filename'     => $r->filename,
+                'extention'    => $r->extention,
+                'size'         => $r->filesize,
+            ];
+        });
+
+        $baseUrl = 'https://vendorportal-attachment.s3.ap-southeast-1.amazonaws.com/';
+
+        $stagingAttachments = TrRfpStagingAttachment::where('irid', $rfp->ir_id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($r) use ($baseUrl) {
+                $path = trim($r->file_location, '/');
+                $file = trim($r->filename, '/');
+
+                $url = null;
+                if ($path && $file) {
+                    $url = $baseUrl . $path . '/' . $file;
+                }
+
+                return (object) [
+                    'display_name' => $r->document_name ?: $r->filename,
+                    'created_by'   => null,
+                    'created_at'   => $r->created_at,
+                    'url'          => $url,
+                    'is_staging'   => true,
+                ];
+            });
+
+        return view('pages.rfp.createrfpkontrakbudget', compact(
+            'rfp',
+            'budgets',
+            'attachments',
+            'stagingAttachments',
+            'hash'
+        ));
+    }
+
+    public function submitRfpKontrakBudget(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $request->validate([
+            'budget_perpost' => ['required', 'array', 'min:1'],
+            'budget_perpost.*' => ['required'],
+            'budget_cpny_id' => ['required', 'array', 'min:1'],
+            'budget_cpny_id.*' => ['required'],
+            'budget_business_unit_id' => ['required', 'array', 'min:1'],
+            'budget_business_unit_id.*' => ['required'],
+            'budget_department_fin_id' => ['required', 'array', 'min:1'],
+            'budget_department_fin_id.*' => ['required'],
+            'budget_account_id' => ['required', 'array', 'min:1'],
+            'budget_account_id.*' => ['required'],
+            'budget_activity_id' => ['required', 'array', 'min:1'],
+            'budget_activity_id.*' => ['required'],
+            'budget_activity_descr' => ['required', 'array', 'min:1'],
+            'budget_activity_descr.*' => ['required'],
+            'rfp_base_amount' => ['required', 'array', 'min:1'],
+            'rfp_base_amount.*' => ['required'],
+        ]);
+
+        $rfp = TrRfp::findOrFail($id);
+
+        if (strtoupper(trim((string) $rfp->type_po)) !== 'KONTRAK') {
+            return response()->json([
+                'message' => 'Submit budget hanya untuk RFP type KONTRAK.',
+            ], 422);
+        }
+
+        $doctype = 'RP';
+        $docName = 'RFP';
+        $username = $user->username ?? 'system';
+        $dt = Carbon::now('Asia/Jakarta');
+
+        $toFloat = function ($value): float {
+            $value = trim((string) $value);
+
+            if ($value === '') {
+                return 0;
+            }
+
+            if (str_contains($value, ',') && str_contains($value, '.')) {
+                $value = str_replace('.', '', $value);
+                $value = str_replace(',', '.', $value);
+            } elseif (str_contains($value, ',')) {
+                $value = str_replace(',', '.', $value);
+            }
+
+            return is_numeric($value) ? (float) $value : 0;
+        };
+
+        DB::beginTransaction();
+
+        try {
+            $approvalCtl = app(ApprovalController::class);
+            $approvalCtl->loadLines($doctype, $rfp->cpny_id, $rfp->department_id);
+
+            TrRfpKontrakBudget::where('rfp_id', $rfp->rfp_id)->delete();
+
+            $perposts = $request->input('budget_perpost', []);
+            $budgetCpnyIds = $request->input('budget_cpny_id', []);
+            $businessUnitIds = $request->input('budget_business_unit_id', []);
+            $departmentFinIds = $request->input('budget_department_fin_id', []);
+            $accountIds = $request->input('budget_account_id', []);
+            $activityIds = $request->input('budget_activity_id', []);
+            $activityDescrs = $request->input('budget_activity_descr', []);
+            $amounts = $request->input('rfp_base_amount', []);
+
+            $inserted = 0;
+
+            foreach ($accountIds as $i => $accountId) {
+                $accountId = trim((string) $accountId);
+
+                if ($accountId === '') {
+                    continue;
+                }
+
+                TrRfpKontrakBudget::create([
+                    'rfp_id' => $rfp->rfp_id,
+                    'cpny_id' => $rfp->cpny_id,
+                    'budget_perpost' => $perposts[$i] ?? null,
+                    'budget_cpny_id' => $budgetCpnyIds[$i] ?? null,
+                    'budget_business_unit_id' => $businessUnitIds[$i] ?? null,
+                    'budget_department_fin_id' => $departmentFinIds[$i] ?? null,
+                    'budget_account_id' => $accountId,
+                    'budget_activity_id' => $activityIds[$i] ?? null,
+                    'budget_activity_descr' => $activityDescrs[$i] ?? null,
+                    'rfp_base_amount' => $toFloat($amounts[$i] ?? 0),
+                    'status' => 'A',
+                    'created_by' => $username,
+                    'created_at' => $dt,
+                ]);
+
+                $inserted++;
+            }
+
+            if ($inserted <= 0) {
+                DB::rollBack();
+
+                return response()->json([
+                    'message' => 'Minimal 1 detail budget harus dipilih.',
+                ], 422);
+            }
+
+            TrApproval::query()
+                ->where('refnbr', $rfp->rfp_id)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->delete();
+
+            $ctx = [
+                'ignore_nominal' => false,
+                'grand_total' => (float) ($rfp->rfp_amount ?? $rfp->rfp_base_amount ?? 0),
+            ];
+
+            $approvalCtl->generateForDocument(
+                $rfp->rfp_id,
+                $doctype,
+                $rfp->cpny_id,
+                $rfp->department_id,
+                $username,
+                $ctx,
+                $dt
+            );
+
+            $firstPending = TrApproval::query()
+                ->where('refnbr', $rfp->rfp_id)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->orderByRaw('CAST(aprv_leveling AS DECIMAL(10,2)) ASC')
+                ->first();
+
+            if (!$firstPending) {
+                DB::rollBack();
+
+                return response()->json([
+                    'message' => 'Approval line tidak valid / tidak ditemukan.',
+                ], 422);
+            }
+
+            $rfp->status = 'P';
+            $rfp->completed_by = $firstPending->aprv_username;
+            $rfp->completed_at = $dt;
+            $rfp->updated_by = $username;
+            $rfp->updated_at = $dt;
+            $rfp->save();
+
+            $approverUsernames = str_replace(';', ',', (string) $firstPending->aprv_username);
+            $approvers = array_filter(array_map('trim', explode(',', $approverUsernames)));
+
+            $toEmails = User::query()
+                ->whereIn('username', $approvers)
+                ->where('status', 'A')
+                ->pluck('notification_email')
+                ->filter(fn ($email) => trim((string) $email) !== '')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $mailData = [
+                'docid' => $rfp->rfp_id,
+                'cpnyid' => $rfp->cpny_id ?? '',
+                'deptname' => $rfp->department_id ?? '',
+                'date' => $dt->toDateTimeString(),
+                'name' => $username,
+                'status' => $rfp->status,
+                'docname' => $docName,
+                'url' => url('/showrfp/' . $hash),
+                'info' => $rfp->keperluan ?: $rfp->ir_note,
+                'createdby' => $rfp->created_by ?: $username,
+            ];
+
+            if (!empty($toEmails)) {
+                Mail::send('emails.mailapprovenew', $mailData, function ($message) use ($toEmails, $rfp, $docName) {
+                    $message->to($toEmails)
+                        ->subject($rfp->rfp_id . ' - WaitingApproval ' . $docName)
+                        ->from(config('mail.from.address'), config('app.name'));
+                });
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'RFP Kontrak Budget submitted successfully.',
+                'docid' => $rfp->rfp_id,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+
+            return response()->json([
+                'message' => $e->getMessage() ?: 'Failed to submit RFP Kontrak Budget.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], $statusCode === 422 ? 422 : 500);
+        }
     }
 
     public function updateReceived($hash)

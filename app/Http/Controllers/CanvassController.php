@@ -8112,6 +8112,148 @@ class CanvassController extends Controller
             return;
         }
 
+        $makeReuseKey = function ($lineNo, $inventoryid, $uom, $descr): string {
+            return strtoupper(trim((string) ($lineNo ?? ''))).'|'.
+                strtoupper(trim((string) ($inventoryid ?? ''))).'|'.
+                strtoupper(trim((string) ($uom ?? ''))).'|'.
+                strtoupper(trim((string) ($descr ?? '')));
+        };
+
+        $makePlainKey = function ($inventoryid, $uom, $descr): string {
+            return strtoupper(trim((string) ($inventoryid ?? ''))).'|'.
+                strtoupper(trim((string) ($uom ?? ''))).'|'.
+                strtoupper(trim((string) ($descr ?? '')));
+        };
+
+        // Build index _no | inventory | uom | descr, karena inventoryid bisa sama di beberapa baris reuse.
+        $reuseIndex = [];
+        $reusePlainIndex = [];
+        foreach ($reuseRows as $row) {
+            $key = $makeReuseKey(
+                $row->sppbjkt_no ?? null,
+                $row->inventoryid ?? null,
+                $row->uom ?? null,
+                $row->inventory_descr ?? null
+            );
+            $plainKey = $makePlainKey(
+                $row->inventoryid ?? null,
+                $row->uom ?? null,
+                $row->inventory_descr ?? null
+            );
+
+            $reuseIndex[$key][] = $row;
+            $reusePlainIndex[$plainKey][] = $row;
+        }
+
+        $addedTotalPerPonbr = [];
+
+        foreach ($details as $i => $d) {
+            // cek apakah ada vendor yang dipilih
+            $hasPick = false;
+            foreach (($d['vendor'] ?? []) as $v) {
+                if (!empty($v['selected'])) {
+                    $hasPick = true;
+                    break;
+                }
+            }
+            if (!$hasPick) {
+                continue;
+            }
+
+            $orderedQty = (float) ($d['qty'] ?? 0);
+            if ($orderedQty <= 0) {
+                continue;
+            }
+
+            $requestLineNo =
+                $d['sppb_no'] ??
+                $d['sppj_no'] ??
+                $d['sppk_no'] ??
+                $d['sppt_no'] ??
+                $d['sppbjkt_no'] ??
+                null;
+
+            $key = $makeReuseKey(
+                $requestLineNo,
+                $d['inventoryid'] ?? null,
+                $d['uom'] ?? null,
+                $d['inventory_descr'] ?? null
+            );
+            $plainKey = $makePlainKey(
+                $d['inventoryid'] ?? null,
+                $d['uom'] ?? null,
+                $d['inventory_descr'] ?? null
+            );
+
+            /** @var TrPOReuse|null $reuseDet */
+            $reuseDetList = $reuseIndex[$key] ?? null;
+            $usingPlainFallback = false;
+
+            if ((!$reuseDetList || count($reuseDetList) === 0) && empty($requestLineNo)) {
+                $reuseDetList = $reusePlainIndex[$plainKey] ?? null;
+                $usingPlainFallback = true;
+            }
+
+            if (!$reuseDetList || count($reuseDetList) === 0) {
+                continue;
+            }
+
+            // Ambil row yang cocok dengan _no. Jika fallback tanpa _no, konsumsi satu baris agar duplicate tidak selalu kena row pertama.
+            $reuseDet = array_shift($reuseDetList);
+            if ($usingPlainFallback) {
+                $reusePlainIndex[$plainKey] = $reuseDetList;
+
+                $reuseDetKey = $makeReuseKey(
+                    $reuseDet->sppbjkt_no ?? null,
+                    $reuseDet->inventoryid ?? null,
+                    $reuseDet->uom ?? null,
+                    $reuseDet->inventory_descr ?? null
+                );
+                if (isset($reuseIndex[$reuseDetKey])) {
+                    $reuseIndex[$reuseDetKey] = array_values(array_filter(
+                        $reuseIndex[$reuseDetKey],
+                        fn ($row) => ($row->id ?? null) !== ($reuseDet->id ?? null)
+                    ));
+                }
+            } else {
+                $reuseIndex[$key] = $reuseDetList;
+
+                if (isset($reusePlainIndex[$plainKey])) {
+                    $reusePlainIndex[$plainKey] = array_values(array_filter(
+                        $reusePlainIndex[$plainKey],
+                        fn ($row) => ($row->id ?? null) !== ($reuseDet->id ?? null)
+                    ));
+                }
+            }
+
+            // Update ordered/openordered di reuse
+            $reuseDet->ordered = (float) ($reuseDet->ordered ?? 0) + $orderedQty;
+            $reuseDet->openordered = max(0, (float) ($reuseDet->openordered ?? 0) - $orderedQty);
+            $reuseDet->updated_by = auth()->user()->username ?? $reuseDet->updated_by;
+            $reuseDet->save();
+
+            // Simpan total per PO (ponbr) untuk update header PO
+            $ponbr = $reuseDet->ponbr;
+            $addedTotalPerPonbr[$ponbr] = ($addedTotalPerPonbr[$ponbr] ?? 0) + $orderedQty;
+        }
+
+      
+    }
+
+    private function updateOrderedOnPOReuse_old(array $details, string $prevCsid, string $cpnyId): void
+    {
+        // Ambil semua baris reuse yang terkait CS sebelumnya (CS awal)
+        $reuseRows = TrPOReuse::on('pgsql')
+            ->where('csid', $prevCsid)
+            ->when($cpnyId, function ($q) use ($cpnyId) {
+                return $q->where('cpny_id', $cpnyId);
+            })
+            ->get();
+
+        if ($reuseRows->isEmpty()) {
+            return;
+        }
+
         // Build index inventory | uom | descr -> row (boleh banyak, ambil pertama saja)
         $reuseIndex = [];
         foreach ($reuseRows as $row) {
@@ -8165,32 +8307,7 @@ class CanvassController extends Controller
             $addedTotalPerPonbr[$ponbr] = ($addedTotalPerPonbr[$ponbr] ?? 0) + $orderedQty;
         }
 
-        // // Update header PO (totalordered / totalopenordered) jika kolom tersedia
-        // if (!empty($addedTotalPerPonbr)) {
-        //     $poList = TrPO::on('pgsql')
-        //         ->whereIn('ponbr', array_keys($addedTotalPerPonbr))
-        //         ->get();
-
-        //     foreach ($poList as $po) {
-        //         $delta = $addedTotalPerPonbr[$po->ponbr] ?? 0;
-        //         if ($delta <= 0) continue;
-
-        //         $conn    = $po->getConnectionName() ?? 'pgsql';
-        //         $hdrTable = $po->getTable();
-
-        //         if (Schema::connection($conn)->hasColumn($hdrTable, 'totalordered')) {
-        //             $po->totalordered = (float)($po->totalordered ?? 0) + $delta;
-        //         }
-        //         if (Schema::connection($conn)->hasColumn($hdrTable, 'totalopenordered')) {
-        //             $po->totalopenordered = max(
-        //                 0,
-        //                 (float)($po->totalopenordered ?? 0) - $delta
-        //             );
-        //         }
-
-        //         $po->save();
-        //     }
-        // }
+      
     }
 
     public function updateCoaCS(Request $request)

@@ -431,7 +431,7 @@ class IMBudgetController extends Controller
                 | budget_needed/requested = selisih expense - budget_remain.
                 |--------------------------------------------------------------------------
                 */
-                $budgetRemain = max(0.0, $remain);
+                $budgetRemain = max(0.0, $remain + $expense);
                 $needed = max(0.0, $expense - $budgetRemain);
                 $requested = $needed;
 

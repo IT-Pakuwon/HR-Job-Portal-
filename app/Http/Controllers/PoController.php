@@ -2283,30 +2283,16 @@ class PoController extends Controller
             $qtyCompleted = (float) ($d->qty_completed ?? 0);
 
             /**
-             * Definisi "sisa" yang aman:
-             * - qty_completed = sudah selesai (tidak boleh reuse)
-             * - qty_return = balik/retur (anggap tidak boleh reuse)
-             * - qty_received biasanya tidak mengurangi sisa order (karena received belum tentu completed),
-             *   tapi user minta ikut dicek -> kita jadikan guard supaya sisa tidak lebih kecil dari yang sudah received.
-             *
-             * Jadi baseline: qty - completed - return
+             * Sisa reuse = qty PO - qty yang masih benar-benar diterima - qty completed.
+             * Return mengurangi received, jadi qty yang sudah direturn boleh masuk reuse lagi.
              */
-            $remaining = $qty - $qtyCompleted - $qtyReturn;
+            $netReceived = max(0, $qtyReceived - $qtyReturn);
+            $remaining = $qty - $netReceived - $qtyCompleted;
 
             // Guard: tidak boleh kurang dari 0
             if ($remaining < 0) {
                 $remaining = 0;
             }
-
-            // Guard tambahan sesuai request: kalau sudah received melebihi remaining, remaining jangan lebih kecil dari (qty - received - return - completed)
-            // (ini mencegah reuse qty yang sudah fisik diterima, jika itu memang aturan bisnis kamu)
-            $remainingByReceived = $qty - $qtyReceived - $qtyReturn - $qtyCompleted;
-            if ($remainingByReceived < 0) {
-                $remainingByReceived = 0;
-            }
-
-            // pilih yang paling konservatif (paling kecil) supaya aman
-            $remaining = min($remaining, $remainingByReceived);
 
             // Kalau tidak ada sisa → skip
             if ($remaining <= 0) {
@@ -2321,13 +2307,9 @@ class PoController extends Controller
             $baseQtyReturn    = (float) ($d->base_qty_return ?? 0);
             $baseQtyCompleted = (float) ($d->base_qty_completed ?? 0);
 
-            $baseRemaining = $baseQty - $baseQtyCompleted - $baseQtyReturn;
+            $netBaseReceived = max(0, $baseQtyReceived - $baseQtyReturn);
+            $baseRemaining = $baseQty - $netBaseReceived - $baseQtyCompleted;
             if ($baseRemaining < 0) $baseRemaining = 0;
-
-            $baseRemainingByReceived = $baseQty - $baseQtyReceived - $baseQtyReturn - $baseQtyCompleted;
-            if ($baseRemainingByReceived < 0) $baseRemainingByReceived = 0;
-
-            $baseRemaining = min($baseRemaining, $baseRemainingByReceived);
 
             // kalau base_qty tidak dipakai/0, fallback proporsional dari remaining
             if ($baseRemaining <= 0 && $baseQty > 0 && $qty > 0) {

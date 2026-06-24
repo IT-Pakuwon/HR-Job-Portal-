@@ -417,63 +417,7 @@ class RfpNonPurchController extends Controller
                 ]);
             }
 
-            // // =========================
-            // // DETAIL ONLY RFP
-            // // =========================
-            // $totalAmountRequest = 0;
-
-            // if ($doctype === 'RFP') {
-            //     $descs = $request->rfpnonpurchase_descr ?? [];
-            //     $prices = $request->price ?? [];
-
-            //     $coaIds = $request->coa_id ?? [];
-            //     $activityIds = $request->activity_id ?? [];
-            //     $busUnitIds = $request->business_unit_id_detail ?? [];
-            //     $deptFinIds = $request->department_fin_id ?? [];
-            //     $actDescrs = $request->activity_descr ?? [];
-
-            //     $rowCount = count($descs);
-
-            //     for ($i = 0; $i < $rowCount; $i++) {
-            //         $desc = trim($descs[$i] ?? '');
-            //         $amount = $toFloat($prices[$i] ?? 0);
-
-            //         if (!$desc || $amount <= 0) {
-            //             continue;
-            //         }
-
-            //         $totalAmountRequest += $amount;
-
-            //         TrRfpNonPurchDetail::create([
-            //             'rfpnonpurchaseid' => $docid,
-            //             'keperluan_detail' => $desc,
-            //             'amount_request' => $amount,
-
-            //             'budget_perpost' => $year,
-            //             'budget_cpny_id' => $request->cpnyid,
-            //             'budget_business_unit_id' => $busUnitIds[$i] ?? null,
-            //             'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-            //             'budget_account_id' => $coaIds[$i] ?? null,
-            //             'budget_activity_id' => $activityIds[$i] ?? null,
-            //             'budget_activity_descr' => $actDescrs[$i] ?? null,
-
-            //             'status' => 'P',
-            //             'created_by' => $username,
-            //         ]);
-            //     }
-
-            //     $header->amountrequestpayment = $totalAmountRequest;
-            //     $header->save();
-            // }
-
-            // if ($doctype === 'RCA') {
-            //     $header->amountrequestpayment = $toFloat($request->amountrequestpayment);
-            //     $header->save();
-            // }
-
-            // =========================
-            // DETAIL RFP / RCA
-            // =========================
+          
             $totalAmountRequest = 0;
 
             $descs = $request->rfpnonpurchase_descr ?? [];
