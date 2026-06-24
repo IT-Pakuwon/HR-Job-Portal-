@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ApplicantWorking extends Model
 {
     protected $connection = 'mysql3';
-    protected $table = "hr_ms_applicant_working_exp";
+    protected $table = 'hr_ms_applicant_working_exp';
 
     protected $fillable = [
         'applicant_id',
@@ -19,10 +18,10 @@ class ApplicantWorking extends Model
         'is_current',
         'superior_name',
         'reason_for_leaving',
+        'last_thp',
         'status',
         'created_user',
         'updated_user',
-        'completed_user'
+        'completed_user',
     ];
-
 }

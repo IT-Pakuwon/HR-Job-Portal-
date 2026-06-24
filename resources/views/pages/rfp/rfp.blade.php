@@ -4,7 +4,7 @@
         $user = auth()->user();
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
 
-        $xlCols = 4;
+        $xlCols = 5;
         if ($hasRfpAllAccess) {
             $xlCols++;
         }
@@ -31,25 +31,25 @@
                     </div>
                     <p class="shrink-0 text-base font-extrabold">{{ $onProgress }}</p>
                 </div>
-            </a>
-
-            {{-- <a href="#" class="status-filter group block h-full" data-status="R">
-                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">⛔️</div>
-                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Reject</p>
-                    </div>
-                    <p class="shrink-0 text-base font-extrabold">{{ $reject }}</p>
-                </div>
-            </a> --}}
+            </a>    
 
             <a href="#" class="status-filter group block h-full" data-status="D">
                 <div class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
                     <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✏️</div>
                     <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                        <p class="break-words text-sm font-medium">Revise / Draft</p>
+                        <p class="break-words text-sm font-medium">Revise</p>
                     </div>
                     <p class="shrink-0 text-base font-extrabold">{{ $revise }}</p>
+                </div>
+            </a>
+
+            <a href="#" class="status-filter group block h-full" data-status="H">
+                <div class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">✏️</div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-sm font-medium">Hold</p>
+                    </div>
+                    <p class="shrink-0 text-base font-extrabold">{{ $hold ?? 0 }}</p>
                 </div>
             </a>
 
@@ -152,6 +152,7 @@
         var currentUser = "{{ auth()->user()->username }}";
         const hasApFinAccess = @json($hasApFinAccess ?? false);
         const hasApTreAccess = @json($hasApTreAccess ?? false);
+        const rfpKontrakBudgetCreateUrl = @json(route('rfp.kontrak-budget.create', ['hash' => '__HASH__']));
 
         function escapeHtml(value) {
                 return String(value ?? '')
@@ -248,15 +249,14 @@
                 ],
                 responsive: {
                     details: {
-                        type: 'column',
-                        target: 0
+                        type: 'inline'
                     }
                 },
                 columnDefs: [
                     {
                         targets: 0,
-                        width: '28px',
-                        className: 'dtr-control',
+                        width: '52px',
+                        className: 'text-center',
                         orderable: false
                     }
                 ],
@@ -270,7 +270,32 @@
                 },
                 order: [[2, 'desc']],
                 columns: [
-                    { data: null, defaultContent: '' },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            const isHoldView = statusFilter === 'H' && scopeFilter !== 'rfp_all';
+                            const rowTypePo = row.type_po ?? row.typepo ?? '';
+                            const isKontrak = String(rowTypePo).trim().toUpperCase() === 'KONTRAK';
+
+                            if (!isHoldView || !isKontrak) {
+                                return '';
+                            }
+
+                            return `
+                                <button type="button"
+                                    class="btn-rfp-hold-add inline-flex h-8 w-8 items-center justify-center rounded bg-indigo-600 text-base font-bold text-white hover:bg-indigo-700"
+                                    title="Add RFP Kontrak Budget"
+                                    data-hash="${escapeHtml(row.eid || '')}"
+                                    data-rfp-id="${escapeHtml(row.rfp_id || '')}"
+                                    data-kontrak-id="${escapeHtml(row.kontrak_id || '')}">
+                                    +
+                                </button>
+                            `;
+                        }
+                    },
 
                     {
                         data: 'rfp_id',
@@ -494,6 +519,7 @@
                             const map = {
                                 'D': { t: 'Revise', c: 'bg-amber-200/60 text-amber-800 border border-amber-600/40' },
                                 'P': { t: 'On Progress', c: 'bg-orange-200/60 text-orange-800 border border-orange-600/40' },
+                                'H': { t: 'Hold', c: 'bg-yellow-200/60 text-yellow-800 border border-yellow-600/40' },
                                 'C': { t: 'Completed', c: 'bg-green-200/60 text-green-800 border border-green-600/40' },
                                 'X': { t: 'Cancel', c: 'bg-red-200/60 text-red-800 border border-red-600/40' },
                                 'R': { t: 'Rejected', c: 'bg-red-200/60 text-red-800 border border-red-600/40' },
@@ -509,8 +535,22 @@
                     },
                 ],
                 searchDelay: 400,
-                stateSave: true,
-                responsive: true
+                stateSave: true
+            });
+
+            table.column(0).visible(statusFilter === 'H');
+
+            $(document).on('click', '.btn-rfp-hold-add', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const hash = String($(this).data('hash') || '').trim();
+                if (!hash) {
+                    toastr.error('Hash RFP tidak ditemukan.');
+                    return;
+                }
+
+                window.location.href = rfpKontrakBudgetCreateUrl.replace('__HASH__', encodeURIComponent(hash));
             });
 
             $('.status-filter').on('click', function(e) {
@@ -523,12 +563,14 @@
                     scopeFilter = scope;
                     statusFilter = '';
 
+                    table.column(0).visible(false);
                     // tampilkan kolom Action hanya saat RFP Finance
                     table.column(11).visible(true);
                 } else {
                     statusFilter = status ?? '';
                     scopeFilter = '';
 
+                    table.column(0).visible(statusFilter === 'H');
                     // hide kolom Action untuk All, On Progress, Reject, Draft, Completed
                     table.column(11).visible(false);
                 }

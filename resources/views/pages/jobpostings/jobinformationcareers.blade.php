@@ -1,175 +1,114 @@
-           <div class="max-w-9xl mx-auto w-full p-4">
-               <div
-                   class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
+<div class="max-w-9xl mx-auto w-full overflow-hidden rounded-lg bg-white   dark:bg-gray-800 ">
 
-                   {{-- Main Job Posting Card (remains the same) --}}
-                   <div
-                       class="flex flex-1 flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                       <header
-                           class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                           <h1 class="flex items-center gap-2 text-lg font-bold text-gray-800 dark:text-gray-100">
-                               <span
-                                   class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
-                                   ID
-                               </span> {{ $jobposting->docid }}
-                           </h1>
-                           {{-- Status badge can be added here if desired --}}
-                       </header>
+        {{-- ── Header ───────────────────────────────────────────────── --}}
+        <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-700/60">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400">{{ $jobposting->docid }}</p>
+                    <h2 class="mt-0.5 text-base font-bold text-gray-900 dark:text-white">{{ $jobposting->job_title }}</h2>
+                </div>
+                <div class="flex shrink-0 items-center gap-1.5 pt-0.5">
+                    @if ($jobposting->job_type)
+                        <span class="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $jobposting->job_type }}</span>
+                    @endif
+                    @if ($jobposting->state_position)
+                        <span class="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ $jobposting->state_position }}</span>
+                    @endif
+                </div>
+            </div>
 
-                       <div class="p-4">
-                           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                               @php
-                                   $jobDetails = [
-                                       ['label' => 'Company', 'value' => $jobposting->cpnyid],
-                                       ['label' => 'Department', 'value' => $jobposting->departementid],
-                                       ['label' => 'Job Title', 'value' => $jobposting->job_title],
-                                       ['label' => 'Job Type', 'value' => $jobposting->job_type],
-                                       [
-                                           'label' => 'Immediate Superior',
-                                           'value' => $jobposting->immediate_superior,
-                                       ],
-                                   ];
-                               @endphp
+            {{-- Inline metadata --}}
+            <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Company</span>
+                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ $jobposting->cpnyid ?: '—' }}</span>
+                </div>
+                <span class="h-3 w-px bg-gray-200 dark:bg-gray-600"></span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Department</span>
+                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ $jobposting->departementid ?: '—' }}</span>
+                </div>
+                <span class="h-3 w-px bg-gray-200 dark:bg-gray-600"></span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Superior</span>
+                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ $jobposting->immediate_superior ?: '—' }}</span>
+                </div>
+                <span class="h-3 w-px bg-gray-200 dark:bg-gray-600"></span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Level</span>
+                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">{{ $jobposting->job_level ?: '—' }}</span>
+                </div>
+            </div>
+        </div>
 
-                               @foreach ($jobDetails as $detail)
-                                   <div
-                                       class="hover: flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 dark:border-gray-700 dark:bg-gray-700/50">
+        {{-- ── Tabs ─────────────────────────────────────────────────── --}}
+        <div x-data="{ activeTab: 'Responsibilities' }">
 
-                                       <div>
-                                           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                               {{ $detail['label'] }}
-                                           </p>
-                                           <p class="text-sm text-gray-900 dark:text-gray-100">
-                                               {{ $detail['value'] }}</p>
-                                       </div>
-                                   </div>
-                               @endforeach
+            <div class="flex items-center border-b border-gray-100 px-4 py-2.5 dark:border-gray-700/60">
+                <div class="flex items-center gap-0.5 rounded-lg bg-gray-200 p-1 dark:bg-gray-900">
+                    <button @click="activeTab = 'Responsibilities'"
+                        :class="activeTab === 'Responsibilities'
+                            ? 'bg-white text-gray-900   dark:bg-gray-700 dark:text-white'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
+                        class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                        Responsibilities
+                    </button>
+                    <button @click="activeTab = 'Qualification'"
+                        :class="activeTab === 'Qualification'
+                            ? 'bg-white text-gray-900   dark:bg-gray-700 dark:text-white'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300'"
+                        class="rounded-lg px-4 py-1.5 text-xs font-semibold transition-all duration-150 focus:outline-none">
+                        Qualification
+                    </button>
+                </div>
+            </div>
 
-                               <div
-                                   class="hover: grid grid-cols-1 gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 duration-200 sm:grid-cols-2 dark:border-gray-700 dark:bg-gray-700/50">
-                                   <div class="flex items-center gap-2">
-                                       <div>
-                                           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Job Level</p>
-                                           <p class="text-sm text-gray-900 dark:text-gray-100">
-                                               {{ $jobposting->job_level }}</p>
-                                       </div>
-                                   </div>
-                                   <div class="flex items-center gap-2">
-                                       <div>
-                                           <p class="text-sm font-medium text-gray-500 dark:text-gray-400">State
-                                               Position</p>
-                                           <p class="text-sm text-gray-900 dark:text-gray-100">
-                                               {{ $jobposting->state_position }}</p>
-                                       </div>
-                                   </div>
-                               </div>
-                           </div>
-                       </div>
-                   </div>
-                   <div
-                       class="flex flex-1 flex-col gap-4 rounded-xl bg-white duration-300 sm:w-1/2 md:w-full dark:bg-gray-800">
-                       <div x-data="{ activeTab: 'Responsibilities' }" class="rounded-xl bg-white duration-300 dark:bg-gray-800">
-                           <header
-                               class="flex items-center rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
-                               <nav class="flex flex-grow"> {{-- Added   to negative margin to overlap border --}}
-                                   <button @click="activeTab = 'Responsibilities'"
-                                       :class="{
-                                           'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Responsibilities',
-                                           'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Responsibilities'
-                                       }"
-                                       class="flex-1 whitespace-nowrap px-4 py-1 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                       Job Responsibilities
-                                   </button>
-                                   <button @click="activeTab = 'Qualification'"
-                                       :class="{
-                                           'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400': activeTab === 'Qualification',
-                                           'border-b-2 border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:border-gray-600': activeTab !== 'Qualification'
-                                       }"
-                                       class="flex-1 whitespace-nowrap px-4 py-1 text-center text-sm font-medium transition-colors duration-200 focus:outline-none">
-                                       Job Qualification
-                                   </button>
-                               </nav>
-                           </header>
+            <div class="px-5 py-4">
 
-                           <div class="flex-grow overflow-y-auto rounded-b-xl bg-white p-4 dark:bg-gray-800">
-                               <div x-show="activeTab === 'Responsibilities'"
-                                   x-transition:enter="transition ease-out duration-300"
-                                   x-transition:enter-start="opacity-0 translate-y-2"
-                                   x-transition:enter-end="opacity-100 translate-y-0"
-                                   x-transition:leave="transition ease-in duration-200"
-                                   x-transition:leave-start="opacity-100 translate-y-0"
-                                   x-transition:leave-end="opacity-0 translate-y-2"
-                                   class="max-h-[300px] overflow-y-auto">
-                                   <ul class="overflow-y-auto pr-3 text-gray-700 dark:text-gray-300">
-                                       @foreach ($jobres as $jr)
-                                           <li class="flex items-start gap-2">
-                                               <span
-                                                   class="flex-shrink-0 text-sm leading-none text-indigo-500 dark:text-indigo-400">•</span>
-                                               <span
-                                                   class="text-sm leading-relaxed">{{ $jr->job_responsibilities_descr }}</span>
-                                           </li>
-                                       @endforeach
-                                       @if ($jobres->isEmpty())
-                                           <li class="py-4 text-center italic text-gray-500 dark:text-gray-400">No job
-                                               responsibilities listed.</li>
-                                       @endif
-                                   </ul>
-                               </div>
+                {{-- Responsibilities --}}
+                <div x-show="activeTab === 'Responsibilities'"
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 translate-y-1"
+                    x-transition:enter-end="opacity-100 translate-y-0">
+                    @if ($jobres->isEmpty())
+                        <p class="py-6 text-center text-xs italic text-gray-400">No job responsibilities listed.</p>
+                    @else
+                        <ul class="space-y-0.5">
+                            @foreach ($jobres as $jr)
+                                <li class="flex items-start gap-3 rounded-lg px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                    <svg class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ $jr->job_responsibilities_descr }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
 
-                               <div x-show="activeTab === 'Qualification'"
-                                   x-transition:enter="transition ease-out duration-300"
-                                   x-transition:enter-start="opacity-0 translate-y-2"
-                                   x-transition:enter-end="opacity-100 translate-y-0"
-                                   x-transition:leave="transition ease-in duration-200"
-                                   x-transition:leave-start="opacity-100 translate-y-0"
-                                   x-transition:leave-end="opacity-0 translate-y-2"
-                                   class="max-h-[300px] overflow-y-auto">
-                                   <ul class="space-y-2 text-gray-700 dark:text-gray-300">
-                                       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                           <li
-                                               class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                                               <span
-                                                   class="flex-shrink-0 text-lg text-indigo-500 dark:text-indigo-400">🎓</span>
-                                               <span class="font-semibold text-gray-800 dark:text-gray-100">
-                                                   Education: <span
-                                                       class="font-bold">{{ $jobposting->education }}</span>
-                                               </span>
-                                           </li>
-                                           <li
-                                               class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-100 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                                               <span
-                                                   class="flex-shrink-0 text-lg text-indigo-500 dark:text-indigo-400">💼</span>
-                                               <span class="font-semibold text-gray-800 dark:text-gray-100">
-                                                   Experience: {{ $jobposting->experience_start }} -
-                                                   {{ $jobposting->experience_end }}
-                                                   Years
-                                               </span>
-                                           </li>
-                                       </div>
-                                       @foreach ($jobqua as $jq)
-                                           <li class="flex items-start gap-2 pt-2">
-                                               <span
-                                                   class="flex-shrink-0 text-sm leading-none text-indigo-500 dark:text-indigo-400">•</span>
-                                               <span
-                                                   class="text-sm font-medium leading-relaxed text-gray-700 dark:text-gray-300">{{ $jq->job_qualification_descr }}</span>
-                                           </li>
-                                       @endforeach
-                                       @if ($jobqua->isEmpty() && !$jobposting->education && !$jobposting->experience_start)
-                                           <li class="py-4 text-center italic text-gray-500 dark:text-gray-400">No job
-                                               qualifications listed.</li>
-                                       @endif
-                                   </ul>
-                               </div>
-                           </div>
-                       </div>
-                   </div>
+                {{-- Qualification --}}
+                <div x-show="activeTab === 'Qualification'" x-cloak
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 translate-y-1"
+                    x-transition:enter-end="opacity-100 translate-y-0">
 
+                    @if ($jobqua->isEmpty())
+                        <p class="py-6 text-center text-xs italic text-gray-400">No job qualifications listed.</p>
+                    @else
+                        <ul class="space-y-0.5">
+                            @foreach ($jobqua as $jq)
+                                <li class="flex items-start gap-3 rounded-lg px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                    <svg class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ $jq->job_qualification_descr }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
 
-               </div>
-           </div>
+            </div>
+        </div>
 
-           <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-           <script src="https://unpkg.com/lucide@latest"></script>
-           <script>
-               lucide.createIcons();
-           </script>
+</div>

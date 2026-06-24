@@ -18,6 +18,8 @@ use App\Models\Jobposting;
 use App\Models\JobpostingResponsiblities;
 use App\Models\JobpostingQualification;
 use App\Models\AutonbrJobportal;
+use App\Models\TrApproval;
+use App\Models\TrAttachment;
 use Mail;
 
 
@@ -53,7 +55,7 @@ class JobpostingController extends Controller
     public function showJobposting($id)
     {
         $jobposting = Jobposting::findOrFail($id);
-        $approval = T_approval::where('docid', $jobposting->docid)
+        $approval = TrApproval::where('docid', $jobposting->docid)
             ->where('status','<>','X')
             ->orderBy('created_at')
             ->orderBy('aprvid')
@@ -63,7 +65,7 @@ class JobpostingController extends Controller
             ->get();
         $jobqua = JobpostingQualification::where('docid', $jobposting->docid)
             ->get();
-        $attachment = Attachment::where('docid', $jobposting->docid)
+        $attachment = TrAttachment::where('docid', $jobposting->docid)
             ->where('status','A')
             ->get();
 
@@ -76,6 +78,7 @@ class JobpostingController extends Controller
             ->table('hr_trx_jobposting as jp')
             ->select(
                 'jp.docid',
+                'jp.status',
                 DB::raw("
                     CONCAT(
                         IFNULL(jp.name_job, IFNULL(jp.job_title,'-')),
@@ -85,7 +88,7 @@ class JobpostingController extends Controller
                     ) as job_name
                 ")
             )
-            ->where('jp.status', 'P')
+            ->whereIn('jp.status', ['P', 'U'])
             ->get();
     }
 

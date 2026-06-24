@@ -318,8 +318,8 @@
 
                             // DISPLAY
                             return new Intl.NumberFormat('id-ID', {
-                                minimumFractionDigits: 3,
-                                maximumFractionDigits: 3
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
                             }).format(parseFloat(data ?? 0));
                         }
                     },

@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\ViewCareer;
@@ -29,6 +29,7 @@ use App\Models\ApplicantMarital;
 use App\Models\ApplicantSW;
 use App\Models\ApplicantSkill;
 use App\Models\ApplicantDriverLicense;
+use App\Models\ApplicantReference;
 use App\Models\ApplicantWorking;
 use App\Models\JobApplyStep;
 use App\Models\Mschecklist;
@@ -69,14 +70,14 @@ class CareerController extends Controller
         $nocandidate = ViewCareer::where('status', 'H')->count();
         $candidate = ViewCareer::where('status', 'P')->count();
         $join = ViewCareer::where('status', 'C')->count();
-              
+
         return view('pages.careers.careers', compact('incompletedprofile', 'completedprofile', 'nocandidate', 'candidate','join'));
     }
 
     public function stats(Request $request)
     {
         $cpnyid = $request->query('cpnyid');
-        
+
         $query = ViewCareer::query();
         if (!empty($cpnyid)) {
             $query->where('cpnyid', $cpnyid);
@@ -91,7 +92,7 @@ class CareerController extends Controller
         ]);
     }
 
-    
+
     public function json(Request $request)
     {
         $status_app = $request->query('status_app');
@@ -116,7 +117,7 @@ class CareerController extends Controller
         return response()->json(['data' => $career]);
     }
 
-  
+
     public function jsonxxx(Request $request)
     {
         $status_app = $request->query('status_app');
@@ -132,7 +133,7 @@ class CareerController extends Controller
         } elseif (!empty($cpnyid)) {
             $query->where('cpnyid', $cpnyid);
         }
-        
+
 
         $career = $query->orderBy('id', 'desc')->get();
 
@@ -141,27 +142,27 @@ class CareerController extends Controller
 
 
     public function showCareer($hash)
-    {        
+    {
         $id = Hashids::decode($hash)[0] ?? null;
         abort_if(!$id, 404);
 
-        $user = Auth::user();       
+        $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
         }
 
-        $datenow = Carbon::now()->format('Y-m-d');       
+        $datenow = Carbon::now()->format('Y-m-d');
         $timenow = date('Y-m-d H:i:s');
-        $career = ViewCareer::findOrFail($id);   
-        $job_apply = Career::where('docid', $career->docid)->first();
+        $career = ViewCareer::findOrFail($id);
+        $job_apply = Career::find($id);
 
         $hasGroupAccess = GroupAccspecific::where('username', $user->username)
             ->where('group_access_id', 'STEP')
             ->where('status', 'A')
             ->first();
         // dd($hasGroupAccess);
-        if ($hasGroupAccess) {           
+        if ($hasGroupAccess) {
             $job_apply->is_read = 'Y';
             $job_apply->save();
         }
@@ -171,40 +172,42 @@ class CareerController extends Controller
         $applicant_marital = ApplicantMarital::where('applicant_id', $career->applicant_id)->get();
         $applicant_education = ApplicantEducation::where('applicant_id', $career->applicant_id)->get();
         $applicant_working = ApplicantWorking::where('applicant_id', $career->applicant_id)->get();
+        $applicant_reference = ApplicantReference::where('applicant_id', $career->applicant_id)->get();
         $applicant_language = ApplicantLanguage::where('applicant_id', $career->applicant_id)->get();
         $applicant_course = ApplicantCourse::where('applicant_id', $career->applicant_id)->get();
         $applicant_sw = ApplicantSW::where('applicant_id', $career->applicant_id)->get();
         $applicant_skill = ApplicantSkill::where('applicant_id', $career->applicant_id)->get();
 
-        $jobapplystep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')                                      
-            ->select('hr_trx_job_apply_step.*', 'hr_ms_job_step.step_descr')   
-            ->where('hr_trx_job_apply_step.docid',$career->docid)       
-            ->where('hr_trx_job_apply_step.status','<>','X')
+        $jobapplystep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
+            ->select('hr_trx_job_apply_step.*', 'hr_ms_job_step.step_descr')
+            ->where('hr_trx_job_apply_step.docid', $career->docid)
+            ->where('hr_trx_job_apply_step.jobid', $career->docidposting)
+            ->when($career->status !== 'T', fn($q) => $q->where('hr_trx_job_apply_step.status', '<>', 'X'))
             ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
             ->get();
 
-        $jobposting = Jobposting::where('docid', $career->docidposting)->first();        
+        $jobposting = Jobposting::where('docid', $career->docidposting)->first();
         $jobres = JobpostingResponsiblities::where('docid', $career->docidposting)->get();
         $jobqua = JobpostingQualification::where('docid', $career->docidposting)->get();
 
-        $tr_checklist = Trchecklist::leftjoin('hr_ms_doc_checklist', 'hr_trx_doc_checklist.checklist_id', '=', 'hr_ms_doc_checklist.checklist_id')                                      
-            ->select('hr_trx_doc_checklist.*', 'hr_ms_doc_checklist.checklist_descr')  
-            ->where('hr_trx_doc_checklist.jobapply_id',$career->docid)        
+        $tr_checklist = Trchecklist::leftjoin('hr_ms_doc_checklist', 'hr_trx_doc_checklist.checklist_id', '=', 'hr_ms_doc_checklist.checklist_id')
+            ->select('hr_trx_doc_checklist.*', 'hr_ms_doc_checklist.checklist_descr')
+            ->where('hr_trx_doc_checklist.jobapply_id',$career->docid)
             ->orderBy('hr_trx_doc_checklist.step_order', 'ASC')
-            ->get(); 
-       
+            ->get();
+
         // ========== HC ASSESSMENT ==========
         $assessmentGroups = [];
         $tr_assessment = TrAssessment::where('jobapply_id', $career->docid)
             ->where('type','hc')
-            ->first();     
+            ->first();
 
         if ($tr_assessment) {
-            $assessmentData = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', 'hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')                                      
-                ->select('hr_trx_interview_assessment_detail.*', 'hr_ms_interview_assessment.assessment_group', 'hr_ms_interview_assessment.assessment_descr')          
+            $assessmentData = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', 'hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')
+                ->select('hr_trx_interview_assessment_detail.*', 'hr_ms_interview_assessment.assessment_group', 'hr_ms_interview_assessment.assessment_descr')
                 ->where('hr_trx_interview_assessment_detail.docid', $tr_assessment->docid)
                 ->orderBy('hr_ms_interview_assessment.step_order_group', 'ASC')
-                ->orderBy('hr_ms_interview_assessment.step_order', 'ASC')            
+                ->orderBy('hr_ms_interview_assessment.step_order', 'ASC')
                 ->get()
                 ->groupBy('step_order_group');
 
@@ -232,14 +235,14 @@ class CareerController extends Controller
         $assessmentGroupsUser = [];
         $tr_assessment_user = TrAssessment::where('jobapply_id', $career->docid)
             ->where('type','user')
-            ->first();     
+            ->first();
 
         if ($tr_assessment_user) {
-            $assessmentData_user = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', 'hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')                                      
-                ->select('hr_trx_interview_assessment_detail.*', 'hr_ms_interview_assessment.assessment_group', 'hr_ms_interview_assessment.assessment_descr')          
+            $assessmentData_user = TrAssessmentdetail::leftjoin('hr_ms_interview_assessment', 'hr_trx_interview_assessment_detail.assessment_id', '=', 'hr_ms_interview_assessment.assessment_id')
+                ->select('hr_trx_interview_assessment_detail.*', 'hr_ms_interview_assessment.assessment_group', 'hr_ms_interview_assessment.assessment_descr')
                 ->where('hr_trx_interview_assessment_detail.docid', $tr_assessment_user->docid)
                 ->orderBy('hr_ms_interview_assessment.step_order_group', 'ASC')
-                ->orderBy('hr_ms_interview_assessment.step_order', 'ASC')            
+                ->orderBy('hr_ms_interview_assessment.step_order', 'ASC')
                 ->get()
                 ->groupBy('step_order_group');
 
@@ -281,10 +284,11 @@ class CareerController extends Controller
         $photo = null;
         $cv = null;
         $coverletter = null;
+        $transkip = null;
+        $ijazah = null;
 
         if (!empty($applicant->upload_photo)) {
             $object = $bucket->object($applicant->upload_photo);
-            // signedUrl expects DateTimeInterface
             $photo = $object->signedUrl($expiration);
         }
 
@@ -293,20 +297,30 @@ class CareerController extends Controller
             $cv = $object->signedUrl($expiration);
         }
 
+        if (!empty($applicant->upload_transkip_nilai)) {
+            $object = $bucket->object($applicant->upload_transkip_nilai);
+            $transkip = $object->signedUrl($expiration);
+        }
+
+        if (!empty($applicant->upload_ijazah)) {
+            $object = $bucket->object($applicant->upload_ijazah);
+            $ijazah = $object->signedUrl($expiration);
+        }
+
         $agenda = Agenda::where('refid', $career->docid)->get();
         $userlist = User::where('status','A')->orderby('name','ASC')->get();
         $agenda = Agenda::where('refid', $career->docid)->get();
 
-        // $typestep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')                                      
-        //     ->select('hr_trx_job_apply_step.step_id', 'hr_ms_job_step.step_descr')   
-        //     ->where('hr_trx_job_apply_step.docid',$career->docid)       
+        // $typestep = JobApplyStep::leftjoin('hr_ms_job_step', 'hr_trx_job_apply_step.step_id', '=', 'hr_ms_job_step.step_id')
+        //     ->select('hr_trx_job_apply_step.step_id', 'hr_ms_job_step.step_descr')
+        //     ->where('hr_trx_job_apply_step.docid',$career->docid)
         //     ->where('hr_trx_job_apply_step.status','<>','X')
         //     ->orderBy('hr_trx_job_apply_step.step_order', 'ASC')
         //     ->get();
         $typestep = MJobApplyStep::where('schedule', 1)->get();
-        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->get();   
-        
-        $sign = SignPayroll::where('docid', $career->docid)->orderby('aprvid','ASC')->get(); 
+        $payrolls = Payrollconfirm::where('jobapply_id', $career->docid)->get();
+
+        $sign = SignPayroll::where('docid', $career->docid)->orderby('aprvid','ASC')->get();
 
         $onboarding = Tronboarding::where('jobapply_id', $career->docid)->first();
         // dd($career->subgrade_id);
@@ -316,32 +330,32 @@ class CareerController extends Controller
             ->where('status', 'A')
             ->exists();
         // dd($canAccessPayroll);
-        $canAccessAssessment = GroupAccspecific::where('username', $user->username)            
+        $canAccessAssessment = GroupAccspecific::where('username', $user->username)
             ->where('status', 'A')
             ->exists();
 
-        $canAccessChecklist = GroupAccspecific::where('username', $user->username)      
-            ->where('group_access_id', 'CHECKLIST')      
+        $canAccessChecklist = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'CHECKLIST')
             ->where('status', 'A')
             ->exists();
 
-        $canAccessInterviewUser = GroupAccspecific::where('username', $user->username)      
-            ->where('group_access_id', 'INTERVIEWUSER')      
+        $canAccessInterviewUser = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'INTERVIEWUSER')
             ->where('status', 'A')
             ->exists();
 
-        $canAccessInterviewHC = GroupAccspecific::where('username', $user->username)      
-            ->where('group_access_id', 'INTERVIEWHC')      
-            ->where('status', 'A')
-            ->exists();       
-
-        $canAccessJoin = GroupAccspecific::where('username', $user->username)      
-            ->where('group_access_id', 'JOIN')      
+        $canAccessInterviewHC = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'INTERVIEWHC')
             ->where('status', 'A')
             ->exists();
 
-        $canAccessSchedule = GroupAccspecific::where('username', $user->username)      
-            ->where('group_access_id', 'SCHEDULE')      
+        $canAccessJoin = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'JOIN')
+            ->where('status', 'A')
+            ->exists();
+
+        $canAccessSchedule = GroupAccspecific::where('username', $user->username)
+            ->where('group_access_id', 'SCHEDULE')
             ->where('status', 'A')
             ->exists();
 
@@ -359,14 +373,42 @@ class CareerController extends Controller
             ->where('status', 'A')
             ->get();
 
-          
+
+        $remapped_from = null;
+        $remapped_to   = null;
+
+        if ($career->status === 'T') {
+            // Viewing the OLD apply — show where it was remapped TO
+            $remapped_to = DB::connection('mysql3')
+                ->table('hr_trx_job_apply as a')
+                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'a.jobid')
+                ->where('a.docid', $career->docid)
+                ->whereNotIn('a.status', ['T', 'X'])
+                ->where('a.jobid', '!=', $career->docidposting)
+                ->orderByDesc('a.id')
+                ->select('a.jobid', 'jp.job_title')
+                ->first();
+        } else {
+            // Viewing the NEW apply — show where it came FROM (most recent T record)
+            $remapped_from = DB::connection('mysql3')
+                ->table('hr_trx_job_apply as a')
+                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'a.jobid')
+                ->where('a.docid', $career->docid)
+                ->where('a.status', 'T')
+                ->where('a.jobid', '!=', $career->docidposting)
+                ->orderByDesc('a.id')
+                ->select('a.jobid', 'jp.job_title')
+                ->first();
+        }
+
         return view('pages.careers.showcareers', compact(
             'career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
-            'applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
-            'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','user','datenow',
+            'applicant_reference','applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
+            'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','transkip','ijazah','user','datenow',
             'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist',
             'typestep','payrolls','onboarding','sign','canAccessPayroll','canAccessAssessment','canAccessSchedule','companyaddress',
-            'canAccessChecklist','canAccessInterviewUser','canAccessInterviewHC','canAccessPayroll','canAccessJoin'
+            'canAccessChecklist','canAccessInterviewUser','canAccessInterviewHC','canAccessPayroll','canAccessJoin',
+            'remapped_from', 'remapped_to'
         ));
     }
 
@@ -382,9 +424,9 @@ class CareerController extends Controller
         $assessment = TrAssessment::where('jobapply_id', $docid)
             ->where('type','hc')
             ->first();
-        // dd($assessment);    
+        // dd($assessment);
         if ($assessment) {
-            $assessment->assessment_date = $request->interview_date.' '.$request->interview_time;        
+            $assessment->assessment_date = $request->interview_date.' '.$request->interview_time;
             $assessment->total_assessment_score_value = $request->totalscore;
             // $assessment->result_status = $request->result_status;
             $assessment->user = $user->username;
@@ -403,7 +445,7 @@ class CareerController extends Controller
                     'updated_user' => $user->username,
                     'updated_at' => $now
                 ]);
-        
+
             // Update score_value yang dipilih
             TrAssessmentdetail::where('docid', $assessment->docid)
                 ->where('step_order_group', $index + 1)
@@ -414,7 +456,7 @@ class CareerController extends Controller
                     'updated_at' => $now
                 ]);
         }
-        
+
 
         return response()->json(['success' => true, 'message' => 'Assessment updated successfully']);
     }
@@ -430,9 +472,9 @@ class CareerController extends Controller
         $assessment = TrAssessment::where('jobapply_id', $docid)
             ->where('type','user')
             ->first();
-        // dd($assessment);    
+        // dd($assessment);
         if ($assessment) {
-            $assessment->assessment_date = $request->interview_date.' '.$request->interview_time;        
+            $assessment->assessment_date = $request->interview_date.' '.$request->interview_time;
             $assessment->total_assessment_score_value = $request->totalscore;
             // $assessment->result_status = $request->result_status;
             $assessment->user = $user->username;
@@ -451,7 +493,7 @@ class CareerController extends Controller
                     'updated_user' => $user->username,
                     'updated_at' => $now
                 ]);
-        
+
             // Update score_value yang dipilih
             TrAssessmentdetail::where('docid', $assessment->docid)
                 ->where('step_order_group', $index + 1)
@@ -462,16 +504,16 @@ class CareerController extends Controller
                     'updated_at' => $now
                 ]);
         }
-        
+
 
         return response()->json(['success' => true, 'message' => 'Assessment updated successfully']);
     }
 
 
-    
+
     // public function fetchComments($id)
     // {
-    
+
     //     $comments = T_Message::where('docid', $id)
     //         ->orderBy('created_at', 'desc')
     //         ->get();
@@ -491,8 +533,8 @@ class CareerController extends Controller
     //     $comment = new T_Message();
     //     $comment->docid = $id;
     //     $comment->doctype = 'PRF';
-    //     $comment->username = $user->username; 
-    //     $comment->name = $user->name; 
+    //     $comment->username = $user->username;
+    //     $comment->name = $user->name;
     //     $comment->message = $request->comment;
     //     $comment->status = 'A';
     //     $comment->created_at = now();
@@ -524,7 +566,7 @@ class CareerController extends Controller
         ]);
 
         $user = Auth::user();   // ambil user login
-        
+
         $comment = TrMessage::create([
             'refnbr'        => $refnbr,
             'doctype'       => 'PRF',
@@ -547,11 +589,10 @@ class CareerController extends Controller
 
     public function approveCareer(Request $request, $docid)
     {
-        $datestamp = Carbon::now()->toDateTimeString();       
+        $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
-        
-        $career = Career::where('docid', $docid)->first();  
-       
+
+        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
 
         if (!$career) {
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
@@ -572,21 +613,22 @@ class CareerController extends Controller
             ->where('aprv_username', 'like', '%' . $user->username . '%')
             ->where('aprv_leveling', '>', 1)
             ->first();
-       
+
         $hasGroupAccess = GroupAccspecific::where('username', $user->username)
             ->where('group_access_id', 'STEP')
             ->where('status', 'A')
             ->first();
-       
+
         if (!$cek_approval && !$hasGroupAccess) {
             return response()->json(['success' => false, 'message' => "You Can't Approve!"], 403);
         }
-     
+
         $t_approval = JobApplyStep::where('docid', $career->docid)
-            ->where('status', 'P')           
+            ->where('jobid', $career->jobid)
+            ->where('status', 'P')
             ->orderBy('step_order', 'ASC')
             ->first();
-        
+
         if($hasGroupAccess){
             $user_step_pic = 'HC';
         }else{
@@ -602,17 +644,17 @@ class CareerController extends Controller
         if ($t_approval->step_pic !== $user_step_pic) {
             return response()->json(['success' => false, 'message' => "You can't approve this step"], 403);
         }
-        
-        if ($t_approval->step_order == 2) {    
+
+        if ($t_approval->step_order == 2) {
             $this->insert_checklist($career, $user);
-            $this->insert_assessment($career, $user);   
+            $this->insert_assessment($career, $user);
             // $this->insert_psychotest($career, $user);
             $this->update_trx_approval($career, $user);
-            $this->sendemail_applicant($career, $user);     
+            $this->sendemail_applicant($career, $user);
         }
 
-        if ($t_approval->step_order == 1) {    
-            $this->insert_trx_approval($career, $user);          
+        if ($t_approval->step_order == 1) {
+            $this->insert_trx_approval($career, $user);
         }
 
 
@@ -622,21 +664,23 @@ class CareerController extends Controller
         $t_approval->save();
 
         $t_approval_next = JobApplyStep::where('docid', $career->docid)
+            ->where('jobid', $career->jobid)
             ->where('status', 'P')
             ->orderBy('step_order', 'ASC')
             ->first();
-       
+
         if ($t_approval_next) {
             $career->apply_step = $t_approval_next->step_id;
             $career->prev_apply_step = $t_approval->step_id;
         }
-        
+
         $career->updated_user = $user->username;
         $career->updated_at = $datestamp;
         $career->save();
 
         // Hitung apakah ini adalah approval terakhir
         $count_approval = JobApplyStep::where('docid', $career->docid)
+            ->where('jobid', $career->jobid)
             ->where('status', 'P')
             ->count();
 
@@ -645,7 +689,7 @@ class CareerController extends Controller
             $career->apply_step = $t_approval->step_id;
             $career->completed_user = $user->username;
             $career->completed_at = $datestamp;
-            $career->save();           
+            $career->save();
         }
 
         return response()->json(['success' => true, 'message' => 'Career approved successfully']);
@@ -653,10 +697,10 @@ class CareerController extends Controller
 
     public function rejectCareer(Request $request, $docid)
     {
-        $datestamp = Carbon::now()->toDateTimeString();       
+        $datestamp = Carbon::now()->toDateTimeString();
         $user = request()->user(); // Ambil user yang login
-        
-        $career = Career::where('docid', $docid)->first();  
+
+        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
         if (!$career) {
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
         }
@@ -688,9 +732,10 @@ class CareerController extends Controller
         if (!$cek_approval && !$hasGroupAccess) {
             return response()->json(['success' => false, 'message' => "You can't reject!"], 403);
         }
-    
+
         $t_approval = JobApplyStep::where('docid', $career->docid)
-            ->where('status', 'P')           
+            ->where('jobid', $career->jobid)
+            ->where('status', 'P')
             ->orderBy('step_order', 'ASC')
             ->first();
 
@@ -705,7 +750,7 @@ class CareerController extends Controller
         if ($t_approval->step_pic !== $user_step_pic) {
             return response()->json(['success' => false, 'message' => "You can't reject this step"], 403);
         }
-            
+
         // Reject step berjalan
         $t_approval->status = 'R';
         $t_approval->aprvuserdate = $datestamp;
@@ -720,6 +765,7 @@ class CareerController extends Controller
 
         // Tutup semua step pending lainnya
         $t_aprv_sisa = JobApplyStep::where('docid', $career->docid)
+            ->where('jobid', $career->jobid)
             ->where('status', 'P')
             ->get();
 
@@ -732,7 +778,7 @@ class CareerController extends Controller
         $id = $career->id;
         $doctype = 'JAP';
         app('App\Http\Controllers\SendCommentController')->sendmsg($id, $doctype, $request);
-   
+
         // Kirim email reject ke applicant
         $this->sendemail_rejected_applicant($career, $user);
 
@@ -747,7 +793,7 @@ class CareerController extends Controller
         $user = Auth::user();
         $username = $user ? $user->username : 'system';
 
-        $career = Career::where('docid', $docid)->first();
+        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
         if (!$career) {
             return response()->json(['success' => false, 'message' => 'Career not found'], 404);
         }
@@ -779,14 +825,15 @@ class CareerController extends Controller
         if (!$inApprovalLine && !$hasGroupAccess) {
             return response()->json(['success' => false, 'message' => "You can't rollback!"], 403);
         }
-        
-                
+
+
         TrApproval::where('refnbr', $docid)   // mapping dari docid → refnbr
             ->where('status', 'P')
             ->delete();
 
         /** Ambil step terakhir yang sudah Approved / Rejected */
         $targetStep = JobApplyStep::where('docid', $career->docid)
+            ->where('jobid', $career->jobid)
             ->whereIn('status', ['A', 'R'])
             ->orderBy('step_order', 'DESC')
             ->first();
@@ -833,13 +880,13 @@ class CareerController extends Controller
         }
     }
 
-     
-    
+
+
     public function checkApproval($id, $action)
     {
         $user = Auth::user(); // user login
 
-        $career = Career::where('docid', $id)->first();
+        $career = Career::where('docid', $id)->whereNotIn('status', ['T', 'X'])->first();
         if (!$career) {
             return response()->json(['canPerformAction' => false, 'message' => 'Career not found'], 404);
         }
@@ -886,27 +933,27 @@ class CareerController extends Controller
     public function insert_checklist($career, $user)
     {
         // dd($career);
-    
+
         DB::beginTransaction();
         try {
             $doctype ='CHK';
-            $datenow = Carbon::now()->format('Y-m-d');       
-            $datestamp = Carbon::now()->toDateTimeString();   
+            $datenow = Carbon::now()->format('Y-m-d');
+            $datestamp = Carbon::now()->toDateTimeString();
             $dt = Carbon::now();
             $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);  
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
             $user = Auth::user();
-                        
+
             $existing = Trchecklist::where('jobid', $career->jobid)
                 ->where('applicant_id', $career->applicant_id)
                 ->first();
-            
+
             if ($existing) {
                 return response()->json([
                 'error' => true,
                 'message' => 'You have already checklist.'
                 ], 409); // Conflict
-            }      
+            }
 
             // Generate task ID
             $autonbr = Autonbr::lockForUpdate()
@@ -930,14 +977,14 @@ class CareerController extends Controller
                 $autonbr->number = $urutan;
                 $autonbr->save();
             }
-            
+
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%05d", $urutan);         
-                              
+            $docid = $doctype . $tglbln . sprintf("%05d", $urutan);
+
             $ms_checklist = Mschecklist::where('status','A')
-                ->orderby('step_order','ASC')         
+                ->orderby('step_order','ASC')
                 ->get();
-                
+
             foreach ($ms_checklist as $cek) {
                 Trchecklist::create([
                     'docid' => $docid,
@@ -948,12 +995,12 @@ class CareerController extends Controller
                     'checklist_type' => $cek->checklist_type,
                     'step_order' => $cek->step_order,
                     'checklist_mandatory' => $cek->checklist_mandatory,
-                    'checklist_receive' => 0,                
+                    'checklist_receive' => 0,
                     'created_user' => $user->username,
-                    'status' => 'P'                                               
+                    'status' => 'P'
                 ]);
-            }          
-     
+            }
+
             DB::commit();
             return response()->json(['success' => true, 'ms_checklist' => $ms_checklist]);
         } catch (\Exception $e) {
@@ -964,13 +1011,13 @@ class CareerController extends Controller
 
     public function insert_assessment($career, $user)
     {
-        
+
         DB::beginTransaction();
         try {
             $doctype = 'JOS';
             $dt = Carbon::now();
             $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);  
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
             $types = ['hc', 'user'];
             $createdDocs = [];
@@ -1074,14 +1121,14 @@ class CareerController extends Controller
 
     public function insert_jobposting($id)
     {
-        
+
         DB::beginTransaction();
         try {
             $doctype = 'JOB';
             $datenow = Carbon::now()->format('Y-m-d');
             $dt = Carbon::now();
             $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);            
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
             $datestamp = Carbon::now()->toDateTimeString();
             $user = request()->user();
 
@@ -1111,9 +1158,9 @@ class CareerController extends Controller
             $tglbln = substr($year, 2) . $month;
             $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
 
-            $career = Career::where('docid', $id)          
+            $career = Career::where('docid', $id)
                 ->first();
-                  
+
             $task = Jobposting::create([
                 'docid' => $docid,
                 'refid' => $career->docid,
@@ -1121,24 +1168,24 @@ class CareerController extends Controller
                 'departementid' => $career->departementid,
                 'date' => $datenow,
                 'job_title' => $career->job_title,
-                'job_level' => $career->job_level,                
-                'immediate_superior' => $career->immediate_superior,                
+                'job_level' => $career->job_level,
+                'immediate_superior' => $career->immediate_superior,
                 'state_position' => $career->state_position,
                 'job_type' => $career->job_type,
                 'reason_vacancy' => $career->reason_vacancy,
                 'required' => $career->required,
                 'actual' => $career->actual,
-                'total_actual' => $career->total_actual,       
+                'total_actual' => $career->total_actual,
                 'education' => $career->education,
                 'experience_start' => $career->experience_start,
-                'experience_end' => $career->experience_end,           
+                'experience_end' => $career->experience_end,
                 'created_user' => $user->username,
-                'status' =>'C'              
+                'status' =>'C'
             ]);
-           
-            $jobres = JobResponsiblities::where('docid', $id)          
+
+            $jobres = JobResponsiblities::where('docid', $id)
                 ->get();
-            
+
             foreach ($jobres as $jr) {
                 JobpostingResponsiblities::create([
                     'docid' => $docid,
@@ -1146,13 +1193,13 @@ class CareerController extends Controller
                     'no_job_responsiblities' => $jr->no_job_responsiblities,
                     'job_responsibilities_descr' => $jr->job_responsibilities_descr,
                     'created_user' => $jr->created_user,
-                    'status' => 'C'                                               
+                    'status' => 'C'
                 ]);
-            }            
+            }
 
-            $jobqua = JobQualification::where('docid', $id)          
+            $jobqua = JobQualification::where('docid', $id)
                 ->get();
-            
+
             foreach ($jobqua as $jq) {
                 JobpostingQualification::create([
                     'docid' => $docid,
@@ -1160,10 +1207,10 @@ class CareerController extends Controller
                     'no_job_qualification' => $jq->no_job_qualification,
                     'job_qualification_descr' => $jq->job_qualification_descr,
                     'created_user' => $jq->created_user,
-                    'status' => 'C'                                               
+                    'status' => 'C'
                 ]);
-            }          
-                      
+            }
+
             DB::commit();
             return response()->json(['success' => true, 'task' => $task]);
         } catch (\Exception $e) {
@@ -1241,7 +1288,7 @@ class CareerController extends Controller
         }
 
         // Simpan ke DB
-        
+
         $checklist->checklist_filename   = $originalName; // nama asli user
         $checklist->checklist_attachfile = $gcsPath;      // path di GCS
         $checklist->checklist_receive    = 1;
@@ -1272,15 +1319,15 @@ class CareerController extends Controller
         //     'document' => 'required|file|mimes:pdf,doc,docx,jpg,png|max:2048',
         // ]);
 
-        $document = null;                                    
-        
+        $document = null;
+
         if ($request->hasFile('document')) {
             $file = $request->file('document');
             $randomNumber = random_int(10000000, 99999999);
             $originalName = str_replace('%', '', $file->getClientOriginalName());
             $ext        = $file->getClientOriginalExtension();
             $document = md5($randomNumber) . '.' . $ext;
-        
+
             $folder_attach = public_path('/attachments/' . $year);
             if (!is_dir($folder_attach)) {
                 mkdir($folder_attach, 0777, true);
@@ -1297,7 +1344,7 @@ class CareerController extends Controller
         $checklist->checklist_at = $datestamp;
         $checklist->status = 'A';
         $checklist->save();
-       
+
 
         return response()->json(['success' => true, 'message' => 'Document uploaded']);
     }
@@ -1306,8 +1353,9 @@ class CareerController extends Controller
     {
         $applicant = Applicant::where('applicant_id', $career->applicant_id)->first();
 
-        $jobapply = JobApply::where('docid',  $career->docid)
+        $jobapply = JobApply::where('docid', $career->docid)
             ->where('applicant_id', $applicant->applicant_id)
+            ->where('jobid', $career->jobid)
             ->first();
 
         $jobapply->status = 'P';
@@ -1317,19 +1365,56 @@ class CareerController extends Controller
             return response()->json(['error' => 'Applicant email not found.'], 404);
         }
 
-        $encryptedDocId = Crypt::encryptString($career->applicant_id);
+        $is_remapped = DB::connection('mysql3')
+            ->table('hr_trx_job_apply')
+            ->where('docid', $career->docid)
+            ->where('status', 'T')
+            ->where('jobid', '!=', $career->jobid)
+            ->exists();
 
-        $data = [
-            'name' => $applicant->full_name ?? 'Pelamar',
-            // 'url' => url('http://careerjakarta.pakuwon.local/checkform') // gunakan URL lengkap
-            'url'  => url("https://careerjakarta.pakuwon.com/checkform/{$encryptedDocId}")
-        ];
-
-        Mail::send('emails.mailapplicant', $data, function ($message) use ($applicant,$data) {
-            $message->to($applicant->email_address)
-                    ->subject('📩 Lengkapi Aplikasi Anda di Pakuwon Career');
-            $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
-        });
+        if ($is_remapped && $applicant->process_step == 2) {
+            // Remapped + already filled form — notify of position change only
+            $jobposting = Jobposting::where('docid', $career->jobid)->first();
+            $division   = \App\Models\MsDivision::where('division_id', $jobposting->division_id ?? '')->value('division_name');
+            $department = \App\Models\DepartmentHR::where('department_id', $jobposting->departementid ?? '')->value('department_name');
+            $data = [
+                'name'       => $applicant->full_name ?? 'Pelamar',
+                'job_title'  => $jobposting->job_title ?? '-',
+                'division'   => $division ?? '-',
+                'department' => $department ?? '-',
+            ];
+            Mail::send('emails.mailapplicant_remapped', $data, function ($message) use ($applicant) {
+                $message->to($applicant->email_address)
+                        ->subject('📩 Update Posisi Lamaran Anda di Pakuwon Career');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
+            });
+        } elseif ($is_remapped && $applicant->process_step != 2) {
+            // Remapped + hasn't filled form — notify position change and send form link
+            $jobposting     = Jobposting::where('docid', $career->jobid)->first();
+            $encryptedDocId = Crypt::encryptString($career->applicant_id);
+            $data = [
+                'name'      => $applicant->full_name ?? 'Pelamar',
+                'job_title' => $jobposting->job_title ?? '-',
+                'url'       => url("https://careerjakarta.pakuwon.com/checkform/{$encryptedDocId}"),
+            ];
+            Mail::send('emails.mailapplicant_remapped_form', $data, function ($message) use ($applicant) {
+                $message->to($applicant->email_address)
+                        ->subject('📩 Update Posisi Lamaran Anda di Pakuwon Career');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
+            });
+        } else {
+            // Not remapped + hasn't filled form — send form link
+            $encryptedDocId = Crypt::encryptString($career->applicant_id);
+            $data = [
+                'name' => $applicant->full_name ?? 'Pelamar',
+                'url'  => url("https://careerjakarta.pakuwon.com/checkform/{$encryptedDocId}"),
+            ];
+            Mail::send('emails.mailapplicant', $data, function ($message) use ($applicant) {
+                $message->to($applicant->email_address)
+                        ->subject('📩 Lengkapi Aplikasi Anda di Pakuwon Career');
+                $message->from('digitalserver@pakuwon.com', 'Pakuwon Career');
+            });
+        }
 
         return response()->json(['success' => 'Email has been sent to applicant.']);
     }
@@ -1338,12 +1423,13 @@ class CareerController extends Controller
     {
         $user = Auth::user();
 
-        // Cek apakah user punya hak reject pada langkah saat ini
-        $step = JobApplyStep::where('docid', $docid)
-            ->where('status', 'P')           
-            ->orderBy('step_order','ASC')    
-            ->first();  
+        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
 
+        $step = JobApplyStep::where('docid', $docid)
+            ->when($career, fn($q) => $q->where('jobid', $career->jobid))
+            ->where('status', 'P')
+            ->orderBy('step_order', 'ASC')
+            ->first();
 
         if ($step) {
             $canReject = str_contains($step->step_approve, 'Reject');
@@ -1357,16 +1443,16 @@ class CareerController extends Controller
     {
         $user = Auth::user();
 
-        // Ambil step terakhir yang sudah A/R (dan opsional: milik user / role tertentu)
+        $career = Career::where('docid', $docid)->whereNotIn('status', ['T', 'X'])->first();
+
         $step = JobApplyStep::where('docid', $docid)
+            ->when($career, fn($q) => $q->where('jobid', $career->jobid))
             ->whereIn('status', ['A', 'R'])
             ->orderBy('step_order', 'DESC')
             ->first();
 
         if ($step) {
             $canRollback = str_contains($step->step_approve ?? '', 'Rollback');
-            // (opsional) batasi hanya yang melakukan approve/reject:
-            // $canRollback = $canRollback && ($step->aprvuser == $user->userid);
             return response()->json(['canRollback' => $canRollback]);
         }
 
@@ -1385,7 +1471,7 @@ class CareerController extends Controller
         $tempDocPath = storage_path('app/temp_filled.docx');
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
         $templateProcessor = new TemplateProcessor($templatePath);
-       
+
         // Set placeholder (harus cocok dengan yang di dalam DOCX)
         $templateProcessor->setValue('full_name', $applicant->full_name);
         $templateProcessor->setValue('gender', $applicant->gender);
@@ -1413,7 +1499,7 @@ class CareerController extends Controller
         $pdf = PDF::loadHTML($htmlContent)->setPaper('A4', 'portrait');
         return $pdf->download('payroll-confirmation.pdf');
     }
-   
+
     public function generateOffering(Request $request)
     {
         // dd($request->all());
@@ -1425,7 +1511,7 @@ class CareerController extends Controller
         $tempDocPath = storage_path('app/temp_filled.docx');
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
         $templateProcessor = new TemplateProcessor($templatePath);
-       
+
         // Set placeholder (harus cocok dengan yang di dalam DOCX)
         $templateProcessor->setValue('full_name', $applicant->full_name);
         $templateProcessor->setValue('gender', $applicant->gender);
@@ -1439,7 +1525,7 @@ class CareerController extends Controller
         $templateProcessor->setValue('job_level', $request->job_level);
         $templateProcessor->setValue('date', now()->format('d M Y'));
         // $templateProcessor->setValue('salary', number_format($employee->salary, 2));
-        
+
 
         $templateProcessor->saveAs($tempDocPath);
 
@@ -1453,7 +1539,7 @@ class CareerController extends Controller
         $pdf = PDF::loadHTML($htmlContent)->setPaper('A4', 'portrait');
         return $pdf->download('payroll-confirmation.pdf');
     }
-    
+
     public function pdfPayrollconfirmation(Request $request)
     {
         // dd($request->all());
@@ -1466,7 +1552,7 @@ class CareerController extends Controller
             ->get();
 
         $net_salary   = (float) (optional($payrollconfirm)->net_salary ?? 0);
-        // dd($t_approval);    
+        // dd($t_approval);
         if($payrollconfirm->contract_term == null){
             $contract_term = '';
         }else{
@@ -1488,13 +1574,13 @@ class CareerController extends Controller
             'tax_liability' => $payrollconfirm->tax_liability ?? '-',
             'npwp_id' => $payrollconfirm->npwp_id ?? '-',
             'bank_account' => $payrollconfirm->bank_account ?? '-',
-            'bank_name' => $payrollconfirm->bank_name ?? '-',          
+            'bank_name' => $payrollconfirm->bank_name ?? '-',
             'net_salary' => number_format($net_salary) ?? '0',
             'other_facility' => $payrollconfirm->other_facility ?? '-',
             'availability_date' => $payrollconfirm->availability_date ?? '-',
             'work_start_date' => $payrollconfirm->work_start_date ?? '-',
             'contract_term' => $contract_term,
-            'employment_status' => $payrollconfirm->employment_status ?? '-', 
+            'employment_status' => $payrollconfirm->employment_status ?? '-',
             'approvals' => $t_approval,
         ];
 
@@ -1507,12 +1593,12 @@ class CareerController extends Controller
     public function pdfOfferingletter(Request $request)
     {
         // dd($request->all());
-       
+
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
-        $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');   
-        $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();    
-         
+        $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
+        $payrollconfirm = Payrollconfirm::where('applicant_id', $request->applicant_id)->first();
+
         // $net_salary = $payrollconfirm->net_salary ?? 0;
         // $salary_words = terbilang($net_salary) . ' rupiah';
          // Net salary aman + terbilang
@@ -1522,33 +1608,33 @@ class CareerController extends Controller
         $availability_date = $payrollconfirm->availability_date ? Carbon::parse($payrollconfirm->availability_date)->translatedFormat('d F Y') : '-';
 
         $companyaddress = CompanyAddress::where('cpnyid', $request->cpnyid)->first();
-        
+
         $data = [
             'cpnyid' => $company->cpnyname,
             'departementid' => $request->departementid,
             'full_name' => $applicant->full_name,
             'gender' => $applicant->gender,
             'birth_place' => $applicant->birth_place,
-            'martial_status' => $applicant->martial_status,            
+            'martial_status' => $applicant->martial_status,
             'datebirth' => $datebirth,
             'religion' => $applicant->religion,
             'ktp_id' => $applicant->ktp_id,
             'job_title' => $request->job_title,
             'job_level' => $request->job_level,
-            'date' => now()->format('d F Y'),    
+            'date' => now()->format('d F Y'),
             'net_salary' => number_format($net_salary) ?? '0',
-            'salary_words' => $salary_words, 
-            'work_start_date' => $work_start_date,   
-            'availability_date' => $availability_date,          
+            'salary_words' => $salary_words,
+            'work_start_date' => $work_start_date,
+            'availability_date' => $availability_date,
             'logo' => $company->cpnyid,
             'company_name' => $companyaddress->cpnyname ?? '-',
             'company_address' => $companyaddress->address ?? '-',
-                    
+
         ];
 
         $pdf = PDF::loadview('pages.careers.pdfofferingletter', $data);
         return $pdf->stream('offering-letter.pdf');
-        
+
     }
 
     private function terbilang($angka): string
@@ -1584,7 +1670,7 @@ class CareerController extends Controller
     public function pdfPaktaintegritas(Request $request)
     {
         // dd($request->all());
-       
+
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
@@ -1592,46 +1678,46 @@ class CareerController extends Controller
         $data = [
             'cpnyid' => $company->cpnyname,
             'departementid' => $request->departementid,
-            'full_name' => $applicant->full_name,    
-            'job_title' => $request->job_title,      
-            'date' => now()->format('d F Y'),     
+            'full_name' => $applicant->full_name,
+            'job_title' => $request->job_title,
+            'date' => now()->format('d F Y'),
         ];
 
         $pdf = PDF::loadview('pages.careers.pdfpaktaintegritas', $data);
         return $pdf->stream('pakta-integritas.pdf');
-        
+
     }
 
     public function pdfPernyataanelectonik(Request $request)
     {
         // dd($request->all());
-       
+
         $applicant = Applicant::where('applicant_id', $request->applicant_id)->first();
         $company = MsCompany::where('cpny_id', $request->cpnyid)->first();
         $datebirth = Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y');
 
         $data = [
-            'cpnyid' => $company->cpnyname,           
-            'full_name' => $applicant->full_name,           
+            'cpnyid' => $company->cpnyname,
+            'full_name' => $applicant->full_name,
             'ktp_id' => $applicant->ktp_id,
-            'id_address' => $applicant->id_address,           
-            'date' => now()->format('d F Y'),     
+            'id_address' => $applicant->id_address,
+            'date' => now()->format('d F Y'),
         ];
 
         $pdf = PDF::loadview('pages.careers.pdfpernyataanelectronik', $data);
         return $pdf->stream('pernyataan-electronik.pdf');
-        
+
     }
 
     public function insert_psychotest($career, $user)
     {
-        
+
         DB::beginTransaction();
         try {
             $doctype = 'JPS';
             $dt = Carbon::now();
             $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);  
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
 
             $types = ['manager', 'staff'];
             $createdDocs = [];
@@ -1759,7 +1845,7 @@ class CareerController extends Controller
             ], 409);
         }
 
-        // Lanjut insert onboarding        
+        // Lanjut insert onboarding
         try {
             $this->insert_onboarding($career, $user);
         } catch (\Exception $e) {
@@ -1860,13 +1946,13 @@ class CareerController extends Controller
     public function updatePayroll(Request $request)
     {
         $user = Auth::user();
-        $payroll = Payrollconfirm::where('applicant_id', $request->applicant_id)          
+        $payroll = Payrollconfirm::where('applicant_id', $request->applicant_id)
             ->first();
-        
+
         $payroll->tax_liability = $request->tax_liability;
         $payroll->npwp_id = $request->npwp_id;
         $payroll->bank_account = $request->bank_account;
-        $payroll->bank_name = $request->bank_name;        
+        $payroll->bank_name = $request->bank_name;
         $payroll->net_salary = $request->net_salary;
         $payroll->other_facility = $request->other_facility;
         $payroll->availability_date = $request->availability_date;
@@ -1874,7 +1960,7 @@ class CareerController extends Controller
         $payroll->employment_status = $request->employment_status;
         $payroll->contract_term = $request->employment_status === 'PKWT' ? $request->contract_term : null;;
         $payroll->updated_user = $user->username;
-        $payroll->save();          
+        $payroll->save();
 
         return response()->json(['success' => true]);
     }
@@ -1882,29 +1968,29 @@ class CareerController extends Controller
     public function insert_onboarding($career, $user)
     {
         // dd($career);
-    
+
         DB::beginTransaction();
         try {
             $doctype ='ONB';
-            $datenow = Carbon::now()->format('Y-m-d');       
-            $datestamp = Carbon::now()->toDateTimeString();   
+            $datenow = Carbon::now()->format('Y-m-d');
+            $datestamp = Carbon::now()->toDateTimeString();
             $dt = Carbon::now();
             $year = $dt->year;
-            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);  
+            $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
             $user = Auth::user();
-                      
-          
+
+
             $existing = Tronboarding::where('jobapply_id', $career->docid)
                 ->where('applicant_id', $career->applicant_id)
                 ->where('jobid', $career->jobid)
                 ->exists();
-            
+
             if ($existing) {
                 return response()->json([
                 'error' => true,
                 'message' => 'You have already onboarding.'
                 ], 409); // Conflict
-            }      
+            }
 
             // Generate task ID
             $autonbr = Autonbr::lockForUpdate()
@@ -1928,13 +2014,13 @@ class CareerController extends Controller
                 $autonbr->number = $urutan;
                 $autonbr->save();
             }
-            
+
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%05d", $urutan);         
-                              
-            $ms_onboarding = Msonboarding::orderby('step_order','ASC')         
+            $docid = $doctype . $tglbln . sprintf("%05d", $urutan);
+
+            $ms_onboarding = Msonboarding::orderby('step_order','ASC')
                 ->get();
-               
+
             foreach ($ms_onboarding as $cek) {
                 Tronboarding::create([
                     'docid' => $docid,
@@ -1946,13 +2032,13 @@ class CareerController extends Controller
                     'step_order' => $cek->step_order,
                     'checklist_onboarding_mandatory' => $cek->checklist_onboarding_mandatory,
                     'checklist_onboarding_filename' => '',
-                    'checklist_onboarding_attachfile' => '',                   
-                    'checklist_onboarding_by' => '',                                                     
+                    'checklist_onboarding_attachfile' => '',
+                    'checklist_onboarding_by' => '',
                     'created_user' => $user->username,
-                    'status' => 'P'                                               
+                    'status' => 'P'
                 ]);
-            }          
-     
+            }
+
             DB::commit();
             return true;
         } catch (\Exception $e) {
@@ -1962,18 +2048,18 @@ class CareerController extends Controller
     }
 
     public function getChecklist($docid_onboarding)
-    {      
-        $checklists = Tronboarding::leftjoin('hr_ms_onboarding_checklist', 'hr_trx_onboarding_checklist.checklist_id', '=', 'hr_ms_onboarding_checklist.checklist_onboarding_id')                                      
-            ->select('hr_trx_onboarding_checklist.*', 'hr_ms_onboarding_checklist.checklist_onboarding_descr')   
-            ->where('hr_trx_onboarding_checklist.docid',$docid_onboarding)      
+    {
+        $checklists = Tronboarding::leftjoin('hr_ms_onboarding_checklist', 'hr_trx_onboarding_checklist.checklist_id', '=', 'hr_ms_onboarding_checklist.checklist_onboarding_id')
+            ->select('hr_trx_onboarding_checklist.*', 'hr_ms_onboarding_checklist.checklist_onboarding_descr')
+            ->where('hr_trx_onboarding_checklist.docid',$docid_onboarding)
             ->orderBy('hr_trx_onboarding_checklist.step_order', 'ASC')
             ->get();
-            
+
 
         return response()->json($checklists);
     }
 
-    
+
     public function updateChecklist(Request $request)
     {
         try {
@@ -2012,7 +2098,7 @@ class CareerController extends Controller
     public function pdfApplicantprofile(Request $request)
     {
         // dd($request->all());
-       
+
         // Validasi input
         if (!$request->applicant_id || !$request->cpnyid) {
             return response()->json(['message' => 'Data tidak lengkap'], 422);
@@ -2043,7 +2129,7 @@ class CareerController extends Controller
             $photo = $object->signedUrl($expiration);
         }
 
-        $applicant_family = ApplicantFamily::where('applicant_id', $applicant->applicant_id)->get();       
+        $applicant_family = ApplicantFamily::where('applicant_id', $applicant->applicant_id)->get();
         $applicant_marital = ApplicantMarital::where('applicant_id', $applicant->applicant_id)->get();
         $applicant_education = ApplicantEducation::where('applicant_id', $applicant->applicant_id)->orderBy('id', 'asc')->get();
         $applicant_working = ApplicantWorking::where('applicant_id', $applicant->applicant_id)->get();
@@ -2052,13 +2138,14 @@ class CareerController extends Controller
         $applicant_sw = ApplicantSW::where('applicant_id', $applicant->applicant_id)->orderBy('sw_type', 'asc')->get();
         $applicant_skill = ApplicantSkill::where('applicant_id', $applicant->applicant_id)->get();
         $applicant_driver_license = ApplicantDriverLicense::where('applicant_id', $applicant->applicant_id)->get();
+        $applicant_reference = ApplicantReference::where('applicant_id', $applicant->applicant_id)->get();
 
         $data = [
             'cpnyid' => $company->cpnyname,
             'departementid' => $request->departementid,
-            'full_name' => $applicant->full_name,    
-            'job_title' => $request->job_title,      
-            'date' => now()->format('d F Y'),    
+            'full_name' => $applicant->full_name,
+            'job_title' => $request->job_title,
+            'date' => now()->format('d F Y'),
             'photo' =>  $photo,
             'applicant' => $applicant,
             'applicant_family' => $applicant_family,
@@ -2070,7 +2157,8 @@ class CareerController extends Controller
             'applicant_skill' => $applicant_skill,
             'applicant_sw' => $applicant_sw,
             'applicant_driver_license' => $applicant_driver_license,
-        ];        
+            'applicant_reference' => $applicant_reference,
+        ];
 
         $pdf = PDF::loadView('pages.careers.pdfapplicantprofile', $data)
           ->setPaper('A4', 'portrait')
@@ -2078,7 +2166,7 @@ class CareerController extends Controller
 
         return $pdf->stream('applicant-profile.pdf');
     }
-   
+
 
     public function insert_trx_approval($career, $user)
     {
@@ -2087,18 +2175,18 @@ class CareerController extends Controller
         try {
 
             $jobposting = Jobposting::where('docid', $career->jobid)->first();
-            
+
             // Ambil template approval dari master TrApproval
             $approvals = TrApproval::where('refnbr', $jobposting->refid)
-                ->where('aprv_leveling','>', 1)    
-                ->where('status','A') 
-                ->orderBy('aprv_leveling', 'ASC')            
+                ->where('aprv_leveling','>', 1)
+                ->where('status','A')
+                ->orderBy('aprv_leveling', 'ASC')
                 ->first();
             // dd($approvals);
             if (!$approvals) {
                 throw new \Exception('No approval configuration found for this job posting.');
             }
-        
+
             // Insert approval transaksi untuk docid career
             TrApproval::create([
                 'refnbr'              => $career->docid,
@@ -2149,7 +2237,7 @@ class CareerController extends Controller
                     });
                 }
             }
-            
+
             DB::commit();
             return true;
 
@@ -2195,12 +2283,12 @@ class CareerController extends Controller
     public function storeSign(Request $request)
     {
         // dd($request->all());
-        $user = Auth::user();       
+        $user = Auth::user();
 
 
         DB::beginTransaction();
         try {
-           
+
             $datenow = Carbon::now()->format('Y-m-d');
             $now = Carbon::now();
             $year = $now->year;
@@ -2211,15 +2299,15 @@ class CareerController extends Controller
                     'aprvusername'  => 'required|array',
                     'aprvusername.*'=> 'required|string',
                     'aprvname'      => 'required|array',
-                    'aprvname.*'    => 'required|string',                  
+                    'aprvname.*'    => 'required|string',
                 ]);
 
             foreach ($request->aprvid as $i => $ord) {
                 SignPayroll::create([
-                    'docid'         => $request->jobapply_id,                  
+                    'docid'         => $request->jobapply_id,
                     'aprvid'       => $ord,
                     'aprvusername' => $request->aprvusername[$i],  // username
-                    'name'         => $request->aprvname[$i],      // name                  
+                    'name'         => $request->aprvname[$i],      // name
                     'jabatan'      => $request->jabatan[$i] ?? null,
                      'status' => 'P',
                     'created_user' => $user->username
@@ -2376,13 +2464,13 @@ class CareerController extends Controller
         // Ambil info job (untuk subjek/konten)
         $jobposting = Jobposting::where('docid', $career->jobid)->first();
         $jobTitle = $jobposting->job_title ?? 'Your Application';
-        
-        $careerPortalUrl = url("https://careerjakarta.pakuwon.com"); 
-             
+
+        $careerPortalUrl = url("https://careerjakarta.pakuwon.com");
+
 
         $data = [
             'name'        => $applicant->full_name ?? 'Candidate',
-            'job_title'   => $jobTitle,           
+            'job_title'   => $jobTitle,
             'career_url'  => $careerPortalUrl,
             'company'     => 'Pakuwon Group Jakarta',
         ];
@@ -2482,5 +2570,5 @@ class CareerController extends Controller
     }
 
 
-    
+
 }
