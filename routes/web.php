@@ -139,6 +139,7 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VoucherTaxiController;
 use App\Http\Controllers\VoucherTaxiSetupController;
 use App\Http\Controllers\VplMsProductController;
+use App\Http\Controllers\VplWarehouseSetupController;
 use App\Http\Controllers\VplReceiveController;
 use App\Http\Controllers\VplUsageController;
 use App\Http\Controllers\VplTransferController;
@@ -2345,21 +2346,33 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/producttarget',                   [VplMsProductController::class, 'producttarget'])->name('msproduct.producttarget');
             Route::get('/producttarget/detail/{id}',       [VplMsProductController::class, 'getProductDetails'])->name('msproduct.get_product_details');
             Route::get('/setupaging',                      [VplMsProductController::class, 'setupaging'])->name('msproduct.setupaging');
+            Route::get('/setupwarehouse',                       [VplWarehouseSetupController::class, 'index'])->name('msproduct.setupwarehouse');
+            Route::get('/setupwarehouse/json',                  [VplWarehouseSetupController::class, 'warehouseJson'])->name('msproduct.setupwarehouse_json');
+            Route::get('/setupwarehouse/{id}/edit',             [VplWarehouseSetupController::class, 'editWarehouse'])->name('msproduct.edit_warehouse');
+            Route::get('/setupwarehouse/list',                  [VplWarehouseSetupController::class, 'warehouseList'])->name('msproduct.warehouse_list');
+            Route::get('/setupwarehouse/dept/json',             [VplWarehouseSetupController::class, 'warehouseDeptJson'])->name('msproduct.setupwarehouse_dept_json');
+            Route::get('/setupwarehouse/dept/{id}/edit',        [VplWarehouseSetupController::class, 'editWarehouseDept'])->name('msproduct.edit_warehouse_dept');
         });
 
         Route::middleware('access:MASTERVP,CREATE')->group(function () {
-            Route::post('/save',                           [VplMsProductController::class, 'save_product'])->name('msproduct.save_product');
-            Route::post('/save-detail',                    [VplMsProductController::class, 'saveProductDetail'])->name('msproduct.save_product_detail');
-            Route::post('/save-attach',                    [VplMsProductController::class, 'saveProductAttach'])->name('msproduct.save_product_attach');
-            Route::post('/setupaging/save',                [VplMsProductController::class, 'save_aging'])->name('msproduct.save_aging');
+            Route::post('/save',                               [VplMsProductController::class, 'save_product'])->name('msproduct.save_product');
+            Route::post('/save-detail',                        [VplMsProductController::class, 'saveProductDetail'])->name('msproduct.save_product_detail');
+            Route::post('/save-attach',                        [VplMsProductController::class, 'saveProductAttach'])->name('msproduct.save_product_attach');
+            Route::post('/setupaging/save',                    [VplMsProductController::class, 'save_aging'])->name('msproduct.save_aging');
+            Route::post('/setupwarehouse/save',                [VplWarehouseSetupController::class, 'saveWarehouse'])->name('msproduct.save_warehouse');
+            Route::post('/setupwarehouse/dept/save',           [VplWarehouseSetupController::class, 'saveWarehouseDept'])->name('msproduct.save_warehouse_dept');
         });
 
         Route::middleware('access:MASTERVP,EDIT')->group(function () {
-            Route::get('/{id}/edit',                       [VplMsProductController::class, 'edit_product'])->name('msproduct.edit_product');
-            Route::put('/{id}/deactivate',                 [VplMsProductController::class, 'deactivate'])->name('msproduct.deactivate');
-            Route::put('/{id}/activate',                   [VplMsProductController::class, 'activate'])->name('msproduct.activate');
-            Route::post('/producttarget/update',           [VplMsProductController::class, 'updateTargetDate'])->name('msproduct.update_target_date');
-            Route::get('/setupaging/{id}/edit',            [VplMsProductController::class, 'edit_aging'])->name('msproduct.edit_aging');
+            Route::get('/{id}/edit',                           [VplMsProductController::class, 'edit_product'])->name('msproduct.edit_product');
+            Route::put('/{id}/deactivate',                     [VplMsProductController::class, 'deactivate'])->name('msproduct.deactivate');
+            Route::put('/{id}/activate',                       [VplMsProductController::class, 'activate'])->name('msproduct.activate');
+            Route::post('/producttarget/update',               [VplMsProductController::class, 'updateTargetDate'])->name('msproduct.update_target_date');
+            Route::get('/setupaging/{id}/edit',                [VplMsProductController::class, 'edit_aging'])->name('msproduct.edit_aging');
+            Route::put('/setupwarehouse/{id}/toggle',          [VplWarehouseSetupController::class, 'toggleWarehouse'])->name('msproduct.toggle_warehouse');
+            Route::post('/setupwarehouse/{id}/update',         [VplWarehouseSetupController::class, 'saveWarehouse'])->name('msproduct.update_warehouse');
+            Route::put('/setupwarehouse/dept/{id}/toggle',     [VplWarehouseSetupController::class, 'toggleWarehouseDept'])->name('msproduct.toggle_warehouse_dept');
+            Route::post('/setupwarehouse/dept/{id}/update',    [VplWarehouseSetupController::class, 'saveWarehouseDept'])->name('msproduct.update_warehouse_dept');
         });
 
     });
@@ -2370,29 +2383,39 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [VplMsProductController::class, 'index'])->name('index');
 
         // Receive (requestvp)
-        Route::get('/requestvp',              [VplReceiveController::class, 'index'])->name('requestvp');
-        Route::get('/requestvp/waiting',      [VplReceiveController::class, 'waiting'])->name('requestvp.waiting');
-        Route::get('/requestvp/completed',    [VplReceiveController::class, 'completed'])->name('requestvp.completed');
-        Route::get('/requestvp/rejected',     [VplReceiveController::class, 'rejected'])->name('requestvp.rejected');
-        Route::get('/requestvp/all',          [VplReceiveController::class, 'all'])->name('requestvp.all');
-        Route::get('/requestvp/add',          [VplReceiveController::class, 'add'])->name('requestvp.add');
-        Route::get('/requestvp/{id}',         [VplReceiveController::class, 'show'])->name('requestvp.show');
-        Route::get('/requestvp/{id}/edit',    [VplReceiveController::class, 'edit'])->name('requestvp.edit');
-        Route::get('/requestvp/{id}/data',    [VplReceiveController::class, 'showData'])->name('requestvp.data');
+        Route::middleware('access:RECEIVEDVP,VIEW')->group(function () {
+            Route::get('/requestvp',              [VplReceiveController::class, 'index'])->name('receivedvp');
+            Route::get('/requestvp/waiting',      [VplReceiveController::class, 'waiting'])->name('requestvp.waiting');
+            Route::get('/requestvp/completed',    [VplReceiveController::class, 'completed'])->name('requestvp.completed');
+            Route::get('/requestvp/rejected',     [VplReceiveController::class, 'rejected'])->name('requestvp.rejected');
+            Route::get('/requestvp/all',          [VplReceiveController::class, 'all'])->name('requestvp.all');
+            Route::get('/requestvp/{id}',         [VplReceiveController::class, 'show'])->name('requestvp.show');
+            Route::get('/requestvp/{id}/data',    [VplReceiveController::class, 'showData'])->name('requestvp.data');
+            Route::post('/requestvp/ajax/products',        [VplReceiveController::class, 'getProducts'])->name('requestvp.products');
+            Route::post('/requestvp/ajax/warehouse',       [VplReceiveController::class, 'getWarehouse'])->name('requestvp.warehouse');
+            Route::post('/requestvp/ajax/tenants',         [VplReceiveController::class, 'getTenants'])->name('requestvp.tenants');
+            Route::post('/requestvp/ajax/product-details', [VplReceiveController::class, 'getProductDetails'])->name('requestvp.product-details');
+            Route::post('/requestvp/{id}/approve',         [VplReceiveController::class, 'approve'])->name('requestvp.approve');
+            Route::post('/requestvp/{id}/reject',          [VplReceiveController::class, 'reject'])->name('requestvp.reject');
+            Route::post('/requestvp/{id}/revise',          [VplReceiveController::class, 'revise'])->name('requestvp.revise');
+            Route::post('/requestvp/{id}/message',         [VplReceiveController::class, 'sendMessage'])->name('requestvp.message');
+        });
 
-        Route::post('/requestvp',                        [VplReceiveController::class, 'store'])->name('requestvp.store');
-        Route::post('/requestvp/detail/delete',          [VplReceiveController::class, 'deleteDetail'])->name('requestvp.detail.delete');
-        Route::post('/requestvp/attachment/delete',      [VplReceiveController::class, 'deleteAttachment'])->name('requestvp.attachment.delete');
-        Route::post('/requestvp/ajax/products',          [VplReceiveController::class, 'getProducts'])->name('requestvp.products');
-        Route::post('/requestvp/ajax/warehouse',         [VplReceiveController::class, 'getWarehouse'])->name('requestvp.warehouse');
-        Route::post('/requestvp/ajax/tenants',           [VplReceiveController::class, 'getTenants'])->name('requestvp.tenants');
-        Route::post('/requestvp/ajax/product-details',   [VplReceiveController::class, 'getProductDetails'])->name('requestvp.product-details');
-        Route::post('/requestvp/{id}/update',            [VplReceiveController::class, 'update'])->name('requestvp.update');
-        Route::post('/requestvp/{id}/approve',           [VplReceiveController::class, 'approve'])->name('requestvp.approve');
-        Route::post('/requestvp/{id}/reject',            [VplReceiveController::class, 'reject'])->name('requestvp.reject');
-        Route::post('/requestvp/{id}/revise',            [VplReceiveController::class, 'revise'])->name('requestvp.revise');
-        Route::post('/requestvp/{id}/cancel',            [VplReceiveController::class, 'cancel'])->name('requestvp.cancel');
-        Route::post('/requestvp/{id}/message',           [VplReceiveController::class, 'sendMessage'])->name('requestvp.message');
+        Route::middleware('access:RECEIVEDVP,CREATE')->group(function () {
+            Route::get('/requestvp/add',          [VplReceiveController::class, 'add'])->name('requestvp.add');
+            Route::post('/requestvp',             [VplReceiveController::class, 'store'])->name('requestvp.store');
+        });
+
+        Route::middleware('access:RECEIVEDVP,EDIT')->group(function () {
+            Route::get('/requestvp/{id}/edit',    [VplReceiveController::class, 'edit'])->name('requestvp.edit');
+            Route::post('/requestvp/{id}/update', [VplReceiveController::class, 'update'])->name('requestvp.update');
+            Route::post('/requestvp/{id}/cancel', [VplReceiveController::class, 'cancel'])->name('requestvp.cancel');
+        });
+
+        Route::middleware('access:RECEIVEDVP,DELETE')->group(function () {
+            Route::post('/requestvp/detail/delete',     [VplReceiveController::class, 'deleteDetail'])->name('requestvp.detail.delete');
+            Route::post('/requestvp/attachment/delete', [VplReceiveController::class, 'deleteAttachment'])->name('requestvp.attachment.delete');
+        });
 
         // Usage (usagevp)
         Route::get('/usagevp',                [VplUsageController::class, 'index'])->name('usagevp');
