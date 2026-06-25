@@ -1,9 +1,5 @@
 ﻿<x-app-layout>
 
-{{-- CDN --}}
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -20,24 +16,6 @@
 .dataTables_wrapper .dataTables_filter { padding: 14px 18px; }
 .dataTables_wrapper .dataTables_info,
 .dataTables_wrapper .dataTables_paginate { padding: 12px 18px; }
-/* DataTable export button overrides */
-a.dt-button, button.dt-button {
-    border: none !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-    background-image: none !important;
-    outline: none !important;
-    border-radius: 4px !important;
-    font-size: 0.875rem !important;
-    font-weight: 600 !important;
-    padding: 4px 12px !important;
-    cursor: pointer !important;
-    transition: background-color 0.15s ease !important;
-}
-a.dt-button.bg-green-600, button.dt-button.bg-green-600 { background: #16a34a !important; color: #fff !important; }
-a.dt-button.bg-green-600:hover, button.dt-button.bg-green-600:hover { background: #15803d !important; color: #fff !important; }
-a.dt-button.bg-blue-600, button.dt-button.bg-blue-600 { background: #2563eb !important; color: #fff !important; }
-a.dt-button.bg-blue-600:hover, button.dt-button.bg-blue-600:hover { background: #1d4ed8 !important; color: #fff !important; }
 </style>
 
 <div class="max-w-9xl mx-auto w-full p-2">
@@ -153,7 +131,9 @@ a.dt-button.bg-blue-600:hover, button.dt-button.bg-blue-600:hover { background: 
                     <th class="px-4 py-3 text-left font-medium">Doc No</th>
                     <th class="px-4 py-3 text-left font-medium">Date</th>
                     <th class="px-4 py-3 text-left font-medium">Company</th>
-                    <th class="px-4 py-3 text-left font-medium">Type</th>
+                    <th class="px-4 py-3 text-left font-medium">Dept</th>
+                    <th class="px-4 py-3 text-left font-medium">V/P Type</th>
+                    <th class="px-4 py-3 text-left font-medium">Source Type</th>
                     <th class="px-4 py-3 text-left font-medium">Remark</th>
                     <th class="px-4 py-3 text-left font-medium">Status</th>
                 </tr>
@@ -369,10 +349,17 @@ a.dt-button.bg-blue-600:hover, button.dt-button.bg-blue-600:hover { background: 
                 <h2 id="v_title" class="font-semibold text-slate-800 dark:text-white">Receive Detail</h2>
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Receipt information & approval workflow.</p>
             </div>
-            <button type="button" id="closeViewModal"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                {{-- Toggle Discussion Panel --}}
+                <button type="button" id="v_msgToggleBtn"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                    <i class="fa-regular fa-comments text-base"></i>
+                </button>
+                <button type="button" id="closeViewModal"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05]">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
         </div>
 
         {{-- Body --}}
@@ -385,8 +372,8 @@ a.dt-button.bg-blue-600:hover, button.dt-button.bg-blue-600:hover { background: 
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
                         <div>
-                            <div class="text-xs font-semibold uppercase tracking-widest text-slate-500">Document</div>
-                            <div id="v_receive_id" class="mt-1 text-base font-bold text-slate-900 dark:text-white"></div>
+                            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Received By</div>
+                            <div id="v_user" class="mt-2 text-base font-semibold text-slate-900 dark:text-white"></div>
                         </div>
                         <div id="v_status_badge"></div>
                     </div>
@@ -394,7 +381,6 @@ a.dt-button.bg-blue-600:hover, button.dt-button.bg-blue-600:hover { background: 
                         <div><div class="text-xs text-slate-500">Date</div><div id="v_date" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500">Company</div><div id="v_cpnyid" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500">Department</div><div id="v_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
-                        <div><div class="text-xs text-slate-500">Created By</div><div id="v_user" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500">V/P Type</div><div id="v_vp_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500">Source of Receive</div><div id="v_receive_type" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
                         <div><div class="text-xs text-slate-500">Dept of Receive</div><div id="v_source_dept" class="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100"></div></div>
@@ -441,70 +427,63 @@ a.dt-button.bg-blue-600:hover, button.dt-button.bg-blue-600:hover { background: 
             {{-- RIGHT --}}
             <div class="space-y-4">
 
-                {{-- Approval Timeline + Actions --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Approval</h3>
+                {{-- Revision Reason (shown when status = D) --}}
+                <div id="v_reviseReasonWrapper" class="hidden overflow-hidden rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-500/20 dark:bg-yellow-500/10">
+                    <div class="border-b border-yellow-100 px-5 py-2 dark:border-yellow-500/20">
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-yellow-700 dark:text-yellow-300">Revision Reason</h3>
                     </div>
-                    <div id="v_approvalBody" class="divide-y divide-slate-100 dark:divide-white/10"></div>
+                    <div id="v_revise_reason" class="p-5 text-sm leading-relaxed text-yellow-900 dark:text-yellow-100"></div>
+                </div>
 
-                    {{-- Approval action buttons --}}
-                    <div id="v_approvalActions" class="hidden border-t border-slate-100 p-4 dark:border-white/10">
-                        <div class="flex flex-wrap gap-2">
+                <div class="overflow-hidden">
+                    {{-- Status banner + action buttons (side-by-side, matching Voucher Taxi layout) --}}
+                    <div class="flex items-center gap-2">
+                        <div id="v_statusBanner" class="mb-4 flex w-full items-center gap-2"></div>
+                        <div id="v_approvalActions" class="mb-4 flex hidden w-full items-center justify-between gap-2">
                             <button type="button" id="v_approveBtn"
-                                class="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-400">
+                                class="flex-1 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-400">
                                 <i class="fa-solid fa-check mr-1"></i> Approve
                             </button>
                             <button type="button" id="v_reviseBtn"
-                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black hover:bg-yellow-300">
+                                class="flex-1 rounded-lg bg-yellow-400 px-4 py-2 text-xs font-semibold text-black transition hover:bg-yellow-300">
                                 <i class="fa-solid fa-rotate-left mr-1"></i> Revise
                             </button>
                             <button type="button" id="v_rejectBtn"
-                                class="flex-1 rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white hover:bg-red-400">
+                                class="flex-1 rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-400">
                                 <i class="fa-solid fa-xmark mr-1"></i> Reject
                             </button>
                         </div>
-
-                        {{-- Reject reason inline --}}
-                        <div id="v_rejectForm" class="mt-3 hidden">
-                            <textarea id="v_rejectReason" rows="2" placeholder="Enter rejection reason..." required
-                                class="w-full rounded-lg border border-red-200 px-3 py-2 text-sm focus:border-red-400 focus:outline-none dark:border-red-500/30 dark:bg-[#0b1220] dark:text-white"></textarea>
-                            <div class="mt-2 flex gap-2">
-                                <button type="button" id="v_rejectCancel" class="flex-1 rounded-lg border border-slate-200 py-1.5 text-xs font-semibold hover:bg-slate-50">Cancel</button>
-                                <button type="button" id="v_rejectConfirm" class="flex-1 rounded-lg bg-red-500 py-1.5 text-xs font-semibold text-white hover:bg-red-400">Confirm Reject</button>
-                            </div>
-                        </div>
-
-                        {{-- Revise reason inline --}}
-                        <div id="v_reviseForm" class="mt-3 hidden">
-                            <textarea id="v_reviseReason" rows="2" placeholder="Enter revision reason..." required
-                                class="w-full rounded-lg border border-yellow-200 px-3 py-2 text-sm focus:border-yellow-400 focus:outline-none dark:border-yellow-500/30 dark:bg-[#0b1220] dark:text-white"></textarea>
-                            <div class="mt-2 flex gap-2">
-                                <button type="button" id="v_reviseCancel" class="flex-1 rounded-lg border border-slate-200 py-1.5 text-xs font-semibold hover:bg-slate-50">Cancel</button>
-                                <button type="button" id="v_reviseConfirm" class="flex-1 rounded-lg bg-yellow-400 py-1.5 text-xs font-semibold text-black hover:bg-yellow-300">Confirm Revise</button>
-                            </div>
-                        </div>
                     </div>
+                    {{-- Approval timeline rendered here by VplReceiveHelper.renderTimeline() --}}
+                    <div id="v_approvalBody"></div>
                 </div>
 
-                {{-- Messages --}}
-                <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                    <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Messages</h3>
-                    </div>
-                    <div id="v_msgBody" class="max-h-48 space-y-2 overflow-y-auto p-4"></div>
-                    <div class="border-t border-slate-100 p-3 dark:border-white/10">
-                        <div class="flex gap-2">
-                            <input type="text" id="v_msgInput" placeholder="Type a message..."
-                                class="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
-                            <button type="button" id="v_msgSend"
-                                class="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
-                                Send
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
+            </div>
+        </div>
+
+        {{-- Discussion / Messages panel — absolute inside modal so it overlaps the right column --}}
+        <div id="v_discussionPanel"
+            class="absolute bottom-16 right-0 z-30 hidden w-[380px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+
+            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Messages</h3>
+                <button type="button" id="v_discussionClose">
+                    <i class="fa-solid fa-xmark text-slate-400 hover:text-slate-700 dark:hover:text-white"></i>
+                </button>
+            </div>
+
+            <div id="v_msgBody" class="h-[360px] space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-[#0b1220]"></div>
+
+            <div class="border-t border-slate-200 p-3 dark:border-white/10">
+                <div class="flex items-end gap-2">
+                    <textarea id="v_msgInput" rows="1" placeholder="Write message..."
+                        class="min-h-[46px] flex-1 resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500"></textarea>
+                    <button type="button" id="v_msgSend"
+                        class="h-11 w-11 rounded-lg bg-slate-900 text-white hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                        <i class="fa-solid fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -528,7 +507,6 @@ a.dt-button.bg-blue-600:hover, button.dt-button.bg-blue-600:hover { background: 
 
     </div>
 </div>
-
 
 {{-- ======================================================== --}}
 {{-- EDIT MODAL --}}
@@ -737,63 +715,28 @@ a.dt-button.bg-blue-600:hover, button.dt-button.bg-blue-600:hover { background: 
 </div>
 
 
-{{-- ======================================================== --}}
-{{-- CONFIRM APPROVE MODAL (small) --}}
-{{-- ======================================================== --}}
-<div id="confirmApproveModal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4">
-    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200"></div>
-    <div class="modal-panel relative z-10 w-full max-w-sm translate-y-4 scale-[0.98] rounded-lg border border-slate-200 bg-white p-6 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">Confirm Approve</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Are you sure you want to approve this document?</p>
-        <div class="mt-5 flex gap-3">
-            <button type="button" id="closeConfirmApprove" class="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-semibold hover:bg-slate-50">Cancel</button>
-            <button type="button" id="doApproveBtn" class="flex-1 rounded-lg bg-emerald-500 py-2 text-sm font-semibold text-white hover:bg-emerald-400">Approve</button>
-        </div>
-    </div>
-</div>
-
-{{-- ======================================================== --}}
-{{-- CONFIRM CANCEL MODAL (small) --}}
-{{-- ======================================================== --}}
-<div id="confirmCancelModal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4">
-    <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200"></div>
-    <div class="modal-panel relative z-10 w-full max-w-sm translate-y-4 scale-[0.98] rounded-lg border border-slate-200 bg-white p-6 opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">Cancel Document</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Are you sure you want to cancel this document? This cannot be undone.</p>
-        <div class="mt-5 flex gap-3">
-            <button type="button" id="closeConfirmCancel" class="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-semibold hover:bg-slate-50">No, Keep it</button>
-            <button type="button" id="doCancelBtn" class="flex-1 rounded-lg bg-red-600 py-2 text-sm font-semibold text-white hover:bg-red-500">Yes, Cancel</button>
-        </div>
-    </div>
-</div>
 
 
 {{-- ======================================================== --}}
 {{-- SCRIPTS --}}
 {{-- ======================================================== --}}
-{{-- CDN Scripts --}}
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 {{-- Pass Laravel route URLs to external JS --}}
 <script>
+    // cspell:disable
     window.VplReceiveConfig = {
-        base:       '{{ url("vpl/requestvp") }}',
-        store:      '{{ route("vpl.requestvp.store") }}',
-        products:   '{{ route("vpl.requestvp.products") }}',
-        warehouse:  '{{ route("vpl.requestvp.warehouse") }}',
-        tenants:    '{{ route("vpl.requestvp.tenants") }}',
-        prodDetail: '{{ route("vpl.requestvp.product-details") }}',
-        delDetail:  '{{ route("vpl.requestvp.detail.delete") }}',
-        delAttach:  '{{ route("vpl.requestvp.attachment.delete") }}',
+        base:       '{{ url("requestvp") }}',
+        editBase:   '{{ url("editreceivevp") }}',
+        store:      '{{ route("requestvp.store") }}',
+        products:   '{{ route("requestvp.products") }}',
+        warehouse:  '{{ route("requestvp.warehouse") }}',
+        tenants:    '{{ route("requestvp.tenants") }}',
+        prodDetail: '{{ route("requestvp.product-details") }}',
+        delDetail:  '{{ route("requestvp.detail.delete") }}',
+        delAttach:  '{{ route("requestvp.attachment.delete") }}',
     };
+    // cspell:enable
 </script>
 
 {{-- Voucher Receive JS modules --}}

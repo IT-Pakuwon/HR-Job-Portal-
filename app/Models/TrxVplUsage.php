@@ -16,6 +16,7 @@ class TrxVplUsage extends Model
         'cpnyid',
         'department',
         'user_peminta',
+        'vp_type',
         'usagetype',
         'usage_remark',
         'ref_usage_id',

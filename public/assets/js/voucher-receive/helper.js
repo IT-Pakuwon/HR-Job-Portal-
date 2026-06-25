@@ -17,6 +17,13 @@ const VplReceiveHelper = {
         return `<span class="rounded-full px-3 py-1 text-xs font-semibold" style="${style}">${label || status}</span>`;
     },
 
+    approvalStepIcon(status) {
+        if (status === 'A') return '<div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500"><i class="fa-solid fa-check text-[10px] text-white"></i></div>';
+        if (status === 'R') return '<div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-500"><i class="fa-solid fa-xmark text-[10px] text-white"></i></div>';
+        if (status === 'D') return '<div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-yellow-400"><i class="fa-solid fa-rotate-left text-[10px] text-white"></i></div>';
+        return '<div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-200 dark:bg-white/10"><i class="fa-solid fa-clock text-[10px] text-slate-500 dark:text-slate-400"></i></div>';
+    },
+
     approvalBadge(status) {
         switch (status) {
             case 'A': return '<span class="apv-badge" style="background:#d1fae5;color:#065f46">Approved</span>';
@@ -97,5 +104,80 @@ const VplReceiveHelper = {
         if (ext === 'xls' || ext === 'xlsx')      return 'fa-file-excel';
         if (ext === 'doc' || ext === 'docx')      return 'fa-file-word';
         return 'fa-file-image';
+    },
+
+    // --------------------------------------------------------
+    // RENDER APPROVAL TIMELINE  (mirrors VoucherTaxiHelper.renderTimeline)
+    // --------------------------------------------------------
+    renderTimeline(approvals) {
+        if (!approvals || approvals.length === 0) {
+            return `<div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.02]">No approval records.</div>`;
+        }
+
+        const badgeColor = (s) => {
+            switch (s) {
+                case 'A': return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400';
+                case 'R': return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
+                case 'D': return 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
+                case 'P': return 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
+                default:  return 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400';
+            }
+        };
+
+        const icon = (s) => {
+            switch (s) {
+                case 'A': return '<i class="fa-solid fa-check text-xs"></i>';
+                case 'R': return '<i class="fa-solid fa-xmark text-xs"></i>';
+                case 'D': return '<i class="fa-solid fa-rotate-left text-xs"></i>';
+                default:  return '<i class="fa-solid fa-clock text-xs"></i>';
+            }
+        };
+
+        const pill = (s) => {
+            switch (s) {
+                case 'A': return `<span class="inline-flex shrink-0 rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">Approved</span>`;
+                case 'R': return `<span class="inline-flex shrink-0 rounded-lg bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-500/20 dark:text-red-300">Rejected</span>`;
+                case 'D': return `<span class="inline-flex shrink-0 rounded-lg bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">Revise</span>`;
+                default:  return `<span class="inline-flex shrink-0 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-400">Waiting</span>`;
+            }
+        };
+
+        const items = approvals.map((ap, index) => {
+            const isLast = index === approvals.length - 1;
+            const s      = (ap.status ?? '').toUpperCase();
+            const title  = `Approval Level ${ap.aprvid}`;
+            const by     = ap.name || ap.aprvusername || null;
+            const at     = ap.aprvdateafter || ap.aprvdatebefore || null;
+
+            return `
+                <div class="relative flex gap-4">
+                    <div class="flex flex-col items-center">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${badgeColor(s)}">
+                            ${icon(s)}
+                        </div>
+                        ${!isLast ? '<div class="mt-1 min-h-6 w-px flex-1 bg-slate-200 dark:bg-white/10"></div>' : ''}
+                    </div>
+                    <div class="min-w-0 flex-1 pb-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">${title}</p>
+                                ${by ? `<p class="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">${by}</p>` : ''}
+                                ${at ? `<p class="mt-1 text-xs text-slate-400 dark:text-slate-500">${at}</p>` : ''}
+                            </div>
+                            ${pill(s)}
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+
+        return `
+            <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                <div class="border-b border-slate-200 px-5 py-4 dark:border-white/10">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Approval Workflow</h3>
+                </div>
+                <div class="space-y-2 p-4">
+                    ${items}
+                </div>
+            </div>`;
     },
 };
