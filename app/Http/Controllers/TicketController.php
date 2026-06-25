@@ -724,7 +724,7 @@ class TicketController extends Controller
                 'pic_ticket'       => $username,
                 'response_date'    => now(),
                 'response_summary' => 'Ticket Cancelled',
-                'response_descr'   => 'Ticket cancelled.',
+                'response_descr'   => request('response_descr') ?: 'Ticket cancelled.',
                 'status_pekerjaan' => 'CANCEL',
                 'status'           => 'A',
                 'created_by'       => $username,
