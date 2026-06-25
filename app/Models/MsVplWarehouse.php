@@ -11,12 +11,9 @@ class MsVplWarehouse extends Model
     protected $table = 'ms_vpl_warehouse';
 
     protected $fillable = [
-        'whs_id',
         'cpnyid',
-        'whs_name',
-        'whs_type',
-        'whs_owner',
-        'whs_default',
+        'whs_id',
+        'vp_type',
         'status',
         'created_user',
         'updated_user',

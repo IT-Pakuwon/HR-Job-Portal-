@@ -11,11 +11,11 @@ class MsVplWarehouseDept extends Model
     protected $table = 'ms_vpl_warehouse_dept';
 
     protected $fillable = [
-        'whs_id',
+        'activity_type',
         'cpnyid',
+        'whs_id',
         'department_id',
-        'department_id_transfer',
-        'whs_type',
+        'vp_type',
         'status',
         'created_user',
         'updated_user',
