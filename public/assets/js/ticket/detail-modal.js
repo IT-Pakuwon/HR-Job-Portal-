@@ -743,7 +743,7 @@ function renderTicketTimeline(timelines = []) {
             'CREATED';
 
         const description =
-            workflow === 'ENVISION CHECKED / SOLVED'
+            workflow === 'ENVISION CHECKED / SOLVED' || workflow === 'CANCEL'
                 ? (
                     item.description ||
                     item.response_descr ||
@@ -1185,7 +1185,6 @@ container.append(`
             </div>
 
                         ${
-                                workflow === 'ENVISION CHECKED / SOLVED' &&
                                 description
                                     ? `
                                         <div class="
@@ -1193,19 +1192,16 @@ container.append(`
 
                                             rounded-lg
 
-                                            border border-emerald-200
-                                            dark:border-emerald-500/20
+                                            border ${workflow === 'CANCEL' ? 'border-red-200 dark:border-red-500/20' : 'border-emerald-200 dark:border-emerald-500/20'}
 
-                                            bg-emerald-50
-                                            dark:bg-emerald-500/10
+                                            ${workflow === 'CANCEL' ? 'bg-red-50 dark:bg-red-500/10' : 'bg-emerald-50 dark:bg-emerald-500/10'}
 
                                             px-3 py-2
 
                                             text-xs
                                             leading-6
 
-                                            text-emerald-700
-                                            dark:text-emerald-300
+                                            ${workflow === 'CANCEL' ? 'text-red-700 dark:text-red-300' : 'text-emerald-700 dark:text-emerald-300'}
                                         ">
 
                                             ${nl2br(description)}
