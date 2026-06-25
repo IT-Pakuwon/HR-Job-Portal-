@@ -376,7 +376,8 @@ const VplReceiveForm = {
             ? '<tr><td colspan="7" class="px-4 py-3 text-center text-xs text-slate-400">No details.</td></tr>'
             : '';
         d.details.forEach(row => {
-            const exp = row.expired_date === '1900-01-01' ? 'No Expired' : row.expired_date;
+            const rawExp = (row.expired_date || '').split('T')[0];
+            const exp = (!rawExp || rawExp === '1900-01-01') ? 'No Expired' : rawExp;
             dHtml += `<tr>
                 <td class="px-4 py-2 text-xs">${row.product_name || row.product_id}</td>
                 <td class="px-4 py-2 text-xs">${row.product_source_tenant || '—'}</td>

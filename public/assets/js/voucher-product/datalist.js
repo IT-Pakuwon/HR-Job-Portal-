@@ -82,9 +82,10 @@ const VplMasterDatalist = {
                 {
                     data:      'status',
                     name:      'status',
-                    className: 'px-5 py-4 text-center align-middle',
+                    className: 'px-5 py-4 align-middle text-center',
                     orderable: false,
                     width:     '100px',
+                    render:    d => `<div class="flex justify-center">${d}</div>`,
                 },
                 {
                     data:       'action',

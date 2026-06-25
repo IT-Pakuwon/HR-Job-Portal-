@@ -48,6 +48,11 @@ class VplMsProductController extends Controller
             ->toArray();
     }
 
+    private function isFullAccess(): bool
+    {
+        return Auth::user()->hasRole('VPACCESS');
+    }
+
     // -------------------------------------------------------
     // INDEX
     // -------------------------------------------------------
@@ -80,7 +85,7 @@ class VplMsProductController extends Controller
             ->pluck('category_name');
 
         // Status counts for filter cards
-        $base     = $user->role === 'admin'
+        $base     = $this->isFullAccess()
             ? MsVplProduct::query()
             : MsVplProduct::whereIn('cpnyid', $cpnyIds);
         $countAll      = (clone $base)->count();
@@ -88,7 +93,7 @@ class VplMsProductController extends Controller
         $countInactive = (clone $base)->where('status', 'X')->count();
 
         if ($request->ajax()) {
-            $query = $user->role === 'admin'
+            $query = $this->isFullAccess()
                 ? MsVplProduct::query()
                 : MsVplProduct::whereIn('cpnyid', $cpnyIds);
 
@@ -119,13 +124,13 @@ class VplMsProductController extends Controller
                 ->addIndexColumn()
                 ->addColumn('product_id', function ($row) {
                     $hash = Hashids::encode($row->id);
-                    return '<button class="view-product-btn inline-flex items-center justify-center rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-500"
+                    return '<button class="view-product-btn inline-flex w-40 justify-center rounded bg-gray-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700"
                         data-hash="' . $hash . '">'
                         . $row->product_id . '</button>';
                 })
                 ->addColumn('status', fn ($row) => $row->status === 'A'
-                    ? '<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">Active</span>'
-                    : '<span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800">Inactive</span>')
+                    ? '<span class="inline-block w-24 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Active</span>'
+                    : '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Inactive</span>')
                 ->addColumn('action', function ($row) {
                     $active      = $row->status === 'A';
                     $toggleClass = $active ? 'deactivateProduct' : 'activateProduct';
@@ -159,7 +164,7 @@ class VplMsProductController extends Controller
         $user    = Auth::user();
         $cpnyIds = $this->cpnyIds();
 
-        $query = $user->role === 'admin'
+        $query = $this->isFullAccess()
             ? MsVplProduct::query()
             : MsVplProduct::whereIn('cpnyid', $cpnyIds);
 
@@ -178,7 +183,7 @@ class VplMsProductController extends Controller
         $user    = Auth::user();
         $cpnyIds = $this->cpnyIds();
 
-        $query = $user->role === 'admin'
+        $query = $this->isFullAccess()
             ? MsVplProduct::query()
             : MsVplProduct::whereIn('cpnyid', $cpnyIds);
 
@@ -541,7 +546,7 @@ class VplMsProductController extends Controller
         $cpnyIds   = $this->cpnyIds();
 
         if ($request->ajax()) {
-            $data = $user->role === 'admin'
+            $data = $this->isFullAccess()
                 ? MsVplProductTargetDate::all()
                 : MsVplProductTargetDate::whereIn('cpnyid', $cpnyIds)->get();
 

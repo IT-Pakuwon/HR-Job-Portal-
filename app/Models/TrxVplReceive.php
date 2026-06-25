@@ -16,6 +16,7 @@ class TrxVplReceive extends Model
         'cpnyid',
         'department',
         'user_penerima',
+        'vp_type',
         'receive_type',
         'receive_company',
         'receive_tenant',

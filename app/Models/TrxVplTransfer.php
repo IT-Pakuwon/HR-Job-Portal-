@@ -16,6 +16,7 @@ class TrxVplTransfer extends Model
         'cpnyid',
         'department',
         'user_transfer',
+        'vp_type',
         'transfertype',
         'transfer_remark',
         'ref_transfer_id',
