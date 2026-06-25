@@ -76,15 +76,17 @@ class SelfRegisterApplicantController extends Controller
         $orderDir = strtolower($request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $nameToDb = [
-            'docid' => 'vc.docid',
-            'apply_date' => 'vc.apply_date',
-            'fullname' => 'vc.fullname',
-            'education_name' => 'vc.education_name',
-            'religion' => 'vc.religion',
-            'height' => 'vc.height',
-            'weight' => 'vc.weight',
-            'company_name' => 'vc.company_name',
-            'status' => 'vc.status',
+            'docid'           => 'vc.docid',
+            'apply_date'      => 'vc.apply_date',
+            'fullname'        => 'vc.fullname',
+            'division_name'   => DB::raw('COALESCE(div_tag.division_name, div_reg.division_name)'),
+            'department_name' => DB::raw('COALESCE(dept_tag.department_name, dept_reg.department_name)'),
+            'education_name'  => 'vc.education_name',
+            'religion'        => 'vc.religion',
+            'height'          => 'vc.height',
+            'weight'          => 'vc.weight',
+            'company_name'    => 'vc.company_name',
+            'status'          => 'vc.status',
         ];
 
         $base = DB::connection('mysql3')
@@ -98,7 +100,11 @@ class SelfRegisterApplicantController extends Controller
                     ->where('map.status', '!=', 'X');
             })
             ->leftJoin('hr_trx_jobposting as jp', 'map.jobid', '=', 'jp.docid')
-            ->leftJoin('hr_trx_selfposting as sp', 'vc.docid', '=', 'sp.docid');
+            ->leftJoin('hr_trx_selfposting as sp', 'vc.docid', '=', 'sp.docid')
+            ->leftJoin('hr_ms_division as div_tag', 'tag.division_id_tagging', '=', 'div_tag.division_id')
+            ->leftJoin('hr_ms_division as div_reg', 'sp.division_id', '=', 'div_reg.division_id')
+            ->leftJoin('hr_ms_department as dept_tag', 'tag.departementid_tagging', '=', 'dept_tag.department_id')
+            ->leftJoin('hr_ms_department as dept_reg', 'sp.departementid', '=', 'dept_reg.department_id');
 
         // Filter status card
         if (!empty($status)) {
@@ -123,10 +129,10 @@ class SelfRegisterApplicantController extends Controller
         }
 
         if ($divisionFilter !== '') {
-            $base->where('tag.division_id_tagging', $divisionFilter);
+            $base->where(DB::raw('COALESCE(tag.division_id_tagging, sp.division_id)'), $divisionFilter);
         }
         if ($departmentFilter !== '') {
-            $base->where('tag.departementid_tagging', $departmentFilter);
+            $base->where(DB::raw('COALESCE(tag.departementid_tagging, sp.departementid)'), $departmentFilter);
         }
 
         $recordsTotal = (clone $base)->count();
@@ -187,12 +193,11 @@ class SelfRegisterApplicantController extends Controller
             'vc.company_name',
             'vc.status',
             'sp.is_read',
-            'sp.division_id as reg_division_id',
-            'sp.departementid as reg_department_id',
             'tag.id as tag_id',
             'tag.division_id_tagging as division_id',
             'tag.departementid_tagging as department_id',
-
+            DB::raw('COALESCE(div_tag.division_name, div_reg.division_name) as division_name'),
+            DB::raw('COALESCE(dept_tag.department_name, dept_reg.department_name) as department_name'),
             'map.jobid as jobposting_docid',
             'jp.job_title',
             'jp.job_level',
@@ -200,43 +205,27 @@ class SelfRegisterApplicantController extends Controller
             ->orderBy($orderBy, $orderDir)
             ->get();
 
-        // Collect all division/department IDs (from tagging OR candidate's own registration)
-        $divisionIds = $rows->flatMap(fn($r) => [$r->division_id, $r->reg_division_id])
-            ->filter()->unique()->values()->all();
-        $departmentIds = $rows->flatMap(fn($r) => [$r->department_id, $r->reg_department_id])
-            ->filter()->unique()->values()->all();
-
-        $divisionMap = \App\Models\MsDivision::whereIn('division_id', $divisionIds)
-            ->pluck('division_name', 'division_id');
-
-        $departmentMap = \App\Models\DepartmentHR::whereIn('department_id', $departmentIds)
-            ->pluck('department_name', 'department_id');
-
-        $data = $rows->map(function ($r) use ($divisionMap, $departmentMap) {
-            // Tagged division/dept takes priority; fall back to what the candidate filled in
-            $effectiveDivId  = $r->division_id  ?? $r->reg_division_id;
-            $effectiveDeptId = $r->department_id ?? $r->reg_department_id;
-
+        $data = $rows->map(function ($r) {
             return [
-                'eid'           => Hashids::encode($r->id),
-                'docid'         => $r->docid,
-                'apply_date'    => $r->apply_date,
-                'fullname'      => $r->fullname,
-                'education_name' => $r->education_name,
-                'religion'      => $r->religion,
-                'height'        => $r->height,
-                'weight'        => $r->weight,
-                'company_name'  => $r->company_name,
-                'division_id'   => $effectiveDivId,
-                'department_id' => $effectiveDeptId,
-                'division_name' => $divisionMap[$effectiveDivId]   ?? null,
-                'department_name' => $departmentMap[$effectiveDeptId] ?? null,
-                'is_tagged'     => !empty($r->tag_id),
-                'status'        => $r->status,
-                'is_read'       => $r->is_read,
+                'eid'             => Hashids::encode($r->id),
+                'docid'           => $r->docid,
+                'apply_date'      => $r->apply_date,
+                'fullname'        => $r->fullname,
+                'education_name'  => $r->education_name,
+                'religion'        => $r->religion,
+                'height'          => $r->height,
+                'weight'          => $r->weight,
+                'company_name'    => $r->company_name,
+                'division_id'     => $r->division_id,
+                'department_id'   => $r->department_id,
+                'division_name'   => $r->division_name,
+                'department_name' => $r->department_name,
+                'is_tagged'       => !empty($r->tag_id),
+                'status'          => $r->status,
+                'is_read'         => $r->is_read,
                 'jobposting_docid' => $r->jobposting_docid,
-                'job_name'      => $r->job_title
-                    ? $r->job_title.' (Lvl '.$r->job_level.')'
+                'job_name'        => $r->job_title
+                    ? $r->job_title . ' (Lvl ' . $r->job_level . ')'
                     : null,
             ];
         });
@@ -713,5 +702,44 @@ class SelfRegisterApplicantController extends Controller
             ]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function downloadDocument(Request $request, $hash, $type)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $career   = SelfPosting::findOrFail($id);
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)->firstOrFail();
+
+        $fieldMap = [
+            'cv'       => ['field' => 'upload_cv',            'label' => 'CurriculumVitae'],
+            'transkip' => ['field' => 'upload_transkip_nilai', 'label' => 'TranskripNilai'],
+            'ijazah'   => ['field' => 'upload_ijazah',         'label' => 'Ijazah'],
+        ];
+
+        abort_if(!isset($fieldMap[$type]), 404);
+
+        $field    = $fieldMap[$type]['field'];
+        $label    = $fieldMap[$type]['label'];
+        $gcsPath  = $applicant->$field;
+        abort_if(empty($gcsPath), 404);
+
+        $config  = config('filesystems.disks.gcs');
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $config['key_file'],
+        ]);
+
+        $object  = $storage->bucket($config['bucket'])->object($gcsPath);
+        $content = $object->downloadAsString();
+
+        $name     = preg_replace('/\s+/', '', $applicant->full_name ?? 'Applicant');
+        $filename = "{$label}_{$name}.pdf";
+
+        return response($content, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 }

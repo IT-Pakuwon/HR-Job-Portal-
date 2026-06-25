@@ -674,9 +674,9 @@
                         </div>
                         <div class="divide-y divide-gray-100 dark:divide-gray-700">
                             @foreach ([
-                                ['label' => 'Curriculum Vitae',   'url' => $cv,       'color' => 'bg-red-100 dark:bg-red-900/30'],
-                                ['label' => 'Transkrip Nilai',    'url' => $transkip, 'color' => 'bg-amber-100 dark:bg-amber-900/30'],
-                                ['label' => 'Ijazah',             'url' => $ijazah,   'color' => 'bg-emerald-100 dark:bg-emerald-900/30'],
+                                ['label' => 'Curriculum Vitae',   'type' => 'cv',       'url' => $cv,       'color' => 'bg-red-100 dark:bg-red-900/30'],
+                                ['label' => 'Transkrip Nilai',    'type' => 'transkip', 'url' => $transkip, 'color' => 'bg-amber-100 dark:bg-amber-900/30'],
+                                ['label' => 'Ijazah',             'type' => 'ijazah',   'url' => $ijazah,   'color' => 'bg-emerald-100 dark:bg-emerald-900/30'],
                             ] as $doc)
                             <div class="flex items-center justify-between px-5 py-3.5">
                                 <div class="flex items-center gap-3">
@@ -687,7 +687,7 @@
                                     </div>
                                 </div>
                                 @if ($doc['url'])
-                                    <a href="{{ $doc['url'] }}" target="_blank"
+                                    <a href="{{ route('selfregister.download', ['hash' => $hash, 'type' => $doc['type']]) }}"
                                         class="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700">
                                         Download
                                     </a>

@@ -313,6 +313,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/createcareers', [CareerController::class, 'createCareer']);
     Route::post('/careers', [CareerController::class, 'storeCareer'])->name('careers.store');
     Route::get('/showcareers/{hash}', [CareerController::class, 'showCareer'])->name('showcareers.show');
+    Route::get('/careers/download/{hash}/{type}', [CareerController::class, 'downloadDocument'])->name('careers.download');
     Route::get('/career/{id}/comments', [CareerController::class, 'fetchComments']);
     Route::post('/career/{id}/comments', [CareerController::class, 'storeComment']);
     Route::post('/career/{id}/approve', [CareerController::class, 'approveCareer']);
@@ -380,6 +381,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/selfregister', [SelfRegisterApplicantController::class, 'index'])->name('selfregister');
     Route::get('/selfregister/json', [SelfRegisterApplicantController::class, 'json'])->name('selfregister.json');
     Route::get('/showselfregister/{hash}', [SelfRegisterApplicantController::class, 'showSelfRegister']);
+    Route::get('/selfregister/download/{hash}/{type}', [SelfRegisterApplicantController::class, 'downloadDocument'])->name('selfregister.download');
 
     Route::get('/applicants', [ApplicantController::class, 'index'])->name('applicants');
     Route::get('/applicants/json', [ApplicantController::class, 'json'])->name('applicants.json');

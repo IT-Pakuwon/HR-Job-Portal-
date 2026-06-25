@@ -402,7 +402,7 @@ class CareerController extends Controller
         }
 
         return view('pages.careers.showcareers', compact(
-            'career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
+            'hash','career','applicant','applicant_family','applicant_marital','applicant_education','applicant_working',
             'applicant_reference','applicant_language','applicant_course','applicant_sw','applicant_skill','jobapplystep',
             'jobres','jobqua','jobposting','tr_checklist','year','photo','cv','coverletter','transkip','ijazah','user','datenow',
             'assessmentGroups','tr_assessment','tr_assessment_user','assessmentGroupsUser','agenda','userlist',
@@ -2569,6 +2569,40 @@ class CareerController extends Controller
         return redirect()->away($url);
     }
 
+    public function downloadDocument(Request $request, $hash, $type)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
 
+        $career    = ViewCareer::findOrFail($id);
+        $applicant = Applicant::where('applicant_id', $career->applicant_id)->firstOrFail();
 
+        $fieldMap = [
+            'cv'       => ['field' => 'upload_cv',            'label' => 'CurriculumVitae'],
+            'transkip' => ['field' => 'upload_transkip_nilai', 'label' => 'TranskripNilai'],
+            'ijazah'   => ['field' => 'upload_ijazah',         'label' => 'Ijazah'],
+        ];
+
+        abort_if(!isset($fieldMap[$type]), 404);
+
+        $field   = $fieldMap[$type]['field'];
+        $label   = $fieldMap[$type]['label'];
+        $gcsPath = $applicant->$field;
+        abort_if(empty($gcsPath), 404);
+
+        $config  = config('filesystems.disks.gcs');
+        $storage = new StorageClient([
+            'projectId'   => $config['project_id'],
+            'keyFilePath' => $config['key_file'],
+        ]);
+
+        $content  = $storage->bucket($config['bucket'])->object($gcsPath)->downloadAsString();
+        $name     = preg_replace('/\s+/', '', $applicant->full_name ?? 'Applicant');
+        $filename = "{$label}_{$name}.pdf";
+
+        return response($content, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 }
