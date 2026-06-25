@@ -187,6 +187,8 @@ class SelfRegisterApplicantController extends Controller
             'vc.company_name',
             'vc.status',
             'sp.is_read',
+            'sp.division_id as reg_division_id',
+            'sp.departementid as reg_department_id',
             'tag.id as tag_id',
             'tag.division_id_tagging as division_id',
             'tag.departementid_tagging as department_id',
@@ -198,9 +200,11 @@ class SelfRegisterApplicantController extends Controller
             ->orderBy($orderBy, $orderDir)
             ->get();
 
-        // Pre-fetch division and department names for tagged rows
-        $divisionIds   = $rows->pluck('division_id')->filter()->unique()->values()->all();
-        $departmentIds = $rows->pluck('department_id')->filter()->unique()->values()->all();
+        // Collect all division/department IDs (from tagging OR candidate's own registration)
+        $divisionIds = $rows->flatMap(fn($r) => [$r->division_id, $r->reg_division_id])
+            ->filter()->unique()->values()->all();
+        $departmentIds = $rows->flatMap(fn($r) => [$r->department_id, $r->reg_department_id])
+            ->filter()->unique()->values()->all();
 
         $divisionMap = \App\Models\MsDivision::whereIn('division_id', $divisionIds)
             ->pluck('division_name', 'division_id');
@@ -209,6 +213,10 @@ class SelfRegisterApplicantController extends Controller
             ->pluck('department_name', 'department_id');
 
         $data = $rows->map(function ($r) use ($divisionMap, $departmentMap) {
+            // Tagged division/dept takes priority; fall back to what the candidate filled in
+            $effectiveDivId  = $r->division_id  ?? $r->reg_division_id;
+            $effectiveDeptId = $r->department_id ?? $r->reg_department_id;
+
             return [
                 'eid'           => Hashids::encode($r->id),
                 'docid'         => $r->docid,
@@ -219,10 +227,10 @@ class SelfRegisterApplicantController extends Controller
                 'height'        => $r->height,
                 'weight'        => $r->weight,
                 'company_name'  => $r->company_name,
-                'division_id'   => $r->division_id,
-                'department_id' => $r->department_id,
-                'division_name' => $divisionMap[$r->division_id]   ?? null,
-                'department_name' => $departmentMap[$r->department_id] ?? null,
+                'division_id'   => $effectiveDivId,
+                'department_id' => $effectiveDeptId,
+                'division_name' => $divisionMap[$effectiveDivId]   ?? null,
+                'department_name' => $departmentMap[$effectiveDeptId] ?? null,
                 'is_tagged'     => !empty($r->tag_id),
                 'status'        => $r->status,
                 'is_read'       => $r->is_read,
