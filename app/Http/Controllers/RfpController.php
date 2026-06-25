@@ -64,10 +64,7 @@ class RfpController extends Controller
 
         $baseQuery = TrRfp::query()
             ->whereIn('cpny_id', $cpnyIds)
-            ->when(
-                !$hasRfpAllAccess,
-                fn ($q) => $q->whereIn('department_id', $deptIds)
-            );
+            ->whereIn('department_id', $deptIds);
 
         $all        = (clone $baseQuery)->count();
         $onProgress = (clone $baseQuery)->where('status', 'P')->count();
@@ -77,10 +74,15 @@ class RfpController extends Controller
         $completed  = (clone $baseQuery)->where('status', 'C')->count();
 
         $rfpAll = 0;
+        $rfpFinance = 0;
         if ($hasRfpAllAccess) {
             $rfpAll = TrRfp::query()
                 ->whereIn('cpny_id', $cpnyIds)
-                ->whereIn('status', ['C'])
+                ->count();
+
+            $rfpFinance = TrRfp::query()
+                ->whereIn('cpny_id', $cpnyIds)
+                ->where('status', 'C')
                 ->count();
         }
 
@@ -107,6 +109,8 @@ class RfpController extends Controller
             'hold',
             'completed',
             'rfpAll',
+            'rfpFinance',
+            'cpnyIds',
             'hasRfpAllAccess',
             'hasApFinAccess',
             'hasApTreAccess',
@@ -137,7 +141,13 @@ class RfpController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
         $scope  = (string) $request->query('scope', '');
+        $financeCpny = trim((string) $request->query('finance_cpny', ''));
+        $financeStatus = trim((string) $request->query('finance_status', ''));
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
+
+        if (in_array($scope, ['rfp_all', 'rfp_finance'], true) && !$hasRfpAllAccess) {
+            $scope = '';
+        }
 
         $baseTable = (new TrRfp())->getTable(); // tr_rfp
 
@@ -163,9 +173,35 @@ class RfpController extends Controller
         $base = TrRfp::from($baseTable . ' as rfp')
             ->whereIn('rfp.cpny_id', $cpnyIds)
             ->when(
-                !$hasRfpAllAccess && $scope !== 'rfp_all',
+                !in_array($scope, ['rfp_all', 'rfp_finance'], true),
                 fn ($q) => $q->whereIn('rfp.department_id', $deptIds)
             )
+            ->when($scope === 'rfp_finance', function ($q) {
+                $q->where('rfp.status', 'C');
+            })
+            ->when($scope === 'rfp_finance' && $financeCpny !== '' && in_array($financeCpny, $cpnyIds, true), function ($q) use ($financeCpny) {
+                $q->where('rfp.cpny_id', $financeCpny);
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'waiting_user', function ($q) {
+                $q->where(function ($q2) {
+                    $q2->whereNull('rfp.status_receive')
+                        ->orWhere('rfp.status_receive', 'P');
+                })->where(function ($q2) {
+                    $q2->whereNull('rfp.status_payment')
+                        ->orWhere('rfp.status_payment', 'P');
+                });
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'finance_received', function ($q) {
+                $q->where('rfp.status_receive', 'C')
+                    ->where(function ($q2) {
+                        $q2->whereNull('rfp.status_payment')
+                            ->orWhere('rfp.status_payment', 'P');
+                    });
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'treasury_received', function ($q) {
+                $q->where('rfp.status_receive', 'C')
+                    ->where('rfp.status_payment', 'C');
+            })
             ->when($scope === 'finance_received', function ($q) {
                 $q->where('rfp.status', 'C')
                 ->where('rfp.status_receive', 'C')
@@ -180,10 +216,7 @@ class RfpController extends Controller
                 ->where('rfp.status_receive', 'C')
                 ->where('rfp.status_payment', 'C');
             })
-            ->when(
-                $scope === 'rfp_all',
-                fn ($q) => $q->whereIn('rfp.status', ['C'])
-            );
+            ;
 
         if ($status !== '') {
             $base->where('rfp.status', $status);

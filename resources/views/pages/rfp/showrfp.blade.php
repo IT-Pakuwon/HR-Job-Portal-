@@ -111,6 +111,12 @@
                                 ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? 'Rp ' . number_format((float) $rfp->amount_payment, 2, ',', '.') : '-'],
                                 ['label' => 'Terbilang', 'value' => $rfp->terbilang ?: '-'],
                             ];
+
+                            $irNoteValue = trim((string) ($rfp->ir_note ?? ''));
+                            $purposeValue = trim((string) ($rfp->keperluan ?? ''));
+                            $showIrNote = mb_strlen($irNoteValue) >= 5;
+                            $noteLabel = $showIrNote ? 'IR Note' : 'Purpose';
+                            $noteValue = $showIrNote ? $irNoteValue : $purposeValue;
                         @endphp
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
@@ -126,19 +132,10 @@
 
                         <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
                             <div class="flex items-center gap-2 text-gray-500">
-                                <span class="text-sm font-medium">Purpose</span>
+                                <span class="text-sm font-medium">{{ $noteLabel }}</span>
                             </div>
                             <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300 text-sm">
-                                {{ $rfp->keperluan ?: '-' }}
-                            </span>
-                        </div>
-
-                        <div class="col-span-2 mt-2 flex flex-col gap-2 rounded-md bg-gray-50 p-3 dark:bg-gray-700">
-                            <div class="flex items-center gap-2 text-gray-500">
-                                <span class="text-sm font-medium">IR Note</span>
-                            </div>
-                            <span class="whitespace-pre-line break-words font-medium text-gray-900 dark:text-gray-300 text-sm">
-                                {{ $rfp->ir_note ?: '-' }}
+                                {{ $noteValue ?: '-' }}
                             </span>
                         </div>
                     </div>

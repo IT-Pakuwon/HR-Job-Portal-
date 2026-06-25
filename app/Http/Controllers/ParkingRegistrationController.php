@@ -88,11 +88,22 @@ class ParkingRegistrationController extends Controller
         }
 
         $masterSites = collect();
+        $masterCompanies = collect();
+        $masterDepartmentOptions = collect();
         $masterDepartments = collect();
         $parkingTypes = collect();
         $workerTypes = collect();
 
         if ($canParkingAccess) {
+            $masterCompanies = MsCompany::whereIn('cpny_id', $cpnyIds)
+                ->where('status', 'A')
+                ->orderBy('cpny_id')
+                ->get(['cpny_id', 'cpny_name']);
+
+            $masterDepartmentOptions = MsDepartment::where('status', 'A')
+                ->orderBy('department_id')
+                ->get(['department_id', 'department_name']);
+
             $masterSites = MsSite::whereIn('siteid', $cpnyIds)
                 ->where('site_parking', true)
                 ->where('status', 'A')
@@ -129,6 +140,8 @@ class ParkingRegistrationController extends Controller
             'allParkingCount',
             'masterKendaraanCount',
             'masterSites',
+            'masterCompanies',
+            'masterDepartmentOptions',
             'masterDepartments',
             'parkingTypes',
             'workerTypes',
@@ -298,15 +311,16 @@ class ParkingRegistrationController extends Controller
             5  => 'mk.jenis_kendaraan',
             6  => 'mk.parking_type',
             7  => 'mk.worker_type',
-            8  => 'mk.department_id',
-            9  => 'mk.perpost',
-            10 => 'mk.startdate',
-            11 => 'mk.enddate',
-            12 => 'mk.no_kartu',
-            13 => 'mk.attach_stnk',
-            14 => 'mk.attach_idcard',
-            15 => 'mk.attach_bukti_bayar',
-            16 => 'mk.status',
+            8  => 'mk.cpny_id',
+            9  => 'mk.department_id',
+            10 => 'mk.perpost',
+            11 => 'mk.startdate',
+            12 => 'mk.enddate',
+            13 => 'mk.no_kartu',
+            14 => 'mk.attach_stnk',
+            15 => 'mk.attach_idcard',
+            16 => 'mk.attach_bukti_bayar',
+            17 => 'mk.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 1);
@@ -354,6 +368,7 @@ class ParkingRegistrationController extends Controller
                     ->orWhere('mk.jenis_kendaraan', 'ilike', "%{$search}%")
                     ->orWhere('mk.parking_type', 'ilike', "%{$search}%")
                     ->orWhere('mk.worker_type', 'ilike', "%{$search}%")
+                    ->orWhere('mk.cpny_id', 'ilike', "%{$search}%")
                     ->orWhere('mk.department_id', 'ilike', "%{$search}%")
                     ->orWhere('mk.perpost', 'ilike', "%{$search}%")
                     ->orWhere('mk.no_kartu', 'ilike', "%{$search}%")
@@ -3187,6 +3202,86 @@ class ParkingRegistrationController extends Controller
             'success' => true,
             'message' => 'No Kartu berhasil disimpan.',
             'no_kartu' => $row->no_kartu,
+        ]);
+    }
+
+    public function updateCompanyDepartmentParkingKendaraan(Request $request, $id)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'PARKINGACCESS')
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not allowed to update parking master.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'cpny_id' => ['required', 'string', 'max:50'],
+            'department_id' => ['required', 'string', 'max:50'],
+        ]);
+
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : array_filter((array) $user->cpny_id);
+
+        if (!in_array($validated['cpny_id'], $cpnyIds, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Company tidak tersedia untuk user ini.',
+            ], 422);
+        }
+
+        $companyExists = MsCompany::where('cpny_id', $validated['cpny_id'])
+            ->where('status', 'A')
+            ->exists();
+
+        $departmentExists = MsDepartment::where('department_id', $validated['department_id'])
+            ->where('status', 'A')
+            ->exists();
+
+        if (!$companyExists || !$departmentExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Company atau department tidak valid.',
+            ], 422);
+        }
+
+        $row = MsParkingKendaraan::where('id', $id)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$row) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data kendaraan tidak ditemukan.',
+            ], 404);
+        }
+
+        $row->update([
+            'cpny_id' => $validated['cpny_id'],
+            'department_id' => $validated['department_id'],
+            'updated_by' => $user->username,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Company dan department berhasil diupdate.',
+            'cpny_id' => $row->cpny_id,
+            'department_id' => $row->department_id,
         ]);
     }
 

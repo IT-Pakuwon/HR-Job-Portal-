@@ -74,8 +74,12 @@ class RfpNonPurchController extends Controller
         $hasApTreAccess  = $user->hasRole('APTREACCESS');
 
         $rfpAll = 0;
+        $rfpFinance = 0;
         if ($hasRfpAllAccess) {
             $rfpAll = TrRfpNonPurch::whereIn('cpny_id', $cpnyIds)
+                ->count();
+
+            $rfpFinance = TrRfpNonPurch::whereIn('cpny_id', $cpnyIds)
                 ->where('status', 'C')
                 ->count();
         }
@@ -103,6 +107,8 @@ class RfpNonPurchController extends Controller
             'revise',
             'completed',
             'rfpAll',
+            'rfpFinance',
+            'cpnyIds',
             'hasRfpAllAccess',
             'hasApFinAccess',
             'hasApTreAccess',
@@ -129,14 +135,47 @@ class RfpNonPurchController extends Controller
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
         $scope  = (string) $request->query('scope', '');
+        $financeCpny = trim((string) $request->query('finance_cpny', ''));
+        $financeStatus = trim((string) $request->query('finance_status', ''));
+        $hasRfpAllAccess = $user->hasRole('FINACCESS');
+
+        if (in_array($scope, ['rfp_all', 'rfp_finance'], true) && !$hasRfpAllAccess) {
+            $scope = '';
+        }
 
         $base = TrRfpNonPurch::from('tr_rfp_nonpurchase as r')
             ->leftJoin('ms_groupbiaya_nonpurchase as g', 'r.groupbiaya_id', '=', 'g.groupbiaya_id')
             ->whereIn('r.cpny_id', $cpnyIds)
             ->when(
-                $scope !== 'rfp_all',
+                !in_array($scope, ['rfp_all', 'rfp_finance'], true),
                 fn ($q) => $q->whereIn('r.department_id', $deptIds)
             )
+            ->when($scope === 'rfp_finance', function ($q) {
+                $q->where('r.status', 'C');
+            })
+            ->when($scope === 'rfp_finance' && $financeCpny !== '' && in_array($financeCpny, $cpnyIds, true), function ($q) use ($financeCpny) {
+                $q->where('r.cpny_id', $financeCpny);
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'waiting_user', function ($q) {
+                $q->where(function ($q2) {
+                    $q2->whereNull('r.statusreceive')
+                        ->orWhere('r.statusreceive', 'P');
+                })->where(function ($q2) {
+                    $q2->whereNull('r.statuspayment')
+                        ->orWhere('r.statuspayment', 'P');
+                });
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'finance_received', function ($q) {
+                $q->where('r.statusreceive', 'C')
+                    ->where(function ($q2) {
+                        $q2->whereNull('r.statuspayment')
+                            ->orWhere('r.statuspayment', 'P');
+                    });
+            })
+            ->when($scope === 'rfp_finance' && $financeStatus === 'treasury_received', function ($q) {
+                $q->where('r.statusreceive', 'C')
+                    ->where('r.statuspayment', 'C');
+            })
 
             // 🔥 FINANCE FLOW TETAP
             ->when($scope === 'finance_received', function ($q) {
@@ -153,11 +192,7 @@ class RfpNonPurchController extends Controller
                 ->where('r.statusreceive', 'C')
                 ->where('r.statuspayment', 'C');
             })
-
-            ->when(
-                $scope === 'rfp_all',
-                fn ($q) => $q->where('r.status', 'C')
-            );
+            ;
 
         if ($status !== '') {
             $base->where('r.status', $status);

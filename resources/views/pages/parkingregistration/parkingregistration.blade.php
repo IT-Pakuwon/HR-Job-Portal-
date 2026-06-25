@@ -124,7 +124,7 @@
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-teal-700 bg-teal-200/20 p-3 text-teal-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">🚗</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Master Kendaraan</p>
+                            <p class="break-words text-sm font-medium">List Kendaraan</p>
                         </div>
                         <p class="shrink-0 text-base font-bold">{{ number_format($masterKendaraanCount) }}</p>
                     </div>
@@ -242,6 +242,62 @@
                     </div>
                 </div>
             </div>
+
+            <div id="companyDepartmentModal"
+                class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/40 p-4">
+                <div class="w-full max-w-lg rounded-xl bg-white p-5 shadow-lg dark:bg-gray-800">
+                    <div class="mb-4 flex items-center justify-between border-b pb-3 dark:border-gray-700">
+                        <h3 class="text-base font-bold text-gray-800 dark:text-white">
+                            Change Company & Department
+                        </h3>
+
+                        <button type="button" id="closeCompanyDepartmentModal"
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            X
+                        </button>
+                    </div>
+
+                    <input type="hidden" id="modal_company_department_id">
+
+                    <div class="mb-4">
+                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Company
+                        </label>
+                        <select id="modal_cpny_id"
+                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            <option value="">Select Company</option>
+                            @foreach ($masterCompanies ?? [] as $company)
+                                <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Department
+                        </label>
+                        <select id="modal_department_id"
+                            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            <option value="">Select Department</option>
+                            @foreach ($masterDepartmentOptions ?? [] as $department)
+                                <option value="{{ $department->department_id }}">{{ $department->department_id }} - {{ $department->department_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button type="button" id="cancelCompanyDepartmentModal"
+                            class="rounded bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-300">
+                            Close
+                        </button>
+
+                        <button type="button" id="saveCompanyDepartmentBtn"
+                            class="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
             
 
             <div class="rounded-base relative overflow-x-auto">
@@ -291,13 +347,14 @@
                     $('#parkingRegistrationThead').html(`
                         <tr>
                             <th class="w-8"></th>
-                            <th class="w-28 px-6 py-2 font-medium">Action</th>
+                            <th class="w-44 px-6 py-2 font-medium">Action</th>
                             <th class="w-40 px-6 py-2 font-medium">Site Parking</th>
                             <th class="w-56 px-6 py-2 font-medium">Name</th>
                             <th class="w-36 px-6 py-2 font-medium">No Polisi</th>
                             <th class="w-36 px-6 py-2 font-medium">Jenis Kendaraan</th>
                             <th class="w-40 px-6 py-2 font-medium">Parking Type</th>
                             <th class="w-40 px-6 py-2 font-medium">Worker Type</th>
+                            <th class="w-32 px-6 py-2 font-medium">Company</th>
                             <th class="w-40 px-6 py-2 font-medium">Department</th>
                             <th class="w-28 px-6 py-2 font-medium">Perpost</th>
                             <th class="w-36 px-6 py-2 font-medium">Start Date</th>
@@ -374,6 +431,15 @@
                 `;
             }
 
+            function escapeAttr(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+            }
+
             function getParkingColumns(scope) {
                 if (scope === 'master') {
                     return [
@@ -414,9 +480,18 @@
                                         <button type="button"
                                             class="openNoKartuBtn inline-flex items-center justify-center rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                                             data-id="${id}"
-                                            data-no-kartu="${row.no_kartu || ''}"
+                                            data-no-kartu="${escapeAttr(row.no_kartu)}"
                                             title="Update No Kartu">
                                             <i class="fa-solid fa-id-card"></i>
+                                        </button>
+
+                                        <button type="button"
+                                            class="openCompanyDepartmentBtn inline-flex items-center justify-center rounded bg-amber-500 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600"
+                                            data-id="${id}"
+                                            data-cpny-id="${escapeAttr(row.cpny_id)}"
+                                            data-department-id="${escapeAttr(row.department_id)}"
+                                            title="Change Company & Department">
+                                            <i class="fa-solid fa-rotate"></i>
                                         </button>
                                     </div>
                                 `;
@@ -428,6 +503,7 @@
                         { data: 'jenis_kendaraan', defaultContent: '-' },
                         { data: 'parking_type_name', defaultContent: '-' },
                         { data: 'worker_type_name', defaultContent: '-' },
+                        { data: 'cpny_id', defaultContent: '-' },
                         { data: 'department_id', defaultContent: '-' },
                         { data: 'perpost', defaultContent: '-' },
                         { data: 'startdate', defaultContent: '-' },
@@ -765,6 +841,79 @@
                         $('#saveNoKartuBtn').prop('disabled', false).text('Save');
                     });
                 });
+
+                $(document).on('click', '.openCompanyDepartmentBtn', function () {
+                    const id = $(this).data('id');
+                    const cpnyId = $(this).data('cpny-id') || '';
+                    const departmentId = $(this).data('department-id') || '';
+
+                    $('#modal_company_department_id').val(id);
+                    $('#modal_cpny_id').val(cpnyId);
+                    $('#modal_department_id').val(departmentId);
+
+                    $('#companyDepartmentModal').removeClass('hidden').addClass('flex');
+                });
+
+                $('#closeCompanyDepartmentModal, #cancelCompanyDepartmentModal').on('click', function () {
+                    $('#companyDepartmentModal').addClass('hidden').removeClass('flex');
+                    $('#modal_company_department_id').val('');
+                    $('#modal_cpny_id').val('');
+                    $('#modal_department_id').val('');
+                });
+
+                $('#saveCompanyDepartmentBtn').on('click', function () {
+                    const id = $('#modal_company_department_id').val();
+                    const cpnyId = String($('#modal_cpny_id').val() || '').trim();
+                    const departmentId = String($('#modal_department_id').val() || '').trim();
+
+                    if (!cpnyId || !departmentId) {
+                        toastr.warning('Company dan Department wajib dipilih.');
+                        return;
+                    }
+
+                    $('#saveCompanyDepartmentBtn').prop('disabled', true).text('Saving...');
+
+                    $.ajax({
+                        url: `/parking-kendaraan/${id}/company-department`,
+                        type: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            _method: 'PUT',
+                            cpny_id: cpnyId,
+                            department_id: departmentId
+                        }
+                    })
+                    .done(function (res) {
+                        toastr.success(res.message || 'Company dan department berhasil diupdate.');
+
+                        $('#companyDepartmentModal').addClass('hidden').removeClass('flex');
+                        $('#modal_company_department_id').val('');
+                        $('#modal_cpny_id').val('');
+                        $('#modal_department_id').val('');
+
+                        if (parkingTable) {
+                            parkingTable.ajax.reload(null, false);
+                        }
+                    })
+                    .fail(function (xhr) {
+                        let msg = 'Gagal update company dan department.';
+
+                        if (xhr.status === 422 && xhr.responseJSON?.errors) {
+                            msg = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                        } else if (xhr.responseJSON?.message) {
+                            msg = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON?.error) {
+                            msg = xhr.responseJSON.error;
+                        }
+
+                        toastr.error(msg);
+                        console.error(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#saveCompanyDepartmentBtn').prop('disabled', false).text('Save');
+                    });
+                });
+
                 $(document).on('change', '#filter_site_parking, #filter_parking_type, #filter_worker_type, #filter_jenis_kendaraan, #filter_department', function () {
                     if (parkingScope === 'master' && parkingTable) {
                         parkingTable.ajax.reload(null, true);

@@ -952,58 +952,7 @@ class RfcaListController extends Controller
             'success' => true,
             'data' => $rows,
         ]);
-    }
-
-    public function getMatchingRfcaList_xxx(Request $request)
-    {
-        $search = trim($request->get('search', ''));
-
-        $query = TrRfca::query()
-            ->from('tr_rfca as rfca')
-            ->join('tr_po as po', function ($join) {
-                $join->on('po.ponbr', '=', 'rfca.ponbr')
-                    ->on('po.cpny_id', '=', 'rfca.cpny_id');
-            })
-            ->where('rfca.status', 'P')
-            ->where('po.status', 'D')
-            ->select([
-                'rfca.id',
-                'rfca.rfcaid',
-                'rfca.rfcadate',
-                'rfca.ponbr',
-                'rfca.cpny_id',
-                'rfca.department_id',
-                'rfca.vendorid',
-                'rfca.vendorname',
-                'rfca.po_amount',
-                'rfca.rfca_amount',
-                'rfca.payment_pct',
-                'rfca.status',
-                'po.status as po_status',
-            ]);
-
-        if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('rfca.rfcaid', 'ILIKE', "%{$search}%")
-                    ->orWhere('rfca.ponbr', 'ILIKE', "%{$search}%")
-                    ->orWhere('rfca.cpny_id', 'ILIKE', "%{$search}%")
-                    ->orWhere('rfca.vendorid', 'ILIKE', "%{$search}%")
-                    ->orWhere('rfca.vendorname', 'ILIKE', "%{$search}%")
-                    ->orWhere('rfca.department_id', 'ILIKE', "%{$search}%");
-            });
-        }
-
-        $rows = $query
-            ->orderByDesc('rfca.rfcadate')
-            ->orderByDesc('rfca.id')
-            ->limit(100)
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $rows,
-        ]);
-    }
+    }   
 
     public function selectMatchingRfca(Request $request, $hash)
     {

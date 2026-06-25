@@ -446,6 +446,7 @@ class VmsRfpStagingController extends Controller
                     'sppbjkt_id'           => $row->sppbjktid,
                     'bastid'               => $row->bastid,
                     'department_id'        => $row->departementid,
+                    'user_peminta'         => $row->created_user ?: 'SYSTEM',
                     'keperluan'            => $row->keperluan,
                     'type_po'              => $row->typepo,
                     'type_payment_invreg'  => $row->typepaymentinvreg,
@@ -455,15 +456,15 @@ class VmsRfpStagingController extends Controller
                     'rfp_amount'           => $row->rfpamount,
                     'ir_note'              => $row->irnote,
                     'status'               => $isKontrak ? 'H' : 'P',
-                    'created_by'           => $row->created_user ?: 'SYSTEM',
+                    'created_by'           => 'SYSTEM',
                     'created_at'           => now(),
-                    'updated_by'           => $row->created_user ?: 'SYSTEM',
+                    'updated_by'           => 'SYSTEM',
                     'updated_at'           => now(),
                 ]);
 
                 $row->status       = 2;
                 $row->rfpid        = $rfpId;
-                $row->updated_user = $row->created_user ?: 'SYSTEM';
+                $row->updated_user = 'SYSTEM';
                 $row->updated_at   = now();
                 $row->save();
 

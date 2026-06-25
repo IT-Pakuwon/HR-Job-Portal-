@@ -6,7 +6,7 @@
 
         $xlCols = 5;
         if ($hasRfpAllAccess) {
-            $xlCols++;
+            $xlCols += 2;
         }
     @endphp
 
@@ -68,9 +68,19 @@
                     <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
                         <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🌐</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">RFP Finance</p>
+                            <p class="break-words text-sm font-medium">RFP All</p>
                         </div>
                         <p class="shrink-0 text-base font-extrabold">{{ $rfpAll ?? 0 }}</p>
+                    </div>
+                </a>
+
+                <a href="#" class="status-filter group block h-full" data-scope="rfp_finance">
+                    <div class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">RFP Finance</p>
+                        </div>
+                        <p class="shrink-0 text-base font-extrabold">{{ $rfpFinance ?? 0 }}</p>
                     </div>
                 </a>
             @endif
@@ -78,9 +88,50 @@
 
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">        
              <div class="flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
-                    Request For Payment
-                </h1>
+                <div class="flex flex-wrap items-center gap-4">
+                    <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
+                        Request For Payment
+                    </h1>
+
+                    <div id="rfpAllStatusFilterWrapper" class="hidden items-center gap-2">
+                        <label for="rfpAllStatusFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                            Status
+                        </label>
+                        <select id="rfpAllStatusFilter"
+                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Status</option>
+                            <option value="P">On Progress</option>
+                            <option value="D">Revise</option>
+                            <option value="C">Completed</option>
+                            <option value="R">Rejected</option>
+                            <option value="X">Cancelled</option>
+                        </select>
+                    </div>
+
+                    <div id="rfpFinanceFilterWrapper" class="hidden flex-wrap items-center gap-2">
+                        <label for="rfpFinanceCpnyFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                            Company
+                        </label>
+                        <select id="rfpFinanceCpnyFilter"
+                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Company</option>
+                            @foreach ($cpnyIds as $cpnyId)
+                                <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
+                            @endforeach
+                        </select>
+
+                        <label for="rfpFinanceStatusFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                            Finance Status
+                        </label>
+                        <select id="rfpFinanceStatusFilter"
+                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Status</option>
+                            <option value="waiting_user">Waiting User</option>
+                            <option value="finance_received">Finance Received</option>
+                            <option value="treasury_received">Treasury Received</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div class="flex items-center gap-4">                  
                     <a id="createBtn" href="{{ url('/createrfpnonpurch') }}"
@@ -155,6 +206,8 @@
 
     <script>
         let scopeFilter = '';
+        let financeCpnyFilter = '';
+        let financeStatusFilter = '';
         var currentUser = "{{ auth()->user()->username }}";
         const hasApFinAccess = @json($hasApFinAccess ?? false);
         const hasApTreAccess = @json($hasApTreAccess ?? false);
@@ -260,6 +313,8 @@
                     data: function(d) {
                         d.status = statusFilter ?? '';
                         d.scope = scopeFilter ?? '';
+                        d.finance_cpny = financeCpnyFilter ?? '';
+                        d.finance_status = financeStatusFilter ?? '';
                     }
                 },
                 order: [[1, 'desc']],
@@ -313,7 +368,7 @@
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row) {
-                            if (scopeFilter !== 'rfp_all') {
+                            if (scopeFilter !== 'rfp_finance') {
                                 return '';
                             }
 
@@ -470,7 +525,7 @@
                         render: function(data, type, row) {
 
                             // 🔥 CASE 1: RFP Finance
-                            if (scopeFilter === 'rfp_all') {
+                            if (scopeFilter === 'rfp_finance') {
 
                                 const statusText = row.finance_flow_status_text || '-';
 
@@ -516,6 +571,8 @@
                 responsive: true
             });
 
+            table.column(10).visible(false);
+
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
 
@@ -524,18 +581,60 @@
 
                 if (scope === 'rfp_all') {
                     scopeFilter = scope;
-                    statusFilter = '';
+                    statusFilter = $('#rfpAllStatusFilter').val() || '';
+                    financeCpnyFilter = '';
+                    financeStatusFilter = '';
 
-                    // tampilkan kolom Action hanya saat RFP Finance
+                    $('#rfpAllStatusFilterWrapper').removeClass('hidden').addClass('flex');
+                    $('#rfpFinanceFilterWrapper').addClass('hidden').removeClass('flex');
+                    $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').val('');
+                    $('#createBtn').hide();
+                    table.column(10).visible(false);
+                } else if (scope === 'rfp_finance') {
+                    scopeFilter = scope;
+                    statusFilter = '';
+                    financeCpnyFilter = $('#rfpFinanceCpnyFilter').val() || '';
+                    financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
+
+                    $('#rfpAllStatusFilterWrapper').addClass('hidden').removeClass('flex');
+                    $('#rfpAllStatusFilter').val('');
+                    $('#rfpFinanceFilterWrapper').removeClass('hidden').addClass('flex');
+                    $('#createBtn').hide();
                     table.column(10).visible(true);
                 } else {
                     statusFilter = status ?? '';
                     scopeFilter = '';
+                    financeCpnyFilter = '';
+                    financeStatusFilter = '';
 
+                    $('#rfpAllStatusFilterWrapper').addClass('hidden').removeClass('flex');
+                    $('#rfpAllStatusFilter').val('');
+                    $('#rfpFinanceFilterWrapper').addClass('hidden').removeClass('flex');
+                    $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').val('');
+                    $('#createBtn').show();
                     // hide kolom Action untuk All, On Progress, Reject, Draft, Completed
                     table.column(10).visible(false);
                 }
 
+                table.ajax.reload(null, true);
+            });
+
+            $('#rfpAllStatusFilter').on('change', function() {
+                if (scopeFilter !== 'rfp_all') {
+                    return;
+                }
+
+                statusFilter = $(this).val() || '';
+                table.ajax.reload(null, true);
+            });
+
+            $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').on('change', function() {
+                if (scopeFilter !== 'rfp_finance') {
+                    return;
+                }
+
+                financeCpnyFilter = $('#rfpFinanceCpnyFilter').val() || '';
+                financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
                 table.ajax.reload(null, true);
             });
             
