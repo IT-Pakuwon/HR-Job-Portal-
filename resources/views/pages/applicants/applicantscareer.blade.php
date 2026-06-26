@@ -9,19 +9,36 @@
                         {{-- Banner --}}
                         <div class="relative h-28 bg-gradient-to-br from-slate-800 via-indigo-700 to-violet-600">
                             <div class="absolute inset-0" style="background-image:radial-gradient(circle at 15% 60%,rgba(165,180,252,.35) 0,transparent 55%),radial-gradient(circle at 85% 20%,rgba(139,92,246,.3) 0,transparent 50%)"></div>
-                            {{-- Preview button inside banner --}}
-                            <form id="applicantprofile" class="absolute right-4 top-4 flex-shrink-0">
-                                @csrf
-                                <input type="hidden" name="applicant_id" value="{{ $applicant->applicant_id ?? '' }}">
-                                <input type="hidden" name="job_title"    value="{{ $career->job_title ?? '' }}">
-                                <input type="hidden" name="cpnyid"       value="{{ $career->cpnyid ?? '' }}">
-                                <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
-                                <input type="hidden" name="job_level"    value="{{ $career->job_level ?? '' }}">
-                                <button type="submit"
-                                    class="inline-flex items-center gap-1.5 rounded-lg border border-white/30 bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/30">
-                                    &#128196; Preview PDF
-                                </button>
-                            </form>
+                            {{-- PDF buttons inside banner --}}
+                            <div class="absolute right-4 top-4 flex-shrink-0 flex gap-2">
+                                <form action="{{ route('applicantprofile.pdf') }}" method="POST" target="_blank">
+                                    @csrf
+                                    <input type="hidden" name="applicant_id"  value="{{ $applicant->applicant_id ?? '' }}">
+                                    <input type="hidden" name="job_title"     value="{{ $career->job_title ?? '' }}">
+                                    <input type="hidden" name="cpnyid"        value="{{ $career->cpnyid ?? '' }}">
+                                    <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
+                                    <input type="hidden" name="job_level"     value="{{ $career->job_level ?? '' }}">
+                                    <input type="hidden" name="mode"          value="preview">
+                                    <button type="submit"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-white/30 bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/30">
+                                        &#128196; Preview PDF
+                                    </button>
+                                </form>
+                                <form action="{{ route('applicantprofile.pdf') }}" method="POST" target="pdf-download-frame">
+                                    @csrf
+                                    <input type="hidden" name="applicant_id"  value="{{ $applicant->applicant_id ?? '' }}">
+                                    <input type="hidden" name="job_title"     value="{{ $career->job_title ?? '' }}">
+                                    <input type="hidden" name="cpnyid"        value="{{ $career->cpnyid ?? '' }}">
+                                    <input type="hidden" name="departementid" value="{{ $career->departementid ?? '' }}">
+                                    <input type="hidden" name="job_level"     value="{{ $career->job_level ?? '' }}">
+                                    <input type="hidden" name="mode"          value="download">
+                                    <button type="submit"
+                                        class="inline-flex items-center gap-1.5 rounded-lg border border-white/30 bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/30">
+                                        &#8659; Download PDF
+                                    </button>
+                                </form>
+                                <iframe name="pdf-download-frame" style="display:none"></iframe>
+                            </div>
                         </div>
 
                         {{-- Photo + Name --}}
@@ -770,30 +787,3 @@
         <script src="https://unpkg.com/lucide@latest"></script>
         <script>if(typeof lucide !== 'undefined') lucide.createIcons();</script>
 
-        <script>
-            $('#applicantprofile').on('submit', function(e) {
-                e.preventDefault();
-                var form = $(this);
-                $.ajax({
-                    url: "{{ route('applicantprofile.pdf') }}",
-                    method: 'POST',
-                    data: form.serialize(),
-                    xhrFields: { responseType: 'blob' },
-                    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                    success: function(blob, status, xhr) {
-                        var ct = xhr.getResponseHeader('Content-Type');
-                        if (ct && ct.indexOf('application/pdf') !== -1) {
-                            window.open(window.URL.createObjectURL(blob), '_blank');
-                        } else {
-                            var reader = new FileReader();
-                            reader.onload = function() {
-                                var resp = JSON.parse(reader.result);
-                                alert(resp.message || 'Gagal generate PDF');
-                            };
-                            reader.readAsText(blob);
-                        }
-                    },
-                    error: function() { alert('Gagal generate PDF. Pastikan data sudah lengkap.'); }
-                });
-            });
-        </script>

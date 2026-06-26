@@ -2164,7 +2164,11 @@ class CareerController extends Controller
           ->setPaper('A4', 'portrait')
           ->setOptions(['isRemoteEnabled' => true]);
 
-        return $pdf->stream('applicant-profile.pdf');
+        $filename = 'Application Form _ ' . $applicant->full_name . '.pdf';
+        if ($request->input('mode') === 'download') {
+            return $pdf->download($filename);
+        }
+        return $pdf->stream($filename);
     }
 
 

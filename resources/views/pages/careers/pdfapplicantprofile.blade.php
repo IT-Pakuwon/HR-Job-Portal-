@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Application for Employment - Pakuwon Group</title>
+    <title>Application Form _ {{ $full_name }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
