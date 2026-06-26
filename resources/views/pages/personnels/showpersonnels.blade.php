@@ -3,6 +3,7 @@
         <x-approval-actions
             :status="$personnel->status"
             :is-approver="$isApprover"
+            :can-edit="$canEdit"
             :edit-url="url('/editpersonnels/' . $hash)"
         />
         <div class="flex w-full flex-col gap-6 xl:flex-row">

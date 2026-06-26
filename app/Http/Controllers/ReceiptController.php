@@ -1478,10 +1478,13 @@ class ReceiptController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $printedBy = Auth::user()->name ?? Auth::user()->username ?? '-';
+        $printedAt = now()->format('d/m/Y H:i:s');
+
         // ===== 1️⃣ ASLI =====
         $pdfAsli = Pdf::loadView(
             'pages.receipt.pdf_receipt',
-            compact('rcp','po','rcpdetails','company')
+            compact('rcp','po','rcpdetails','company','printedBy','printedAt')
         )->setPaper('A4','portrait');
 
         $domAsli = $pdfAsli->getDomPDF();
@@ -1506,7 +1509,7 @@ class ReceiptController extends Controller
         // ===== 2️⃣ COPY =====
         $pdfCopy = Pdf::loadView(
             'pages.receipt.pdf_receipt_copy',
-            compact('rcp','po','rcpdetails','company')
+            compact('rcp','po','rcpdetails','company','printedBy','printedAt')
         )->setPaper('A4','portrait');
 
         $domCopy = $pdfCopy->getDomPDF();

@@ -199,15 +199,39 @@ class AccessRequestController extends Controller
             ->count('ta.docid');
 
         if ($search !== '') {
-            $base->where(function ($q) use ($search) {
+            $statusMap = [
+                'on progress' => ['P'],
+                'progress'    => ['P'],
+                'approved'    => ['C'],
+                'completed'   => ['F'],
+                'finished'    => ['F'],
+                'revise'      => ['D'],
+                'draft'       => ['D'],
+                'reject'      => ['R'],
+                'cancelled'   => ['X'],
+            ];
+
+            $matchedStatuses = [];
+            $searchLower = strtolower($search);
+            foreach ($statusMap as $keyword => $codes) {
+                if (str_contains($searchLower, $keyword)) {
+                    $matchedStatuses = array_unique(array_merge($matchedStatuses, $codes));
+                    break;
+                }
+            }
+
+            $base->where(function ($q) use ($search, $matchedStatuses) {
                 $q->where('ta.docid', 'ilike', "%{$search}%")
                     ->orWhere('ta.cpny_id', 'ilike', "%{$search}%")
                     ->orWhere('ta.department_id', 'ilike', "%{$search}%")
                     ->orWhere('ta.user_peminta', 'ilike', "%{$search}%")
                     ->orWhere('ta.user_assign', 'ilike', "%{$search}%")
                     ->orWhere('ta.keperluan', 'ilike', "%{$search}%")
-                    ->orWhere('ta.access_type', 'ilike', "%{$search}%")
-                    ->orWhere('ta.status', 'ilike', "%{$search}%");
+                    ->orWhere('ta.access_type', 'ilike', "%{$search}%");
+
+                if (!empty($matchedStatuses)) {
+                    $q->orWhereIn('ta.status', $matchedStatuses);
+                }
             });
         }
 

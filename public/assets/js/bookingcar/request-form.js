@@ -30,8 +30,8 @@ const BookingCarForm = {
                 await BookingCarForm.submit();
             });
 
-        // Department change → re-filter passenger list (use jQuery for Select2 compat)
-        $('#department_id').on('change.bookingFilter', function () {
+        // Department or Company Expense change → re-filter passenger list
+        $('#department_id, #cpny_id_site').on('change.bookingFilter', function () {
             BookingCarForm.filterUserByDept();
         });
     },
@@ -113,6 +113,7 @@ const BookingCarForm = {
     // --------------------------------------------------------
     filterUserByDept() {
         const selectedDept = BookingCarHelper.getValue('department_id').trim();
+        const selectedCpny = BookingCarHelper.getValue('cpny_id_site').trim();
         const $sel         = $('#user_request');
         if (!$sel.length) return;
 
@@ -131,19 +132,21 @@ const BookingCarForm = {
         // Restore full option list
         $sel.html($sel.data('all-options'));
 
-        // Remove options that don't belong to the selected department
-        if (selectedDept) {
-            $sel.find('option').each(function () {
-                const $opt = $(this);
-                if (!$opt.val()) return; // keep placeholder
+        // Remove options that don't match selected department AND company expense
+        $sel.find('option').each(function () {
+            const $opt = $(this);
+            if (!$opt.val()) return; // keep placeholder
 
-                // Use .attr() — reads live DOM attribute, never stale jQuery cache
-                const optDept = ($opt.attr('data-dept') ?? '').toString().trim();
-                if (optDept !== selectedDept) {
-                    $opt.remove();
-                }
-            });
-        }
+            const optDept = ($opt.attr('data-dept') ?? '').toString().trim();
+            const optCpny = ($opt.attr('data-cpny') ?? '').toString().trim();
+
+            const deptOk = !selectedDept || optDept === selectedDept;
+            const cpnyOk = !selectedCpny || optCpny === selectedCpny;
+
+            if (!deptOk || !cpnyOk) {
+                $opt.remove();
+            }
+        });
 
         // Restore previous selection only if still valid
         const stillValid = $sel.find(`option[value="${currentVal}"]`).length > 0;

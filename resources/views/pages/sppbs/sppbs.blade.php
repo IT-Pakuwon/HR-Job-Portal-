@@ -122,7 +122,7 @@
                     </div>
                 </a>
             </button> --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('WHACCESS'))
                 {{-- SPPB All List --}}
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">

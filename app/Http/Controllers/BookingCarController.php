@@ -136,7 +136,8 @@ class BookingCarController extends Controller
             ->select(
                 'username',
                 'name',
-                'department_id'
+                'department_id',
+                'cpny_id'
             )
             ->orderBy('name')
             ->get();

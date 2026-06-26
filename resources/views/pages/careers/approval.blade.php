@@ -37,6 +37,16 @@
         </div>
     </div>
 
+    {{-- ── Document Actions ─────────────────────────────────────── --}}
+    @if (!in_array($career->status ?? '', ['T', 'C', 'R', 'X']))
+    <div class="flex justify-end border-b border-gray-100 px-4 py-2 dark:border-gray-700/60">
+        <button id="remapBtn"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 dark:border-violet-700/30 dark:bg-violet-900/20 dark:text-violet-300">
+            🔄 Remap Position
+        </button>
+    </div>
+    @endif
+
     <div x-data="{ subtab: 'step', init: function() { this.$watch('subtab', () => { this.$el.scrollIntoView({ behavior: 'smooth' }); }); } }" class="w-full">
 
         {{-- ── Sub-tabs + progress ─────────────────────────────────────── --}}
@@ -322,42 +332,60 @@
         </svg>
     </div>
 
+    <!-- Reject Modal — same style as other show pages -->
     <div id="rejectTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Reject Task</h2>
-            <textarea id="rejectReason"
-                class="w-full rounded-lg border border-gray-300 p-3 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter rejection reason..." rows="4"></textarea>
-
-            <div class="mt-4 flex justify-end gap-3"> {{-- Buttons aligned to the right --}}
-                <button id="cancelRejectBtn"
-                    class="rounded-lg bg-gray-300 px-5 py-2 text-gray-700 transition hover:bg-gray-400 focus:outline-none dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
-                    Cancel
-                </button>
-                <button id="confirmRejectBtn"
-                    class="rounded-lg bg-red-600 px-5 py-2 text-white transition hover:bg-red-700 focus:outline-none">
-                    Reject
-                </button>
+            <textarea id="rejectReason" class="w-full rounded-lg border border-gray-300 p-3 focus:border-red-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Enter rejection reason..." rows="4"></textarea>
+            <div class="mt-4 flex justify-end gap-3">
+                <button id="cancelRejectBtn" class="rounded-lg bg-gray-300 px-5 py-2 text-gray-700 hover:bg-gray-400 focus:outline-none dark:bg-gray-600 dark:text-gray-200">Cancel</button>
+                <button id="confirmRejectBtn" class="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700 focus:outline-none">Reject</button>
             </div>
         </div>
     </div>
 
+    <!-- Rollback Modal — same style -->
     <div id="rollbackTaskModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
         <div class="w-full max-w-md rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
             <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Rollback Task</h2>
-            <textarea id="rollbackReason"
-                class="w-full rounded-lg border border-gray-300 p-3 focus:border-red-500 focus:outline-none focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                placeholder="Enter rollbackion reason..." rows="4"></textarea>
+            <textarea id="rollbackReason" class="w-full rounded-lg border border-gray-300 p-3 focus:border-red-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Enter rollback reason..." rows="4"></textarea>
+            <div class="mt-4 flex justify-end gap-3">
+                <button id="cancelRollbackBtn" class="rounded-lg bg-gray-300 px-5 py-2 text-gray-700 hover:bg-gray-400 focus:outline-none dark:bg-gray-600 dark:text-gray-200">Cancel</button>
+                <button id="confirmRollbackBtn" class="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700 focus:outline-none">Rollback</button>
+            </div>
+        </div>
+    </div>
 
-            <div class="mt-4 flex justify-end gap-3"> {{-- Buttons aligned to the right --}}
-                <button id="cancelRollbackBtn"
-                    class="rounded-lg bg-gray-300 px-5 py-2 text-gray-700 transition hover:bg-gray-400 focus:outline-none dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
-                    Cancel
-                </button>
-                <button id="confirmRollbackBtn"
-                    class="rounded-lg bg-red-600 px-5 py-2 text-white transition hover:bg-red-700 focus:outline-none">
-                    Rollback
-                </button>
+    <!-- Remap Modal — same as jobapplicant list -->
+    <div id="remapModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+        <div class="w-full max-w-2xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0" id="remapModalContent">
+            <div class="mb-5 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Remap Applicant</h2>
+                    <p class="text-sm text-gray-500">Old mapping → <strong>Transfer Candidate</strong>. New job apply will be created.</p>
+                </div>
+                <button id="closeRemapModal" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+            </div>
+            <div class="mb-5 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 flex items-start gap-3">
+                <span class="mt-0.5 text-amber-500 text-base">📌</span>
+                <div class="flex-1">
+                    <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">Current Job Applied</p>
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                        <div><span class="text-xs text-gray-400">Job ID</span><p class="font-medium text-gray-800">{{ $career->docidposting ?? '—' }}</p></div>
+                        <div><span class="text-xs text-gray-400">Job Title</span><p class="font-medium text-gray-800">{{ $career->job_title ?? '—' }}</p></div>
+                        <div><span class="text-xs text-gray-400">Company</span><p class="text-gray-700">{{ $career->cpnyid ?? '—' }}</p></div>
+                        <div><span class="text-xs text-gray-400">Division</span><p class="text-gray-700">{{ $career->division_name ?? $career->division_id ?? '—' }}</p></div>
+                        <div class="col-span-2"><span class="text-xs text-gray-400">Department</span><p class="text-gray-700">{{ $career->departementid ?? '—' }}</p></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Select New Job Posting</label>
+                <select id="remapJobSelect" style="width:100%"><option value="">Select Job Posting</option></select>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button id="closeRemapModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+                <button id="saveRemap" class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Save Remap</button>
             </div>
         </div>
     </div>
@@ -532,202 +560,89 @@
 
 <script>
     $(document).ready(function() {
-        // Saat tombol "Reject" ditekan, tampilkan modal Reject di depan
+        let docid = "{{ $career->docid }}";
+
+        // Reject
         $(document).on("click", "#rejectBtn", function() {
-            $("#rejectReason").val(""); // Reset alasan reject
-            // $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-            let docid = "{{ $career->docid }}";
-            // checkApproval(docid, "reject");
-
+            $("#rejectReason").val("");
             $.get(`/career/${docid}/check-reject-permission`, function(res) {
-                if (res.canReject) {
-                    checkApproval(docid, "reject"); // lanjut cek approval umum
-                } else {
-                    toastr.warning("You are not allowed to reject at this step.");
-                }
-            }).fail(function() {
-                toastr.error("Failed to verify reject permission.");
-            });
-
+                if (res.canReject) checkApproval(docid, "reject");
+                else toastr.warning("You are not allowed to reject at this step.");
+            }).fail(function() { toastr.error("Failed to verify reject permission."); });
         });
-
-        // Saat tombol "Cancel" ditekan, tutup modal Reject
-        $(document).on("click", "#cancelRejectBtn", function() {
-            $("#rejectTaskModal").addClass("hidden");
-        });
-
-        // Saat tombol "Reject" ditekan, proses perubahan status
+        $(document).on("click", "#cancelRejectBtn", function() { $("#rejectTaskModal").addClass("hidden"); });
         $(document).on("click", "#confirmRejectBtn", function() {
-            let docid = "{{ $career->docid }}"; // Ambil ID tugas dari modal detail
-            let rejectReason = $("#rejectReason").val().trim();
-
-            if (rejectReason === "") {
-                toastr.error("Please provide a reason for rejection.");
-                return;
-            }
-
-            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
-            // Tampilkan spinner di kanan bawah
-            $spinner.fadeIn();
-
-            $.ajax({
-                url: `/career/${docid}/reject`,
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    docid: docid,
-                    reason: rejectReason
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // alert("Task has been rejected successfully.");
-
-                        // Update status di modal career
-                        $("#xstatus").text("Rejected")
-                            .removeClass()
-                            .addClass(
-                                "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                            );
-                        $spinner.fadeOut();
-
-                        // window.location.href = "/careers";
-                        location.reload();
-                    } else {
-                        alert("Failed to reject career.");
-                    }
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-
-                    if (xhr.status === 403) {
-                        alert("You Can't Rejected!"); // Popup jika user tidak berhak
-                    } else {
-                        //    alert("Error: Unable to reject career status.");
-                    }
-                },
-            });
+            let reason = $("#rejectReason").val().trim();
+            if (!reason) { toastr.error("Please provide a reason for rejection."); return; }
+            $.post(`/career/${docid}/reject`, { _token: "{{ csrf_token() }}", docid, reason })
+                .done(function(r) { if (r.success) { location.reload(); } else { toastr.error("Failed to reject."); } })
+                .fail(function(xhr) { toastr.error(xhr.status === 403 ? "You can't reject!" : "Error rejecting."); });
         });
-    });
-</script>
 
-<script>
-    $(document).ready(function() {
-        // Saat tombol "Rollback" ditekan, tampilkan modal Rollback di depan
-        // $(document).on("click", "#rollbackBtn", function() {
-        //     $("#rollbackReason").val(""); // Reset alasan rollback
-        //     // $("#rollbackTaskModal").removeClass("hidden").css("z-index", "60");
-        //     let docid = "{{ $career->docid }}";
-        //     // checkApproval(docid, "rollback");
-
-        //     $.get(`/career/${docid}/check-rollback-permission`, function(res) {
-        //         if (res.canRollback) {
-        //             checkApproval(docid, "rollback"); // lanjut cek approval umum
-        //         } else {
-        //             toastr.warning("You are not allowed to rollback at this step.zzzz");
-        //         }
-        //     }).fail(function() {
-        //         toastr.error("Failed to verify rollback permission.");
-        //     });
-
-        // });
+        // Rollback
         $(document).on("click", ".rollbackBtn", function() {
-            let docid = "{{ $career->docid }}";
+            $("#rollbackReason").val("");
             $.get(`/career/${docid}/check-rollback-permission`, function(res) {
-                if (res.canRollback) {
-                    checkApproval(docid, "rollback");
-                } else {
-                    toastr.warning("You are not allowed to rollback at this step.");
-                }
-            }).fail(function() {
-                toastr.error("Failed to verify rollback permission.");
-            });
+                if (res.canRollback) checkApproval(docid, "rollback");
+                else toastr.warning("You are not allowed to rollback at this step.");
+            }).fail(function() { toastr.error("Failed to verify rollback permission."); });
         });
-
-
-        // Saat tombol "Cancel" ditekan, tutup modal Rollback
-        $(document).on("click", "#cancelRollbackBtn", function() {
-            $("#rollbackTaskModal").addClass("hidden");
-        });
-
-        // Saat tombol "Rollback" ditekan, proses perubahan status
+        $(document).on("click", "#cancelRollbackBtn", function() { $("#rollbackTaskModal").addClass("hidden"); });
         $(document).on("click", "#confirmRollbackBtn", function() {
-            let docid = "{{ $career->docid }}"; // Ambil ID tugas dari modal detail
-            let rollbackReason = $("#rollbackReason").val().trim();
-
-            if (rollbackReason === "") {
-                toastr.error("Please provide a reason for rollbackion.");
-                return;
-            }
-
-            let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
-            // Tampilkan spinner di kanan bawah
-            $spinner.fadeIn();
-
-            $.ajax({
-                url: `/career/${docid}/rollback`,
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    docid: docid,
-                    reason: rollbackReason
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // alert("Task has been rollbacked successfully.");
-
-                        // Update status di modal career
-                        $("#xstatus").text("Rollbacked")
-                            .removeClass()
-                            .addClass(
-                                "w-full max-w-32 bg-red-300/30 dark:bg-red-300 text-red-600 flex justify-items-center focus:outline-none pointer-events-none border-none font-semibold px-2 py-0.5 rounded"
-                            );
-                        $spinner.fadeOut();
-
-                        // window.location.href = "/careers";
-                        location.reload();
-                    } else {
-                        alert("Failed to rollback career.");
-                    }
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-
-                    if (xhr.status === 403) {
-                        alert("You Can't Rollbacked!"); // Popup jika user tidak berhak
-                    } else {
-                        //    alert("Error: Unable to reject career status.");
-                    }
-                },
-            });
+            let reason = $("#rollbackReason").val().trim();
+            if (!reason) { toastr.error("Please provide a reason for rollback."); return; }
+            $.post(`/career/${docid}/rollback`, { _token: "{{ csrf_token() }}", docid, reason })
+                .done(function(r) { if (r.success) { location.reload(); } else { toastr.error("Failed to rollback."); } })
+                .fail(function(xhr) { toastr.error(xhr.status === 403 ? "You can't rollback!" : "Error rolling back."); });
         });
-    });
-</script>
-<script>
-    function checkApproval(docid, action) {
-        $.ajax({
-            url: `/career/${docid}/check-approval/${action}`,
-            type: "GET",
-            success: function(response) {
-                if (response.canPerformAction) {
-                    if (action === "reject") {
-                        $("#rejectReason").val("");
-                        $("#rejectTaskModal").removeClass("hidden").css("z-index", "60");
-                    } else if (action === "revise") {
-                        $("#reviseReason").val("");
-                        $("#reviseTaskModal").removeClass("hidden").css("z-index", "60");
-                    } else if (action === "rollback") {
-                        $("#rollbackReason").val("");
-                        $("#rollbackTaskModal").removeClass("hidden").css("z-index", "60");
-                    }
+
+        // checkApproval
+        function checkApproval(docid, action) {
+            $.get(`/career/${docid}/check-approval/${action}`, function(res) {
+                if (res.canPerformAction) {
+                    if (action === "reject") { $("#rejectTaskModal").removeClass("hidden").css("z-index", "60"); }
+                    else if (action === "rollback") { $("#rollbackTaskModal").removeClass("hidden").css("z-index", "60"); }
                 } else {
                     toastr.error("You are not authorized to " + action + " this career.");
                 }
-            },
-            error: function() {
-                toastr.error("Error checking approval status.");
-            }
+            }).fail(function() { toastr.error("Error checking approval status."); });
+        }
+
+        // Remap — same functions as jobapplicant list
+        function openRemapModal() {
+            $('#remapModal').removeClass('hidden').addClass('flex');
+            setTimeout(() => { $('#remapModalContent').removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100'); }, 10);
+        }
+        function closeRemapModal() {
+            $('#remapModalContent').removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
+            setTimeout(() => { $('#remapModal').addClass('hidden').removeClass('flex'); }, 200);
+        }
+
+        $('#remapBtn').on('click', function() {
+            let $sel = $('#remapJobSelect');
+            if ($sel.find('option').length <= 1) {
+                if ($sel.hasClass('select2-hidden-accessible')) $sel.select2('destroy');
+                $.get("{{ route('jobposting.list') }}", function(data) {
+                    $sel.empty().append('<option value="">Select Job Posting</option>');
+                    data.forEach(jp => $sel.append(`<option value="${jp.docid}">${jp.job_name || jp.docid}</option>`));
+                    $sel.select2({ dropdownParent: $('#remapModal'), placeholder: '🔍 Search Job Posting...', width: '100%', allowClear: true });
+                    openRemapModal();
+                });
+            } else { openRemapModal(); }
         });
-    }
+
+        $('#closeRemapModal, #closeRemapModalBtn').on('click', closeRemapModal);
+
+        $('#saveRemap').on('click', function() {
+            let newJobid = $('#remapJobSelect').val();
+            if (!newJobid) { toastr.error('Please select a job posting.'); return; }
+            $(this).prop('disabled', true).text('Saving...');
+            $.post("{{ route('jobapplicant.remap') }}", { apply_id: @json($hash), new_jobid: newJobid, _token: "{{ csrf_token() }}" })
+                .done(function() { toastr.success('Remapped!'); closeRemapModal(); setTimeout(() => location.reload(), 800); })
+                .fail(function(xhr) { toastr.error(xhr.responseJSON?.error || 'Failed to remap.'); })
+                .always(function() { $('#saveRemap').prop('disabled', false).text('Save Remap'); });
+        });
+    });
 </script>
 <style>
     /* Styling untuk loading spinner di kanan bawah */
@@ -754,3 +669,4 @@
         color: white;
     }
 </style>
+

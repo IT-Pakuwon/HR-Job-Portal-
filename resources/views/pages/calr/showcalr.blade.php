@@ -340,9 +340,8 @@
 
             </div>
 
-
             {{-- CALR / PO Detail (TrPOdetail) --}}
-            <div class="mt-6 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+            <div class="mt-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                 <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                     <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
                         PO Detail
@@ -382,9 +381,6 @@
                     </table>
                 </div>
             </div>
-
-
-
 
         </div>
     </div>

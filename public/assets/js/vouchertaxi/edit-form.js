@@ -157,9 +157,9 @@ const VoucherTaxiEditForm = {
         // Expense Information
         VoucherTaxiHelper.setSelect('edit_cpny_id_expense', voucher.cpny_id_expense);
 
-        // Load topup employees for the selected department, then set the value
+        // Load topup employees filtered by department + company expense, then set the value
         if (voucher.department_id) {
-            VoucherTaxiEditForm.loadTopupEmployeesAndSet(voucher.department_id, voucher.user_topup);
+            VoucherTaxiEditForm.loadTopupEmployeesAndSet(voucher.department_id, voucher.user_topup, voucher.cpny_id_expense);
         } else {
             VoucherTaxiHelper.setSelect('edit_user_topup', voucher.user_topup);
         }
@@ -217,17 +217,18 @@ const VoucherTaxiEditForm = {
         // Topup — dynamically populated by department change
         init($('#edit_user_topup'), { placeholder: 'Select Employee' });
 
-        // Department change → load employees for topup
-        $('#edit_department_id').off('change.editVoucher').on('change.editVoucher', function () {
-            const deptId = $(this).val();
-            VoucherTaxiEditForm.loadTopupEmployees(deptId);
+        // Department or Company Expense change → load employees for topup
+        $('#edit_department_id, #edit_cpny_id_expense').off('change.editVoucher').on('change.editVoucher', function () {
+            const deptId = $('#edit_department_id').val();
+            const cpnyId = $('#edit_cpny_id_expense').val();
+            VoucherTaxiEditForm.loadTopupEmployees(deptId, cpnyId);
         });
     },
 
     // --------------------------------------------------------
     // LOAD TOPUP EMPLOYEES BY DEPARTMENT
     // --------------------------------------------------------
-    loadTopupEmployees(deptId) {
+    loadTopupEmployees(deptId, cpnyId = null) {
         const $select = $('#edit_user_topup');
 
         if (!deptId) {
@@ -235,7 +236,10 @@ const VoucherTaxiEditForm = {
             return;
         }
 
-        fetch(`/vouchertaxi/employee-by-department?department_id=${encodeURIComponent(deptId)}`, {
+        let url = `/vouchertaxi/employee-by-department?department_id=${encodeURIComponent(deptId)}`;
+        if (cpnyId) url += `&cpny_id=${encodeURIComponent(cpnyId)}`;
+
+        fetch(url, {
             headers: {
                 'X-CSRF-TOKEN': VoucherTaxi.csrf(),
                 'X-Requested-With': 'XMLHttpRequest',
@@ -258,7 +262,7 @@ const VoucherTaxiEditForm = {
     // --------------------------------------------------------
     // LOAD TOPUP EMPLOYEES AND SET A SPECIFIC VALUE
     // --------------------------------------------------------
-    loadTopupEmployeesAndSet(deptId, valueToSet) {
+    loadTopupEmployeesAndSet(deptId, valueToSet, cpnyId = null) {
         const $select = $('#edit_user_topup');
 
         if (!deptId) {
@@ -266,7 +270,10 @@ const VoucherTaxiEditForm = {
             return;
         }
 
-        fetch(`/vouchertaxi/employee-by-department?department_id=${encodeURIComponent(deptId)}`, {
+        let url = `/vouchertaxi/employee-by-department?department_id=${encodeURIComponent(deptId)}`;
+        if (cpnyId) url += `&cpny_id=${encodeURIComponent(cpnyId)}`;
+
+        fetch(url, {
             headers: {
                 'X-CSRF-TOKEN': VoucherTaxi.csrf(),
                 'X-Requested-With': 'XMLHttpRequest',

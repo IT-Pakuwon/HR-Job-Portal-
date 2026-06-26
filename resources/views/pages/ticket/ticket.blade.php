@@ -419,23 +419,12 @@
                         </label>
 
                         <select id="filter_status"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
 
-                            <option value="">
-                                All Status
-                            </option>
-
-                            <option value="P">
-                                Open
-                            </option>
-
-                            <option value="C">
-                                Completed
-                            </option>
-
-                            <option value="X">
-                                Cancelled
-                            </option>
+                            <option value="">All Status</option>
+                            <option value="P">Open</option>
+                            <option value="C">Completed</option>
+                            <option value="X">Cancelled</option>
 
                         </select>
 
@@ -451,47 +440,19 @@
                         </label>
 
                         <select id="filter_status_pekerjaan"
-                            class="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-800">
+                            class="filter-select2 w-full rounded-lg border border-gray-300 bg-white text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
 
-                            <option value="">
-                                All Workflow
-                            </option>
-
-                            <option value="CREATED">
-                                Created
-                            </option>
-
-                            <option value="RESPONSE">
-                                Response
-                            </option>
-
-                            <option value="PROCESS">
-                                Process
-                            </option>
-
-                            <option value="PENDING">
-                                Pending
-                            </option>
-
-                            <option value="ENVISION">
-                                Envision
-                            </option>
-
-                            <option value="TRANSFER">
-                                Transfer
-                            </option>
-
-                            <option value="REOPEN">
-                                Reopen
-                            </option>
-
-                            <option value="COMPLETED">
-                                Completed
-                            </option>
-
-                            <option value="CANCEL">
-                                Cancelled
-                            </option>
+                            <option value="">All Workflow</option>
+                            <option value="CREATED">Created</option>
+                            <option value="RESPONSE">Response</option>
+                            <option value="PROCESS">Process</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="ENVISION">Envision</option>
+                            <option value="ENVISION CHECKED / SOLVED">Envision Solved</option>
+                            <option value="TRANSFER">Transfer</option>
+                            <option value="REOPEN">Reopen</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="CANCEL">Cancelled</option>
 
                         </select>
 

@@ -389,12 +389,16 @@ class VoucherTaxiController extends Controller
 
     public function employeeByDepartment(Request $request)
     {
-        $employees = User::query()
+        $query = User::query()
             ->where('status', 'A')
             ->where('department_id', $request->department_id)
-            ->select('username', 'name')
-            ->orderBy('name')
-            ->get();
+            ->select('username', 'name');
+
+        if ($request->filled('cpny_id')) {
+            $query->where('cpny_id', $request->cpny_id);
+        }
+
+        $employees = $query->orderBy('name')->get();
 
         return response()->json([
             'success' => true,

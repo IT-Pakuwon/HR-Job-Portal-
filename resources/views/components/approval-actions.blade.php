@@ -1,6 +1,7 @@
 @props([
     'status',
     'isApprover' => false,
+    'canEdit' => false,
     'hasBlockingIm' => false,
     'imBlockingId' => null,
     'imBlockingStatus' => null,
@@ -9,8 +10,8 @@
 
 <div class="mb-4 flex items-center justify-end">
     <div class="flex gap-3">
-        @if ($status === 'D')
-            {{-- Status Revise: only show Edit button --}}
+        @if ($status === 'D' || $status === 'H' || ($status === 'P' && $canEdit))
+            {{-- Status Revise (D), Hold (H), or On Progress (P) with edit permission: show Edit button --}}
             @if ($editUrl)
                 <a href="{{ $editUrl }}">
                     <button

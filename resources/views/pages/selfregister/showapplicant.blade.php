@@ -14,6 +14,34 @@
                         <div class="absolute inset-0" style="background-image:radial-gradient(circle at 15% 60%,rgba(165,180,252,.35) 0,transparent 55%),radial-gradient(circle at 85% 20%,rgba(139,92,246,.3) 0,transparent 50%)"></div>
                         {{-- PDF buttons inside banner --}}
                         <div class="absolute right-4 top-4 flex-shrink-0 flex gap-2">
+            {{-- ── Action Dropdown ──────────────────── --}}
+            @if (!in_array($career->status ?? '', ['R', 'X']))
+            <div class="relative" x-data="{ actOpen: false }" @click.outside="actOpen = false">
+                <button @click="actOpen = !actOpen"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-white/30 bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/30">
+                    ⚡ Actions
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="actOpen" x-cloak x-transition
+                    class="absolute right-0 top-full z-50 mt-1 w-44 rounded-xl border border-gray-100 bg-white py-1 shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                    <button data-slf-action="tag"
+                        class="flex w-full items-center gap-2 px-4 py-2 text-left text-xs font-medium text-indigo-700 hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-900/30">
+                        🏷️ Tagging
+                    </button>
+                    <button data-slf-action="map"
+                        class="flex w-full items-center gap-2 px-4 py-2 text-left text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-900/30">
+                        🔗 Mapping
+                    </button>
+                    <div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>
+                    <button data-slf-action="reject"
+                        class="flex w-full items-center gap-2 px-4 py-2 text-left text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30">
+                        ✕ Reject
+                    </button>
+                </div>
+            </div>
+            @endif
                             <form action="{{ route('applicantprofile.pdf') }}" method="POST" target="_blank">
                                 @csrf
                                 <input type="hidden" name="applicant_id"  value="{{ $applicant->applicant_id ?? '' }}">
@@ -822,5 +850,178 @@
             });
         });
     </script>
+
+<!-- Tagging Modal — same as selfapplicant -->
+<div id="taggingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+        <div class="mb-5 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-gray-800">Tag Applicant</h2>
+            <button id="closeTaggingModal" class="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+        </div>
+        <input type="hidden" id="tagApplicantId" value="{{ $hash }}">
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+            <select id="tagDivisionSelect" class="w-full" style="width:100%">
+                <option value="">-- Select Division --</option>
+                @php $showDivisions = \App\Models\Division::select('division_id','division_name')->where('status','A')->orderBy('division_name')->get(); @endphp
+                @foreach($showDivisions as $div)
+                    <option value="{{ $div->division_id }}">{{ $div->division_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+            <select id="tagDeptSelect" class="w-full" style="width:100%">
+                <option value="">-- Select Division first --</option>
+            </select>
+        </div>
+        <div class="flex justify-end gap-3">
+            <button id="closeTaggingModalBtn" class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button id="saveTagging" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700">Save Tag</button>
+        </div>
+    </div>
+</div>
+
+<!-- Mapping Modal — same as selfapplicant -->
+<div id="mappingModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="w-full max-w-5xl transform rounded-2xl bg-white p-8 shadow-2xl transition-all duration-300 scale-95 opacity-0" id="mappingModalContent">
+        <div class="mb-5 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-800">Mapping Applicant</h2>
+                <p class="text-sm text-gray-500">Assign candidate to job posting</p>
+            </div>
+            <button id="closeMappingModal" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+        </div>
+        <input type="hidden" id="mapApplicantId" value="{{ $hash }}">
+        <div class="mb-8 flex items-center gap-4 w-full">
+            <div class="min-w-[200px] rounded-xl bg-gray-100 px-5 py-3 text-center text-base font-semibold text-gray-700 shadow-inner">
+                <span id="mapDocId">{{ $career->docid ?? '' }}</span>
+            </div>
+            <div class="text-gray-400 text-2xl">→</div>
+            <div class="flex-1 min-w-0">
+                <select id="jobPostingSelect" class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 hover:border-gray-400 transition"></select>
+            </div>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button id="closeMappingModalBtn" class="rounded-lg px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700">Cancel</button>
+            <button id="saveMapping" class="rounded-xl px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow">Save Mapping</button>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function () {
+    // ── Action dropdown buttons ──────────────────────────────────
+    $(document).on('click', '[data-slf-action]', function () {
+        const action = $(this).data('slf-action');
+
+        if (action === 'tag') {
+            $('#tagApplicantId').val(@json($hash));
+            $('#taggingModal').removeClass('hidden').addClass('flex');
+
+        } else if (action === 'map') {
+            $('#mapApplicantId').val(@json($hash));
+            loadJobPostings();
+            $('#mappingModal').removeClass('hidden').addClass('flex');
+            setTimeout(() => {
+                $('#mappingModalContent').removeClass('scale-95 opacity-0').addClass('scale-100 opacity-100');
+            }, 10);
+
+        } else if (action === 'reject') {
+            Swal.fire({
+                title: 'Reject Applicant',
+                text: 'Are you sure you want to reject this applicant?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Reject',
+                confirmButtonColor: '#dc2626',
+            }).then(result => {
+                if (!result.isConfirmed) return;
+                $.post("{{ route('applicant.reject.store') }}", {
+                    applicant_id: @json($hash),
+                    _token: '{{ csrf_token() }}'
+                }).done(function () {
+                    Swal.fire({ icon: 'success', title: 'Rejected', timer: 1200, showConfirmButton: false });
+                    setTimeout(() => location.reload(), 1300);
+                }).fail(function () {
+                    Swal.fire('Error', 'Failed to reject.', 'error');
+                });
+            });
+        }
+    });
+
+    // ── Tagging ──────────────────────────────────────────────────
+    $('#tagDivisionSelect').select2({ dropdownParent: $('#taggingModal'), placeholder: '🔍 Search Division...', width: '100%', allowClear: true });
+
+    function initDeptSelect2() {
+        const $dept = $('#tagDeptSelect');
+        if ($dept.hasClass('select2-hidden-accessible')) $dept.select2('destroy');
+        $dept.select2({ dropdownParent: $('#taggingModal'), placeholder: '🔍 Search Department...', width: '100%', allowClear: true });
+    }
+    initDeptSelect2();
+
+    $('#tagDivisionSelect').on('change', function () {
+        const divId = $(this).val();
+        const $dept = $('#tagDeptSelect');
+        if ($dept.hasClass('select2-hidden-accessible')) $dept.select2('destroy');
+        $dept.html('<option value="">-- Select Division first --</option>');
+        initDeptSelect2();
+        if (!divId) return;
+        $dept.html('<option value="">Loading...</option>');
+        $.get("{{ route('applicant.departments') }}", { division_id: divId }, function (data) {
+            if ($dept.hasClass('select2-hidden-accessible')) $dept.select2('destroy');
+            $dept.html('<option value="">-- Select Department --</option>');
+            data.forEach(d => $dept.append(`<option value="${d.department_id}">${d.department_name}</option>`));
+            initDeptSelect2();
+        });
+    });
+
+    $('#saveTagging').on('click', function () {
+        const divisionId   = $('#tagDivisionSelect').val();
+        const departmentId = $('#tagDeptSelect').val();
+        if (!divisionId || !departmentId) { Swal.fire('Incomplete', 'Please select both division and department.', 'warning'); return; }
+        $.post("{{ route('applicant.tag.store') }}", {
+            applicant_id: @json($hash), division_id: divisionId, department_id: departmentId, _token: '{{ csrf_token() }}'
+        }).done(function () {
+            Swal.fire({ icon: 'success', title: 'Tagged!', timer: 1200, showConfirmButton: false });
+            $('#taggingModal').addClass('hidden').removeClass('flex');
+        }).fail(function () { Swal.fire('Error', 'Failed to save tag.', 'error'); });
+    });
+
+    $('#closeTaggingModal, #closeTaggingModalBtn').on('click', function () {
+        $('#taggingModal').addClass('hidden').removeClass('flex');
+    });
+
+    // ── Mapping ──────────────────────────────────────────────────
+    function closeMappingModal() {
+        $('#mappingModalContent').removeClass('scale-100 opacity-100').addClass('scale-95 opacity-0');
+        setTimeout(() => $('#mappingModal').addClass('hidden').removeClass('flex'), 200);
+    }
+    $('#closeMappingModal, #closeMappingModalBtn').on('click', closeMappingModal);
+
+    function loadJobPostings() {
+        $.get("{{ route('jobposting.list') }}", function (res) {
+            let $select = $('#jobPostingSelect');
+            $select.empty().append('<option value="">Select Job Posting</option>');
+            res.forEach(item => $select.append(`<option value="${item.docid}">${item.docid} - ${item.job_name}</option>`));
+            if ($select.hasClass('select2-hidden-accessible')) $select.select2('destroy');
+            $select.select2({ dropdownParent: $('#mappingModal'), placeholder: '🔍 Search Job Posting...', width: '100%', allowClear: true });
+        });
+    }
+
+    $('#saveMapping').on('click', function () {
+        const jobId = $('#jobPostingSelect').val();
+        if (!jobId) { Swal.fire('Incomplete', 'Please select a job posting.', 'warning'); return; }
+        $.post("{{ route('applicant.mapping.store') }}", {
+            applicant_id: @json($hash), jobposting_docid: jobId, _token: '{{ csrf_token() }}'
+        }).done(function () {
+            Swal.fire({ icon: 'success', title: 'Mapped!', timer: 1200, showConfirmButton: false });
+            closeMappingModal();
+        }).fail(function (xhr) {
+            Swal.fire('Error', xhr.responseJSON?.error || xhr.responseJSON?.message || 'Failed to map.', 'error');
+        });
+    });
+});
+</script>
 
 </x-app-layout>

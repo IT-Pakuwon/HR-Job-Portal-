@@ -158,13 +158,38 @@ class ItRecommendationController extends Controller
         $recordsTotal = (clone $base)->count();
 
         if ($search !== '') {
-            $base->where(function ($q) use ($search) {
+            $statusMap = [
+                'waiting it revision' => ['I'],
+                'waiting it'          => ['W', 'I'],
+                'waiting approval'    => ['P'],
+                'waiting'             => ['W', 'I', 'P'],
+                'completed'           => ['C'],
+                'rejected'            => ['R'],
+                'revise'              => ['D'],
+                'cancelled'           => ['X'],
+            ];
+
+            $matchedStatuses = [];
+            $searchLower = strtolower($search);
+            foreach ($statusMap as $keyword => $codes) {
+                if (str_contains($searchLower, $keyword)) {
+                    $matchedStatuses = array_unique(array_merge($matchedStatuses, $codes));
+                    break;
+                }
+            }
+
+            $base->where(function ($q) use ($search, $matchedStatuses) {
                 $q->where('docid', 'ilike', "%{$search}%")
                     ->orWhere('ticketnbr', 'ilike', "%{$search}%")
                     ->orWhere('cpny_id', 'ilike', "%{$search}%")
                     ->orWhere('department_id', 'ilike', "%{$search}%")
+                    ->orWhere('user_peminta', 'ilike', "%{$search}%")
                     ->orWhere('keperluan', 'ilike', "%{$search}%")
                     ->orWhere('recommend_pic', 'ilike', "%{$search}%");
+
+                if (!empty($matchedStatuses)) {
+                    $q->orWhereIn('status', $matchedStatuses);
+                }
             });
         }
 
