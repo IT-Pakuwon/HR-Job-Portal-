@@ -291,6 +291,7 @@
 
     <script>
         var currentUser = "{{ auth()->user()->username }}";
+        var canRemap = {{ auth()->user()->hasRole('RECACCALLDEPT') ? 'true' : 'false' }};
     </script>
 
 
@@ -541,6 +542,8 @@
                         searchable: false,
                         className: 'text-center',
                         render: function(data, type, row) {
+
+                            if (!canRemap) return `<span class="text-xs text-gray-400">—</span>`;
 
                             // ❌ REJECTED
                             if (row.status === 'R') {

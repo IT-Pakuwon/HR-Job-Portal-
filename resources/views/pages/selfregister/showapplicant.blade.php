@@ -15,7 +15,7 @@
                         {{-- PDF buttons inside banner --}}
                         <div class="absolute right-4 top-4 flex-shrink-0 flex gap-2">
             {{-- ── Action Dropdown ──────────────────── --}}
-            @if (!in_array($career->status ?? '', ['R', 'X']))
+            @if (!in_array($career->status ?? '', ['R', 'X']) && auth()->user()->hasRole('RECACCALLDEPT'))
             <div class="relative" x-data="{ actOpen: false }" @click.outside="actOpen = false">
                 <button @click="actOpen = !actOpen"
                     class="inline-flex items-center gap-1.5 rounded-lg border border-white/30 bg-white/20 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/30">

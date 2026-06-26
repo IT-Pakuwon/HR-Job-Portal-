@@ -38,7 +38,7 @@
     </div>
 
     {{-- ── Document Actions ─────────────────────────────────────── --}}
-    @if (!in_array($career->status ?? '', ['T', 'C', 'R', 'X']))
+    @if (!in_array($career->status ?? '', ['T', 'C', 'R', 'X']) && auth()->user()->hasRole('RECACCALLDEPT'))
     <div class="flex justify-end border-b border-gray-100 px-4 py-2 dark:border-gray-700/60">
         <button id="remapBtn"
             class="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700 transition hover:bg-violet-100 dark:border-violet-700/30 dark:bg-violet-900/20 dark:text-violet-300">
