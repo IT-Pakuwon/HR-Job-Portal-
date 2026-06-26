@@ -138,10 +138,18 @@
                 <h1 id="parkingTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
                     Parking Registration
                 </h1>
-                <a id="createParkingBtn" href="{{ url('/createparkingregistration') }}"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                    <i class="fas fa-plus pr-2"></i>Create
-                </a>
+                <div class="flex items-center gap-2">
+                    @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
+                        <a href="{{ route('kendaraan') }}"
+                            class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 transition-colors duration-200 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-500/10">
+                            <i class="fas fa-car pr-2"></i>Master Kendaraan
+                        </a>
+                    @endif
+                    <a id="createParkingBtn" href="{{ url('/createparkingregistration') }}"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        <i class="fas fa-plus pr-2"></i>Create
+                    </a>
+                </div>
             </div>
             
             <div id="masterFilterBox" class="mb-4 hidden rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">

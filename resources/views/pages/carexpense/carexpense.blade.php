@@ -79,13 +79,13 @@
             </div>
 
             {{-- Filter Row --}}
-            <div class="flex flex-wrap items-end gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
+            <div class="grid w-full grid-cols-4 items-end gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
 
                 <div class="flex flex-col gap-1">
                     <label class="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Nopol</label>
                     <select id="filterNopol"
-                        class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
-                        <option value="">All</option>
+                        class="select2-filter w-full rounded-lg border border-slate-200 bg-white text-sm text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
+                        <option value="">All Nopol</option>
                         @foreach ($kendaraan as $k)
                             <option value="{{ $k->no_polisi }}">{{ $k->no_polisi }}</option>
                         @endforeach
@@ -95,19 +95,21 @@
                 <div class="flex flex-col gap-1">
                     <label class="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">From</label>
                     <input type="date" id="filterDateFrom"
-                        class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
+                        class="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
                 </div>
 
                 <div class="flex flex-col gap-1">
                     <label class="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">To</label>
                     <input type="date" id="filterDateTo"
-                        class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
+                        class="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
                 </div>
 
-                <button type="button" id="btnResetFilters"
-                    class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-500 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:bg-white/[0.08]">
-                    <i class="fa-solid fa-rotate-left mr-1 text-xs"></i> Reset
-                </button>
+                <div class="flex items-end">
+                    <button type="button" id="btnResetFilters"
+                        class="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-500 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:bg-white/[0.08]">
+                        <i class="fa-solid fa-rotate-left mr-1 text-xs"></i> Reset
+                    </button>
+                </div>
 
             </div>
 
@@ -1149,6 +1151,12 @@
         $(document).ready(function() {
             $('.select2').select2({ width: '100%' });
 
+            $('#filterNopol').select2({
+                width: '100%',
+                allowClear: true,
+                placeholder: 'All Nopol',
+            });
+
             let currentFilter  = '';
             let currentNopol   = '';
             let currentDateFrom = '';
@@ -1258,8 +1266,8 @@
             });
 
             // Nopol & date range filters
-            document.getElementById('filterNopol').addEventListener('change', function() {
-                currentNopol = this.value;
+            $('#filterNopol').on('change', function() {
+                currentNopol = $(this).val() ?? '';
                 window.carExpenseTable.ajax.reload(null, true);
             });
 
@@ -1274,7 +1282,7 @@
             });
 
             document.getElementById('btnResetFilters').addEventListener('click', function() {
-                document.getElementById('filterNopol').value = '';
+                $('#filterNopol').val('').trigger('change');
                 document.getElementById('filterDateFrom').value = '';
                 document.getElementById('filterDateTo').value = '';
                 currentNopol   = '';

@@ -13,28 +13,13 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-white">Company</label>
-                    <select id="filterCompany" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                        <option value="">All Company</option>
-                        @foreach ($companies as $company)
-                            <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex items-end gap-2">
-                    <button type="button" id="btnFilter"
-                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
-                        Filter
-                    </button>
-                    <button type="button" id="btnResetFilter"
-                        class="rounded-lg bg-gray-500 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-600">
-                        Reset
-                    </button>
-                </div>
-            </div>
+            {{-- Company filter hidden --}}
+            <select id="filterCompany" class="hidden">
+                <option value="">All Company</option>
+                @foreach ($companies as $company)
+                    <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
+                @endforeach
+            </select>
 
             <div class="rounded-base relative overflow-x-auto">
                 <table id="kendaraanTable" class="text-body w-full text-left text-sm rtl:text-right">
@@ -42,7 +27,7 @@
                         <tr>
                             <th></th>
                             <th class="w-32 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Company</th>
+                            <th class="hidden">Company</th>
                             <th class="px-4 py-3 text-left">No Polisi</th>
                             <th class="px-4 py-3 text-left">Nama Kendaraan</th>
                             <th class="px-4 py-3 text-left">Kategori Kendaraan</th>
@@ -57,63 +42,102 @@
             </div>
         </div>
 
-        <div id="kendaraanModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
-            <div class="relative w-full max-w-3xl rounded-lg bg-white p-4 dark:bg-gray-700">
-                <h2 id="modalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Kendaraan</h2>
+        <div id="kendaraanModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
 
-                <form id="kendaraanForm">
+            <div class="absolute inset-0 bg-slate-900/60 dark:bg-black/70" id="kendaraanModalBackdrop"></div>
+
+            <div class="relative z-10 flex max-h-[95vh] w-full max-w-2xl flex-col overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0f172a]">
+
+                {{-- Header --}}
+                <div class="flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    <div>
+                        <h2 id="modalTitle" class="text-xl font-bold text-slate-900 dark:text-white">Add Kendaraan</h2>
+                        <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Fill in the vehicle information below.</p>
+                    </div>
+                    <button type="button" id="closeModal"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                {{-- Body --}}
+                <form id="kendaraanForm" class="flex flex-col">
                     @csrf
                     <input type="hidden" id="id" name="id">
 
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Company</label>
-                            <select id="cpny_id" name="cpny_id" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                                <option value="">-- Select Company --</option>
-                                @foreach ($companies as $company)
-                                    <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                    {{-- Company hidden --}}
+                    <select id="cpny_id" name="cpny_id" class="hidden">
+                        <option value="">-- Select Company --</option>
+                        @foreach ($companies as $company)
+                            <option value="{{ $company->cpny_id }}">{{ $company->cpny_id }} - {{ $company->cpny_name }}</option>
+                        @endforeach
+                    </select>
 
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">No Polisi</label>
-                            <input type="text" id="no_polisi" name="no_polisi" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
+                    <div class="bg-slate-50 p-6 dark:bg-[#0b1220]">
+                        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
+                            <div class="border-b border-slate-200 px-5 py-2 dark:border-white/10">
+                                <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Vehicle Information</h3>
+                            </div>
+                            <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
 
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Nama Kendaraan</label>
-                            <input type="text" id="namakendaraan" name="namakendaraan" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
-                        </div>
+                                <div>
+                                    <label class="req mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">No Polisi</label>
+                                    <input type="text" id="no_polisi" name="no_polisi" required placeholder="e.g. B 1234 ABC"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 placeholder-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder-slate-500">
+                                </div>
 
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Kategori Kendaraan</label>
-                            <input type="text"
-                                id="kategori_kendaraan"
-                                name="kategori_kendaraan"
-                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Type Kendaraan</label>
-                            <input type="text" id="typekendaraan" name="typekendaraan" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                        </div>
+                                <div>
+                                    <label class="req mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Nama Kendaraan</label>
+                                    <input type="text" id="namakendaraan" name="namakendaraan" required placeholder="e.g. Toyota Kijang Innova"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 placeholder-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder-slate-500">
+                                </div>
 
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Merk Kendaraan</label>
-                            <input type="text" id="merk_kendaraan" name="merk_kendaraan" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
-                        </div>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Kategori Kendaraan</label>
+                                    <input type="text" id="kategori_kendaraan" name="kategori_kendaraan" placeholder="e.g. Operational"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 placeholder-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder-slate-500">
+                                </div>
 
-                        <div>
-                            <label class="block text-gray-700 dark:text-white">Pemilik Kendaraan</label>
-                            <input type="text" id="pemilikkendaraan" name="pemilikkendaraan" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Type Kendaraan</label>
+                                    <select id="typekendaraan" name="typekendaraan"
+                                        class="select2 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                        <option value="">-- Select Type --</option>
+                                        <option value="MOBIL">Mobil</option>
+                                        <option value="MOTOR">Motor</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Merk Kendaraan</label>
+                                    <input type="text" id="merk_kendaraan" name="merk_kendaraan" placeholder="e.g. Toyota"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 placeholder-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder-slate-500">
+                                </div>
+
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Pemilik Kendaraan</label>
+                                    <input type="text" id="pemilikkendaraan" name="pemilikkendaraan" placeholder="e.g. PT AW"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 placeholder-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder-slate-500">
+                                </div>
+
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mt-4 flex justify-end space-x-2">
-                        <button type="button" id="closeModal" class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
-                        <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                    {{-- Footer --}}
+                    <div class="flex items-center justify-end gap-3 border-t border-slate-200 bg-white/95 px-6 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                        <button type="button" id="closeModalFooter"
+                            class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white transition hover:bg-indigo-500">
+                            <i class="fa-solid fa-floppy-disk text-xs"></i>
+                            Save
+                        </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
@@ -141,9 +165,11 @@
                 },
                 columnDefs: [
                     { targets: 0, width: '28px', className: 'dtr-control', orderable: false, searchable: false },
-                    { targets: 1, orderable: false, searchable: false }
+                    { targets: 1, orderable: false, searchable: false },
+                    { targets: 2, visible: false },
                 ],
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                buttons: ['excel', 'csv'],
                 columns: [
                     { data: null, defaultContent: '' },
                     {
@@ -190,10 +216,18 @@
                 table.ajax.reload(null, true);
             });
 
+            $('#typekendaraan').select2({
+                width: '100%',
+                placeholder: '-- Select Type --',
+                allowClear: true,
+                dropdownParent: $('#kendaraanModal'),
+            });
+
             $('#addKendaraanBtn').click(function() {
                 $('#modalTitle').text("Add Kendaraan");
                 $('#kendaraanForm')[0].reset();
                 $('#id').val('');
+                $('#typekendaraan').val('').trigger('change');
                 $('#kendaraanModal').removeClass('hidden').addClass('flex');
             });
 
@@ -207,7 +241,7 @@
                     $('#no_polisi').val(c.no_polisi);
                     $('#namakendaraan').val(c.namakendaraan);
                     $('#kategori_kendaraan').val(c.kategori_kendaraan);
-                    $('#typekendaraan').val(c.typekendaraan);
+                    $('#typekendaraan').val(c.typekendaraan).trigger('change');
                     $('#merk_kendaraan').val(c.merk_kendaraan);
                     $('#pemilikkendaraan').val(c.pemilikkendaraan);
                     $('#kendaraanModal').removeClass('hidden').addClass('flex');
@@ -236,6 +270,10 @@
                 let url = id ? `/kendaraan/${id}` : "{{ route('kendaraan.store') }}";
                 let formData = new FormData(document.getElementById('kendaraanForm'));
 
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
+
                 $.ajax({
                     url: url,
                     type: 'POST',
@@ -247,6 +285,7 @@
                         $('#kendaraanModal').addClass('hidden').removeClass('flex');
                         $('#kendaraanForm')[0].reset();
                         $('#id').val('');
+                        $('#typekendaraan').val('').trigger('change');
                         table.ajax.reload(null, false);
                     },
                     error: function(xhr) {
@@ -256,7 +295,7 @@
                 });
             });
 
-            $('#closeModal').click(function() {
+            $('#closeModal, #closeModalFooter, #kendaraanModalBackdrop').click(function() {
                 $('#kendaraanModal').addClass('hidden').removeClass('flex');
             });
         });
