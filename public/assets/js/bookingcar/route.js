@@ -8,8 +8,9 @@ const BookingCarRoute = {
     // --------------------------------------------------------
     // STATE
     // --------------------------------------------------------
-    createIndex: 0,
-    editIndex:   0,
+    createIndex:  0,
+    editIndex:    0,
+    processIndex: 0,
 
     // --------------------------------------------------------
     // INIT — called once on page load
@@ -17,6 +18,7 @@ const BookingCarRoute = {
     init() {
         BookingCarRoute.initCreate();
         BookingCarRoute.initEdit();
+        BookingCarRoute.initProcess();
     },
 
     // --------------------------------------------------------
@@ -200,6 +202,93 @@ const BookingCarRoute = {
         });
 
         return routes;
+    },
+
+    // --------------------------------------------------------
+    // PROCESS FORM (GA edit route during processing)
+    // --------------------------------------------------------
+    initProcess() {
+        const addBtn = document.getElementById('gaProcessAddRouteBtn');
+        const tbody  = document.getElementById('gaProcessRouteTableBody');
+
+        if (!addBtn || !tbody) return;
+
+        addBtn.addEventListener('click', () => {
+            BookingCarRoute.addProcessRow();
+        });
+
+        tbody.addEventListener('click', (e) => {
+            const btn = e.target.closest('.remove-route-btn');
+            if (!btn) return;
+
+            const row = btn.closest('tr');
+            if (!row) return;
+
+            if (tbody.querySelectorAll('tr').length <= 1) {
+                BookingCar.toast('warning', 'At least one route is required.');
+                return;
+            }
+
+            row.remove();
+            BookingCarRoute.reindexProcess();
+        });
+    },
+
+    addProcessRow(origin = '', destination = '') {
+        const tbody = document.getElementById('gaProcessRouteTableBody');
+        if (!tbody) return;
+
+        const index = tbody.querySelectorAll('tr').length;
+        tbody.insertAdjacentHTML(
+            'beforeend',
+            BookingCarHelper.renderEditableRouteRow(index, origin, destination)
+        );
+
+        BookingCarRoute.processIndex = tbody.querySelectorAll('tr').length;
+    },
+
+    reindexProcess() {
+        const tbody = document.getElementById('gaProcessRouteTableBody');
+        if (!tbody) return;
+
+        tbody.querySelectorAll('tr').forEach((row, i) => {
+            row.dataset.routeIndex = i;
+
+            const numCell = row.querySelector('td:first-child');
+            if (numCell) numCell.textContent = i + 1;
+        });
+    },
+
+    loadProcessRoutes(details) {
+        const tbody = document.getElementById('gaProcessRouteTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        BookingCarRoute.processIndex = 0;
+
+        if (!details || details.length === 0) {
+            BookingCarRoute.addProcessRow();
+            return;
+        }
+
+        details.forEach((route) => {
+            BookingCarRoute.addProcessRow(
+                route.origin      ?? '',
+                route.destination ?? ''
+            );
+        });
+    },
+
+    getProcessRoutes() {
+        return BookingCarRoute._collectRoutes('gaProcessRouteTableBody');
+    },
+
+    clearProcess() {
+        const tbody = document.getElementById('gaProcessRouteTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        BookingCarRoute.processIndex = 0;
+        BookingCarRoute.addProcessRow();
     },
 
     // Validate — returns true if all rows have both fields filled

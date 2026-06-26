@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\CarExpenseTemplateExport;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Imports\CarExpenseImport;
 use App\Models\MsCategory;
 use App\Models\TrAttachment;
 use App\Models\TrCarExpense;
@@ -10,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Vinkla\Hashids\Facades\Hashids;
 
 class CarExpenseController extends Controller
@@ -511,5 +515,248 @@ class CarExpenseController extends Controller
         }
 
         return app(TrAttachmentController::class)->deleteAttachment((int) $id);
+    }
+
+    public function downloadTemplate()
+    {
+        $user = $this->gateGA();
+
+        if (!$user) {
+            abort(403, 'Unauthorized');
+        }
+
+        return Excel::download(new CarExpenseTemplateExport(), 'car_expense_import_template.xlsx');
+    }
+
+    // ---- shared parse helper ----
+    private function parseCarExpenseFile(\Illuminate\Http\UploadedFile $file): array
+    {
+        $costTypeMap = MsCategory::where('groups', 'CAR COST')
+            ->where('status', 'A')
+            ->get(['id', 'category_name'])
+            ->keyBy(fn ($c) => strtolower(trim($c->category_name)));
+
+        $import = new CarExpenseImport();
+        Excel::import($import, $file);
+
+        $rows   = $import->getRows()->filter(fn ($r) => $r->filter(fn ($v) => $v !== null && $v !== '')->isNotEmpty());
+        $errors = [];
+        $valid  = [];
+        $line   = 1;
+
+        foreach ($rows as $row) {
+            $line++;
+            $rowArr    = $row->values()->toArray();
+            $rowErrors = [];
+
+            $dateRaw  = $rowArr[0] ?? null;
+            $nopol    = trim((string) ($rowArr[1] ?? ''));
+            $driver   = trim((string) ($rowArr[2] ?? ''));
+            $costType = trim((string) ($rowArr[3] ?? ''));
+            $descr    = trim((string) ($rowArr[4] ?? ''));
+            $qty      = $rowArr[5] ?? null;
+            $amount   = $rowArr[6] ?? null;
+
+            // Normalise date: DateTime object, Excel serial float, or plain string
+            $parsedDate = null;
+            if ($dateRaw instanceof \DateTimeInterface) {
+                $parsedDate = \Carbon\Carbon::instance($dateRaw)->format('Y-m-d');
+            } elseif (is_numeric($dateRaw) && $dateRaw > 0) {
+                try {
+                    $parsedDate = \Carbon\Carbon::instance(
+                        \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $dateRaw)
+                    )->format('Y-m-d');
+                } catch (\Throwable $e) {
+                    $parsedDate = null;
+                }
+            } else {
+                $str = trim((string) $dateRaw);
+                if (!empty($str)) {
+                    try { $parsedDate = \Carbon\Carbon::parse($str)->format('Y-m-d'); }
+                    catch (\Throwable $e) { $parsedDate = null; }
+                }
+            }
+
+            if ($parsedDate === null) {
+                $rowErrors[] = 'DATE is required or format invalid (use YYYY-MM-DD)';
+            }
+            if (empty($nopol))   { $rowErrors[] = 'NOPOL is required'; }
+            if (empty($driver))  { $rowErrors[] = 'DRIVER is required'; }
+
+            $resolvedType = null;
+            if (empty($costType)) {
+                $rowErrors[] = 'COST_TYPE is required';
+            } else {
+                $resolvedType = $costTypeMap[strtolower($costType)] ?? null;
+                if (!$resolvedType) {
+                    $names = implode(', ', $costTypeMap->keys()->map(fn ($k) => ucfirst($k))->toArray());
+                    $rowErrors[] = "COST_TYPE '{$costType}' not valid. Valid: {$names}";
+                }
+            }
+
+            if (empty($descr)) { $rowErrors[] = 'DESCRIPTION is required'; }
+            if (!is_numeric($qty)    || (float) $qty    < 1) { $rowErrors[] = 'QTY must be a number ≥ 1'; }
+            if (!is_numeric($amount) || (float) $amount < 0) { $rowErrors[] = 'AMOUNT must be a number ≥ 0'; }
+
+            if (!empty($rowErrors)) {
+                $errors[] = ['row' => $line, 'errors' => $rowErrors];
+            } else {
+                $valid[] = [
+                    'row'         => $line,
+                    'ref_date'    => $parsedDate,
+                    'nopol'       => $nopol,
+                    'driver'      => $driver,
+                    'cost_type'   => $resolvedType->id,
+                    'cost_type_name' => $resolvedType->category_name,
+                    'cost_descr'  => $descr,
+                    'cost_qty'    => (float) $qty,
+                    'cost_amount' => (float) $amount,
+                ];
+            }
+        }
+
+        return ['valid' => $valid, 'errors' => $errors];
+    }
+
+    public function importPreview(Request $request)
+    {
+        $user = $this->gateGA();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $request->validate(['file' => ['required', 'file', 'mimes:xlsx,xls', 'max:5120']]);
+
+        $parsed = $this->parseCarExpenseFile($request->file('file'));
+
+        if (!empty($parsed['errors'])) {
+            return response()->json([
+                'success' => false,
+                'message' => count($parsed['errors']) . ' row(s) have errors.',
+                'errors'  => $parsed['errors'],
+            ], 422);
+        }
+
+        if (empty($parsed['valid'])) {
+            return response()->json(['success' => false, 'message' => 'No data rows found in the file.'], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'rows'    => array_map(fn ($r) => [
+                'row'         => $r['row'],
+                'date'        => $r['ref_date'],
+                'nopol'       => $r['nopol'],
+                'driver'      => $r['driver'],
+                'cost_type'   => $r['cost_type_name'],
+                'description' => $r['cost_descr'],
+                'qty'         => $r['cost_qty'],
+                'amount'      => $r['cost_amount'],
+            ], $parsed['valid']),
+            'count' => count($parsed['valid']),
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $user = $this->gateGA();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'file'          => ['required', 'file', 'mimes:xlsx,xls', 'max:5120'],
+            'attachments'   => ['nullable', 'array'],
+            'attachments.*' => ['file', 'mimes:pdf,png,jpg,jpeg', 'max:5120'],
+        ]);
+
+        $parsed = $this->parseCarExpenseFile($request->file('file'));
+
+        if (!empty($parsed['errors'])) {
+            return response()->json([
+                'success' => false,
+                'message' => count($parsed['errors']) . ' row(s) have errors. Please fix and re-upload.',
+                'errors'  => $parsed['errors'],
+            ], 422);
+        }
+
+        if (empty($parsed['valid'])) {
+            return response()->json(['success' => false, 'message' => 'No data rows found in the file.'], 422);
+        }
+
+        DB::connection('pgsql5')->beginTransaction();
+
+        try {
+            $dt       = now();
+            $year     = (int) $dt->year;
+            $month    = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
+            $doctype  = 'CEX';
+            $created  = [];
+
+            foreach ($parsed['valid'] as $row) {
+                $auto   = $this->nextAutonbr($doctype, $year, $month, $user->username, 'Car Expense');
+                $tglbln = substr((string) $year, 2) . $month;
+                $refnbr = $doctype . $tglbln . sprintf('%03d', (int) $auto['next']);
+
+                TrCarExpense::create([
+                    'refnbr'      => $refnbr,
+                    'ref_date'    => $row['ref_date'],
+                    'nopol'       => $row['nopol'],
+                    'driver'      => $row['driver'],
+                    'cost_type'   => $row['cost_type'],
+                    'cost_descr'  => $row['cost_descr'],
+                    'cost_qty'    => $row['cost_qty'],
+                    'cost_amount' => $row['cost_amount'],
+                    'status'      => 'A',
+                    'created_by'  => $user->username,
+                    'created_at'  => $dt,
+                    'updated_by'  => $user->username,
+                    'updated_at'  => $dt,
+                ]);
+
+                $created[] = $refnbr;
+            }
+
+            DB::connection('pgsql5')->commit();
+
+            // Upload attachments to every created record
+            $attachmentFiles = $request->file('attachments') ?? [];
+            if (!empty($attachmentFiles) && !empty($created)) {
+                foreach ($created as $refnbr) {
+                    try {
+                        app(TrAttachmentController::class)->uploadInternal([
+                            'refnbr'      => $refnbr,
+                            'doctype'     => 'CEX',
+                            'cpny_id'     => null,
+                            'department_id' => null,
+                            'base_folder' => 'att-car-expense',
+                            'created_by'  => $user->username,
+                        ], $attachmentFiles);
+                    } catch (\Throwable $e) {
+                        Log::warning("CarExpense import: attachment upload failed for {$refnbr}", ['error' => $e->getMessage()]);
+                    }
+                }
+            }
+
+            $imported = count($created);
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$imported} record(s) imported successfully.",
+                'count'   => $imported,
+            ]);
+        } catch (\Throwable $e) {
+            DB::connection('pgsql5')->rollBack();
+
+            Log::error('CarExpense import error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

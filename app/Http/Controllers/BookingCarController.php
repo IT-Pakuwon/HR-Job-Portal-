@@ -852,14 +852,6 @@ class BookingCarController extends Controller
             );
 
             if ($firstApprovalUsernames) {
-                $booking->completed_by =
-                    is_array($firstApprovalUsernames)
-                    ? implode(',', $firstApprovalUsernames)
-                    : $firstApprovalUsernames;
-
-                $booking->completed_at =
-                    $dt;
-
                 $booking->save();
             }
 
@@ -1292,10 +1284,13 @@ class BookingCarController extends Controller
             }
 
             $validated = $request->validate([
-                'status_perjalanan' => ['nullable', 'string'],
-                'driver'            => ['nullable', 'string', 'max:255'],
-                'handphone'         => ['nullable', 'string', 'max:100'],
-                'no_polisi'         => ['nullable', 'string', 'max:100'],
+                'status_perjalanan'          => ['nullable', 'string'],
+                'driver'                     => ['nullable', 'string', 'max:255'],
+                'handphone'                  => ['nullable', 'string', 'max:100'],
+                'no_polisi'                  => ['nullable', 'string', 'max:100'],
+                'routes'                     => ['nullable', 'array'],
+                'routes.*.origin'            => ['required_with:routes', 'string', 'max:255'],
+                'routes.*.destination'       => ['required_with:routes', 'string', 'max:255'],
             ]);
 
             if (!empty($validated['status_perjalanan'])) {
@@ -1303,7 +1298,7 @@ class BookingCarController extends Controller
                     ->where('doctype', 'BCR')
                     ->where('groups', 'STATUS')
                     ->where('status', 'A')
-                    ->where('category_name', $validated['status_perjalanan'])
+                    ->whereRaw('TRIM(category_name) = ?', [trim($validated['status_perjalanan'])])
                     ->first();
 
                 if (!$statusPerjalanan) {
@@ -1341,6 +1336,26 @@ class BookingCarController extends Controller
                 }
 
                 $booking->save();
+
+                // Update routes if GA provided them
+                if (!empty($validated['routes'])) {
+                    TrBookingCarDetail::where('docid', $booking->docid)->delete();
+
+                    foreach ($validated['routes'] as $i => $route) {
+                        TrBookingCarDetail::create([
+                            'docid'         => $booking->docid,
+                            'cpny_id'       => $booking->cpny_id,
+                            'booking_order' => $i + 1,
+                            'origin'        => $route['origin'],
+                            'destination'   => $route['destination'],
+                            'status'        => 'A',
+                            'created_by'    => $booking->created_by,
+                            'created_at'    => now(),
+                            'updated_by'    => $user->username,
+                            'updated_at'    => now(),
+                        ]);
+                    }
+                }
             });
 
             $message = $lock

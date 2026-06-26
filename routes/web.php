@@ -1324,6 +1324,10 @@ Route::middleware(['auth'])->group(function () {
                 Route::put('/update/{eid}', 'update')->name('update');
                 Route::delete('/delete/{eid}', 'destroy')->name('delete');
 
+                Route::get('/download-template', 'downloadTemplate')->name('download-template');
+                Route::post('/import/preview', 'importPreview')->name('import.preview');
+                Route::post('/import', 'import')->name('import');
+
                 Route::post('/upload-attachment/{eid}', 'uploadAttachment')->name('upload-attachment');
                 Route::delete('/delete-attachment/{id}', 'destroyAttachment')->name('delete-attachment');
             });

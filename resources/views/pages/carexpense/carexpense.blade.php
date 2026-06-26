@@ -59,6 +59,16 @@
                 </h2>
 
                 <div class="flex items-center gap-3">
+                    <a href="{{ route('carexpense.download-template') }}"
+                        class="inline-flex h-10 items-center justify-center rounded-lg border border-emerald-600 px-5 text-sm font-medium text-emerald-600 transition hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-500/10">
+                        <i class="fa-solid fa-file-arrow-down mr-2 text-xs"></i>
+                        Template
+                    </a>
+                    <button type="button" id="btnOpenImport"
+                        class="inline-flex h-10 items-center justify-center rounded-lg border border-blue-600 px-5 text-sm font-medium text-blue-600 transition hover:bg-blue-50 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-500/10">
+                        <i class="fa-solid fa-file-import mr-2 text-xs"></i>
+                        Import
+                    </button>
                     <button type="button" id="btnOpenCreate"
                         class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                         <i class="fa-solid fa-plus mr-2 text-xs"></i>
@@ -552,6 +562,121 @@
 
         </div>
 
+        {{-- =========================================================
+             IMPORT MODAL
+        ========================================================= --}}
+        <div id="importModal" class="fixed inset-0 z-[50] hidden items-center justify-center p-4">
+
+            <div class="modal-backdrop absolute inset-0 bg-slate-900/60 opacity-0 transition-opacity duration-200 dark:bg-black/70"></div>
+
+            <div class="modal-panel modal-scroll relative z-10 flex max-h-[95vh] w-full max-w-3xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+
+                <div class="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-7 py-4 dark:border-white/10 dark:bg-[#0f172a]/90">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Import Car Expense</h2>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Upload an Excel file (.xlsx) using the provided template, then review before importing.</p>
+                    </div>
+                    <button id="btnCloseImportModal" type="button"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-5 p-6">
+
+                    {{-- Step 1: Excel file --}}
+                    <div>
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Step 1 — Excel File</p>
+
+                        <div id="importDropZone"
+                            class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center transition hover:border-blue-400 hover:bg-blue-50/30 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-blue-500/50 dark:hover:bg-blue-500/5">
+                            <i class="fa-solid fa-file-excel mb-3 text-3xl text-emerald-500"></i>
+                            <p class="text-sm font-medium text-slate-700 dark:text-slate-200">Click to choose or drag & drop</p>
+                            <p class="mt-1 text-xs text-slate-400">Accepted: .xlsx, .xls — Max 5 MB</p>
+                            <input type="file" id="importFileInput" accept=".xlsx,.xls" class="hidden">
+                        </div>
+
+                        <div id="importFileInfo" class="mt-2 hidden rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 dark:border-white/10 dark:bg-white/[0.03]">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-file-excel text-emerald-500"></i>
+                                <span id="importFileName" class="flex-1 truncate text-sm text-slate-700 dark:text-slate-200"></span>
+                                <button type="button" id="btnClearImportFile" class="text-slate-400 transition hover:text-red-500">
+                                    <i class="fa-solid fa-xmark text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Parsing spinner --}}
+                        <div id="importParsingBox" class="mt-3 hidden flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                            <i class="fa-solid fa-spinner fa-spin text-blue-500"></i> Parsing file...
+                        </div>
+
+                        {{-- Error list --}}
+                        <div id="importErrorBox" class="mt-3 hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10">
+                            <p class="mb-2 text-sm font-semibold text-red-700 dark:text-red-400">Please fix the following errors:</p>
+                            <ul id="importErrorList" class="space-y-1 text-sm text-red-600 dark:text-red-300"></ul>
+                        </div>
+                    </div>
+
+                    {{-- Preview table --}}
+                    <div id="importPreviewBox" class="hidden">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Preview — <span id="importPreviewCount" class="text-emerald-600 dark:text-emerald-400">0</span> row(s) ready to import
+                        </p>
+                        <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-white/10">
+                            <table class="w-full text-left text-xs">
+                                <thead class="border-b border-slate-100 bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-400">
+                                    <tr>
+                                        <th class="px-3 py-2">#</th>
+                                        <th class="px-3 py-2">Date</th>
+                                        <th class="px-3 py-2">Nopol</th>
+                                        <th class="px-3 py-2">Driver</th>
+                                        <th class="px-3 py-2">Cost Type</th>
+                                        <th class="px-3 py-2">Description</th>
+                                        <th class="px-3 py-2 text-right">Qty</th>
+                                        <th class="px-3 py-2 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="importPreviewBody" class="divide-y divide-slate-100 dark:divide-white/[0.04]"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- Step 2: Supporting documents --}}
+                    <div id="importAttachSection" class="hidden">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Step 2 — Supporting Documents <span class="normal-case font-normal">(optional)</span></p>
+
+                        <div id="importAttachDropZone"
+                            class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-6 text-center transition hover:border-blue-400 hover:bg-blue-50/30 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-blue-500/50 dark:hover:bg-blue-500/5">
+                            <i class="fa-solid fa-paperclip mb-2 text-2xl text-slate-400"></i>
+                            <p class="text-sm font-medium text-slate-700 dark:text-slate-200">Click to attach or drag & drop files</p>
+                            <p class="mt-1 text-xs text-slate-400">PDF, PNG, JPG, JPEG — Max 5 MB each</p>
+                            <input type="file" id="importAttachInput" accept=".pdf,.png,.jpg,.jpeg" multiple class="hidden">
+                        </div>
+
+                        <ul id="importAttachList" class="mt-2 space-y-1"></ul>
+                    </div>
+
+                </div>
+
+                <div class="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 px-6 py-3 dark:border-white/10 dark:bg-[#0f172a]/95">
+                    <div class="flex items-center justify-end gap-3">
+                        <button type="button" id="btnCancelImport"
+                            class="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]">
+                            Cancel
+                        </button>
+                        <button type="button" id="btnSubmitImport" disabled
+                            class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
+                            <i class="fa-solid fa-file-import text-xs"></i>
+                            Import
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
     <script>
@@ -564,6 +689,8 @@
             attachments:      @json(url('/carexpense/attachments/__EID__')),
             uploadAttachment: @json(url('/carexpense/upload-attachment/__EID__')),
             deleteAttachment: @json(url('/carexpense/delete-attachment/__ID__')),
+            importPreview:    @json(route('carexpense.import.preview')),
+            import:           @json(route('carexpense.import')),
         };
 
         const CSRF = document.querySelector('meta[name="csrf-token"]').content;
@@ -593,23 +720,27 @@
                 box.innerHTML = `<p class="text-sm text-slate-400 dark:text-slate-500">No attachments yet.</p>`;
                 return;
             }
-            box.innerHTML = attachments.map(a => `
+            box.innerHTML = attachments.map(a => {
+                const url      = a.url ?? a.signed_url ?? null;
+                const label    = a.name ?? a.display_name ?? a.attachment_name ?? a.filename ?? 'file';
+                const filesize = a.size ?? a.filesize ?? null;
+                const linkEl   = url
+                    ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="block truncate text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">${label}</a>`
+                    : `<span class="block truncate text-sm font-medium text-slate-400 dark:text-slate-500">${label}</span>`;
+                return `
                 <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-white/[0.03]">
                     <i class="fa-solid ${fileIcon(a.extention)} w-5 text-center"></i>
                     <div class="min-w-0 flex-1">
-                        <a href="${a.signed_url ?? '#'}" target="_blank"
-                            class="block truncate text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
-                            ${a.attachment_name ?? a.filename}
-                        </a>
-                        <p class="text-xs text-slate-400">${formatBytes(a.filesize)}</p>
+                        ${linkEl}
+                        <p class="text-xs text-slate-400">${formatBytes(filesize)}</p>
                     </div>
                     ${canDelete ? `
                     <button type="button" onclick="deleteAttachment(${a.id}, '${containerId}')"
                         class="ml-auto shrink-0 text-slate-400 transition hover:text-red-500">
                         <i class="fa-solid fa-xmark text-xs"></i>
                     </button>` : ''}
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         async function loadShowAttachments(eid) {
@@ -1151,6 +1282,223 @@
                 currentDateTo   = '';
                 window.carExpenseTable.ajax.reload(null, true);
             });
+        });
+
+        // ---- IMPORT MODAL ----
+
+        const importFileInput     = document.getElementById('importFileInput');
+        const importDropZone      = document.getElementById('importDropZone');
+        const importFileInfo      = document.getElementById('importFileInfo');
+        const importFileName      = document.getElementById('importFileName');
+        const importParsingBox    = document.getElementById('importParsingBox');
+        const importErrorBox      = document.getElementById('importErrorBox');
+        const importErrorList     = document.getElementById('importErrorList');
+        const importPreviewBox    = document.getElementById('importPreviewBox');
+        const importPreviewCount  = document.getElementById('importPreviewCount');
+        const importPreviewBody   = document.getElementById('importPreviewBody');
+        const importAttachSection = document.getElementById('importAttachSection');
+        const importAttachInput   = document.getElementById('importAttachInput');
+        const importAttachDropZone= document.getElementById('importAttachDropZone');
+        const importAttachList    = document.getElementById('importAttachList');
+        const btnSubmitImport     = document.getElementById('btnSubmitImport');
+
+        let importAttachFiles = [];
+
+        document.getElementById('btnOpenImport').addEventListener('click', () => openModal('importModal'));
+        document.getElementById('btnCloseImportModal').addEventListener('click', closeImportModal);
+        document.getElementById('btnCancelImport').addEventListener('click', closeImportModal);
+
+        function closeImportModal() {
+            closeModal('importModal');
+            resetImportForm();
+        }
+
+        function resetImportForm() {
+            importFileInput.value = '';
+            importFileInfo.classList.add('hidden');
+            importFileName.textContent = '';
+            importParsingBox.classList.add('hidden');
+            importErrorBox.classList.add('hidden');
+            importErrorList.innerHTML = '';
+            importPreviewBox.classList.add('hidden');
+            importPreviewBody.innerHTML = '';
+            importAttachSection.classList.add('hidden');
+            importAttachFiles = [];
+            importAttachList.innerHTML = '';
+            importAttachInput.value = '';
+            btnSubmitImport.disabled = true;
+            btnSubmitImport.innerHTML = '<i class="fa-solid fa-file-import text-xs"></i> Import';
+        }
+
+        // Excel file drag & drop
+        importDropZone.addEventListener('click', () => importFileInput.click());
+        importDropZone.addEventListener('dragover', (e) => { e.preventDefault(); importDropZone.classList.add('border-blue-400'); });
+        importDropZone.addEventListener('dragleave', () => importDropZone.classList.remove('border-blue-400'));
+        importDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            importDropZone.classList.remove('border-blue-400');
+            const f = e.dataTransfer.files[0];
+            if (f) { importFileInput.files = e.dataTransfer.files; triggerPreview(f); }
+        });
+        importFileInput.addEventListener('change', () => {
+            const f = importFileInput.files[0];
+            if (f) triggerPreview(f);
+        });
+        document.getElementById('btnClearImportFile').addEventListener('click', () => {
+            importFileInput.value = '';
+            resetImportForm();
+        });
+
+        async function triggerPreview(file) {
+            importFileName.textContent = file.name;
+            importFileInfo.classList.remove('hidden');
+            importParsingBox.classList.remove('hidden');
+            importErrorBox.classList.add('hidden');
+            importPreviewBox.classList.add('hidden');
+            importAttachSection.classList.add('hidden');
+            btnSubmitImport.disabled = true;
+
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('_token', CSRF);
+
+            try {
+                const res  = await fetch(CarExpenseRoutes.importPreview, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+                const json = await res.json();
+                importParsingBox.classList.add('hidden');
+
+                if (json.success) {
+                    importPreviewCount.textContent = json.count;
+                    importPreviewBody.innerHTML = json.rows.map(r => `
+                        <tr class="text-xs text-slate-700 dark:text-slate-300">
+                            <td class="px-3 py-2 text-slate-400">${r.row}</td>
+                            <td class="px-3 py-2">${r.date}</td>
+                            <td class="px-3 py-2">${r.nopol}</td>
+                            <td class="px-3 py-2">${r.driver}</td>
+                            <td class="px-3 py-2">
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
+                                    ${r.cost_type}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2">${r.description}</td>
+                            <td class="px-3 py-2 text-right">${r.qty}</td>
+                            <td class="px-3 py-2 text-right">${Number(r.amount).toLocaleString('id-ID')}</td>
+                        </tr>
+                    `).join('');
+                    importPreviewBox.classList.remove('hidden');
+                    importAttachSection.classList.remove('hidden');
+                    btnSubmitImport.disabled = false;
+                } else {
+                    if (json.errors && json.errors.length) {
+                        importErrorList.innerHTML = json.errors.map(e =>
+                            `<li><strong>Row ${e.row}:</strong> ${e.errors.join('; ')}</li>`
+                        ).join('');
+                        importErrorBox.classList.remove('hidden');
+                    } else {
+                        importErrorList.innerHTML = `<li>${json.message}</li>`;
+                        importErrorBox.classList.remove('hidden');
+                    }
+                }
+            } catch (err) {
+                importParsingBox.classList.add('hidden');
+                importErrorList.innerHTML = '<li>Failed to connect to server.</li>';
+                importErrorBox.classList.remove('hidden');
+            }
+        }
+
+        // Attachment file handling
+        importAttachDropZone.addEventListener('click', () => importAttachInput.click());
+        importAttachDropZone.addEventListener('dragover', (e) => { e.preventDefault(); importAttachDropZone.classList.add('border-blue-400'); });
+        importAttachDropZone.addEventListener('dragleave', () => importAttachDropZone.classList.remove('border-blue-400'));
+        importAttachDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            importAttachDropZone.classList.remove('border-blue-400');
+            addAttachFiles(Array.from(e.dataTransfer.files));
+        });
+        importAttachInput.addEventListener('change', () => {
+            addAttachFiles(Array.from(importAttachInput.files));
+            importAttachInput.value = '';
+        });
+
+        const ALLOWED_ATTACH = ['application/pdf', 'image/png', 'image/jpeg'];
+        const MAX_ATTACH_SIZE = 5 * 1024 * 1024;
+
+        function addAttachFiles(files) {
+            files.forEach(file => {
+                if (!ALLOWED_ATTACH.includes(file.type)) {
+                    Swal.fire({ icon: 'warning', title: 'Invalid file type', text: `${file.name} is not PDF, PNG, JPG, or JPEG.`, timer: 2500, showConfirmButton: false });
+                    return;
+                }
+                if (file.size > MAX_ATTACH_SIZE) {
+                    Swal.fire({ icon: 'warning', title: 'File too large', text: `${file.name} exceeds 5 MB.`, timer: 2500, showConfirmButton: false });
+                    return;
+                }
+                importAttachFiles.push(file);
+                renderAttachFile(file, importAttachFiles.length - 1);
+            });
+        }
+
+        function renderAttachFile(file, idx) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            const icon = ext === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-image text-emerald-500';
+            const li = document.createElement('li');
+            li.id = `importAttach_${idx}`;
+            li.className = 'flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/[0.03]';
+            li.innerHTML = `
+                <i class="fa-solid ${icon} w-4 shrink-0 text-center"></i>
+                <span class="flex-1 truncate text-slate-700 dark:text-slate-200">${file.name}</span>
+                <span class="text-xs text-slate-400">${(file.size/1024).toFixed(0)} KB</span>
+                <button type="button" onclick="removeAttachFile(${idx})" class="ml-1 text-slate-400 hover:text-red-500 transition">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            `;
+            importAttachList.appendChild(li);
+        }
+
+        window.removeAttachFile = function(idx) {
+            importAttachFiles[idx] = null;
+            const li = document.getElementById(`importAttach_${idx}`);
+            if (li) li.remove();
+        };
+
+        // Final submit
+        btnSubmitImport.addEventListener('click', async () => {
+            const excelFile = importFileInput.files[0];
+            if (!excelFile) return;
+
+            btnSubmitImport.disabled = true;
+            btnSubmitImport.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs mr-2"></i> Importing...';
+
+            const fd = new FormData();
+            fd.append('file', excelFile);
+            fd.append('_token', CSRF);
+            importAttachFiles.filter(Boolean).forEach(f => fd.append('attachments[]', f));
+
+            try {
+                const res  = await fetch(CarExpenseRoutes.import, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+                const json = await res.json();
+
+                if (json.success) {
+                    closeImportModal();
+                    window.carExpenseTable.ajax.reload(null, true);
+                    Swal.fire({ icon: 'success', title: 'Imported!', text: json.message, timer: 2500, showConfirmButton: false });
+                } else {
+                    if (json.errors && json.errors.length) {
+                        importErrorList.innerHTML = json.errors.map(e =>
+                            `<li><strong>Row ${e.row}:</strong> ${e.errors.join('; ')}</li>`
+                        ).join('');
+                        importErrorBox.classList.remove('hidden');
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Import Failed', text: json.message });
+                    }
+                    btnSubmitImport.disabled = false;
+                    btnSubmitImport.innerHTML = '<i class="fa-solid fa-file-import text-xs"></i> Import';
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to connect to the server.' });
+                btnSubmitImport.disabled = false;
+                btnSubmitImport.innerHTML = '<i class="fa-solid fa-file-import text-xs"></i> Import';
+            }
         });
     </script>
 

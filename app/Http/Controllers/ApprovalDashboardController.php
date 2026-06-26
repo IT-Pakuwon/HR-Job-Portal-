@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrApproval;
+use App\Models\TrBookingCar;
 use App\Models\TrCS;
+use App\Models\TrVoucherTaxi;
 use App\Models\ViewDasAll;
 use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
@@ -208,6 +210,75 @@ class ApprovalDashboardController extends Controller
                 'err' => $e->getMessage(),
             ]);
         }
+
+        // BCR (Booking Car) — may not exist in v_all_das; fetch directly
+        try {
+            $bcrDocids = $docids->filter(fn ($id) => str_starts_with($id, 'BCR'))->values();
+            if ($bcrDocids->isNotEmpty()) {
+                $bcrM   = new TrBookingCar();
+                $bcrConn  = $bcrM->getConnectionName() ?: config('database.default');
+                $bcrTable = $bcrM->getTable();
+                $bcrRows  = collect();
+                foreach ($bcrDocids->chunk(1200) as $chunk) {
+                    $bcrRows = $bcrRows->concat(
+                        DB::connection($bcrConn)
+                            ->table($bcrTable)
+                            ->whereIn('docid', $chunk->all())
+                            ->select(
+                                'id',
+                                'booking_date as docdate',
+                                'cpny_id_site as cpnyid',
+                                'department_id as departementid',
+                                'purpose_descr as infohd',
+                                'docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showbookingcar']))
+                    );
+                }
+                $data = $data->concat($bcrRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson BCR fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VCR (Voucher Taxi) — may not exist in v_all_das; fetch directly
+        try {
+            $vcrDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VCR'))->values();
+            if ($vcrDocids->isNotEmpty()) {
+                $vcrM   = new TrVoucherTaxi();
+                $vcrConn  = $vcrM->getConnectionName() ?: config('database.default');
+                $vcrTable = $vcrM->getTable();
+                $vcrRows  = collect();
+                foreach ($vcrDocids->chunk(1200) as $chunk) {
+                    $vcrRows = $vcrRows->concat(
+                        DB::connection($vcrConn)
+                            ->table($vcrTable)
+                            ->whereIn('docid', $chunk->all())
+                            ->select(
+                                'id',
+                                'voucher_date as docdate',
+                                'cpny_id as cpnyid',
+                                'department_id as departementid',
+                                'purpose_descr as infohd',
+                                'docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showvouchertaxi']))
+                    );
+                }
+                $data = $data->concat($vcrRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VCR fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // De-duplicate: keep first occurrence per docid (in case BCR/VCR also exist in v_all_das)
+        $data = $data->unique(fn ($r) => strtoupper(trim($r->docid)));
 
         $data = $data
             ->map(function ($r) use ($approvalMap, $status) {

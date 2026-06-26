@@ -1583,11 +1583,27 @@
 
                         <div class="border-t border-slate-200 px-4 py-3 dark:border-white/10">
 
-                            <span class="text-xs text-slate-500">Route</span>
+                            <div class="mb-2 flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-500">Route</span>
+                                <button type="button" id="gaProcessAddRouteBtn"
+                                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20">
+                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                    Add Route
+                                </button>
+                            </div>
 
-                            <div id="ga_booking_route"
-                                class="mt-1 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                                -
+                            <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/2">
+                                            <th class="w-10 px-4 py-2 text-left text-xs font-semibold text-slate-500">No</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Pickup</th>
+                                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500">Destination</th>
+                                            <th class="w-12 px-4 py-2"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gaProcessRouteTableBody"></tbody>
+                                </table>
                             </div>
 
                         </div>
@@ -1646,7 +1662,6 @@
 
                                 </select>
                             </div>
-ve
                         </div>
 
                     </div>

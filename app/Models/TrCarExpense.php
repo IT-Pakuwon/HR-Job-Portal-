@@ -9,7 +9,7 @@ class TrCarExpense extends Model
 {
     use HasFactory;
 
-    protected $connection = 'pgsql';
+    protected $connection = 'pgsql5';
     protected $table = 'tr_car_expense';
 
     protected $fillable = [
