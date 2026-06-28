@@ -35,6 +35,23 @@ class RfcaListController extends Controller
         $cpnyRaw  = $user->cpny_id ?? '';
         $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
+        $applyHeaderStepScope = function ($q, string $scope) {
+            if ($scope === 'purchasingsubmit') {
+                $q->where('tr_rfca.rfca_step_id', 'PS')
+                    ->where(function ($w) {
+                        $w->whereNull('ms_step.calr_gen')
+                            ->orWhere('ms_step.calr_gen', '<>', 't');
+                    });
+            } elseif ($scope === 'financereceived') {
+                $q->where('tr_rfca.rfca_step_id', 'FR');
+            } elseif ($scope === 'treasurypayment') {
+                $q->where('tr_rfca.rfca_step_id', 'TP');
+            } elseif ($scope === 'purchasingcalr') {
+                $q->where('tr_rfca.rfca_step_id', 'PC')
+                   ->where('ms_step.calr_gen', 't');                
+            }
+        };
+
         /**
          * Rfca Jobs:
          * - rfca_type masih kosong/null
@@ -57,58 +74,70 @@ class RfcaListController extends Controller
                 })
                 ->count();
 
-        /**
-         * Finance Received:
-         * - ada step dengan progress_approval = 't'
-         * - rfca_step_id = 'FR'
-         */
+        $purchasingSubmit = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                    $q->whereIn('tr_rfca.cpny_id', $cpnyList);
+                })
+                ->leftJoin('ms_rfca_step as ms_step', function ($join) {
+                    $join->on('ms_step.rfca_step_id', '=', 'tr_rfca.rfca_step_id')
+                        ->on('ms_step.rfca_step_order', '=', 'tr_rfca.rfca_step_order')
+                        ->on('ms_step.rfca_type', '=', 'tr_rfca.rfca_type')
+                        ->where('ms_step.status', 'A');
+                })
+                ->where('tr_rfca.status', 'P')
+                ->where(function ($q) use ($applyHeaderStepScope) {
+                    $applyHeaderStepScope($q, 'purchasingsubmit');
+                })
+                ->count();
+
         $financeReceived = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
-                    $q->whereIn('cpny_id', $cpnyList);
+                    $q->whereIn('tr_rfca.cpny_id', $cpnyList);
                 })
-                ->where('status', 'P')
-                ->whereExists(function ($q) {
-                    $q->select(DB::raw(1))
-                        ->from('tr_rfca_step as step')
-                        ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
-                        ->where('step.progress_approval', 't')
-                        ->where('step.rfca_step_id', 'FR');
+                ->leftJoin('ms_rfca_step as ms_step', function ($join) {
+                    $join->on('ms_step.rfca_step_id', '=', 'tr_rfca.rfca_step_id')
+                        ->on('ms_step.rfca_step_order', '=', 'tr_rfca.rfca_step_order')
+                        ->on('ms_step.rfca_type', '=', 'tr_rfca.rfca_type')
+                        ->where('ms_step.status', 'A');
+                })
+                ->where('tr_rfca.status', 'P')
+                ->where(function ($q) use ($applyHeaderStepScope) {
+                    $applyHeaderStepScope($q, 'financereceived');
                 })
                 ->count();
 
-        /**
-         * Treasury Payment:
-         * - step.progress_approval = 't'
-         * - step.rfca_step_id = 'TP'
-         */
         $treasuryPayment = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
-                    $q->whereIn('cpny_id', $cpnyList);
+                    $q->whereIn('tr_rfca.cpny_id', $cpnyList);
                 })
-                ->where('status', 'P')
-                ->whereExists(function ($q) {
-                    $q->select(DB::raw(1))
-                        ->from('tr_rfca_step as step')
-                        ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
-                        ->where('step.progress_approval', 't')
-                        ->where('step.rfca_step_id', 'TP');
+                ->leftJoin('ms_rfca_step as ms_step', function ($join) {
+                    $join->on('ms_step.rfca_step_id', '=', 'tr_rfca.rfca_step_id')
+                        ->on('ms_step.rfca_step_order', '=', 'tr_rfca.rfca_step_order')
+                        ->on('ms_step.rfca_type', '=', 'tr_rfca.rfca_type')
+                        ->where('ms_step.status', 'A');
+                })
+                ->where('tr_rfca.status', 'P')
+                ->where(function ($q) use ($applyHeaderStepScope) {
+                    $applyHeaderStepScope($q, 'treasurypayment');
                 })
                 ->count();
 
-        /**
-         * Completed:
-         * - step.progress_approval = 't'
-         * - step.rfca_step_id = 'PC'
-         */
+        $purchasingCalr = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
+                    $q->whereIn('tr_rfca.cpny_id', $cpnyList);
+                })
+                ->leftJoin('ms_rfca_step as ms_step', function ($join) {
+                    $join->on('ms_step.rfca_step_id', '=', 'tr_rfca.rfca_step_id')
+                        ->on('ms_step.rfca_step_order', '=', 'tr_rfca.rfca_step_order')
+                        ->on('ms_step.rfca_type', '=', 'tr_rfca.rfca_type')
+                        ->where('ms_step.status', 'A');
+                })
+                ->where('tr_rfca.status', 'P')
+                ->where(function ($q) use ($applyHeaderStepScope) {
+                    $applyHeaderStepScope($q, 'purchasingcalr');
+                })
+                ->count();
+
         $completed = TrRfca::when(!empty($cpnyList), function ($q) use ($cpnyList) {
                     $q->whereIn('cpny_id', $cpnyList);
                 })
                 ->where('status', 'C')
-                ->whereExists(function ($q) {
-                    $q->select(DB::raw(1))
-                        ->from('tr_rfca_step as step')
-                        ->whereColumn('step.rfcaid', 'tr_rfca.rfcaid')
-                        ->where('step.progress_approval', 't')
-                        ->where('step.rfca_step_id', 'PC');
-                })
                 ->count();
 
         // All RFCA tanpa filter progress_approval
@@ -120,8 +149,10 @@ class RfcaListController extends Controller
 
         return view('pages.rfca.rfcalist', compact(
             'rfcajobs',
+            'purchasingSubmit',
             'financeReceived',
             'treasuryPayment',
+            'purchasingCalr',
             'completed',
             'all'
         ));
@@ -150,6 +181,12 @@ class RfcaListController extends Controller
                 
                     ->where('step.progress_approval', 't');
             })
+            ->leftJoin('ms_rfca_step as ms_step', function ($join) {
+                $join->on('ms_step.rfca_step_id', '=', 'tr_rfca.rfca_step_id')
+                    ->on('ms_step.rfca_step_order', '=', 'tr_rfca.rfca_step_order')
+                    ->on('ms_step.rfca_type', '=', 'tr_rfca.rfca_type')
+                    ->where('ms_step.status', 'A');
+            })
             ->when(!empty($cpnyList), function ($q) use ($cpnyList) {
                 $q->whereIn('tr_rfca.cpny_id', $cpnyList);
             });
@@ -166,19 +203,33 @@ class RfcaListController extends Controller
                     ->where('tr_rfca.created_by', $u);
                 break;
 
+            case 'purchasingsubmit':
+                $base->where('tr_rfca.status', 'P')
+                    ->where('tr_rfca.rfca_step_id', 'PS')
+                    ->where(function ($q) {
+                        $q->whereNull('ms_step.calr_gen')
+                            ->orWhere('ms_step.calr_gen', '<>', 't');
+                    });
+                break;
+
             case 'financereceived':
                 $base->where('tr_rfca.status', 'P')
-                    ->where('step.rfca_step_id', 'FR');
+                    ->where('tr_rfca.rfca_step_id', 'FR');
                 break;
 
             case 'treasurypayment':
                 $base->where('tr_rfca.status', 'P')
-                    ->where('step.rfca_step_id', 'TP');
+                    ->where('tr_rfca.rfca_step_id', 'TP');
+                break;
+
+            case 'purchasingcalr':
+                $base->where('tr_rfca.status', 'P')
+                    ->where('tr_rfca.rfca_step_id', 'PC')
+                    ->where('ms_step.calr_gen', 't');
                 break;
 
             case 'completed':
-                $base->where('tr_rfca.status', 'C')
-                    ->where('step.rfca_step_id', 'PC');
+                $base->where('tr_rfca.status', 'C');
                 break;
 
             case 'all':
@@ -199,7 +250,7 @@ class RfcaListController extends Controller
             6 => 'tr_rfca.cpny_id',
             7 => 'tr_rfca.vendorname',
             8 => 'tr_rfca.created_by',
-            9 => 'step.rfca_step_id',
+            9 => 'ms_step.rfca_step_descr',
         ];
 
         if ($search !== '') {
@@ -236,7 +287,11 @@ class RfcaListController extends Controller
             'tr_rfca.created_by',
             'tr_rfca.status',
             'tr_rfca.rfca_type',
-            'step.rfca_step_id as current_step_id',
+            'tr_rfca.rfca_step_id as current_step_id',
+            'tr_rfca.status_rfca as current_status_rfca',
+            DB::raw('COALESCE(ms_step.rfca_step_descr, tr_rfca.rfca_step_id) as current_step_descr'),
+            'ms_step.rfca_step_department_id as current_step_department_id',
+            'ms_step.calr_gen as current_step_calr_gen',
             'step.progress_approval',
         ])
         ->orderBy($orderCol, $orderDir)
@@ -259,6 +314,7 @@ class RfcaListController extends Controller
         $rows->transform(function ($r) use ($poIdMap) {
             $r->rfcadate_fmt = $r->rfcadate ? Carbon::parse($r->rfcadate)->format('Y-m-d') : null;
             $r->rfcaid_eid   = Hashids::encode((string) $r->id);
+            $r->showrfca_url = url('/showrfca/' . $r->rfcaid_eid);
 
             $poId = $poIdMap[$r->ponbr] ?? null;
             $r->ponbr_eid = $poId ? Hashids::encode((string) $poId) : null;
@@ -1035,17 +1091,16 @@ class RfcaListController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | 4) Ambil master step seperti submitType()
+                | 4) Ambil step dari RFCA lama / selected
                 |--------------------------------------------------------------------------
                 */
-                $steps = MsRfcaStep::where('rfca_type', $rfcaType)
-                    ->where('status', 'A')
+                $steps = TrRfcaStep::where('rfcaid', $selectedRfca->rfcaid)
                     ->orderBy('rfca_step_order')
                     ->get();
 
                 if ($steps->isEmpty()) {
                     throw ValidationException::withMessages([
-                        'rfca_type' => ['Master RFCA Step tidak ditemukan untuk tipe: ' . $rfcaType],
+                        'selected_rfca_id' => ['Step RFCA lama tidak ditemukan untuk RFCA: ' . $selectedRfca->rfcaid],
                     ]);
                 }
 
@@ -1059,7 +1114,7 @@ class RfcaListController extends Controller
                 /*
                 |--------------------------------------------------------------------------
                 | 6) Insert RFCA Step untuk current RFCA
-                |    Polanya sama seperti submitType()
+                |    Step disamakan dengan RFCA lama / selected
                 |--------------------------------------------------------------------------
                 */
                 foreach ($steps as $step) {
@@ -1073,55 +1128,18 @@ class RfcaListController extends Controller
                         'rfca_step_department_id' => $step->rfca_step_department_id,
                         'rfca_type'               => $step->rfca_type,
                         'calr_gen'                => $step->calr_gen,
-                        'rfca_step_user'          => null,
-                        'rfca_step_date'          => null,
-                        'progress_approval'       => false,
-                        'status_rfca'             => 'P',
+                        'rfca_step_user'          => $step->rfca_step_user,
+                        'rfca_step_date'          => $step->rfca_step_date,
+                        'progress_approval'       => $step->progress_approval,
+                        'status_rfca'             => $step->status_rfca,
                         'created_by'              => $username,
-                        'updated_by'              => null,
+                        'updated_by'              => $step->updated_by,
                     ]);
                 }
 
                 /*
                 |--------------------------------------------------------------------------
-                | 7) First step PS otomatis completed
-                |--------------------------------------------------------------------------
-                */
-                $firstStep = TrRfcaStep::where('rfcaid', $currentRfca->rfcaid)
-                    ->where('rfca_step_id', 'PS')
-                    ->first();
-
-                if (!$firstStep) {
-                    throw new \RuntimeException('RFCA first step PS tidak ditemukan.');
-                }
-
-                $firstStep->rfca_step_user    = $username;
-                $firstStep->rfca_step_date    = $now;
-                $firstStep->progress_approval = false;
-                $firstStep->status_rfca       = 'C';
-                $firstStep->updated_by        = $username;
-                $firstStep->save();
-
-                /*
-                |--------------------------------------------------------------------------
-                | 8) Next step menjadi active
-                |--------------------------------------------------------------------------
-                */
-                $nextStep = TrRfcaStep::where('rfcaid', $currentRfca->rfcaid)
-                    ->where('rfca_step_order', '>', $firstStep->rfca_step_order)
-                    ->orderBy('rfca_step_order')
-                    ->first();
-
-                if ($nextStep) {
-                    $nextStep->progress_approval = true;
-                    $nextStep->status_rfca       = 'P';
-                    $nextStep->updated_by        = $username;
-                    $nextStep->save();
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | 9) Update current RFCA dari data selected RFCA
+                | 7) Update current RFCA dari data selected RFCA
                 |--------------------------------------------------------------------------
                 | Field model Anda:
                 | - prev_rfcaid
@@ -1135,9 +1153,9 @@ class RfcaListController extends Controller
 
                 $currentRfca->status           = 'P';
                 $currentRfca->rfca_type        = $rfcaType;
-                $currentRfca->rfca_step_order  = $firstStep->rfca_step_order;
-                $currentRfca->rfca_step_id     = $firstStep->rfca_step_id;
-                $currentRfca->status_rfca      = $firstStep->status_rfca;
+                $currentRfca->rfca_step_order  = $selectedRfca->rfca_step_order;
+                $currentRfca->rfca_step_id     = $selectedRfca->rfca_step_id;
+                $currentRfca->status_rfca      = $selectedRfca->status_rfca;
 
                 $currentRfca->prev_rfcaid      = $selectedRfca->rfcaid;
                 $currentRfca->prev_ponbr       = $selectedRfca->ponbr;
@@ -1151,7 +1169,7 @@ class RfcaListController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | 10) Update RFCA selected menjadi L
+                | 8) Update RFCA selected menjadi L
                 |--------------------------------------------------------------------------
                 */
                 $selectedRfca->status     = 'L';

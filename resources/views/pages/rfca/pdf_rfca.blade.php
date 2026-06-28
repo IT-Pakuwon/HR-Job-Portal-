@@ -217,6 +217,33 @@
             </th>
         </tr>
 
+        @if (!empty($rfca->prev_rfcaid))
+            <tr class="left-body">
+                <th>
+                    <div class="field-row">
+                        <span class="field-label">Prev RFCA ID :</span>
+                        <span class="field-value-wrap">{{ $rfca->prev_rfcaid }}</span>
+                    </div>
+                </th>
+
+                <th>
+                    <div class="field-row">
+                        <span class="field-label">Prev RFCA Amount :</span>
+                        <span class="field-value-wrap">{{ number_format($rfca->prev_rfca_amount ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                </th>
+            </tr>
+
+            <tr class="left-body">
+                <th>
+                    <div class="field-row">
+                        <span class="field-label">Add RFCA Amount :</span>
+                        <span class="field-value-wrap">{{ number_format($rfca->add_rfca_amount ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                </th>
+            </tr>
+        @endif
+
         <tr class="left-body">
             <th>
                 <div class="field-row">

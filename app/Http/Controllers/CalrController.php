@@ -482,11 +482,21 @@ class CalrController extends Controller
 
         // ===== Link ke RFCA (baru)
         $rfcaUrl = null;
+        $rfca = null;
         if (!empty($calr->rfcaid)) {
-            $rfcaId = TrRfca::where('rfcaid', $calr->rfcaid)->value('id');
-            if ($rfcaId) {
-                $rfcaHash = Hashids::encode($rfcaId);
+            $rfca = TrRfca::where('rfcaid', $calr->rfcaid)->first();
+            if ($rfca) {
+                $rfcaHash = Hashids::encode($rfca->id);
                 $rfcaUrl  = url("/showrfca/{$rfcaHash}");
+            }
+        }
+
+        $prevRfcaUrl = null;
+        if ($rfca && !empty($rfca->prev_rfcaid)) {
+            $prevRfcaId = TrRfca::where('rfcaid', $rfca->prev_rfcaid)->value('id');
+            if ($prevRfcaId) {
+                $prevRfcaHash = Hashids::encode($prevRfcaId);
+                $prevRfcaUrl  = url("/showrfca/{$prevRfcaHash}");
             }
         }
 
@@ -563,6 +573,8 @@ class CalrController extends Controller
             'eid_calrid'  => $eid_calrid,
             'poUrl'       => $poUrl,
             'rfcaUrl'     => $rfcaUrl,
+            'rfca'        => $rfca,
+            'prevRfcaUrl' => $prevRfcaUrl,
             'sppbUrl'     => $sppbUrl,
             'csUrl'       => $csUrl,
             'details'     => $details,

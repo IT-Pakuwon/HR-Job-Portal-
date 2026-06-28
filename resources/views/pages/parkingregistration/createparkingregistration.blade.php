@@ -170,11 +170,11 @@
                 </div>
              
                 {{-- Info --}}
-                {{-- Date Range + Info: tampil hanya jika Worker Type bukan EMPLOYEE --}}
+                {{-- Date Range + Info --}}
                 <div id="nonEmployeeExtraSection" class="mt-6 hidden grid grid-cols-1 gap-6 lg:grid-cols-2">
 
                     {{-- Date Range --}}
-                    <div class="flex flex-col gap-2">
+                    <div id="extraDateRangeBox" class="flex flex-col gap-2">
                         <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Date Range
                         </label>
@@ -1034,25 +1034,34 @@
 
             /*
             |--------------------------------------------------------------------------
-            | Date Range + Info tampil jika:
+            | Extra section tampil jika:
             | 1. Worker Type selain EMPLOYEE
-            | 2. Parking Type TEMPREQUEST + Worker Type EMPLOYEE
+            | 2. Parking Type NEWREQUEST / TEMPREQUEST + Worker Type EMPLOYEE
             |--------------------------------------------------------------------------
             */
+            const shouldShowEmployeeInfo = ['NEWREQUEST', 'TEMPREQUEST'].includes(parkingType) && isEmp;
             const showExtraSection =
                 workerType !== '' &&
                 (
                     !isEmp ||
-                    (parkingType === 'TEMPREQUEST' && isEmp)
+                    shouldShowEmployeeInfo
                 );
+            const shouldRequireDateRange = workerType !== '' && !isEmp;
 
             if (showExtraSection) {
                 $('#nonEmployeeExtraSection').removeClass('hidden');
+                $('#extraDateRangeBox').toggleClass('hidden', !shouldRequireDateRange);
 
-                $('#startdate').prop('required', true);
-                $('#enddate').prop('required', true);
+                $('#startdate').prop('required', shouldRequireDateRange);
+                $('#enddate').prop('required', shouldRequireDateRange);
+
+                if (!shouldRequireDateRange) {
+                    $('#startdate').val('');
+                    $('#enddate').val('');
+                }
             } else {
                 $('#nonEmployeeExtraSection').addClass('hidden');
+                $('#extraDateRangeBox').removeClass('hidden');
 
                 $('#startdate').prop('required', false).val('');
                 $('#enddate').prop('required', false).val('');
