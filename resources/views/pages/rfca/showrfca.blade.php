@@ -2,23 +2,25 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
-        $stepCode = optional($currentStep)->rfca_step_id ?: $rfca->rfca_step_id;
-        $statusCode = $rfca->status_rfca;
+        $statusCode = strtoupper(trim((string) $rfca->status));
 
-        $statusRfcaText = match (true) {
-            $stepCode === 'PC' || $statusCode === 'C' => 'RFCA Completed',
-            $stepCode === 'TP' => 'Treasury Payment',
-            $stepCode === 'FR' => 'Finance Received',
-            $stepCode === 'PS' => 'RFCA Jobs',
-            empty($stepCode) => 'RFCA Jobs',
-            default => optional($currentStep)->rfca_step_descr ?: 'RFCA Jobs',
+        $statusRfcaText = match ($statusCode) {
+            'C' => 'RFCA Completed',
+            'P' => 'On Progress',
+            'D' => 'Revise',
+            'R' => 'Rejected',
+            'X' => 'Cancel',
+            'L' => 'Linked',
+            'H' => 'RFCA Jobs',
+            default => $statusCode ?: 'RFCA Jobs',
         };
 
-        $statusRfcaClass = match (true) {
-            $stepCode === 'PC' || $statusCode === 'C' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
-            $stepCode === 'TP' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
-            $stepCode === 'FR' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
-            $stepCode === 'PS' || empty($stepCode) => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
+        $statusRfcaClass = match ($statusCode) {
+            'C' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+            'P' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+            'D' => 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
+            'R', 'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
+            'L' => 'bg-purple-100 text-purple-700 dark:bg-purple-800/30 dark:text-purple-300',
             default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
         };
     @endphp
@@ -223,35 +225,6 @@
                                     'value' => $pct($rfca->payment_pct),
                                 ],
 
-                                // ==== Previous RFCA info ====
-                                [
-                                    'icon' => 'arrow-uturn-left',
-                                    'label' => 'Previous RFCA ID',
-                                    'value' => $rfca->prev_rfcaid
-                                        ? (!empty($prevRfcaUrl)
-                                            ? '<a href="' .
-                                                e($prevRfcaUrl) .
-                                                '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
-                                                e($rfca->prev_rfcaid) .
-                                                '</a>'
-                                            : e($rfca->prev_rfcaid))
-                                        : '-',
-                                ],
-                                [
-                                    'icon' => 'currency-dollar',
-                                    'label' => 'Previous RFCA Amount',
-                                    'value' =>
-                                        $rfca->prev_rfca_amount !== null
-                                            ? 'Rp ' . $money($rfca->prev_rfca_amount)
-                                            : '-',
-                                ],
-                                [
-                                    'icon' => 'plus-circle',
-                                    'label' => 'Additional RFCA Amount',
-                                    'value' =>
-                                        $rfca->add_rfca_amount !== null ? 'Rp ' . $money($rfca->add_rfca_amount) : '-',
-                                ],
-
                                 // ==== Dates pipeline ====
                                 [
                                     'icon' => 'calendar',
@@ -277,8 +250,52 @@
                                 ],
                                
                             ];
+
+                            $hasPrevRfca = !empty($rfca->prev_rfcaid);
+                            $prevRfcaFields = [
+                                [
+                                    'icon' => 'arrow-uturn-left',
+                                    'label' => 'RFCA ID',
+                                    'value' => $hasPrevRfca
+                                        ? (!empty($prevRfcaUrl)
+                                            ? '<a href="' .
+                                                e($prevRfcaUrl) .
+                                                '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                                e($rfca->prev_rfcaid) .
+                                                '</a>'
+                                            : e($rfca->prev_rfcaid))
+                                        : '-',
+                                ],
+                                [
+                                    'icon' => 'hashtag',
+                                    'label' => 'PO Nbr',
+                                    'value' => e($rfca->prev_ponbr ?: '-'),
+                                ],
+                                [
+                                    'icon' => 'document-duplicate',
+                                    'label' => 'CS ID',
+                                    'value' => e($rfca->prev_csid ?: '-'),
+                                ],
+                                [
+                                    'icon' => 'currency-dollar',
+                                    'label' => 'RFCA Amount',
+                                    'value' =>
+                                        $rfca->prev_rfca_amount !== null
+                                            ? 'Rp ' . $money($rfca->prev_rfca_amount)
+                                            : '-',
+                                ],
+                                [
+                                    'icon' => 'plus-circle',
+                                    'label' => 'Additional Amount',
+                                    'value' =>
+                                        $rfca->add_rfca_amount !== null ? 'Rp ' . $money($rfca->add_rfca_amount) : '-',
+                                ],
+                            ];
                         @endphp
 
+                        <div class="mb-2 border-b border-gray-100 pb-2 text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                            Current RFCA
+                        </div>
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
 
@@ -294,6 +311,26 @@
                             @endforeach
 
                         </div>
+
+                        @if ($hasPrevRfca)
+                            <div class="mt-4 border-t border-gray-100 pt-3 dark:border-gray-700">
+                                <div class="mb-2 text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                    Previous RFCA
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                                    @foreach ($prevRfcaFields as $f)
+                                        <div class="{{ $rowClass }}">
+                                            <div class="{{ $labelClass }} whitespace-nowrap break-words">
+                                                <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                                <span>{{ $f['label'] }}</span>
+                                            </div>
+                                            <span class="{{ $valueClass }}">{!! $f['value'] !!}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
                     </div>
 

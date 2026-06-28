@@ -1,13 +1,13 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
 
             {{-- Rfca Jobs --}}
             <button type="button" class="scope-filter group block h-full" data-scope="rfcajobs">
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📋</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
                         <p class="break-words text-sm font-medium leading-tight">Rfca Jobs</p>
@@ -17,12 +17,27 @@
                 </div>
             </button>
 
+            {{-- Purchasing Submit --}}
+            <button type="button" class="scope-filter group block h-full" data-scope="purchasingsubmit">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📦</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-sm font-medium leading-tight">Purchasing Submit</p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-bold">{{ $purchasingSubmit }}</p>
+                </div>
+            </button>
+
             {{-- Finance Received --}}
             <button type="button" class="scope-filter group block h-full" data-scope="financereceived">
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📋</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
                         <p class="break-words text-sm font-medium leading-tight">Finance Received</p>
@@ -37,13 +52,28 @@
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-yellow-700 bg-yellow-200/20 p-3 text-yellow-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🏦</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">💰</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
                         <p class="break-words text-sm font-medium leading-tight">Treasury Payment</p>
                     </div>
 
                     <p class="shrink-0 text-base font-bold">{{ $treasuryPayment }}</p>
+                </div>
+            </button>
+
+            {{-- Purchasing CALR --}}
+            <button type="button" class="scope-filter group block h-full" data-scope="purchasingcalr">
+                <div
+                    class="scope-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📋</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-sm font-medium leading-tight">Purchasing CALR</p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-bold">{{ $purchasingCalr }}</p>
                 </div>
             </button>
 
@@ -62,15 +92,15 @@
                 </div>
             </button>
 
-            {{-- All Rfca --}}
+            {{-- Rfca All --}}
             <button type="button" class="scope-filter group block h-full" data-scope="all">
                 <div
                     class="scope-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
 
-                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🧾</div>
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📋</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">All Rfca</p>
+                        <p class="break-words text-sm font-medium leading-tight">Rfca All</p>
                     </div>
 
                     <p class="shrink-0 text-base font-bold">{{ $all }}</p>
@@ -116,8 +146,10 @@
 
             const titleMap = {
                 rfcajobs: 'Rfca - Jobs',
+                purchasingsubmit: 'Rfca - Purchasing Submit',
                 financereceived: 'Rfca - Finance Received',
                 treasurypayment: 'Rfca - Treasury Payment',
+                purchasingcalr: 'Rfca - Purchasing CALR',
                 completed: 'Rfca - Completed',
                 all: 'Rfca - All',
             };
@@ -134,7 +166,7 @@
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Vendor</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Created By</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca Status</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Rfca Type</th>
                 `;
             }
 
@@ -197,16 +229,18 @@
                         data: 'created_by'
                     },
                     {
-                        data: 'current_step_id',
+                        data: 'rfca_type',
                         className: 'text-left',
                         render: (v) => {
-                            const map = {
-                                'PS': 'RFCA Jobs',
-                                'FR': 'Finance Received',
-                                'TP': 'Treasury Payment',
-                                'PC': 'RFCA Completed'
+                            const type = (v ?? '').toString().trim().toUpperCase();
+                            const badgeMap = {
+                                RFCA: 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
+                                RFP: 'bg-purple-100 text-purple-700 dark:bg-purple-800/30 dark:text-purple-300'
                             };
-                            return map[v] ?? '-';
+                            const label = type || 'Not Set';
+                            const colorClass = badgeMap[type] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+
+                            return `<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${colorClass}">${label}</span>`;
                         }
                     },
                 ];
@@ -355,8 +389,8 @@
                     return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-amber-600 text-white hover:bg-amber-700" title="Edit (Revise)">${label}</a>`;
                 }
 
-                const url = `/showrfca/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                const url = row.showrfca_url || `/showrfca/${encodeURIComponent(hash)}`;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             // init

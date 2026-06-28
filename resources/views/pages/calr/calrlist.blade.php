@@ -445,7 +445,7 @@
                 }
 
                 const url = `/showcalr/${encodeURIComponent(hash)}`;
-                return `<a href="${url}" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-3 py-1.5  text-sm  font-semibold rounded bg-gray-600 text-white hover:bg-gray-700">${label}</a>`;
             }
 
             // init

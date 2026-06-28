@@ -1117,6 +1117,7 @@ class ParkingRegistrationController extends Controller
 
         // $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
         // $endDate   = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+        $parkingTypeUpper = strtoupper(trim((string) $parkingType));
         $isEmployee = strtoupper(trim((string) $workerType)) === 'EMPLOYEE';
 
         if ($isEmployee) {
@@ -1138,13 +1139,17 @@ class ParkingRegistrationController extends Controller
             | ms_category.category_name + perpost
             |--------------------------------------------------------------------------
             */
-            $parkingTypeName = MsCategory::where('doctype', 'PKR')
-                ->where('type', 'TYPE')
-                ->where('status', 'A')
-                ->where('categoryid', $parkingType)
-                ->value('category_name');
+            if (in_array($parkingTypeUpper, ['NEWREQUEST', 'TEMPREQUEST'], true)) {
+                $headerInfo = $request->info;
+            } else {
+                $parkingTypeName = MsCategory::where('doctype', 'PKR')
+                    ->where('type', 'TYPE')
+                    ->where('status', 'A')
+                    ->where('categoryid', $parkingType)
+                    ->value('category_name');
 
-            $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
+                $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
+            }
         } else {
             /*
             |--------------------------------------------------------------------------
@@ -1717,19 +1722,24 @@ class ParkingRegistrationController extends Controller
         $siteParking = $request->site_id_parking;
         $perpost = $request->perpost;
 
+        $parkingTypeUpper = strtoupper(trim((string) $parkingType));
         $isEmployee = $workerType === 'EMPLOYEE';
 
         if ($isEmployee) {
             $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
             $endDate = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
 
-            $parkingTypeName = MsCategory::where('doctype', 'PKR')
-                ->where('type', 'TYPE')
-                ->where('status', 'A')
-                ->where('categoryid', $parkingType)
-                ->value('category_name');
+            if (in_array($parkingTypeUpper, ['NEWREQUEST', 'TEMPREQUEST'], true)) {
+                $headerInfo = $request->info;
+            } else {
+                $parkingTypeName = MsCategory::where('doctype', 'PKR')
+                    ->where('type', 'TYPE')
+                    ->where('status', 'A')
+                    ->where('categoryid', $parkingType)
+                    ->value('category_name');
 
-            $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
+                $headerInfo = trim(($parkingTypeName ?: $parkingType) . ' - ' . $perpost);
+            }
         } else {
             if (!$request->filled('startdate') || !$request->filled('enddate')) {
                 return response()->json([

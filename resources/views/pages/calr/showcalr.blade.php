@@ -195,7 +195,52 @@
                                     'value' => $calr->updated_by ?? '-',
                                 ],
                             ];
+
+                            $hasPrevRfca = !empty(optional($rfca)->prev_rfcaid);
+                            $prevRfcaFields = [
+                                [
+                                    'icon' => 'arrow-uturn-left',
+                                    'label' => 'RFCA ID',
+                                    'value' => $hasPrevRfca
+                                        ? (!empty($prevRfcaUrl)
+                                            ? '<a href="' .
+                                                e($prevRfcaUrl) .
+                                                '" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                                e($rfca->prev_rfcaid) .
+                                                '</a>'
+                                            : e($rfca->prev_rfcaid))
+                                        : '-',
+                                ],
+                                [
+                                    'icon' => 'hashtag',
+                                    'label' => 'PO Nbr',
+                                    'value' => e(optional($rfca)->prev_ponbr ?: '-'),
+                                ],
+                                [
+                                    'icon' => 'document-duplicate',
+                                    'label' => 'CS ID',
+                                    'value' => e(optional($rfca)->prev_csid ?: '-'),
+                                ],
+                                [
+                                    'icon' => 'currency-dollar',
+                                    'label' => 'RFCA Amount',
+                                    'value' =>
+                                        optional($rfca)->prev_rfca_amount !== null
+                                            ? 'Rp ' . $fmtMoney($rfca->prev_rfca_amount)
+                                            : '-',
+                                ],
+                                [
+                                    'icon' => 'plus-circle',
+                                    'label' => 'Additional Amount',
+                                    'value' =>
+                                        optional($rfca)->add_rfca_amount !== null ? 'Rp ' . $fmtMoney($rfca->add_rfca_amount) : '-',
+                                ],
+                            ];
                         @endphp
+
+                        <div class="mb-2 border-b border-gray-100 pb-2 text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                            Current CALR
+                        </div>
 
                         <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
                             @foreach ($fields as $f)
@@ -208,6 +253,26 @@
                                 </div>
                             @endforeach
                         </div>
+
+                        @if ($hasPrevRfca)
+                            <div class="mt-4 border-t border-gray-100 pt-3 dark:border-gray-700">
+                                <div class="mb-2 text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                                    Previous RFCA
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
+                                    @foreach ($prevRfcaFields as $f)
+                                        <div class="{{ $row }}">
+                                            <div class="{{ $label }}">
+                                                <x-dynamic-component :component="'heroicon-o-' . $f['icon']" class="h-5 w-5 text-gray-400" />
+                                                <span>{{ $f['label'] }}</span>
+                                            </div>
+                                            <span class="{!! $value !!}">{!! $f['value'] !!}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                 </div>
