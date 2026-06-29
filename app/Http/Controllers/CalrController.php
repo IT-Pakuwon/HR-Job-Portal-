@@ -828,6 +828,8 @@ class CalrController extends Controller
         $calr = TrCalr::with(['creator', 'userpeminta'])
             ->findOrFail($id);
 
+        $rfca = TrRfca::where('rfcaid', $calr->rfcaid)->first();
+
         $details = collect();
         if (!empty($calr->ponbr)) {
             $details = TrPOdetail::where('ponbr', $calr->ponbr)
@@ -950,6 +952,7 @@ class CalrController extends Controller
             'pages.calr.pdf_calr',
             array_merge($data, [
                 'calr'          => $calr,
+                'rfca'          => $rfca,
                 'approval'      => $approval,
                 'approve_count' => $approve_count,
                 'details'       => $details,
