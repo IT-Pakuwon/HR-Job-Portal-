@@ -225,32 +225,26 @@
             <th></th>
         </tr>
 
-        @if (!empty($rfca->prev_rfcaid))
-            <tr class="left-body">
-                <th>
-                    <div class="field-row">
-                        <span class="field-label">Prev RFCA ID :</span>
-                        <span class="field-value-wrap">{{ $rfca->prev_rfcaid }}</span>
-                    </div>
-                </th>
-                <th>
-                    <div class="field-row">
-                        <span class="field-label">Prev RFCA Amount :</span>
-                        <span class="field-value-wrap">{{ number_format($rfca->prev_rfca_amount ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                </th>
-            </tr>
-            <tr class="left-body">
-                <th>
-                    <div class="field-row">
-                        <span class="field-label">Add RFCA Amount :</span>
-                        <span class="field-value-wrap">{{ number_format($rfca->add_rfca_amount ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                </th>
-                <th></th>
-            </tr>
-        @endif
     </table>
+
+    @if (!empty($rfca->prev_rfcaid))
+        <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+            <thead>
+                <tr>
+                    <th style="border:1px solid #000; padding:5px 8px; background:#f7f7f7; text-align:left; width:34%;">Prev RFCA ID</th>
+                    <th style="border:1px solid #000; padding:5px 8px; background:#f7f7f7; text-align:left; width:33%;">Prev RFCA Amount</th>
+                    <th style="border:1px solid #000; padding:5px 8px; background:#f7f7f7; text-align:left; width:33%;">Add RFCA Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border:1px solid #000; padding:5px 8px;">{{ $rfca->prev_rfcaid }}</td>
+                    <td style="border:1px solid #000; padding:5px 8px;">{{ number_format($rfca->prev_rfca_amount ?? 0, 0, ',', '.') }}</td>
+                    <td style="border:1px solid #000; padding:5px 8px;">{{ number_format($rfca->add_rfca_amount ?? 0, 0, ',', '.') }}</td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
 
 
     <!-- EXPENSE TABLE -->
