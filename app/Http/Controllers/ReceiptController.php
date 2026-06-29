@@ -1427,10 +1427,30 @@ class ReceiptController extends Controller
             ->orderBy('receipt_no', 'asc')
             ->get();
 
+        // if ($po) {
+        //     $poNotes = TrPOdetail::where('ponbr', $po->ponbr)
+        //         ->pluck('ponote_detail', 'po_no');
+        //     $rcpdetails->each(fn($d) => $d->ponote_detail = $poNotes[$d->po_no] ?? null);
+        // }
+
         if ($po) {
+
             $poNotes = TrPOdetail::where('ponbr', $po->ponbr)
-                ->pluck('ponote_detail', 'po_no');
-            $rcpdetails->each(fn($d) => $d->ponote_detail = $poNotes[$d->po_no] ?? null);
+                ->whereIn(
+                    'budget_cpny_id',
+                    $rcpdetails->pluck('budget_cpny_id')->filter()->unique()->values()
+                )
+                ->get()
+                ->mapWithKeys(function ($row) {
+                    return [
+                        $row->po_no . '|' . $row->budget_cpny_id => $row->ponote_detail
+                    ];
+                });
+        
+            $rcpdetails->each(function ($d) use ($poNotes) {
+                $key = $d->po_no . '|' . $d->budget_cpny_id;
+                $d->ponote_detail = $poNotes[$key] ?? null;
+            });
         }
 
         $company = MsCompany::where('cpny_id', $rcp->cpny_id)->first();
