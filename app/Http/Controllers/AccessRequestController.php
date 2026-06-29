@@ -970,9 +970,16 @@ class AccessRequestController extends Controller
 
                 'can_approve' => TrApproval::where('refnbr', $access->docid)
                     ->where('aprv_doctype', 'ACR')
-                    ->where('aprv_username', auth()->user()->username)
                     ->where('status', 'P')
-                    ->exists(),
+                    ->get(['aprv_username'])
+                    ->contains(fn($row) => in_array(
+                        strtolower(trim(auth()->user()->username)),
+                        array_filter(array_map(
+                            fn($s) => strtolower(trim($s)),
+                            preg_split('/[;,]/', $row->aprv_username ?? '') ?: []
+                        )),
+                        true
+                    )),
 
                 'summary' => [
                     'total' => $total,
