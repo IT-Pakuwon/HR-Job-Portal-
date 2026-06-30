@@ -344,7 +344,7 @@ class BookingCarController extends Controller
         $username = strtolower(trim($user->username));
 
         $base = TrBookingCar::from('tr_booking_car as bc')
-            ->whereIn('bc.status', ['P', 'C', 'F', 'D', 'R'])
+            ->whereIn('bc.status', ['P', 'C', 'F', 'D'])
             ->select([
                 'bc.id', 'bc.docid', 'bc.booking_date',
                 'bc.start_time', 'bc.end_time',

@@ -157,11 +157,15 @@
                          <p class="text-gray-600 dark:text-gray-400">
                              <span x-show="lang==='en'">
                                  Filter buttons above the request list let you quickly narrow the queue
-                                 by status.
+                                 by status. The calendar only shows active requests (Waiting Approval,
+                                 Completed, Waiting Process, Revise) — Rejected and Cancelled requests
+                                 appear in the list panel only, not on the calendar.
                              </span>
                              <span x-show="lang==='id'">
                                  Tombol filter di atas daftar permintaan memudahkan Anda menyaring antrean
-                                 berdasarkan status.
+                                 berdasarkan status. Kalender hanya menampilkan permintaan yang masih aktif
+                                 (Waiting Approval, Completed, Waiting Process, Revise) — permintaan berstatus
+                                 Rejected dan Cancelled hanya muncul di panel daftar, tidak di kalender.
                              </span>
                          </p>
 
@@ -170,16 +174,6 @@
                                  <strong>Waiting Approval</strong> —
                                  <span x-show="lang==='en'">Request has been submitted and is currently going through the approval chain.</span>
                                  <span x-show="lang==='id'">Permintaan sudah disubmit dan sedang melewati rantai approval.</span>
-                             </li>
-                             <li>
-                                 <strong>Revise</strong> —
-                                 <span x-show="lang==='en'">An approver sent the request back for correction. The requester can edit and re-submit.</span>
-                                 <span x-show="lang==='id'">Approver mengembalikan permintaan untuk diperbaiki. Pemohon dapat mengedit dan submit ulang.</span>
-                             </li>
-                             <li>
-                                 <strong>Rejected</strong> —
-                                 <span x-show="lang==='en'">The request was rejected by an approver, with a reason recorded.</span>
-                                 <span x-show="lang==='id'">Permintaan ditolak oleh approver, dengan alasan yang tercatat.</span>
                              </li>
                              <li>
                                  <strong>Completed</strong> —
@@ -195,9 +189,19 @@
                                  <span x-show="lang==='id'">(Khusus GA) Voucher berstatus Completed yang masih perlu dicatat biaya aktualnya.</span>
                              </li>
                              <li>
+                                 <strong>Revise</strong> —
+                                 <span x-show="lang==='en'">An approver sent the request back for correction. The requester can edit and re-submit.</span>
+                                 <span x-show="lang==='id'">Approver mengembalikan permintaan untuk diperbaiki. Pemohon dapat mengedit dan submit ulang.</span>
+                             </li>
+                             <li>
+                                 <strong>Rejected</strong> —
+                                 <span x-show="lang==='en'">The request was rejected by an approver, with a reason recorded. Shown in the list panel only.</span>
+                                 <span x-show="lang==='id'">Permintaan ditolak oleh approver, dengan alasan yang tercatat. Hanya muncul di panel daftar.</span>
+                             </li>
+                             <li>
                                  <strong>Cancelled</strong> —
-                                 <span x-show="lang==='en'">The request was cancelled by its creator before approval was completed.</span>
-                                 <span x-show="lang==='id'">Permintaan dibatalkan oleh pembuatnya sebelum approval selesai.</span>
+                                 <span x-show="lang==='en'">The request was cancelled by its creator before approval was completed. Shown in the list panel only.</span>
+                                 <span x-show="lang==='id'">Permintaan dibatalkan oleh pembuatnya sebelum approval selesai. Hanya muncul di panel daftar.</span>
                              </li>
                          </ul>
 

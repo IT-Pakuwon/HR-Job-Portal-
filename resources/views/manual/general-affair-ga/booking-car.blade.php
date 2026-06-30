@@ -157,11 +157,15 @@
                          <p class="text-gray-600 dark:text-gray-400">
                              <span x-show="lang==='en'">
                                  The filter buttons above the booking list let you narrow the list by status.
-                                 The calendar legend uses the same color coding.
+                                 The calendar legend uses the same color coding, but only shows active bookings
+                                 (Pending, Approved, Waiting Process, Processed, Revise) — Rejected and Cancelled
+                                 bookings appear in the list panel only, not on the calendar.
                              </span>
                              <span x-show="lang==='id'">
                                  Tombol filter di atas daftar booking digunakan untuk menyaring daftar berdasarkan status.
-                                 Legenda kalender menggunakan kode warna yang sama.
+                                 Legenda kalender menggunakan kode warna yang sama, tetapi hanya menampilkan booking
+                                 yang masih aktif (Pending, Approved, Waiting Process, Processed, Revise) — booking
+                                 berstatus Rejected dan Cancelled hanya muncul di panel daftar, tidak di kalender.
                              </span>
                          </p>
 
@@ -193,13 +197,13 @@
                              </li>
                              <li>
                                  <strong>Rejected</strong> —
-                                 <span x-show="lang==='en'">The request was rejected and the document is closed.</span>
-                                 <span x-show="lang==='id'">Permintaan ditolak dan dokumen ditutup.</span>
+                                 <span x-show="lang==='en'">The request was rejected and the document is closed. Shown in the list panel only.</span>
+                                 <span x-show="lang==='id'">Permintaan ditolak dan dokumen ditutup. Hanya muncul di panel daftar.</span>
                              </li>
                              <li>
                                  <strong>Cancelled</strong> —
-                                 <span x-show="lang==='en'">The requester cancelled a Revise document before re-submitting it.</span>
-                                 <span x-show="lang==='id'">Pemohon membatalkan dokumen berstatus Revise sebelum disubmit ulang.</span>
+                                 <span x-show="lang==='en'">The requester cancelled a Revise document before re-submitting it. Shown in the list panel only.</span>
+                                 <span x-show="lang==='id'">Pemohon membatalkan dokumen berstatus Revise sebelum disubmit ulang. Hanya muncul di panel daftar.</span>
                              </li>
                          </ul>
 

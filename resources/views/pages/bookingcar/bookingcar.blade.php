@@ -96,12 +96,6 @@
                     <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                         <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span> Revised
                     </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span> Rejected
-                    </span>
-                    <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span class="h-2.5 w-2.5 rounded-full bg-slate-400"></span> Cancelled
-                    </span>
                 </div>
 
                 <!-- ... existing header content ... -->

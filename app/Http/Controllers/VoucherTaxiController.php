@@ -298,7 +298,7 @@ class VoucherTaxiController extends Controller
         $username = strtolower(trim($user->username));
 
         $base = TrVoucherTaxi::query()
-            ->whereIn('status', ['P', 'C', 'F', 'D', 'R'])
+            ->whereIn('status', ['P', 'C', 'F', 'D'])
             ->select([
                 'id', 'docid', 'date_used',
                 'origin', 'destination',
