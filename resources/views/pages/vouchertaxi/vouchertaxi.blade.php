@@ -157,17 +157,17 @@
                 <!-- Filter -->
 
                 <div class="mt-4 flex flex-wrap gap-2">
-                    <button class="voucher-filter active-filter" data-filter="P">Waiting Approval</button>
-                    <button class="voucher-filter" data-filter="D">Revise</button>
-                    <button class="voucher-filter" data-filter="R">Rejected</button>
+                    <button class="voucher-filter active-filter" data-filter="ALL">All</button>
+                    <button class="voucher-filter" data-filter="P">Waiting Approval</button>
                     <button class="voucher-filter" data-filter="C">Completed</button>
                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
                         <button class="voucher-filter" data-filter="C">
                             Waiting Process
                         </button>
                     @endif
+                    <button class="voucher-filter" data-filter="D">Revise</button>
+                    <button class="voucher-filter" data-filter="R">Rejected</button>
                     <button class="voucher-filter" data-filter="X">Cancelled</button>
-                    <button class="voucher-filter" data-filter="ALL">All</button>
 
                 </div>
 

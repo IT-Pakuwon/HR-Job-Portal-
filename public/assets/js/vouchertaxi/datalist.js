@@ -12,7 +12,7 @@ const VoucherTaxiDatalist = {
         page:          1,
         perPage:       10,
         total:         0,
-        filter:        'P',
+        filter:        'ALL',
         search:        '',
         isLoading:     false,
         debounceTimer: null,
@@ -57,7 +57,7 @@ const VoucherTaxiDatalist = {
                 });
                 btn.classList.add('active-filter');
 
-                VoucherTaxiDatalist.state.filter = btn.dataset.filter ?? 'P';
+                VoucherTaxiDatalist.state.filter = btn.dataset.filter ?? 'ALL';
                 VoucherTaxiDatalist.state.page   = 1;
                 VoucherTaxiDatalist.load();
             });
