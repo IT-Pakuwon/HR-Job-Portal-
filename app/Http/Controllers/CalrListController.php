@@ -53,7 +53,11 @@ class CalrListController extends Controller
             })
             ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
             ->whereRaw("UPPER(TRIM(COALESCE(tr_rfca.status, ''))) NOT IN ('X', 'L')")
-            ->whereNull('tr_rfca.calrid')
+            // ->whereNull('tr_rfca.calrid')
+            ->where(function ($q) {
+                $q->whereNull('tr_rfca.calrid')
+                  ->orWhereRaw("TRIM(COALESCE(tr_rfca.calrid, '')) = ''");
+            })
             ->whereNull('c.calrid')
             ->whereNotExists(function ($q) {
                 $q->selectRaw('1')
@@ -146,7 +150,11 @@ class CalrListController extends Controller
                 })
                 ->when(!empty($cpnyList), fn($q) => $q->whereIn('tr_rfca.cpny_id', $cpnyList))
                 ->whereRaw("UPPER(TRIM(COALESCE(tr_rfca.status, ''))) NOT IN ('X', 'L')")
-                ->whereNull('tr_rfca.calrid')
+                // ->whereNull('tr_rfca.calrid')
+                ->where(function ($q) {
+                    $q->whereNull('tr_rfca.calrid')
+                      ->orWhereRaw("TRIM(COALESCE(tr_rfca.calrid, '')) = ''");
+                })
                 ->whereNull('c.calrid')
                 ->whereNotExists(function ($q) {
                     $q->selectRaw('1')
