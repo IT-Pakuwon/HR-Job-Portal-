@@ -40,6 +40,9 @@ class ReceiptListController extends Controller
         $all = TrReceipt::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))->count();
         $rejected = TrReceipt::where('created_by', $u)->where('status', 'R')->count();
         $revise = TrReceipt::where('created_by', $u)->where('status', 'D')->count();
+        $receiptAll = TrReceipt::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+            ->where('status', '!=', 'X')
+            ->count();
 
         // ✅ Return Jobs: PR completed yang masih ada sisa return
         $returnAgg = $this->returnAggSubquery();
@@ -55,7 +58,7 @@ class ReceiptListController extends Controller
             ->count();
 
         return view('pages.receipt.receiptlist', compact(
-            'receiptjobs', 'onProgress', 'completed', 'all', 'returnjobs', 'rejected', 'revise'
+            'receiptjobs', 'onProgress', 'completed', 'all', 'returnjobs', 'rejected', 'revise', 'receiptAll'
         ));
     }
 
@@ -134,6 +137,7 @@ class ReceiptListController extends Controller
                 ->when($scope === 'completed', fn ($q) => $q->where('created_by', $u)->where('status', 'C'))
                 ->when($scope === 'rejected', fn ($q) => $q->where('created_by', $u)->where('status', 'R'))
                 ->when($scope === 'revise', fn ($q) => $q->where('created_by', $u)->where('status', 'D'))
+                ->when($scope === 'receiptall', fn ($q) => $q->where('status', '!=', 'X'))
                 ->select(['id', 'receiptnbr', 'receiptdate', 'receipttype', 'ponbr', 'sppbjktid', 'cpny_id', 'created_by', 'status', 'vendorname']);
 
             if ($ponbr !== '') {

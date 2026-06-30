@@ -1,6 +1,16 @@
 <x-app-layout>
+    @php
+        $user = auth()->user();
+        $hasReceiptAllAccess = $user->user_role === 'admin';
+
+        $xlCols = 7;
+
+        if ($hasReceiptAllAccess) {
+            $xlCols++; // Receipt All
+        }
+    @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
+        <div class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
 
             {{-- Receipt Jobs --}}
             <a href="#" class="scope-filter group block h-full" data-scope="receiptjobs">
@@ -107,6 +117,23 @@
                 </div>
             </a>
 
+            @if ($hasReceiptAllAccess)
+                {{-- Receipt All (status other than X) --}}
+                <a href="#" class="scope-filter group block h-full" data-scope="receiptall">
+                    <div
+                        class="scope-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">📊</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Receipt All</p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-extrabold">{{ $receiptAll }}</p>
+                    </div>
+                </a>
+            @endif
+
         </div>
 
 
@@ -174,6 +201,7 @@
                 rejected: 'Receipt - Rejected',
                 revise: 'Receipt - Revise',
                 all: 'Receipt - All',
+                receiptall: 'Receipt - All (Active)',
             };
 
 

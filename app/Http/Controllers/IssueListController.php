@@ -26,6 +26,9 @@ class IssueListController extends Controller
         $all        = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))->count();
         $rejected   = TrIssue::where('created_by', $u)->where('status','R')->count();
         $revise     = TrIssue::where('created_by', $u)->where('status','D')->count();
+        $issueAll   = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->where('status', '!=', 'X')
+            ->count();
 
         // Return Jobs: status C + issuetype 'RI'
         $returnjobs = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
@@ -39,7 +42,8 @@ class IssueListController extends Controller
             'all',
             'rejected',
             'revise',
-            'returnjobs'
+            'returnjobs',
+            'issueAll'
         ));
     }
 
@@ -70,6 +74,7 @@ class IssueListController extends Controller
             ->when($scope === 'rejected',   fn($q) => $q->where('created_by', $u)->where('status', 'R'))
             ->when($scope === 'revise',     fn($q) => $q->where('created_by', $u)->where('status', 'D'))
             ->when($scope === 'returnjobs', fn($q) => $q->where('status', 'C')->where('issuetype', 'IS'))
+            ->when($scope === 'issueall',   fn($q) => $q->where('status', '!=', 'X'))
             // scope 'all' tidak tambahan filter lagi
             ->select([
                 'id', 'issueid', 'issuedate', 'issuetype', 'spbid', 'cpny_id', 'created_by', 'status',

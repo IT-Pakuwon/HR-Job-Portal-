@@ -1,7 +1,16 @@
 <x-app-layout>
 
+    @php
+        $hasIssueAllAccess = auth()->user()->user_role === 'admin';
+
+        $xlCols = 6;
+
+        if ($hasIssueAllAccess) {
+            $xlCols++; // Issue All
+        }
+    @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        <div class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {{-- Return Jobs (paling kiri) --}}
             <button type="button" class="text-left">
                 <a href="#" class="scope-filter group block h-full" data-scope="returnjobs">
@@ -103,6 +112,25 @@
                     </div>
                 </a>
             </button>
+
+            @if ($hasIssueAllAccess)
+                {{-- Issue All (status other than X) --}}
+                <button type="button" class="text-left">
+                    <a href="#" class="scope-filter group block h-full" data-scope="issueall">
+                        <div
+                            class="scope-card flex items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
+
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
+
+                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                                <p class="whitespace-normal break-words text-sm font-medium leading-tight">Issue All</p>
+                            </div>
+
+                            <p class="shrink-0 text-base font-bold">{{ $issueAll }}</p>
+                        </div>
+                    </a>
+                </button>
+            @endif
         </div>
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -145,6 +173,7 @@
                 revise: 'Issue - Revise',
                 completed: 'Issue - Completed',
                 all: 'Issue - All',
+                issueall: 'Issue - All (Active)',
             };
 
 

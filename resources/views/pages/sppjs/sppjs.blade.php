@@ -4,7 +4,7 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FAACCESS');
         @endphp
         <div
             class="{{ $hasAllList ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -95,7 +95,7 @@
             </button>
 
             {{-- SPPJ All List  --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FAACCESS'))
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
                         <div

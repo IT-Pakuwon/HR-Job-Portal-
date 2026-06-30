@@ -4,7 +4,7 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FAACCESS');
             $hasWoAccess = auth()->user()->hasRole('WHSACCESS');
 
             $xlCols = 5; // base cards
@@ -122,7 +122,7 @@
                     </div>
                 </a>
             </button> --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('WHSACCESS'))
+            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('WHSACCESS') || auth()->user()->hasRole('FAACCESS'))
                 {{-- SPPB All List --}}
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
