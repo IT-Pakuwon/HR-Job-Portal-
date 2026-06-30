@@ -1180,57 +1180,75 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/calrnonpurch/{hash}/finance-revise', [CalrNonPurchController::class, 'financeReviseCalrNonPurch'])->name('calrnonpurch.finance-revise');
     Route::get('/printcalrnonpurch/{hash}', [CalrNonPurchController::class, 'printPdfCalrNonPurch'])->name('calrnonpurch.print');
 
-    Route::get('/parkingregistration', [ParkingRegistrationController::class, 'index'])->name('parkingregistration');
-    Route::get('/parkingregistration/json', [ParkingRegistrationController::class, 'json'])->name('parkingregistration.json');
-    Route::get('/showparkingregistration/{hash}', [ParkingRegistrationController::class, 'showParkingRegistration']);
-    Route::get('/parkingregistration/{id}/tracking', [ParkingRegistrationController::class, 'tracking'])->name('parkingregistration.tracking');
-    Route::get('/pdf_parkingregistration/{hash}', [ParkingRegistrationController::class, 'printParkingRegistration']);
-    Route::get('/createparkingregistration', [ParkingRegistrationController::class, 'createParkingRegistration']);
-    Route::post('/parkingregistration', [ParkingRegistrationController::class, 'storeParkingRegistration'])->name('parkingregistration.store');
-    Route::get('/editparkingregistration/{hash}', [ParkingRegistrationController::class, 'editParkingRegistration']);
-    Route::put('/parkingregistration/{id}', [ParkingRegistrationController::class, 'updateParkingRegistration'])->name('parkingregistration.update');
-    Route::put('/parkingregistration/remove-attachment/{id}', [ParkingRegistrationController::class, 'removeAttachment']);
-    Route::post('/parkingregistration/{id}/approve', [ParkingRegistrationController::class, 'approveParkingRegistration']);
-    Route::post('/parkingregistration/{id}/reject', [ParkingRegistrationController::class, 'rejectParkingRegistration']);
-    Route::post('/parkingregistration/{id}/revise', [ParkingRegistrationController::class, 'reviseParkingRegistration']);
+    Route::middleware('access:FREEPARKING,VIEW')->group(function () {
+        Route::get('/parkingregistration', [ParkingRegistrationController::class, 'index'])->name('parkingregistration');
+        Route::get('/parkingregistration/json', [ParkingRegistrationController::class, 'json'])->name('parkingregistration.json');
+        Route::get('/showparkingregistration/{hash}', [ParkingRegistrationController::class, 'showParkingRegistration']);
+        Route::get('/parkingregistration/{id}/tracking', [ParkingRegistrationController::class, 'tracking'])->name('parkingregistration.tracking');
+        Route::get('/pdf_parkingregistration/{hash}', [ParkingRegistrationController::class, 'printParkingRegistration']);
+        Route::get('/parkingregistration/employees', [ParkingRegistrationController::class, 'employeesByFilter'])->name('parkingregistration.employees');
+    });
 
-    Route::get('/parkingregistration/employees', [ParkingRegistrationController::class, 'employeesByFilter'])->name('parkingregistration.employees');
-    Route::put('/parkingregistration/{docid}/cancel', [ParkingRegistrationController::class, 'cancelParkingRegistration'])->name('parkingregistration.cancel');
-    Route::put('/parking-kendaraan/{id}/toggle-status', [ParkingRegistrationController::class, 'toggleStatusParkingKendaraan'])->name('parkingkendaraan.toggleStatus');
-    Route::put('/parking-kendaraan/{id}/no-kartu', [ParkingRegistrationController::class, 'updateNoKartuParkingKendaraan'])->name('parkingkendaraan.updateNoKartu');
+    Route::middleware('access:FREEPARKING,CREATE')->group(function () {
+        Route::get('/createparkingregistration', [ParkingRegistrationController::class, 'createParkingRegistration']);
+        Route::post('/parkingregistration', [ParkingRegistrationController::class, 'storeParkingRegistration'])->name('parkingregistration.store');
+    });
+
+    Route::middleware('access:FREEPARKING,EDIT')->group(function () {
+        Route::get('/editparkingregistration/{hash}', [ParkingRegistrationController::class, 'editParkingRegistration']);
+        Route::put('/parkingregistration/{id}', [ParkingRegistrationController::class, 'updateParkingRegistration'])->name('parkingregistration.update');
+        Route::put('/parkingregistration/remove-attachment/{id}', [ParkingRegistrationController::class, 'removeAttachment']);
+        Route::post('/parkingregistration/{id}/approve', [ParkingRegistrationController::class, 'approveParkingRegistration']);
+        Route::post('/parkingregistration/{id}/reject', [ParkingRegistrationController::class, 'rejectParkingRegistration']);
+        Route::post('/parkingregistration/{id}/revise', [ParkingRegistrationController::class, 'reviseParkingRegistration']);
+        Route::put('/parking-kendaraan/{id}/no-kartu', [ParkingRegistrationController::class, 'updateNoKartuParkingKendaraan'])->name('parkingkendaraan.updateNoKartu');
+    });
+
+    Route::middleware('access:FREEPARKING,DELETE')->group(function () {
+        Route::put('/parkingregistration/{docid}/cancel', [ParkingRegistrationController::class, 'cancelParkingRegistration'])->name('parkingregistration.cancel');
+        Route::put('/parking-kendaraan/{id}/toggle-status', [ParkingRegistrationController::class, 'toggleStatusParkingKendaraan'])->name('parkingkendaraan.toggleStatus');
+    });
 
     Route::get('/meeting-tv/{id}', [MeetingController::class, 'showRoomTv'])->name('meeting.tv')->withoutMiddleware(['auth']);
 
     Route::middleware(['auth'])->group(function () {
         Route::controller(VoucherTaxiController::class)->group(function () {
-            Route::get('/vouchertaxi', 'index')->name('vouchertaxi');
-
-            Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
-                Route::middleware('ajax')->group(function () {
-                    Route::get('/json', 'json')->name('json');
-                    Route::get('/calendar-json', 'calendarJson')->name('calendar-json');
-                    Route::get('/detail/{eid}', 'detail')->name('detail');
-                    Route::get('/tracking/{eid}', 'tracking')->name('tracking');
-                    Route::get('/find/{eid}', 'findByHash')->name('find');
-                });
-
-                Route::get('/purpose-search', 'purposeSearch')->name('purpose-search');
-                Route::get('/employee-by-department', 'employeeByDepartment')->name('employee-by-department');
-
-                Route::get('/print/{hash}', 'printVoucherTaxi')->name('print');
-
-                Route::post('/store', 'storeVoucher')->name('store');
-                Route::put('/update/{docid}', 'updateVoucherTaxi')->name('update');
-                Route::post('/cancel/{docid}', 'cancel')->name('cancel');
-
-                Route::post('/approve/{docid}', 'approveVoucherTaxi')->name('approve');
-                Route::post('/reject/{docid}', 'rejectVoucherTaxi')->name('reject');
-                Route::post('/revise/{docid}', 'reviseVoucherTaxi')->name('revise');
-
-                Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
+            Route::middleware('access:VOUCHERTAXI,VIEW')->group(function () {
+                Route::get('/vouchertaxi', 'index')->name('vouchertaxi');
+                Route::get('/showvouchertaxi/{eid}', 'index')->name('vouchertaxi.show');
             });
 
-            Route::get('/showvouchertaxi/{eid}', 'index')->name('vouchertaxi.show');
+            Route::prefix('vouchertaxi')->name('vouchertaxi.')->group(function () {
+                Route::middleware('access:VOUCHERTAXI,VIEW')->group(function () {
+                    Route::middleware('ajax')->group(function () {
+                        Route::get('/json', 'json')->name('json');
+                        Route::get('/calendar-json', 'calendarJson')->name('calendar-json');
+                        Route::get('/detail/{eid}', 'detail')->name('detail');
+                        Route::get('/tracking/{eid}', 'tracking')->name('tracking');
+                        Route::get('/find/{eid}', 'findByHash')->name('find');
+                    });
+
+                    Route::get('/purpose-search', 'purposeSearch')->name('purpose-search');
+                    Route::get('/employee-by-department', 'employeeByDepartment')->name('employee-by-department');
+                    Route::get('/print/{hash}', 'printVoucherTaxi')->name('print');
+                });
+
+                Route::middleware('access:VOUCHERTAXI,CREATE')->group(function () {
+                    Route::post('/store', 'storeVoucher')->name('store');
+                });
+
+                Route::middleware('access:VOUCHERTAXI,EDIT')->group(function () {
+                    Route::put('/update/{docid}', 'updateVoucherTaxi')->name('update');
+                    Route::post('/approve/{docid}', 'approveVoucherTaxi')->name('approve');
+                    Route::post('/reject/{docid}', 'rejectVoucherTaxi')->name('reject');
+                    Route::post('/revise/{docid}', 'reviseVoucherTaxi')->name('revise');
+                    Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
+                });
+
+                Route::middleware('access:VOUCHERTAXI,DELETE')->group(function () {
+                    Route::post('/cancel/{docid}', 'cancel')->name('cancel');
+                });
+            });
         });
 
         Route::controller(VoucherTaxiSetupController::class)
@@ -1250,79 +1268,106 @@ Route::middleware(['auth'])->group(function () {
             });
 
         Route::controller(BookingCarController::class)->group(function () {
-            Route::get('/bookingcar', 'index')->name('bookingcar');
-
-            Route::prefix('bookingcar')->name('bookingcar.')->group(function () {
-                Route::middleware('ajax')->group(function () {
-                    Route::get('/json', 'json')->name('json');
-                    Route::get('/calendar-json', 'calendarJson')->name('calendar-json');
-                    Route::get('/detail/{eid}', 'detail')->name('detail');
-                    Route::get('/tracking/{eid}', 'tracking')->name('tracking');
-                    Route::get('/find/{eid}', 'findByHash')->name('find');
-                });
-
-                Route::get('/print/{hash}', 'printBookingCar')->name('print');
-
-                Route::post('/store', 'storeBookingCar')->name('store');
-                Route::put('/update/{docid}', 'updateBookingCar')->name('update');
-                Route::post('/cancel/{docid}', 'cancel')->name('cancel');
-
-                Route::post('/approve/{docid}', 'approveBookingCar')->name('approve');
-                Route::post('/reject/{docid}', 'rejectBookingCar')->name('reject');
-                Route::post('/revise/{docid}', 'reviseBookingCar')->name('revise');
-
-                Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
-                Route::post('/change-expense/{eid}', 'changeCompanyExpense')->name('change-expense');
+            Route::middleware('access:BOOKINGCAR,VIEW')->group(function () {
+                Route::get('/bookingcar', 'index')->name('bookingcar');
+                Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');
             });
 
-            Route::get('/showbookingcar/{eid}', 'index')->name('bookingcar.show');
+            Route::prefix('bookingcar')->name('bookingcar.')->group(function () {
+                Route::middleware('access:BOOKINGCAR,VIEW')->group(function () {
+                    Route::middleware('ajax')->group(function () {
+                        Route::get('/json', 'json')->name('json');
+                        Route::get('/calendar-json', 'calendarJson')->name('calendar-json');
+                        Route::get('/detail/{eid}', 'detail')->name('detail');
+                        Route::get('/tracking/{eid}', 'tracking')->name('tracking');
+                        Route::get('/find/{eid}', 'findByHash')->name('find');
+                    });
+
+                    Route::get('/print/{hash}', 'printBookingCar')->name('print');
+                });
+
+                Route::middleware('access:BOOKINGCAR,CREATE')->group(function () {
+                    Route::post('/store', 'storeBookingCar')->name('store');
+                });
+
+                Route::middleware('access:BOOKINGCAR,EDIT')->group(function () {
+                    Route::put('/update/{docid}', 'updateBookingCar')->name('update');
+                    Route::post('/approve/{docid}', 'approveBookingCar')->name('approve');
+                    Route::post('/reject/{docid}', 'rejectBookingCar')->name('reject');
+                    Route::post('/revise/{docid}', 'reviseBookingCar')->name('revise');
+                    Route::post('/process/{docid}', 'updateGaAdvice')->name('process');
+                    Route::post('/change-expense/{eid}', 'changeCompanyExpense')->name('change-expense');
+                });
+
+                Route::middleware('access:BOOKINGCAR,DELETE')->group(function () {
+                    Route::post('/cancel/{docid}', 'cancel')->name('cancel');
+                });
+            });
         });
 
         Route::controller(BookingCarSetupController::class)
             ->prefix('bookingcar/setup')
             ->name('bookingcar.setup.')
             ->group(function () {
-                Route::get('/', 'index')->name('index');
+                Route::middleware('access:BOOKINGCAR,VIEW')->group(function () {
+                    Route::get('/', 'index')->name('index');
 
-                Route::middleware('ajax')->group(function () {
-                    Route::get('/driver/json', 'jsonDriver')->name('driver.json');
-                    Route::get('/driver/find/{id}', 'findDriver')->name('driver.find');
+                    Route::middleware('ajax')->group(function () {
+                        Route::get('/driver/json', 'jsonDriver')->name('driver.json');
+                        Route::get('/driver/find/{id}', 'findDriver')->name('driver.find');
 
-                    Route::get('/vehicle/json', 'jsonVehicle')->name('vehicle.json');
-                    Route::get('/vehicle/find/{id}', 'findVehicle')->name('vehicle.find');
+                        Route::get('/vehicle/json', 'jsonVehicle')->name('vehicle.json');
+                        Route::get('/vehicle/find/{id}', 'findVehicle')->name('vehicle.find');
 
-                    Route::get('/category/json', 'jsonCategory')->name('category.json');
-                    Route::get('/category/find/{id}', 'findCategory')->name('category.find');
+                        Route::get('/category/json', 'jsonCategory')->name('category.json');
+                        Route::get('/category/find/{id}', 'findCategory')->name('category.find');
+                    });
                 });
 
-                Route::post('/driver/store', 'storeDriver')->name('driver.store');
-                Route::post('/driver/update/{id}', 'updateDriver')->name('driver.update');
-                Route::post('/driver/status/{id}', 'updateDriverStatus')->name('driver.status');
+                Route::middleware('access:BOOKINGCAR,CREATE')->group(function () {
+                    Route::post('/driver/store', 'storeDriver')->name('driver.store');
+                    Route::post('/vehicle/store', 'storeVehicle')->name('vehicle.store');
+                    Route::post('/category/store', 'storeCategory')->name('category.store');
+                });
 
-                Route::post('/vehicle/store', 'storeVehicle')->name('vehicle.store');
-                Route::post('/vehicle/update/{id}', 'updateVehicle')->name('vehicle.update');
-                Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
+                Route::middleware('access:BOOKINGCAR,EDIT')->group(function () {
+                    Route::post('/driver/update/{id}', 'updateDriver')->name('driver.update');
+                    Route::post('/vehicle/update/{id}', 'updateVehicle')->name('vehicle.update');
+                    Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
+                });
 
-                Route::post('/category/store', 'storeCategory')->name('category.store');
-                Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
-                Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
+                Route::middleware('access:BOOKINGCAR,DELETE')->group(function () {
+                    Route::post('/driver/status/{id}', 'updateDriverStatus')->name('driver.status');
+                    Route::post('/vehicle/status/{id}', 'updateVehicleStatus')->name('vehicle.status');
+                    Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
+                });
             });
 
         Route::controller(CarExpenseController::class)
             ->prefix('carexpense')
             ->name('carexpense.')
             ->group(function () {
-                Route::get('/', 'index')->middleware('access:CAREXPENSE,VIEW')->name('index');
+                Route::middleware('access:CAREXPENSE,VIEW')->group(function () {
+                    Route::get('/', 'index')->name('index');
 
-                Route::middleware('ajax')->group(function () {
-                    Route::get('/json', 'json')->name('json');
-                    Route::get('/show/{eid}', 'show')->name('show');
-                    Route::get('/attachments/{eid}', 'getAttachments')->name('attachments');
+                    Route::middleware('ajax')->group(function () {
+                        Route::get('/json', 'json')->name('json');
+                        Route::get('/show/{eid}', 'show')->name('show');
+                        Route::get('/attachments/{eid}', 'getAttachments')->name('attachments');
+                    });
                 });
 
-                Route::post('/store', 'store')->name('store');
-                Route::put('/update/{eid}', 'update')->name('update');
-                Route::delete('/delete/{eid}', 'destroy')->name('delete');
+                Route::middleware('access:CAREXPENSE,CREATE')->group(function () {
+                    Route::post('/store', 'store')->name('store');
+                });
+
+                Route::middleware('access:CAREXPENSE,EDIT')->group(function () {
+                    Route::put('/update/{eid}', 'update')->name('update');
+                });
+
+                Route::middleware('access:CAREXPENSE,DELETE')->group(function () {
+                    Route::delete('/delete/{eid}', 'destroy')->name('delete');
+                });
 
                 Route::get('/download-template', 'downloadTemplate')->name('download-template');
                 Route::post('/import/preview', 'importPreview')->name('import.preview');
