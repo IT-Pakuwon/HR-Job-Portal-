@@ -42,7 +42,7 @@ class CarExpenseSheetExport implements FromArray, WithHeadings, WithTitle, Shoul
     {
         $request = $this->request;
 
-        $query = DB::connection('pgsql')
+        $query = DB::connection('pgsql5')
             ->table('tr_car_expense')
             ->whereNull('deleted_at')
             ->where('cost_type', $this->costTypeId)

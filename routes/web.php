@@ -2275,7 +2275,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.fa.export');
     });
 
-    Route::prefix('report-ga')->group(function () {
+    Route::prefix('report-ga')->middleware('access:REPORTGA,VIEW')->group(function () {
         Route::get('/', [ReportGeneralGAController::class, 'index'])
             ->name('reportga');
 

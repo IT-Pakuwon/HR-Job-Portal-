@@ -76,7 +76,7 @@ class ReportGeneralGAController extends Controller
         $hasADMIN    = strtolower($user->user_role) === 'admin';
         $hasGAACCESS = $user->hasRole('GAACCESS');
 
-        $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 4 : 0);
+        $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 3 : 0);
 
         $defaultReport = match (true) {
             $hasGAACCESS => 'operational-car',
@@ -1329,7 +1329,7 @@ class ReportGeneralGAController extends Controller
             ->where('status', 'A')
             ->pluck('category_name', 'id');
 
-        $query = DB::connection('pgsql')->table('tr_car_expense')
+        $query = DB::connection('pgsql5')->table('tr_car_expense')
             ->whereNull('deleted_at')
             ->select([
                 'refnbr',
