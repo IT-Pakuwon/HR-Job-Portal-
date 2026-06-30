@@ -86,7 +86,7 @@
                         {{-- Stats --}}
                         <div class="mt-5 flex gap-0 border-t border-gray-100 pt-4 dark:border-gray-700">
                             <div class="flex-1 text-center">
-                                <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $applicant->age }}</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $applicant->age ?: ($applicant->date_of_birth ? \Carbon\Carbon::parse($applicant->date_of_birth)->age : '-') }}</p>
                                 <p class="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Age</p>
                             </div>
                             <div class="flex-1 border-x border-gray-100 text-center dark:border-gray-700">

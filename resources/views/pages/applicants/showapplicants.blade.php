@@ -133,7 +133,7 @@
                                                                         class="text-sm text-gray-500 dark:text-gray-400">Age</span>
                                                                     <p
                                                                         class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                                        {{ $applicant->age }}</p>
+                                                                        {{ $applicant->age ?: ($applicant->date_of_birth ? \Carbon\Carbon::parse($applicant->date_of_birth)->age : '-') }}</p>
                                                                 </div>
                                                             </div>
                                                             <div class="flex items-center gap-2">

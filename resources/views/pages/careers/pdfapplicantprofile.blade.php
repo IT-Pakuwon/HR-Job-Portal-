@@ -214,7 +214,7 @@
                         <td class="lbl">Date of Birth</td>
                         <td class="val">{{ $applicant->birth_place }}, {{ \Carbon\Carbon::parse($applicant->date_of_birth)->translatedFormat('d F Y') }}</td>
                         <td class="lbl">Age</td>
-                        <td class="val">{{ $applicant->age }} yrs</td>
+                        <td class="val">{{ $applicant->age ?: ($applicant->date_of_birth ? \Carbon\Carbon::parse($applicant->date_of_birth)->age : '-') }} yrs</td>
                     </tr>
                     <tr>
                         <td class="lbl">Gender</td>
