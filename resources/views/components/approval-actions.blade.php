@@ -25,7 +25,9 @@
                     </button>
                 </a>
             @endif
-        @elseif ($hasBlockingIm)
+        @endif
+
+        @if ($status === 'P' && $hasBlockingIm)
             {{-- IM linked to this document is not yet completed — visible to all viewers --}}
             @php
                 $imStatusText = match($imBlockingStatus) {
@@ -49,7 +51,7 @@
                     <span class="font-semibold">{{ $imBlockingId }}</span>
                 @endif — Status: <span class="font-semibold">{{ $imStatusText }}</span>
             </div>
-        @elseif ($isApprover)
+        @elseif ($status === 'P' && $isApprover)
             {{-- Normal approval buttons --}}
                 <button id="approveBtn"
                     class="inline-flex items-center gap-1 rounded-md bg-green-100 px-3 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-green-700/30 dark:text-green-300 dark:hover:bg-green-600/50">
