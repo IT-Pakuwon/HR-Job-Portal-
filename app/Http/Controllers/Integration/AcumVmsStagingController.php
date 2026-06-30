@@ -18,6 +18,12 @@ use Illuminate\Support\Facades\Log;
 
 class AcumVmsStagingController extends Controller
 {
+    private const STAGING_MODULES = [
+        'po'      => 'PO',
+        'receipt' => 'Receipt',
+        'kontrak' => 'Kontrak',
+    ];
+
     /**
      * Halaman setting + tombol execute.
      * GET /staging/acumvms?app=ACUMVMS
@@ -37,9 +43,10 @@ class AcumVmsStagingController extends Controller
         $running = $this->isRunning();
 
         return view('pages.integration.acumvms', [
-            'appId'   => $appId,
-            'setting' => $setting,
-            'running' => $running,
+            'appId'          => $appId,
+            'setting'        => $setting,
+            'running'        => $running,
+            'stagingModules' => self::STAGING_MODULES,
         ]);
     }
 
@@ -99,8 +106,13 @@ class AcumVmsStagingController extends Controller
         if (!$user) return redirect()->route('login');
 
         $appId = (string)($request->input('app', 'ACUMVMS'));
+        $modules = $this->normalizeStagingModules($request->input('modules', []));
 
-        $res = $this->run($appId);
+        if (empty($modules)) {
+            return back()->withInput()->with('error', 'Pilih minimal 1 modul staging untuk dijalankan.');
+        }
+
+        $res = $this->run($appId, $user->username ?? 'SYSTEM', $modules);
 
         // UI biasa enaknya balik JSON (kalau kamu pakai ajax) ATAU redirect with flash
         if ($request->expectsJson()) {
@@ -145,8 +157,18 @@ class AcumVmsStagingController extends Controller
     // =====================================================================
     // RUNNER (INI LOGIKA STAGING YANG DULU ADA DI AcumVmsStagingController)
     // =====================================================================
-    public function run(string $appId = 'ACUMVMS', string $runBy = 'SYSTEM'): array
+    public function run(string $appId = 'ACUMVMS', string $runBy = 'SYSTEM', ?array $modules = null): array
     {
+        $modules = $this->normalizeStagingModules($modules);
+        if (empty($modules)) {
+            $modules = array_keys(self::STAGING_MODULES);
+        }
+
+        $runPo = in_array('po', $modules, true);
+        $runReceipt = in_array('receipt', $modules, true);
+        $runKontrak = in_array('kontrak', $modules, true);
+        $runAllModules = count($modules) === count(self::STAGING_MODULES);
+
         // =========================
         // LOCK (ANTI DOUBLE CRON/UI)
         // =========================
@@ -177,6 +199,8 @@ class AcumVmsStagingController extends Controller
                 'receipt'        => 0,
                 'receipt_detail' => 0,
                 'kontrak'        => 0,
+                'modules'        => $modules,
+                'window_updated' => false,
                 'window'         => [
                     'from' => $from->toDateTimeString(),
                     'to'   => $to->toDateTimeString(),
@@ -186,13 +210,16 @@ class AcumVmsStagingController extends Controller
             // =========================
             // 2) Ambil PO HEADER (ONCE)
             // =========================
-            $poHeaders = TrPO::query()
-                ->where(function ($q) use ($from, $to) {
-                    $q->whereBetween('submitdate', [$from, $to])
-                    ->orWhereBetween('updated_at', [$from, $to]);
-                })
-                ->select(['id', 'ponbr', 'cpny_id'])
-                ->get();
+            $poHeaders = collect();
+            if ($runPo) {
+                $poHeaders = TrPO::query()
+                    ->where(function ($q) use ($from, $to) {
+                        $q->whereBetween('submitdate', [$from, $to])
+                        ->orWhereBetween('updated_at', [$from, $to]);
+                    })
+                    ->select(['id', 'ponbr', 'cpny_id'])
+                    ->get();
+            }
 
             $poHeaderIds = $poHeaders->pluck('id')->all();
 
@@ -227,7 +254,7 @@ class AcumVmsStagingController extends Controller
             // =========================
             // 3) STAGING PO
             // =========================
-            if (!empty($poHeaderIds)) {
+            if ($runPo && !empty($poHeaderIds)) {
                 TrPO::query()
                     ->whereIn('id', $poHeaderIds)
                     ->select([
@@ -282,7 +309,7 @@ class AcumVmsStagingController extends Controller
             // =========================
             // 4) STAGING PO DETAIL
             // =========================
-            if ($poHeaderPairs->isNotEmpty()) {
+            if ($runPo && $poHeaderPairs->isNotEmpty()) {
                 TrPOdetail::query()
                     ->where(function ($q) use ($poHeaderPairs) {
                         foreach ($poHeaderPairs as $pair) {
@@ -412,18 +439,21 @@ class AcumVmsStagingController extends Controller
             // =========================
             // 5) STAGING RECEIPT
             // =========================
-            $receiptHeaders = TrReceipt::query()
-                ->where(function ($q) use ($from, $to) {
-                    $q->whereBetween('updated_at', [$from, $to])
-                      ->orWhereBetween('created_at', [$from, $to]);
-                })
-                ->select(['receiptnbr','cpny_id'])
-                ->get();
+            $receiptHeaders = collect();
+            if ($runReceipt) {
+                $receiptHeaders = TrReceipt::query()
+                    ->where(function ($q) use ($from, $to) {
+                        $q->whereBetween('updated_at', [$from, $to])
+                          ->orWhereBetween('created_at', [$from, $to]);
+                    })
+                    ->select(['receiptnbr','cpny_id'])
+                    ->get();
+            }
 
             $receiptNbrList = $receiptHeaders->pluck('receiptnbr')->unique()->values()->all();
             $receiptCpnyMap = $receiptHeaders->pluck('cpny_id', 'receiptnbr')->all();
 
-            if (!empty($receiptNbrList)) {
+            if ($runReceipt && !empty($receiptNbrList)) {
                 TrReceipt::query()
                     ->whereIn('receiptnbr', $receiptNbrList)
                     ->select([
@@ -461,7 +491,7 @@ class AcumVmsStagingController extends Controller
             // =========================
             // 6) STAGING RECEIPT DETAIL
             // =========================
-            if (!empty($receiptNbrList)) {
+            if ($runReceipt && !empty($receiptNbrList)) {
                 TrReceiptdetail::query()
                     ->whereIn('receiptnbr', $receiptNbrList)
                     ->select([
@@ -511,63 +541,65 @@ class AcumVmsStagingController extends Controller
             // =========================
             // 6B) STAGING KONTRAK
             // =========================
-            TrKontrak::query()
-                ->where(function ($q) use ($from, $to) {
-                    $q->whereBetween('submitdate', [$from, $to])
-                      ->orWhereBetween('updated_at', [$from, $to]);
-                })
-                ->select([
-                    'kontrakid','kontrakdate','cpny_id','csid','sppbjktid','department_id',
-                    'vendorid','vendorname','purchaser','user_approval',
-                    'kontraktype','kontrakcategory','nosk','nopklegal',
-                    'startdate','enddate','kontaknote',
-                    'status','created_by','created_at'
-                ])
-                ->orderBy('kontrakid')
-                ->chunk(500, function ($rows) use (&$result) {
+            if ($runKontrak) {
+                TrKontrak::query()
+                    ->where(function ($q) use ($from, $to) {
+                        $q->whereBetween('submitdate', [$from, $to])
+                          ->orWhereBetween('updated_at', [$from, $to]);
+                    })
+                    ->select([
+                        'kontrakid','kontrakdate','cpny_id','csid','sppbjktid','department_id',
+                        'vendorid','vendorname','purchaser','user_approval',
+                        'kontraktype','kontrakcategory','nosk','nopklegal',
+                        'startdate','enddate','kontaknote',
+                        'status','created_by','created_at'
+                    ])
+                    ->orderBy('kontrakid')
+                    ->chunk(500, function ($rows) use (&$result) {
 
-                    $payload = [];
+                        $payload = [];
 
-                    foreach ($rows as $k) {
-                        $payload[] = [
-                            'kontrakid'       => $k->kontrakid,
-                            'cpny_id'         => $k->cpny_id,
-                            'kontrakdate'     => $k->kontrakdate,
-                            'csid'            => $k->csid,
-                            'sppbjktid'       => $k->sppbjktid,
-                            'department_id'   => $k->department_id,
-                            'vendor_id'       => $k->vendorid,
-                            'vendorname'      => $k->vendorname,
-                            'purchaser'       => $k->purchaser,
-                            'user_approval'   => $k->user_approval,
-                            'kontraktype'     => $k->kontraktype,
-                            'kontrakcategory' => $k->kontrakcategory,
-                            'nosk'            => $k->nosk,
-                            'nopklegal'       => $k->nopklegal,
-                            'startdate'       => $k->startdate,
-                            'enddate'         => $k->enddate,
-                            'kontaknote'      => $k->kontaknote,
-                            'status'          => $k->status,
-                            'created_by'      => $k->created_by,
-                            'created_at'      => $k->created_at,
-                        ];
-                    }
+                        foreach ($rows as $k) {
+                            $payload[] = [
+                                'kontrakid'       => $k->kontrakid,
+                                'cpny_id'         => $k->cpny_id,
+                                'kontrakdate'     => $k->kontrakdate,
+                                'csid'            => $k->csid,
+                                'sppbjktid'       => $k->sppbjktid,
+                                'department_id'   => $k->department_id,
+                                'vendor_id'       => $k->vendorid,
+                                'vendorname'      => $k->vendorname,
+                                'purchaser'       => $k->purchaser,
+                                'user_approval'   => $k->user_approval,
+                                'kontraktype'     => $k->kontraktype,
+                                'kontrakcategory' => $k->kontrakcategory,
+                                'nosk'            => $k->nosk,
+                                'nopklegal'       => $k->nopklegal,
+                                'startdate'       => $k->startdate,
+                                'enddate'         => $k->enddate,
+                                'kontaknote'      => $k->kontaknote,
+                                'status'          => $k->status,
+                                'created_by'      => $k->created_by,
+                                'created_at'      => $k->created_at,
+                            ];
+                        }
 
-                    $this->upsertMysql7(
-                        'staging_kontrak',
-                        $payload,
-                        ['kontrakid','cpny_id'],
-                        [
-                            'kontrakdate','csid','sppbjktid','department_id',
-                            'vendor_id','vendorname','purchaser','user_approval',
-                            'kontraktype','kontrakcategory','nosk','nopklegal',
-                            'startdate','enddate','kontaknote',
-                            'status','created_by','created_at'
-                        ]
-                    );
+                        $this->upsertMysql7(
+                            'staging_kontrak',
+                            $payload,
+                            ['kontrakid','cpny_id'],
+                            [
+                                'kontrakdate','csid','sppbjktid','department_id',
+                                'vendor_id','vendorname','purchaser','user_approval',
+                                'kontraktype','kontrakcategory','nosk','nopklegal',
+                                'startdate','enddate','kontaknote',
+                                'status','created_by','created_at'
+                            ]
+                        );
 
-                    $result['kontrak'] += count($payload);
-                });
+                        $result['kontrak'] += count($payload);
+                    });
+            }
 
             // =========================
             // 7) UPDATE STAGING SETTING (BENAR)
@@ -580,14 +612,18 @@ class AcumVmsStagingController extends Controller
             // $setting->lastupdate_user = 'SYSTEM';
             // $setting->lastupdate_datetime = now();
             // $setting->save();
-            $nextDay = Carbon::parse($to)->addDay()->startOfDay(); // D+1 00:00:00
+            if ($runAllModules) {
+                $nextDay = Carbon::parse($to)->addDay()->startOfDay(); // D+1 00:00:00
 
-            $setting->last_update = $nextDay->copy()->setTime(0, 1, 0);   // D+1 00:01:00
-            $setting->next_update = $nextDay->copy()->setTime(23, 59, 0); // D+1 23:59:00
+                $setting->last_update = $nextDay->copy()->setTime(0, 1, 0);   // D+1 00:01:00
+                $setting->next_update = $nextDay->copy()->setTime(23, 59, 0); // D+1 23:59:00
 
-            $setting->lastupdate_user = $runBy; // lebih bagus siapa yang run
-            $setting->lastupdate_datetime = now();
-            $setting->save();
+                $setting->lastupdate_user = $runBy; // lebih bagus siapa yang run
+                $setting->lastupdate_datetime = now();
+                $setting->save();
+
+                $result['window_updated'] = true;
+            }
 
             return ['ok' => true, 'message' => 'Staging injected sukses', 'data' => $result];
 
@@ -619,5 +655,25 @@ class AcumVmsStagingController extends Controller
         DB::connection('mysql7')
             ->table($table)
             ->upsert($payload, $uniqueBy, $updateColumns);
+    }
+
+    private function normalizeStagingModules($modules): array
+    {
+        if ($modules === null) {
+            return array_keys(self::STAGING_MODULES);
+        }
+
+        if (!is_array($modules)) {
+            $modules = [$modules];
+        }
+
+        $allowed = array_keys(self::STAGING_MODULES);
+
+        return collect($modules)
+            ->map(fn ($module) => strtolower(trim((string) $module)))
+            ->filter(fn ($module) => in_array($module, $allowed, true))
+            ->unique()
+            ->values()
+            ->all();
     }
 }

@@ -143,6 +143,28 @@
                         @csrf
                         <input type="hidden" name="app" value="{{ $appId }}">
 
+                        @php
+                            $selectedModules = old('modules', array_keys($stagingModules ?? []));
+                        @endphp
+
+                        <div class="mb-4">
+                            <div class="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-200">Pilih Modul</div>
+                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                @foreach (($stagingModules ?? []) as $moduleKey => $moduleLabel)
+                                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700/60">
+                                        <input type="checkbox" name="modules[]" value="{{ $moduleKey }}"
+                                            class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                            {{ in_array($moduleKey, $selectedModules, true) ? 'checked' : '' }}
+                                            {{ (!$setting || $running) ? 'disabled' : '' }}>
+                                        <span>{{ $moduleLabel }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                Jika hanya sebagian modul dijalankan, window tidak digeser agar modul lain masih bisa diproses pada periode yang sama.
+                            </p>
+                        </div>
+
                         <button type="submit" id="btnRun"
                             class="w-full rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
                             {{ (!$setting || $running) ? 'disabled' : '' }}>

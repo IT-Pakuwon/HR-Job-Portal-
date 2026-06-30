@@ -1085,7 +1085,7 @@ class CalrNonPurchController extends Controller
             */
             $budgetRfca = TrRfpNonPurchDetail::query()
                 ->where('rfpnonpurchaseid', $rfp->rfpnonpurchaseid)
-                ->where('refid', 'BUDGET-RFCA')
+                ->where('rfpnonpurch_budget_type', 'BUDGET-RCA')
                 ->orderBy('id')
                 ->first();
 
@@ -1111,7 +1111,7 @@ class CalrNonPurchController extends Controller
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Budget diambil dari detail RCA awal refid = BUDGET-RFCA
+                    | Budget diambil dari detail RCA awal rfpnonpurch_budget_type = BUDGET-RCA
                     |--------------------------------------------------------------------------
                     | Jika tidak ketemu, fallback ke default lama.
                     |--------------------------------------------------------------------------
@@ -1126,6 +1126,7 @@ class CalrNonPurchController extends Controller
 
                     // refid untuk menandai detail ini milik CAR/CALR mana
                     'refid' => $docid,
+                    'rfpnonpurch_budget_type' => 'BUDGET-CAR',
 
                     'status' => 'P',
                     'created_by' => $username,

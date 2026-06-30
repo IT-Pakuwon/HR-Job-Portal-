@@ -860,13 +860,13 @@ class IMBudgetController extends Controller
         |--------------------------------------------------------------------------
         | Ambil detail source
         |--------------------------------------------------------------------------
-        | RCA: ambil detail budget awal saja, refid = BUDGET-RFCA
+        | RCA: ambil detail budget awal saja, refid = BUDGET-RCA
         |--------------------------------------------------------------------------
         */
         $rows = TrRfpNonPurchDetail::query()
             ->where('rfpnonpurchaseid', $sourceDocid)
             ->when($imdoctype === 'RCA', function ($q) {
-                $q->where('refid', 'BUDGET-RFCA');
+                $q->where('rfpnonpurch_budget_type', 'BUDGET-RCA');
             })
             ->orderBy('id')
             ->get();

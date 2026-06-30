@@ -594,6 +594,20 @@ class KontrakController extends Controller
         $kontrak->updated_at      = $now;
         $kontrak->save();
 
+        $stagingRes = app(\App\Http\Controllers\Integration\AcumVmsKontrakSubmitController::class)
+            ->runByKontrak(
+                $kontrak->kontrakid,
+                $kontrak->cpny_id,
+                $user->username ?? 'system'
+            );
+
+        \Log::info('[ACUMVMS STAGING KONTRAK RESULT]', [
+            'kontrakid' => $kontrak->kontrakid,
+            'cpny_id'   => $kontrak->cpny_id,
+            'run_by'    => $user->username ?? 'system',
+            'result'    => $stagingRes,
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Submit berhasil.',

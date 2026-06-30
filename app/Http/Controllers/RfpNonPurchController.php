@@ -466,6 +466,7 @@ class RfpNonPurchController extends Controller
 
             $rowCount = count($prices);
             $insertedDetail = 0;
+            $needsIMBudget = false;
 
             for ($i = 0; $i < $rowCount; $i++) {
                 $desc = trim((string) ($descs[$i] ?? ''));
@@ -488,6 +489,20 @@ class RfpNonPurchController extends Controller
                 $totalAmountRequest += $amount;
                 $insertedDetail++;
 
+                $budgetBusinessUnitId = $busUnitIds[$i] ?? null;
+                $budgetDepartmentFinId = $deptFinIds[$i] ?? null;
+                $budgetAccountId = $coaIds[$i] ?? null;
+                $budgetActivityId = $activityIds[$i] ?? null;
+
+                if (
+                    trim((string) $budgetBusinessUnitId) === '' &&
+                    trim((string) $budgetDepartmentFinId) === '' &&
+                    trim((string) $budgetAccountId) === '' &&
+                    trim((string) $budgetActivityId) === ''
+                ) {
+                    $needsIMBudget = true;
+                }
+
                 TrRfpNonPurchDetail::create([
                     'rfpnonpurchaseid' => $docid,
 
@@ -496,19 +511,18 @@ class RfpNonPurchController extends Controller
                         ? null
                         : $desc,
 
-                    // RCA isi refid BUDGET-RFCA
-                    'refid' => $doctype === 'RCA'
-                        ? 'BUDGET-RFCA'
-                        : null,
+                    'rfpnonpurch_budget_type' => $doctype === 'RCA'
+                        ? 'BUDGET-RCA'
+                        : 'BUDGET-RFP',
 
                     'amount_request' => $amount,
 
                     'budget_perpost' => $year,
                     'budget_cpny_id' => $request->cpnyid,
-                    'budget_business_unit_id' => $busUnitIds[$i] ?? null,
-                    'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                    'budget_account_id' => $coaIds[$i] ?? null,
-                    'budget_activity_id' => $activityIds[$i] ?? null,
+                    'budget_business_unit_id' => $budgetBusinessUnitId,
+                    'budget_department_fin_id' => $budgetDepartmentFinId,
+                    'budget_account_id' => $budgetAccountId,
+                    'budget_activity_id' => $budgetActivityId,
                     'budget_activity_descr' => $actDescrs[$i] ?? null,
 
                     'status' => 'P',
@@ -526,6 +540,12 @@ class RfpNonPurchController extends Controller
 
             // Total header dari detail, baik RFP maupun RCA
             $header->amountrequestpayment = $totalAmountRequest;
+
+            if ($needsIMBudget) {
+                $this->reserveBudget($doctype, $docid, $request->cpnyid, 'Submit', $username);
+                $header->flag_imbudget = true;
+            }
+
             $header->save();
 
             // =========================
@@ -806,7 +826,7 @@ class RfpNonPurchController extends Controller
                 ->where('rfpnonpurchaseid', $docid);
 
             if ($doctype === 'RCA') {
-                $detailsQuery->where('refid', 'BUDGET-RFCA');
+                $detailsQuery->where('rfpnonpurch_budget_type', 'BUDGET-RCA');
             }
 
             $details = $detailsQuery
@@ -2004,58 +2024,64 @@ class RfpNonPurchController extends Controller
                 ->delete();
 
             // =========================
-            // INSERT DETAIL BARU ONLY RFP
+            // INSERT DETAIL BARU
             // =========================
             $totalAmountRequest = 0;
+            $insertedDetail = 0;
 
-            if ($doctype === 'RFP') {
-                $descs = $request->rfpnonpurchase_descr ?? [];
-                $prices = $request->price ?? [];
+            $descs = $request->rfpnonpurchase_descr ?? [];
+            $prices = $request->price ?? [];
 
-                $coaIds = $request->coa_id ?? [];
-                $activityIds = $request->activity_id ?? [];
-                $busUnitIds = $request->business_unit_id_detail ?? [];
-                $deptFinIds = $request->department_fin_id ?? [];
-                $actDescrs = $request->activity_descr ?? [];
+            $coaIds = $request->coa_id ?? [];
+            $activityIds = $request->activity_id ?? [];
+            $busUnitIds = $request->business_unit_id_detail ?? [];
+            $deptFinIds = $request->department_fin_id ?? [];
+            $actDescrs = $request->activity_descr ?? [];
 
-                $rowCount = count($descs);
+            $rowCount = count($prices);
 
-                for ($i = 0; $i < $rowCount; $i++) {
-                    $desc = trim($descs[$i] ?? '');
-                    $amount = $toFloat($prices[$i] ?? 0);
+            for ($i = 0; $i < $rowCount; $i++) {
+                $desc = trim((string) ($descs[$i] ?? ''));
+                $amount = $toFloat($prices[$i] ?? 0);
 
-                    if (!$desc || $amount <= 0) {
-                        continue;
-                    }
-
-                    $totalAmountRequest += $amount;
-
-                    TrRfpNonPurchDetail::create([
-                        'rfpnonpurchaseid' => $docid,
-                        'keperluan_detail' => $desc,
-                        'amount_request' => $amount,
-
-                        'budget_perpost' => $year,
-                        'budget_cpny_id' => $request->cpnyid,
-                        'budget_business_unit_id' => $busUnitIds[$i] ?? null,
-                        'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                        'budget_account_id' => $coaIds[$i] ?? null,
-                        'budget_activity_id' => $activityIds[$i] ?? null,
-                        'budget_activity_descr' => $actDescrs[$i] ?? null,
-
-                        'status' => 'P',
-                        'created_by' => $username,
-                    ]);
+                if ($amount <= 0) {
+                    continue;
                 }
 
-                $header->amountrequestpayment = $totalAmountRequest;
-                $header->save();
+                if ($doctype === 'RFP' && $desc === '') {
+                    continue;
+                }
+
+                $totalAmountRequest += $amount;
+                $insertedDetail++;
+
+                TrRfpNonPurchDetail::create([
+                    'rfpnonpurchaseid' => $docid,
+                    'keperluan_detail' => $doctype === 'RCA'
+                        ? null
+                        : $desc,
+                    'amount_request' => $amount,
+
+                    'budget_perpost' => $year,
+                    'budget_cpny_id' => $request->cpnyid,
+                    'budget_business_unit_id' => $busUnitIds[$i] ?? null,
+                    'budget_department_fin_id' => $deptFinIds[$i] ?? null,
+                    'budget_account_id' => $coaIds[$i] ?? null,
+                    'budget_activity_id' => $activityIds[$i] ?? null,
+                    'budget_activity_descr' => $actDescrs[$i] ?? null,
+                    'rfpnonpurch_budget_type' => $doctype === 'RCA'
+                        ? 'BUDGET-RCA'
+                        : 'BUDGET-RFP',
+
+                    'status' => 'P',
+                    'created_by' => $username,
+                ]);
             }
 
-            if ($doctype === 'RCA') {
-                $header->amountrequestpayment = $toFloat($request->amountrequestpayment);
-                $header->save();
-            }
+            $header->amountrequestpayment = $insertedDetail > 0
+                ? $totalAmountRequest
+                : $toFloat($request->amountrequestpayment);
+            $header->save();
 
             // =========================
             // RESET APPROVAL LAMA
@@ -2581,6 +2607,16 @@ class RfpNonPurchController extends Controller
             strtolower(trim((string) $value)),
             ['1', 'true', 't', 'yes', 'y'],
             true
+        );
+    }
+
+    private function reserveBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?,?)',
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
         );
     }
 

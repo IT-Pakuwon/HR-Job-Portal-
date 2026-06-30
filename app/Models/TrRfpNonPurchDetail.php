@@ -13,7 +13,7 @@ class TrRfpNonPurchDetail extends Model
 
     protected $fillable = [
         'rfpnonpurchaseid', 'keperluan_detail', 'amount_request', 'amount_request_penyelesaian', 'budget_perpost', 'budget_cpny_id', 'budget_business_unit_id', 
-        'budget_department_fin_id', 'budget_account_id', 'budget_activity_id', 'budget_activity_descr', 'refid', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at'
+        'budget_department_fin_id', 'budget_account_id', 'budget_activity_id', 'budget_activity_descr','rfpnonpurch_budget_type', 'refid', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at'
     ];
 
     public function creator()
