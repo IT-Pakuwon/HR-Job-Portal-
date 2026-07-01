@@ -212,8 +212,8 @@ const BookingCarEditForm = {
             const optDept = ($opt.attr('data-dept') ?? '').toString().trim();
             const optCpny = ($opt.attr('data-cpny') ?? '').toString().trim();
 
-            const deptOk = !selectedDept || optDept === selectedDept;
-            const cpnyOk = !selectedCpny || optCpny === selectedCpny;
+            const deptOk = !selectedDept || optDept.split(',').map(s => s.trim()).includes(selectedDept);
+            const cpnyOk = !selectedCpny || optCpny.split(',').map(s => s.trim()).includes(selectedCpny);
 
             if (!deptOk || !cpnyOk) {
                 $opt.remove();

@@ -290,7 +290,7 @@
 
                                 @if (count($userdept) === 1)
 
-                                    <input type="text" value="{{ $userdept[0]->department_id }}" readonly
+                                    <input type="text" value="{{ $userdept[0]->department_name ?? $userdept[0]->department_id }}" readonly
                                         class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
 
                                     <input type="hidden" id="department_id" name="department_id"
@@ -304,7 +304,7 @@
 
                                         @foreach ($userdept as $p)
                                             <option value="{{ $p->department_id }}">
-                                                {{ $p->department_id }}
+                                                {{ $p->department_name ?? $p->department_id }}
                                             </option>
                                         @endforeach
 
@@ -597,7 +597,7 @@
 
                                     @foreach ($userdept as $p)
                                         <option value="{{ $p->department_id }}">
-                                            {{ $p->department_id }}
+                                            {{ $p->department_name ?? $p->department_id }}
                                         </option>
                                     @endforeach
 

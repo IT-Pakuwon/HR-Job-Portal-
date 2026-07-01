@@ -68,7 +68,10 @@ class VoucherTaxiController extends Controller
         $usercpny = Usercpny::where('username', $user->username)->get();
         $usercpny2 = Usercpny::where('username', $user->username)->first();
 
-        $userdept = Userdept::where('username', $user->username)->get();
+        $userdept = Userdept::where('ms_user_dept.username', $user->username)
+            ->leftJoin('ms_department', 'ms_user_dept.department_id', '=', 'ms_department.department_id')
+            ->select('ms_user_dept.department_id', 'ms_department.department_name')
+            ->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
         $company = MsCompany::where('status', 'A')
@@ -389,13 +392,16 @@ class VoucherTaxiController extends Controller
 
     public function employeeByDepartment(Request $request)
     {
+        $dept = $request->department_id;
+
         $query = User::query()
             ->where('status', 'A')
-            ->where('department_id', $request->department_id)
+            ->whereRaw("? = ANY(SELECT TRIM(unnest(string_to_array(department_id, ','))))", [$dept])
             ->select('username', 'name');
 
         if ($request->filled('cpny_id')) {
-            $query->where('cpny_id', $request->cpny_id);
+            $cpny = $request->cpny_id;
+            $query->whereRaw("? = ANY(SELECT TRIM(unnest(string_to_array(cpny_id, ','))))", [$cpny]);
         }
 
         $employees = $query->orderBy('name')->get();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsCategory;
 use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\TrApproval;
 use App\Models\TrBookingCar;
 use App\Models\TrBookingCarDetail;
@@ -112,10 +113,10 @@ class BookingCarController extends Controller
             $user->username
         )->first();
 
-        $userdept = Userdept::where(
-            'username',
-            $user->username
-        )->get();
+        $userdept = Userdept::where('ms_user_dept.username', $user->username)
+            ->leftJoin('ms_department', 'ms_user_dept.department_id', '=', 'ms_department.department_id')
+            ->select('ms_user_dept.department_id', 'ms_department.department_name')
+            ->get();
 
         $userdept2 = Userdept::where(
             'username',
