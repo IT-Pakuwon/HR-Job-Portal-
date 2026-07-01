@@ -1405,7 +1405,7 @@
                             <td class="border p-2 text-center">
                             <button type="button" class="chooseInventory rounded border px-2 py-1 hover:bg-gray-100"
                                 data-id="${item.inventoryid}"
-                                data-name="${$('<div>').text(item.inventory_descr).html()}"
+                                data-name="${$('<div>').text(item.inventory_descr).html().replace(/"/g, '&quot;')}"
                                 data-stock_unit="${item.stock_unit || ''}"
                                 data-item_type="${$('<div>').text(item.item_type || '').html()}"
                                 data-purchase_unit="${item.purchase_unit || item.purchaseunit || ''}"
