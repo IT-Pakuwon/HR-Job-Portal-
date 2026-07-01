@@ -425,13 +425,30 @@
         }
     }
 
+    // (function initDefaultDatesSupplier() {
+    //     const today = new Date();
+    //     const yyyy = today.getFullYear();
+    //     const mm = String(today.getMonth() + 1).padStart(2, '0');
+    //     const dd = String(today.getDate()).padStart(2, '0');
+    //     spToSupplier.value = `${yyyy}-${mm}-${dd}`;
+    //     spFromSupplier.value = `${yyyy}-${mm}-01`;
+    // })();
+
     (function initDefaultDatesSupplier() {
+        const formatDate = (date) => {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        };
+
         const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        spToSupplier.value = `${yyyy}-${mm}-${dd}`;
-        spFromSupplier.value = `${yyyy}-${mm}-01`;
+
+        const fromDate = new Date(today);
+        fromDate.setDate(today.getDate() - 30);
+
+        spFromSupplier.value = formatDate(fromDate);
+        spToSupplier.value = formatDate(today);
     })();
 
     btnLoadSupplier.addEventListener('click', async () => {

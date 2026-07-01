@@ -476,13 +476,31 @@
         }
     }
 
+    // (function initDefaultDatesGRN() {
+    //     const today = new Date();
+    //     const yyyy = today.getFullYear();
+    //     const mm = String(today.getMonth() + 1).padStart(2, '0');
+    //     const dd = String(today.getDate()).padStart(2, '0');
+    //     grnTo.value = `${yyyy}-${mm}-${dd}`;
+    //     grnFrom.value = `${yyyy}-${mm}-01`;
+    // })();
+
     (function initDefaultDatesGRN() {
+        const formatDateGRN = (date) => {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+
+            return `${yyyy}-${mm}-${dd}`;
+        };
+
         const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        grnTo.value = `${yyyy}-${mm}-${dd}`;
-        grnFrom.value = `${yyyy}-${mm}-01`;
+
+        const fromDate = new Date(today);
+        fromDate.setDate(today.getDate() - 30);
+
+        grnFrom.value = formatDateGRN(fromDate);
+        grnTo.value = formatDateGRN(today);
     })();
 
     btnLoadGRN.addEventListener('click', async () => {
