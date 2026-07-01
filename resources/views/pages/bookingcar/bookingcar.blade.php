@@ -536,8 +536,8 @@
 
                                         @foreach ($requesters as $p)
                                             <option value="{{ $p->username }}"
-                                                data-dept="{{ trim($p->department_id) }}"
-                                                data-cpny="{{ trim($p->cpny_id) }}">
+                                                data-dept="{{ $p->all_dept_ids }}"
+                                                data-cpny="{{ $p->all_cpny_ids }}">
 
                                                 {{ $p->name }}
 
@@ -1361,8 +1361,8 @@
 
                                         @foreach ($requesters as $p)
                                             <option value="{{ $p->username }}"
-                                                data-dept="{{ trim($p->department_id) }}"
-                                                data-cpny="{{ trim($p->cpny_id) }}">
+                                                data-dept="{{ $p->all_dept_ids }}"
+                                                data-cpny="{{ $p->all_cpny_ids }}">
                                                 {{ $p->name }}
                                             </option>
                                         @endforeach

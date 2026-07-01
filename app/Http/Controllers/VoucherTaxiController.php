@@ -111,22 +111,7 @@ class VoucherTaxiController extends Controller
             'requesters',
             'company',
             'departments',
-            'purposes'  // 👈 ADD THIS
-        ));
-
-        return view('pages.vouchertaxi.vouchertaxi', compact(
-            'all',
-            'onProgress',
-            'reject',
-            'revise',
-            'completed',
-            'usercpny',
-            'usercpny2',
-            'userdept',
-            'userdept2',
-            'requesters',
-            'company',
-            'departments'
+            'purposes'
         ));
     }
 
@@ -395,16 +380,24 @@ class VoucherTaxiController extends Controller
         $dept = $request->department_id;
 
         $query = User::query()
-            ->where('status', 'A')
-            ->whereRaw("? = ANY(SELECT TRIM(unnest(string_to_array(department_id, ','))))", [$dept])
-            ->select('username', 'name');
+            ->where('ms_user.status', 'A')
+            ->whereIn('ms_user.username', function ($q) use ($dept) {
+                $q->select('username')
+                    ->from('ms_user_dept')
+                    ->where('department_id', $dept);
+            })
+            ->select('ms_user.username', 'ms_user.name');
 
         if ($request->filled('cpny_id')) {
             $cpny = $request->cpny_id;
-            $query->whereRaw("? = ANY(SELECT TRIM(unnest(string_to_array(cpny_id, ','))))", [$cpny]);
+            $query->whereIn('ms_user.username', function ($q) use ($cpny) {
+                $q->select('username')
+                    ->from('ms_user_cpny')
+                    ->where('cpny_id', $cpny);
+            });
         }
 
-        $employees = $query->orderBy('name')->get();
+        $employees = $query->orderBy('ms_user.name')->get();
 
         return response()->json([
             'success' => true,

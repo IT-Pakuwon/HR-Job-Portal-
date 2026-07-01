@@ -134,14 +134,27 @@ class BookingCarController extends Controller
         $requesters = User::query()
             ->whereNotNull('username')
             ->where('status', 'A')
-            ->select(
-                'username',
-                'name',
-                'department_id',
-                'cpny_id'
-            )
+            ->select('username', 'name')
             ->orderBy('name')
             ->get();
+
+        $allUserDepts = Userdept::whereIn('username', $requesters->pluck('username'))
+            ->select('username', 'department_id')
+            ->get()
+            ->groupBy('username');
+
+        $allUserCpny = Usercpny::whereIn('username', $requesters->pluck('username'))
+            ->select('username', 'cpny_id')
+            ->get()
+            ->groupBy('username');
+
+        $requesters = $requesters->map(function ($user) use ($allUserDepts, $allUserCpny) {
+            $user->all_dept_ids = $allUserDepts->get($user->username, collect())
+                ->pluck('department_id')->map('trim')->filter()->join(',');
+            $user->all_cpny_ids = $allUserCpny->get($user->username, collect())
+                ->pluck('cpny_id')->map('trim')->filter()->join(',');
+            return $user;
+        });
 
         $drivers = DB::connection('pgsql5')
             ->table('ms_driver_opr')
