@@ -627,14 +627,32 @@
         await loadData();
     });
 
-    (() => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
+    // (() => {
+    //     const today = new Date();
+    //     const yyyy = today.getFullYear();
+    //     const mm = String(today.getMonth() + 1).padStart(2, '0');
+    //     const dd = String(today.getDate()).padStart(2, '0');
 
-        if (!el.to.value) el.to.value = `${yyyy}-${mm}-${dd}`;
-        if (!el.from.value) el.from.value = `${yyyy}-${mm}-01`;
+    //     if (!el.to.value) el.to.value = `${yyyy}-${mm}-${dd}`;
+    //     if (!el.from.value) el.from.value = `${yyyy}-${mm}-01`;
+    // })();
+
+    (() => {
+        const formatDate = (date) => {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+
+            return `${yyyy}-${mm}-${dd}`;
+        };
+
+        const today = new Date();
+
+        const fromDate = new Date(today);
+        fromDate.setDate(today.getDate() - 30);
+
+        if (!el.from.value) el.from.value = formatDate(fromDate);
+        if (!el.to.value) el.to.value = formatDate(today);
     })();
 
     (async () => {
