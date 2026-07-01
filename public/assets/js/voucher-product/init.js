@@ -28,6 +28,12 @@ const VplMasterInit = {
             document.getElementById('btnSave').textContent    = 'Save';
             VplMasterModal.show();
         });
+
+        // 6. Auto-open view modal if URL already contains a hash (deep link / page refresh)
+        const pathParts = window.location.pathname.replace(/^\//, '').split('/');
+        if (pathParts[0] === 'msproduct' && pathParts[1]) {
+            VplMasterViewModal.open(pathParts[1]);
+        }
     },
 };
 

@@ -231,7 +231,7 @@
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📄</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">All</p>
+                            <p class="wrap-break-word text-sm font-medium">All</p>
                         </div>
                         <p class="shrink-0 text-base font-bold">{{ $countAll }}</p>
                     </div>
@@ -246,7 +246,7 @@
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-green-600 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-500/20">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✅</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Active</p>
+                            <p class="wrap-break-word text-sm font-medium">Active</p>
                         </div>
                         <p class="shrink-0 text-base font-bold">{{ $countActive }}</p>
                     </div>
@@ -260,7 +260,7 @@
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-red-600 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500/20">
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⛔</div>
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Inactive</p>
+                            <p class="wrap-break-word text-sm font-medium">Inactive</p>
                         </div>
                         <p class="shrink-0 text-base font-bold">{{ $countInactive }}</p>
                     </div>
@@ -627,18 +627,18 @@
                             <div class="border-b border-slate-200 px-5 py-2.5 dark:border-white/10">
                                 <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">Tenant Information</h3>
                             </div>
-                            <div class="grid grid-cols-2 gap-x-6 gap-y-4 p-5">
+                            <div class="grid grid-cols-3 gap-x-6 gap-y-4 p-5">
                                 <div>
                                     <div class="text-xs text-slate-500">Site</div>
-                                    <div id="viewModal_cpnyid" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
+                                    <div id="viewModal_cpnyid" class="mt-1 wrap-break-word text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                                 <div>
                                     <div class="text-xs text-slate-500">Nama PT</div>
-                                    <div id="viewModal_sourcePT" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
+                                    <div id="viewModal_sourcePT" class="mt-1 wrap-break-word text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
-                                <div class="col-span-2">
+                                <div>
                                     <div class="text-xs text-slate-500">Nama Tenant / Event</div>
-                                    <div id="viewModal_tenant" class="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
+                                    <div id="viewModal_tenant" class="mt-1 wrap-break-word text-sm font-medium text-slate-900 dark:text-slate-100">-</div>
                                 </div>
                             </div>
                         </div>
@@ -708,24 +708,6 @@
                             </div>
                         </div>
 
-                        {{-- Attachments --}}
-                        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
-                            <div class="border-b border-slate-200 px-5 py-2.5 dark:border-white/10">
-                                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">Attachments</h3>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full">
-                                    <thead class="border-b border-slate-100 bg-slate-50/70 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">Filename</th>
-                                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">Created By</th>
-                                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-slate-500">Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="viewAttachBody" class="divide-y divide-slate-100 dark:divide-white/[0.04]"></tbody>
-                                </table>
-                            </div>
-                        </div>
 
                     </div>
                 </div>

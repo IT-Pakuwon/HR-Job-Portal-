@@ -35,6 +35,16 @@ const VplMasterViewModal = {
                     VplMasterForm.loadEdit(id);
                 }
             });
+
+        // Browser back button — close modal if it's open
+        window.addEventListener('popstate', (e) => {
+            const modal = document.getElementById('viewProductModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                VplMasterViewModal._closeAnimate();
+            } else if (e.state && e.state.vplHash) {
+                VplMasterViewModal.open(e.state.vplHash);
+            }
+        });
     },
 
     // --------------------------------------------------------
@@ -44,12 +54,16 @@ const VplMasterViewModal = {
         const modal = document.getElementById('viewProductModal');
         if (!modal) return;
 
+        // Push URL to /msproduct/{hash}
+        const targetUrl = '/msproduct/' + hash;
+        if (window.location.pathname !== targetUrl) {
+            history.pushState({ vplHash: hash }, '', targetUrl);
+        }
+
         // Reset to loading state
         VplMasterViewModal._setText('viewModal_productId', '...');
         document.getElementById('viewModal_status').innerHTML = '';
         document.getElementById('viewStockBody').innerHTML =
-            '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">Loading...</td></tr>';
-        document.getElementById('viewAttachBody').innerHTML =
             '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">Loading...</td></tr>';
 
         modal.classList.remove('hidden');
@@ -77,6 +91,14 @@ const VplMasterViewModal = {
     // CLOSE
     // --------------------------------------------------------
     close() {
+        // Reset URL to /msproduct
+        if (window.location.pathname !== '/msproduct') {
+            history.replaceState({}, '', '/msproduct');
+        }
+        VplMasterViewModal._closeAnimate();
+    },
+
+    _closeAnimate() {
         const modal = document.getElementById('viewProductModal');
         if (!modal) return;
 
@@ -136,7 +158,8 @@ const VplMasterViewModal = {
             stockHtml = '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">No stock data</td></tr>';
         } else {
             stock.forEach(row => {
-                const exp = row.expired_date === '1900-01-01' ? 'No Expired' : row.expired_date;
+                const expRaw = row.expired_date ? String(row.expired_date).substring(0, 10) : '-';
+                const exp = expRaw === '1900-01-01' ? 'No Expired' : expRaw;
                 stockHtml += `
                     <tr>
                         <td class="px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300">${exp}</td>
@@ -147,30 +170,6 @@ const VplMasterViewModal = {
         }
         document.getElementById('viewStockBody').innerHTML = stockHtml;
 
-        // Attachments table
-        const atts = res.attachments ?? [];
-        let attHtml = '';
-        if (!atts.length) {
-            attHtml = '<tr><td colspan="3" class="px-4 py-6 text-center text-sm text-slate-400">No attachments</td></tr>';
-        } else {
-            const iconMap = {
-                pdf: 'fa-file-pdf-o', doc: 'fa-file-word-o', docx: 'fa-file-word-o',
-                xls: 'fa-file-excel-o', xlsx: 'fa-file-excel-o',
-            };
-            atts.forEach(a => {
-                const icon = iconMap[a.extention] ?? 'fa-file-image-o';
-                const date = a.created_at ? String(a.created_at).substring(0, 10) : '-';
-                attHtml += `
-                    <tr>
-                        <td class="px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300">
-                            <i class="fa ${icon} mr-1 text-slate-400"></i>${a.attachment_name ?? '-'}
-                        </td>
-                        <td class="px-4 py-2.5 text-sm text-slate-500">${a.created_by ?? '-'}</td>
-                        <td class="px-4 py-2.5 text-sm text-slate-500">${date}</td>
-                    </tr>`;
-            });
-        }
-        document.getElementById('viewAttachBody').innerHTML = attHtml;
     },
 
     // --------------------------------------------------------
