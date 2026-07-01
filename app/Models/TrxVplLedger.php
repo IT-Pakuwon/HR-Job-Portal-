@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -8,7 +8,7 @@ class TrxVplLedger extends Model
 {
     protected $connection = 'pgsql5';
 
-    protected $table = 'trx_vpl_ledger';
+    protected $table = 'tr_vpl_ledger';
 
     protected $fillable = [
         'refnbr',

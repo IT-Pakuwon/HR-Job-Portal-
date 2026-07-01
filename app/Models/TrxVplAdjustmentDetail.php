@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -8,7 +8,7 @@ class TrxVplAdjustmentDetail extends Model
 {
     protected $connection = 'pgsql5';
 
-    protected $table = 'trx_vpl_adjustment_detail';
+    protected $table = 'tr_vpl_adjustment_detail';
 
     protected $fillable = [
         'adjustment_id',

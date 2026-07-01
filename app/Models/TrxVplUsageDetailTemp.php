@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -8,7 +8,7 @@ class TrxVplUsageDetailTemp extends Model
 {
     protected $connection = 'pgsql5';
 
-    protected $table = 'trx_vpl_usage_detail_temp';
+    protected $table = 'tr_vpl_usage_detail_temp';
 
     protected $fillable = [
         'refid',

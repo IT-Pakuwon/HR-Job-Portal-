@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -53,25 +53,25 @@ class VplUsageController extends Controller
 
         if ($request->ajax()) {
             if ($user->role == 'admin') {
-                $data = TrxVplUsage::leftjoin('trx_approval', 'trx_vpl_usage.usage_id', '=', 'trx_approval.docid')
-                    ->select('trx_vpl_usage.*', 'trx_approval.name as waiting')
+                $data = TrxVplUsage::leftjoin('trx_approval', 'tr_vpl_usage.usage_id', '=', 'trx_approval.docid')
+                    ->select('tr_vpl_usage.*', 'trx_approval.name as waiting')
                     ->where('trx_approval.status', 'P')
                     ->whereNotNull('trx_approval.aprvdatebefore')
                     ->get();
             } elseif (in_array($user->groups, [18, 6, 19])) {
-                $data = TrxVplUsage::leftjoin('trx_approval', 'trx_vpl_usage.usage_id', '=', 'trx_approval.docid')
-                    ->select('trx_vpl_usage.*', 'trx_approval.name as waiting')
+                $data = TrxVplUsage::leftjoin('trx_approval', 'tr_vpl_usage.usage_id', '=', 'trx_approval.docid')
+                    ->select('tr_vpl_usage.*', 'trx_approval.name as waiting')
                     ->where('trx_approval.status', 'P')
                     ->whereNotNull('trx_approval.aprvdatebefore')
-                    ->whereIn('trx_vpl_usage.cpnyid', $multicpnyid)
+                    ->whereIn('tr_vpl_usage.cpnyid', $multicpnyid)
                     ->get();
             } else {
-                $data = TrxVplUsage::leftjoin('trx_approval', 'trx_vpl_usage.usage_id', '=', 'trx_approval.docid')
-                    ->select('trx_vpl_usage.*', 'trx_approval.name as waiting')
+                $data = TrxVplUsage::leftjoin('trx_approval', 'tr_vpl_usage.usage_id', '=', 'trx_approval.docid')
+                    ->select('tr_vpl_usage.*', 'trx_approval.name as waiting')
                     ->where('trx_approval.status', 'P')
                     ->whereNotNull('trx_approval.aprvdatebefore')
-                    ->whereIn('trx_vpl_usage.cpnyid', $multicpnyid)
-                    ->whereIn('trx_vpl_usage.department', $multidept)
+                    ->whereIn('tr_vpl_usage.cpnyid', $multicpnyid)
+                    ->whereIn('tr_vpl_usage.department', $multidept)
                     ->get();
             }
 

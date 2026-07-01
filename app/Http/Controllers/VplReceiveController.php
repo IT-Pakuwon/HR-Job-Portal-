@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -116,8 +116,8 @@ class VplReceiveController extends Controller
             return response()->json(['error' => 'Not found'], 404);
         }
 
-        $details = TrxVplReceiveDetail::join('ms_vpl_product', 'trx_vpl_receive_detail.product_id', '=', 'ms_vpl_product.product_id')
-            ->select('trx_vpl_receive_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom', 'ms_vpl_product.product_source_tenant')
+        $details = TrxVplReceiveDetail::join('ms_vpl_product', 'tr_vpl_receive_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->select('tr_vpl_receive_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom', 'ms_vpl_product.product_source_tenant')
             ->where('receive_id', $receive->receive_id)
             ->get();
 

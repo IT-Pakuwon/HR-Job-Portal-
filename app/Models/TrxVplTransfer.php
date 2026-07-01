@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -8,7 +8,7 @@ class TrxVplTransfer extends Model
 {
     protected $connection = 'pgsql5';
 
-    protected $table = 'trx_vpl_transfer';
+    protected $table = 'tr_vpl_transfer';
 
     protected $fillable = [
         'transfer_id',

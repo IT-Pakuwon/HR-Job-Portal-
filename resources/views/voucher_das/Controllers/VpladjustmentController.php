@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -296,14 +296,14 @@ class VpladjustmentController extends Controller
    
     public function approve($id, Request $request)
     {
-        //update trx_vpladjustment
+        //update tr_vpladjustment
         $vpladjustment = Vpladjustment::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
         $ms_site = Site::where('id', $user->site)            
             ->first();
         
-        //update status completed trx_vpladjustment
+        //update status completed tr_vpladjustment
         $count_approval = T_approval::where('docid', '=', $vpladjustment->adjustment_id)
             ->where('status', '=', 'P')
             ->count();
@@ -386,7 +386,7 @@ class VpladjustmentController extends Controller
         if ($request->message == ''){
             return redirect('/showvpladjustment_' . $id)->with('error', 'Message Empty, Please Entry Message');
         }
-        //update trx_vpladjustment
+        //update tr_vpladjustment
         $vpladjustment = Vpladjustment::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
@@ -453,14 +453,14 @@ class VpladjustmentController extends Controller
         if ($request->message == ''){
             return redirect('/showvpladjustment_' . $id)->with('error', 'Message Empty, Please Entry Message');
         }
-        //update trx_vpladjustment
+        //update tr_vpladjustment
         $vpladjustment = Vpladjustment::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
         $ms_site = Site::where('id', $user->site)            
             ->first();
 
-        //update status trx_vpladjustment
+        //update status tr_vpladjustment
         $vpladjustment->status = 'D';
         $vpladjustment->updated_user = $user->name;
         $vpladjustment->updated_at = $datestamp;
@@ -618,11 +618,11 @@ class VpladjustmentController extends Controller
             ->where('aprvid',1)
             ->count();  
              
-        $trx_Vpladjustment = Vpladjustment::where('status', 'D')  
+        $tr_vpladjustment = Vpladjustment::where('status', 'D')  
             ->where('adjustment_id', $vpladjustment->adjustment_id)
             ->count();    
        
-        if (($trx_cancel == 1 || $trx_Vpladjustment == 1) && $vpladjustment->created_user == $user->name) {
+        if (($trx_cancel == 1 || $tr_vpladjustment == 1) && $vpladjustment->created_user == $user->name) {
             // Show element if either condition matches and the created user is the same as the logged-in user
             $hiddenx = '';
         } else {

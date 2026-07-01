@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -830,14 +830,14 @@ class VplrequestController extends Controller
    
     public function approve($id, Request $request)
     {
-        //update trx_vplrequest
+        //update tr_vplrequest
         $vplrequest = Vplrequest::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
         $ms_site = Site::where('id', $user->site)            
             ->first();
         
-        //update status completed trx_vplrequest
+        //update status completed tr_vplrequest
         $count_approval = T_approval::where('docid', '=', $vplrequest->request_id)
             ->where('status', '=', 'P')
             ->count();
@@ -920,7 +920,7 @@ class VplrequestController extends Controller
         if ($request->message == ''){
             return redirect('/showvplrequest_' . $id)->with('error', 'Message Empty, Please Entry Message');
         }
-        //update trx_vplrequest
+        //update tr_vplrequest
         $vplrequest = Vplrequest::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
@@ -989,14 +989,14 @@ class VplrequestController extends Controller
         if ($request->message == ''){
             return redirect('/showvplrequest_' . $id)->with('error', 'Message Empty, Please Entry Message');
         }
-        //update trx_vplrequest
+        //update tr_vplrequest
         $vplrequest = Vplrequest::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
         $ms_site = Site::where('id', $user->site)            
             ->first();
 
-        //update status trx_vplrequest
+        //update status tr_vplrequest
         $vplrequest->status = 'D';
         $vplrequest->updated_user = $user->name;
         $vplrequest->updated_at = $datestamp;
@@ -1167,11 +1167,11 @@ class VplrequestController extends Controller
             ->where('aprvid',1)
             ->count();  
              
-        $trx_Vplrequest = Vplrequest::where('status', 'D')  
+        $tr_vplrequest = Vplrequest::where('status', 'D')  
             ->where('request_id', $vplrequest->request_id)
             ->count();    
        
-        if (($trx_cancel == 1 || $trx_Vplrequest == 1) && $vplrequest->created_user == $user->name) {
+        if (($trx_cancel == 1 || $tr_vplrequest == 1) && $vplrequest->created_user == $user->name) {
             // Show element if either condition matches and the created user is the same as the logged-in user
             $hiddenx = '';
         } else {

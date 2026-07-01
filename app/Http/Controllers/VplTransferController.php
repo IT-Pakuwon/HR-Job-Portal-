@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -114,8 +114,8 @@ class VplTransferController extends Controller
             return response()->json(['error' => 'Not found'], 404);
         }
 
-        $details = TrxVplTransferDetail::join('ms_vpl_product', 'trx_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
-            ->select('trx_vpl_transfer_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom')
+        $details = TrxVplTransferDetail::join('ms_vpl_product', 'tr_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
+            ->select('tr_vpl_transfer_detail.*', 'ms_vpl_product.product_name', 'ms_vpl_product.product_uom')
             ->where('transfer_id', $transfer->transfer_id)
             ->orderBy('linenbr')
             ->get();
@@ -733,24 +733,24 @@ class VplTransferController extends Controller
                 ->orderBy('ms_vpl_product_detail.expired_date')
                 ->get();
         } else {
-            $products = TrxVplTransferDetail::join('trx_vpl_transfer', 'trx_vpl_transfer_detail.transfer_id', '=', 'trx_vpl_transfer.transfer_id')
-                ->join('ms_vpl_product', 'trx_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
+            $products = TrxVplTransferDetail::join('tr_vpl_transfer', 'tr_vpl_transfer_detail.transfer_id', '=', 'tr_vpl_transfer.transfer_id')
+                ->join('ms_vpl_product', 'tr_vpl_transfer_detail.product_id', '=', 'ms_vpl_product.product_id')
                 ->leftJoin('ms_vpl_product_detail', function ($join) {
-                    $join->on('trx_vpl_transfer_detail.product_id', '=', 'ms_vpl_product_detail.product_id')
-                         ->on('trx_vpl_transfer_detail.expired_date', '=', 'ms_vpl_product_detail.expired_date')
-                         ->on('trx_vpl_transfer_detail.to_whs_id', '=', 'ms_vpl_product_detail.whs_id');
+                    $join->on('tr_vpl_transfer_detail.product_id', '=', 'ms_vpl_product_detail.product_id')
+                         ->on('tr_vpl_transfer_detail.expired_date', '=', 'ms_vpl_product_detail.expired_date')
+                         ->on('tr_vpl_transfer_detail.to_whs_id', '=', 'ms_vpl_product_detail.whs_id');
                 })
                 ->select(
-                    'trx_vpl_transfer_detail.product_id',
+                    'tr_vpl_transfer_detail.product_id',
                     DB::raw("CONCAT(ms_vpl_product.product_name,' / ',ms_vpl_product.product_value,' / ',ms_vpl_product.product_uom) AS product_name"),
-                    'trx_vpl_transfer_detail.expired_date',
+                    'tr_vpl_transfer_detail.expired_date',
                     'ms_vpl_product_detail.qty_available',
-                    'trx_vpl_transfer_detail.qty_transfer',
-                    'trx_vpl_transfer_detail.to_whs_id AS whs_id'
+                    'tr_vpl_transfer_detail.qty_transfer',
+                    'tr_vpl_transfer_detail.to_whs_id AS whs_id'
                 )
-                ->where('trx_vpl_transfer.transfer_id', $refId)
+                ->where('tr_vpl_transfer.transfer_id', $refId)
                 ->where('ms_vpl_product.product_type', $vp_type)
-                ->orderBy('trx_vpl_transfer_detail.expired_date')
+                ->orderBy('tr_vpl_transfer_detail.expired_date')
                 ->get();
         }
 

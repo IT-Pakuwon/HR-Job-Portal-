@@ -155,7 +155,6 @@ class ApprovalDashboardController extends Controller
 
         $selectCols = [
             'id',
-            'docdate',
             'cpnyid',
             'departementid',
             'infohd',

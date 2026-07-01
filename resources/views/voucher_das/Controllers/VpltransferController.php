@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -450,7 +450,7 @@ class VpltransferController extends Controller
    
     public function approve($id, Request $request)
     {
-        //update trx_vpltransfer
+        //update tr_vpltransfer
         $vpltransfer = Vpltransfer::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
@@ -475,7 +475,7 @@ class VpltransferController extends Controller
             }
         }
         
-        //update status completed trx_vpltransfer
+        //update status completed tr_vpltransfer
         $count_approval = T_approval::where('docid', '=', $vpltransfer->transfer_id)
             ->where('status', '=', 'P')
             ->count();
@@ -558,7 +558,7 @@ class VpltransferController extends Controller
         if ($request->message == ''){
             return redirect('/showvpltransfer_' . $id)->with('error', 'Message Empty, Please Entry Message');
         }
-        //update trx_vpltransfer
+        //update tr_vpltransfer
         $vpltransfer = Vpltransfer::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
@@ -625,14 +625,14 @@ class VpltransferController extends Controller
         if ($request->message == ''){
             return redirect('/showvpltransfer_' . $id)->with('error', 'Message Empty, Please Entry Message');
         }
-        //update trx_vpltransfer
+        //update tr_vpltransfer
         $vpltransfer = Vpltransfer::find($id);
         $user = Auth::user();
         $datestamp = Carbon::now()->toDateTimeString();
         $ms_site = Site::where('id', $user->site)            
             ->first();
 
-        //update status trx_vpltransfer
+        //update status tr_vpltransfer
         $vpltransfer->status = 'D';
         $vpltransfer->updated_user = $user->name;
         $vpltransfer->updated_at = $datestamp;
@@ -799,11 +799,11 @@ class VpltransferController extends Controller
             ->where('aprvid',1)
             ->count();  
              
-        $trx_Vpltransfer = Vpltransfer::where('status', 'D')  
+        $tr_vpltransfer = Vpltransfer::where('status', 'D')  
             ->where('transfer_id', $vpltransfer->transfer_id)
             ->count();    
        
-        if (($trx_cancel == 1 || $trx_Vpltransfer == 1) && $vpltransfer->created_user == $user->name) {
+        if (($trx_cancel == 1 || $tr_vpltransfer == 1) && $vpltransfer->created_user == $user->name) {
             // Show element if either condition matches and the created user is the same as the logged-in user
             $hiddenx = '';
         } else {

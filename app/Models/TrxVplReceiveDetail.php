@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -8,7 +8,7 @@ class TrxVplReceiveDetail extends Model
 {
     protected $connection = 'pgsql5';
 
-    protected $table = 'trx_vpl_receive_detail';
+    protected $table = 'tr_vpl_receive_detail';
 
     protected $fillable = [
         'receive_id',
