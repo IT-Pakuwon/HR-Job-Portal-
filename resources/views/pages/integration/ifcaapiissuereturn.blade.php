@@ -476,13 +476,31 @@
         }
     }
 
+    // (function initDefaultDatesIssueReturn() {
+    //     const today = new Date();
+    //     const yyyy = today.getFullYear();
+    //     const mm = String(today.getMonth() + 1).padStart(2, '0');
+    //     const dd = String(today.getDate()).padStart(2, '0');
+    //     issuereturnTo.value = `${yyyy}-${mm}-${dd}`;
+    //     issuereturnFrom.value = `${yyyy}-${mm}-01`;
+    // })();
+
     (function initDefaultDatesIssueReturn() {
+        const formatDateIssueReturn = (date) => {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+
+            return `${yyyy}-${mm}-${dd}`;
+        };
+
         const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        issuereturnTo.value = `${yyyy}-${mm}-${dd}`;
-        issuereturnFrom.value = `${yyyy}-${mm}-01`;
+
+        const fromDate = new Date(today);
+        fromDate.setDate(today.getDate() - 30);
+
+        issuereturnFrom.value = formatDateIssueReturn(fromDate);
+        issuereturnTo.value = formatDateIssueReturn(today);
     })();
 
     btnLoadIssueReturn.addEventListener('click', async () => {

@@ -46,7 +46,6 @@
                 class="mt-1 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
             <option value="">All Status</option>
             <option value="H">H</option>
-            <option value="D">D</option>
             <option value="P">P</option>
             <option value="C">C</option>
         </select>
@@ -121,7 +120,6 @@
         <div class="text-xs text-gray-500">
             <span class="font-semibold">Legend:</span>
             H = ready insert staging,
-            D = revise/tidak diproses,
             P = ready kirim API,
             C = completed.
         </div>
@@ -465,13 +463,31 @@
         }
     }
 
+    // (function initDefaultDatesBAST() {
+    //     const today = new Date();
+    //     const yyyy = today.getFullYear();
+    //     const mm = String(today.getMonth() + 1).padStart(2, '0');
+    //     const dd = String(today.getDate()).padStart(2, '0');
+    //     bastTo.value = `${yyyy}-${mm}-${dd}`;
+    //     bastFrom.value = `${yyyy}-${mm}-01`;
+    // })();
+
     (function initDefaultDatesBAST() {
+        const formatDateBAST = (date) => {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+
+            return `${yyyy}-${mm}-${dd}`;
+        };
+
         const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        bastTo.value = `${yyyy}-${mm}-${dd}`;
-        bastFrom.value = `${yyyy}-${mm}-01`;
+
+        const fromDate = new Date(today);
+        fromDate.setDate(today.getDate() - 30);
+
+        bastFrom.value = formatDateBAST(fromDate);
+        bastTo.value = formatDateBAST(today);
     })();
 
     btnLoadBAST.addEventListener('click', async () => {

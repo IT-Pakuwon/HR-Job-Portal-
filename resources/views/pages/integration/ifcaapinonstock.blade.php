@@ -350,12 +350,29 @@
     }
 
     // default tanggal
+    // const todayNonStock = new Date();
+    // const yyyyNonStock = todayNonStock.getFullYear();
+    // const mmNonStock = String(todayNonStock.getMonth() + 1).padStart(2, '0');
+    // const ddNonStock = String(todayNonStock.getDate()).padStart(2, '0');
+    // nsToNonStock.value = `${yyyyNonStock}-${mmNonStock}-${ddNonStock}`;
+    // nsFromNonStock.value = `${yyyyNonStock}-${mmNonStock}-01`;
+
+    // default tanggal
+    const formatDateNonStock = (date) => {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
     const todayNonStock = new Date();
-    const yyyyNonStock = todayNonStock.getFullYear();
-    const mmNonStock = String(todayNonStock.getMonth() + 1).padStart(2, '0');
-    const ddNonStock = String(todayNonStock.getDate()).padStart(2, '0');
-    nsToNonStock.value = `${yyyyNonStock}-${mmNonStock}-${ddNonStock}`;
-    nsFromNonStock.value = `${yyyyNonStock}-${mmNonStock}-01`;
+
+    const fromDateNonStock = new Date(todayNonStock);
+    fromDateNonStock.setDate(todayNonStock.getDate() - 30);
+
+    nsFromNonStock.value = formatDateNonStock(fromDateNonStock);
+    nsToNonStock.value = formatDateNonStock(todayNonStock);
 
     async function loadNonStock(page = 1) {
         hideInfoNonStock(nsInfoNonStock);

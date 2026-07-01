@@ -31,7 +31,7 @@ class IFCAAPIBASTController extends Controller
             'ok' => true,
             'data' => [
                 'companies' => $companies,
-                'statuses'  => ['H', 'D', 'P', 'C'],
+                'statuses'  => ['H', 'P', 'C'],
                 'per_pages' => [25, 50, 100],
             ],
         ]);
