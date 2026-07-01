@@ -277,7 +277,34 @@ class ApprovalDashboardController extends Controller
             ]);
         }
 
-        // De-duplicate: keep first occurrence per docid (in case BCR/VCR also exist in v_all_das)
+        // CS (Comparison Sheet) — may not exist in views with correct url; fetch directly
+        try {
+            $csDocidsToFetch = $docids->filter(fn ($id) => str_starts_with($id, 'CS'))->values();
+            if ($csDocidsToFetch->isNotEmpty()) {
+                $csFetchM     = new TrCS();
+                $csFetchConn  = $csFetchM->getConnectionName() ?: config('database.default');
+                $csFetchTable = $csFetchM->getTable();
+                $csFetchRows  = collect();
+                foreach ($csDocidsToFetch->chunk(1200) as $chunk) {
+                    $csFetchRows = $csFetchRows->concat(
+                        DB::connection($csFetchConn)
+                            ->table($csFetchTable)
+                            ->whereIn('csid', $chunk->all())
+                            ->whereNull('deleted_at')
+                            ->select('id', 'csdate as docdate', 'cpny_id as cpnyid', 'department_id as departementid', 'keperluan as infohd', 'csid as docid')
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showcs']))
+                    );
+                }
+                $data = $data->concat($csFetchRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson CS fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // De-duplicate: keep first occurrence per docid (in case CS/BCR/VCR also exist in v_all_das)
         $data = $data->unique(fn ($r) => strtoupper(trim($r->docid)));
 
         $data = $data
