@@ -3310,6 +3310,38 @@ class IMBudgetController extends Controller
         ]);
     }
 
+    public function cancelIMBudget(Request $request, string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Invalid document');
+
+        $id = $decoded[0];
+        $imbudget = TrIMBudget::findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            $imbudget->status = 'X';
+            $imbudget->updated_by = Auth::user()->username ?? Auth::id();
+            $imbudget->updated_at = now();
+            $imbudget->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document canceled.',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel document.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function rejectIMBudget_xxx(Request $request, $docid)
     {
         $user    = $request->user();
