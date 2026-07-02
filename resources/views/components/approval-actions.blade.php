@@ -27,7 +27,7 @@
             @endif
         @endif
 
-        @if ($status === 'P' && $hasBlockingIm)
+        @if ($status === 'P' && $hasBlockingIm && in_array($imBlockingStatus, ['H', 'P']))
             {{-- IM linked to this document is not yet completed — visible to all viewers --}}
             @php
                 $imStatusText = match($imBlockingStatus) {
