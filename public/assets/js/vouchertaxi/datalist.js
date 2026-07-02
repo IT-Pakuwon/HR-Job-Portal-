@@ -109,12 +109,14 @@ const VoucherTaxiDatalist = {
         VoucherTaxiDatalist.renderLoading();
 
         try {
+            const isAllTrx = VoucherTaxiDatalist.state.filter === 'ALL_TRANSACTIONS';
             const params = new URLSearchParams({
-                draw:   VoucherTaxiDatalist.state.page,
-                start:  (VoucherTaxiDatalist.state.page - 1) * VoucherTaxiDatalist.state.perPage,
-                length: VoucherTaxiDatalist.state.perPage,
-                search: VoucherTaxiDatalist.state.search,
-                status: VoucherTaxiDatalist.state.filter === 'ALL' ? '' : VoucherTaxiDatalist.state.filter,
+                draw:             VoucherTaxiDatalist.state.page,
+                start:            (VoucherTaxiDatalist.state.page - 1) * VoucherTaxiDatalist.state.perPage,
+                length:           VoucherTaxiDatalist.state.perPage,
+                search:           VoucherTaxiDatalist.state.search,
+                status:           (VoucherTaxiDatalist.state.filter === 'ALL' || isAllTrx) ? '' : VoucherTaxiDatalist.state.filter,
+                all_transactions: isAllTrx ? '1' : '',
             });
 
             const url = `${VoucherTaxi.routes.json}?${params.toString()}`;

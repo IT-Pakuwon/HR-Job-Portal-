@@ -152,6 +152,9 @@
 
                 <div class="mt-4 flex flex-wrap gap-2">
                     <button class="voucher-filter active-filter" data-filter="ALL">All</button>
+                    @if (auth()->check() && auth()->user()->user_role === 'admin')
+                        <button class="voucher-filter" data-filter="ALL_TRANSACTIONS">All Transaction</button>
+                    @endif
                     <button class="voucher-filter" data-filter="P">Waiting Approval</button>
                     <button class="voucher-filter" data-filter="C">Completed</button>
                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))

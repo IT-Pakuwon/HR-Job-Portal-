@@ -627,8 +627,10 @@
                 card.dataset.ref = id;
 
                 card.innerHTML = `
-                    <img src="${url}" alt="attachment" class="w-full h-40 object-cover" />
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition"></div>
+                    <div class="relative aspect-[4/3] overflow-hidden">
+                        <img src="${url}" alt="attachment" class="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105" />
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition"></div>
+                    </div>
                     <button type="button" title="Remove"
                         class="absolute top-2 right-2 bg-white/90 rounded-full p-1 shadow hover:bg-white">✕</button>
                 `;

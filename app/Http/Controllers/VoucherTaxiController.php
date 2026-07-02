@@ -155,7 +155,9 @@ class VoucherTaxiController extends Controller
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        $isGA = $authUser->hasRole('GAACCESS');
+        $isGA      = $authUser->hasRole('GAACCESS');
+        $isAdmin   = $authUser->user_role === 'admin';
+        $showAll   = $isAdmin && $request->input('all_transactions') === '1';
 
         $cpnyIds = is_string($authUser->cpny_id)
             ? array_filter(array_map('trim', explode(',', $authUser->cpny_id)))
@@ -188,40 +190,42 @@ class VoucherTaxiController extends Controller
                 'vt.created_at',
             ]);
 
-        if ($isGA) {
-            // GA user: sees approval-chain vouchers OR own company/department (BOTH views)
-            $approvalDocids = TrApproval::where('status', '!=', 'X')
-                ->whereRaw(
-                    "LOWER(aprv_username) ~ ?",
-                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                )
-                ->pluck('refnbr')
-                ->unique()
-                ->values()
-                ->toArray();
+        if (!$showAll) {
+            if ($isGA) {
+                // GA user: sees approval-chain vouchers OR own company/department (BOTH views)
+                $approvalDocids = TrApproval::where('status', '!=', 'X')
+                    ->whereRaw(
+                        "LOWER(aprv_username) ~ ?",
+                        ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
+                    )
+                    ->pluck('refnbr')
+                    ->unique()
+                    ->values()
+                    ->toArray();
 
-            $query->where(function ($q) use ($approvalDocids, $cpnyIds, $deptIds) {
-                $q->whereIn('vt.docid', $approvalDocids);
+                $query->where(function ($q) use ($approvalDocids, $cpnyIds, $deptIds) {
+                    $q->whereIn('vt.docid', $approvalDocids);
 
-                if (!empty($cpnyIds) || !empty($deptIds)) {
-                    $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
-                        if (!empty($cpnyIds)) {
-                            $sub->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
-                        }
-                        if (!empty($deptIds)) {
-                            $sub->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
-                        }
-                    });
+                    if (!empty($cpnyIds) || !empty($deptIds)) {
+                        $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
+                            if (!empty($cpnyIds)) {
+                                $sub->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
+                            }
+                            if (!empty($deptIds)) {
+                                $sub->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
+                            }
+                        });
+                    }
+                });
+            } else {
+                // Regular user: sees all vouchers in their company AND department
+                if (!empty($cpnyIds)) {
+                    $query->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
                 }
-            });
-        } else {
-            // Regular user: sees all vouchers in their company AND department
-            if (!empty($cpnyIds)) {
-                $query->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
-            }
 
-            if (!empty($deptIds)) {
-                $query->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
+                if (!empty($deptIds)) {
+                    $query->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
+                }
             }
         }
 

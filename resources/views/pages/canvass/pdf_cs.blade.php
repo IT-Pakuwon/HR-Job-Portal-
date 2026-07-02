@@ -6,6 +6,8 @@
     $maxVendors = 6;
 @endphp
 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
 <style>
     /* PAGE */
     @page {
@@ -162,9 +164,32 @@
     }
 
     .tick {
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    .tick-box {
+        width: 22px;
+        height: 22px;
+        border: 1px solid #000000;
+        border-radius: 4px;
+        border-collapse: separate;
+        margin: 0 auto;
+        margin-bottom: 0;
+        padding: 0;
+        table-layout: fixed;
+    }
+
+    .tick-cell {
+        text-align: center;
+        vertical-align: middle;
         font-size: 14px;
-        font-weight: 700;
-        margin-top: 2px;
+        font-weight: bold;
+        font-family: 'DejaVu Sans';
+        color: #000000;
+        border: none;
+        padding: 0;
+        background: transparent;
     }
 
     /* SUMMARY */
@@ -290,9 +315,6 @@
                 </td>
 
 
-
-
-
                 </td>
 
                 <td class="td-right qty-col">{{ nf($dt->qty) }}</td>
@@ -307,7 +329,9 @@
                         <div>{{ nf($price) }}</div>
                         <div class="muted">{{ nf($total) }}</div>
                         @if ($sel)
-                            <div class="td-center tick">✓</div>
+                            <div class="tick">
+                                <table class="tick-box"><tr><td class="tick-cell">✓</td></tr></table>
+                            </div>
                         @endif
                     </td>
                 @endfor

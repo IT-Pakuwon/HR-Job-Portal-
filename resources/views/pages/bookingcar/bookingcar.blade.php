@@ -149,6 +149,9 @@
                 <!-- Filter Buttons -->
                 <div class="mt-4 flex flex-wrap gap-2">
                     <button class="booking-filter active-filter" data-filter="ALL">All</button>
+                    @if (auth()->check() && auth()->user()->user_role === 'admin')
+                        <button class="booking-filter" data-filter="ALL_TRANSACTIONS">All Transaction</button>
+                    @endif
                     <button class="booking-filter" data-filter="P">Pending</button>
                     <button class="booking-filter" data-filter="C">Approved</button>
                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))

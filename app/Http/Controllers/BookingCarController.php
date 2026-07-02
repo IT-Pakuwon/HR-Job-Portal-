@@ -244,42 +244,46 @@ class BookingCarController extends Controller
 
         $base->whereIn('bc.status', ['P', 'C', 'F', 'D', 'R', 'X']);
 
-        $username = strtolower(trim($user->username));
+        $username  = strtolower(trim($user->username));
+        $isAdmin   = $user->user_role === 'admin';
+        $showAll   = $isAdmin && $filter === 'ALL_TRANSACTIONS';
 
-        if ($isGA) {
-            // GA: approval-line bookings OR own created bookings
-            $approvalDocids = TrApproval::where('status', '!=', 'X')
-                ->whereRaw(
-                    "LOWER(aprv_username) ~ ?",
-                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                )
-                ->pluck('refnbr')
-                ->unique()
-                ->values()
-                ->toArray();
+        if (!$showAll) {
+            if ($isGA) {
+                // GA: approval-line bookings OR own created bookings
+                $approvalDocids = TrApproval::where('status', '!=', 'X')
+                    ->whereRaw(
+                        "LOWER(aprv_username) ~ ?",
+                        ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
+                    )
+                    ->pluck('refnbr')
+                    ->unique()
+                    ->values()
+                    ->toArray();
 
-            $base->where(function ($q) use ($approvalDocids, $username) {
-                $q->whereIn('bc.docid', $approvalDocids)
-                  ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
-            });
-        } else {
-            // Regular user: own docs + same company/department
-            $base->where(function ($q) use ($username, $cpnyIds, $deptIds) {
-                $q->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
-
-                $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
-                    if (!empty($cpnyIds)) {
-                        $sub->whereIn(DB::raw('TRIM(bc.cpny_id)'), $cpnyIds);
-                    }
-                    if (!empty($deptIds)) {
-                        $sub->whereIn(DB::raw('TRIM(bc.department_id)'), $deptIds);
-                    }
+                $base->where(function ($q) use ($approvalDocids, $username) {
+                    $q->whereIn('bc.docid', $approvalDocids)
+                      ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
                 });
-            });
+            } else {
+                // Regular user: own docs + same company/department
+                $base->where(function ($q) use ($username, $cpnyIds, $deptIds) {
+                    $q->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
+
+                    $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
+                        if (!empty($cpnyIds)) {
+                            $sub->whereIn(DB::raw('TRIM(bc.cpny_id)'), $cpnyIds);
+                        }
+                        if (!empty($deptIds)) {
+                            $sub->whereIn(DB::raw('TRIM(bc.department_id)'), $deptIds);
+                        }
+                    });
+                });
+            }
         }
 
         // Apply filter
-        if ($filter !== '' && $filter !== 'ALL') {
+        if ($filter !== '' && $filter !== 'ALL' && $filter !== 'ALL_TRANSACTIONS') {
             if ($filter === 'WAITING_PROCESS') {
                 // Approved (C) + not yet locked by GA
                 $base->where('bc.status', 'C');
