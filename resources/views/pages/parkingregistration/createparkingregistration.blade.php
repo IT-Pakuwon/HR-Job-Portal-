@@ -1037,16 +1037,21 @@
             | Extra section tampil jika:
             | 1. Worker Type selain EMPLOYEE
             | 2. Parking Type NEWREQUEST / TEMPREQUEST + Worker Type EMPLOYEE
+            |
+            | Date Range tampil dan wajib jika:
+            | 1. Worker Type selain EMPLOYEE
+            | 2. Parking Type TEMPREQUEST + Worker Type EMPLOYEE
             |--------------------------------------------------------------------------
             */
             const shouldShowEmployeeInfo = ['NEWREQUEST', 'TEMPREQUEST'].includes(parkingType) && isEmp;
+            const shouldShowEmployeeDateRange = parkingType === 'TEMPREQUEST' && isEmp;
             const showExtraSection =
                 workerType !== '' &&
                 (
                     !isEmp ||
                     shouldShowEmployeeInfo
                 );
-            const shouldRequireDateRange = workerType !== '' && !isEmp;
+            const shouldRequireDateRange = workerType !== '' && (!isEmp || shouldShowEmployeeDateRange);
 
             if (showExtraSection) {
                 $('#nonEmployeeExtraSection').removeClass('hidden');

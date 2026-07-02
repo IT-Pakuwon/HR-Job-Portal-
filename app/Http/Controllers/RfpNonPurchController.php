@@ -499,10 +499,10 @@ class RfpNonPurchController extends Controller
                 $budgetActivityId = $activityIds[$i] ?? null;
 
                 if (
-                    trim((string) $budgetBusinessUnitId) === '' &&
-                    trim((string) $budgetDepartmentFinId) === '' &&
-                    trim((string) $budgetAccountId) === '' &&
-                    trim((string) $budgetActivityId) === ''
+                    trim((string) $budgetBusinessUnitId) !== '' &&
+                    trim((string) $budgetDepartmentFinId) !== '' &&
+                    trim((string) $budgetAccountId) !== '' &&
+                    trim((string) $budgetActivityId) !== ''
                 ) {
                     $needsIMBudget = true;
                 }
@@ -547,7 +547,7 @@ class RfpNonPurchController extends Controller
 
             if ($needsIMBudget) {
                 $this->reserveBudget($doctype, $docid, $request->cpnyid, 'Submit', $username);
-                $header->flag_imbudget = true;
+                // $header->flag_imbudget = true;
             }
 
             $header->save();
@@ -1564,6 +1564,14 @@ class RfpNonPurchController extends Controller
                 $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
+                $this->reserveBudget(
+                    $doctype,
+                    $rfpnonpurch->rfpnonpurchaseid,
+                    $request->cpnyid ?? $rfpnonpurch->cpny_id,
+                    'Reject',
+                    $user->username
+                );
+
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $rfpnonpurch->rfpnonpurchaseid,
                     $doctype,
@@ -1656,6 +1664,14 @@ class RfpNonPurchController extends Controller
                 $rfpnonpurch->completed_at = $now;
                 $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
+
+                $this->reserveBudget(
+                    $doctype,
+                    $rfpnonpurch->rfpnonpurchaseid,
+                    $request->cpnyid ?? $rfpnonpurch->cpny_id,
+                    'Revise',
+                    $user->username
+                );
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $rfpnonpurch->rfpnonpurchaseid,
@@ -2047,6 +2063,7 @@ class RfpNonPurchController extends Controller
             $actDescrs = $request->activity_descr ?? [];
 
             $rowCount = count($prices);
+            $needsIMBudget = false;
 
             for ($i = 0; $i < $rowCount; $i++) {
                 $desc = trim((string) ($descs[$i] ?? ''));
@@ -2063,6 +2080,20 @@ class RfpNonPurchController extends Controller
                 $totalAmountRequest += $amount;
                 $insertedDetail++;
 
+                $budgetBusinessUnitId = $busUnitIds[$i] ?? null;
+                $budgetDepartmentFinId = $deptFinIds[$i] ?? null;
+                $budgetAccountId = $coaIds[$i] ?? null;
+                $budgetActivityId = $activityIds[$i] ?? null;
+
+                if (
+                    trim((string) $budgetBusinessUnitId) !== '' &&
+                    trim((string) $budgetDepartmentFinId) !== '' &&
+                    trim((string) $budgetAccountId) !== '' &&
+                    trim((string) $budgetActivityId) !== ''
+                ) {
+                    $needsIMBudget = true;
+                }
+
                 TrRfpNonPurchDetail::create([
                     'rfpnonpurchaseid' => $docid,
                     'keperluan_detail' => $doctype === 'RCA'
@@ -2072,10 +2103,10 @@ class RfpNonPurchController extends Controller
 
                     'budget_perpost' => $year,
                     'budget_cpny_id' => $request->cpnyid,
-                    'budget_business_unit_id' => $busUnitIds[$i] ?? null,
-                    'budget_department_fin_id' => $deptFinIds[$i] ?? null,
-                    'budget_account_id' => $coaIds[$i] ?? null,
-                    'budget_activity_id' => $activityIds[$i] ?? null,
+                    'budget_business_unit_id' => $budgetBusinessUnitId,
+                    'budget_department_fin_id' => $budgetDepartmentFinId,
+                    'budget_account_id' => $budgetAccountId,
+                    'budget_activity_id' => $budgetActivityId,
                     'budget_activity_descr' => $actDescrs[$i] ?? null,
                     'rfpnonpurch_budget_type' => $doctype === 'RCA'
                         ? 'BUDGET-RCA'
@@ -2089,6 +2120,12 @@ class RfpNonPurchController extends Controller
             $header->amountrequestpayment = $insertedDetail > 0
                 ? $totalAmountRequest
                 : $toFloat($request->amountrequestpayment);
+
+            if ($needsIMBudget) {
+                $this->reserveBudget($doctype, $docid, $request->cpnyid, 'Submit', $username);
+                // $header->flag_imbudget = true;
+            }
+
             $header->save();
 
             // =========================

@@ -26,7 +26,7 @@
                     <input type="hidden" name="rfcaid" value="{{ $rfca->rfcaid }}">
                     <input type="hidden" name="ponbr" value="{{ $rfca->ponbr }}">
                     <input type="hidden" name="cpny_id" value="{{ $rfca->cpny_id }}">
-                    <input type="hidden" id="rfca_amount_raw" value="{{ round($rfcaAmount) }}">
+                    <input type="hidden" name="rfca_amount" id="rfca_amount_raw" value="{{ round($rfcaAmount) }}">
 
                     {{-- ===== HEADER RFCA ===== --}}
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
@@ -114,9 +114,10 @@
                                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">
                                     Balance Amount (RFCA - CALR)
                                 </label>
-                                <input type="text" id="balance_amount"
+                                <input type="text" id="balance_amount_display"
                                     value="Rp {{ number_format($rfcaAmount, 0, ',', '.') }}" readonly
                                     class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-50 p-2 font-semibold text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />
+                                <input type="hidden" name="balance_amount" id="balance_amount" value="{{ round($rfcaAmount) }}">
                             </div>
                         </div>
 
@@ -244,7 +245,8 @@
 
             const calrDisplay = document.getElementById('calr_amount_display');
             const calrHidden = document.getElementById('calr_amount');
-            const balanceInput = document.getElementById('balance_amount');
+            const balanceDisplay = document.getElementById('balance_amount_display');
+            const balanceHidden = document.getElementById('balance_amount');
 
             function formatRupiah(num) {
                 if (isNaN(num)) num = 0;
@@ -272,7 +274,8 @@
 
             function updateBalance(rawVal) {
                 const balance = rfcaAmountRaw - (rawVal || 0);
-                balanceInput.value = formatRupiah(balance);
+                balanceDisplay.value = formatRupiah(balance);
+                balanceHidden.value = Math.round(balance);
             }
 
             function syncFromDisplay() {

@@ -75,7 +75,9 @@ class CalrController extends Controller
     {
         $request->validate([
             'rfca_eid'      => 'required|string',
+            'rfca_amount'   => 'required|numeric|min:0',
             'calr_amount'   => 'required|numeric|min:0',
+            'balance_amount' => 'required|numeric',
             'attachments.*' => 'file|max:10240',
         ]);
 
@@ -95,9 +97,9 @@ class CalrController extends Controller
             ], 404);
         }
 
-        $rfcaAmount = (float) ($rfca->rfca_amount ?? 0);
+        $rfcaAmount = (float) $request->input('rfca_amount', 0);
         $calrAmount = (float) $request->input('calr_amount', 0);
-        $balance    = $rfcaAmount - $calrAmount;
+        $balance    = (float) $request->input('balance_amount', 0);
 
         $doctype  = 'CA';
         $user     = $request->user();

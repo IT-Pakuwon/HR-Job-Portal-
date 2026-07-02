@@ -1125,13 +1125,27 @@ class ParkingRegistrationController extends Controller
             |--------------------------------------------------------------------------
             | EMPLOYEE
             |--------------------------------------------------------------------------
-            | Date range tetap otomatis dari perpost:
-            | startdate = 1 Jan perpost
-            | enddate   = 31 Dec perpost
+            | Default date range otomatis dari perpost.
+            | Khusus TEMPREQUEST memakai tanggal dari input user.
             |--------------------------------------------------------------------------
             */
-            $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
-            $endDate   = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+            if ($parkingTypeUpper === 'TEMPREQUEST') {
+                if (!$request->filled('startdate') || !$request->filled('enddate')) {
+                    return response()->json([
+                        'message' => 'Mohon periksa input.',
+                        'errors' => [
+                            'startdate' => ['Start Date wajib diisi untuk TEMPREQUEST EMPLOYEE.'],
+                            'enddate'   => ['End Date wajib diisi untuk TEMPREQUEST EMPLOYEE.'],
+                        ],
+                    ], 422);
+                }
+
+                $startDate = Carbon::parse($request->startdate)->toDateString();
+                $endDate   = Carbon::parse($request->enddate)->toDateString();
+            } else {
+                $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
+                $endDate   = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -1726,8 +1740,23 @@ class ParkingRegistrationController extends Controller
         $isEmployee = $workerType === 'EMPLOYEE';
 
         if ($isEmployee) {
-            $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
-            $endDate = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+            if ($parkingTypeUpper === 'TEMPREQUEST') {
+                if (!$request->filled('startdate') || !$request->filled('enddate')) {
+                    return response()->json([
+                        'message' => 'Mohon periksa input.',
+                        'errors' => [
+                            'startdate' => ['Start Date wajib diisi untuk TEMPREQUEST EMPLOYEE.'],
+                            'enddate'   => ['End Date wajib diisi untuk TEMPREQUEST EMPLOYEE.'],
+                        ],
+                    ], 422);
+                }
+
+                $startDate = Carbon::parse($request->startdate)->toDateString();
+                $endDate = Carbon::parse($request->enddate)->toDateString();
+            } else {
+                $startDate = Carbon::createFromDate((int) $perpost, 1, 1)->toDateString();
+                $endDate = Carbon::createFromDate((int) $perpost, 12, 31)->toDateString();
+            }
 
             if (in_array($parkingTypeUpper, ['NEWREQUEST', 'TEMPREQUEST'], true)) {
                 $headerInfo = $request->info;

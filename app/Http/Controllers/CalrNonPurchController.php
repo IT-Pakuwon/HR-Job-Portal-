@@ -1089,6 +1089,12 @@ class CalrNonPurchController extends Controller
                 ->orderBy('id')
                 ->first();
 
+            $hasBudgetRfca = $budgetRfca &&
+                trim((string) $budgetRfca->budget_business_unit_id) !== '' &&
+                trim((string) $budgetRfca->budget_department_fin_id) !== '' &&
+                trim((string) $budgetRfca->budget_account_id) !== '' &&
+                trim((string) $budgetRfca->budget_activity_id) !== '';
+
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
                 $priceRaw = $prices[$i] ?? null;
@@ -1143,6 +1149,16 @@ class CalrNonPurchController extends Controller
             $rfp->updated_by = $username;
             $rfp->updated_at = $dt;
             $rfp->save();
+
+            if ($hasBudgetRfca) {
+                $this->reserveBudget(
+                    $doctype,
+                    $docid,
+                    $request->cpnyid ?? $rfp->cpny_id,
+                    'Submit',
+                    $username
+                );
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -1383,10 +1399,10 @@ class CalrNonPurchController extends Controller
             $user->username,
             $user->name,
 
-            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl, $doctype) {
+            function (string $refnbr, \Carbon\Carbon $now) use ($calr, $fullname, $docUrl, $doctype, $request, $user) {
 
                 $calr->status = 'R';
-                $calr->completed_by = auth()->user()->username;
+                $calr->completed_by = $user->username;
                 $calr->completed_at = $now;
                 $calr->save();
 
@@ -1401,16 +1417,24 @@ class CalrNonPurchController extends Controller
                     ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
                     ->update([
                         'status' => 'R',
-                        'updated_by' => auth()->user()->username,
+                        'updated_by' => $user->username,
                         'updated_at' => $now,
                     ]);
 
                 \App\Models\TrRfpNonPurch::where('calrid', $calr->calrnonpurchaseid)                    
                     ->update([
                         'calrid' => '',
-                        'updated_by' => auth()->user()->username,
+                        'updated_by' => $user->username,
                         'updated_at' => $now,
                     ]);
+
+                $this->reserveBudget(
+                    $doctype,
+                    $calr->calrnonpurchaseid,
+                    $request->cpnyid ?? $calr->cpny_id,
+                    'Reject',
+                    $user->username
+                );
 
                 app(\App\Http\Controllers\ApprovalController::class)->notifyRequesterOnStatus(
                     $calr->calrnonpurchaseid,
@@ -1503,6 +1527,14 @@ class CalrNonPurchController extends Controller
                 $calr->updated_by = $user->username;
                 $calr->updated_at = $now;
                 $calr->save();
+
+                $this->reserveBudget(
+                    $doctype,
+                    $calr->calrnonpurchaseid,
+                    $request->cpnyid ?? $calr->cpny_id,
+                    'Revise',
+                    $user->username
+                );
 
                 /*
                 |--------------------------------------------------------------------------
@@ -2323,6 +2355,18 @@ class CalrNonPurchController extends Controller
                 ->where('refid', $calr->calrnonpurchaseid)
                 ->delete();
 
+            $budgetRfca = TrRfpNonPurchDetail::query()
+                ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+                ->where('rfpnonpurch_budget_type', 'BUDGET-RCA')
+                ->orderBy('id')
+                ->first();
+
+            $hasBudgetRfca = $budgetRfca &&
+                trim((string) $budgetRfca->budget_business_unit_id) !== '' &&
+                trim((string) $budgetRfca->budget_department_fin_id) !== '' &&
+                trim((string) $budgetRfca->budget_account_id) !== '' &&
+                trim((string) $budgetRfca->budget_activity_id) !== '';
+
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
                 $priceRaw = $prices[$i] ?? null;
@@ -2339,21 +2383,32 @@ class CalrNonPurchController extends Controller
                     'amount_request' => 0,
                     'amount_request_penyelesaian' => $price,
 
-                    'budget_perpost' => $dt->year,
-                    'budget_cpny_id' => $calr->cpny_id,
-                    'budget_business_unit_id' => null,
-                    'budget_department_fin_id' => null,
-                    'budget_account_id' => null,
-                    'budget_activity_id' => null,
-                    'budget_activity_descr' => null,
+                    'budget_perpost' => $budgetRfca->budget_perpost ?? $dt->year,
+                    'budget_cpny_id' => $budgetRfca->budget_cpny_id ?? $calr->cpny_id,
+                    'budget_business_unit_id' => $budgetRfca->budget_business_unit_id ?? null,
+                    'budget_department_fin_id' => $budgetRfca->budget_department_fin_id ?? null,
+                    'budget_account_id' => $budgetRfca->budget_account_id ?? null,
+                    'budget_activity_id' => $budgetRfca->budget_activity_id ?? null,
+                    'budget_activity_descr' => $budgetRfca->budget_activity_descr ?? null,
 
                     'refid' => $calr->calrnonpurchaseid,
+                    'rfpnonpurch_budget_type' => 'BUDGET-CAR',
                     'status' => 'P',
                     'created_by' => $username,
                     'created_at' => $dt,
                     'updated_by' => $username,
                     'updated_at' => $dt,
                 ]);
+            }
+
+            if ($hasBudgetRfca) {
+                $this->reserveBudget(
+                    $doctype,
+                    $docid,
+                    $request->cpnyid ?? $calr->cpny_id,
+                    'Submit',
+                    $username
+                );
             }
 
             /*
@@ -2953,6 +3008,16 @@ class CalrNonPurchController extends Controller
             strtolower(trim((string) $value)),
             ['1', 'true', 't', 'yes', 'y', 'on'],
             true
+        );
+    }
+
+    private function reserveBudget(string $doctype, string $docid, string $cpnyId, string $activity, string $username): void
+    {
+        // Panggil PostgreSQL Stored Procedure: sp_process_budget(doctype, docid, activity, user)
+        // Contoh: CALL sp_process_budget('CS','CS25120001','Submit','williemhalim');
+        DB::connection('pgsql')->statement(
+            'CALL public.sp_process_budget(?, ?, ?, ?,?)',
+            [strtoupper($doctype), $docid, $cpnyId, $activity, $username]
         );
     }
 }
