@@ -383,13 +383,19 @@ class ApprovalController extends Controller
         | CEK EXISTING APPROVAL
         |--------------------------------------------------------------------------
         | Kalau approval untuk dokumen ini sudah ada, jangan create ulang.
+        | Jika onlyType diberikan (misal 'Condition'), cek hanya untuk tipe itu
+        | agar tidak diblokir oleh Normal-type approval yang masih pending.
         */
         $existingQuery = TrApproval::query()
             ->where('refnbr', $refnbr)
             ->where('aprv_doctype', $doctype)
             ->where('status', 'P');
 
-        $existingCount = (clone $existingQuery)->count();
+        $dupCheckQuery = $onlyType !== null
+            ? (clone $existingQuery)->whereRaw("LOWER(TRIM(aprv_type)) = ?", [strtolower($onlyType)])
+            : clone $existingQuery;
+
+        $existingCount = $dupCheckQuery->count();
 
         if ($existingCount > 0) {
             $firstPending = (clone $existingQuery);
