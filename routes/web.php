@@ -941,6 +941,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/imbudget/{id}/approve', [IMBudgetController::class, 'approveIMBudget']);
         Route::post('/imbudget/{id}/reject', [IMBudgetController::class, 'rejectIMBudget']);
         Route::post('/imbudget/{id}/revise', [IMBudgetController::class, 'reviseIMBudget']);
+        Route::put('/imbudgets/{hash}/cancel', [IMBudgetController::class, 'cancelIMBudget'])->name('imbudgets.cancel');
     });
 
     Route::middleware('access:BASTLIST,VIEW')->group(function () {

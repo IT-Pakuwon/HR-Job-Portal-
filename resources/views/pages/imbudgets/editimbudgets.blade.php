@@ -352,7 +352,7 @@
 
                             <!-- Cancel Button-->
                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                                <button id="cancelBtn"
+                                <button type="button" id="cancelBtn"
                                     class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
                                     <span id="cancelText">Cancel</span>
                                     <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
@@ -693,13 +693,33 @@
 
         // ===== Cancel Button =====
         $('#cancelBtn').click(function() {
-            const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-            if (confirmed) {
-                $('#cancelBtn').prop('disabled', true);
-                $('#cancelText').text('Cancelling...');
-                $('#cancelSpinner').removeClass('hidden');
-                window.location.href = "{{ route('imbudgets') }}";
-            }
+            const confirmed = confirm("Are you sure you want to cancel this document? This action cannot be undone.");
+            if (!confirmed) return;
+
+            $('#cancelBtn').prop('disabled', true);
+            $('#cancelText').text('Cancelling...');
+            $('#cancelSpinner').removeClass('hidden');
+            showOverlay('Cancelling');
+
+            $.ajax({
+                url: "{{ route('imbudgets.cancel', $hash) }}",
+                type: 'POST',
+                data: {
+                    _method: 'PUT',
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(res) {
+                    toastr.success(res.message || 'Document cancelled.');
+                    window.location.href = "{{ route('imbudgets') }}";
+                },
+                error: function(xhr) {
+                    toastr.error(xhr.responseJSON?.message || 'Failed to cancel document.');
+                    $('#cancelBtn').prop('disabled', false);
+                    $('#cancelText').text('Cancel');
+                    $('#cancelSpinner').addClass('hidden');
+                    hideOverlay();
+                }
+            });
         });
     </script>
 

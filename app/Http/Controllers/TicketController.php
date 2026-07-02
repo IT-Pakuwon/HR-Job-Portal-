@@ -770,11 +770,6 @@ class TicketController extends Controller
 
         $ticket->refresh();
 
-        abort_unless(
-            $this->canAccessTicket($ticket),
-            403
-        );
-
         /*
         |--------------------------------------------------------------------------
         | Attachments
@@ -957,11 +952,6 @@ class TicketController extends Controller
         abort_if(!$id, 404);
 
         $ticket = TrTicket::findOrFail($id);
-
-        abort_unless(
-            $this->canAccessTicket($ticket),
-            403
-        );
 
         $activities = TrTicketActivity::where(
             'ticketid',
@@ -2098,11 +2088,6 @@ class TicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
-        abort_unless(
-            $this->canAccessTicket($ticket),
-            403
-        );
-
         $comments = TrMessage::query()
             ->where('refnbr', $ticket->ticketid)
             ->where('doctype', 'TIC')
@@ -2812,11 +2797,6 @@ class TicketController extends Controller
             'location',
             'subLocation',
         ])->findOrFail($id);
-
-        abort_unless(
-            $this->canAccessTicket($ticket),
-            403
-        );
 
         $attachmentController = app(TrAttachmentController::class);
 
