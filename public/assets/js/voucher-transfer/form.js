@@ -288,8 +288,16 @@ const VplTransferForm = {
     },
 
     submitCreate() {
-        const form = document.getElementById('createForm');
-        const fd   = new FormData(form);
+        const form        = document.getElementById('createForm');
+        const transType   = document.getElementById('c_transfertype')?.value ?? '';
+        const refTransfer = document.getElementById('c_ref_transfer_id')?.value ?? '';
+
+        if (transType === 'ReturnTf' && !refTransfer) {
+            VplTransfer.toast('error', 'Please select a Reference Transfer for Return Transfer.');
+            return;
+        }
+
+        const fd = new FormData(form);
 
         $.ajax({
             url:         VplTransfer.routes.store,

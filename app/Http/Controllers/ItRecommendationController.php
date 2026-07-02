@@ -1417,25 +1417,6 @@ class ItRecommendationController extends Controller
             ->where('role_id', 'ITHARDWARE')
             ->exists();
 
-        $canAccess = (
-            (
-                in_array($header->cpny_id, $cpnyIds)
-                && in_array($header->department_id, $deptIds)
-            )
-            || $header->created_by === $user->username
-            || $isITHardware
-            || TrApproval::where('refnbr', $header->docid)
-            ->where('aprv_username', $user->username)
-            ->exists()
-        );
-
-        if (!$canAccess) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access',
-            ], 403);
-        }
-
         $details = TrItrecommendDetail::where('docid', $header->docid)
             ->get();
 
@@ -1534,45 +1515,6 @@ class ItRecommendationController extends Controller
     {
         $header = TrItrecommend::where('docid', $docid)
             ->firstOrFail();
-
-        $user = auth()->user();
-
-        /*
-        |--------------------------------------------------------------------------
-        | ACCESS VALIDATION
-        |--------------------------------------------------------------------------
-        */
-
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
-
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
-
-        $isITHardware = SysUserRole::where('username', $user->username)
-            ->where('role_id', 'ITHARDWARE')
-            ->exists();
-
-        $canAccess = (
-            (
-                in_array($header->cpny_id, $cpnyIds)
-                && in_array($header->department_id, $deptIds)
-            )
-            || $header->created_by === $user->username
-            || $isITHardware
-            || TrApproval::where('refnbr', $header->docid)
-            ->where('aprv_username', $user->username)
-            ->exists()
-        );
-
-        if (!$canAccess) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access',
-            ], 403);
-        }
 
         $timeline = [];
 
@@ -1968,6 +1910,14 @@ class ItRecommendationController extends Controller
             ->where('role_id', 'ITHARDWARE')
             ->exists();
 
+        $isApprover = TrApproval::where('refnbr', $header->docid)
+            ->get()
+            ->contains(function ($row) use ($user) {
+                return collect(preg_split('/[,;|]/', $row->aprv_username))
+                    ->map(fn ($x) => strtolower(trim($x)))
+                    ->contains(strtolower($user->username));
+            });
+
         $canAccess = (
             (
                 in_array($header->cpny_id, $cpnyIds)
@@ -1975,9 +1925,7 @@ class ItRecommendationController extends Controller
             )
             || $header->created_by === $user->username
             || $isITHardware
-            || TrApproval::where('refnbr', $header->docid)
-            ->where('aprv_username', $user->username)
-            ->exists()
+            || $isApprover
         );
 
         if (!$canAccess) {

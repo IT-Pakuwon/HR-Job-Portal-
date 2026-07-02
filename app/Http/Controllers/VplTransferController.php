@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers;
 
@@ -11,8 +11,7 @@ use App\Models\TrxVplTransferDetail;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductDetail;
 use App\Models\MsVplWarehouseDept;
-use App\Models\M_approval;
-use App\Models\T_approval;
+use App\Models\TrApproval;
 use App\Models\T_Message;
 use App\Models\Attachment;
 use App\Models\Company;
@@ -27,6 +26,8 @@ use Mail;
 
 class VplTransferController extends Controller
 {
+    public const DOCTYPE     = 'VPT';
+    public const DOCTYPE_DSC = 'Voucher Product Transfer';
 
     // -------------------------------------------------------
     // INDEX — serves the main page OR DataTable AJAX
@@ -120,10 +121,10 @@ class VplTransferController extends Controller
             ->orderBy('linenbr')
             ->get();
 
-        $approvals = T_approval::where('docid', $transfer->transfer_id)
+        $approvals = TrApproval::where('refnbr', $transfer->transfer_id)
+            ->where('aprv_doctype', self::DOCTYPE)
             ->where('status', '<>', 'X')
-            ->orderBy('created_at')
-            ->orderBy('aprvid')
+            ->orderByRaw("CAST(aprv_leveling AS numeric) ASC")
             ->get();
 
         $attachments = Attachment::where('docid', $transfer->transfer_id)
@@ -149,19 +150,21 @@ class VplTransferController extends Controller
         // Approval action flags
         $can_approve = $can_reject = $can_revise = false;
         if ($transfer->status === 'P') {
-            $can_approve = T_approval::where('docid', $transfer->transfer_id)
+            $can_approve = TrApproval::where('refnbr', $transfer->transfer_id)
+                ->where('aprv_doctype', self::DOCTYPE)
                 ->where('status', 'P')
-                ->whereNotNull('aprvdatebefore')
+                ->whereNotNull('aprv_datebefore')
                 ->where(function ($q) use ($user) {
-                    $q->where('aprvusername', $user->username)
-                      ->orWhere('aprvusername', 'like', '%' . $user->username . '%');
+                    $q->where('aprv_username', $user->username)
+                      ->orWhere('aprv_username', 'like', '%' . $user->username . '%');
                 })
                 ->exists();
             $can_reject = $can_approve;
             $can_revise = $can_approve;
         }
 
-        $anyApproved = T_approval::where('docid', $transfer->transfer_id)
+        $anyApproved = TrApproval::where('refnbr', $transfer->transfer_id)
+            ->where('aprv_doctype', self::DOCTYPE)
             ->where('status', 'A')
             ->exists();
 
@@ -175,11 +178,11 @@ class VplTransferController extends Controller
             'transfer_type_label' => $transferTypeLabel,
             'details'             => $details,
             'approvals'           => $approvals->map(fn ($ap) => [
-                'aprvid'         => $ap->aprvid,
-                'name'           => $ap->name,
-                'aprvusername'   => $ap->aprvusername,
-                'aprvdatebefore' => $ap->aprvdatebefore,
-                'aprvdateafter'  => $ap->aprvdateafter,
+                'aprvid'         => $ap->aprv_leveling,
+                'name'           => $ap->aprv_name,
+                'aprvusername'   => $ap->aprv_username,
+                'aprvdatebefore' => $ap->aprv_datebefore,
+                'aprvdateafter'  => $ap->aprv_dateafter,
                 'status'         => $ap->status,
             ]),
             'attachments'         => $attachments->map(fn ($a) => [
@@ -218,36 +221,25 @@ class VplTransferController extends Controller
         $vp_type      = strtoupper($request->vp_type);   // 'V' or 'P'
         $transfertype = $request->transfertype;            // 'Transfer' or 'ReturnTf'
 
-        $doctype = $this->resolveDoctype($vp_type, $transfertype);
-        if (!$doctype) {
-            return response()->json(['error' => 'Invalid transfer type or VP type.'], 422);
-        }
-
-        // Check approval master
-        $count_approval = M_approval::where('status', 'A')
-            ->where('aprvcpnyid', $request->cpnyid)
-            ->where('aprvdeptid', $request->department)
-            ->where('aprvdoctype', $doctype)
-            ->count();
-
-        if ($count_approval === 0) {
-            return response()->json(['error' => 'Approval not configured for ' . $doctype . '. Please contact IT!'], 422);
+        // Ref number is required for return transfers
+        if ($transfertype === 'ReturnTf' && empty($request->ref_transfer_id)) {
+            return response()->json(['error' => 'Reference Transfer ID is required for Return Transfer.'], 422);
         }
 
         // Autonbr
-        $autonbr = Autonbr::where('doctype', $doctype)
+        $autonbr = Autonbr::where('doctype', self::DOCTYPE)
             ->where('year', $year)
             ->where('month', $month)
             ->where('status', 'A')
             ->first();
 
         if (!$autonbr) {
-            return response()->json(['error' => 'Auto number not set for ' . $doctype . '. Please contact IT!'], 422);
+            return response()->json(['error' => 'Auto number not set for ' . self::DOCTYPE . '. Please contact IT!'], 422);
         }
 
         $urutan = $autonbr->number + 1;
         $tglbln = substr((string) $year, 2) . sprintf('%02d', $month);
-        $docid  = $doctype . $tglbln . sprintf('%03d', $urutan);
+        $docid  = self::DOCTYPE . $tglbln . sprintf('%03d', $urutan);
 
         $autonbr->number = $urutan;
         $autonbr->save();
@@ -295,31 +287,29 @@ class VplTransferController extends Controller
         // Reserve stock in source warehouse for each detail line
         $this->adjustReserved($docid, +1);
 
-        // Approval records
-        $datestamp  = $dt->toDateTimeString();
-        $m_approvals = M_approval::where('aprvdoctype', $doctype)
-            ->where('aprvcpnyid', $request->cpnyid)
-            ->where('aprvdeptid', $request->department)
-            ->where('status', 'A')
-            ->get();
+        // Generate approval records via ApprovalController
+        $conditionName = $this->resolveConditionName($vp_type, $transfertype);
+        $ctx           = ['approval_conditions' => [$conditionName]];
 
-        foreach ($m_approvals as $mp) {
-            T_approval::create([
-                'docid'          => $docid,
-                'aprvid'         => $mp->aprvid,
-                'aprvdoctype'    => $mp->aprvdoctype,
-                'aprvcpnyid'     => $mp->aprvcpnyid,
-                'aprvdeptid'     => $mp->aprvdeptid,
-                'aprvusername'   => $mp->aprvusername,
-                'name'           => $mp->name,
-                'aprvdatebefore' => $mp->aprvid == 1 ? $datestamp : null,
-                'aprvtotalday'   => 1,
-                'status'         => 'P',
-                'created_user'   => $user->name,
-            ]);
-        }
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->generateForDocument(
+            $docid,
+            self::DOCTYPE,
+            $request->cpnyid,
+            $request->department,
+            $user->username,
+            $ctx,
+            $dt
+        );
 
-        $this->notifyApprover($docid, $transfer->id, $request->transfer_remark, $user);
+        $approvalCtl->notifyFirstApprover(
+            $docid,
+            self::DOCTYPE,
+            'P',
+            self::DOCTYPE_DSC,
+            route('transfervp.show', $transfer->id),
+            ['info' => $request->transfer_remark ?? '', 'createdby' => $user->name]
+        );
 
         return response()->json(['success' => 'Transfer saved successfully.']);
     }
@@ -332,8 +322,6 @@ class VplTransferController extends Controller
         $user     = Auth::user();
         $dt       = Carbon::now();
         $transfer = TrxVplTransfer::find($id);
-
-        $doctype = $this->resolveDoctype($transfer->vp_type, $transfer->transfertype);
 
         // New detail lines
         if ($request->has('addmore')) {
@@ -354,7 +342,6 @@ class VplTransferController extends Controller
                     $existing->qty_transfer += $detail['qty_transfer'];
                     $existing->updated_user  = $user->username;
                     $existing->save();
-                    // Reserve the additional qty
                     $this->reserveDetail($existing, +1);
                 } else {
                     $newDetail = TrxVplTransferDetail::create([
@@ -378,37 +365,35 @@ class VplTransferController extends Controller
 
         $this->saveAttachments($request, $transfer->transfer_id, $dt->year, $user);
 
-        // Re-create approval records
-        $datestamp   = $dt->toDateTimeString();
-        $m_approvals = M_approval::where('aprvdoctype', $doctype)
-            ->where('aprvcpnyid', $request->cpnyid ?? $transfer->cpnyid)
-            ->where('aprvdeptid', $request->department ?? $transfer->department)
-            ->where('status', 'A')
-            ->get();
+        // Re-generate approval records
+        $conditionName = $this->resolveConditionName($transfer->vp_type, $transfer->transfertype);
+        $ctx           = ['approval_conditions' => [$conditionName]];
 
-        foreach ($m_approvals as $mp) {
-            T_approval::create([
-                'docid'          => $transfer->transfer_id,
-                'aprvid'         => $mp->aprvid,
-                'aprvdoctype'    => $mp->aprvdoctype,
-                'aprvcpnyid'     => $mp->aprvcpnyid,
-                'aprvdeptid'     => $mp->aprvdeptid,
-                'aprvusername'   => $mp->aprvusername,
-                'name'           => $mp->name,
-                'aprvdatebefore' => $mp->aprvid == 1 ? $datestamp : null,
-                'aprvtotalday'   => 1,
-                'status'         => 'P',
-                'created_user'   => $user->name,
-            ]);
-        }
+        $approvalCtl = app(ApprovalController::class);
+        $approvalCtl->generateForDocument(
+            $transfer->transfer_id,
+            self::DOCTYPE,
+            $request->cpnyid ?? $transfer->cpnyid,
+            $request->department ?? $transfer->department,
+            $user->username,
+            $ctx,
+            $dt
+        );
 
         $transfer->transfer_remark = $request->transfer_remark ?? $transfer->transfer_remark;
         $transfer->status          = 'P';
         $transfer->updated_user    = $user->name;
-        $transfer->updated_at      = $datestamp;
+        $transfer->updated_at      = $dt->toDateTimeString();
         $transfer->save();
 
-        $this->notifyApprover($transfer->transfer_id, $id, $request->transfer_remark, $user);
+        $approvalCtl->notifyFirstApprover(
+            $transfer->transfer_id,
+            self::DOCTYPE,
+            'P',
+            self::DOCTYPE_DSC,
+            route('transfervp.show', $id),
+            ['info' => $transfer->transfer_remark ?? '', 'createdby' => $user->name]
+        );
 
         return response()->json(['success' => 'Transfer resubmitted successfully.']);
     }
@@ -420,23 +405,8 @@ class VplTransferController extends Controller
     {
         $user     = Auth::user();
         $transfer = TrxVplTransfer::find($id);
-        $datestamp = Carbon::now()->toDateTimeString();
 
-        // Check the current approver is authorised
-        $t_approval = T_approval::where('docid', $transfer->transfer_id)
-            ->where('status', 'P')
-            ->whereNotNull('aprvdatebefore')
-            ->where(function ($q) use ($user) {
-                $q->where('aprvusername', $user->username)
-                  ->orWhere('aprvusername', 'like', '%' . $user->username . '%');
-            })
-            ->first();
-
-        if (!$t_approval) {
-            return response()->json(['error' => 'You are not authorised to approve this document.'], 403);
-        }
-
-        // Validate stock availability
+        // Validate stock availability before approving
         $details = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->get();
         foreach ($details as $detail) {
             $stock = MsVplProductDetail::where('product_id', $detail->product_id)
@@ -452,37 +422,36 @@ class VplTransferController extends Controller
             }
         }
 
-        // Mark this step approved
-        $t_approval->status        = 'A';
-        $t_approval->aprvdateafter = $datestamp;
-        $t_approval->aprvusername  = $user->username;
-        $t_approval->name          = $user->name;
-        $t_approval->save();
+        $approvalCtl = app(ApprovalController::class);
 
-        // Check if all steps done
-        $remaining = T_approval::where('docid', $transfer->transfer_id)
-            ->where('status', 'P')
-            ->count();
+        $result = $approvalCtl->approveStep(
+            $transfer->transfer_id,
+            self::DOCTYPE,
+            $user->username,
+            $user->name,
+            function ($refnbr, $now) use ($transfer, $user, $id) {
+                // All steps done → complete document
+                $transfer->status         = 'C';
+                $transfer->completed_user = $user->username;
+                $transfer->completed_at   = $now;
+                $transfer->save();
+                $this->processTransferStock($id);
+            },
+            function ($next, $now) use ($transfer, $id) {
+                // Notify next approver
+                app(ApprovalController::class)->notifyFirstApprover(
+                    $transfer->transfer_id,
+                    self::DOCTYPE,
+                    'P',
+                    self::DOCTYPE_DSC,
+                    route('transfervp.show', $id),
+                    ['info' => $transfer->transfer_remark ?? '']
+                );
+            }
+        );
 
-        if ($remaining === 0) {
-            // Complete document
-            $transfer->status        = 'C';
-            $transfer->completed_user = $user->username;
-            $transfer->completed_at  = $datestamp;
-            $transfer->save();
-
-            $this->processTransferStock($id);
-        } else {
-            // Notify next approver
-            $next = T_approval::where('docid', $transfer->transfer_id)
-                ->where('status', 'P')
-                ->orderBy('aprvid')
-                ->first();
-
-            $next->aprvdatebefore = $datestamp;
-            $next->save();
-
-            $this->notifyApprover($transfer->transfer_id, $id, $transfer->transfer_remark, $user, $next);
+        if (!$result['ok']) {
+            return response()->json(['error' => $result['message']], 403);
         }
 
         return response()->json(['success' => 'Document approved.']);
@@ -497,35 +466,37 @@ class VplTransferController extends Controller
             return response()->json(['error' => 'Reason is required.'], 422);
         }
 
-        $user      = Auth::user();
-        $transfer  = TrxVplTransfer::find($id);
-        $datestamp = Carbon::now()->toDateTimeString();
+        $user     = Auth::user();
+        $transfer = TrxVplTransfer::find($id);
 
-        $t_approval = T_approval::where('docid', $transfer->transfer_id)
-            ->where('status', 'P')
-            ->orderBy('aprvid')
-            ->first();
+        $approvalCtl = app(ApprovalController::class);
 
-        if (!$t_approval) {
-            return response()->json(['error' => 'No pending approval found.'], 403);
+        $result = $approvalCtl->rejectStep(
+            $transfer->transfer_id,
+            self::DOCTYPE,
+            $user->username,
+            $user->name,
+            function ($refnbr, $now) use ($transfer, $request, $user, $id) {
+                $transfer->status = 'R';
+                $transfer->save();
+                $this->saveMessage($transfer, $request->message, $user);
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $transfer->transfer_id,
+                    self::DOCTYPE_DSC,
+                    'R',
+                    $transfer->user_transfer,
+                    route('transfervp.show', $id),
+                    ['info' => $request->message]
+                );
+            },
+            function ($refnbr, $now) use ($transfer) {
+                $this->adjustReserved($transfer->transfer_id, -1);
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json(['error' => $result['message']], 403);
         }
-
-        $this->adjustReserved($transfer->transfer_id, -1);
-
-        $transfer->status = 'R';
-        $transfer->save();
-
-        $t_approval->status        = 'R';
-        $t_approval->aprvdateafter = $datestamp;
-        $t_approval->aprvusername  = $user->username;
-        $t_approval->name          = $user->name;
-        $t_approval->save();
-
-        T_approval::where('docid', $transfer->transfer_id)
-            ->where('status', 'P')
-            ->update(['status' => 'X']);
-
-        $this->saveMessage($transfer, $request->message, $user);
 
         return response()->json(['success' => 'Document rejected.']);
     }
@@ -539,35 +510,36 @@ class VplTransferController extends Controller
             return response()->json(['error' => 'Reason is required.'], 422);
         }
 
-        $user      = Auth::user();
-        $transfer  = TrxVplTransfer::find($id);
-        $datestamp = Carbon::now()->toDateTimeString();
+        $user     = Auth::user();
+        $transfer = TrxVplTransfer::find($id);
 
-        $t_approval = T_approval::where('docid', $transfer->transfer_id)
-            ->where('status', 'P')
-            ->orderBy('aprvid')
-            ->first();
+        $approvalCtl = app(ApprovalController::class);
 
-        if (!$t_approval) {
-            return response()->json(['error' => 'No pending approval found.'], 403);
+        $result = $approvalCtl->reviseStep(
+            $transfer->transfer_id,
+            self::DOCTYPE,
+            $user->username,
+            $user->name,
+            function ($refnbr, $now) use ($transfer, $request, $user, $id) {
+                $transfer->status       = 'D';
+                $transfer->updated_user = $user->name;
+                $transfer->updated_at   = $now;
+                $transfer->save();
+                $this->saveMessage($transfer, $request->message, $user);
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $transfer->transfer_id,
+                    self::DOCTYPE_DSC,
+                    'D',
+                    $transfer->user_transfer,
+                    route('transfervp.show', $id),
+                    ['info' => $request->message . ' (Silahkan revisi dokumen ini)']
+                );
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json(['error' => $result['message']], 403);
         }
-
-        $transfer->status        = 'D';
-        $transfer->updated_user  = $user->name;
-        $transfer->updated_at    = $datestamp;
-        $transfer->save();
-
-        $t_approval->status        = 'D';
-        $t_approval->aprvdateafter = $datestamp;
-        $t_approval->aprvusername  = $user->username;
-        $t_approval->name          = $user->name;
-        $t_approval->save();
-
-        T_approval::where('docid', $transfer->transfer_id)
-            ->where('status', 'P')
-            ->update(['status' => 'X']);
-
-        $this->saveMessage($transfer, $request->message, $user);
 
         return response()->json(['success' => 'Document sent for revision.']);
     }
@@ -586,9 +558,10 @@ class VplTransferController extends Controller
         $transfer->updated_user = $user->name;
         $transfer->save();
 
-        T_approval::where('docid', $transfer->transfer_id)
+        TrApproval::where('refnbr', $transfer->transfer_id)
+            ->where('aprv_doctype', self::DOCTYPE)
             ->where('status', 'P')
-            ->update(['status' => 'X', 'aprvdatebefore' => null]);
+            ->update(['status' => 'X', 'aprv_datebefore' => null]);
 
         return response()->json(['success' => 'Document cancelled.']);
     }
@@ -603,7 +576,7 @@ class VplTransferController extends Controller
 
         T_Message::create([
             'docid'        => $transfer->transfer_id,
-            'doctype'      => $this->resolveDoctype($transfer->vp_type, $transfer->transfertype),
+            'doctype'      => self::DOCTYPE,
             'username'     => $user->username,
             'name'         => $user->name,
             'message'      => $request->message,
@@ -779,9 +752,16 @@ class VplTransferController extends Controller
     // PRIVATE HELPERS
     // -------------------------------------------------------
 
-    private function resolveDoctype(string $vp_type, string $transfertype): ?string
+    /**
+     * Derive condition name from vp_type + transfertype.
+     * e.g. 'V' + 'Transfer' → 'Transfer Voucher'
+     *      'P' + 'ReturnTf' → 'Return Product'
+     */
+    private function resolveConditionName(string $vp_type, string $transfertype): string
     {
-        return 'VPT';
+        $typeLabel = $transfertype === 'Transfer' ? 'Transfer' : 'Return';
+        $vpLabel   = strtoupper($vp_type) === 'V' ? 'Voucher' : 'Product';
+        return $typeLabel . ' ' . $vpLabel;
     }
 
     private function reserveDetail(TrxVplTransferDetail $detail, int $delta): void
@@ -849,48 +829,13 @@ class VplTransferController extends Controller
     {
         T_Message::create([
             'docid'        => $transfer->transfer_id,
-            'doctype'      => $this->resolveDoctype($transfer->vp_type, $transfer->transfertype),
+            'doctype'      => self::DOCTYPE,
             'username'     => $user->username,
             'name'         => $user->name,
             'message'      => $message,
             'status'       => 'A',
             'created_user' => $user->name,
         ]);
-    }
-
-    private function notifyApprover(string $docid, int $id, ?string $remark, $user, ?T_approval $nextApproval = null): void
-    {
-        $t_approval_next = $nextApproval ?? T_approval::where('docid', $docid)
-            ->where('status', 'P')
-            ->orderBy('aprvid')
-            ->first();
-
-        if (!$t_approval_next) {
-            return;
-        }
-
-        $ms_site = Site::where('id', $user->site)->first();
-        $data    = [
-            'docid'        => $t_approval_next->docid,
-            'cpnyid'       => $t_approval_next->aprvcpnyid,
-            'deptname'     => $t_approval_next->aprvdeptid,
-            'locationname' => $ms_site?->site ?? '',
-            'date'         => $t_approval_next->aprvdatebefore,
-            'name'         => $t_approval_next->created_user ?? $user->name,
-            'info'         => $remark ?? '',
-            'url'          => route('transfervp.show', $id),
-        ];
-
-        $multiapp = explode(',', $t_approval_next->aprvusername);
-        $emails   = User::whereIn('username', $multiapp)->where('status', 'A')->get();
-
-        foreach ($emails as $emailsit) {
-            Mail::send('emails.mailapprove', $data, function ($message) use ($data, $emailsit) {
-                $message->to($emailsit->test_email)
-                        ->subject($data['docid'] . ' - Waiting Approval Transfer');
-                $message->from('digitalserver@pakuwon.com', 'Digital Approval System');
-            });
-        }
     }
 
     private function processTransferStock(int $id): void

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers;
 
@@ -215,7 +215,7 @@ class VplReceiveController extends Controller
         // Read ms_category to get approval condition
         $category = MsCategory::where('doctype', self::DOCTYPE)
             ->where('categoryid', 'condition')
-            ->where('category_name', $vpTypeName)
+            ->where('category_name', ucfirst(strtolower($vpTypeName)))
             ->where('status', 'A')
             ->first();
 
@@ -277,8 +277,7 @@ class VplReceiveController extends Controller
                 $approvalCondition = trim($category->groups ?? '') ?: $vpTypeName;
                 $ctx = ['approval_conditions' => [$approvalCondition]];
 
-                $approvalCtl = app(ApprovalController::class);
-                [$firstApproverUsername, $linesCount] = $approvalCtl->generateForDocument(
+                app(ApprovalController::class)->generateForDocument(
                     $docid,
                     self::DOCTYPE,
                     $request->cpnyid,
@@ -287,19 +286,20 @@ class VplReceiveController extends Controller
                     $ctx,
                     $dt
                 );
-
-                $approvalCtl->notifyFirstApprover(
-                    $docid,
-                    self::DOCTYPE,
-                    'P',
-                    self::DOCTYPE_DSC,
-                    url('/vpl/showreceivevp/'.$receive->id),
-                    ['info' => $request->receive_remark ?? '', 'createdby' => $user->name]
-                );
             });
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
+
+        // Send email after transaction commits so mail failure doesn't rollback the document
+        app(ApprovalController::class)->notifyFirstApprover(
+            $docid,
+            self::DOCTYPE,
+            'P',
+            self::DOCTYPE_DSC,
+            url('/vpl/showreceivevp/'.$receive->id),
+            ['info' => $request->receive_remark ?? '', 'createdby' => $user->name]
+        );
 
         return response()->json(['success' => 'Receive saved successfully.']);
     }
@@ -356,7 +356,7 @@ class VplReceiveController extends Controller
             $vpTypeName = $receive->vp_type;
             $category = MsCategory::where('doctype', self::DOCTYPE)
                 ->where('categoryid', 'condition')
-                ->where('category_name', $vpTypeName)
+                ->where('category_name', ucfirst(strtolower($vpTypeName)))
                 ->where('status', 'A')
                 ->first();
 

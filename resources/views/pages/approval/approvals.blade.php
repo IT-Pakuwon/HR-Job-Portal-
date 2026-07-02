@@ -203,7 +203,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const TYPE_OPTIONS = @json($type->pluck('category_name')->values());
-        const COND_OPTIONS = @json($condition->pluck('category_name')->values());
+        let COND_OPTIONS = [];
     </script>
 
     <script>
@@ -517,12 +517,24 @@
                 });
             }
 
+            function loadConditionsByDoctype(doctype, callback) {
+                const url = "{{ route('approvals.conditions') }}" + "?doctype=" + encodeURIComponent(doctype || '');
+                $.get(url, function(items) {
+                    COND_OPTIONS = items;
+                    // update all existing condition dropdowns in the lines
+                    $('#linesContainer .sel-condition').each(function() {
+                        const current = $(this).val();
+                        $(this).html(buildOptions(COND_OPTIONS, current));
+                    });
+                    if (callback) callback();
+                });
+            }
 
-            // Reload department saat doctype berubah
+            // Reload department & conditions when doctype changes
             $('#aprv_doctype').on('change', function() {
                 const dt = $(this).val() || '';
-                // reset pilihan department dulu
                 loadDepartmentsByDoctype(dt, null);
+                loadConditionsByDoctype(dt);
             });
 
             function loadFilterDepartmentsByDoctype(doctype) {
@@ -580,6 +592,7 @@
 
                 $('#aprv_cpnyid_select').val('').trigger('change');
                 $('#aprv_doctype').val('').trigger('change');
+                COND_OPTIONS = [];
 
                 lineIdxCounter = 0;
                 addLineRow();
@@ -611,18 +624,20 @@
                 $.get(`/approvals/${id}/edit`, function(data) {
                     $('#approvalModalTitle').text("Edit Approval");
 
-                    $('#aprv_doctype').val(data.aprv_doctype).trigger('change');
+                    $('#aprv_doctype').val(data.aprv_doctype).trigger('change.select2');
                     loadDepartmentsByDoctype(data.aprv_doctype, data.aprv_departementid);
 
                     $('#aprv_cpnyid_select').val(data.aprv_cpnyid).trigger('change');
 
-                    addLineRow({
-                        aprv_leveling: data.aprv_leveling,
-                        aprv_username: data.aprv_username,
-                        aprv_type: data.aprv_type,
-                        aprv_condition: data.aprv_condition,
-                        aprv_start_nominal: data.aprv_start_nominal,
-                        aprv_end_nominal: data.aprv_end_nominal,
+                    loadConditionsByDoctype(data.aprv_doctype, function() {
+                        addLineRow({
+                            aprv_leveling: data.aprv_leveling,
+                            aprv_username: data.aprv_username,
+                            aprv_type: data.aprv_type,
+                            aprv_condition: data.aprv_condition,
+                            aprv_start_nominal: data.aprv_start_nominal,
+                            aprv_end_nominal: data.aprv_end_nominal,
+                        });
                     });
                 });
             });
