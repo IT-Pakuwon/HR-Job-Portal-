@@ -1850,6 +1850,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/approvals/{id}', [MsApprovalController::class, 'update']);
     Route::put('/approvals/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus']);
     Route::get('/approvals/departments', [MsApprovalController::class, 'departmentHR'])->name('approvals.departments');
+    Route::get('/approvals/conditions', [MsApprovalController::class, 'conditions'])->name('approvals.conditions');
 
     Route::get('/approvals-groupbiaya', [MsApprovalGroupBiayaController::class, 'index'])->name('approvalsgroupbiaya');
     Route::get('/approvals-groupbiaya/json', [MsApprovalGroupBiayaController::class, 'json'])->name('approvalsgroupbiaya.json');

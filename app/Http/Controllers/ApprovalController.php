@@ -660,7 +660,8 @@ class ApprovalController extends Controller
         string $doctype,
         string $actorUsername,
         string $actorName,
-        \Closure $onAfter
+        \Closure $onAfter,
+        ?\Closure $onBeforeCommit = null
     ): array {
         $now = Carbon::now();
 
@@ -669,6 +670,12 @@ class ApprovalController extends Controller
 
         DB::beginTransaction();
         try {
+            // Run pre-commit hook inside transaction window so a failure here
+            // still rolls back the approval changes (e.g. release reserved stock)
+            if ($onBeforeCommit) {
+                $onBeforeCommit($refnbr, $now);
+            }
+
             $current->status         = 'R';
             $current->aprv_dateafter = $now;
             $current->aprv_username  = $actorUsername;

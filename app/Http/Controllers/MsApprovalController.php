@@ -41,6 +41,7 @@ class MsApprovalController extends Controller
 
         $type = MsCategory::select('category_name')
             ->where('categoryid', 'type')
+            ->where('doctype', 'APR')
             ->where('status', 'A')
             ->orderBy('category_name')
             ->get();
@@ -322,6 +323,21 @@ class MsApprovalController extends Controller
             'success' => true,
             'status'  => $newStatus,
         ]);
+    }
+
+    public function conditions(Request $request)
+    {
+        $doctype = strtoupper(trim((string) $request->query('doctype', '')));
+
+        $items = MsCategory::select('category_name')
+            ->where('categoryid', 'condition')
+            ->where('status', 'A')
+            ->when($doctype !== '', fn($q) => $q->where('doctype', $doctype))
+            ->orderBy('category_name')
+            ->pluck('category_name')
+            ->values();
+
+        return response()->json($items);
     }
 
     public function departmentHR(Request $request)

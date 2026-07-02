@@ -185,7 +185,7 @@
                     <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
                         <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Transfer Information</h3>
                     </div>
-                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-3">
+                    <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-4">
                         <div>
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Company <span class="text-red-500">*</span></label>
                             <select name="cpnyid" id="c_cpnyid" class="w-full select2-create" required>
@@ -218,13 +218,13 @@
                                 <option value="ReturnTf">Return Transfer (Dept → Central)</option>
                             </select>
                         </div>
-                        <div id="c_ref_wrapper" class="hidden">
+                        <div id="c_ref_wrapper" class="hidden md:col-span-4">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Reference Transfer <span class="text-red-500">*</span></label>
                             <select name="ref_transfer_id" id="c_ref_transfer_id" class="w-full select2-create">
                                 <option value="">Select Reference...</option>
                             </select>
                         </div>
-                        <div class="md:col-span-3">
+                        <div class="md:col-span-4">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark</label>
                             <textarea name="transfer_remark" id="c_remark" rows="2" placeholder="Enter remarks..."
                                 class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
