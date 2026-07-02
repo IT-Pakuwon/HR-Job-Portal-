@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Vinkla\Hashids\Facades\Hashids;
 
 
-class GaDashboardController extends Controller
+class GADashboardController extends Controller
 {
     protected ApprovalDashboardController $approvalController;
 

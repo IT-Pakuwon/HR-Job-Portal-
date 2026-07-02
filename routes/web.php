@@ -36,7 +36,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\DocumentNotificationController;
-use App\Http\Controllers\GaDashboardController;
+use App\Http\Controllers\GADashboardController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
@@ -1682,7 +1682,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approval-doctypes', 'approvalDocTypes')->name('operational.doctypes');
         });
 
-        Route::prefix('ga-dashboard')->controller(GaDashboardController::class)->group(function () {
+        Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('ga.summary');
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('ga.approval');
             Route::get('/approval-history-json', 'approvalHistoryJson')->name('ga.approval-history');
