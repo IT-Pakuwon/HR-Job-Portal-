@@ -224,15 +224,4 @@
 
 </div>
 
-<script>
-window.gaRoutes = {
-    summary: "{{ route('ga.summary') }}",
-    approval: "{{ route('ga.approval') }}",
-    approvalHistory: "{{ route('ga.approval-history') }}",
-    voucherTaxi: "{{ route('ga.voucher-taxi') }}",
-    bookingCar: "{{ route('ga.booking-car') }}",
-    parking: "{{ route('ga.parking') }}"
-};
-</script>
-
-<script src="{{ asset('assets/js/multidashboard/dashga.js') }}"></script>
+<script src="{{ asset('assets/js/multidashboard/dashga.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/dashga.js')) }}"></script>
