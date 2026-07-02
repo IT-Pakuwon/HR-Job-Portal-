@@ -482,7 +482,7 @@
                     </div>
 
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
-                        <header class="flex items-center justify-between border-b px-6 py-2 bg-gray-50 dark:bg-gray-700">
+                        <header class="flex items-center justify-between border-b px-6 py-2 rounded-xl  bg-gray-50 dark:bg-gray-700">
                             <div class="flex items-center gap-3">
                                 <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
                                     RFP Progress Steps
@@ -884,7 +884,7 @@
                 }
             });
 
-           
+
             $(document).on("click", "#approveBtn", function() {
                 approveRfpNonPurchWithIMCheck(rfpid);
             });

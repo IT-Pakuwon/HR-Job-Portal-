@@ -11,8 +11,11 @@
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">Create RFP Non Purchase</h2>
                         </div>
 
-                        <!-- Row 1 -->
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+                        <!-- Main Grid: grid-cols-5, 2 rows natural wrap -->
+                        <div class="grid grid-cols-5 gap-4">
+
+                            <!-- Row 1: selalu visible -->
+
                             <!-- Company -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
@@ -27,7 +30,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            
+
                             <!-- Department -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Department</label>
@@ -62,7 +65,7 @@
                                     id="groupbiaya_id"
                                     class="select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
                                     required>
-                                    <option value="">Select Group</option>                         
+                                    <option value="">Select Group</option>
                                     @foreach ($groupbiaya as $g)
                                         <option value="{{ $g->groupbiaya_id }}"
                                             data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}"
@@ -82,13 +85,66 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                             </div>
 
-                            <!-- Business Unit -->
+                            <!-- Row 2: conditional fields + Kepada + Tembusan (col-span dynamic via JS) -->
+
+                            <!-- Business Unit (muncul jika Group Biaya is_budget) -->
                             <div class="hidden flex flex-col gap-2" id="businessUnitBox">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
                                     required>
                                     <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+
+                            {{-- Amount Request Payment (muncul jika RCA) --}}
+                            <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Amount Request Payment
+                                </label>
+                                <input type="text" name="amountrequestpayment" id="amountrequestpayment"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                    placeholder="0,00">
+                            </div>
+
+                            {{-- Tanggal Realisasi (muncul jika RCA) --}}
+                            <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tanggal Realisasi
+                                </label>
+                                <input type="date" name="datepenyelesaian" id="datepenyelesaian"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            </div>
+
+                            {{-- Kepada (selalu visible, col-span dinamis) --}}
+                            <div id="kepadaBox" class="flex flex-col gap-2" style="grid-column: span 3">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Kepada
+                                </label>
+                                <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    multiple>
+                                    @foreach ($kepada as $u)
+                                        <option value="{{ $u->username }}">
+                                            {{ $u->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Tembusan (selalu visible, col-span dinamis) --}}
+                            <div id="tembusanBox" class="flex flex-col gap-2" style="grid-column: span 2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tembusan
+                                </label>
+                                <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    multiple>
+                                    @foreach ($tembusan as $u)
+                                        <option value="{{ $u->username }}">
+                                            {{ $u->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -176,31 +232,11 @@
 
                         </div>                                          
                        
-                        {{-- Row Payment Info --}}
-                        <div id="paymentInfoRow"
-                            class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
-
-                            {{-- Amount Request Payment - khusus RCA --}}
-                            <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Amount Request Payment
-                                </label>
-                                <input type="text" name="amountrequestpayment" id="amountrequestpayment"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                    placeholder="0,00">
-                            </div>
-
-                            {{-- Tanggal Realisasi - khusus RCA --}}
-                            <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tanggal Realisasi
-                                </label>
-                                <input type="date" name="datepenyelesaian" id="datepenyelesaian"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                            </div>
+                        {{-- Dibayarkan Kepada + Keperluan --}}
+                        <div class="grid grid-cols-2 gap-4">
 
                             {{-- Dibayarkan Kepada --}}
-                            <div class="flex flex-col gap-2">
+                            <div id="dibayarkanKepadaBox" class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Dibayarkan Kepada
                                 </label>
@@ -217,38 +253,6 @@
                                 <textarea name="keperluan" id="keperluan" rows="2" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                     placeholder="Input keperluan..."></textarea>
-                            </div>
-
-                            {{-- Kepada --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Kepada
-                                </label>
-                                <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple>
-                                    @foreach ($kepada as $u)
-                                        <option value="{{ $u->username }}">
-                                            {{ $u->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            {{-- Tembusan --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tembusan
-                                </label>
-                                <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple>
-                                    @foreach ($tembusan as $u)
-                                        <option value="{{ $u->username }}">
-                                            {{ $u->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
                             </div>
                         </div>
                     </div>
@@ -328,24 +332,21 @@
                                                     </td>
                                                 </tr>
                                             </tbody>
+
+                                            <tfoot>
+                                                <tr class="border-t-2 border-indigo-200 bg-indigo-50/60 dark:bg-indigo-900/20">
+                                                    <td colspan="2" class="p-3 text-right text-xs font-semibold uppercase tracking-widest text-indigo-400 dark:text-indigo-400">
+                                                        Grand Total
+                                                    </td>
+                                                    <td class="p-3 text-right text-base font-extrabold tabular-nums text-indigo-700 dark:text-indigo-200">
+                                                        <span id="grandTotalDisplay">0,00</span>
+                                                        <input type="hidden" name="grand_total" id="grandTotalInput" value="0">
+                                                    </td>
+                                                    <td class="budget-col p-3"></td>
+                                                    <td class="p-3"></td>
+                                                </tr>
+                                            </tfoot>
                                         </table>
-                                    </div>
-                                    <div class="mt-4 flex justify-end">
-                                        <div class="w-full max-w-sm rounded-lg border bg-gray-50 p-4 dark:bg-gray-700">
-                                            
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                                                    Grand Total
-                                                </span>
-
-                                                <span id="grandTotalDisplay" class="text-lg font-bold text-indigo-600">
-                                                    0,00
-                                                </span>
-                                            </div>
-
-                                            <!-- hidden untuk dikirim ke backend -->
-                                            <input type="hidden" name="grand_total" id="grandTotalInput" value="0">
-                                        </div>
                                     </div>
 
                                     <button type="button" id="addImBudgetNonPurch"
@@ -538,6 +539,29 @@
                     .val('')
                     .prop('disabled', true);
             }
+
+            window.updateRow2ColSpans && window.updateRow2ColSpans();
+        };
+
+        window.updateRow2ColSpans = function () {
+            const isBudget = window.isBudgetSelected();
+            const isRCA = $('#rfpnonpurchase_type').val() === 'RCA';
+
+            // Slot yang terpakai: Business Unit (jika budget) + Tanggal Realisasi (jika RCA)
+            // Amount Request Payment selalu hidden, tidak dihitung
+            let usedSlots = 0;
+            if (isBudget) usedSlots++;
+            if (isRCA) usedSlots++;
+
+            const remaining = 5 - usedSlots;
+            const kepadaSpan = Math.ceil(remaining / 2);
+            const tembusanSpan = Math.floor(remaining / 2);
+
+            const kepadaEl = document.getElementById('kepadaBox');
+            const tembusanEl = document.getElementById('tembusanBox');
+
+            if (kepadaEl) kepadaEl.style.gridColumn = 'span ' + kepadaSpan;
+            if (tembusanEl) tembusanEl.style.gridColumn = 'span ' + tembusanSpan;
         };
     </script>
 
@@ -1400,6 +1424,7 @@
                     |--------------------------------------------------------------------------
                     */
                     $('#headerKeperluanBox').addClass('hidden');
+                    document.getElementById('dibayarkanKepadaBox').style.gridColumn = 'span 2';
                     $('#keperluan')
                         .prop('required', false)
                         .val('');
@@ -1433,6 +1458,7 @@
                     */
                     $('#headerKeperluanBox').removeClass('hidden');
                     $('#keperluan').prop('required', true);
+                    document.getElementById('dibayarkanKepadaBox').style.gridColumn = 'span 1';
 
                     $('#detailDescrHeader').text('Description');
 
@@ -1454,6 +1480,7 @@
                 }
 
                 toggleBudgetMode();
+                window.updateRow2ColSpans();
             }
             // =====================================================
             // BUDGET MODE
@@ -1496,8 +1523,10 @@
                         .val('')
                         .prop('disabled', true);
                 }
+
+                window.updateRow2ColSpans();
             }
-            
+
 
             // =====================================================
             // DEPOSIT MODE
@@ -1577,6 +1606,7 @@
             toggleRfpRcaMode();
             toggleDepositFields();
             toggleBudgetMode();
+            window.updateRow2ColSpans();
 
         });
     </script>

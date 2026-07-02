@@ -13,8 +13,16 @@
                             </h2>
                         </div>
 
-                        {{-- Row 1 --}}
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
+                        @php
+                            $selectedKepada = array_filter(array_map('trim', explode(',', $rfpnonpurch->imnonpurchase_kepada ?? '')));
+                            $selectedTembusan = array_filter(array_map('trim', explode(',', $rfpnonpurch->imnonpurchase_tembusan ?? '')));
+                        @endphp
+
+                        {{-- Main Grid: grid-cols-5, 2 rows natural wrap --}}
+                        <div class="grid grid-cols-5 gap-4">
+
+                            {{-- Row 1: always visible --}}
+
                             {{-- Company --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
@@ -83,12 +91,67 @@
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
                             </div>
 
-                            {{-- Business Unit --}}
+                            {{-- Row 2: conditional + Kepada + Tembusan --}}
+
+                            {{-- Business Unit (conditional: is_budget) --}}
                             <div class="hidden flex flex-col gap-2" id="businessUnitBox">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
                                 <select name="business_unit_id" id="business_unit_id"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
                                     <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+
+                            {{-- Amount Request Payment (conditional: RCA) --}}
+                            <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Amount Request Payment
+                                </label>
+                                <input type="text" name="amountrequestpayment" id="amountrequestpayment"
+                                    value="{{ number_format((float) $rfpnonpurch->amountrequestpayment, 2, ',', '.') }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm"
+                                    placeholder="0,00">
+                            </div>
+
+                            {{-- Tanggal Realisasi (conditional: RCA) --}}
+                            <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tanggal Realisasi
+                                </label>
+                                <input type="date" name="datepenyelesaian" id="datepenyelesaian"
+                                    value="{{ $rfpnonpurch->datepenyelesaian ? \Carbon\Carbon::parse($rfpnonpurch->datepenyelesaian)->format('Y-m-d') : '' }}"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
+                            </div>
+
+                            {{-- Kepada (always, dynamic col-span) --}}
+                            <div id="kepadaBox" class="flex flex-col gap-2" style="grid-column: span 3">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Kepada
+                                </label>
+                                <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    multiple>
+                                    @foreach ($kepada as $u)
+                                        <option value="{{ $u->username }}" {{ in_array($u->username, $selectedKepada) ? 'selected' : '' }}>
+                                            {{ $u->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Tembusan (always, dynamic col-span) --}}
+                            <div id="tembusanBox" class="flex flex-col gap-2" style="grid-column: span 2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Tembusan
+                                </label>
+                                <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
+                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    multiple>
+                                    @foreach ($tembusan as $u)
+                                        <option value="{{ $u->username }}" {{ in_array($u->username, $selectedTembusan) ? 'selected' : '' }}>
+                                            {{ $u->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -140,33 +203,11 @@
                             </div>
                         </div>
 
-                        {{-- Row Payment Info --}}
-                        <div id="paymentInfoRow"
-                            class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
-
-                            {{-- Amount Request Payment - hidden, sama seperti create --}}
-                            <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Amount Request Payment
-                                </label>
-                                <input type="text" name="amountrequestpayment" id="amountrequestpayment"
-                                    value="{{ number_format((float) $rfpnonpurch->amountrequestpayment, 2, ',', '.') }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-right text-gray-700 shadow-sm"
-                                    placeholder="0,00">
-                            </div>
-
-                            {{-- Tanggal Realisasi --}}
-                            <div id="tanggalRealisasiBox" class="hidden flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tanggal Realisasi
-                                </label>
-                                <input type="date" name="datepenyelesaian" id="datepenyelesaian"
-                                    value="{{ $rfpnonpurch->datepenyelesaian ? \Carbon\Carbon::parse($rfpnonpurch->datepenyelesaian)->format('Y-m-d') : '' }}"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
-                            </div>
+                        {{-- Dibayarkan Kepada + Keperluan --}}
+                        <div class="grid grid-cols-2 gap-4">
 
                             {{-- Dibayarkan Kepada --}}
-                            <div class="flex flex-col gap-2">
+                            <div id="dibayarkanKepadaBox" class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Dibayarkan Kepada
                                 </label>
@@ -183,43 +224,6 @@
                                 <textarea name="keperluan" id="keperluan" rows="2" required
                                     class="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm"
                                     placeholder="Input keperluan...">{{ $rfpnonpurch->keperluan }}</textarea>
-                            </div>
-
-                            @php
-                                $selectedKepada = array_filter(array_map('trim', explode(',', $rfpnonpurch->imnonpurchase_kepada ?? '')));
-                                $selectedTembusan = array_filter(array_map('trim', explode(',', $rfpnonpurch->imnonpurchase_tembusan ?? '')));
-                            @endphp
-
-                            {{-- Kepada --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Kepada
-                                </label>
-                                <select name="rfpnonpurchase_kepada[]" id="rfpnonpurchase_kepada"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple>
-                                    @foreach ($kepada as $u)
-                                        <option value="{{ $u->username }}" {{ in_array($u->username, $selectedKepada) ? 'selected' : '' }}>
-                                            {{ $u->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            {{-- Tembusan --}}
-                            <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Tembusan
-                                </label>
-                                <select name="rfpnonpurchase_tembusan[]" id="rfpnonpurchase_tembusan"
-                                    class="user-select2 w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    multiple>
-                                    @foreach ($tembusan as $u)
-                                        <option value="{{ $u->username }}" {{ in_array($u->username, $selectedTembusan) ? 'selected' : '' }}>
-                                            {{ $u->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
                             </div>
                         </div>
                     </div>
@@ -339,21 +343,21 @@
                                                     </tr>
                                                 @endforelse
                                             </tbody>
+
+                                            <tfoot>
+                                                <tr class="border-t-2 border-indigo-200 bg-indigo-50/60 dark:bg-indigo-900/20">
+                                                    <td colspan="2" class="p-3 text-right text-xs font-semibold uppercase tracking-widest text-indigo-400 dark:text-indigo-400">
+                                                        Grand Total
+                                                    </td>
+                                                    <td class="p-3 text-right text-base font-extrabold tabular-nums text-indigo-700 dark:text-indigo-200">
+                                                        <span id="grandTotalDisplay">{{ number_format((float) $rfpnonpurchasedetail->sum('amount_request'), 2, ',', '.') }}</span>
+                                                        <input type="hidden" name="grand_total" id="grandTotalInput" value="{{ $rfpnonpurchasedetail->sum('amount_request') }}">
+                                                    </td>
+                                                    <td class="budget-col p-3"></td>
+                                                    <td class="p-3"></td>
+                                                </tr>
+                                            </tfoot>
                                         </table>
-                                    </div>
-
-                                    <div class="mt-4 flex justify-end">
-                                        <div class="w-full max-w-sm rounded-lg border bg-gray-50 p-4">
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm font-semibold text-gray-700">Grand Total</span>
-                                                <span id="grandTotalDisplay" class="text-lg font-bold text-indigo-600">
-                                                    {{ number_format((float) $rfpnonpurchasedetail->sum('amount_request'), 2, ',', '.') }}
-                                                </span>
-                                            </div>
-
-                                            <input type="hidden" name="grand_total" id="grandTotalInput"
-                                                value="{{ $rfpnonpurchasedetail->sum('amount_request') }}">
-                                        </div>
                                     </div>
 
                                     <button type="button" id="addImBudgetNonPurch"
@@ -678,6 +682,27 @@
 
             return true;
         }
+
+        window.isBudgetSelected = function () {
+            const val = $('#groupbiaya_id option:selected').attr('data-is-budget');
+            return val === '1' || val === 't' || val === 'true';
+        };
+
+        window.updateRow2ColSpans = function () {
+            const isBudget = window.isBudgetSelected();
+            const isRCA = $('#rfpnonpurchase_type').val() === 'RCA';
+
+            let usedSlots = 0;
+            if (isBudget) usedSlots++;
+            if (isRCA) usedSlots++;
+
+            const remaining = 5 - usedSlots;
+            const kepadaEl = document.getElementById('kepadaBox');
+            const tembusanEl = document.getElementById('tembusanBox');
+
+            if (kepadaEl) kepadaEl.style.gridColumn = 'span ' + Math.ceil(remaining / 2);
+            if (tembusanEl) tembusanEl.style.gridColumn = 'span ' + Math.floor(remaining / 2);
+        };
 
         function validateAttachments() {
             let attachmentOk = false;
@@ -1079,6 +1104,7 @@
                     // Header Keperluan hidden
                     $('#headerKeperluanBox').addClass('hidden');
                     $('#keperluan').prop('required', false);
+                    document.getElementById('dibayarkanKepadaBox').style.gridColumn = 'span 2';
 
                     // Label detail berubah
                     $('#detailDescrHeader').text('Keperluan');
@@ -1106,6 +1132,7 @@
                     // RFP normal
                     $('#headerKeperluanBox').removeClass('hidden');
                     $('#keperluan').prop('required', true);
+                    document.getElementById('dibayarkanKepadaBox').style.gridColumn = 'span 1';
 
                     $('#detailDescrHeader').text('Description');
                     $('.rfpnonpurchaseDescrField')
@@ -1126,10 +1153,11 @@
                 }
 
                 toggleBudgetMode();
+                window.updateRow2ColSpans();
             }
 
             function toggleBudgetMode() {
-                const isBudget = String($('#groupbiaya_id option:selected').data('is-budget')) === '1';
+                const isBudget = window.isBudgetSelected();
 
                 // Detail selalu tampil untuk RFP dan RCA
                 $('#detailSection').removeClass('hidden');
@@ -1171,7 +1199,9 @@
                     $('#addImBudgetNonPurch').addClass('hidden');
                     $('#detailDescrHeader').text('Keperluan');
                 }
-            }        
+
+                window.updateRow2ColSpans();
+            }
 
             $('#rfpnonpurchase_type').on('change', function () {
                 toggleRfpRcaMode();
@@ -1203,6 +1233,7 @@
             toggleRfpRcaMode();
             toggleDepositFields();
             toggleBudgetMode();
+            window.updateRow2ColSpans();
 
             function toggleDeleteAttachmentButton() {
                 if ($('.attachment-row').length > 1) {
