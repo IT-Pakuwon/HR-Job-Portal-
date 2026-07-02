@@ -137,6 +137,7 @@ class RfpNonPurchController extends Controller
         $scope  = (string) $request->query('scope', '');
         $financeCpny = trim((string) $request->query('finance_cpny', ''));
         $financeStatus = trim((string) $request->query('finance_status', ''));
+        $type = strtoupper(trim((string) $request->query('type', '')));
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
 
         if (in_array($scope, ['rfp_all', 'rfp_finance'], true) && !$hasRfpAllAccess) {
@@ -191,6 +192,9 @@ class RfpNonPurchController extends Controller
                 $q->where('r.status', 'C')
                 ->where('r.statusreceive', 'C')
                 ->where('r.statuspayment', 'C');
+            })
+            ->when(in_array($type, ['RFP', 'RCA'], true), function ($q) use ($type) {
+                $q->where('r.rfpnonpurchaseid', 'ilike', "{$type}%");
             })
             ;
 
@@ -969,6 +973,8 @@ class RfpNonPurchController extends Controller
         // USER ACCESS
         // =========================
         $canUpload = $rfpnonpurch->status === 'P';
+        $hasApFinAccess = $user->hasRole('APFINACCESS');
+        $hasApTreAccess = $user->hasRole('APTREACCESS');
 
         $loginUsername = $user->username ?? $user->name ?? null;
         $isApprover = TrApproval::where('refnbr', $rfpnonpurch->rfpnonpurchaseid)
@@ -1037,6 +1043,8 @@ class RfpNonPurchController extends Controller
             'hash',
             'canUpload',
             'isApprover',
+            'hasApFinAccess',
+            'hasApTreAccess',
             'userdept',
             'userdept2',
             'rfpnonpurchSteps',

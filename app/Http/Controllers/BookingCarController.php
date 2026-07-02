@@ -251,8 +251,7 @@ class BookingCarController extends Controller
         if (!$showAll) {
             if ($isGA) {
                 // GA: approval-line bookings OR own created bookings
-                $approvalDocids = TrApproval::where('status', '!=', 'X')
-                    ->whereRaw(
+                $approvalDocids = TrApproval::whereRaw(
                         "LOWER(aprv_username) ~ ?",
                         ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
                     )
@@ -374,8 +373,7 @@ class BookingCarController extends Controller
         if ($isGA) {
             // GA: approval-line bookings OR own created bookings
             // TrApproval is on pgsql2, TrBookingCar on pgsql5 — fetch docids separately
-            $docids = TrApproval::where('status', '!=', 'X')
-                ->whereRaw(
+            $docids = TrApproval::whereRaw(
                     "LOWER(aprv_username) ~ ?",
                     ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
                 )
@@ -1196,10 +1194,26 @@ class BookingCarController extends Controller
                     === strtolower(trim(Auth::user()->username))
                 ),
 
-                'can_change_expense' => (
-                    $booking->status === 'P'
-                    && Auth::user()->hasRole('GAACCESS')
-                ),
+                'can_change_expense' => (function () use ($booking) {
+                    if ($booking->status !== 'P') return false;
+                    if (!Auth::user()->hasRole('GAACCESS')) return false;
+
+                    $activeStep = TrApproval::query()
+                        ->where('refnbr', $booking->docid)
+                        ->where('status', 'P')
+                        ->whereNotNull('aprv_datebefore')
+                        ->orderByRaw('CAST(aprv_leveling AS numeric)')
+                        ->first();
+
+                    if (!$activeStep) return false;
+
+                    $stepUsernames = collect(preg_split('/[;,]/', strtolower($activeStep->aprv_username)))
+                        ->map(fn($s) => trim($s))
+                        ->filter()
+                        ->values();
+
+                    return $stepUsernames->contains(strtolower(trim(Auth::user()->username)));
+                })(),
 
                 'can_process' => (
                     in_array($booking->status, ['C', 'F', 'U'])
@@ -1484,6 +1498,27 @@ class BookingCarController extends Controller
                 throw new \Exception('Company expense cannot be changed because the document has been completed, rejected, or cancelled.');
             }
 
+            // Only allowed when the current waiting approval step is assigned to this GA user
+            $activeStep = TrApproval::query()
+                ->where('refnbr', $booking->docid)
+                ->where('status', 'P')
+                ->whereNotNull('aprv_datebefore')
+                ->orderByRaw('CAST(aprv_leveling AS numeric)')
+                ->first();
+
+            if (!$activeStep) {
+                throw new \Exception('Company expense cannot be changed: no active approval step found.');
+            }
+
+            $stepUsernames = collect(preg_split('/[;,]/', strtolower($activeStep->aprv_username)))
+                ->map(fn($s) => trim($s))
+                ->filter()
+                ->values();
+
+            if (!$stepUsernames->contains(strtolower(trim($user->username)))) {
+                throw new \Exception('Company expense can only be changed when the current waiting approval is at your level.');
+            }
+
             if (
                 trim($booking->cpny_id_site) ===
                 trim($validated['cpny_id_site'])
@@ -1502,12 +1537,16 @@ class BookingCarController extends Controller
             $doctype = 'BCR';
             $dt      = now();
 
-            // Remove only Condition-type pending approvals — Normal approvals stay intact
+            // Soft-cancel old Condition-type pending approvals (keep record for visibility)
             TrApproval::query()
                 ->where('refnbr', $booking->docid)
                 ->where('status', 'P')
                 ->whereRaw("LOWER(TRIM(aprv_type)) = 'condition'")
-                ->delete();
+                ->update([
+                    'status'     => 'X',
+                    'updated_by' => $user->username,
+                    'updated_at' => now(),
+                ]);
 
             $approvalCtl = app(ApprovalController::class);
 
