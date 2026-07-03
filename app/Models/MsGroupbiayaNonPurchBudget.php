@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class MsGroupbiayaNonPurch extends Model
+class MsGroupbiayaNonPurchBudget extends Model
 {
     protected $connection = 'pgsql';
-    protected $table = "ms_groupbiaya_nonpurchase";
+    protected $table = "ms_groupbiaya_nonpurch_budget";
 
     protected $fillable = [
-        'groupbiaya_id', 'groupbiayadescr', 'is_budget','is_deposit', 'status', 'created_by', 
-        'created_at', 'updated_by', 'updated_at'
+        'cpny_id', 'department_id', 'groupbiaya_id', 'groupbiayadescr', 'is_budget', 'status', 
+        'created_by', 'created_at', 'updated_by', 'updated_at'
     ];
 
     public function creator()
