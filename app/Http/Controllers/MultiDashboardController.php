@@ -48,6 +48,8 @@ class MultiDashboardController extends Controller
             'DASHPURCH' => 'purchasing-dashboard',
             'DASHHR' => 'dashboard-hr',
             'DASHGA' => 'dashboard-ga',
+            'DASHFIN' => 'dashboard-finance',
+            'DASHTREAS' => 'dashboard-treasury',
             default => 'dashboard-approval',
         };
     }

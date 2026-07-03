@@ -2154,7 +2154,7 @@ class RfpNonPurchController extends Controller
                 $doctype,
                 $request->cpnyid,
                 $request->departementid,
-                $username,
+                $header->created_by ?? $username,
                 $ctx,
                 $dt
             );
@@ -2608,7 +2608,7 @@ class RfpNonPurchController extends Controller
                 'aprv_duration' => $lastApproval->aprv_duration ?? null,
                 'aprv_purpose' => $request->message,
                 'status' => 'D',
-                'created_by' => $user->username,
+                'created_by' => $rfpnonpurch->created_by,
                 'updated_by' => $user->username,
             ]);
 

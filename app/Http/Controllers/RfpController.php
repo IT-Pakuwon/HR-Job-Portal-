@@ -857,7 +857,7 @@ class RfpController extends Controller
                 $doctype,
                 $rfp->cpny_id,
                 $rfp->department_id,
-                $username,
+                $rfp->created_by ?? $username,
                 $ctx,
                 $dt
             );
@@ -1272,7 +1272,7 @@ class RfpController extends Controller
                     $doctype,
                     $cpnyid,
                     $departementid,
-                    $username,
+                    $rfp->created_by ?? $username,
                     $ctx,
                     $dt
                 );
@@ -1492,7 +1492,7 @@ class RfpController extends Controller
                     $doctype,
                     $cpnyid,
                     $departementid,
-                    $username,
+                    $rfp->created_by ?? $username,
                     $ctx,
                     $dt
                 );
@@ -1947,7 +1947,7 @@ class RfpController extends Controller
                 'aprv_duration' => $lastApproval->aprv_duration ?? null,
                 'aprv_purpose' => $request->message,
                 'status' => 'D',
-                'created_by' => $user->username,
+                'created_by' => $rfp->created_by,
                 'updated_by' => $user->username,
             ]);
 

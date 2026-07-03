@@ -26,7 +26,7 @@
         </div>
 
         <!-- CONTENT -->
-        <div class="space-y-6 p-4">
+        <div class="space-y-4 p-4">
             <ul class="space-y-1">
 
                 <!-- DASHBOARD -->
@@ -65,10 +65,19 @@
 
                 @if ($dashMenu && $visibleMenus->isNotEmpty())
 
-                    <li
-                        class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
-                        {{ $dashMenu->menu_name }}
-                    </li>
+                    <li class="mt-4" x-data="{ open: true }">
+
+                        <button @click="open = !open"
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
+                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $dashMenu->menu_name }}</span></div>
+                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+
+                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
 
                     @foreach ($visibleMenus as $menu)
 
@@ -126,7 +135,7 @@
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
 
-                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
                                             {{ $menu->menu_name }}
                                         </span>
 
@@ -147,7 +156,7 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
 
                                     @foreach ($children as $child)
 
@@ -174,6 +183,10 @@
                         @endif
 
                     @endforeach
+
+                        </ul>
+
+                    </li>
 
                 @endif
 
@@ -201,10 +214,19 @@
 
                 @if ($itMenu && $visibleMenus->isNotEmpty())
 
-                    <li
-                        class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
-                        {{ $itMenu->menu_name }}
-                    </li>
+                    <li class="mt-4" x-data="{ open: true }">
+
+                        <button @click="open = !open"
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
+                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $itMenu->menu_name }}</span></div>
+                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+
+                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
 
                     @foreach ($visibleMenus as $menu)
 
@@ -262,7 +284,7 @@
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
 
-                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
                                             {{ $menu->menu_name }}
                                         </span>
 
@@ -283,7 +305,7 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
 
                                     @foreach ($children as $child)
 
@@ -310,6 +332,10 @@
                         @endif
 
                     @endforeach
+
+                        </ul>
+
+                    </li>
 
                 @endif
 
@@ -337,10 +363,19 @@
 
                 @if ($gaMenu && $visibleMenus->isNotEmpty())
 
-                    <li
-                        class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
-                        {{ $gaMenu->menu_name }}
-                    </li>
+                    <li class="mt-4" x-data="{ open: true }">
+
+                        <button @click="open = !open"
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
+                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $gaMenu->menu_name }}</span></div>
+                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+
+                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
 
                     @foreach ($visibleMenus as $menu)
 
@@ -398,7 +433,7 @@
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
 
-                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
                                             {{ $menu->menu_name }}
                                         </span>
 
@@ -419,7 +454,7 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
 
                                     @foreach ($children as $child)
 
@@ -446,6 +481,10 @@
                         @endif
 
                     @endforeach
+
+                        </ul>
+
+                    </li>
 
                 @endif
 
@@ -476,9 +515,19 @@
 
                 @if ($hrMenu && $visibleMenus->isNotEmpty())
 
-                    <li class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
-                        {{ $hrMenu->menu_name }}
-                    </li>
+                    <li class="mt-4" x-data="{ open: true }">
+
+                        <button @click="open = !open"
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
+                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $hrMenu->menu_name }}</span></div>
+                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+
+                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
 
                     @foreach ($visibleMenus as $menu)
 
@@ -535,7 +584,7 @@
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
 
-                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
                                             {{ $menu->menu_name }}
                                         </span>
 
@@ -556,7 +605,7 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
 
                                     @foreach ($children as $child)
 
@@ -581,6 +630,10 @@
                         @endif
 
                     @endforeach
+
+                        </ul>
+
+                    </li>
 
                 @endif
                 <!-- ================= MODUL PURCHASING ================= -->
@@ -607,9 +660,19 @@
 
                 @if ($purchasingMenu && $visibleMenus->isNotEmpty())
 
-                    <li class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
-                        {{ $purchasingMenu->menu_name }}
-                    </li>
+                    <li class="mt-4" x-data="{ open: true }">
+
+                        <button @click="open = !open"
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
+                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $purchasingMenu->menu_name }}</span></div>
+                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+
+                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
 
                     @foreach ($visibleMenus as $menu)
 
@@ -666,7 +729,7 @@
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
 
-                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
                                             {{ $menu->menu_name }}
                                         </span>
 
@@ -687,7 +750,7 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
 
                                     @foreach ($children as $child)
 
@@ -712,6 +775,10 @@
                         @endif
 
                     @endforeach
+
+                        </ul>
+
+                    </li>
 
                 @endif
 
@@ -739,9 +806,19 @@
 
                 @if ($voucherMenu && $visibleMenus->isNotEmpty())
 
-                    <li class="mt-4 whitespace-normal break-words text-xs font-semibold uppercase leading-snug tracking-wider text-gray-400">
-                        {{ $voucherMenu->menu_name }}
-                    </li>
+                    <li class="mt-4" x-data="{ open: true }">
+
+                        <button @click="open = !open"
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
+                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $voucherMenu->menu_name }}</span></div>
+                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+
+                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
 
                     @foreach ($visibleMenus as $menu)
 
@@ -798,7 +875,7 @@
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
 
-                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">
+                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
                                             {{ $menu->menu_name }}
                                         </span>
 
@@ -819,7 +896,7 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
 
                                     @foreach ($children as $child)
 
@@ -844,6 +921,10 @@
                         @endif
 
                     @endforeach
+
+                        </ul>
+
+                    </li>
 
                 @endif
 
@@ -877,12 +958,19 @@
                             ];
                         @endphp
 
-                        <li class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                            SETTINGS
-                        </li>
+                        <li class="mt-4" x-data="{ open: true }">
 
-                        <li class="mt-2">
-                            <ul class="mt-1 space-y-1 pl-2">
+                            <button @click="open = !open"
+                                class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
+                                <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">SETTINGS</span></div>
+                                <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 9l6 6 6-6" />
+                                </svg>
+                            </button>
+
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-2">
 
                                 <!-- ================================================= -->
                                 <!-- USER & ACCESS -->
@@ -893,7 +981,7 @@
                                     <button @click="open = !open"
                                         class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
 
-                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">User &
+                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">User &
                                             Access</span>
 
                                         <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
@@ -929,7 +1017,7 @@
                                         class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
 
                                         <span
-                                            class="flex-1 whitespace-normal break-words text-left leading-snug">Application</span>
+                                            class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Application</span>
 
                                         <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -961,7 +1049,7 @@
                                         class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
 
                                         <span
-                                            class="flex-1 whitespace-normal break-words text-left leading-snug">Organization</span>
+                                            class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Organization</span>
 
                                         <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1000,7 +1088,7 @@
                                     <button @click="open = !open"
                                         class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
 
-                                        <span class="flex-1 whitespace-normal break-words text-left leading-snug">Master
+                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Master
                                             Data</span>
 
                                         <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
@@ -1053,7 +1141,7 @@
                                         class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
 
                                         <span
-                                            class="flex-1 whitespace-normal break-words text-left leading-snug">Workflow</span>
+                                            class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Workflow</span>
 
                                         <svg class="chevron h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1098,6 +1186,8 @@
 
                                     </ul>
                                 </li>
+                            </ul>
+                        </li>
                     @endif
                 @endauth
 

@@ -485,7 +485,7 @@
                         <header class="flex items-center justify-between border-b px-6 py-2 rounded-xl  bg-gray-50 dark:bg-gray-700">
                             <div class="flex items-center gap-3">
                                 <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                                    RFP Progress Steps
+                                    Progress Steps
                                 </h2>
 
                                 <span class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-sm font-semibold text-indigo-700">

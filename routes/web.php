@@ -36,7 +36,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\DocumentNotificationController;
+use App\Http\Controllers\FinanceDashboardController;
 use App\Http\Controllers\GADashboardController;
+use App\Http\Controllers\TreasuryDashboardController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
@@ -1682,7 +1684,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approval-doctypes', 'approvalDocTypes')->name('operational.doctypes');
         });
 
-        Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {
+        Route::prefix('ga-dashboard')->controller(GaDashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('ga.summary');
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('ga.approval');
             Route::get('/approval-history-json', 'approvalHistoryJson')->name('ga.approval-history');
@@ -1690,6 +1692,28 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/booking-car-json', 'bookingCarJson')->name('ga.booking-car');
             Route::get('/parking-json', 'parkingJson')->name('ga.parking');
             Route::get('/approval-doctypes', 'approvalDocTypes')->name('ga.approval-doctypes');
+        });
+
+        Route::prefix('finance-dashboard')->controller(FinanceDashboardController::class)->group(function () {
+            Route::get('/summary-json',               'summaryJson')->name('finance.summary');
+            Route::get('/waiting-approval-json',      'waitingApprovalJson')->name('finance.approval');
+            Route::get('/approval-history-json',      'approvalHistoryJson')->name('finance.approval-history');
+            Route::get('/rfca-purchase-fr-json',      'rfcaPurchaseFrJson')->name('finance.rfca-purchase-fr');
+            Route::get('/calr-purchase-fr-json',      'calrPurchaseFrJson')->name('finance.calr-purchase-fr');
+            Route::get('/rfp-nonpurch-waiting-json',  'rfpNonPurchWaitingJson')->name('finance.rfp-nonpurch-waiting');
+            Route::get('/calr-nonpurch-waiting-json', 'calrNonPurchWaitingJson')->name('finance.calr-nonpurch-waiting');
+            Route::get('/approval-doctypes',          'approvalDocTypes')->name('finance.approval-doctypes');
+        });
+
+        Route::prefix('treasury-dashboard')->controller(TreasuryDashboardController::class)->group(function () {
+            Route::get('/summary-json',                'summaryJson')->name('treasury.summary');
+            Route::get('/waiting-approval-json',       'waitingApprovalJson')->name('treasury.approval');
+            Route::get('/approval-history-json',       'approvalHistoryJson')->name('treasury.approval-history');
+            Route::get('/rfca-purchase-tp-json',       'rfcaPurchaseTpJson')->name('treasury.rfca-purchase-tp');
+            Route::get('/calr-purchase-tp-json',       'calrPurchaseTpJson')->name('treasury.calr-purchase-tp');
+            Route::get('/rfp-nonpurch-fr-done-json',   'rfpNonPurchFrDoneJson')->name('treasury.rfp-nonpurch-fr-done');
+            Route::get('/calr-nonpurch-fr-done-json',  'calrNonPurchFrDoneJson')->name('treasury.calr-nonpurch-fr-done');
+            Route::get('/approval-doctypes',           'approvalDocTypes')->name('treasury.approval-doctypes');
         });
 
         Route::prefix('warehouse-dashboard')->controller(WarehouseDashboardController::class)->group(function () {
@@ -1774,6 +1798,8 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/mastercard', [DashboardController::class, 'analytics'])->name('mastercard');
 
     // Route::get('/test', [DashboardController::class, 'test'])->name('test');
+
+    Route::middleware('admin')->group(function () {
 
     Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
     Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
@@ -1975,6 +2001,8 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/groupbiaya-nonpurch/{id}', [MsGroupbiayaNonPurchController::class, 'update'])->name('groupbiayanonpurch.update');
     Route::put('/groupbiaya-nonpurch/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'toggleStatus'])->name('groupbiayanonpurch.toggle-status');
 
+    }); // end admin middleware
+
     Route::middleware(['auth'])->group(function () {
         // halaman setting + tombol run
         Route::get('/integration/acumvms-staging', [AcumVmsStagingController::class, 'index'])
@@ -1990,8 +2018,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('integration.acumvms.status');
     });
 
-    Route::get('/user-sync', [UserSyncController::class, 'index'])->name('user_sync.index');
-    Route::post('/user-sync/run', [UserSyncController::class, 'run'])->name('user_sync.run');
+    Route::middleware('admin')->group(function () {
+        Route::get('/user-sync', [UserSyncController::class, 'index'])->name('user_sync.index');
+        Route::post('/user-sync/run', [UserSyncController::class, 'run'])->name('user_sync.run');
+    });
 
     // User must be logged in to START OAuth
     Route::get('/google/calendar/connect', [GoogleCalendarController::class, 'redirect'])

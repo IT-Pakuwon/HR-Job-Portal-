@@ -2438,7 +2438,7 @@ class CalrNonPurchController extends Controller
                 $doctype,
                 $calr->cpny_id,
                 $calr->department_id,
-                $username,
+                $calr->created_by ?? $username,
                 $ctx,
                 $dt
             );
@@ -2823,7 +2823,7 @@ class CalrNonPurchController extends Controller
                 'aprv_duration' => $lastApproval->aprv_duration ?? null,
                 'aprv_purpose' => $request->message,
                 'status' => 'D',
-                'created_by' => $user->username,
+                'created_by' => $calr->created_by,
                 'updated_by' => $user->username,
             ]);
 
