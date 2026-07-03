@@ -72,7 +72,6 @@ class CalrListController extends Controller
             ->distinct('tr_rfca.id')
             ->count('tr_rfca.id');
 
-        
         // Helper closure untuk created_by filtering
         $filterCreator = function ($q) use ($isFinanceAccess, $u) {
             return $isFinanceAccess ? $q : $q->where('created_by', $u);

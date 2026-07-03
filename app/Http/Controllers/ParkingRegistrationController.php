@@ -78,7 +78,7 @@ class ParkingRegistrationController extends Controller
 
         if ($canParkingAccess) {
             $allParkingCount = TrParkingRegistration::query()
-                ->whereIn('cpny_id', $cpnyIds)
+                ->whereIn('site_id_parking', $cpnyIds)
                 ->count();
 
             $masterKendaraanCount = MsParkingKendaraan::query()
@@ -227,8 +227,13 @@ class ParkingRegistrationController extends Controller
 
         $baseTable = (new TrParkingRegistration)->getTable();
 
-        $base = TrParkingRegistration::from($baseTable . ' as pr')
-            ->whereIn('pr.cpny_id', $cpnyIds);
+        $base = TrParkingRegistration::from($baseTable . ' as pr');
+
+        if ($scope === 'all') {
+            $base->whereIn('pr.site_id_parking', $cpnyIds);
+        } else {
+            $base->whereIn('pr.cpny_id', $cpnyIds);
+        }
 
         if ($scope === 'my') {
             $base->whereIn('pr.department_id', $deptIds);

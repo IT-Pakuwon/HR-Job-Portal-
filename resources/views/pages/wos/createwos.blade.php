@@ -683,6 +683,10 @@
                     addError($pic, 'PIC Requester wajib.');
                     ok = false;
                 }
+                if (!$('#business_unit_id').val()) {
+                    addError($('#business_unit_id'), 'Business Unit wajib.');
+                    ok = false;
+                }
                 if ($biaya.val() && isNaN(parseFloat($biaya.val()))) {
                     addError($biaya, 'Biaya WO tidak valid.');
                     ok = false;
@@ -805,7 +809,7 @@
             const $coaGroup = $('#coaGroup');
 
             function clearCoaFields() {
-                $('#coa_id, #activity_id, #business_unit_id, #department_fin_id, #activity_descr').val('');
+                $('#coa_id, #activity_id, #coa_business_unit_id, #department_fin_id, #activity_descr').val('');
                 $('#budget_display').val('');
             }
 

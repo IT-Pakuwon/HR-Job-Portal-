@@ -68,8 +68,7 @@
                                     <option value="">Select Group</option>
                                     @foreach ($groupbiaya as $g)
                                         <option value="{{ $g->groupbiaya_id }}"
-                                            data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}"
-                                            data-is-budget="{{ ($g->is_budget === true || $g->is_budget === 't' || $g->is_budget == 1) ? '1' : '0' }}">
+                                            data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}">
                                             {{ $g->groupbiayadescr }}
                                         </option>
                                     @endforeach
@@ -505,9 +504,20 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        const groupBiayaBudgetSettings = @json($groupbiayaBudgetSettings ?? []);
+
+        function budgetSettingKey() {
+            return [
+                $('#cpnyid').val(),
+                $('#departementid').val(),
+                $('#groupbiaya_id').val()
+            ].map(v => String(v || '').trim()).join('|');
+        }
+
         window.isBudgetSelected = function () {
-            const val = $('#groupbiaya_id option:selected').attr('data-is-budget');
-            return val === '1' || val === 't' || val === 'true';
+            const val = groupBiayaBudgetSettings[budgetSettingKey()];
+
+            return val === 1 || val === true || val === '1' || val === 't' || val === 'true';
         };
 
         window.applyBudgetColumnVisibility = function () {
@@ -1019,6 +1029,7 @@
             loadBusinessUnitsByCpny($cpny.val()).done(function () {
                 prevCpny = $cpny.val();
                 prevBu = $bu.val();
+                window.applyBudgetColumnVisibility();
             });
 
             $cpny.on('change', async function () {
@@ -1031,6 +1042,7 @@
 
                     loadBusinessUnitsByCpny(newCpny).done(function () {
                         prevBu = $bu.val();
+                        window.applyBudgetColumnVisibility();
                     });
 
                     return;
@@ -1049,6 +1061,7 @@
 
                 loadBusinessUnitsByCpny(newCpny).done(function () {
                     prevBu = $bu.val();
+                    window.applyBudgetColumnVisibility();
                 });
 
                 Swal.fire({
@@ -1057,6 +1070,10 @@
                     timer: 900,
                     showConfirmButton: false
                 });
+            });
+
+            $('#departementid').on('change', function () {
+                window.applyBudgetColumnVisibility();
             });
 
             $bu.on('change', async function () {

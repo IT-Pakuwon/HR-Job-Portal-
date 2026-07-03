@@ -321,6 +321,7 @@ class WoController extends Controller
             'sub_location_id' => ['required', 'string', 'max:50'],
             'keperluan' => ['nullable', 'string', 'max:1000'],
             'wobudget' => ['required', 'in:Pemberi Kerja,Penerima Kerja'], // Pemberi Kerja/ Penerima Kerja
+            'business_unit_id' => ['required', 'string', 'max:100'],
         ];
 
         // Kalau budget = Internal (Pemberi Kerja) → COA wajib + perpost dipakai
@@ -330,7 +331,6 @@ class WoController extends Controller
                 'perpost' => ['required', 'string', 'max:10'],
                 'coa_id' => ['required', 'string', 'max:100'],
                 'activity_id' => ['required', 'string', 'max:100'],
-                'business_unit_id' => ['required', 'string', 'max:100'],
                 'department_fin_id' => ['required', 'string', 'max:100'],
                 'activity_descr' => ['required', 'string', 'max:255'],
             ]);
@@ -340,7 +340,6 @@ class WoController extends Controller
                 'perpost' => ['nullable', 'string', 'max:10'],
                 'coa_id' => ['nullable', 'string', 'max:100'],
                 'activity_id' => ['nullable', 'string', 'max:100'],
-                'business_unit_id' => ['nullable', 'string', 'max:100'],
                 'department_fin_id' => ['nullable', 'string', 'max:100'],
                 'activity_descr' => ['nullable', 'string', 'max:255'],
             ]);
@@ -360,7 +359,7 @@ class WoController extends Controller
             'perpost.required' => 'Perpost wajib untuk Budget Pemberi Kerja.',
             'coa_id.required' => 'COA wajib untuk Budget Pemberi Kerja.',
             'activity_id.required' => 'Activity wajib untuk Budget Pemberi Kerja.',
-            'business_unit_id.required' => 'Business Unit wajib untuk Budget Pemberi Kerja.',
+            'business_unit_id.required' => 'Business Unit wajib.',
             'department_fin_id.required' => 'Department Finance wajib untuk Budget Pemberi Kerja.',
             'activity_descr.required' => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
         ];
@@ -719,6 +718,7 @@ class WoController extends Controller
             'sub_location_id' => ['required', 'string', 'max:50'],
             'keperluan' => ['nullable', 'string', 'max:1000'],
             'wobudget' => ['required', 'in:Pemberi Kerja,Penerima Kerja'],
+            'business_unit_id' => ['required', 'string', 'max:100'],
         ];
 
         $input = $request->all();
@@ -727,7 +727,6 @@ class WoController extends Controller
                 'perpost' => ['required', 'string', 'max:10'],
                 'coa_id' => ['required', 'string', 'max:100'],
                 'activity_id' => ['required', 'string', 'max:100'],
-                'business_unit_id' => ['required', 'string', 'max:100'],
                 'department_fin_id' => ['required', 'string', 'max:100'],
                 'activity_descr' => ['required', 'string', 'max:255'],
             ]);
@@ -736,7 +735,6 @@ class WoController extends Controller
                 'perpost' => ['nullable', 'string', 'max:10'],
                 'coa_id' => ['nullable', 'string', 'max:100'],
                 'activity_id' => ['nullable', 'string', 'max:100'],
-                'business_unit_id' => ['nullable', 'string', 'max:100'],
                 'department_fin_id' => ['nullable', 'string', 'max:100'],
                 'activity_descr' => ['nullable', 'string', 'max:255'],
             ]);
@@ -756,7 +754,7 @@ class WoController extends Controller
             'perpost.required' => 'Perpost wajib untuk Budget Pemberi Kerja.',
             'coa_id.required' => 'COA wajib untuk Budget Pemberi Kerja.',
             'activity_id.required' => 'Activity wajib untuk Budget Pemberi Kerja.',
-            'business_unit_id.required' => 'Business Unit wajib untuk Budget Pemberi Kerja.',
+            'business_unit_id.required' => 'Business Unit wajib.',
             'department_fin_id.required' => 'Department Finance wajib untuk Budget Pemberi Kerja.',
             'activity_descr.required' => 'Deskripsi activity wajib untuk Budget Pemberi Kerja.',
         ];
@@ -809,10 +807,10 @@ class WoController extends Controller
                 $wo->budget_activity_descr = $validated['activity_descr'] ?? null;
             } else {
                 $wo->budget_perpost = $validated['perpost'] ?? null;
-                $wo->budget_cpny_id = null;
+                $wo->budget_cpny_id = $validated['cpnyid'] ?? null;
                 $wo->budget_account_id = null;
                 $wo->budget_activity_id = null;
-                $wo->budget_business_unit_id = null;
+                $wo->budget_business_unit_id = $validated['business_unit_id'] ?? null;
                 $wo->budget_department_fin_id = null;
                 $wo->budget_activity_descr = null;
             }
@@ -1847,14 +1845,26 @@ class WoController extends Controller
 
             foreach ($sorted as $a) {
 
-                $map = match ($a->status) {
-                    'A' => ['label' => 'Approved', 'status' => 'C'],
-                    'P' => ['label' => 'Waiting Approval', 'status' => 'P'],
-                    'R' => ['label' => 'Rejected', 'status' => 'R'],
-                    'D' => ['label' => 'Revised', 'status' => 'D'],
-                    'X' => ['label' => 'Cancelled', 'status' => 'X'],
-                    default => ['label' => 'Pending', 'status' => '_']
-                };
+                switch ($a->status) {
+                    case 'A':
+                        $map = ['label' => 'Approved', 'status' => 'C'];
+                        break;
+                    case 'P':
+                        $map = ['label' => 'Waiting Approval', 'status' => 'P'];
+                        break;
+                    case 'R':
+                        $map = ['label' => 'Rejected', 'status' => 'R'];
+                        break;
+                    case 'D':
+                        $map = ['label' => 'Revised', 'status' => 'D'];
+                        break;
+                    case 'X':
+                        $map = ['label' => 'Cancelled', 'status' => 'X'];
+                        break;
+                    default:
+                        $map = ['label' => 'Pending', 'status' => '_'];
+                        break;
+                }
 
                 $steps[] = [
                     'type' => 'approval',

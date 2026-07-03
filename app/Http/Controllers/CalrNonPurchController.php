@@ -74,15 +74,12 @@ class CalrNonPurchController extends Controller
         |--------------------------------------------------------------------------
         | Normal CALR List
         |--------------------------------------------------------------------------
-        | Non FINACCESS hanya lihat dokumen sendiri.
-        | FINACCESS bisa lihat semua sesuai company + department.
+        | Filter card normal hanya berdasarkan company + department.
+        | created_by tidak difilter.
         */
         $baseCalr = TrCalrNonPurch::query()
             ->whereIn('cpny_id', $cpnyList)
-            ->whereIn('department_id', $deptList)
-            ->when(!$isFinanceAccess, function ($q) use ($u) {
-                $q->where('created_by', $u);
-            });
+            ->whereIn('department_id', $deptList);
 
         $all = (clone $baseCalr)->count();
         $onProgress = (clone $baseCalr)->where('status', 'P')->count();
@@ -373,7 +370,7 @@ class CalrNonPurchController extends Controller
             |
             | scope lain:
             | - filter department
-            | - non FINACCESS filter created_by
+            | - tanpa filter created_by
             */
             if ($scope === 'calrfinance') {
                 if (!$isFinanceAccess) {
@@ -388,10 +385,6 @@ class CalrNonPurchController extends Controller
                 $base->where('status', 'C');
             } else {
                 $base->whereIn('department_id', $deptList);
-
-                if (!$isFinanceAccess) {
-                    $base->where('created_by', $u);
-                }
 
                 if ($scope === 'onprogress') {
                     $base->where('status', 'P');

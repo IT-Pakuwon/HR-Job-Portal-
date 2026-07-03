@@ -73,7 +73,6 @@
                                     @foreach ($groupbiaya as $g)
                                         <option value="{{ $g->groupbiaya_id }}"
                                             data-is-deposit="{{ ($g->is_deposit === true || $g->is_deposit === 't' || $g->is_deposit == 1) ? '1' : '0' }}"
-                                            data-is-budget="{{ ($g->is_budget === true || $g->is_budget === 't' || $g->is_budget == 1) ? '1' : '0' }}"
                                             {{ $g->groupbiaya_id == $rfpnonpurch->groupbiaya_id ? 'selected' : '' }}>
                                             {{ $g->groupbiayadescr }}
                                         </option>
@@ -638,7 +637,7 @@
                 const price = parseNumber($price.val());
                 const coaId = ($row.find('.coaIdField').val() || '').trim();
 
-                const isBudget = String($('#groupbiaya_id option:selected').data('is-budget')) === '1';
+                const isBudget = window.isBudgetSelected();
                 const isEmptyRow = !desc && !price && !coaId;
 
                 if (isEmptyRow) return;
@@ -683,9 +682,19 @@
             return true;
         }
 
+        const groupBiayaBudgetSettings = @json($groupbiayaBudgetSettings ?? []);
+
+        function budgetSettingKey() {
+            return [
+                $('#cpnyid').val(),
+                $('#departementid').val(),
+                $('#groupbiaya_id').val()
+            ].map(v => String(v || '').trim()).join('|');
+        }
+
         window.isBudgetSelected = function () {
-            const val = $('#groupbiaya_id option:selected').attr('data-is-budget');
-            return val === '1' || val === 't' || val === 'true';
+            const val = groupBiayaBudgetSettings[budgetSettingKey()];
+            return val === 1 || val === true || val === '1' || val === 't' || val === 'true';
         };
 
         window.updateRow2ColSpans = function () {
@@ -891,10 +900,18 @@
                     });
             }
 
-            loadBusinessUnitsByCpny($cpny.val(), selectedBuId);
+            loadBusinessUnitsByCpny($cpny.val(), selectedBuId).done(function () {
+                toggleBudgetMode();
+            });
 
             $cpny.on('change', function () {
-                loadBusinessUnitsByCpny($(this).val());
+                loadBusinessUnitsByCpny($(this).val()).done(function () {
+                    toggleBudgetMode();
+                });
+            });
+
+            $('#departementid').on('change', function () {
+                toggleBudgetMode();
             });
 
             const $coaModal = $('#coaModal');

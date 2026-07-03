@@ -13,6 +13,7 @@ use App\Models\TrRfpNonPurch;
 use App\Models\TrRfpNonPurchDetail;
 use App\Models\SysUserRole;
 use App\Models\MsGroupbiayaNonPurch;
+use App\Models\MsGroupbiayaNonPurchBudget;
 use App\Models\BusinessUnit;
 use App\Models\TrRfpNonPurchDeposit;
 use App\Models\TrPO;
@@ -304,6 +305,29 @@ class RfpNonPurchController extends Controller
             ->orderBy('groupbiayadescr')
             ->get();
 
+        $cpnyIds = $usercpny->pluck('cpny_id')->filter()->values();
+        $deptIds = $userdept->pluck('department_id')->filter()->values();
+
+        $groupbiayaBudgetSettings = MsGroupbiayaNonPurchBudget::query()
+            ->where('status', 'A')
+            ->when($cpnyIds->isNotEmpty(), fn ($q) => $q->whereIn('cpny_id', $cpnyIds))
+            ->when($deptIds->isNotEmpty(), fn ($q) => $q->whereIn('department_id', $deptIds))
+            ->get(['cpny_id', 'department_id', 'groupbiaya_id', 'is_budget'])
+            ->mapWithKeys(function ($row) {
+                $key = trim((string) $row->cpny_id)
+                    . '|'
+                    . trim((string) $row->department_id)
+                    . '|'
+                    . trim((string) $row->groupbiaya_id);
+
+                $isBudget = $row->is_budget === true
+                    || $row->is_budget === 't'
+                    || $row->is_budget === '1'
+                    || $row->is_budget == 1;
+
+                return [$key => $isBudget ? 1 : 0];
+            });
+
         $kepada = User::query()
             ->whereNotNull('username')
             ->where('status', 'A')
@@ -318,7 +342,7 @@ class RfpNonPurchController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('pages.rfpnonpurch.createrfpnonpurch', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'akses_stock', 'groupbiaya', 'kepada', 'tembusan'));
+        return view('pages.rfpnonpurch.createrfpnonpurch', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'akses_stock', 'groupbiaya', 'groupbiayaBudgetSettings', 'kepada', 'tembusan'));
     }
     
     public function storeRfpNonPurch(Request $request)
@@ -1798,6 +1822,29 @@ class RfpNonPurchController extends Controller
             ->orderBy('groupbiayadescr')
             ->get();
 
+        $cpnyIds = $usercpny->pluck('cpny_id')->filter()->values();
+        $deptIds = $userdept->pluck('department_id')->filter()->values();
+
+        $groupbiayaBudgetSettings = MsGroupbiayaNonPurchBudget::query()
+            ->where('status', 'A')
+            ->when($cpnyIds->isNotEmpty(), fn ($q) => $q->whereIn('cpny_id', $cpnyIds))
+            ->when($deptIds->isNotEmpty(), fn ($q) => $q->whereIn('department_id', $deptIds))
+            ->get(['cpny_id', 'department_id', 'groupbiaya_id', 'is_budget'])
+            ->mapWithKeys(function ($row) {
+                $key = trim((string) $row->cpny_id)
+                    . '|'
+                    . trim((string) $row->department_id)
+                    . '|'
+                    . trim((string) $row->groupbiaya_id);
+
+                $isBudget = $row->is_budget === true
+                    || $row->is_budget === 't'
+                    || $row->is_budget === '1'
+                    || $row->is_budget == 1;
+
+                return [$key => $isBudget ? 1 : 0];
+            });
+
         // =========================
         // USER KEPADA / TEMBUSAN
         // =========================
@@ -1893,6 +1940,7 @@ class RfpNonPurchController extends Controller
             'userdept',
             'userdept2',
             'groupbiaya',
+            'groupbiayaBudgetSettings',
             'kepada',
             'tembusan',
             'attachments',
