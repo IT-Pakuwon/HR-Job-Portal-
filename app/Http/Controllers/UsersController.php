@@ -474,7 +474,7 @@ class UsersController extends Controller
         return response()->json([
             'success'  => true,
             'message'  => 'Now logged in as ' . $targetUser->username,
-            'redirect' => route('users'),
+            'redirect' => route('dashboard'),
         ]);
     }
 
