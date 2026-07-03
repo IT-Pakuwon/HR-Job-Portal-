@@ -15,8 +15,11 @@ class TrCarExpense extends Model
     protected $fillable = [
         'refnbr',
         'ref_date',
+        'cpny_id',
+        'department_id',
         'nopol',
         'driver',
+        'kilometer',
         'cost_type',
         'cost_descr',
         'cost_qty',

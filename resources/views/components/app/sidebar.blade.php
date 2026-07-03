@@ -91,10 +91,12 @@
 
                     {{-- ================= LABEL: HUMAN RESOURCES ================= --}}
                     @if ($hrMenu)
-                        <li class="text-smm py-1.5 font-semibold uppercase tracking-wider text-gray-500 transition last:mb-0"
-                            :class="sidebarExpanded ? 'pl-4 pr-3 block' : 'hidden'">
+                        <li class="mt-3 flex items-center gap-2 rounded-lg py-1.5 text-smm font-bold uppercase tracking-widest text-gray-500 bg-linear-to-r from-gray-100/70 to-transparent transition-all duration-200 last:mb-0 dark:text-gray-400 dark:from-gray-700/40 dark:to-transparent"
+                            :class="sidebarExpanded ? 'pl-3 pr-3 block' : 'hidden'">
+                            <svg class="h-3.5 w-3.5 shrink-0 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
                             {{ $hrMenu->menu_name }}
                         </li>
+
                     @endif
 
                     @if ($hrMenu)
@@ -226,8 +228,9 @@
 
                     {{-- ================= LABEL: PURCHASING ================= --}}
                     @if ($purchasingMenu)
-                        <li class="text-smm py-1.5 font-semibold uppercase tracking-wider text-gray-500 transition last:mb-0"
-                            :class="sidebarExpanded ? 'pl-4 pr-3 block' : 'hidden'">
+                        <li class="mt-3 flex items-center gap-2 rounded-lg py-1.5 text-smm font-bold uppercase tracking-widest text-gray-500 bg-linear-to-r from-gray-100/70 to-transparent transition-all duration-200 last:mb-0 dark:text-gray-400 dark:from-gray-700/40 dark:to-transparent"
+                            :class="sidebarExpanded ? 'pl-3 pr-3 block' : 'hidden'">
+                            <svg class="h-3.5 w-3.5 shrink-0 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
                             {{ $purchasingMenu->menu_name }}
                         </li>
                     @endif
@@ -383,8 +386,11 @@
 
                             {{-- SETTINGS HEADER --}}
                             <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                                <span>Settings</span>
+                                class="mt-3 flex items-center justify-between rounded-xl px-3 py-1.5 text-smm font-bold uppercase tracking-widest text-gray-500 bg-linear-to-r from-gray-100/70 to-transparent transition-all duration-200 hover:from-gray-200/60 dark:text-gray-400 dark:from-gray-700/40 dark:to-transparent dark:hover:from-gray-700/70">
+                                <div class="flex items-center gap-2">
+                                    <svg class="h-3.5 w-3.5 shrink-0 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                                    <span>Settings</span>
+                                </div>
                                 <svg class="h-3 w-3 fill-current transition-transform"
                                     :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
                                     <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
@@ -400,7 +406,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $userAccessSegments) ? 'true' : 'false' }} }" class="ml-2">
 
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="text-smm flex items-center justify-between px-4 py-1 font-bold uppercase tracking-wider text-indigo-400/80 transition-colors hover:text-indigo-600 dark:text-indigo-500/70 dark:hover:text-indigo-400">
                                         <span>User & Access</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
@@ -443,7 +449,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $appSegments) ? 'true' : 'false' }} }" class="ml-2">
 
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="text-smm flex items-center justify-between px-4 py-1 font-bold uppercase tracking-wider text-indigo-400/80 transition-colors hover:text-indigo-600 dark:text-indigo-500/70 dark:hover:text-indigo-400">
                                         <span>Application</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
@@ -466,7 +472,7 @@
                                 @php $orgSegments = ['companies','department','tenants','locations']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $orgSegments) ? 'true' : 'false' }} }" class="ml-2">
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="text-smm flex items-center justify-between px-4 py-1 font-bold uppercase tracking-wider text-indigo-400/80 transition-colors hover:text-indigo-600 dark:text-indigo-500/70 dark:hover:text-indigo-400">
                                         <span>Organization</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
@@ -489,7 +495,7 @@
                                 @php $masterDataSegments = ['categories','vendors','inventories','autonbrs','tops','approvals']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $masterDataSegments) ? 'true' : 'false' }} }" class="ml-2">
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="text-smm flex items-center justify-between px-4 py-1 font-bold uppercase tracking-wider text-indigo-400/80 transition-colors hover:text-indigo-600 dark:text-indigo-500/70 dark:hover:text-indigo-400">
                                         <span>Master Data</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">
@@ -515,7 +521,7 @@
 
                                     {{-- HEADER (toggle only, no href) --}}
                                     <a href="#0" @click.prevent="open = !open; sidebarExpanded = true"
-                                        class="text-smm flex items-center justify-between px-4 py-1.5 font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="text-smm flex items-center justify-between px-4 py-1 font-bold uppercase tracking-wider text-indigo-400/80 transition-colors hover:text-indigo-600 dark:text-indigo-500/70 dark:hover:text-indigo-400">
                                         <span>Integration</span>
                                         <svg class="h-3 w-3 fill-current transition-transform"
                                             :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 12 12">

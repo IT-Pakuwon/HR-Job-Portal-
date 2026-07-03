@@ -6,6 +6,8 @@ use App\Exports\CarExpenseTemplateExport;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Imports\CarExpenseImport;
 use App\Models\MsCategory;
+use App\Models\MsCompany;
+use App\Models\MsDepartment;
 use App\Models\TrAttachment;
 use App\Models\TrCarExpense;
 use Illuminate\Http\Request;
@@ -72,6 +74,14 @@ class CarExpenseController extends Controller
             ->groupBy('cost_type')
             ->pluck('total', 'cost_type');
 
+        $companies = MsCompany::where('status', 'A')
+            ->orderBy('cpny_name')
+            ->get(['cpny_id', 'cpny_name']);
+
+        $departments = MsDepartment::where('status', 'A')
+            ->orderBy('department_name')
+            ->get(['department_id', 'department_name']);
+
         return view(
             'pages.carexpense.carexpense',
             compact(
@@ -79,7 +89,9 @@ class CarExpenseController extends Controller
                 'drivers',
                 'costTypes',
                 'countAll',
-                'countByType'
+                'countByType',
+                'companies',
+                'departments'
             )
         );
     }
@@ -179,13 +191,16 @@ class CarExpenseController extends Controller
         }
 
         $validated = $request->validate([
-            'ref_date' => ['required', 'date'],
-            'nopol' => ['required', 'string'],
-            'driver' => ['required', 'string'],
-            'cost_type' => ['required', 'string'],
-            'cost_descr' => ['required', 'string'],
-            'cost_qty' => ['required', 'numeric', 'min:1'],
-            'cost_amount' => ['required', 'numeric', 'min:0'],
+            'cpny_id'       => ['required', 'string'],
+            'department_id' => ['required', 'string'],
+            'ref_date'      => ['required', 'date'],
+            'nopol'         => ['required', 'string'],
+            'driver'        => ['required', 'string'],
+            'kilometer'     => ['nullable', 'numeric', 'min:0'],
+            'cost_type'     => ['required', 'string'],
+            'cost_descr'    => ['required', 'string'],
+            'cost_qty'      => ['required', 'numeric', 'min:1'],
+            'cost_amount'   => ['required', 'numeric', 'min:0'],
         ]);
 
         $costType = MsCategory::query()
@@ -215,19 +230,22 @@ class CarExpenseController extends Controller
 
         try {
             $expense = TrCarExpense::create([
-                'refnbr' => $refnbr,
-                'ref_date' => $validated['ref_date'],
-                'nopol' => $validated['nopol'],
-                'driver' => $validated['driver'],
-                'cost_type' => $costType->id,
-                'cost_descr' => $validated['cost_descr'],
-                'cost_qty' => $validated['cost_qty'],
-                'cost_amount' => $validated['cost_amount'],
-                'status' => 'A',
-                'created_by' => $user->username,
-                'created_at' => $dt,
-                'updated_by' => $user->username,
-                'updated_at' => $dt,
+                'refnbr'        => $refnbr,
+                'ref_date'      => $validated['ref_date'],
+                'cpny_id'       => $validated['cpny_id'],
+                'department_id' => $validated['department_id'],
+                'nopol'         => $validated['nopol'],
+                'driver'        => $validated['driver'],
+                'kilometer'     => $validated['kilometer'] ?? null,
+                'cost_type'     => $costType->id,
+                'cost_descr'    => $validated['cost_descr'],
+                'cost_qty'      => $validated['cost_qty'],
+                'cost_amount'   => $validated['cost_amount'],
+                'status'        => 'A',
+                'created_by'    => $user->username,
+                'created_at'    => $dt,
+                'updated_by'    => $user->username,
+                'updated_at'    => $dt,
             ]);
 
             DB::connection('pgsql')->commit();
@@ -277,15 +295,23 @@ class CarExpenseController extends Controller
             ->where('id', $expense->cost_type)
             ->first(['id', 'category_name']);
 
+        $company = MsCompany::where('cpny_id', $expense->cpny_id)->first(['cpny_id', 'cpny_name']);
+        $department = MsDepartment::where('department_id', $expense->department_id)->first(['department_id', 'department_name']);
+
         return response()->json([
             'success' => true,
             'data' => [
                 'eid' => $eid,
                 'refnbr' => $expense->refnbr,
                 'ref_date' => $expense->ref_date,
-                'nopol' => $expense->nopol,
-                'driver' => $expense->driver,
-                'cost_type' => $expense->cost_type,
+                'cpny_id'         => $expense->cpny_id,
+                'cpny_name'       => $company?->cpny_name,
+                'department_id'   => $expense->department_id,
+                'department_name' => $department?->department_name,
+                'nopol'           => $expense->nopol,
+                'driver'          => $expense->driver,
+                'kilometer'       => $expense->kilometer,
+                'cost_type'       => $expense->cost_type,
                 'cost_type_name' => $costType?->category_name,
                 'cost_descr' => $expense->cost_descr,
                 'cost_qty' => $expense->cost_qty,
@@ -320,13 +346,16 @@ class CarExpenseController extends Controller
         }
 
         $validated = $request->validate([
-            'ref_date' => ['required', 'date'],
-            'nopol' => ['required', 'string'],
-            'driver' => ['required', 'string'],
-            'cost_type' => ['required', 'string'],
-            'cost_descr' => ['required', 'string'],
-            'cost_qty' => ['required', 'numeric', 'min:1'],
-            'cost_amount' => ['required', 'numeric', 'min:0'],
+            'cpny_id'       => ['required', 'string'],
+            'department_id' => ['required', 'string'],
+            'ref_date'      => ['required', 'date'],
+            'nopol'         => ['required', 'string'],
+            'driver'        => ['required', 'string'],
+            'kilometer'     => ['nullable', 'numeric', 'min:0'],
+            'cost_type'     => ['required', 'string'],
+            'cost_descr'    => ['required', 'string'],
+            'cost_qty'      => ['required', 'numeric', 'min:1'],
+            'cost_amount'   => ['required', 'numeric', 'min:0'],
         ]);
 
         $costType = MsCategory::query()
@@ -345,10 +374,13 @@ class CarExpenseController extends Controller
         DB::connection('pgsql')->beginTransaction();
 
         try {
-            $expense->ref_date = $validated['ref_date'];
-            $expense->nopol = $validated['nopol'];
-            $expense->driver = $validated['driver'];
-            $expense->cost_type = $costType->id;
+            $expense->ref_date      = $validated['ref_date'];
+            $expense->cpny_id       = $validated['cpny_id'];
+            $expense->department_id = $validated['department_id'];
+            $expense->nopol         = $validated['nopol'];
+            $expense->driver        = $validated['driver'];
+            $expense->kilometer     = $validated['kilometer'] ?? null;
+            $expense->cost_type     = $costType->id;
             $expense->cost_descr = $validated['cost_descr'];
             $expense->cost_qty = $validated['cost_qty'];
             $expense->cost_amount = $validated['cost_amount'];
@@ -536,6 +568,9 @@ class CarExpenseController extends Controller
             ->get(['id', 'category_name'])
             ->keyBy(fn ($c) => strtolower(trim($c->category_name)));
 
+        $validCpnyIds = MsCompany::where('status', 'A')->pluck('cpny_id', 'cpny_id');
+        $validDeptIds = MsDepartment::where('status', 'A')->pluck('department_id', 'department_id');
+
         $import = new CarExpenseImport();
         Excel::import($import, $file);
 
@@ -549,13 +584,17 @@ class CarExpenseController extends Controller
             $rowArr    = $row->values()->toArray();
             $rowErrors = [];
 
-            $dateRaw  = $rowArr[0] ?? null;
-            $nopol    = trim((string) ($rowArr[1] ?? ''));
-            $driver   = trim((string) ($rowArr[2] ?? ''));
-            $costType = trim((string) ($rowArr[3] ?? ''));
-            $descr    = trim((string) ($rowArr[4] ?? ''));
-            $qty      = $rowArr[5] ?? null;
-            $amount   = $rowArr[6] ?? null;
+            // Column order: DATE, COMPANY_ID, DEPARTMENT_ID, NOPOL, DRIVER, KILOMETER, COST_TYPE, DESCRIPTION, QTY, AMOUNT
+            $dateRaw   = $rowArr[0] ?? null;
+            $cpnyId    = trim((string) ($rowArr[1] ?? ''));
+            $deptId    = trim((string) ($rowArr[2] ?? ''));
+            $nopol     = trim((string) ($rowArr[3] ?? ''));
+            $driver    = trim((string) ($rowArr[4] ?? ''));
+            $kilometer = $rowArr[5] ?? null;
+            $costType  = trim((string) ($rowArr[6] ?? ''));
+            $descr     = trim((string) ($rowArr[7] ?? ''));
+            $qty       = $rowArr[8] ?? null;
+            $amount    = $rowArr[9] ?? null;
 
             // Normalise date: DateTime object, Excel serial float, or plain string
             $parsedDate = null;
@@ -580,8 +619,18 @@ class CarExpenseController extends Controller
             if ($parsedDate === null) {
                 $rowErrors[] = 'DATE is required or format invalid (use YYYY-MM-DD)';
             }
-            if (empty($nopol))   { $rowErrors[] = 'NOPOL is required'; }
-            if (empty($driver))  { $rowErrors[] = 'DRIVER is required'; }
+            if (empty($cpnyId)) {
+                $rowErrors[] = 'COMPANY_ID is required';
+            } elseif (!isset($validCpnyIds[$cpnyId])) {
+                $rowErrors[] = "COMPANY_ID '{$cpnyId}' not found. See the Instructions sheet for valid IDs.";
+            }
+            if (empty($deptId)) {
+                $rowErrors[] = 'DEPARTMENT_ID is required';
+            } elseif (!isset($validDeptIds[$deptId])) {
+                $rowErrors[] = "DEPARTMENT_ID '{$deptId}' not found. See the Instructions sheet for valid IDs.";
+            }
+            if (empty($nopol))  { $rowErrors[] = 'NOPOL is required'; }
+            if (empty($driver)) { $rowErrors[] = 'DRIVER is required'; }
 
             $resolvedType = null;
             if (empty($costType)) {
@@ -595,6 +644,9 @@ class CarExpenseController extends Controller
             }
 
             if (empty($descr)) { $rowErrors[] = 'DESCRIPTION is required'; }
+            if ($kilometer !== null && $kilometer !== '' && (!is_numeric($kilometer) || (float) $kilometer < 0)) {
+                $rowErrors[] = 'KILOMETER must be a number ≥ 0';
+            }
             if (!is_numeric($qty)    || (float) $qty    < 1) { $rowErrors[] = 'QTY must be a number ≥ 1'; }
             if (!is_numeric($amount) || (float) $amount < 0) { $rowErrors[] = 'AMOUNT must be a number ≥ 0'; }
 
@@ -602,15 +654,18 @@ class CarExpenseController extends Controller
                 $errors[] = ['row' => $line, 'errors' => $rowErrors];
             } else {
                 $valid[] = [
-                    'row'         => $line,
-                    'ref_date'    => $parsedDate,
-                    'nopol'       => $nopol,
-                    'driver'      => $driver,
-                    'cost_type'   => $resolvedType->id,
+                    'row'            => $line,
+                    'ref_date'       => $parsedDate,
+                    'cpny_id'        => $cpnyId,
+                    'department_id'  => $deptId,
+                    'nopol'          => $nopol,
+                    'driver'         => $driver,
+                    'kilometer'      => ($kilometer !== null && $kilometer !== '') ? (float) $kilometer : null,
+                    'cost_type'      => $resolvedType->id,
                     'cost_type_name' => $resolvedType->category_name,
-                    'cost_descr'  => $descr,
-                    'cost_qty'    => (float) $qty,
-                    'cost_amount' => (float) $amount,
+                    'cost_descr'     => $descr,
+                    'cost_qty'       => (float) $qty,
+                    'cost_amount'    => (float) $amount,
                 ];
             }
         }
@@ -644,14 +699,17 @@ class CarExpenseController extends Controller
         return response()->json([
             'success' => true,
             'rows'    => array_map(fn ($r) => [
-                'row'         => $r['row'],
-                'date'        => $r['ref_date'],
-                'nopol'       => $r['nopol'],
-                'driver'      => $r['driver'],
-                'cost_type'   => $r['cost_type_name'],
-                'description' => $r['cost_descr'],
-                'qty'         => $r['cost_qty'],
-                'amount'      => $r['cost_amount'],
+                'row'           => $r['row'],
+                'date'          => $r['ref_date'],
+                'cpny_id'       => $r['cpny_id'],
+                'department_id' => $r['department_id'],
+                'nopol'         => $r['nopol'],
+                'driver'        => $r['driver'],
+                'kilometer'     => $r['kilometer'],
+                'cost_type'     => $r['cost_type_name'],
+                'description'   => $r['cost_descr'],
+                'qty'           => $r['cost_qty'],
+                'amount'        => $r['cost_amount'],
             ], $parsed['valid']),
             'count' => count($parsed['valid']),
         ]);
@@ -699,19 +757,22 @@ class CarExpenseController extends Controller
                 $refnbr = $doctype . $tglbln . sprintf('%03d', (int) $auto['next']);
 
                 TrCarExpense::create([
-                    'refnbr'      => $refnbr,
-                    'ref_date'    => $row['ref_date'],
-                    'nopol'       => $row['nopol'],
-                    'driver'      => $row['driver'],
-                    'cost_type'   => $row['cost_type'],
-                    'cost_descr'  => $row['cost_descr'],
-                    'cost_qty'    => $row['cost_qty'],
-                    'cost_amount' => $row['cost_amount'],
-                    'status'      => 'A',
-                    'created_by'  => $user->username,
-                    'created_at'  => $dt,
-                    'updated_by'  => $user->username,
-                    'updated_at'  => $dt,
+                    'refnbr'        => $refnbr,
+                    'ref_date'      => $row['ref_date'],
+                    'cpny_id'       => $row['cpny_id'],
+                    'department_id' => $row['department_id'],
+                    'nopol'         => $row['nopol'],
+                    'driver'        => $row['driver'],
+                    'kilometer'     => $row['kilometer'],
+                    'cost_type'     => $row['cost_type'],
+                    'cost_descr'    => $row['cost_descr'],
+                    'cost_qty'      => $row['cost_qty'],
+                    'cost_amount'   => $row['cost_amount'],
+                    'status'        => 'A',
+                    'created_by'    => $user->username,
+                    'created_at'    => $dt,
+                    'updated_by'    => $user->username,
+                    'updated_at'    => $dt,
                 ]);
 
                 $created[] = $refnbr;

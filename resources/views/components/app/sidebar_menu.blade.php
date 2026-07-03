@@ -68,8 +68,8 @@
                     <li class="mt-4" x-data="{ open: true }">
 
                         <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
-                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $dashMenu->menu_name }}</span></div>
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $dashMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $dashMenu->menu_name }}</span></div>
                             <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -90,7 +90,7 @@
                         @if ($children->isEmpty() && $isDirectMenu)
 
                             <li
-                                class="{{ Route::is($menu->menu_route . '*')
+                                class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
                                     ? 'bg-indigo-500/10 text-indigo-600'
                                     : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
@@ -114,7 +114,7 @@
 
                             @php
                                 $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is($c->menu_route . '*')
+                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
                                 );
                             @endphp
 
@@ -156,14 +156,14 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
 
                                     @foreach ($children as $child)
 
                                         <li>
 
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is($child->menu_route . '*')
+                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                     ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
@@ -217,8 +217,8 @@
                     <li class="mt-4" x-data="{ open: true }">
 
                         <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
-                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $itMenu->menu_name }}</span></div>
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $itMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $itMenu->menu_name }}</span></div>
                             <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -239,7 +239,7 @@
                         @if ($children->isEmpty() && $isDirectMenu)
 
                             <li
-                                class="{{ Route::is($menu->menu_route . '*')
+                                class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
                                     ? 'bg-indigo-500/10 text-indigo-600'
                                     : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
@@ -263,7 +263,7 @@
 
                             @php
                                 $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is($c->menu_route . '*')
+                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
                                 );
                             @endphp
 
@@ -305,14 +305,14 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
 
                                     @foreach ($children as $child)
 
                                         <li>
 
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is($child->menu_route . '*')
+                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                     ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
@@ -366,8 +366,8 @@
                     <li class="mt-4" x-data="{ open: true }">
 
                         <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
-                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $gaMenu->menu_name }}</span></div>
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $gaMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $gaMenu->menu_name }}</span></div>
                             <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -388,7 +388,7 @@
                         @if ($children->isEmpty() && $isDirectMenu)
 
                             <li
-                                class="{{ Route::is($menu->menu_route . '*')
+                                class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
                                     ? 'bg-indigo-500/10 text-indigo-600'
                                     : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
@@ -412,7 +412,7 @@
 
                             @php
                                 $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is($c->menu_route . '*')
+                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
                                 );
                             @endphp
 
@@ -454,14 +454,14 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
 
                                     @foreach ($children as $child)
 
                                         <li>
 
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is($child->menu_route . '*')
+                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                     ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
@@ -518,8 +518,8 @@
                     <li class="mt-4" x-data="{ open: true }">
 
                         <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
-                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $hrMenu->menu_name }}</span></div>
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $hrMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $hrMenu->menu_name }}</span></div>
                             <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -539,7 +539,7 @@
                         {{-- SINGLE MENU --}}
                         @if ($children->isEmpty() && $isDirectMenu)
 
-                            <li class="{{ Route::is($menu->menu_route . '*')
+                            <li class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
                                 ? 'bg-indigo-500/10 text-indigo-600'
                                 : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
@@ -563,7 +563,7 @@
 
                             @php
                                 $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is($c->menu_route . '*')
+                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
                                 );
                             @endphp
 
@@ -605,13 +605,13 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
 
                                     @foreach ($children as $child)
 
                                         <li>
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is($child->menu_route . '*')
+                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                     ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
@@ -663,8 +663,8 @@
                     <li class="mt-4" x-data="{ open: true }">
 
                         <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
-                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $purchasingMenu->menu_name }}</span></div>
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $purchasingMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $purchasingMenu->menu_name }}</span></div>
                             <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -684,7 +684,7 @@
                         {{-- SINGLE MENU --}}
                         @if ($children->isEmpty() && $isDirectMenu)
 
-                            <li class="{{ Route::is($menu->menu_route . '*')
+                            <li class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
                                 ? 'bg-indigo-500/10 text-indigo-600'
                                 : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
@@ -708,7 +708,7 @@
 
                             @php
                                 $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is($c->menu_route . '*')
+                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
                                 );
                             @endphp
 
@@ -750,13 +750,13 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
 
                                     @foreach ($children as $child)
 
                                         <li>
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is($child->menu_route . '*')
+                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                     ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
@@ -809,8 +809,8 @@
                     <li class="mt-4" x-data="{ open: true }">
 
                         <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
-                            <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">{{ $voucherMenu->menu_name }}</span></div>
+                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $voucherMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $voucherMenu->menu_name }}</span></div>
                             <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -830,7 +830,7 @@
                         {{-- SINGLE MENU --}}
                         @if ($children->isEmpty() && $isDirectMenu)
 
-                            <li class="{{ Route::is($menu->menu_route . '*')
+                            <li class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
                                 ? 'bg-indigo-500/10 text-indigo-600'
                                 : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
 
@@ -854,7 +854,7 @@
 
                             @php
                                 $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is($c->menu_route . '*')
+                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
                                 );
                             @endphp
 
@@ -896,13 +896,13 @@
 
                                 </button>
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 ml-6 border-l-2 border-gray-200 pl-3 dark:border-gray-700">
+                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
 
                                     @foreach ($children as $child)
 
                                         <li>
                                             <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is($child->menu_route . '*')
+                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
                                                     ? 'text-indigo-600'
                                                     : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
                                                 block rounded-md px-3 py-1.5 text-sm">
@@ -961,8 +961,8 @@
                         <li class="mt-4" x-data="{ open: true }">
 
                             <button @click="open = !open"
-                                class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest text-indigo-600 transition-all duration-200 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-400/10">
-                                <div class="flex items-center gap-2.5"><span class="h-3.5 w-0.5 shrink-0 rounded-full bg-linear-to-b from-indigo-500 to-purple-400"></span><span class="whitespace-normal wrap-break-word leading-snug">SETTINGS</span></div>
+                                class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.32.22.66.22 1H21a2 2 0 0 1 0 4h-.09c-.34 0-.68.08-1 .22z"/></svg><span class="whitespace-normal wrap-break-word leading-snug">SETTINGS</span></div>
                                 <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                     stroke-linecap="round" stroke-linejoin="round">

@@ -181,6 +181,34 @@
                                 <div>
                                     <label
                                         class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Company
+                                    </label>
+                                    <select name="cpny_id" id="create_cpny_id" required
+                                        class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                        <option value="">Select Company</option>
+                                        @foreach ($companies as $c)
+                                            <option value="{{ $c->cpny_id }}">{{ $c->cpny_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Department
+                                    </label>
+                                    <select name="department_id" id="create_department_id" required
+                                        class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                        <option value="">Select Department</option>
+                                        @foreach ($departments as $dep)
+                                            <option value="{{ $dep->department_id }}">{{ $dep->department_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                         Date
                                     </label>
                                     <input type="date" name="ref_date" id="create_ref_date" required
@@ -229,6 +257,16 @@
                                             <option value="{{ $d->drivername }}">{{ $d->drivername }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Kilometer
+                                    </label>
+                                    <input type="number" name="kilometer" id="create_kilometer"
+                                        min="0" placeholder="0"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100">
                                 </div>
 
                                 <div class="md:col-span-2">
@@ -459,6 +497,34 @@
                                 <div>
                                     <label
                                         class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Company
+                                    </label>
+                                    <select name="cpny_id" id="edit_cpny_id" required
+                                        class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                        <option value="">Select Company</option>
+                                        @foreach ($companies as $c)
+                                            <option value="{{ $c->cpny_id }}">{{ $c->cpny_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Department
+                                    </label>
+                                    <select name="department_id" id="edit_department_id" required
+                                        class="select2 h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+                                        <option value="">Select Department</option>
+                                        @foreach ($departments as $dep)
+                                            <option value="{{ $dep->department_id }}">{{ $dep->department_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                         Date
                                     </label>
                                     <input type="date" name="ref_date" id="edit_ref_date" required
@@ -507,6 +573,16 @@
                                             <option value="{{ $d->drivername }}">{{ $d->drivername }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                        Kilometer
+                                    </label>
+                                    <input type="number" name="kilometer" id="edit_kilometer"
+                                        min="0"
+                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100">
                                 </div>
 
                                 <div class="md:col-span-2">
@@ -631,8 +707,11 @@
                                     <tr>
                                         <th class="px-3 py-2">#</th>
                                         <th class="px-3 py-2">Date</th>
+                                        <th class="px-3 py-2">Company</th>
+                                        <th class="px-3 py-2">Department</th>
                                         <th class="px-3 py-2">Nopol</th>
                                         <th class="px-3 py-2">Driver</th>
+                                        <th class="px-3 py-2 text-right whitespace-nowrap">KM</th>
                                         <th class="px-3 py-2">Cost Type</th>
                                         <th class="px-3 py-2">Description</th>
                                         <th class="px-3 py-2 text-right">Qty</th>
@@ -900,10 +979,13 @@
                 </div>`;
 
             document.getElementById('show_information').innerHTML = `
+                ${field('Company', d.cpny_name)}
+                ${field('Department', d.department_name)}
                 ${field('Date', formatDate(d.ref_date))}
+                ${field('Cost Type', d.cost_type_name)}
                 ${field('Nopol', d.nopol)}
                 ${field('Driver', d.driver)}
-                ${field('Cost Type', d.cost_type_name)}
+                ${field('Kilometer', d.kilometer ?? '-')}
                 ${field('Qty', d.cost_qty)}
                 ${field('Amount', formatIDR(d.cost_amount))}
                 <div class="md:col-span-2">
@@ -931,6 +1013,7 @@
                 document.getElementById('edit_eid').value = d.eid;
                 document.getElementById('edit_refnbr').textContent = d.refnbr;
                 document.getElementById('edit_ref_date').value = d.ref_date ?? '';
+                document.getElementById('edit_kilometer').value = d.kilometer ?? '';
                 document.getElementById('edit_cost_descr').value = d.cost_descr ?? '';
                 document.getElementById('edit_cost_qty').value = d.cost_qty ?? '';
                 document.getElementById('edit_cost_amount').value = formatThousands(d.cost_amount ?? '');
@@ -942,6 +1025,8 @@
                     }
                 };
 
+                setSelect2('edit_cpny_id', d.cpny_id);
+                setSelect2('edit_department_id', d.department_id);
                 setSelect2('edit_nopol', d.nopol);
                 setSelect2('edit_driver', d.driver);
                 setSelect2('edit_cost_type', d.cost_type);
@@ -1017,7 +1102,7 @@
         document.getElementById('btnOpenCreate').addEventListener('click', () => {
             document.getElementById('createForm').reset();
             document.getElementById('createAttachmentPreview').innerHTML = '';
-            $('.select2').val(null).trigger('change');
+            $('#createModal .select2').val(null).trigger('change');
             openModal('createModal');
         });
 
@@ -1032,9 +1117,11 @@
             stripAmountCommas('create_cost_amount');
 
             const createFd = new FormData(this);
-            createFd.set('nopol',      $('#create_nopol').val()      || '');
-            createFd.set('driver',     $('#create_driver').val()     || '');
-            createFd.set('cost_type',  $('#create_cost_type').val()  || '');
+            createFd.set('cpny_id',      $('#create_cpny_id').val()      || '');
+            createFd.set('department_id', $('#create_department_id').val() || '');
+            createFd.set('nopol',        $('#create_nopol').val()         || '');
+            createFd.set('driver',       $('#create_driver').val()        || '');
+            createFd.set('cost_type',    $('#create_cost_type').val()     || '');
 
             try {
                 const res  = await fetch(CarExpenseRoutes.store, {
@@ -1079,9 +1166,11 @@
             stripAmountCommas('edit_cost_amount');
 
             const editFd = new FormData(this);
-            editFd.set('nopol',      $('#edit_nopol').val()      || '');
-            editFd.set('driver',     $('#edit_driver').val()     || '');
-            editFd.set('cost_type',  $('#edit_cost_type').val()  || '');
+            editFd.set('cpny_id',       $('#edit_cpny_id').val()       || '');
+            editFd.set('department_id', $('#edit_department_id').val() || '');
+            editFd.set('nopol',         $('#edit_nopol').val()         || '');
+            editFd.set('driver',        $('#edit_driver').val()        || '');
+            editFd.set('cost_type',     $('#edit_cost_type').val()     || '');
 
             fetch(url, {
                     method: 'POST',
@@ -1381,8 +1470,11 @@
                         <tr class="text-xs text-slate-700 dark:text-slate-300">
                             <td class="px-3 py-2 text-slate-400">${r.row}</td>
                             <td class="px-3 py-2">${r.date}</td>
+                            <td class="px-3 py-2">${r.cpny_id}</td>
+                            <td class="px-3 py-2">${r.department_id}</td>
                             <td class="px-3 py-2">${r.nopol}</td>
                             <td class="px-3 py-2">${r.driver}</td>
+                            <td class="px-3 py-2 text-right whitespace-nowrap">${r.kilometer ?? '-'}</td>
                             <td class="px-3 py-2">
                                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
                                     ${r.cost_type}

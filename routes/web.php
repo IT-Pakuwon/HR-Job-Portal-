@@ -1990,6 +1990,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/groupbiaya-nonpurch/{id}/edit', [MsGroupbiayaNonPurchController::class, 'edit'])->name('groupbiayanonpurch.edit');
     Route::put('/groupbiaya-nonpurch/{id}', [MsGroupbiayaNonPurchController::class, 'update'])->name('groupbiayanonpurch.update');
     Route::put('/groupbiaya-nonpurch/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'toggleStatus'])->name('groupbiayanonpurch.toggle-status');
+    Route::get('/groupbiaya-nonpurch/companies', [MsGroupbiayaNonPurchController::class, 'companies'])->name('groupbiayanonpurch.companies');
+    Route::get('/groupbiaya-nonpurch/departments', [MsGroupbiayaNonPurchController::class, 'departments'])->name('groupbiayanonpurch.departments');
+    Route::get('/groupbiaya-nonpurch/budget/{id}/edit', [MsGroupbiayaNonPurchController::class, 'budgetEdit'])->name('groupbiayanonpurch.budget.edit');
+    Route::post('/groupbiaya-nonpurch/budget', [MsGroupbiayaNonPurchController::class, 'budgetStore'])->name('groupbiayanonpurch.budget.store');
+    Route::put('/groupbiaya-nonpurch/budget/{id}', [MsGroupbiayaNonPurchController::class, 'budgetUpdate'])->name('groupbiayanonpurch.budget.update');
+    Route::put('/groupbiaya-nonpurch/budget/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'budgetToggleStatus'])->name('groupbiayanonpurch.budget.toggle-status');
+    Route::get('/groupbiaya-nonpurch/{groupbiayaId}/budget', [MsGroupbiayaNonPurchController::class, 'budgetJson'])->name('groupbiayanonpurch.budget.json');
 
     }); // end admin middleware
 
