@@ -10,10 +10,10 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="w-full rounded-xl bg-white p-4 shadow dark:bg-gray-800">
+                    <div class="flex w-full flex-col gap-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
 
                         <!-- Header -->
-                        <div class="mb-6 flex items-center justify-between border-b pb-3 dark:border-gray-700">
+                        <div class="mb-2 flex items-center justify-between border-b pb-3 dark:border-gray-700">
                             <h2 class="text-base font-bold text-gray-800 dark:text-white">✏️ Edit WO —
                                 {{ $prefill['woid'] }}</h2>
                         </div>
@@ -80,7 +80,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                             <!-- Jenis Pekerjaan -->
                             <div class="flex flex-col gap-2">
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Jenis
@@ -172,7 +172,7 @@
                             </div>
                         </div> --}}
 
-                        <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                             <!-- Perpost -->
                             <div class="flex flex-col gap-2">
                                 <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Perpost</label>
@@ -214,7 +214,7 @@
 
                         </div>
                         <!-- COA -->
-                        <div id="coaGroup" class="mt-6">
+                        <div id="coaGroup">
                             <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">COA</label>
                             <div class="flex gap-2">
                                 <input type="text" id="budget_display" readonly
@@ -236,7 +236,7 @@
                         </div>
 
                         <!-- Description -->
-                        <div class="mt-6">
+                        <div>
                             <label class="req text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                             <textarea name="keperluan" id="keperluan" rows="3" required
                                 class="mt-2 w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"></textarea>
@@ -687,70 +687,76 @@
     <script>
         $(function() {
             const $cpny = $('select[name="cpnyid"]');
+            const $modal = $('#modalLokasi');
+            const $selLoc = $('#modal_location_id');
+            const $selSub = $('#modal_sub_location_id');
+
+            function ensureSelect2() {
+                if ($selLoc.hasClass('select2-hidden-accessible')) $selLoc.select2('destroy');
+                if ($selSub.hasClass('select2-hidden-accessible')) $selSub.select2('destroy');
+                $selLoc.select2({ dropdownParent: $modal, width: '100%', placeholder: '-- choose --', allowClear: true });
+                $selSub.select2({ dropdownParent: $modal, width: '100%', placeholder: '-- choose --', allowClear: true });
+            }
+
+            function fillSelect($sel, list, selectedVal) {
+                $sel.empty().append('<option value=""></option>');
+                (list || []).forEach(it => $sel.append(new Option(it.text, it.value)));
+                $sel.val(selectedVal || null);
+                if ($sel.hasClass('select2-hidden-accessible')) $sel.trigger('change.select2');
+            }
+
+            function loadSubLocations(loc) {
+                const cpny = $cpny.val();
+                fillSelect($selSub, [], null);
+                if (!cpny || !loc) return;
+                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`, function(list) {
+                    fillSelect($selSub, list, null);
+                }).fail(() => toastr.error('Gagal memuat Sub Location.'));
+            }
 
             function openLokasiModal() {
-                $('#modalLokasi').removeClass('hidden').addClass('flex');
+                const cpny = $cpny.val();
+                if (!cpny) { toastr.error('Pilih Company terlebih dahulu.'); return; }
+
+                $modal.removeClass('hidden').addClass('flex');
+                ensureSelect2();
+
+                fillSelect($selLoc, [], null);
+                fillSelect($selSub, [], null);
+
+                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`, function(list) {
+                    fillSelect($selLoc, list, null);
+                    setTimeout(() => $selLoc.select2('open'), 100);
+                }).fail(() => toastr.error('Gagal memuat Location.'));
             }
 
             function closeLokasiModal() {
-                $('#modalLokasi').addClass('hidden').removeClass('flex');
+                $modal.addClass('hidden').removeClass('flex');
             }
 
-            // buka modal & load locations by cpny
-            $('#btnLokasi').on('click', function() {
-                const cpny = $cpny.val();
-                if (!cpny) {
-                    toastr.error('Pilih Company terlebih dahulu.');
-                    return;
-                }
-                $('#modal_location_id').html('<option value="">-- choose --</option>');
-                $('#modal_sub_location_id').html('<option value="">-- choose --</option>');
-                $.getJSON(`/wos/ajax/locations/${encodeURIComponent(cpny)}`)
-                    .done(function(list) {
-                        list.forEach(it => $('#modal_location_id').append(new Option(it.text, it
-                            .value)));
-                        openLokasiModal();
-                    })
-                    .fail(function() {
-                        toastr.error('Gagal memuat Location.');
-                    });
-            });
-
+            $('#btnLokasi').on('click', openLokasiModal);
             $('#closeLokasi, #cancelLokasi').on('click', closeLokasiModal);
 
-            // load sub locations on change
-            $('#modal_location_id').on('change', function() {
-                const cpny = $cpny.val();
-                const loc = $(this).val();
-                const $sub = $('#modal_sub_location_id');
-                $sub.html('<option value="">-- choose --</option>');
-                if (!cpny || !loc) return;
-                $.getJSON(`/wos/ajax/sublocations/${encodeURIComponent(cpny)}/${encodeURIComponent(loc)}`)
-                    .done(function(list) {
-                        list.forEach(it => $sub.append(new Option(it.text, it.value)));
-                    })
-                    .fail(function() {
-                        toastr.error('Gagal memuat Sub Location.');
-                    });
+            // Use select2:select/clear — only fires on real user interaction, not programmatic trigger('change.select2')
+            $selLoc.on('select2:select', function(e) {
+                loadSubLocations(e.params.data.id);
+            });
+            $selLoc.on('select2:clear', function() {
+                fillSelect($selSub, [], null);
             });
 
-            // save to hidden + display
             $('#saveLokasi').on('click', function() {
-                const locVal = $('#modal_location_id').val();
-                const locTxt = $('#modal_location_id option:selected').text();
-                const subVal = $('#modal_sub_location_id').val();
-                const subTxt = $('#modal_sub_location_id option:selected').text();
-                if (!locVal || !subVal) {
-                    toastr.error('Pilih Location dan Sub Location.');
-                    return;
-                }
+                const locVal = $selLoc.val();
+                const locTxt = $selLoc.find('option:selected').text();
+                const subVal = $selSub.val();
+                const subTxt = $selSub.find('option:selected').text();
+                if (!locVal || !subVal) { toastr.error('Pilih Location dan Sub Location.'); return; }
                 $('#location_id').val(locVal);
                 $('#sub_location_id').val(subVal);
                 $('#lokasi_display').val(`${locTxt} — ${subTxt}`);
                 closeLokasiModal();
             });
 
-            // clear if company changed
             $cpny.on('change', function() {
                 $('#location_id, #sub_location_id, #lokasi_display').val('');
             });
@@ -1672,6 +1678,14 @@
 
 
 
+    {{-- Select2 --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        .select2-container { width: 100% !important; }
+        .select2-container .select2-selection--single { height: 42px; border: 1px solid #d1d5db; border-radius: 0.5rem; display: flex; align-items: center; }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px; }
+    </style>
     {{-- Toastr --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>

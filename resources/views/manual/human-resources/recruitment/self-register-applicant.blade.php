@@ -119,4 +119,124 @@
         </div>
     </section>
 
+    {{-- Section 4: Tagging --}}
+    <section class="space-y-6">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700">
+            <button @click="toggle('s4')" class="flex w-full items-center justify-between px-6 py-4 text-left font-semibold">
+                <span><span x-show="lang==='en'">4. Tagging an Applicant</span><span x-show="lang==='id'">4. Menandai (Tag) Pelamar</span></span>
+                <span x-text="openSection==='s4'?'−':'+'"></span>
+            </button>
+            <div x-show="openSection==='s4'" x-transition class="space-y-4 px-6 pb-6">
+                <p class="text-gray-600 dark:text-gray-400">
+                    <span x-show="lang==='en'">The <strong>Tag</strong> feature lets HR label self-registered applicants for easier filtering and future reference — without having to assign them to a job posting immediately. Tags help organize a large pool of candidates by skill category, interest area, or priority level.</span>
+                    <span x-show="lang==='id'">Fitur <strong>Tag</strong> memungkinkan HR memberi label pada pelamar yang mendaftar sendiri untuk memudahkan penyaringan dan referensi di masa mendatang — tanpa harus langsung menugaskan mereka ke lowongan kerja. Tag membantu mengorganisasi banyak kandidat berdasarkan kategori keahlian, bidang minat, atau tingkat prioritas.</span>
+                </p>
+                <div>
+                    <p class="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <span x-show="lang==='en'">How to Tag an Applicant:</span>
+                        <span x-show="lang==='id'">Cara Memberi Tag pada Pelamar:</span>
+                    </p>
+                    <ol class="list-decimal space-y-2 pl-6 text-gray-600 dark:text-gray-400">
+                        <li><span x-show="lang==='en'">Open the applicant profile from the Self Register list.</span><span x-show="lang==='id'">Buka profil pelamar dari daftar Self Register.</span></li>
+                        <li><span x-show="lang==='en'">Click the <strong>Tag</strong> button on the profile page.</span><span x-show="lang==='id'">Klik tombol <strong>Tag</strong> di halaman profil.</span></li>
+                        <li><span x-show="lang==='en'">Select one or more tags from the available list, or type to create a new tag.</span><span x-show="lang==='id'">Pilih satu atau lebih tag dari daftar yang tersedia, atau ketik untuk membuat tag baru.</span></li>
+                        <li><span x-show="lang==='en'">Save — the selected tags will appear on the applicant card in the list.</span><span x-show="lang==='id'">Simpan — tag yang dipilih akan muncul pada kartu pelamar di daftar.</span></li>
+                    </ol>
+                </div>
+                <div class="manual-note manual-info">
+                    <span x-show="lang==='en'">Tags can be added or removed at any time. Use the filter on the Self Register list page to quickly find applicants by their assigned tags.</span>
+                    <span x-show="lang==='id'">Tag dapat ditambahkan atau dihapus kapan saja. Gunakan filter di halaman daftar Self Register untuk menemukan pelamar berdasarkan tag yang diberikan dengan cepat.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Section 5: Remapping --}}
+    <section class="space-y-6">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700">
+            <button @click="toggle('s5')" class="flex w-full items-center justify-between px-6 py-4 text-left font-semibold">
+                <span><span x-show="lang==='en'">5. Remapping to a Different Position</span><span x-show="lang==='id'">5. Remapping ke Posisi Berbeda</span></span>
+                <span x-text="openSection==='s5'?'−':'+'"></span>
+            </button>
+            <div x-show="openSection==='s5'" x-transition class="space-y-4 px-6 pb-6">
+                <p class="text-gray-600 dark:text-gray-400">
+                    <span x-show="lang==='en'">If a self-registered applicant is already <strong>In Process</strong> for a job but is found to be a better fit for a different open vacancy, HR can use <strong>Remap</strong> to move them to the new position without losing their profile data.</span>
+                    <span x-show="lang==='id'">Jika pelamar yang mendaftar sendiri sudah dalam status <strong>In Process</strong> untuk suatu pekerjaan namun ternyata lebih cocok untuk lowongan yang berbeda, HR dapat menggunakan fitur <strong>Remap</strong> untuk memindahkan mereka ke posisi baru tanpa kehilangan data profil mereka.</span>
+                </p>
+                <div class="manual-note manual-warning">
+                    <span x-show="lang==='en'">Remapping resets the recruitment progress to the first step (HR Check) under the new position. Previous step records are retained but will no longer be active.</span>
+                    <span x-show="lang==='id'">Remapping akan mereset progres rekrutmen ke tahap pertama (HR Check) di bawah posisi baru. Catatan tahap sebelumnya tetap tersimpan namun tidak lagi aktif.</span>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <span x-show="lang==='en'">How to Remap:</span>
+                        <span x-show="lang==='id'">Cara Melakukan Remap:</span>
+                    </p>
+                    <ol class="list-decimal space-y-2 pl-6 text-gray-600 dark:text-gray-400">
+                        <li><span x-show="lang==='en'">Open the applicant profile (status must be <strong>In Process</strong>).</span><span x-show="lang==='id'">Buka profil pelamar (status harus <strong>In Process</strong>).</span></li>
+                        <li><span x-show="lang==='en'">Click the <strong>Remap</strong> button on the profile page.</span><span x-show="lang==='id'">Klik tombol <strong>Remap</strong> di halaman profil.</span></li>
+                        <li><span x-show="lang==='en'">Select the new target job vacancy from the dialog.</span><span x-show="lang==='id'">Pilih lowongan pekerjaan tujuan yang baru dari dialog yang muncul.</span></li>
+                        <li><span x-show="lang==='en'">Confirm — the applicant moves to the new vacancy and restarts from the HR Check step.</span><span x-show="lang==='id'">Konfirmasi — pelamar dipindahkan ke lowongan baru dan memulai ulang dari tahap HR Check.</span></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Section 6: Rejecting --}}
+    <section class="space-y-6">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700">
+            <button @click="toggle('s6')" class="flex w-full items-center justify-between px-6 py-4 text-left font-semibold">
+                <span><span x-show="lang==='en'">6. Rejecting a Self-Registered Applicant</span><span x-show="lang==='id'">6. Menolak Pelamar Self Register</span></span>
+                <span x-text="openSection==='s6'?'−':'+'"></span>
+            </button>
+            <div x-show="openSection==='s6'" x-transition class="space-y-4 px-6 pb-6">
+                <p class="text-gray-600 dark:text-gray-400">
+                    <span x-show="lang==='en'">If a self-registered applicant does not meet the minimum requirements and HR decides not to proceed with them, the applicant can be <strong>Rejected</strong>. This closes their profile without assigning them to any job posting.</span>
+                    <span x-show="lang==='id'">Jika pelamar yang mendaftar sendiri tidak memenuhi persyaratan minimum dan HR memutuskan untuk tidak melanjutkan prosesnya, pelamar tersebut dapat <strong>Ditolak</strong>. Ini menutup profil mereka tanpa menugaskan mereka ke lowongan kerja mana pun.</span>
+                </p>
+                <div>
+                    <p class="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <span x-show="lang==='en'">How to Reject:</span>
+                        <span x-show="lang==='id'">Cara Menolak Pelamar:</span>
+                    </p>
+                    <ol class="list-decimal space-y-2 pl-6 text-gray-600 dark:text-gray-400">
+                        <li><span x-show="lang==='en'">Open the applicant profile from the Self Register list.</span><span x-show="lang==='id'">Buka profil pelamar dari daftar Self Register.</span></li>
+                        <li><span x-show="lang==='en'">Click the <strong>Reject</strong> button on the profile page.</span><span x-show="lang==='id'">Klik tombol <strong>Reject</strong> di halaman profil.</span></li>
+                        <li><span x-show="lang==='en'">Optionally provide a rejection reason in the confirmation dialog.</span><span x-show="lang==='id'">Opsional: berikan alasan penolakan di dialog konfirmasi.</span></li>
+                        <li><span x-show="lang==='en'">Confirm — the applicant status changes to <strong>Rejected</strong> and they will no longer appear in the active candidate pool.</span><span x-show="lang==='id'">Konfirmasi — status pelamar berubah menjadi <strong>Rejected</strong> dan mereka tidak akan lagi muncul di kumpulan kandidat aktif.</span></li>
+                    </ol>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-600 dark:text-gray-400">
+                        <thead class="bg-gray-50 dark:bg-gray-800 text-xs uppercase">
+                            <tr>
+                                <th class="px-4 py-2"><span x-show="lang==='en'">Current Status</span><span x-show="lang==='id'">Status Saat Ini</span></th>
+                                <th class="px-4 py-2"><span x-show="lang==='en'">Can be Rejected?</span><span x-show="lang==='id'">Dapat Ditolak?</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-4 py-2"><span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">Hold</span></td>
+                                <td class="px-4 py-2 text-green-600 font-semibold"><span x-show="lang==='en'">Yes</span><span x-show="lang==='id'">Ya</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2"><span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">In Process</span></td>
+                                <td class="px-4 py-2 text-green-600 font-semibold"><span x-show="lang==='en'">Yes</span><span x-show="lang==='id'">Ya</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2"><span class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">Completed</span></td>
+                                <td class="px-4 py-2 text-red-600 font-semibold"><span x-show="lang==='en'">No</span><span x-show="lang==='id'">Tidak</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="manual-note manual-info">
+                    <span x-show="lang==='en'">Rejected applicants are still visible in the list under the <strong>Rejected</strong> status filter. Their profile data is preserved for record-keeping.</span>
+                    <span x-show="lang==='id'">Pelamar yang ditolak masih terlihat di daftar di bawah filter status <strong>Rejected</strong>. Data profil mereka tetap disimpan untuk keperluan pencatatan.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </div>

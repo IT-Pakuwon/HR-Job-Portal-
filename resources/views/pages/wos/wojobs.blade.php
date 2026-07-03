@@ -5,7 +5,7 @@
 
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 {{ $isAdmin ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }}">
 
             {{-- On Hold --}}
             <button type="button" class="job-filter group block h-full" data-job="H">
@@ -81,6 +81,24 @@
                     <p class="shrink-0 text-base font-extrabold">{{ $all }}</p>
                 </div>
             </button>
+
+            {{-- WO Jobs All — admin only --}}
+            @if($isAdmin)
+            <button type="button" class="admin-all-filter group block h-full">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-indigo-700 bg-indigo-200/20 p-3 text-indigo-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-indigo-100 hover:shadow-md active:scale-95">
+
+                    <div class="flex h-7 w-7 shrink-0 items-center justify-center text-base">🌐</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="break-words text-xs font-medium leading-tight">WO Jobs All</p>
+                        <p class="text-[10px] font-normal opacity-70">All Companies</p>
+                    </div>
+
+                    <p class="shrink-0 text-base font-extrabold">{{ $adminAll }}</p>
+                </div>
+            </button>
+            @endif
         </div>
         <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -90,27 +108,34 @@
                     WO Jobs List
                 </h1>
 
-                <!-- RIGHT -->
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="flex items-center gap-2">
-                        <label class="whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">From:</label>
+                <!-- RIGHT: prettier filters -->
+                <div class="flex flex-wrap items-center gap-2">
+
+                    {{-- Date range group --}}
+                    <div class="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 shadow-sm dark:border-gray-600 dark:bg-gray-700">
+                        <svg class="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
                         <input type="date" id="filterDateFrom"
-                            class="rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <label class="whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">To:</label>
+                            class="w-32 border-0 bg-transparent text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
+                        <span class="text-xs text-gray-400">–</span>
                         <input type="date" id="filterDateTo"
-                            class="rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
+                            class="w-32 border-0 bg-transparent text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
                     </div>
-                    <div class="flex items-center gap-2">
-                        <label class="whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">Business Unit:</label>
-                        <select id="filterBusinessUnit"
-                            class="rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600">
+
+                    {{-- Business Unit (Select2) --}}
+                    <div style="min-width:200px;">
+                        <select id="filterBusinessUnit">
                             <option value="">All Business Unit</option>
                         </select>
                     </div>
+
+                    {{-- Reset --}}
                     <button id="resetFilters" type="button"
-                        class="rounded border border-gray-400 bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                        class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
                         Reset
                     </button>
                 </div>
@@ -160,6 +185,7 @@
         $(document).ready(function() {
             // 🔥 default: tampilkan On Hold (H)
             let jobStatusFilter = 'H';
+            let adminAllFilter  = false;
 
             const table = $('#wosTable').DataTable({
                 processing: true,
@@ -217,10 +243,11 @@
                     url: "{{ route('wos.jsonJobs') }}",
                     type: "GET",
                     data: function(d) {
-                        d.job_status = jobStatusFilter ?? '';
+                        d.job_status  = adminAllFilter ? '' : (jobStatusFilter ?? '');
+                        d.admin_all   = adminAllFilter ? 1 : 0;
                         d.business_unit = $('#filterBusinessUnit').val();
                         d.date_from = $('#filterDateFrom').val();
-                        d.date_to = $('#filterDateTo').val();
+                        d.date_to   = $('#filterDateTo').val();
                     }
                 },
                 order: [
@@ -339,28 +366,53 @@
                 responsive: true
             });
 
-            function loadBusinessUnits() {
-                $.get('/wo-business-units', function(data) {
-                    let select = $('#filterBusinessUnit');
+            const $buSelect = $('#filterBusinessUnit');
 
-                    select.empty();
-                    select.append(`<option value="">All Business Unit</option>`);
-
-                    data.forEach(val => {
-                        select.append(`<option value="${val}">${val}</option>`);
-                    });
+            function initSelect2() {
+                if ($buSelect.hasClass('select2-hidden-accessible')) {
+                    $buSelect.select2('destroy');
+                }
+                $buSelect.select2({
+                    placeholder: 'All Business Unit',
+                    allowClear: true,
+                    width: '100%',
+                });
+                // trigger table reload on change
+                $buSelect.off('change.bu').on('change.bu', function() {
+                    table.ajax.reload();
                 });
             }
 
-            loadBusinessUnits();
+            function loadBusinessUnits(isAdminAll) {
+                const params = isAdminAll ? '?admin_all=1' : '';
+                $.get('/wo-business-units' + params, function(data) {
+                    const current = $buSelect.val();
 
-            // Helper highlight: aktifkan tombol sesuai jobStatusFilter
+                    $buSelect.empty().append('<option value="">All Business Unit</option>');
+                    data.forEach(val => {
+                        $buSelect.append(`<option value="${val}">${val}</option>`);
+                    });
+
+                    initSelect2();
+
+                    if (current && data.includes(current)) $buSelect.val(current).trigger('change');
+                });
+            }
+
+            loadBusinessUnits(false);
+
+            // Helper highlight: aktifkan tombol sesuai state aktif
             function setActiveCards() {
-                document.querySelectorAll('.status-filter, .job-filter').forEach(b => b.classList.remove('active'));
-                const btn = document.querySelector(
-                    `.status-filter[data-status="${jobStatusFilter}"], .job-filter[data-job="${jobStatusFilter}"]`
-                );
-                if (btn) btn.classList.add('active');
+                document.querySelectorAll('.status-filter, .job-filter, .admin-all-filter').forEach(b => b.classList.remove('active'));
+                if (adminAllFilter) {
+                    const btn = document.querySelector('.admin-all-filter');
+                    if (btn) btn.classList.add('active');
+                } else {
+                    const btn = document.querySelector(
+                        `.status-filter[data-status="${jobStatusFilter}"], .job-filter[data-job="${jobStatusFilter}"]`
+                    );
+                    if (btn) btn.classList.add('active');
+                }
             }
 
             // initial
@@ -371,13 +423,28 @@
             // - Kartu lain .status-filter data-status=""|"P"|"R"|"C"
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
-                jobStatusFilter = $(this).data('status') || ''; // '' = All job statuses
+                if (adminAllFilter) { adminAllFilter = false; loadBusinessUnits(false); }
+                jobStatusFilter = $(this).data('status') || '';
                 setActiveCards();
                 table.ajax.reload(null, true);
             });
 
-            $('#filterBusinessUnit').on('change', function() {
-                table.ajax.reload();
+            $('.job-filter').on('click', function(e) {
+                e.preventDefault();
+                if (adminAllFilter) { adminAllFilter = false; loadBusinessUnits(false); }
+                jobStatusFilter = $(this).data('job') || '';
+                setActiveCards();
+                table.ajax.reload(null, true);
+            });
+
+            // Admin-only: WO Jobs All (semua perusahaan)
+            $('.admin-all-filter').on('click', function(e) {
+                e.preventDefault();
+                adminAllFilter  = true;
+                jobStatusFilter = '';
+                setActiveCards();
+                loadBusinessUnits(true);
+                table.ajax.reload(null, true);
             });
 
             $('#filterDateFrom, #filterDateTo').on('change', function() {
@@ -387,15 +454,8 @@
             $('#resetFilters').on('click', function() {
                 $('#filterDateFrom').val('');
                 $('#filterDateTo').val('');
-                $('#filterBusinessUnit').val('');
+                $buSelect.val('').trigger('change');
                 table.ajax.reload();
-            });
-
-            $('.job-filter').on('click', function(e) {
-                e.preventDefault();
-                jobStatusFilter = $(this).data('job') || '';
-                setActiveCards();
-                table.ajax.reload(null, true);
             });
         });
     </script>

@@ -1984,13 +1984,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
         ->name('attachments.delete');
 
-    Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
-    Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
-    Route::post('/kendaraan', [KendaraanController::class, 'store'])->name('kendaraan.store');
-    Route::get('/kendaraan/{id}/edit', [KendaraanController::class, 'edit'])->name('kendaraan.edit');
-    Route::put('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
-    Route::put('/kendaraan/{id}/toggle-status', [KendaraanController::class, 'toggleStatus'])->name('kendaraan.toggle-status');
-
     Route::get('/groupbiaya-nonpurch', [MsGroupbiayaNonPurchController::class, 'index'])->name('groupbiayanonpurch');
     Route::get('/groupbiaya-nonpurch/json', [MsGroupbiayaNonPurchController::class, 'json'])->name('groupbiayanonpurch.json');
     Route::post('/groupbiaya-nonpurch/store', [MsGroupbiayaNonPurchController::class, 'store'])->name('groupbiayanonpurch.store');
@@ -1999,6 +1992,13 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/groupbiaya-nonpurch/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'toggleStatus'])->name('groupbiayanonpurch.toggle-status');
 
     }); // end admin middleware
+
+    Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
+    Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
+    Route::post('/kendaraan', [KendaraanController::class, 'store'])->name('kendaraan.store');
+    Route::get('/kendaraan/{id}/edit', [KendaraanController::class, 'edit'])->name('kendaraan.edit');
+    Route::put('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
+    Route::put('/kendaraan/{id}/toggle-status', [KendaraanController::class, 'toggleStatus'])->name('kendaraan.toggle-status');
 
     Route::get('/inventories-user', [InventoryUserController::class, 'index'])->name('inventories-user');
     Route::get('/inventories-user/json', [InventoryUserController::class, 'json'])->name('inventories-user.json');

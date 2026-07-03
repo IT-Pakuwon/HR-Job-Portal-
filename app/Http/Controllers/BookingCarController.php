@@ -250,20 +250,13 @@ class BookingCarController extends Controller
 
         if (!$showAll) {
             if ($isGA) {
-                // GA: approval-line bookings OR own created bookings
-                $approvalDocids = TrApproval::whereRaw(
-                        "LOWER(aprv_username) ~ ?",
-                        ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                    )
-                    ->pluck('refnbr')
-                    ->unique()
-                    ->values()
-                    ->toArray();
-
-                $base->where(function ($q) use ($approvalDocids, $username) {
-                    $q->whereIn('bc.docid', $approvalDocids)
-                      ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
-                });
+                // GA: all bookings for their assigned company (either requester company or expense company)
+                if (!empty($cpnyIds)) {
+                    $base->where(function ($q) use ($cpnyIds) {
+                        $q->whereIn(DB::raw('TRIM(bc.cpny_id)'), $cpnyIds)
+                          ->orWhereIn(DB::raw('TRIM(bc.cpny_id_site)'), $cpnyIds);
+                    });
+                }
             } else {
                 // Regular user: own docs + same company/department
                 $base->where(function ($q) use ($username, $cpnyIds, $deptIds) {
@@ -360,6 +353,10 @@ class BookingCarController extends Controller
         $isGA    = $user->hasRole('GAACCESS');
         $username = strtolower(trim($user->username));
 
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
+
         $base = TrBookingCar::from('tr_booking_car as bc')
             ->whereIn('bc.status', ['P', 'C', 'F', 'D'])
             ->select([
@@ -371,21 +368,13 @@ class BookingCarController extends Controller
             ]);
 
         if ($isGA) {
-            // GA: approval-line bookings OR own created bookings
-            // TrApproval is on pgsql2, TrBookingCar on pgsql5 — fetch docids separately
-            $docids = TrApproval::whereRaw(
-                    "LOWER(aprv_username) ~ ?",
-                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                )
-                ->pluck('refnbr')
-                ->unique()
-                ->values()
-                ->toArray();
-
-            $base->where(function ($q) use ($docids, $username) {
-                $q->whereIn('bc.docid', $docids)
-                  ->orWhereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);
-            });
+            // GA: all bookings for their assigned company (either requester company or expense company)
+            if (!empty($cpnyIds)) {
+                $base->where(function ($q) use ($cpnyIds) {
+                    $q->whereIn(DB::raw('TRIM(bc.cpny_id)'), $cpnyIds)
+                      ->orWhereIn(DB::raw('TRIM(bc.cpny_id_site)'), $cpnyIds);
+                });
+            }
         } else {
             // Regular user: only own bookings
             $base->whereRaw('LOWER(TRIM(bc.created_by)) = ?', [$username]);

@@ -192,31 +192,13 @@ class VoucherTaxiController extends Controller
 
         if (!$showAll) {
             if ($isGA) {
-                // GA user: sees approval-chain vouchers OR own company/department (BOTH views)
-                $approvalDocids = TrApproval::where('status', '!=', 'X')
-                    ->whereRaw(
-                        "LOWER(aprv_username) ~ ?",
-                        ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                    )
-                    ->pluck('refnbr')
-                    ->unique()
-                    ->values()
-                    ->toArray();
-
-                $query->where(function ($q) use ($approvalDocids, $cpnyIds, $deptIds) {
-                    $q->whereIn('vt.docid', $approvalDocids);
-
-                    if (!empty($cpnyIds) || !empty($deptIds)) {
-                        $q->orWhere(function ($sub) use ($cpnyIds, $deptIds) {
-                            if (!empty($cpnyIds)) {
-                                $sub->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds);
-                            }
-                            if (!empty($deptIds)) {
-                                $sub->whereIn(DB::raw('TRIM(vt.department_id)'), $deptIds);
-                            }
-                        });
-                    }
-                });
+                // GA: all vouchers for their assigned company (requester or expense company)
+                if (!empty($cpnyIds)) {
+                    $query->where(function ($q) use ($cpnyIds) {
+                        $q->whereIn(DB::raw('TRIM(vt.cpny_id)'), $cpnyIds)
+                          ->orWhereIn(DB::raw('TRIM(vt.cpny_id_expense)'), $cpnyIds);
+                    });
+                }
             } else {
                 // Regular user: sees all vouchers in their company AND department
                 if (!empty($cpnyIds)) {
@@ -289,30 +271,27 @@ class VoucherTaxiController extends Controller
         $isGA     = $user->hasRole('GAACCESS');
         $username = strtolower(trim($user->username));
 
+        $cpnyIds = is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
+
         $base = TrVoucherTaxi::query()
             ->whereIn('status', ['P', 'C', 'F', 'D'])
             ->select([
                 'id', 'docid', 'date_used',
                 'origin', 'destination',
                 'purpose_descr', 'status',
-                'cpny_id', 'department_id', 'created_by',
+                'cpny_id', 'cpny_id_expense', 'department_id', 'created_by',
             ]);
 
         if ($isGA) {
-            $docids = TrApproval::where('status', '!=', 'X')
-                ->whereRaw(
-                    "LOWER(aprv_username) ~ ?",
-                    ['(^|,)\s*' . preg_quote($username, '/') . '\s*(,|$)']
-                )
-                ->pluck('refnbr')
-                ->unique()
-                ->values()
-                ->toArray();
-
-            $base->where(function ($q) use ($docids, $username) {
-                $q->whereIn('docid', $docids)
-                  ->orWhereRaw('LOWER(TRIM(created_by)) = ?', [$username]);
-            });
+            // GA: all vouchers for their assigned company (requester or expense company)
+            if (!empty($cpnyIds)) {
+                $base->where(function ($q) use ($cpnyIds) {
+                    $q->whereIn(DB::raw('TRIM(cpny_id)'), $cpnyIds)
+                      ->orWhereIn(DB::raw('TRIM(cpny_id_expense)'), $cpnyIds);
+                });
+            }
         } else {
             $base->whereRaw('LOWER(TRIM(created_by)) = ?', [$username]);
         }

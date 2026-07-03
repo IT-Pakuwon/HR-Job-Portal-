@@ -2037,11 +2037,17 @@ class WoController extends Controller
             $deptIds = (array) $user->department_id;
         }
         // dd($deptIds);
+        $isAdmin = $user->user_role === 'admin';
+
         // Kalau salah satu kosong → tidak ada data
         if (empty($cpnyIds) || empty($deptIds)) {
-            $all = $onProgress = $cancel = $completed = $wojobs = 0;
-
-            return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed'));
+            $all = $onProgress = $cancel = $completed = $wojobs = $adminAll = 0;
+            if ($isAdmin) {
+                $adminAll = TrWO::from('tr_wo as wo')
+                    ->where('wo.status', 'C')
+                    ->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+            }
+            return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed', 'adminAll', 'isAdmin'));
         }
 
         $base = TrWO::from('tr_wo as wo')
@@ -2059,7 +2065,14 @@ class WoController extends Controller
         $completed = (clone $base)->where('wo.status_pekerjaan', 'C')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
         $wojobs = (clone $base)->where('wo.status_pekerjaan', 'H')->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
 
-        return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed'));
+        $adminAll = 0;
+        if ($isAdmin) {
+            $adminAll = TrWO::from('tr_wo as wo')
+                ->where('wo.status', 'C')
+                ->selectRaw('COUNT(DISTINCT wo.woid) AS c')->value('c');
+        }
+
+        return view('pages.wos.wojobs', compact('all', 'onProgress', 'cancel', 'wojobs', 'completed', 'adminAll', 'isAdmin'));
     }
 
     public function jsonJobs(Request $request)
@@ -2075,6 +2088,9 @@ class WoController extends Controller
             ]);
         }
 
+        $isAdmin  = $user->user_role === 'admin';
+        $adminAll = $isAdmin && (bool) $request->query('admin_all', false);
+
         // Company multi
         if (is_string($user->cpny_id)) {
             $cpnyIds = array_map('trim', explode(',', $user->cpny_id));
@@ -2089,7 +2105,8 @@ class WoController extends Controller
             $deptIds = (array) $user->department_id;
         }
 
-        if (empty($cpnyIds) || empty($deptIds)) {
+        // Admin with admin_all bypasses company/dept requirement
+        if (!$adminAll && (empty($cpnyIds) || empty($deptIds))) {
             return response()->json([
                 'draw' => (int) $request->input('draw', 1),
                 'recordsTotal' => 0,
@@ -2142,8 +2159,10 @@ class WoController extends Controller
                 $j->on('subloc.sub_location_id', '=', 'wo.sub_location_id');
             })
 
-            ->whereIn('wo.cpny_id', $cpnyIds)
-            ->whereIn('wtd.department_id', $deptIds);
+            ->when(!$adminAll, function ($q) use ($cpnyIds, $deptIds) {
+                $q->whereIn('wo.cpny_id', $cpnyIds)
+                  ->whereIn('wtd.department_id', $deptIds);
+            });
 
         // Filter job status
         if ($jobStatus !== '') {
@@ -2225,27 +2244,33 @@ class WoController extends Controller
         ]);
     }
 
-    public function businessUnits()
+    public function businessUnits(Request $request)
     {
         $user = Auth::user();
 
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_map('trim', explode(',', $user->cpny_id))
-            : (array) $user->cpny_id;
+        $isAdmin  = $user->user_role === 'admin';
+        $adminAll = $isAdmin && (bool) $request->query('admin_all', false);
 
-        $deptIds = is_string($user->department_id)
-            ? array_map('trim', explode(',', $user->department_id))
-            : (array) $user->department_id;
+        $query = TrWO::from('tr_wo as wo')
+            ->whereNotNull('wo.budget_business_unit_id');
 
-        $data = TrWO::from('tr_wo as wo')
-            ->join('ms_worktype_dept as wtd', function ($j) {
-                $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
-            })
-            ->whereIn('wo.cpny_id', $cpnyIds)
-            ->whereIn('wtd.department_id', $deptIds)
-            ->whereNotNull('wo.budget_business_unit_id')
-            ->distinct()
-            ->pluck('wo.budget_business_unit_id');
+        if (!$adminAll) {
+            $cpnyIds = is_string($user->cpny_id)
+                ? array_map('trim', explode(',', $user->cpny_id))
+                : (array) $user->cpny_id;
+
+            $deptIds = is_string($user->department_id)
+                ? array_map('trim', explode(',', $user->department_id))
+                : (array) $user->department_id;
+
+            $query->join('ms_worktype_dept as wtd', function ($j) {
+                    $j->on('wtd.worktypeid', '=', 'wo.worktypeid');
+                })
+                ->whereIn('wo.cpny_id', $cpnyIds)
+                ->whereIn('wtd.department_id', $deptIds);
+        }
+
+        $data = $query->distinct()->pluck('wo.budget_business_unit_id');
 
         return response()->json($data);
     }

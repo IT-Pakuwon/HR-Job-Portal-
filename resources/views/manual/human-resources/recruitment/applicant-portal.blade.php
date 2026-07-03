@@ -169,4 +169,87 @@
         </div>
     </section>
 
+    {{-- Section 4: Remapping Applicant --}}
+    <section class="space-y-6">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700">
+            <button @click="toggle('s4')" class="flex w-full items-center justify-between px-6 py-4 text-left font-semibold">
+                <span><span x-show="lang==='en'">4. Remapping Applicant to Another Position</span><span x-show="lang==='id'">4. Remapping Pelamar ke Posisi Lain</span></span>
+                <span x-text="openSection==='s4'?'−':'+'"></span>
+            </button>
+            <div x-show="openSection==='s4'" x-transition class="space-y-4 px-6 pb-6">
+                <p class="text-gray-600 dark:text-gray-400">
+                    <span x-show="lang==='en'">The <strong>Remap</strong> feature allows HR to reassign an applicant from their original applied position to a different open job vacancy. This is useful when a candidate's qualifications are a better fit for another available role.</span>
+                    <span x-show="lang==='id'">Fitur <strong>Remap</strong> memungkinkan HR untuk memindahkan pelamar dari posisi lamaran asal mereka ke lowongan kerja yang berbeda. Fitur ini berguna ketika kualifikasi kandidat lebih sesuai dengan posisi lain yang tersedia.</span>
+                </p>
+
+                <div class="manual-note manual-warning">
+                    <span x-show="lang==='en'">Remapping will <strong>reset the applicant's recruitment progress</strong> to the beginning (HR Check step) under the new position. All previous step records remain stored but are no longer active.</span>
+                    <span x-show="lang==='id'">Remapping akan <strong>mereset progres rekrutmen pelamar</strong> ke awal (tahap HR Check) di bawah posisi baru. Semua catatan tahap sebelumnya tetap tersimpan namun tidak lagi aktif.</span>
+                </div>
+
+                <div>
+                    <p class="font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <span x-show="lang==='en'">How to Remap an Applicant:</span>
+                        <span x-show="lang==='id'">Cara Melakukan Remap Pelamar:</span>
+                    </p>
+                    <ol class="space-y-3 pl-2 text-gray-600 dark:text-gray-400">
+                        <li class="flex gap-3">
+                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">1</span>
+                            <div>
+                                <span x-show="lang==='en'">Open the applicant's profile by clicking their name in the Applicant Portal list.</span>
+                                <span x-show="lang==='id'">Buka profil pelamar dengan mengklik nama mereka di daftar Applicant Portal.</span>
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">2</span>
+                            <div>
+                                <span x-show="lang==='en'">Click the <strong>Remap</strong> button available on the profile page.</span>
+                                <span x-show="lang==='id'">Klik tombol <strong>Remap</strong> yang tersedia di halaman profil.</span>
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">3</span>
+                            <div>
+                                <span x-show="lang==='en'">A dialog will appear showing available open vacancies. Select the target position you want to move the applicant to.</span>
+                                <span x-show="lang==='id'">Sebuah dialog akan muncul menampilkan lowongan yang tersedia. Pilih posisi tujuan yang ingin Anda pindahkan pelamar tersebut.</span>
+                            </div>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">4</span>
+                            <div>
+                                <span x-show="lang==='en'">Confirm the remapping. The applicant will now appear under the new vacancy and their recruitment process restarts from <strong>HR Check</strong>.</span>
+                                <span x-show="lang==='id'">Konfirmasi pemindahan. Pelamar akan muncul di bawah lowongan baru dan proses rekrutmen mereka dimulai ulang dari tahap <strong>HR Check</strong>.</span>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-600 dark:text-gray-400">
+                        <thead class="bg-gray-50 dark:bg-gray-800 text-xs uppercase">
+                            <tr>
+                                <th class="px-4 py-2"><span x-show="lang==='en'">Condition</span><span x-show="lang==='id'">Kondisi</span></th>
+                                <th class="px-4 py-2"><span x-show="lang==='en'">Can be Remapped?</span><span x-show="lang==='id'">Dapat Di-remap?</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                            <tr>
+                                <td class="px-4 py-2"><span x-show="lang==='en'">Status: Unchecked or Checked (in progress)</span><span x-show="lang==='id'">Status: Unchecked atau Checked (sedang diproses)</span></td>
+                                <td class="px-4 py-2 text-green-600 font-semibold"><span x-show="lang==='en'">Yes</span><span x-show="lang==='id'">Ya</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2"><span x-show="lang==='en'">Status: Completed</span><span x-show="lang==='id'">Status: Completed</span></td>
+                                <td class="px-4 py-2 text-red-600 font-semibold"><span x-show="lang==='en'">No</span><span x-show="lang==='id'">Tidak</span></td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2"><span x-show="lang==='en'">Status: Rejected</span><span x-show="lang==='id'">Status: Rejected</span></td>
+                                <td class="px-4 py-2 text-red-600 font-semibold"><span x-show="lang==='en'">No</span><span x-show="lang==='id'">Tidak</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </div>
