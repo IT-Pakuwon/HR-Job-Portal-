@@ -1930,9 +1930,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
     Route::put('/inventories/{id}/toggle-status', [InventoryController::class, 'toggleStatus'])->name('inventories.toggle-status');
 
-    Route::get('/inventories-user', [InventoryUserController::class, 'index'])->name('inventories-user');
-    Route::get('/inventories-user/json', [InventoryUserController::class, 'json'])->name('inventories-user.json');
-
     Route::get('/locations', [LocationController::class, 'index'])->name('locations');
 
     Route::get('/locations/json', [LocationController::class, 'locationJson'])->name('locations.json');
@@ -2002,6 +1999,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/groupbiaya-nonpurch/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'toggleStatus'])->name('groupbiayanonpurch.toggle-status');
 
     }); // end admin middleware
+
+    Route::get('/inventories-user', [InventoryUserController::class, 'index'])->name('inventories-user');
+    Route::get('/inventories-user/json', [InventoryUserController::class, 'json'])->name('inventories-user.json');
 
     Route::middleware(['auth'])->group(function () {
         // halaman setting + tombol run
