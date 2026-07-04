@@ -95,8 +95,11 @@
                     <tr>
                         <th>Ref No</th>
                         <th>Date</th>
+                        <th>Company</th>
+                        <th>Department</th>
                         <th>Vehicle</th>
                         <th>Driver</th>
+                        <th>Kilometer</th>
                         <th>Cost Type</th>
                         <th>Description</th>
                         <th>Qty</th>
@@ -141,12 +144,15 @@
             columns: [
                 { data: 'refnbr',            name: 'refnbr' },
                 { data: 'ref_date',          name: 'ref_date' },
-                { data: 'nopol',             name: 'nopol',    defaultContent: '-' },
-                { data: 'driver',            name: 'driver',   defaultContent: '-' },
-                { data: 'cost_type_name',    name: 'cost_type', defaultContent: '-', orderable: false },
-                { data: 'cost_descr',        name: 'cost_descr', defaultContent: '-', orderable: false },
-                { data: 'cost_qty',          name: 'cost_qty',  defaultContent: '-' },
-                { data: 'cost_amount_label', name: 'cost_amount', defaultContent: '-' },
+                { data: 'company',           name: 'company',      defaultContent: '-', orderable: false },
+                { data: 'department',        name: 'department',   defaultContent: '-', orderable: false },
+                { data: 'nopol',             name: 'nopol',        defaultContent: '-' },
+                { data: 'driver',            name: 'driver',       defaultContent: '-' },
+                { data: 'kilometer',         name: 'kilometer',    defaultContent: '-' },
+                { data: 'cost_type_name',    name: 'cost_type',    defaultContent: '-', orderable: false },
+                { data: 'cost_descr',        name: 'cost_descr',   defaultContent: '-', orderable: false },
+                { data: 'cost_qty',          name: 'cost_qty',     defaultContent: '-' },
+                { data: 'cost_amount_label', name: 'cost_amount',  defaultContent: '-' },
             ],
 
             order: [

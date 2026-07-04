@@ -1994,6 +1994,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/groupbiaya-nonpurch/departments', [MsGroupbiayaNonPurchController::class, 'departments'])->name('groupbiayanonpurch.departments');
     Route::get('/groupbiaya-nonpurch/budget/{id}/edit', [MsGroupbiayaNonPurchController::class, 'budgetEdit'])->name('groupbiayanonpurch.budget.edit');
     Route::post('/groupbiaya-nonpurch/budget', [MsGroupbiayaNonPurchController::class, 'budgetStore'])->name('groupbiayanonpurch.budget.store');
+    Route::post('/groupbiaya-nonpurch/budget/batch', [MsGroupbiayaNonPurchController::class, 'budgetBatchStore'])->name('groupbiayanonpurch.budget.batch');
     Route::put('/groupbiaya-nonpurch/budget/{id}', [MsGroupbiayaNonPurchController::class, 'budgetUpdate'])->name('groupbiayanonpurch.budget.update');
     Route::put('/groupbiaya-nonpurch/budget/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'budgetToggleStatus'])->name('groupbiayanonpurch.budget.toggle-status');
     Route::get('/groupbiaya-nonpurch/{groupbiayaId}/budget', [MsGroupbiayaNonPurchController::class, 'budgetJson'])->name('groupbiayanonpurch.budget.json');

@@ -1329,13 +1329,19 @@ class ReportGeneralGAController extends Controller
             ->where('status', 'A')
             ->pluck('category_name', 'id');
 
+        $companies   = \App\Models\MsCompany::pluck('cpny_name', 'cpny_id');
+        $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
+
         $query = DB::connection('pgsql5')->table('tr_car_expense')
             ->whereNull('deleted_at')
             ->select([
                 'refnbr',
                 'ref_date',
+                'cpny_id',
+                'department_id',
                 'nopol',
                 'driver',
+                'kilometer',
                 'cost_type',
                 'cost_descr',
                 'cost_qty',
@@ -1364,6 +1370,10 @@ class ReportGeneralGAController extends Controller
                 ? Carbon::parse($row->ref_date)->format('d-M-Y')
                 : '-'
             )
+
+            ->addColumn('company', fn ($row) => $companies[$row->cpny_id] ?? '-')
+
+            ->addColumn('department', fn ($row) => $departments[$row->department_id] ?? '-')
 
             ->addColumn('cost_type_name', fn ($row) => $categoryMap[$row->cost_type] ?? $row->cost_type ?? '-')
 

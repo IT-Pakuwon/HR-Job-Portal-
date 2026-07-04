@@ -35,18 +35,21 @@ class CarExpenseSheetExport implements FromArray, WithHeadings, WithTitle, Shoul
 
     public function headings(): array
     {
-        return ['Ref No', 'Date', 'Vehicle', 'Driver', 'Cost Type', 'Description', 'Qty', 'Amount'];
+        return ['Ref No', 'Date', 'Company', 'Department', 'Vehicle', 'Driver', 'Kilometer', 'Cost Type', 'Description', 'Qty', 'Amount'];
     }
 
     public function array(): array
     {
         $request = $this->request;
 
+        $companies   = \App\Models\MsCompany::pluck('cpny_name', 'cpny_id');
+        $departments = \App\Models\MsDepartment::pluck('department_name', 'department_id');
+
         $query = DB::connection('pgsql5')
             ->table('tr_car_expense')
             ->whereNull('deleted_at')
             ->where('cost_type', $this->costTypeId)
-            ->select(['refnbr', 'ref_date', 'nopol', 'driver', 'cost_descr', 'cost_qty', 'cost_amount']);
+            ->select(['refnbr', 'ref_date', 'cpny_id', 'department_id', 'nopol', 'driver', 'kilometer', 'cost_descr', 'cost_qty', 'cost_amount']);
 
         if ($request->date_from) {
             $query->whereDate('ref_date', '>=', $request->date_from);
@@ -72,8 +75,11 @@ class CarExpenseSheetExport implements FromArray, WithHeadings, WithTitle, Shoul
         return $rows->map(fn ($row) => [
             $row->refnbr    ?? '-',
             $row->ref_date  ? Carbon::parse($row->ref_date)->format('d-M-Y') : '-',
+            $companies[$row->cpny_id] ?? '-',
+            $departments[$row->department_id] ?? '-',
             $row->nopol     ?: '-',
             $row->driver    ?: '-',
+            $row->kilometer ?? '-',
             $this->costTypeName,
             $row->cost_descr ?: '-',
             $row->cost_qty   ?? '-',
@@ -99,20 +105,20 @@ class CarExpenseSheetExport implements FromArray, WithHeadings, WithTitle, Shoul
                 $sheet    = $event->sheet->getDelegate();
                 $totalRow = $this->rowCount + 2;
 
-                // Format Amount column as number
-                $sheet->getStyle('H2:H' . ($totalRow - 1))
+                // Format Amount column as number (now column K)
+                $sheet->getStyle('K2:K' . ($totalRow - 1))
                     ->getNumberFormat()
                     ->setFormatCode('#,##0');
 
                 // Total row
                 $sheet->setCellValue('A' . $totalRow, 'TOTAL');
-                $sheet->mergeCells('A' . $totalRow . ':G' . $totalRow);
-                $sheet->setCellValue('H' . $totalRow, $this->totalAmount);
-                $sheet->getStyle('H' . $totalRow)
+                $sheet->mergeCells('A' . $totalRow . ':J' . $totalRow);
+                $sheet->setCellValue('K' . $totalRow, $this->totalAmount);
+                $sheet->getStyle('K' . $totalRow)
                     ->getNumberFormat()
                     ->setFormatCode('#,##0');
 
-                $sheet->getStyle('A' . $totalRow . ':H' . $totalRow)->applyFromArray([
+                $sheet->getStyle('A' . $totalRow . ':K' . $totalRow)->applyFromArray([
                     'font' => ['bold' => true],
                     'fill' => [
                         'fillType'   => Fill::FILL_SOLID,
