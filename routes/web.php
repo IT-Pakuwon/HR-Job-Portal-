@@ -1984,6 +1984,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
         ->name('attachments.delete');
 
+    }); // end admin middleware
+
+    // ── Group Biaya Non Purch (admin + cost control) ──────────────────────────
     Route::get('/groupbiaya-nonpurch', [MsGroupbiayaNonPurchController::class, 'index'])->name('groupbiayanonpurch');
     Route::get('/groupbiaya-nonpurch/json', [MsGroupbiayaNonPurchController::class, 'json'])->name('groupbiayanonpurch.json');
     Route::post('/groupbiaya-nonpurch/store', [MsGroupbiayaNonPurchController::class, 'store'])->name('groupbiayanonpurch.store');
@@ -1998,7 +2001,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/groupbiaya-nonpurch/budget/{id}', [MsGroupbiayaNonPurchController::class, 'budgetUpdate'])->name('groupbiayanonpurch.budget.update');
     Route::put('/groupbiaya-nonpurch/budget/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'budgetToggleStatus'])->name('groupbiayanonpurch.budget.toggle-status');
     Route::get('/groupbiaya-nonpurch/{groupbiayaId}/budget', [MsGroupbiayaNonPurchController::class, 'budgetJson'])->name('groupbiayanonpurch.budget.json');
-
     // Cost Controller Access (Tab 2)
     Route::get('/groupbiaya-nonpurch/cc/companies',         [MsGroupbiayaNonPurchController::class, 'ccCompaniesJson'])->name('groupbiayanonpurch.cc.companies');
     Route::get('/groupbiaya-nonpurch/cc/departments-fin',   [MsGroupbiayaNonPurchController::class, 'ccDepartmentFinJson'])->name('groupbiayanonpurch.cc.departments-fin');
@@ -2009,8 +2011,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/groupbiaya-nonpurch/cc/{deptFinId}/{groupbiayaId}/coa',[MsGroupbiayaNonPurchController::class, 'ccCoaJson'])->name('groupbiayanonpurch.cc.coa');
     Route::post('/groupbiaya-nonpurch/cc/assign-groupbiaya',[MsGroupbiayaNonPurchController::class, 'ccAssignGroupbiaya'])->name('groupbiayanonpurch.cc.assign-groupbiaya');
     Route::post('/groupbiaya-nonpurch/cc/assign-coa',       [MsGroupbiayaNonPurchController::class, 'ccAssignCoa'])->name('groupbiayanonpurch.cc.assign-coa');
-
-    }); // end admin middleware
 
     Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
     Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');

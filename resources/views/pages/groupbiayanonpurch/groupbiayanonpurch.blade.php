@@ -2,7 +2,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- ── TABS ────────────────────────────────────────────────────────────── --}}
-        <div class="mt-4">
+        <div>
             <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0">
                 <button id="tab-master"
                     class="tab-btn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400"
@@ -60,45 +60,73 @@
 
                     {{-- LEFT: Department Fin list --}}
                     <div class="cc-panel-left flex flex-col border-b md:border-b-0 border-gray-200 dark:border-gray-700
-                                w-full md:w-48 lg:w-56 xl:w-64 md:shrink-0">
+                                w-full md:flex-1 min-w-0">
                         <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 px-3 py-2.5 border-b border-gray-100 dark:border-gray-700">
                             <p class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</p>
                             <input id="deptFinSearch" type="text" placeholder="Search…"
                                 class="mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-indigo-400 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder-gray-400">
                         </div>
-                        <div id="deptFinList" class="overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700 cc-scroll-body"></div>
+                        <div id="deptFinList" class="overflow-y-auto cc-scroll-body">
+                            <table class="w-full text-xs">
+                                <thead class="sticky top-0 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/80">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300 w-24">Dept ID</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="deptFinTbody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                            </table>
+                        </div>
                     </div>
 
                     {{-- CENTER: Group Biaya --}}
                     <div class="cc-panel-center flex flex-col border-b md:border-b-0 border-gray-200 dark:border-gray-700
                                 w-full md:flex-1 min-w-0">
-                        <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between gap-2">
-                            <div class="min-w-0">
-                                <p class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Group Biaya</p>
-                                <p id="ccDeptLabel" class="mt-0.5 text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate">— select a department —</p>
+                        <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 px-4 py-2.5 border-b border-gray-100 dark:border-gray-700">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Group Biaya</p>
+                                    <p id="ccDeptLabel" class="mt-0.5 text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate">— select a department —</p>
+                                </div>
+                                <button id="ccAssignGbBtn"
+                                    class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
+                                    + Assign
+                                </button>
                             </div>
-                            <button id="ccAssignGbBtn"
-                                class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
-                                + Assign
-                            </button>
+                            <input id="gbSearch" type="text" placeholder="Search…"
+                                class="mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-indigo-400 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder-gray-400">
                         </div>
                         <div id="ccGbEmpty" class="flex items-center justify-center text-sm text-gray-300 dark:text-gray-600 cc-scroll-body">
                             Select a department first
                         </div>
-                        <div id="ccGbContent" class="hidden overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700 cc-scroll-body"></div>
+                        <div id="ccGbContent" class="hidden overflow-y-auto cc-scroll-body">
+                            <table class="w-full text-xs">
+                                <thead class="sticky top-0 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/80">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left font-semibold text-gray-500 dark:text-gray-300 w-20">GB ID</th>
+                                        <th class="px-4 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ccGbTbody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                            </table>
+                        </div>
                     </div>
 
                     {{-- RIGHT: COA --}}
                     <div class="cc-panel-right flex flex-col w-full md:flex-1 min-w-0">
-                        <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 px-4 py-2.5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between gap-2">
-                            <div class="min-w-0">
-                                <p class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">COA (Account)</p>
-                                <p id="ccGbLabel" class="mt-0.5 text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate">— select a group biaya —</p>
+                        <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 px-4 py-2.5 border-b border-gray-100 dark:border-gray-700">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">COA (Account)</p>
+                                    <p id="ccGbLabel" class="mt-0.5 text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate">— select a group biaya —</p>
+                                </div>
+                                <button id="ccAssignCoaBtn"
+                                    class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                                    + Assign
+                                </button>
                             </div>
-                            <button id="ccAssignCoaBtn"
-                                class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
-                                + Assign
-                            </button>
+                            <input id="coaSearch" type="text" placeholder="Search…"
+                                class="mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-emerald-400 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder-gray-400">
                         </div>
                         <div id="ccCoaEmpty" class="flex items-center justify-center text-sm text-gray-300 dark:text-gray-600 cc-scroll-body">
                             Select a group biaya first
@@ -477,38 +505,29 @@
         }
 
         $(document).ready(function () {
-            let nextGroupbiayaId        = @json($nextGroupbiayaId ?? '');
-            let selectedGroupbiayaId    = null;
-            let selectedGroupbiayaDescr = null;
-            let companiesCache          = null;
-            let departmentsCache        = null;
-            let budgetTable             = null;
-            let previewMode             = false;
+            let nextGroupbiayaId = @json($nextGroupbiayaId ?? '');
+            let companiesCache   = null;
+            let departmentsCache = null;
+            let previewMode      = false;
 
             // ── Tab 1: Group Biaya DataTable ─────────────────────────────────────
             const gbColumns = [];
-
             if (IS_ADMIN) {
                 gbColumns.push({
-                    data: 'id',
-                    className: 'text-center',
-                    width: '56px',
-                    orderable: false,
+                    data: 'id', className: 'text-center', width: '56px', orderable: false,
                     render: function (data, type, row) {
-                        return `
-                            <div class="flex justify-center items-center gap-1">
-                                <label class="switch" style="transform:scale(0.8)">
-                                    <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
-                                    <span class="slider round"></span>
-                                </label>
-                                <button class="editGroupBiayaBtn bg-blue-500 text-white px-1.5 py-0.5 rounded text-xs" data-id="${data}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>`;
+                        return `<div class="flex justify-center items-center gap-1">
+                            <label class="switch" style="transform:scale(0.8)">
+                                <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                <span class="slider round"></span>
+                            </label>
+                            <button class="editGroupBiayaBtn bg-blue-500 text-white px-1.5 py-0.5 rounded text-xs" data-id="${data}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>`;
                     }
                 });
             }
-
             gbColumns.push(
                 { data: 'groupbiaya_id', width: '70px', className: 'text-xs font-mono text-gray-500 dark:text-gray-400 px-2 py-2.5' },
                 { data: 'groupbiayadescr', className: 'text-sm px-2 py-2.5 text-gray-800 dark:text-gray-100' }
@@ -524,22 +543,21 @@
                 },
                 processing: true,
                 serverSide: false,
-                pageLength: 25,
                 lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
-                dom: '<"dt-toolbar flex flex-wrap items-center gap-2 mb-2"lBf>rtip',
+                dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [
                     {
                         extend: 'excelHtml5',
                         text: '↓ Excel',
                         title: 'Master_Group_Biaya',
-                        className: 'bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700',
+                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
                         exportOptions: { columns: ':visible' }
                     },
                     {
                         extend: 'csvHtml5',
                         text: '↓ CSV',
                         title: 'Master_Group_Biaya',
-                        className: 'bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700',
+                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
                         exportOptions: { columns: ':visible' }
                     }
                 ],
@@ -547,83 +565,7 @@
                 columns: gbColumns,
             });
 
-            // Row click on Tab 1 → go to Tab 2 with that group biaya selected
-            $('#groupBiayaTable tbody').on('click', 'tr', function (e) {
-                if ($(e.target).closest('.editGroupBiayaBtn, .toggleStatus, label, .slider').length) return;
-                let data = table.row(this).data();
-                if (!data) return;
-
-                selectedGroupbiayaId    = data.groupbiaya_id;
-                selectedGroupbiayaDescr = data.groupbiayadescr;
-
-                $('#groupBiayaTable tbody tr').removeClass('gb-selected');
-                $(this).addClass('gb-selected');
-
-                $('#selectedIdBadge').text(selectedGroupbiayaId);
-                $('#selectedDescrText').text(selectedGroupbiayaDescr);
-                $('#rightEmpty').addClass('hidden');
-                $('#rightContent').removeClass('hidden');
-
-                switchTab('budget');
-                loadBudgetTable(selectedGroupbiayaId);
-            });
-
-            // ── Tab 2: Budget Assignment DataTable ───────────────────────────────
-            function loadBudgetTable(groupbiayaId) {
-                if (budgetTable) {
-                    budgetTable.ajax.url(`/groupbiaya-nonpurch/${groupbiayaId}/budget`).load();
-                    return;
-                }
-
-                const budgetColumns = [
-                    { data: null, defaultContent: '' },
-                ];
-
-                if (IS_ADMIN) {
-                    budgetColumns.push({
-                        data: 'id', className: 'text-center', width: '80px', orderable: false,
-                        render: function (data, type, row) {
-                            return `
-                                <div class="flex justify-center items-center gap-1">
-                                    <label class="switch">
-                                        <input type="checkbox" class="toggleBudgetStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
-                                        <span class="slider round"></span>
-                                    </label>
-                                    <button class="editBudgetBtn bg-blue-500 text-white px-2 py-1 rounded text-xs" data-id="${data}">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>`;
-                        }
-                    });
-                }
-
-                budgetColumns.push(
-                    { data: 'cpny_id', className: 'text-sm px-3' },
-                    { data: 'department_id', className: 'text-sm px-3' },
-                    { data: 'is_budget', className: 'text-center', render: d => ynBadge(d) },
-                    {
-                        data: 'status', className: 'text-center',
-                        render: d => d === 'A'
-                            ? '<span class="bg-green-300/30 text-green-600 font-semibold px-3 py-0.5 rounded-full text-xs">Active</span>'
-                            : '<span class="bg-red-300/30 text-red-600 font-semibold px-3 py-0.5 rounded-full text-xs">Inactive</span>'
-                    }
-                );
-
-                budgetTable = $('#budgetTable').DataTable({
-                    ajax: {
-                        url: `/groupbiaya-nonpurch/${groupbiayaId}/budget`,
-                        type: 'GET',
-                        dataSrc: 'data',
-                    },
-                    processing: true,
-                    serverSide: false,
-                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
-                    responsive: { details: { type: 'column', target: 0 } },
-                    columnDefs: [{ targets: 0, width: '28px', className: 'dtr-control', orderable: false }],
-                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
-                    columns: budgetColumns,
-                });
-            }
+            function loadGbTable() { table.ajax.reload(null, false); }
 
             @if($isAdmin)
             // ── GROUP BIAYA: Add / Edit ──────────────────────────────────────────
@@ -663,9 +605,9 @@
                     url: `/groupbiaya-nonpurch/${id}/toggle-status`, type: 'PUT',
                     headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     data: { status: newStatus },
-                    success: () => table.ajax.reload(null, false),
+                    success: () => loadGbTable(),
                     error: xhr => {
-                        table.ajax.reload(null, false);
+                        loadGbTable();
                         Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Failed' });
                     }
                 });
@@ -696,7 +638,7 @@
                             if (m) nextGroupbiayaId = 'GB' + String(parseInt(m[1]) + 1).padStart(3, '0');
                         }
                         $('#groupBiayaModal').addClass('hidden');
-                        table.ajax.reload(null, false);
+                        loadGbTable();
                         Swal.fire({ icon: 'success', title: 'Saved', timer: 1500, showConfirmButton: false });
                     },
                     error: function (xhr) {
@@ -1033,7 +975,8 @@
                 $('#ccDeptLabel').text('— select a department —');
                 $('#ccAssignGbBtn').addClass('hidden');
                 $('#ccGbEmpty').removeClass('hidden');
-                $('#ccGbContent').addClass('hidden').html('');
+                $('#ccGbContent').addClass('hidden');
+                $('#ccGbTbody').html('');
                 $('#ccGbLabel').text('— select a group biaya —');
                 $('#ccAssignCoaBtn').addClass('hidden');
                 $('#ccCoaEmpty').removeClass('hidden');
@@ -1047,7 +990,8 @@
             });
 
             function loadCcDepartments(cpnyId) {
-                $('#deptFinList').html('<p class="px-3 py-4 text-xs text-center text-gray-400">Loading…</p>');
+                $('#deptFinSearch').val('');
+                $('#deptFinTbody').html('<tr><td colspan="2" class="px-3 py-4 text-center text-gray-400">Loading…</td></tr>');
                 let params = cpnyId ? { cpny_id: cpnyId } : {};
                 $.getJSON("{{ route('groupbiayanonpurch.cc.departments-fin') }}", params, function (res) {
                     renderDeptFinList(res.data || []);
@@ -1056,21 +1000,37 @@
 
             function renderDeptFinList(depts) {
                 if (!depts.length) {
-                    $('#deptFinList').html('<p class="px-3 py-4 text-xs text-gray-400 text-center">No departments found</p>');
+                    $('#deptFinTbody').html('<tr><td colspan="2" class="px-3 py-4 text-center text-gray-400">No departments found</td></tr>');
                     return;
                 }
-                $('#deptFinList').html(depts.map(d => `
-                    <div class="cc-dept-item flex cursor-pointer items-center gap-2 px-3 py-2.5 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors"
-                         data-id="${d.department_fin_id}" data-name="${d.department_name}">
-                        <span class="text-xs font-mono text-gray-500 dark:text-gray-400 w-16 shrink-0">${d.department_fin_id}</span>
-                        <span class="text-xs text-gray-700 dark:text-gray-200 leading-tight">${d.department_name}</span>
-                    </div>`).join(''));
+                $('#deptFinTbody').html(depts.map(d => `
+                    <tr class="cc-dept-item cursor-pointer hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors"
+                        data-id="${d.department_fin_id}" data-name="${d.department_name}">
+                        <td class="px-3 py-2 font-mono text-indigo-500 dark:text-indigo-400">${d.department_fin_id}</td>
+                        <td class="px-3 py-2 text-gray-700 dark:text-gray-200">${d.department_name}</td>
+                    </tr>`).join(''));
             }
 
             // Dept fin search filter
             $('#deptFinSearch').on('input', function () {
                 let q = $(this).val().toLowerCase();
-                $('#deptFinList .cc-dept-item').each(function () {
+                $('#deptFinTbody .cc-dept-item').each(function () {
+                    $(this).toggle($(this).text().toLowerCase().includes(q));
+                });
+            });
+
+            // Group Biaya search filter
+            $('#gbSearch').on('input', function () {
+                let q = $(this).val().toLowerCase();
+                $('#ccGbTbody .cc-gb-item').each(function () {
+                    $(this).toggle($(this).text().toLowerCase().includes(q));
+                });
+            });
+
+            // COA search filter
+            $('#coaSearch').on('input', function () {
+                let q = $(this).val().toLowerCase();
+                $('#ccCoaTableBody tr').each(function () {
                     $(this).toggle($(this).text().toLowerCase().includes(q));
                 });
             });
@@ -1082,7 +1042,7 @@
                 ccSelectedGbId     = null;
                 ccSelectedGbDescr  = null;
 
-                $('#deptFinList .cc-dept-item').removeClass('bg-indigo-100 dark:bg-indigo-900/40 font-semibold');
+                $('#deptFinTbody .cc-dept-item').removeClass('bg-indigo-100 dark:bg-indigo-900/40 font-semibold');
                 $(this).addClass('bg-indigo-100 dark:bg-indigo-900/40 font-semibold');
 
                 $('#ccDeptLabel').text(ccSelectedDeptId + ' — ' + ccSelectedDeptName);
@@ -1098,23 +1058,23 @@
             });
 
             function loadCcGroupbiaya(deptId) {
+                $('#gbSearch').val('');
                 $('#ccGbEmpty').addClass('hidden');
-                $('#ccGbContent').removeClass('hidden').html(
-                    '<p class="px-4 py-6 text-xs text-center text-gray-400">Loading…</p>'
-                );
+                $('#ccGbContent').removeClass('hidden');
+                $('#ccGbTbody').html('<tr><td colspan="2" class="px-4 py-6 text-center text-gray-400">Loading…</td></tr>');
                 let params = ccSelectedCpnyId ? { cpny_id: ccSelectedCpnyId } : {};
                 $.getJSON(`/groupbiaya-nonpurch/cc/${deptId}/groupbiaya`, params, function (res) {
                     let rows = res.data || [];
                     if (!rows.length) {
-                        $('#ccGbContent').html('<p class="px-4 py-6 text-xs text-center text-gray-400">No group biaya assigned yet</p>');
+                        $('#ccGbTbody').html('<tr><td colspan="2" class="px-4 py-6 text-center text-gray-400">No group biaya assigned yet</td></tr>');
                         return;
                     }
-                    $('#ccGbContent').html(rows.map(r => `
-                        <div class="cc-gb-item flex cursor-pointer items-center gap-2 px-4 py-2.5 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors"
-                             data-id="${r.groupbiaya_id}" data-descr="${r.groupbiayadescr}">
-                            <span class="text-xs font-mono text-indigo-500 dark:text-indigo-400 w-14 shrink-0">${r.groupbiaya_id}</span>
-                            <span class="text-xs text-gray-700 dark:text-gray-200 leading-tight">${r.groupbiayadescr}</span>
-                        </div>`).join(''));
+                    $('#ccGbTbody').html(rows.map(r => `
+                        <tr class="cc-gb-item cursor-pointer hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors"
+                            data-id="${r.groupbiaya_id}" data-descr="${r.groupbiayadescr}">
+                            <td class="px-4 py-2 font-mono text-indigo-500 dark:text-indigo-400">${r.groupbiaya_id}</td>
+                            <td class="px-4 py-2 text-gray-700 dark:text-gray-200">${r.groupbiayadescr}</td>
+                        </tr>`).join(''));
                 });
             }
 
@@ -1123,7 +1083,7 @@
                 ccSelectedGbId    = $(this).data('id');
                 ccSelectedGbDescr = $(this).data('descr');
 
-                $('#ccGbContent .cc-gb-item').removeClass('bg-indigo-100 dark:bg-indigo-900/40 font-semibold');
+                $('#ccGbTbody .cc-gb-item').removeClass('bg-indigo-100 dark:bg-indigo-900/40 font-semibold');
                 $(this).addClass('bg-indigo-100 dark:bg-indigo-900/40 font-semibold');
 
                 $('#ccGbLabel').text(ccSelectedGbId + ' — ' + ccSelectedGbDescr);
@@ -1133,6 +1093,7 @@
             });
 
             function loadCcCoa(deptId, gbId) {
+                $('#coaSearch').val('');
                 $('#ccCoaEmpty').addClass('hidden');
                 $('#ccCoaContent').removeClass('hidden');
                 $('#ccCoaTableBody').html('<tr><td colspan="3" class="px-4 py-4 text-xs text-center text-gray-400">Loading…</td></tr>');
@@ -1343,18 +1304,7 @@
     </script>
 
     <style>
-        #groupBiayaTable tbody tr { cursor: pointer; }
-        #groupBiayaTable tbody tr.gb-selected { background-color: #e0e7ff !important; }
-        .dark #groupBiayaTable tbody tr.gb-selected { background-color: #2e2e6e !important; }
-        #groupBiayaTable tbody tr:hover:not(.gb-selected) { background-color: #f8fafc; }
-        #groupBiayaTable_wrapper .dataTables_filter input {
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            padding: 4px 10px;
-            font-size: 0.875rem;
-            outline: none;
-        }
-        #groupBiayaTable_wrapper .dataTables_filter input:focus { border-color: #6366f1; }
+        #groupBiayaTable tbody tr { cursor: default; }
 
         /* ── 3-Panel Responsive Scroll ─────────────────────────────────────────── */
 
