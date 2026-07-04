@@ -1,0 +1,75 @@
+const VplUsage = {
+
+    state: {
+        currentStatus: 'ALL',
+        currentViewId:   null,
+        currentViewData: null,
+        cRowIdx: 0,
+        eRowIdx: 0,
+        cAttachIdx: 1,
+        eAttachIdx: 1,
+        pendingProductRowIdx: null,
+        pendingProductMode:   null,
+    },
+
+    routes: {
+        base:       '',
+        store:      '',
+        warehouse:  '',
+        products:   '',
+        refOpts:    '',
+        refDetails: '',
+        delDetail:  '',
+        delAttach:  '',
+        data:    (id) => `${VplUsage.routes.base}/${id}/data`,
+        update:  (id) => `${VplUsage.routes.base}/${id}/update`,
+        cancel:  (id) => `${VplUsage.routes.base}/${id}/cancel`,
+        approve: (id) => `${VplUsage.routes.base}/${id}/approve`,
+        reject:  (id) => `${VplUsage.routes.base}/${id}/reject`,
+        revise:  (id) => `${VplUsage.routes.base}/${id}/revise`,
+        message: (id) => `${VplUsage.routes.base}/${id}/message`,
+        show:    (id) => `${VplUsage.routes.base}/${id}`,
+    },
+
+    boot(cfg) {
+        Object.assign(VplUsage.routes, cfg);
+    },
+
+    csrf() {
+        return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    },
+
+    toast(type, msg) {
+        toastr[type]?.(msg);
+    },
+
+    confirm(opts) {
+        return Swal.fire({
+            title:              opts.title ?? 'Are you sure?',
+            text:               opts.text ?? '',
+            icon:               opts.icon ?? 'warning',
+            showCancelButton:   true,
+            confirmButtonColor: opts.confirmColor ?? '#dc2626',
+            cancelButtonColor:  '#6b7280',
+            confirmButtonText:  opts.confirmText ?? 'Yes',
+        });
+    },
+
+    prompt(opts) {
+        return Swal.fire({
+            title:            opts.title ?? 'Enter reason',
+            input:            'textarea',
+            inputPlaceholder: opts.placeholder ?? 'Write your reason here...',
+            showCancelButton: true,
+            inputValidator:   (v) => !v ? 'Reason cannot be empty.' : null,
+        });
+    },
+
+    pushUrl(usageId) {
+        history.pushState({ usageId }, '', VplUsage.routes.show(usageId));
+    },
+
+    clearUrl() {
+        history.pushState({}, '', VplUsage.routes.base);
+    },
+};

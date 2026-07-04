@@ -13,6 +13,28 @@
                 </button>
             </div>
 
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div class="relative w-full sm:max-w-xs">
+                    <input type="text" id="menuSearchInput" autocomplete="off"
+                        placeholder="Search by menu id, name, or route..."
+                        class="w-full rounded-lg border px-3 py-2 text-sm dark:bg-gray-700 dark:text-white">
+                    <button type="button" id="clearSearchBtn"
+                        class="absolute right-2 top-1/2 hidden -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        title="Clear search">✕</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="menuResultInfo" class="text-xs text-gray-400"></span>
+                    <button type="button" id="expandAllBtn"
+                        class="rounded-md border px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        Expand All
+                    </button>
+                    <button type="button" id="collapseAllBtn"
+                        class="rounded-md border px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">
+                        Collapse All
+                    </button>
+                </div>
+            </div>
+
             <div id="menuTreeContainer" class="mt-2">
                 <!-- Menu tree akan di-render via jQuery -->
                 <div class="text-sm text-gray-500">Loading menus...</div>
@@ -122,11 +144,39 @@
             </div>
         </div>
     </div>
+    <style>
+        .drag-handle {
+            cursor: grab;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .tree-row.drop-before {
+            box-shadow: inset 0 2px 0 0 #6366f1;
+        }
+
+        .tree-row.drop-after {
+            box-shadow: inset 0 -2px 0 0 #6366f1;
+        }
+
+        .tree-row.drop-inside {
+            background-color: rgba(99, 102, 241, .15);
+        }
+
+        .tree-row:hover {
+            background-color: rgba(99, 102, 241, .06);
+        }
+    </style>
     <script>
         $(document).ready(function() {
 
             let menus = []; // cache semua menu dari API
             let currentParent = null; // untuk "Add Child"
+            let expandedNodes = new Set(); // menu_id yang sedang dibuka user (default: semua tertutup)
+            let searchTerm = '';
+            let draggedMenuId = null;
 
             // ==========================
             //  LOAD & BUILD TREE
@@ -136,28 +186,79 @@
 
                 $.get("{{ route('menus.json') }}", function(res) {
                     menus = res.data || [];
-
-                    // build tree mulai dari root (parent_menu_id = null / '')
-                    const html = buildTree(null);
-
-                    $('#menuTreeContainer').html(`
-                            <div class="menu-tree">
-                                ${html || '<div class="text-gray-500  text-sm ">Belum ada menu.</div>'}
-                            </div>
-                        `);
+                    renderTree();
                 });
             }
 
-            function buildTree(parentId) {
-                // parentId bisa null atau string
-                const children = menus
-                    .filter(m => (m.parent_menu_id || null) === (parentId || null))
-                    .sort((a, b) => {
-                        const aSort = a.menu_sort_order ?? 0;
-                        const bSort = b.menu_sort_order ?? 0;
-                        if (aSort !== bSort) return aSort - bSort;
-                        return (a.menu_id || '').localeCompare(b.menu_id || '');
+            function escapeRegExp(s) {
+                return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            function highlight(text, term) {
+                text = text ?? '';
+                if (!term) return text;
+                const re = new RegExp('(' + escapeRegExp(term) + ')', 'ig');
+                return String(text).replace(re,
+                    '<mark class="bg-yellow-200 dark:bg-yellow-600 rounded px-0.5">$1</mark>');
+            }
+
+            function getAncestorIds(menuId) {
+                const ids = new Set();
+                let current = menus.find(m => m.menu_id === menuId);
+                while (current && current.parent_menu_id) {
+                    ids.add(current.parent_menu_id);
+                    current = menus.find(m => m.menu_id === current.parent_menu_id);
+                }
+                return ids;
+            }
+
+            function renderTree() {
+                $('#menuTreeContainer').css('opacity', '');
+                const term = searchTerm.trim();
+                let visibleIds = null; // null = tidak sedang searching
+                let matchedCount = 0;
+
+                if (term) {
+                    const needle = term.toLowerCase();
+                    visibleIds = new Set();
+                    menus.forEach(m => {
+                        const haystack =
+                            `${m.menu_id} ${m.menu_name} ${m.menu_route || ''} ${m.menu_url || ''}`
+                            .toLowerCase();
+                        if (haystack.includes(needle)) {
+                            matchedCount++;
+                            visibleIds.add(m.menu_id);
+                            getAncestorIds(m.menu_id).forEach(id => visibleIds.add(id));
+                        }
                     });
+                }
+
+                const html = buildTree(null, term, visibleIds);
+                $('#menuTreeContainer').html(`
+                        <div class="menu-tree">
+                            ${html || `<div class="text-gray-500 text-sm">${term ? 'Tidak ada menu yang cocok.' : 'Belum ada menu.'}</div>`}
+                        </div>
+                    `);
+
+                $('#menuResultInfo').text(term ? `${matchedCount} match` : '');
+                $('#clearSearchBtn').toggleClass('hidden', !term);
+            }
+
+            function buildTree(parentId, term, visibleIds) {
+                // parentId bisa null atau string
+                let children = menus
+                    .filter(m => (m.parent_menu_id || null) === (parentId || null));
+
+                if (visibleIds) {
+                    children = children.filter(m => visibleIds.has(m.menu_id));
+                }
+
+                children = children.sort((a, b) => {
+                    const aSort = a.menu_sort_order ?? 0;
+                    const bSort = b.menu_sort_order ?? 0;
+                    if (aSort !== bSort) return aSort - bSort;
+                    return (a.menu_id || '').localeCompare(b.menu_id || '');
+                });
 
                 if (!children.length) return '';
 
@@ -165,56 +266,59 @@
 
                 children.forEach(m => {
                     const hasChildren = menus.some(x => (x.parent_menu_id || null) === (m.menu_id || null));
-                    const statusBadge = m.status === 'A' ?
-                        '<span class="bg-green-300/30 text-green-600  text-sm  font-semibold px-2 py-0.5 rounded">Active</span>' :
-                        '<span class="bg-red-300/30 text-red-600  text-sm  font-semibold px-2 py-0.5 rounded">Inactive</span>';
+                    const childCount = hasChildren ? menus.filter(x => (x.parent_menu_id || null) === m
+                        .menu_id).length : 0;
+                    const isExpanded = term ? true : expandedNodes.has(m.menu_id);
+                    const isActive = m.status === 'A';
 
                     html += `
-                        <li>
-                            <div class="flex items-center space-x-2 py-1">
+                        <li data-menu-id="${m.menu_id}" data-parent="${m.parent_menu_id || ''}">
+                            <div class="tree-row flex items-center space-x-2 py-1 rounded ${isActive ? '' : 'opacity-50'}">
                                 <div class="flex items-center">
+                                    ${term ? '' : `<span class="drag-handle text-gray-400 px-1" draggable="true" title="Drag to reorder / move"><i class="fas fa-grip-vertical"></i></span>`}
                                     ${hasChildren
-                                        ? `<button class="tree-toggle text-gray-500" data-menu-id="${m.menu_id}">▾</button>`
+                                        ? `<button type="button" class="tree-toggle text-gray-500" data-menu-id="${m.menu_id}">${isExpanded ? '▾' : '▸'}</button>`
                                         : `<span class="inline-block w-3"></span>`
                                     }
                                 </div>
 
                                 <div class="flex-1 flex items-center justify-between">
                                     <div>
-                                        <span class="font-mono text-[11px] bg-gray-100 dark:bg-gray-700 px-1 rounded">${m.menu_id}</span>
-                                        <span class="ml-2 font-semibold  text-sm  text-gray-800 dark:text-gray-100">${m.menu_name}</span>
+                                        <span class="font-mono text-[11px] bg-gray-100 dark:bg-gray-700 px-1 rounded">${highlight(m.menu_id, term)}</span>
+                                        <span class="ml-2 font-semibold  text-sm  text-gray-800 dark:text-gray-100">${highlight(m.menu_name, term)}</span>
                                         <span class="ml-2  text-sm  text-gray-500">
-                                            ${m.menu_route || m.menu_url || '-'}
+                                            ${highlight(m.menu_route || m.menu_url || '-', term)}
                                         </span>
                                         <span class="ml-1 text-[10px] text-gray-400">
                                             [Sort: ${m.menu_sort_order ?? 0}]
                                         </span>
+                                        ${!isExpanded && hasChildren ? `<span class="ml-1 text-[10px] text-gray-400">(${childCount} sub)</span>` : ''}
                                     </div>
 
                                     <div class="flex items-center space-x-2">
-                                        ${statusBadge}
-
-                                        <label class="switch">
+                                        <label class="switch" title="${isActive ? 'Active' : 'Inactive'}">
                                             <input type="checkbox" class="toggleStatus"
-                                                data-id="${m.id}" ${m.status === 'A' ? 'checked' : ''}>
+                                                data-id="${m.id}" ${isActive ? 'checked' : ''}>
                                             <span class="slider round"></span>
                                         </label>
 
-                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1  text-sm  rounded editMenuBtn"
+                                        <button type="button" title="Edit menu"
+                                            class="bg-blue-500 hover:bg-blue-600 text-white w-7 h-7 flex items-center justify-center text-sm rounded editMenuBtn"
                                             data-id="${m.id}">
                                             <i class="fas fa-edit"></i>
                                         </button>
 
-                                        <button class="bg-emerald-500 hover:bg-emerald-600 text-white px-2 py-1  text-sm  rounded addChildBtn"
+                                        <button type="button" title="Add child menu"
+                                            class="bg-emerald-500 hover:bg-emerald-600 text-white w-7 h-7 flex items-center justify-center text-sm rounded addChildBtn"
                                             data-parent-menu="${m.menu_id}">
-                                            + Child
+                                            <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="children-node" data-parent="${m.menu_id}">
-                                ${buildTree(m.menu_id)}
+                            <div class="children-node ${isExpanded ? '' : 'hidden'}" data-parent="${m.menu_id}">
+                                ${buildTree(m.menu_id, term, visibleIds)}
                             </div>
                         </li>`;
                 });
@@ -300,15 +404,180 @@
             // ==========================
             $(document).on('click', '.tree-toggle', function() {
                 const menuId = $(this).data('menu-id');
-                const $children = $(`.children-node[data-parent="${menuId}"]`);
-
-                if ($children.is(':visible')) {
-                    $children.slideUp(150);
-                    $(this).text('▸');
+                if (expandedNodes.has(menuId)) {
+                    expandedNodes.delete(menuId);
                 } else {
-                    $children.slideDown(150);
-                    $(this).text('▾');
+                    expandedNodes.add(menuId);
                 }
+                renderTree();
+            });
+
+            $('#expandAllBtn').click(function() {
+                menus.forEach(m => {
+                    if (menus.some(x => (x.parent_menu_id || null) === m.menu_id)) {
+                        expandedNodes.add(m.menu_id);
+                    }
+                });
+                renderTree();
+            });
+
+            $('#collapseAllBtn').click(function() {
+                expandedNodes.clear();
+                renderTree();
+            });
+
+            // ==========================
+            //  DRAG & DROP REORDER / RE-PARENT
+            // ==========================
+            function isDescendant(candidateId, ancestorId) {
+                let current = menus.find(m => m.menu_id === candidateId);
+                while (current && current.parent_menu_id) {
+                    if (current.parent_menu_id === ancestorId) return true;
+                    current = menus.find(m => m.menu_id === current.parent_menu_id);
+                }
+                return false;
+            }
+
+            $(document).on('dragstart', '.drag-handle', function(e) {
+                draggedMenuId = $(this).closest('li').data('menu-id');
+                e.originalEvent.dataTransfer.effectAllowed = 'move';
+                e.originalEvent.dataTransfer.setData('text/plain', draggedMenuId);
+            });
+
+            $(document).on('dragend', '.drag-handle', function() {
+                $('.tree-row').removeClass('drop-before drop-after drop-inside');
+                draggedMenuId = null;
+            });
+
+            $(document).on('dragover', '.tree-row', function(e) {
+                if (!draggedMenuId) return;
+                const targetMenuId = $(this).closest('li').data('menu-id');
+
+                $('.tree-row').not(this).removeClass('drop-before drop-after drop-inside');
+
+                if (targetMenuId === draggedMenuId || isDescendant(targetMenuId, draggedMenuId)) {
+                    $(this).removeClass('drop-before drop-after drop-inside');
+                    return;
+                }
+
+                e.preventDefault();
+                const rect = this.getBoundingClientRect();
+                const ratio = (e.originalEvent.clientY - rect.top) / rect.height;
+
+                $(this).removeClass('drop-before drop-after drop-inside');
+                if (ratio < 0.25) $(this).addClass('drop-before');
+                else if (ratio > 0.75) $(this).addClass('drop-after');
+                else $(this).addClass('drop-inside');
+            });
+
+            $(document).on('dragleave', '.tree-row', function() {
+                $(this).removeClass('drop-before drop-after drop-inside');
+            });
+
+            $(document).on('drop', '.tree-row', function(e) {
+                e.preventDefault();
+                const $row = $(this);
+                const zone = $row.hasClass('drop-before') ? 'before' :
+                    $row.hasClass('drop-after') ? 'after' :
+                    $row.hasClass('drop-inside') ? 'inside' : null;
+
+                $('.tree-row').removeClass('drop-before drop-after drop-inside');
+
+                const targetMenuId = $row.closest('li').data('menu-id');
+                const sourceMenuId = draggedMenuId;
+                draggedMenuId = null;
+
+                if (!zone || !sourceMenuId || targetMenuId === sourceMenuId ||
+                    isDescendant(targetMenuId, sourceMenuId)) return;
+
+                moveMenu(sourceMenuId, targetMenuId, zone);
+            });
+
+            function moveMenu(draggedId, targetId, zone) {
+                const dragged = menus.find(m => m.menu_id === draggedId);
+                const target = menus.find(m => m.menu_id === targetId);
+                if (!dragged || !target) return;
+
+                const newParentId = zone === 'inside' ? target.menu_id : (target.parent_menu_id || null);
+
+                let siblings = menus
+                    .filter(m => (m.parent_menu_id || null) === (newParentId || null) && m.menu_id !==
+                        draggedId)
+                    .sort((a, b) => (a.menu_sort_order ?? 0) - (b.menu_sort_order ?? 0));
+
+                if (zone === 'before') {
+                    siblings.splice(siblings.findIndex(m => m.menu_id === targetId), 0, dragged);
+                } else if (zone === 'after') {
+                    siblings.splice(siblings.findIndex(m => m.menu_id === targetId) + 1, 0, dragged);
+                } else {
+                    siblings.push(dragged);
+                }
+
+                const updates = [];
+                siblings.forEach((m, idx) => {
+                    const isDragged = m.menu_id === draggedId;
+                    const parent = isDragged ? newParentId : (m.parent_menu_id || null);
+                    const parentChanged = isDragged && parent !== (dragged.parent_menu_id || null);
+                    if (m.menu_sort_order !== idx || parentChanged) {
+                        updates.push({
+                            menu: m,
+                            sort: idx,
+                            parent
+                        });
+                    }
+                });
+
+                if (!updates.length) return;
+
+                if (zone === 'inside') expandedNodes.add(newParentId);
+
+                $('#menuTreeContainer').css('opacity', 0.5);
+
+                Promise.all(updates.map(u => saveMenuOrder(u.menu, u.sort, u.parent)))
+                    .then(loadMenuTree)
+                    .catch(() => {
+                        alert('Gagal menyimpan urutan menu');
+                        loadMenuTree();
+                    });
+            }
+
+            function saveMenuOrder(menu, sortOrder, parentMenuId) {
+                const fd = new FormData();
+                fd.append('_method', 'PUT');
+                fd.append('menu_id', menu.menu_id);
+                fd.append('menu_name', menu.menu_name);
+                fd.append('parent_menu_id', parentMenuId || '');
+                fd.append('menu_route', menu.menu_route || '');
+                fd.append('menu_url', menu.menu_url || '');
+                fd.append('menu_icon', menu.menu_icon || '');
+                fd.append('menu_sort_order', sortOrder);
+                fd.append('screen_id', menu.screen_id || '');
+                fd.append('application_id', menu.application_id || '');
+
+                return $.ajax({
+                    url: `/menus/${menu.id}`,
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                });
+            }
+
+            // ==========================
+            //  SEARCH
+            // ==========================
+            $('#menuSearchInput').on('input', function() {
+                searchTerm = $(this).val();
+                renderTree();
+            });
+
+            $('#clearSearchBtn').click(function() {
+                searchTerm = '';
+                $('#menuSearchInput').val('');
+                renderTree();
             });
 
             // ==========================

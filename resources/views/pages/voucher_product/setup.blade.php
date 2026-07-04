@@ -194,8 +194,7 @@
 
             <form id="editWhsForm">
                 @csrf
-                @method('PUT')
-                <input type="hidden" id="edit_whs_db_id">
+                <input type="hidden" name="id" id="edit_whs_db_id">
 
                 <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
 
@@ -290,6 +289,7 @@
                             <option value="V">Voucher</option>
                             <option value="P">Product</option>
                         </select>
+                        <p class="mt-1 text-xs text-gray-400">Applies to this dept access rule only — not tied to a specific Warehouse ID row.</p>
                     </div>
 
                     <div class="md:col-span-2">
@@ -330,8 +330,7 @@
 
             <form id="editDeptForm">
                 @csrf
-                @method('PUT')
-                <input type="hidden" id="edit_dept_db_id">
+                <input type="hidden" name="id" id="edit_dept_db_id">
 
                 <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
 
@@ -369,6 +368,7 @@
                             <option value="V">Voucher</option>
                             <option value="P">Product</option>
                         </select>
+                        <p class="mt-1 text-xs text-gray-400">Applies to this dept access rule only — not tied to a specific Warehouse ID row.</p>
                     </div>
 
                     <div class="md:col-span-2">

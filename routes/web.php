@@ -72,6 +72,7 @@ use App\Http\Controllers\KendaraanController;
 use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\LuckydrawSetupController;
 use App\Http\Controllers\ManpowerController;
 use App\Http\Controllers\MappingIssueERPController;
 use App\Http\Controllers\MappingPoERPController;
@@ -111,6 +112,7 @@ use App\Http\Controllers\SelfRegisterApplicantController;
 use App\Http\Controllers\SendCommentController;
 use App\Http\Controllers\SpbController;
 use App\Http\Controllers\SpbJobsController;
+use App\Http\Controllers\SpinwheelController;
 use App\Http\Controllers\SppbController;
 use App\Http\Controllers\SppjController;
 use App\Http\Controllers\SppkController;
@@ -1471,6 +1473,39 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/destroy-wa-setting/{id}', 'destroyWaSetting')->name('ticketsetup.destroyWaSetting');
         });
 
+        Route::prefix('luckydraw-setup')->controller(LuckydrawSetupController::class)->group(function () {
+            Route::get('/', 'index')->name('luckydrawsetup');
+
+            Route::middleware('ajax')->group(function () {
+                Route::get('/event-json', 'eventJson')->name('luckydrawsetup.eventJson');
+                Route::get('/prize-json', 'prizeJson')->name('luckydrawsetup.prizeJson');
+            });
+
+            Route::post('/store-event', 'storeEvent')->name('luckydrawsetup.storeEvent');
+            Route::put('/update-event/{event_id}', 'updateEvent')->name('luckydrawsetup.updateEvent');
+            Route::delete('/destroy-event/{event_id}', 'destroyEvent')->name('luckydrawsetup.destroyEvent');
+
+            Route::post('/store-prize', 'storePrize')->name('luckydrawsetup.storePrize');
+            Route::put('/update-prize/{prize_id}', 'updatePrize')->name('luckydrawsetup.updatePrize');
+            Route::delete('/destroy-prize/{prize_id}', 'destroyPrize')->name('luckydrawsetup.destroyPrize');
+        });
+
+        Route::prefix('spinwheel')->controller(SpinwheelController::class)->group(function () {
+            Route::get('/', 'index')->name('spinwheel');
+            Route::get('/download-template', 'downloadTemplate')->name('spinwheel.downloadTemplate');
+
+            Route::middleware('ajax')->group(function () {
+                Route::get('/prizes/{event_id}', 'prizesByEvent')->name('spinwheel.prizesByEvent');
+                Route::get('/summary/{event_id}', 'summary')->name('spinwheel.summary');
+                Route::get('/winner-json', 'winnerJson')->name('spinwheel.winnerJson');
+            });
+
+            Route::post('/import-preview', 'importPreview')->name('spinwheel.importPreview');
+            Route::post('/import', 'import')->name('spinwheel.import');
+            Route::post('/pick-candidates', 'pickCandidates')->name('spinwheel.pickCandidates');
+            Route::post('/confirm-winner', 'confirmWinner')->name('spinwheel.confirmWinner');
+        });
+
         Route::prefix('access-request')->controller(AccessRequestController::class)->group(function () {
             Route::get('/', 'index')->name('accessrequest');
 
@@ -2479,18 +2514,44 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('vpl')->name('vpl.')->group(function () {
-        // Usage (usagevp)
+        // Report (reportvp)
+        Route::get('/reportvp', function () { return 'Coming soon'; })->name('reportvp');
+    });
+
+    // ── Usage Product / Voucher (usagevp) ─────────────────────────────────
+    Route::middleware('access:USAGEVP,VIEW')->group(function () {
         Route::get('/usagevp', [VplUsageController::class, 'index'])->name('usagevp');
         Route::get('/usagevp/waiting', [VplUsageController::class, 'waiting'])->name('usagevp.waiting');
         Route::get('/usagevp/completed', [VplUsageController::class, 'completed'])->name('usagevp.completed');
         Route::get('/usagevp/rejected', [VplUsageController::class, 'rejected'])->name('usagevp.rejected');
         Route::get('/usagevp/all', [VplUsageController::class, 'all'])->name('usagevp.all');
-        Route::get('/usagevp/add', [VplUsageController::class, 'add'])->name('usagevp.add');
         Route::get('/usagevp/{id}', [VplUsageController::class, 'show'])->name('usagevp.show');
-        Route::get('/usagevp/{id}/edit', [VplUsageController::class, 'edit'])->name('usagevp.edit');
+        Route::get('/usagevp/{id}/data', [VplUsageController::class, 'showData'])->name('usagevp.data');
+        Route::get('/showusagevp/{eid}', [VplUsageController::class, 'index'])->name('showusagevp');
+        Route::post('/usagevp/ajax/warehouse', [VplUsageController::class, 'getUsageWarehouse'])->name('usagevp.warehouse');
+        Route::post('/usagevp/ajax/products', [VplUsageController::class, 'getUsageProducts'])->name('usagevp.products');
+        Route::post('/usagevp/ajax/ref-options', [VplUsageController::class, 'getReturnRefOptions'])->name('usagevp.ref-options');
+        Route::post('/usagevp/ajax/ref-details', [VplUsageController::class, 'getReturnRefDetails'])->name('usagevp.ref-details');
+        Route::post('/usagevp/{id}/approve', [VplUsageController::class, 'approve'])->name('usagevp.approve');
+        Route::post('/usagevp/{id}/reject', [VplUsageController::class, 'reject'])->name('usagevp.reject');
+        Route::post('/usagevp/{id}/revise', [VplUsageController::class, 'revise'])->name('usagevp.revise');
+        Route::post('/usagevp/{id}/message', [VplUsageController::class, 'sendMessage'])->name('usagevp.message');
+    });
 
-        // Report (reportvp)
-        Route::get('/reportvp', function () { return 'Coming soon'; })->name('reportvp');
+    Route::middleware('access:USAGEVP,CREATE')->group(function () {
+        Route::get('/usagevp/add', [VplUsageController::class, 'add'])->name('usagevp.add');
+        Route::post('/usagevp', [VplUsageController::class, 'store'])->name('usagevp.store');
+    });
+
+    Route::middleware('access:USAGEVP,EDIT')->group(function () {
+        Route::get('/usagevp/{id}/edit', [VplUsageController::class, 'edit'])->name('usagevp.edit');
+        Route::post('/usagevp/{id}/update', [VplUsageController::class, 'update'])->name('usagevp.update');
+        Route::post('/usagevp/{id}/cancel', [VplUsageController::class, 'cancel'])->name('usagevp.cancel');
+    });
+
+    Route::middleware('access:USAGEVP,DELETE')->group(function () {
+        Route::post('/usagevp/detail/delete', [VplUsageController::class, 'deleteDetail'])->name('usagevp.detail.delete');
+        Route::post('/usagevp/attachment/delete', [VplUsageController::class, 'deleteAttachment'])->name('usagevp.attachment.delete');
     });
 
     // ── Transfer Product / Voucher (transfervp) ───────────────────────────

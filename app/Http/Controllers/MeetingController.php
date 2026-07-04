@@ -41,10 +41,6 @@ class MeetingController extends Controller
             ->orderByRaw('CAST(room_id AS INTEGER) ASC')
             ->get();
 
-        $roomColors = MsMeetingRoom::pluck('eventcolor', 'room_id');
-
-        $roomMap = MsMeetingRoom::pluck('room_name', 'room_id');
-
         /*
         |--------------------------------------------------------------------------
         | ROOM ACCESS FILTER
@@ -84,45 +80,6 @@ class MeetingController extends Controller
             ->where('status', 'A')
             ->orderBy('acc_name')
             ->get();
-
-        $meetings = TrMeeting::query()
-            ->where('status', '!=', 'X')
-            ->whereBetween('start_meeting_time', [
-                now()->subMonths(6),
-                now()->addMonths(6),
-            ])
-            ->orderByRaw('CAST(room_id AS INTEGER) ASC')
-            ->orderBy('start_meeting_time')
-            ->get()
-
-            ->map(function ($m) use ($roomMap) {
-                return [
-                    'hash' => Hashids::encode($m->id),
-
-                    'room_id' => $m->room_id,
-
-                    'room_name' => $roomMap[$m->room_id] ?? null,
-
-                    'start' => Carbon::parse($m->start_meeting_time)
-                        ->format('Y-m-d H:i:s'),
-
-                    'end' => Carbon::parse($m->end_meeting_time)
-                        ->format('Y-m-d H:i:s'),
-
-                    'title' => trim(
-                        ($m->user_peminta
-                            ? $m->user_peminta.' - '
-                            : '').
-                        $m->meeting_title
-                    ),
-
-                    'type' => $m->external_participant
-                        ? 'external'
-                        : 'internal',
-
-                    'isTeams' => !empty($m->msteams_join_url),
-                ];
-            });
 
         $users = User::query()
             ->where('status', 'A')
@@ -173,10 +130,6 @@ class MeetingController extends Controller
 
             'rooms' => $rooms,
 
-            'roomMap' => $roomMap,
-
-            'meetings' => $meetings,
-
             'users' => $users,
 
             'dateblock' => $dateblock,
@@ -208,13 +161,6 @@ class MeetingController extends Controller
         $rooms = MsMeetingRoom::query()
             ->whereIn('status', ['T', 'Z'])
           ->orderByRaw('CAST(room_id AS INTEGER) ASC')
-            ->get();
-
-        $meetings = TrMeeting::query()
-            ->where('status', '!=', 'X')
-            ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
-          ->orderByRaw('CAST(room_id AS INTEGER) ASC')
-            ->orderBy('start_meeting_time')
             ->get();
 
         $users = User::query()
@@ -253,7 +199,6 @@ class MeetingController extends Controller
         return view('pages.meeting.meetingteams', [
             'selectedDate' => $date,
             'rooms' => $rooms,
-            'meetings' => $meetings,
             'users' => $users,
             'dateblock' => $dateblock,
             'user' => $user,
@@ -293,23 +238,41 @@ class MeetingController extends Controller
 
         $accMap = MsMeetingAccessories::pluck('acc_name', 'acc_id');
 
+        try {
+            $rangeStart = $request->filled('start') ? Carbon::parse($request->input('start')) : now()->subMonths(6);
+        } catch (\Throwable $e) {
+            $rangeStart = now()->subMonths(6);
+        }
+
+        try {
+            $rangeEnd = $request->filled('end') ? Carbon::parse($request->input('end')) : now()->addMonths(6);
+        } catch (\Throwable $e) {
+            $rangeEnd = now()->addMonths(6);
+        }
+
+        $meetings = TrMeeting::where('status', '!=', 'X')
+            ->whereBetween('start_meeting_time', [$rangeStart, $rangeEnd])
+            ->get();
+
+        $participantsByDocid = DB::connection('pgsql5')
+            ->table('tr_meeting_participant')
+            ->whereIn('docid', $meetings->pluck('docid')->filter()->unique())
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'docid' => $p->docid,
+                    'name' => $p->name_participant,
+                    'email' => $p->email_participant,
+                    'company' => $p->company_participant,
+                    'type' => $p->external_participant ? 'external' : 'internal',
+                ];
+            })
+            ->groupBy('docid');
+
         return response()->json(
-            TrMeeting::where('status', '!=', 'X')
-                ->whereBetween('start_meeting_time', [now()->subMonths(6), now()->addMonths(6)])
-                ->get()
-                ->map(function ($m) use ($roomMap, $roomColors, $roomStatus, $users, $accMap) {
-                    $participants = DB::connection('pgsql5')
-                        ->table('tr_meeting_participant')
-                        ->where('docid', $m->docid)
-                        ->get()
-                        ->map(function ($p) {
-                            return [
-                                'name' => $p->name_participant,
-                                'email' => $p->email_participant,
-                                'company' => $p->company_participant,
-                                'type' => $p->external_participant ? 'external' : 'internal',
-                            ];
-                        });
+            $meetings
+                ->map(function ($m) use ($roomMap, $roomColors, $roomStatus, $users, $accMap, $participantsByDocid) {
+                    $participants = ($participantsByDocid[$m->docid] ?? collect())->values();
 
                     // ✅ FIX ACCESSORIES HERE
                     $ids = collect(explode(',', (string) $m->acc_id))

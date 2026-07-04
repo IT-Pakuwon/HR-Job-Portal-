@@ -782,16 +782,16 @@
 
                 @endif
 
-                <!-- ================= MODUL VOUCHER & PRODUCT ================= -->
+                <!-- ================= MODUL PROMOTION LOYALTY ================= -->
 
                 @php
-                    $voucherMenu = $rootMenus->firstWhere('menu_id', 'VNP');
+                    $plMenu = $rootMenus->firstWhere('menu_id', 'PL');
                     $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
 
                     $visibleMenus = collect();
 
-                    if ($voucherMenu) {
-                        $visibleMenus = $voucherMenu->children->filter(function ($menu) use ($allowedIds) {
+                    if ($plMenu) {
+                        $visibleMenus = $plMenu->children->filter(function ($menu) use ($allowedIds) {
 
                             $children = $menu->children->whereIn('menu_id', $allowedIds);
 
@@ -804,13 +804,13 @@
                     }
                 @endphp
 
-                @if ($voucherMenu && $visibleMenus->isNotEmpty())
+                @if ($plMenu && $visibleMenus->isNotEmpty())
 
                     <li class="mt-4" x-data="{ open: true }">
 
                         <button @click="open = !open"
                             class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
-                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $voucherMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $voucherMenu->menu_name }}</span></div>
+                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $plMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $plMenu->menu_name }}</span></div>
                             <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">

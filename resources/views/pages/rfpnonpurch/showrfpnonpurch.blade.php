@@ -212,15 +212,15 @@
                                 @endif
 
                                 <div class="overflow-x-auto">
-                                    <table class="w-full table-fixed text-sm">
+                                    <table class="w-full min-w-160 table-fixed text-sm">
                                         <colgroup>
                                             @if (!$isRCA)
                                                 <col class="w-[50px]">
                                             @endif
 
                                             <col class="{{ $isRCA ? 'w-[45%]' : 'w-[40%]' }}">
-                                            <col class="w-[180px]">
-                                            <col class="w-[420px]">
+                                            <col class="w-35">
+                                            <col class="w-70">
                                         </colgroup>
 
                                         <thead class="border-b text-gray-600 dark:text-gray-300">

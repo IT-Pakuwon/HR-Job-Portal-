@@ -139,8 +139,8 @@
             :edit-url="url('/editcalrnonpurch/' . $hash)"
         />
 
-        <div class="flex w-full flex-col gap-6">
-             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div class="flex w-full flex-col gap-4">
+             <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
 
                 {{-- LEFT CARD --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -254,7 +254,7 @@
                 </div>
 
                 {{-- RIGHT CARD --}}
-                <div class="flex flex-1 flex-col gap-6">
+                <div class="flex flex-1 flex-col gap-4">
                     <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                         <div x-data="{ activeTab: 'attachment' }" class="flex max-h-[100%] flex-1 flex-col">
                             <header
@@ -387,10 +387,10 @@
             </div>
 
             {{-- DETAIL + CALR PROGRESS --}}
-            <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
 
                 {{-- LEFT: CALR DETAIL --}}
-                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                <div class="rounded-xl bg-white p-4  dark:bg-gray-800">
                     <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                         <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
                             CALR Detail
@@ -440,7 +440,7 @@
                 </div>
 
                 {{-- RIGHT: CALR PROGRESS STEPS --}}
-                <div class="rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
+                <div class="rounded-xl bg-white p-4 dark:bg-gray-800">
                     <div class="mb-4 border-b border-gray-200 pb-3 dark:border-gray-700">
                         <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">
                             CALR Non Purchase Progress Steps
