@@ -1999,6 +1999,17 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/groupbiaya-nonpurch/budget/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'budgetToggleStatus'])->name('groupbiayanonpurch.budget.toggle-status');
     Route::get('/groupbiaya-nonpurch/{groupbiayaId}/budget', [MsGroupbiayaNonPurchController::class, 'budgetJson'])->name('groupbiayanonpurch.budget.json');
 
+    // Cost Controller Access (Tab 2)
+    Route::get('/groupbiaya-nonpurch/cc/companies',         [MsGroupbiayaNonPurchController::class, 'ccCompaniesJson'])->name('groupbiayanonpurch.cc.companies');
+    Route::get('/groupbiaya-nonpurch/cc/departments-fin',   [MsGroupbiayaNonPurchController::class, 'ccDepartmentFinJson'])->name('groupbiayanonpurch.cc.departments-fin');
+    Route::get('/groupbiaya-nonpurch/cc/all-groupbiaya',    [MsGroupbiayaNonPurchController::class, 'ccAllGroupbiayaJson'])->name('groupbiayanonpurch.cc.all-groupbiaya');
+    Route::get('/groupbiaya-nonpurch/cc/business-units',    [MsGroupbiayaNonPurchController::class, 'ccBusinessUnitsJson'])->name('groupbiayanonpurch.cc.business-units');
+    Route::get('/groupbiaya-nonpurch/cc/budget-coa',        [MsGroupbiayaNonPurchController::class, 'ccBudgetCoaJson'])->name('groupbiayanonpurch.cc.budget-coa');
+    Route::get('/groupbiaya-nonpurch/cc/{deptFinId}/groupbiaya',        [MsGroupbiayaNonPurchController::class, 'ccGroupbiayaJson'])->name('groupbiayanonpurch.cc.groupbiaya');
+    Route::get('/groupbiaya-nonpurch/cc/{deptFinId}/{groupbiayaId}/coa',[MsGroupbiayaNonPurchController::class, 'ccCoaJson'])->name('groupbiayanonpurch.cc.coa');
+    Route::post('/groupbiaya-nonpurch/cc/assign-groupbiaya',[MsGroupbiayaNonPurchController::class, 'ccAssignGroupbiaya'])->name('groupbiayanonpurch.cc.assign-groupbiaya');
+    Route::post('/groupbiaya-nonpurch/cc/assign-coa',       [MsGroupbiayaNonPurchController::class, 'ccAssignCoa'])->name('groupbiayanonpurch.cc.assign-coa');
+
     }); // end admin middleware
 
     Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
