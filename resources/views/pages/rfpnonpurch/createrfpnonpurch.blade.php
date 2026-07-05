@@ -46,6 +46,16 @@
                                 </select>
                             </div>
 
+                            <!-- Business Unit -->
+                            <div class="flex flex-col gap-2" id="businessUnitBox">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <select name="business_unit_id" id="business_unit_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    required>
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+
                             <!-- Type Payment -->
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Type Payment</label>
@@ -81,20 +91,11 @@
                                     Tanggal Diperlukan
                                 </label>
                                 <input type="date" name="datediperlukan" id="datediperlukan" required
+                                    value="{{ now()->addDays(14)->format('Y-m-d') }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                             </div>
 
                             <!-- Row 2: conditional fields + Kepada + Tembusan (col-span dynamic via JS) -->
-
-                            <!-- Business Unit (muncul jika Group Biaya is_budget) -->
-                            <div class="hidden flex flex-col gap-2" id="businessUnitBox">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
-                                    required>
-                                    <option value="" disabled selected>Loading...</option>
-                                </select>
-                            </div>
 
                             {{-- Amount Request Payment (muncul jika RCA) --}}
                             <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
@@ -112,11 +113,12 @@
                                     Tanggal Realisasi
                                 </label>
                                 <input type="date" name="datepenyelesaian" id="datepenyelesaian"
+                                    value="{{ now()->addDays(28)->format('Y-m-d') }}"
                                     class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
                             </div>
 
                             {{-- Kepada (selalu visible, col-span dinamis) --}}
-                            <div id="kepadaBox" class="flex flex-col gap-2" style="grid-column: span 3">
+                            <div id="kepadaBox" class="flex flex-col gap-2" style="grid-column: span 2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Kepada
                                 </label>
@@ -505,11 +507,18 @@
 
     <script>
         const groupBiayaBudgetSettings = @json($groupbiayaBudgetSettings ?? []);
+        const departmentFinMap = @json($departmentFinMap ?? []);
+
+        function selectedDepartmentFinId() {
+            const dept = String($('#departementid').val() || '').trim();
+            return String(departmentFinMap[dept] || '').trim();
+        }
 
         function budgetSettingKey() {
             return [
                 $('#cpnyid').val(),
-                $('#departementid').val(),
+                $('#business_unit_id').val(),
+                selectedDepartmentFinId(),
                 $('#groupbiaya_id').val()
             ].map(v => String(v || '').trim()).join('|');
         }
@@ -539,8 +548,8 @@
                 $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                     .prop('disabled', false);
             } else {
-                $('#businessUnitBox').addClass('hidden');
-                $('#business_unit_id').prop('required', false).val('');
+                $('#businessUnitBox').removeClass('hidden');
+                $('#business_unit_id').prop('required', true);
 
                 $('.budget-col').addClass('hidden');
                 $('#descCol').removeClass('w-[65%]').addClass('w-[75%]');
@@ -554,18 +563,16 @@
         };
 
         window.updateRow2ColSpans = function () {
-            const isBudget = window.isBudgetSelected();
             const isRCA = $('#rfpnonpurchase_type').val() === 'RCA';
 
-            // Slot yang terpakai: Business Unit (jika budget) + Tanggal Realisasi (jika RCA)
-            // Amount Request Payment selalu hidden, tidak dihitung
-            let usedSlots = 0;
-            if (isBudget) usedSlots++;
+            // Row 2 sudah terpakai oleh Tanggal Diperlukan.
+            // Tambahan yang dihitung hanya Tanggal Realisasi saat RCA.
+            let usedSlots = 1;
             if (isRCA) usedSlots++;
 
             const remaining = 5 - usedSlots;
-            const kepadaSpan = Math.ceil(remaining / 2);
-            const tembusanSpan = Math.floor(remaining / 2);
+            const kepadaSpan = Math.min(2, Math.ceil(remaining / 2));
+            const tembusanSpan = Math.max(1, remaining - kepadaSpan);
 
             const kepadaEl = document.getElementById('kepadaBox');
             const tembusanEl = document.getElementById('tembusanBox');
@@ -1080,6 +1087,7 @@
                 if (isReverting) return;
 
                 const newBu = $bu.val();
+                window.applyBudgetColumnVisibility();
 
                 if (!prevBu) {
                     prevBu = newBu;
@@ -1131,7 +1139,8 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
-                business_unit_id: null
+                business_unit_id: null,
+                groupbiaya_id: null
             };
 
             function openCoaModal(forRow) {
@@ -1141,6 +1150,7 @@
                 const dept = $('#departementid').val();
                 const perpost = new Date().getFullYear();
                 const bu = $('#business_unit_id').val();
+                const groupbiayaId = $('#groupbiaya_id').val();
 
                 if (!cpny) {
                     toastr.warning('Pilih Company terlebih dahulu.');
@@ -1157,9 +1167,15 @@
                     return;
                 }
 
+                if (!groupbiayaId) {
+                    toastr.warning('Pilih Group Biaya terlebih dahulu.');
+                    return;
+                }
+
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
                 coaState.business_unit_id = bu;
+                coaState.groupbiaya_id = groupbiayaId;
                 coaState.perpost = perpost;
                 coaState.page = 1;
                 coaState.search = '';
@@ -1189,10 +1205,11 @@
                     cpnyid: coaState.cpnyid,
                     deptid: coaState.deptid,
                     perpost: coaState.perpost,
-                    business_unit_id: coaState.business_unit_id
+                    business_unit_id: coaState.business_unit_id,
+                    groupbiaya_id: coaState.groupbiaya_id
                 };
 
-                $.getJSON("{{ route('coa.byDept') }}", params)
+                $.getJSON("{{ route('coa.nonpurch.byDept') }}", params)
                     .done(function (res) {
                         const rows = (res.data || []).map(item => {
                             const id = item.account_id ?? '';
@@ -1499,6 +1516,29 @@
                 toggleBudgetMode();
                 window.updateRow2ColSpans();
             }
+
+            function addDaysToDate(value, days) {
+                if (!value) return '';
+
+                const date = new Date(value + 'T00:00:00');
+                if (Number.isNaN(date.getTime())) return '';
+
+                date.setDate(date.getDate() + days);
+
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+
+                return `${year}-${month}-${day}`;
+            }
+
+            function syncTanggalRealisasi() {
+                const tanggalDiperlukan = $('#datediperlukan').val();
+                $('#datepenyelesaian').val(addDaysToDate(tanggalDiperlukan, 14));
+            }
+
+            $('#datediperlukan').on('change', syncTanggalRealisasi);
+
             // =====================================================
             // BUDGET MODE
             // =====================================================
@@ -1524,11 +1564,10 @@
                     $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                         .prop('disabled', false);
                 } else {
-                    $('#businessUnitBox').addClass('hidden');
+                    $('#businessUnitBox').removeClass('hidden');
 
                     $('#business_unit_id')
-                        .prop('required', false)
-                        .val('');
+                        .prop('required', true);
 
                     $('.budget-col').addClass('hidden');
 
@@ -1583,6 +1622,7 @@
             // =====================================================
             $('#rfpnonpurchase_type').on('change', function () {
                 toggleRfpRcaMode();
+                syncTanggalRealisasi();
                 window.applyBudgetColumnVisibility();
             });
 
@@ -1621,6 +1661,7 @@
             // FIRST LOAD
             // =====================================================
             toggleRfpRcaMode();
+            syncTanggalRealisasi();
             toggleDepositFields();
             toggleBudgetMode();
             window.updateRow2ColSpans();

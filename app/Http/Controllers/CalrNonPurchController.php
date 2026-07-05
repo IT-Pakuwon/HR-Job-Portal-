@@ -1082,11 +1082,7 @@ class CalrNonPurchController extends Controller
                 ->orderBy('id')
                 ->first();
 
-            $hasBudgetRfca = $budgetRfca &&
-                trim((string) $budgetRfca->budget_business_unit_id) !== '' &&
-                trim((string) $budgetRfca->budget_department_fin_id) !== '' &&
-                trim((string) $budgetRfca->budget_account_id) !== '' &&
-                trim((string) $budgetRfca->budget_activity_id) !== '';
+            $hasBudgetRfca = (float) $amountSettlement > (float) $amountRfp;
 
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));
@@ -1151,6 +1147,10 @@ class CalrNonPurchController extends Controller
                     'Submit',
                     $username
                 );
+
+                $header->flag_imbudget = true;
+                $header->save();
+
             }
 
             /*
@@ -2354,11 +2354,7 @@ class CalrNonPurchController extends Controller
                 ->orderBy('id')
                 ->first();
 
-            $hasBudgetRfca = $budgetRfca &&
-                trim((string) $budgetRfca->budget_business_unit_id) !== '' &&
-                trim((string) $budgetRfca->budget_department_fin_id) !== '' &&
-                trim((string) $budgetRfca->budget_account_id) !== '' &&
-                trim((string) $budgetRfca->budget_activity_id) !== '';
+            $hasBudgetRfca = (float) $amountSettlement > (float) $amountRfp;
 
             foreach ($descs as $i => $desc) {
                 $desc = trim((string) ($desc ?? ''));

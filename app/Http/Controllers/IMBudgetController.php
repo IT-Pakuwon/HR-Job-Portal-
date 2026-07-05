@@ -1465,6 +1465,15 @@ class IMBudgetController extends Controller
                 throw new \Exception("Tidak ada nilai expense yang valid untuk CALR Non Purchase {$sourceDocid}.");
             }
 
+            $calrBudgetRemain = max(0.0, round(
+                (float) ($calr->amountsettlement ?? 0) - (float) ($calr->amountrfp ?? 0),
+                2
+            ));
+
+            if ($calrBudgetRemain <= 0) {
+                throw new \Exception("Tidak ada selisih settlement untuk CALR Non Purchase {$sourceDocid}.");
+            }
+
             /*
             |--------------------------------------------------------------------------
             | Helper ambil remain budget
@@ -1509,30 +1518,25 @@ class IMBudgetController extends Controller
             $sumRemain = 0.0;
             $sumNeeded = 0.0;
             $sumRequested = 0.0;
+            $calrDifferenceApplied = false;
 
             foreach ($groups as $g) {
-                $expense = round((float) $g['sum'], 2);
+                if ($calrDifferenceApplied) {
+                    continue;
+                }
 
-                $remain = round((float) $getBudgetRemain(
-                    $g['perpost'],
-                    $g['cpny'],
-                    $g['bu'],
-                    $g['deptfin'],
-                    $g['account'],
-                    $g['activity'],
-                    $g['actdescr']
-                ), 2);
+                $expense = $calrBudgetRemain;
 
                 /*
                 |--------------------------------------------------------------------------
                 | Logic kekurangan budget
                 |--------------------------------------------------------------------------
-                | budget_remain = sisa budget yang tersedia (jika minus dibulatkan ke 0).
-                | budget_needed/requested = selisih expense - budget_remain.
+                | Khusus CALR Non Purchase:
+                | nilai yang dipakai adalah selisih amountsettlement - amountrfp.
                 |--------------------------------------------------------------------------
                 */
-                $budgetRemain = max(0.0, $remain);
-                $needed = max(0.0, $expense - $budgetRemain);
+                $budgetRemain = $calrBudgetRemain;
+                $needed = $calrBudgetRemain;
                 $requested = $needed;
 
                 if ($needed <= 0) {
@@ -1557,6 +1561,7 @@ class IMBudgetController extends Controller
                 $sumRemain += $budgetRemain;
                 $sumNeeded += $needed;
                 $sumRequested += $requested;
+                $calrDifferenceApplied = true;
             }
 
             /*

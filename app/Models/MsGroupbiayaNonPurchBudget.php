@@ -12,9 +12,8 @@ class MsGroupbiayaNonPurchBudget extends Model
     protected $table = "ms_groupbiaya_nonpurch_budget";
 
     protected $fillable = [
-        'budget_cpny_id', 'budget_business_unit_id', 'budget_department_fin_id', 'budget_account_id',
-        'groupbiaya_id', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at',
-        'deleted_by', 'deleted_at'
+        'id', 'budget_cpny_id', 'budget_business_unit_id', 'budget_department_fin_id', 'budget_account_id', 
+        'groupbiaya_id', 'status', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted_by', 'deleted_at'
     ];
 
     public function creator()

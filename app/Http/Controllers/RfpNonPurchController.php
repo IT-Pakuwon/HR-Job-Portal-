@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\MsCompany;
+use App\Models\MsDepartment;
 // use App\Models\TrApproval;
 use App\Models\MsApprovalGroupBiaya;
 use App\Models\TrApproval;
@@ -308,24 +309,28 @@ class RfpNonPurchController extends Controller
         $cpnyIds = $usercpny->pluck('cpny_id')->filter()->values();
         $deptIds = $userdept->pluck('department_id')->filter()->values();
 
+        $departmentFinMap = MsDepartment::query()
+            ->whereIn('department_id', $deptIds)
+            ->where('status', 'A')
+            ->pluck('department_fin_id', 'department_id');
+
+        $departmentFinIds = $departmentFinMap->filter()->unique()->values();
+
         $groupbiayaBudgetSettings = MsGroupbiayaNonPurchBudget::query()
             ->where('status', 'A')
-            ->when($cpnyIds->isNotEmpty(), fn ($q) => $q->whereIn('cpny_id', $cpnyIds))
-            ->when($deptIds->isNotEmpty(), fn ($q) => $q->whereIn('department_id', $deptIds))
-            ->get(['cpny_id', 'department_id', 'groupbiaya_id', 'is_budget'])
+            ->when($cpnyIds->isNotEmpty(), fn ($q) => $q->whereIn('budget_cpny_id', $cpnyIds))
+            ->when($departmentFinIds->isNotEmpty(), fn ($q) => $q->whereIn('budget_department_fin_id', $departmentFinIds))
+            ->get(['budget_cpny_id', 'budget_business_unit_id', 'budget_department_fin_id', 'groupbiaya_id'])
             ->mapWithKeys(function ($row) {
-                $key = trim((string) $row->cpny_id)
+                $key = trim((string) $row->budget_cpny_id)
                     . '|'
-                    . trim((string) $row->department_id)
+                    . trim((string) $row->budget_business_unit_id)
+                    . '|'
+                    . trim((string) $row->budget_department_fin_id)
                     . '|'
                     . trim((string) $row->groupbiaya_id);
 
-                $isBudget = $row->is_budget === true
-                    || $row->is_budget === 't'
-                    || $row->is_budget === '1'
-                    || $row->is_budget == 1;
-
-                return [$key => $isBudget ? 1 : 0];
+                return [$key => 1];
             });
 
         $kepada = User::query()
@@ -342,7 +347,7 @@ class RfpNonPurchController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('pages.rfpnonpurch.createrfpnonpurch', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'akses_stock', 'groupbiaya', 'groupbiayaBudgetSettings', 'kepada', 'tembusan'));
+        return view('pages.rfpnonpurch.createrfpnonpurch', compact('usercpny', 'usercpny2', 'userdept', 'userdept2', 'akses_stock', 'groupbiaya', 'groupbiayaBudgetSettings', 'departmentFinMap', 'kepada', 'tembusan'));
     }
     
     public function storeRfpNonPurch(Request $request)
@@ -517,7 +522,9 @@ class RfpNonPurchController extends Controller
                 $totalAmountRequest += $amount;
                 $insertedDetail++;
 
-                $budgetBusinessUnitId = $busUnitIds[$i] ?? null;
+                $budgetBusinessUnitId = trim((string) ($busUnitIds[$i] ?? '')) !== ''
+                    ? $busUnitIds[$i]
+                    : ($request->business_unit_id ?: null);
                 $budgetDepartmentFinId = $deptFinIds[$i] ?? null;
                 $budgetAccountId = $coaIds[$i] ?? null;
                 $budgetActivityId = $activityIds[$i] ?? null;
@@ -1825,24 +1832,28 @@ class RfpNonPurchController extends Controller
         $cpnyIds = $usercpny->pluck('cpny_id')->filter()->values();
         $deptIds = $userdept->pluck('department_id')->filter()->values();
 
+        $departmentFinMap = MsDepartment::query()
+            ->whereIn('department_id', $deptIds)
+            ->where('status', 'A')
+            ->pluck('department_fin_id', 'department_id');
+
+        $departmentFinIds = $departmentFinMap->filter()->unique()->values();
+
         $groupbiayaBudgetSettings = MsGroupbiayaNonPurchBudget::query()
             ->where('status', 'A')
-            ->when($cpnyIds->isNotEmpty(), fn ($q) => $q->whereIn('cpny_id', $cpnyIds))
-            ->when($deptIds->isNotEmpty(), fn ($q) => $q->whereIn('department_id', $deptIds))
-            ->get(['cpny_id', 'department_id', 'groupbiaya_id', 'is_budget'])
+            ->when($cpnyIds->isNotEmpty(), fn ($q) => $q->whereIn('budget_cpny_id', $cpnyIds))
+            ->when($departmentFinIds->isNotEmpty(), fn ($q) => $q->whereIn('budget_department_fin_id', $departmentFinIds))
+            ->get(['budget_cpny_id', 'budget_business_unit_id', 'budget_department_fin_id', 'groupbiaya_id'])
             ->mapWithKeys(function ($row) {
-                $key = trim((string) $row->cpny_id)
+                $key = trim((string) $row->budget_cpny_id)
                     . '|'
-                    . trim((string) $row->department_id)
+                    . trim((string) $row->budget_business_unit_id)
+                    . '|'
+                    . trim((string) $row->budget_department_fin_id)
                     . '|'
                     . trim((string) $row->groupbiaya_id);
 
-                $isBudget = $row->is_budget === true
-                    || $row->is_budget === 't'
-                    || $row->is_budget === '1'
-                    || $row->is_budget == 1;
-
-                return [$key => $isBudget ? 1 : 0];
+                return [$key => 1];
             });
 
         // =========================
@@ -1941,6 +1952,7 @@ class RfpNonPurchController extends Controller
             'userdept2',
             'groupbiaya',
             'groupbiayaBudgetSettings',
+            'departmentFinMap',
             'kepada',
             'tembusan',
             'attachments',
@@ -2128,7 +2140,9 @@ class RfpNonPurchController extends Controller
                 $totalAmountRequest += $amount;
                 $insertedDetail++;
 
-                $budgetBusinessUnitId = $busUnitIds[$i] ?? null;
+                $budgetBusinessUnitId = trim((string) ($busUnitIds[$i] ?? '')) !== ''
+                    ? $busUnitIds[$i]
+                    : ($request->business_unit_id ?: null);
                 $budgetDepartmentFinId = $deptFinIds[$i] ?? null;
                 $budgetAccountId = $coaIds[$i] ?? null;
                 $budgetActivityId = $activityIds[$i] ?? null;

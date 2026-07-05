@@ -51,6 +51,16 @@
                                 </select>
                             </div>
 
+                            {{-- Business Unit --}}
+                            <div class="flex flex-col gap-2" id="businessUnitBox">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
+                                <select name="business_unit_id" id="business_unit_id"
+                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm"
+                                    required>
+                                    <option value="" disabled selected>Loading...</option>
+                                </select>
+                            </div>
+
                             {{-- Type Payment --}}
                             <div class="flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Type Payment</label>
@@ -92,15 +102,6 @@
 
                             {{-- Row 2: conditional + Kepada + Tembusan --}}
 
-                            {{-- Business Unit (conditional: is_budget) --}}
-                            <div class="hidden flex flex-col gap-2" id="businessUnitBox">
-                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">Business Unit</label>
-                                <select name="business_unit_id" id="business_unit_id"
-                                    class="w-full rounded-lg border border-gray-300 bg-white p-2.5 text-gray-700 shadow-sm">
-                                    <option value="" disabled selected>Loading...</option>
-                                </select>
-                            </div>
-
                             {{-- Amount Request Payment (conditional: RCA) --}}
                             <div id="amountRequestPaymentBox" class="hidden flex flex-col gap-2">
                                 <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -123,7 +124,7 @@
                             </div>
 
                             {{-- Kepada (always, dynamic col-span) --}}
-                            <div id="kepadaBox" class="flex flex-col gap-2" style="grid-column: span 3">
+                            <div id="kepadaBox" class="flex flex-col gap-2" style="grid-column: span 2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Kepada
                                 </label>
@@ -683,11 +684,18 @@
         }
 
         const groupBiayaBudgetSettings = @json($groupbiayaBudgetSettings ?? []);
+        const departmentFinMap = @json($departmentFinMap ?? []);
+
+        function selectedDepartmentFinId() {
+            const dept = String($('#departementid').val() || '').trim();
+            return String(departmentFinMap[dept] || '').trim();
+        }
 
         function budgetSettingKey() {
             return [
                 $('#cpnyid').val(),
-                $('#departementid').val(),
+                $('#business_unit_id').val(),
+                selectedDepartmentFinId(),
                 $('#groupbiaya_id').val()
             ].map(v => String(v || '').trim()).join('|');
         }
@@ -698,19 +706,22 @@
         };
 
         window.updateRow2ColSpans = function () {
-            const isBudget = window.isBudgetSelected();
             const isRCA = $('#rfpnonpurchase_type').val() === 'RCA';
 
-            let usedSlots = 0;
-            if (isBudget) usedSlots++;
+            // Row 2 sudah terpakai oleh Tanggal Diperlukan.
+            // Tambahan yang dihitung hanya Tanggal Realisasi saat RCA.
+            let usedSlots = 1;
             if (isRCA) usedSlots++;
 
             const remaining = 5 - usedSlots;
             const kepadaEl = document.getElementById('kepadaBox');
             const tembusanEl = document.getElementById('tembusanBox');
 
-            if (kepadaEl) kepadaEl.style.gridColumn = 'span ' + Math.ceil(remaining / 2);
-            if (tembusanEl) tembusanEl.style.gridColumn = 'span ' + Math.floor(remaining / 2);
+            const kepadaSpan = Math.min(2, Math.ceil(remaining / 2));
+            const tembusanSpan = Math.max(1, remaining - kepadaSpan);
+
+            if (kepadaEl) kepadaEl.style.gridColumn = 'span ' + kepadaSpan;
+            if (tembusanEl) tembusanEl.style.gridColumn = 'span ' + tembusanSpan;
         };
 
         function validateAttachments() {
@@ -914,6 +925,10 @@
                 toggleBudgetMode();
             });
 
+            $bu.on('change', function () {
+                toggleBudgetMode();
+            });
+
             const $coaModal = $('#coaModal');
             const $coaTbody = $('#coaTableBody');
             const $coaCount = $('#coaCount');
@@ -927,7 +942,8 @@
                 cpnyid: null,
                 deptid: null,
                 perpost: null,
-                business_unit_id: null
+                business_unit_id: null,
+                groupbiaya_id: null
             };
 
             function openCoaModal(forRow) {
@@ -936,15 +952,18 @@
                 const cpny = $('#cpnyid').val();
                 const dept = $('#departementid').val();
                 const bu = $('#business_unit_id').val();
+                const groupbiayaId = $('#groupbiaya_id').val();
                 const perpost = new Date().getFullYear();
 
                 if (!cpny) return toastr.warning('Pilih Company terlebih dahulu.');
                 if (!dept) return toastr.warning('Pilih Department terlebih dahulu.');
                 if (!bu) return toastr.warning('Pilih Business Unit terlebih dahulu.');
+                if (!groupbiayaId) return toastr.warning('Pilih Group Biaya terlebih dahulu.');
 
                 coaState.cpnyid = cpny;
                 coaState.deptid = dept;
                 coaState.business_unit_id = bu;
+                coaState.groupbiaya_id = groupbiayaId;
                 coaState.perpost = perpost;
                 coaState.page = 1;
                 coaState.search = '';
@@ -965,14 +984,15 @@
             function loadCoa() {
                 $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
 
-                $.getJSON("{{ route('coa.byDept') }}", {
+                $.getJSON("{{ route('coa.nonpurch.byDept') }}", {
                     search: coaState.search,
                     page: coaState.page,
                     per_page: coaState.per_page,
                     cpnyid: coaState.cpnyid,
                     deptid: coaState.deptid,
                     perpost: coaState.perpost,
-                    business_unit_id: coaState.business_unit_id
+                    business_unit_id: coaState.business_unit_id,
+                    groupbiaya_id: coaState.groupbiaya_id
                 }).done(function (res) {
                     const rows = (res.data || []).map(item => {
                         const id = item.account_id ?? '';
@@ -1195,11 +1215,10 @@
                     $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                         .prop('disabled', false);
                 } else {
-                    $('#businessUnitBox').addClass('hidden');
+                    $('#businessUnitBox').removeClass('hidden');
 
                     $('#business_unit_id')
-                        .prop('required', false)
-                        .val('');
+                        .prop('required', true);
 
                     $('.budget-col').addClass('hidden');
 

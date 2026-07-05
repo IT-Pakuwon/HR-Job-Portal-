@@ -191,12 +191,11 @@
                         @endif
 
                         @php
-                            $showAccountColumn = $details->contains(function ($d) {
-                                return !empty($d->budget_account_id);
-                            });
-
-                            $showActivityColumn = $details->contains(function ($d) {
-                                return !empty($d->budget_activity_id) || !empty($d->budget_activity_descr);
+                            $hasBudgetDetail = $details->contains(function ($d) {
+                                return trim((string) ($d->budget_department_fin_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_account_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_activity_id ?? '')) !== ''
+                                    || trim((string) ($d->budget_activity_descr ?? '')) !== '';
                             });
                         @endphp
 
@@ -218,9 +217,11 @@
                                                 <col class="w-[50px]">
                                             @endif
 
-                                            <col class="{{ $isRCA ? 'w-[45%]' : 'w-[40%]' }}">
+                                            <col class="{{ $hasBudgetDetail ? ($isRCA ? 'w-[45%]' : 'w-[40%]') : 'w-auto' }}">
                                             <col class="w-35">
-                                            <col class="w-70">
+                                            @if ($hasBudgetDetail)
+                                                <col class="w-70">
+                                            @endif
                                         </colgroup>
 
                                         <thead class="border-b text-gray-600 dark:text-gray-300">
@@ -234,7 +235,9 @@
                                                 </th>
 
                                                 <th class="p-2 text-right">Amount Request</th>
-                                                <th class="p-2 text-left">Budget</th>
+                                                @if ($hasBudgetDetail)
+                                                    <th class="p-2 text-left">Budget</th>
+                                                @endif
                                             </tr>
                                         </thead>
 
@@ -253,6 +256,7 @@
                                                         Rp {{ number_format((float) ($d->amount_request ?? 0), 2, ',', '.') }}
                                                     </td>
 
+                                                    @if ($hasBudgetDetail)
                                                     <td class="p-2">
                                                         <div class="group relative inline-block cursor-help">
                                                             @php
@@ -306,10 +310,11 @@
                                                             </div>
                                                         </div>
                                                     </td>
+                                                    @endif
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="{{ $isRCA ? 3 : 4 }}" class="p-3 text-center italic text-gray-500">
+                                                    <td colspan="{{ ($isRCA ? 2 : 3) + ($hasBudgetDetail ? 1 : 0) }}" class="p-3 text-center italic text-gray-500">
                                                         No detail found.
                                                     </td>
                                                 </tr>
@@ -317,6 +322,7 @@
                                         </tbody>
                                     </table>
 
+                                    @if ($hasBudgetDetail)
                                     <div id="budgetTooltip"
                                         class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900">
 
@@ -363,6 +369,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                         @endif
