@@ -14,14 +14,16 @@ class TrMessage extends Model
         'refnbr',
         'doctype',
         'message_date',
-        'cpnyid',
-        'departementid',
+        'message_type',
+        'cpny_id',
+        'department_id',
         'username',
         'name',
         'message',
         'status',
         'created_by',
         'updated_by',
+        'deleted_by',
     ];
 
     // protected $casts = [

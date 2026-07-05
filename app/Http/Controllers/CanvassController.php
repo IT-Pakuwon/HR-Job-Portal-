@@ -29,6 +29,7 @@ use App\Models\TrSPPK;
 use App\Models\TrSPPKdetail;
 use App\Models\TrSPPT;
 use App\Models\TrSPPTdetail;
+use App\Models\SysUserRole;
 use App\Models\User;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Http\Request;
@@ -6347,6 +6348,12 @@ class CanvassController extends Controller
 
         $hasBlockingIM = !empty($cs->imbudgetid) && $cs->status_imbudget !== 'C';
 
+        $akses_cc = $loginUsername
+            ? SysUserRole::where('username', $loginUsername)
+                ->where('role_id', 'COSTCTRLACCESS')
+                ->exists()
+            : false;
+
         return view('pages.canvass.showcs', [
             'cs' => $cs,
             'attachmentCS' => $attachmentCS,
@@ -6365,6 +6372,7 @@ class CanvassController extends Controller
             'showImBudgetCancelInfo' => $showImBudgetCancelInfo,
             'isApprover' => $isApprover,
             'hasBlockingIM' => $hasBlockingIM,
+            'akses_cc' => $akses_cc,
         ]);
     }
 

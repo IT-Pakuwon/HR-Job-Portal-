@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Autonbr;
 use App\Models\DataFeed;
 use App\Models\SysMenu;
+use App\Models\SysUserRole;
 use Illuminate\Support\Facades\Auth;
 
 class MultiDashboardController extends Controller
@@ -12,6 +13,12 @@ class MultiDashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+
+        $akses_cc = $user
+            ? SysUserRole::where('username', $user->username)
+                ->where('role_id', 'COSTCTRLACCESS')
+                ->exists()
+            : false;
 
         $dataFeed = new DataFeed();
 
@@ -34,6 +41,7 @@ class MultiDashboardController extends Controller
             'dataFeed' => $dataFeed,
             'tr_approval' => collect(),
             'doctypes' => $doctypes,
+            'akses_cc' => $akses_cc,
         ]);
     }
 

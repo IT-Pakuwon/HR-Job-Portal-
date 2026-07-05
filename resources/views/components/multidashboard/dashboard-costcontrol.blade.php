@@ -203,4 +203,6 @@
     </div>
 </div>
 
+@include('partials.private-note-widget', ['doctype' => 'CS', 'floatingButton' => false])
+
     <script src="{{ asset('assets/js/multidashboard/dashcost.js') }}"></script>

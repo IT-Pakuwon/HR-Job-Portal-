@@ -127,6 +127,52 @@
         select.val(current);
     }
 
+    function privateNoteRender(data, type, row) {
+        const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+        if (doctype !== "CS") return "";
+
+        return `
+            <button type="button" class="private-note-btn relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-600 text-white shadow transition hover:bg-gray-700"
+                data-doctype="CS" data-refnbr="${row.docid}" title="Private Note">
+                🔒
+                <span class="note-count-badge absolute -top-1 -right-1 hidden min-w-[16px] rounded-full bg-red-500 px-1 text-[10px] font-bold leading-4 text-white" data-refnbr="${row.docid}"></span>
+            </button>`;
+    }
+
+    function refreshPrivateNoteCounts() {
+        const refnbrs = Array.from(document.querySelectorAll(".private-note-btn"))
+            .map((el) => el.dataset.refnbr)
+            .filter(Boolean);
+
+        if (!refnbrs.length) return;
+
+        fetch(`/private-notes-counts/CS?refnbrs=${encodeURIComponent(refnbrs.join(","))}`, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                Accept: "application/json",
+            },
+        })
+            .then((r) => r.json())
+            .then((res) => {
+                const counts = res.counts || {};
+                Object.keys(counts).forEach((refnbr) => {
+                    applyPrivateNoteCount(refnbr, counts[refnbr]);
+                });
+            })
+            .catch((err) => console.error("Error loading private note counts:", err));
+    }
+
+    function applyPrivateNoteCount(refnbr, count) {
+        const badge = document.querySelector(`.note-count-badge[data-refnbr="${CSS.escape(refnbr)}"]`);
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count > 99 ? "99+" : count;
+            badge.classList.remove("hidden");
+        } else {
+            badge.classList.add("hidden");
+        }
+    }
+
     function imBudgetLinkRender(data, type, row) {
         return `
             <a href="/showimbudgets/${row.eid}" target="_blank" rel="noopener noreferrer"
@@ -224,6 +270,14 @@
                             const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
                             return badge(s.text, s.bg, s.color);
                         },
+                    },
+                    {
+                        data: "docid",
+                        title: "Note",
+                        orderable: false,
+                        searchable: false,
+                        className: "text-center",
+                        render: privateNoteRender,
                     },
                 ];
                 break;
@@ -342,6 +396,9 @@
                 lengthMenu: "Show _MENU_",
                 info: "Showing _START_ to _END_ of _TOTAL_ entries",
                 emptyTable: "No data available",
+            },
+            drawCallback: function () {
+                if (tab === "approval") refreshPrivateNoteCounts();
             },
         });
 
@@ -466,6 +523,18 @@
                 const key = row.hid || row.eid;
                 if (row.url && key) window.open(`${row.url}/${key}`, "_blank");
             });
+        });
+
+        $(document).on("click", ".private-note-btn", function () {
+            if (!window.PrivateNote) return;
+            const doctype = this.dataset.doctype;
+            const refnbr  = this.dataset.refnbr;
+            window.PrivateNote.open(doctype, refnbr, refnbr);
+        });
+
+        $(document).on("privatenote:count-updated", function (e, doctype, refnbr, count) {
+            if (doctype !== "CS" || !refnbr) return;
+            applyPrivateNoteCount(refnbr, count);
         });
     }
 

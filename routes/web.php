@@ -36,6 +36,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\DocumentNotificationController;
+use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\FinanceDashboardController;
 use App\Http\Controllers\GADashboardController;
 use App\Http\Controllers\TreasuryDashboardController;
@@ -1126,6 +1127,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/remove-attachment/{id}', [TrAttachmentController::class, 'removeAttachment']);
     Route::get('/comments/{doctype}/{id}', [SendCommentController::class, 'fetchComments']);
     Route::post('/comments/{doctype}/{id}', [SendCommentController::class, 'storeComment']);
+    Route::get('/private-notes/{doctype}/{id}', [SendCommentController::class, 'fetchPrivateNotes']);
+    Route::post('/private-notes/{doctype}/{id}', [SendCommentController::class, 'storePrivateNote']);
+    Route::get('/private-notes-counts/{doctype}', [SendCommentController::class, 'countPrivateNotes']);
     Route::get('/approval/{refnbr}/{doctype}', [ApprovalController::class, 'getApprovalByDocument'])->name('approval.get');
     Route::get('/approval/{refnbr}/check/{action}', [ApprovalController::class, 'checkApproval'])->name('approval.check');
 
@@ -1310,6 +1314,33 @@ Route::middleware(['auth'])->group(function () {
             });
         });
 
+        Route::controller(EventCalendarController::class)->group(function () {
+            Route::middleware('access:EVENTCAL,VIEW')->group(function () {
+                Route::get('/event-calendar', 'index')->name('event-calendar');
+            });
+
+            Route::prefix('event-calendar')->name('event-calendar.')->group(function () {
+                Route::middleware('access:EVENTCAL,VIEW')->group(function () {
+                    Route::middleware('ajax')->group(function () {
+                        Route::get('/json', 'json')->name('json');
+                    });
+                });
+
+                Route::middleware('access:EVENTCAL,CREATE')->group(function () {
+                    Route::post('/store', 'store')->name('store');
+                });
+
+                Route::middleware('access:EVENTCAL,EDIT')->group(function () {
+                    Route::put('/update/{id}', 'update')->name('update');
+                    Route::post('/status/{id}', 'updateStatus')->name('status');
+                });
+
+                Route::middleware('access:EVENTCAL,DELETE')->group(function () {
+                    Route::delete('/destroy/{id}', 'destroy')->name('destroy');
+                });
+            });
+        });
+
         Route::controller(BookingCarSetupController::class)
             ->prefix('bookingcar/setup')
             ->name('bookingcar.setup.')
@@ -1474,36 +1505,50 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('luckydraw-setup')->controller(LuckydrawSetupController::class)->group(function () {
-            Route::get('/', 'index')->name('luckydrawsetup');
+            Route::middleware('access:EVENTSETUP,VIEW')->group(function () {
+                Route::get('/', 'index')->name('luckydrawsetup');
 
-            Route::middleware('ajax')->group(function () {
-                Route::get('/event-json', 'eventJson')->name('luckydrawsetup.eventJson');
-                Route::get('/prize-json', 'prizeJson')->name('luckydrawsetup.prizeJson');
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/event-json', 'eventJson')->name('luckydrawsetup.eventJson');
+                    Route::get('/prize-json', 'prizeJson')->name('luckydrawsetup.prizeJson');
+                });
             });
 
-            Route::post('/store-event', 'storeEvent')->name('luckydrawsetup.storeEvent');
-            Route::put('/update-event/{event_id}', 'updateEvent')->name('luckydrawsetup.updateEvent');
-            Route::delete('/destroy-event/{event_id}', 'destroyEvent')->name('luckydrawsetup.destroyEvent');
+            Route::middleware('access:EVENTSETUP,CREATE')->group(function () {
+                Route::post('/store-event', 'storeEvent')->name('luckydrawsetup.storeEvent');
+                Route::post('/store-prize', 'storePrize')->name('luckydrawsetup.storePrize');
+            });
 
-            Route::post('/store-prize', 'storePrize')->name('luckydrawsetup.storePrize');
-            Route::put('/update-prize/{prize_id}', 'updatePrize')->name('luckydrawsetup.updatePrize');
-            Route::delete('/destroy-prize/{prize_id}', 'destroyPrize')->name('luckydrawsetup.destroyPrize');
+            Route::middleware('access:EVENTSETUP,EDIT')->group(function () {
+                Route::put('/update-event/{event_id}', 'updateEvent')->name('luckydrawsetup.updateEvent');
+                Route::put('/update-prize/{prize_id}', 'updatePrize')->name('luckydrawsetup.updatePrize');
+            });
+
+            Route::middleware('access:EVENTSETUP,DELETE')->group(function () {
+                Route::delete('/destroy-event/{event_id}', 'destroyEvent')->name('luckydrawsetup.destroyEvent');
+                Route::delete('/destroy-prize/{prize_id}', 'destroyPrize')->name('luckydrawsetup.destroyPrize');
+            });
         });
 
         Route::prefix('spinwheel')->controller(SpinwheelController::class)->group(function () {
-            Route::get('/', 'index')->name('spinwheel');
-            Route::get('/download-template', 'downloadTemplate')->name('spinwheel.downloadTemplate');
+            Route::middleware('access:SPINWHEEL,VIEW')->group(function () {
+                Route::get('/', 'index')->name('spinwheel');
+                Route::get('/download-template', 'downloadTemplate')->name('spinwheel.downloadTemplate');
 
-            Route::middleware('ajax')->group(function () {
-                Route::get('/prizes/{event_id}', 'prizesByEvent')->name('spinwheel.prizesByEvent');
-                Route::get('/summary/{event_id}', 'summary')->name('spinwheel.summary');
-                Route::get('/winner-json', 'winnerJson')->name('spinwheel.winnerJson');
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/prizes/{event_id}', 'prizesByEvent')->name('spinwheel.prizesByEvent');
+                    Route::get('/summary/{event_id}', 'summary')->name('spinwheel.summary');
+                    Route::get('/winner-json', 'winnerJson')->name('spinwheel.winnerJson');
+                });
+
+                Route::post('/pick-candidates', 'pickCandidates')->name('spinwheel.pickCandidates');
             });
 
-            Route::post('/import-preview', 'importPreview')->name('spinwheel.importPreview');
-            Route::post('/import', 'import')->name('spinwheel.import');
-            Route::post('/pick-candidates', 'pickCandidates')->name('spinwheel.pickCandidates');
-            Route::post('/confirm-winner', 'confirmWinner')->name('spinwheel.confirmWinner');
+            Route::middleware('access:SPINWHEEL,CREATE')->group(function () {
+                Route::post('/import-preview', 'importPreview')->name('spinwheel.importPreview');
+                Route::post('/import', 'import')->name('spinwheel.import');
+                Route::post('/confirm-winner', 'confirmWinner')->name('spinwheel.confirmWinner');
+            });
         });
 
         Route::prefix('access-request')->controller(AccessRequestController::class)->group(function () {
