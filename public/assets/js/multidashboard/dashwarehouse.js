@@ -3,9 +3,11 @@
 
     let summaryRequest = null;
     let dataRequest = null;
-    let dashboardTable = null;
-    let tableBuiltForTab = null;
     let countdownTimer = null;
+
+    let allRows = [];
+    let currentPage = 0;
+    let pageSize = 10;
 
     const TABS = [
         "approval",
@@ -57,7 +59,25 @@
         }, 1000);
     }
 
-    // ─── Summary ─────────────────────────────────────────────────────────────
+    // ─── Summary: count + relative-share progress bar ──────────────────────────
+
+    function renderSummary(d) {
+        const stats = {
+            whWaitingApproval: { count: d.waiting_approval ?? 0 },
+            whSppbOnProgress:  { count: d.sppb_on_progress ?? 0 },
+            whPoSolomon:       { count: d.po_solomon ?? 0 },
+            whGrnSolomon:      { count: d.grn_solomon ?? 0 },
+            whIssueSolomon:    { count: d.issue_solomon ?? 0 },
+        };
+
+        const total = Object.values(stats).reduce((sum, s) => sum + s.count, 0) || 1;
+
+        Object.entries(stats).forEach(([key, s]) => {
+            $(`#${key}Count`).text(s.count);
+            const pct = Math.round((s.count / total) * 100);
+            $(`#${key}Bar`).css("width", `${pct}%`);
+        });
+    }
 
     function loadSummary() {
         if (summaryRequest) summaryRequest.abort();
@@ -69,12 +89,7 @@
         })
             .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
             .then((res) => {
-                const d = res.data || {};
-                $("#whWaitingApprovalCount").text(d.waiting_approval ?? 0);
-                $("#whSppbOnProgressCount").text(d.sppb_on_progress ?? 0);
-                $("#whPoSolomonCount").text(d.po_solomon ?? 0);
-                $("#whGrnSolomonCount").text(d.grn_solomon ?? 0);
-                $("#whIssueSolomonCount").text(d.issue_solomon ?? 0);
+                renderSummary(res.data || {});
                 startCountdown(30);
             })
             .catch((err) => { if (err.name !== "AbortError") console.error(err); });
@@ -82,9 +97,10 @@
 
     // ─── Badges ──────────────────────────────────────────────────────────────
 
-    function approvalBadge(v, row, isDark) {
+    function approvalBadge(row) {
+        const isDark = document.documentElement.classList.contains("dark");
         const badge = (text, bg, color) =>
-            `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block rounded-full px-3 py-1 text-center text-xs font-semibold whitespace-nowrap">${text}</span>`;
+            `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block shrink-0 rounded-full px-2.5 py-0.5 text-center text-[11px] font-semibold whitespace-nowrap">${text}</span>`;
 
         const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
         if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
@@ -101,7 +117,7 @@
             A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",   color: "#16a34a" },
         };
 
-        const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+        const s = map[row.status] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
         return badge(s.text, s.bg, s.color);
     }
 
@@ -111,153 +127,219 @@
             C: "bg-emerald-100 text-emerald-700 border-emerald-200",
         };
         const labels = { P: "Waiting for Processing", C: "COMPLETED" };
-        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${styles[status] ?? "bg-slate-100 text-slate-700 border-slate-200"}">${labels[status] ?? status}</span>`;
+        return `<span class="inline-block shrink-0 rounded-full border px-2.5 py-0.5 text-center text-[11px] font-semibold whitespace-nowrap ${styles[status] ?? "bg-slate-100 text-slate-700 border-slate-200"}">${labels[status] ?? status}</span>`;
     }
 
-    function docLink(href, label) {
-        return `<a href="${href}" target="_blank" rel="noopener noreferrer"
-                   class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
-                    <span class="font-medium text-white">${label}</span>
-                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
-                </a>`;
+    // ─── Per-tab card field mapping ──────────────────────────────────────────
+
+    const tabConfig = {
+        approval: {
+            icon: "📝", badgeBg: "bg-emerald-100 dark:bg-emerald-900/30",
+            title: row => row.docid,
+            link: row => `${row.url}/${row.hid}`,
+            status: row => approvalBadge(row),
+            fields: row => [
+                { label: "Company", value: row.cpnyid },
+                { label: "Dept", value: row.departementid },
+                { label: "Since", value: row.docdate },
+                { label: "Desc", value: row.infohd },
+            ],
+            searchFields: row => [row.docid, row.cpnyid, row.departementid, row.infohd],
+        },
+        "approval-history": {
+            icon: "📋", badgeBg: "bg-slate-100 dark:bg-slate-700",
+            title: row => row.docid,
+            link: row => `${row.url}/${row.hid}`,
+            status: row => approvalBadge(row),
+            fields: row => [
+                { label: "Company", value: row.cpnyid },
+                { label: "Dept", value: row.departementid },
+                { label: "Date", value: row.docdate },
+                { label: "Desc", value: row.infohd },
+            ],
+            searchFields: row => [row.docid, row.cpnyid, row.departementid, row.infohd],
+        },
+        sppb: {
+            icon: "📦", badgeBg: "bg-amber-100 dark:bg-amber-900/30",
+            title: row => row.sppbid,
+            link: row => `${row.url}/${row.eid}`,
+            status: () => solomonBadge("P"),
+            fields: row => [
+                { label: "Date", value: row.sppbdate },
+                { label: "Company", value: row.cpny_id },
+                { label: "Dept", value: row.department_id },
+                { label: "Type", value: row.requesttype_name },
+                { label: "Desc", value: row.keperluan },
+            ],
+            searchFields: row => [row.sppbid, row.cpny_id, row.department_id, row.keperluan],
+        },
+        "po-solomon": {
+            icon: "🛒", badgeBg: "bg-blue-100 dark:bg-blue-900/30",
+            title: row => row.order_no,
+            link: null,
+            status: row => solomonBadge(row.stage_status),
+            fields: row => [
+                { label: "Company", value: row.cpny_id },
+                { label: "Order Date", value: row.order_date },
+                { label: "Dept", value: row.department_id },
+                { label: "Last Update", value: row.last_update },
+            ],
+            searchFields: row => [row.order_no, row.cpny_id, row.department_id],
+        },
+        "grn-solomon": {
+            icon: "📥", badgeBg: "bg-violet-100 dark:bg-violet-900/30",
+            title: row => row.grn_no,
+            link: null,
+            status: row => solomonBadge(row.stage_status),
+            fields: row => [
+                { label: "Company", value: row.cpny_id },
+                { label: "GRN Date", value: row.grn_date },
+                { label: "PO No", value: row.order_no },
+                { label: "Last Update", value: row.last_update },
+            ],
+            searchFields: row => [row.grn_no, row.cpny_id, row.order_no],
+        },
+        "issue-solomon": {
+            icon: "📤", badgeBg: "bg-rose-100 dark:bg-rose-900/30",
+            title: row => row.issue_id,
+            link: null,
+            status: row => solomonBadge(row.stage_status),
+            fields: row => [
+                { label: "Company", value: row.cpny_id },
+                { label: "Issue Date", value: row.issue_date },
+                { label: "Reference", value: row.reference_no },
+                { label: "Dept", value: row.department_id },
+                { label: "Requester", value: row.user_peminta },
+                { label: "Last Update", value: row.last_update },
+            ],
+            searchFields: row => [row.issue_id, row.cpny_id, row.reference_no, row.user_peminta],
+        },
+    };
+
+    function renderCard(row, tab) {
+        const cfg = tabConfig[tab];
+        const title = cfg.title(row) || "-";
+        const href = cfg.link ? cfg.link(row) : null;
+        const statusHtml = cfg.status ? cfg.status(row) : "";
+
+        const fieldsHtml = cfg.fields(row)
+            .filter(f => f.value)
+            .map(f => `<div class="truncate"><span class="text-slate-400 dark:text-slate-500">${f.label}:</span> ${f.value}</div>`)
+            .join("");
+
+        const inner = `
+            <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${cfg.badgeBg} text-base">
+                ${cfg.icon}
+            </div>
+
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">${title}</span>
+                    ${statusHtml}
+                </div>
+                <div class="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-3">
+                    ${fieldsHtml}
+                </div>
+            </div>
+        `;
+
+        return href
+            ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="-mx-4 flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30">${inner}</a>`
+            : `<div class="-mx-4 flex items-start gap-3 px-4 py-3">${inner}</div>`;
     }
 
-    // ─── Table columns ────────────────────────────────────────────────────────
+    function renderApprovalTable(rows, cfg, tab) {
+        const dateLabel = tab === "approval-history" ? "Date" : "Since";
+        const rowsHtml = rows.map(row => {
+            const title = cfg.title(row) || "-";
+            const href = cfg.link ? cfg.link(row) : null;
+            const statusHtml = cfg.status ? cfg.status(row) : "";
+            const fields = cfg.fields(row);
+            const get = label => (fields.find(f => f.label === label) || {}).value || "-";
 
-    function columnsFor(tab) {
-        const isDark = document.documentElement.classList.contains("dark");
+            const titleCell = href
+                ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-md bg-gray-700 px-2 py-1 text-[11px] font-bold text-white transition-colors hover:bg-gray-800 dark:bg-cyan-700 dark:hover:bg-cyan-600">${title}</a>`
+                : `<span class="inline-flex items-center rounded-md bg-gray-700 px-2 py-1 text-[11px] font-bold text-white dark:bg-cyan-700">${title}</span>`;
 
-        switch (tab) {
-            case "approval":
-                return [
-                    {
-                        data: "docid", title: "Document",
-                        render: (data, _, row) => docLink(`${row.url}/${row.hid}`, data),
-                    },
-                    { data: "docdate",       title: "Waiting Since" },
-                    { data: "cpnyid",        title: "Company" },
-                    { data: "departementid", title: "Department" },
-                    { data: "infohd",        title: "Description" },
-                    {
-                        data: "status", title: "Status",
-                        render: (v, _, row) => approvalBadge(v, row, isDark),
-                    },
-                ];
+            return `
+                <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/30">
+                    <td class="whitespace-nowrap px-3 py-2 align-top">${titleCell}</td>
+                    <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Company")}</td>
+                    <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Dept")}</td>
+                    <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get(dateLabel)}</td>
+                    <td class="px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Desc")}</td>
+                    <td class="whitespace-nowrap px-3 py-2 align-top">${statusHtml}</td>
+                </tr>
+            `;
+        }).join("");
 
-            case "approval-history":
-                return [
-                    {
-                        data: "docid", title: "Document",
-                        render: (data, _, row) => docLink(`${row.url}/${row.hid}`, data),
-                    },
-                    { data: "docdate",       title: "Approval Date" },
-                    { data: "cpnyid",        title: "Company" },
-                    { data: "departementid", title: "Department" },
-                    { data: "infohd",        title: "Description" },
-                    {
-                        data: "status", title: "Status",
-                        render: (v, _, row) => approvalBadge(v, row, isDark),
-                    },
-                ];
-
-            case "sppb":
-                return [
-                    {
-                        data: "sppbid", title: "SPPB",
-                        render: (data, _, row) => docLink(`${row.url}/${row.eid}`, data),
-                    },
-                    { data: "sppbdate",         title: "Date" },
-                    { data: "cpny_id",          title: "Company" },
-                    { data: "department_id",    title: "Department" },
-                    { data: "requesttype_name", title: "Request Type" },
-                    { data: "keperluan",        title: "Description" },
-                    {
-                        data: "status", title: "Status",
-                        render: () => solomonBadge("P"),
-                    },
-                ];
-
-            case "po-solomon":
-                return [
-                    { data: "cpny_id",       title: "Company" },
-                    { data: "order_no",      title: "Order No" },
-                    { data: "order_date",    title: "Order Date" },
-                    { data: "department_id", title: "Department" },
-                    { data: "last_update",   title: "Last Update" },
-                    {
-                        data: "stage_status", title: "Status",
-                        render: (v) => solomonBadge(v),
-                    },
-                ];
-
-            case "grn-solomon":
-                return [
-                    { data: "cpny_id",    title: "Company" },
-                    { data: "grn_no",     title: "GRN No" },
-                    { data: "grn_date",   title: "GRN Date" },
-                    { data: "order_no",   title: "PO No" },
-                    { data: "last_update",title: "Last Update" },
-                    {
-                        data: "stage_status", title: "Status",
-                        render: (v) => solomonBadge(v),
-                    },
-                ];
-
-            case "issue-solomon":
-                return [
-                    { data: "cpny_id",       title: "Company" },
-                    { data: "issue_id",      title: "Issue ID" },
-                    { data: "issue_date",    title: "Issue Date" },
-                    { data: "reference_no",  title: "Reference No" },
-                    { data: "department_id", title: "Department" },
-                    { data: "user_peminta",  title: "Requester" },
-                    { data: "last_update",   title: "Last Update" },
-                    {
-                        data: "stage_status", title: "Status",
-                        render: (v) => solomonBadge(v),
-                    },
-                ];
-        }
-
-        return [];
+        return `
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                        <tr>
+                            <th class="px-3 py-2 font-semibold">Doc ID</th>
+                            <th class="px-3 py-2 font-semibold">Company</th>
+                            <th class="px-3 py-2 font-semibold">Dept</th>
+                            <th class="px-3 py-2 font-semibold">${dateLabel}</th>
+                            <th class="px-3 py-2 font-semibold">Desc</th>
+                            <th class="px-3 py-2 font-semibold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        `;
     }
 
-    // ─── DataTable ────────────────────────────────────────────────────────────
+    function applySearchFilter(rows, tab) {
+        const term = ($("#whSearch").val() || "").trim().toLowerCase();
+        if (!term) return rows;
 
-    function buildDataTable(data, tab) {
-        if ($.fn.DataTable.isDataTable("#whTable") && tableBuiltForTab === tab) {
-            dashboardTable.clear().rows.add(data).draw(false);
-            return;
+        const cfg = tabConfig[tab];
+        return rows.filter(row =>
+            cfg.searchFields(row).some(f => (f || "").toString().toLowerCase().includes(term))
+        );
+    }
+
+    function draw(tab) {
+        const filtered = applySearchFilter(allRows, tab);
+        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+        currentPage = Math.min(currentPage, totalPages - 1);
+
+        const start = currentPage * pageSize;
+        const pageRows = filtered.slice(start, start + pageSize);
+
+        const list = $("#whCardList");
+        list.empty();
+
+        if (pageRows.length === 0) {
+            $("#whEmptyState").removeClass("hidden");
+        } else {
+            $("#whEmptyState").addClass("hidden");
+            if (tab === "approval" || tab === "approval-history") {
+                list.html(renderApprovalTable(pageRows, tabConfig[tab], tab));
+            } else {
+                pageRows.forEach(row => list.append(renderCard(row, tab)));
+            }
         }
 
-        if ($.fn.DataTable.isDataTable("#whTable")) {
-            $("#whTable").DataTable().clear().destroy();
-            $("#whTable").empty();
-        }
+        const from = filtered.length === 0 ? 0 : start + 1;
+        const to = Math.min(start + pageSize, filtered.length);
 
-        tableBuiltForTab = tab;
+        $("#whPaginationInfo").text(`Showing ${from} to ${to} of ${filtered.length} entries`);
 
-        dashboardTable = $("#whTable").DataTable({
-            data: data,
-            columns: columnsFor(tab),
-            pageLength: 10,
-            responsive: true,
-            searching: true,
-            ordering: true,
-            paging: true,
-            info: true,
-            autoWidth: false,
-            destroy: true,
-            order: [[tab === "approval" || tab === "approval-history" ? 1 : 2, "desc"]],
-            language: {
-                search: "",
-                searchPlaceholder: "Search...",
-                emptyTable: "No data available",
-            },
-        });
+        $("#whPrevPage").prop("disabled", currentPage === 0);
+        $("#whNextPage").prop("disabled", currentPage >= totalPages - 1);
+    }
 
-        const search = $("#whSearch").val();
-        if (search) dashboardTable.search(search).draw();
+    function renderCardList(rows, tab) {
+        allRows = rows;
+        currentPage = 0;
+        draw(tab);
     }
 
     // ─── Load tab data ────────────────────────────────────────────────────────
@@ -295,7 +377,7 @@
                     }
                 }
 
-                buildDataTable(rows, tab);
+                renderCardList(rows, tab);
             })
             .catch((err) => { if (err.name !== "AbortError") console.error(err); });
     }
@@ -309,10 +391,12 @@
             .then((r) => r.json())
             .then((res) => {
                 const select = $("#whDoctypeFilter");
+                const current = select.val() || "ALL";
                 select.empty().append('<option value="ALL">All Doctype</option>');
                 (res.data || []).forEach((row) => {
                     select.append(`<option value="${row.doctype}">${row.doctype} - ${row.doctype_descr ?? ""}</option>`);
                 });
+                select.val(current).trigger("change");
             })
             .catch(console.error);
     }
@@ -349,9 +433,29 @@
             }
         });
 
+        $("#whPageSize").on("change", function () {
+            pageSize = parseInt($(this).val(), 10) || 10;
+            currentPage = 0;
+            draw(activeTab);
+        });
+
         $("#whSearch").on("keyup", function () {
-            if (!dashboardTable) return;
-            dashboardTable.search(this.value).draw();
+            currentPage = 0;
+            draw(activeTab);
+        });
+
+        $("#whApplyFilter").on("click", () => loadTab(activeTab));
+
+        $("#whPrevPage").on("click", () => {
+            if (currentPage > 0) {
+                currentPage--;
+                draw(activeTab);
+            }
+        });
+
+        $("#whNextPage").on("click", () => {
+            currentPage++;
+            draw(activeTab);
         });
 
         $("#whRefresh").on("click", () => {
@@ -360,15 +464,13 @@
         });
 
         $("#whOpenAll").on("click", function () {
-            if (!dashboardTable) return;
-            const rows = dashboardTable.rows().data().toArray() || [];
+            const cfg = tabConfig[activeTab];
+            if (!cfg.link) return;
 
+            const rows = applySearchFilter(allRows, activeTab);
             rows.forEach((row) => {
-                if (activeTab === "approval" || activeTab === "approval-history") {
-                    if (row.url && row.hid) window.open(`${row.url}/${row.hid}`, "_blank");
-                } else if (activeTab === "sppb") {
-                    if (row.url && row.eid) window.open(`${row.url}/${row.eid}`, "_blank");
-                }
+                const href = cfg.link(row);
+                if (href) window.open(href, "_blank");
             });
         });
     }
@@ -376,7 +478,13 @@
     // ─── Init ─────────────────────────────────────────────────────────────────
 
     function init() {
-        if (!$("#whTable").length) return;
+        if (!$("#whCardList").length) return;
+
+        $("#whDoctypeFilter").select2({
+            width: "100%",
+            minimumResultsForSearch: 5,
+            dropdownParent: $("#whDoctypeFilterInnerWrap"),
+        });
 
         bindEvents();
         loadSummary();

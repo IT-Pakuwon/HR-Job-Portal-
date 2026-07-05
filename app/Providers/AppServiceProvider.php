@@ -14,6 +14,7 @@ use App\Models\PersonalAccessTokenPgsql2;
 use App\Models\SysMenu;
 use App\Models\SysUserRole;
 use App\Models\SysRoleMenu;
+use App\Models\SysMenuFavourite;
 
 use Cmixin\BusinessDay;
 
@@ -40,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             $rootMenus = collect();
             $allAllowedMenuIds = collect();
+            $favouriteKeys = [];
 
             $schema = Schema::connection('pgsql2');
 
@@ -80,11 +82,19 @@ class AppServiceProvider extends ServiceProvider
                         ->orderBy('menu_sort_order')
                         ->with('children')
                         ->get();
+
+                    if ($schema->hasTable('sys_menu_favourite')) {
+                        $favouriteKeys = SysMenuFavourite::where('username', $username)
+                            ->get(['screen_id', 'application_id'])
+                            ->map(fn ($f) => $f->screen_id . '|' . $f->application_id)
+                            ->all();
+                    }
                 }
             }
 
             $view->with('rootMenus', $rootMenus);
             $view->with('allowedMenuIds', $allAllowedMenuIds);
+            $view->with('favouriteKeys', $favouriteKeys);
         });
     }
 

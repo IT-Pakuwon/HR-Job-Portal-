@@ -70,6 +70,11 @@ function renderProcessHardwareInfo(access) {
                     <span class="text-slate-300 dark:text-slate-600">:</span>
                     <p class="text-sm font-semibold text-slate-700 dark:text-slate-100">${access.department_id ?? '-'}</p>
                 </div>
+                <div class="flex items-start gap-2 sm:col-span-2">
+                    <p class="min-w-[110px] text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Purpose / Info</p>
+                    <span class="text-slate-300 dark:text-slate-600">:</span>
+                    <p class="whitespace-normal text-sm font-semibold leading-6 text-slate-700 dark:text-slate-100">${access.keperluan ?? '-'}</p>
+                </div>
             </div>
         </div>
     `);

@@ -6,7 +6,7 @@
             class="mb-3 hidden h-[420px] w-80 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center justify-between bg-gradient-to-r from-gray-600 to-gray-700 px-4 py-3">
                 <div class="flex min-w-0 items-center gap-2 text-white">
-                    <span>🔒</span>
+                    <span>🗒️</span>
                     <span class="truncate text-sm font-semibold">Private Note<span id="privateNoteTarget"></span></span>
                 </div>
                 <button id="privateNoteCloseBtn" type="button" class="text-white/90 transition hover:text-white">
@@ -32,12 +32,12 @@
         @if ($floatingButton ?? true)
             <button id="privateNoteToggleBtn" type="button"
                 class="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-gray-600 to-gray-700 text-2xl text-white shadow-lg transition hover:scale-105 hover:shadow-xl active:scale-95 {{ empty($refnbr) ? 'hidden' : '' }}">
-                <span id="privateNoteToggleIcon">🔒</span>
+                <span id="privateNoteToggleIcon">🗒️</span>
                 <span id="privateNoteToggleBadge"
                     class="absolute -top-1 -right-1 hidden min-w-[20px] rounded-full bg-red-500 px-1.5 text-xs font-bold leading-5 text-white"></span>
             </button>
         @endif
     </div>
 
-    <script src="{{ asset('assets/js/private-note-widget.js') }}"></script>
+    <script src="{{ asset('assets/js/private-note-widget.js') }}?v={{ filemtime(public_path('assets/js/private-note-widget.js')) }}"></script>
 @endif

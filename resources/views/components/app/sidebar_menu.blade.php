@@ -29,28 +29,13 @@
         <div class="space-y-4 p-4">
             <ul class="space-y-1">
 
-                <!-- DASHBOARD -->
-                {{-- <li
-                    class="{{ Request::segment(1) === 'dashboard'
-                        ? 'bg-indigo-500/10 text-indigo-600'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-medium">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M3 3v18h18M7 13v6m4-10v10m4-14v14" />
-                        </svg>
-                        Dashboard
-                    </a>
-                </li> --}}
+                <!-- ================= DYNAMIC MENU MODULES (order = menu_sort_order, from Sys Menu Tree) ================= -->
+                @foreach ($rootMenus as $rootMenu)
 
-                @php
-                    $dashMenu = $rootMenus->firstWhere('menu_id', 'DASHBOARD');
-                    $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
+                    @php
+                        $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
 
-                    $visibleMenus = collect();
-
-                    if ($dashMenu) {
-                        $visibleMenus = $dashMenu->children->filter(function ($menu) use ($allowedIds) {
+                        $visibleMenus = $rootMenu->children->filter(function ($menu) use ($allowedIds) {
 
                             $children = $menu->children->whereIn('menu_id', $allowedIds);
 
@@ -60,873 +45,140 @@
                                     && !empty($menu->menu_route)
                                 );
                         });
-                    }
-                @endphp
+                    @endphp
 
-                @if ($dashMenu && $visibleMenus->isNotEmpty())
+                    @if ($visibleMenus->isNotEmpty())
 
-                    <li class="mt-4" x-data="{ open: true }">
+                        <li class="mt-4" x-data="{ open: true }">
 
-                        <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
-                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $dashMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $dashMenu->menu_name }}</span></div>
-                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
-                        </button>
+                            <button @click="open = !open"
+                                class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
+                                <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $rootMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $rootMenu->menu_name }}</span></div>
+                                <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 9l6 6 6-6" />
+                                </svg>
+                            </button>
 
-                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
+                            <ul x-show="open" x-collapse class="mt-1 space-y-1">
 
-                    @foreach ($visibleMenus as $menu)
-
-                        @php
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-                            $isDirectMenu = !empty($menu->menu_route);
-                        @endphp
-
-                        {{-- SINGLE MENU --}}
-                        @if ($children->isEmpty() && $isDirectMenu)
-
-                            <li
-                                class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
-                                    ? 'bg-indigo-500/10 text-indigo-600'
-                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
-
-                                <a href="{{ route($menu->menu_route) }}"
-                                    class="flex items-center gap-3 px-3 py-2 text-sm">
-
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="{{ $menu->menu_icon }}" />
-                                    </svg>
-
-                                    {{ $menu->menu_name }}
-                                </a>
-
-                            </li>
-
-                        {{-- MENU WITH SUB --}}
-                        @elseif ($children->isNotEmpty())
+                        @foreach ($visibleMenus as $menu)
 
                             @php
-                                $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
-                                );
+                                $children = $menu->children->whereIn('menu_id', $allowedIds);
+                                $isDirectMenu = !empty($menu->menu_route);
                             @endphp
 
-                            <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
+                            {{-- SINGLE MENU --}}
+                            @if ($children->isEmpty() && $isDirectMenu)
 
-                                <button @click="open = !open"
-                                    class="{{ $isActive
+                                <li
+                                    class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
                                         ? 'bg-indigo-500/10 text-indigo-600'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                    flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
+                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} flex items-center justify-between rounded-lg">
 
-                                    <div class="flex items-center gap-3">
+                                    <a href="{{ route($menu->menu_route) }}"
+                                        class="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm">
 
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round"
                                                 stroke-linejoin="round"
                                                 stroke-width="1.5"
                                                 d="{{ $menu->menu_icon }}" />
                                         </svg>
 
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
-                                            {{ $menu->menu_name }}
-                                        </span>
+                                        <span class="truncate">{{ $menu->menu_name }}</span>
+                                    </a>
 
-                                    </div>
+                                    <x-app.favourite-star :screen-id="$menu->screen_id" :application-id="$menu->application_id" :favourite-keys="$favouriteKeys ?? []" />
 
-                                    <svg class="chevron h-4 w-4 transition-transform"
-                                        :class="open ? 'rotate-180' : ''"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round">
+                                </li>
 
-                                        <path d="M6 9l6 6 6-6" />
+                            {{-- MENU WITH SUB --}}
+                            @elseif ($children->isNotEmpty())
 
-                                    </svg>
+                                @php
+                                    $isActive = $children->contains(
+                                        fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
+                                    );
+                                @endphp
 
-                                </button>
+                                <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                    <button @click="open = !open"
+                                        class="{{ $isActive
+                                            ? 'bg-indigo-500/10 text-indigo-600'
+                                            : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
+                                        flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
 
-                                    @foreach ($children as $child)
+                                        <div class="flex items-center gap-3">
 
-                                        <li>
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="1.5"
+                                                    d="{{ $menu->menu_icon }}" />
+                                            </svg>
 
-                                            <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
-                                                    ? 'text-indigo-600'
-                                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                block rounded-md px-3 py-1.5 text-sm">
+                                            <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
+                                                {{ $menu->menu_name }}
+                                            </span>
 
-                                                {{ $child->menu_name }}
+                                        </div>
 
-                                            </a>
+                                        <svg class="chevron h-4 w-4 transition-transform"
+                                            :class="open ? 'rotate-180' : ''"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round">
 
-                                        </li>
+                                            <path d="M6 9l6 6 6-6" />
 
-                                    @endforeach
-
-                                </ul>
-
-                            </li>
-
-                        @endif
-
-                    @endforeach
-
-                        </ul>
-
-                    </li>
-
-                @endif
-
-
-                <!-- ================= MODUL IT ================= -->
-                @php
-                    $itMenu = $rootMenus->firstWhere('menu_id', 'IT');
-                    $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
-
-                    $visibleMenus = collect();
-
-                    if ($itMenu) {
-                        $visibleMenus = $itMenu->children->filter(function ($menu) use ($allowedIds) {
-
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-
-                            return $children->isNotEmpty()
-                                || (
-                                    in_array($menu->menu_id, $allowedIds)
-                                    && !empty($menu->menu_route)
-                                );
-                        });
-                    }
-                @endphp
-
-                @if ($itMenu && $visibleMenus->isNotEmpty())
-
-                    <li class="mt-4" x-data="{ open: true }">
-
-                        <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
-                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $itMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $itMenu->menu_name }}</span></div>
-                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
-                        </button>
-
-                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
-
-                    @foreach ($visibleMenus as $menu)
-
-                        @php
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-                            $isDirectMenu = !empty($menu->menu_route);
-                        @endphp
-
-                        {{-- SINGLE MENU --}}
-                        @if ($children->isEmpty() && $isDirectMenu)
-
-                            <li
-                                class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
-                                    ? 'bg-indigo-500/10 text-indigo-600'
-                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
-
-                                <a href="{{ route($menu->menu_route) }}"
-                                    class="flex items-center gap-3 px-3 py-2 text-sm">
-
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="{{ $menu->menu_icon }}" />
-                                    </svg>
-
-                                    {{ $menu->menu_name }}
-                                </a>
-
-                            </li>
-
-                        {{-- MENU WITH SUB --}}
-                        @elseif ($children->isNotEmpty())
-
-                            @php
-                                $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
-                                );
-                            @endphp
-
-                            <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
-
-                                <button @click="open = !open"
-                                    class="{{ $isActive
-                                        ? 'bg-indigo-500/10 text-indigo-600'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                    flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="{{ $menu->menu_icon }}" />
                                         </svg>
 
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
-                                            {{ $menu->menu_name }}
-                                        </span>
+                                    </button>
 
-                                    </div>
+                                    <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
 
-                                    <svg class="chevron h-4 w-4 transition-transform"
-                                        :class="open ? 'rotate-180' : ''"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round">
+                                        @foreach ($children as $child)
 
-                                        <path d="M6 9l6 6 6-6" />
+                                            <li class="flex items-center justify-between rounded-md">
 
-                                    </svg>
+                                                <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
+                                                    class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
+                                                        ? 'text-indigo-600'
+                                                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
+                                                    block min-w-0 flex-1 truncate px-3 py-1.5 text-sm">
 
-                                </button>
+                                                    {{ $child->menu_name }}
 
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
+                                                </a>
 
-                                    @foreach ($children as $child)
+                                                <x-app.favourite-star :screen-id="$child->screen_id" :application-id="$child->application_id" :favourite-keys="$favouriteKeys ?? []" />
 
-                                        <li>
+                                            </li>
 
-                                            <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
-                                                    ? 'text-indigo-600'
-                                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                block rounded-md px-3 py-1.5 text-sm">
+                                        @endforeach
 
-                                                {{ $child->menu_name }}
+                                    </ul>
 
-                                            </a>
+                                </li>
 
-                                        </li>
+                            @endif
 
-                                    @endforeach
+                        @endforeach
 
-                                </ul>
+                            </ul>
 
-                            </li>
+                        </li>
 
-                        @endif
+                    @endif
 
-                    @endforeach
-
-                        </ul>
-
-                    </li>
-
-                @endif
-
-                <!-- ================= MODUL GA ================= -->
-
-                @php
-                    $gaMenu = $rootMenus->firstWhere('menu_id', 'GA');
-                    $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
-
-                    $visibleMenus = collect();
-
-                    if ($gaMenu) {
-                        $visibleMenus = $gaMenu->children->filter(function ($menu) use ($allowedIds) {
-
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-
-                            return $children->isNotEmpty()
-                                || (
-                                    in_array($menu->menu_id, $allowedIds)
-                                    && !empty($menu->menu_route)
-                                );
-                        });
-                    }
-                @endphp
-
-                @if ($gaMenu && $visibleMenus->isNotEmpty())
-
-                    <li class="mt-4" x-data="{ open: true }">
-
-                        <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
-                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $gaMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $gaMenu->menu_name }}</span></div>
-                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
-                        </button>
-
-                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
-
-                    @foreach ($visibleMenus as $menu)
-
-                        @php
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-                            $isDirectMenu = !empty($menu->menu_route);
-                        @endphp
-
-                        {{-- SINGLE MENU --}}
-                        @if ($children->isEmpty() && $isDirectMenu)
-
-                            <li
-                                class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
-                                    ? 'bg-indigo-500/10 text-indigo-600'
-                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
-
-                                <a href="{{ route($menu->menu_route) }}"
-                                    class="flex items-center gap-3 px-3 py-2 text-sm">
-
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="{{ $menu->menu_icon }}" />
-                                    </svg>
-
-                                    {{ $menu->menu_name }}
-                                </a>
-
-                            </li>
-
-                        {{-- MENU WITH SUB --}}
-                        @elseif ($children->isNotEmpty())
-
-                            @php
-                                $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
-                                );
-                            @endphp
-
-                            <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
-
-                                <button @click="open = !open"
-                                    class="{{ $isActive
-                                        ? 'bg-indigo-500/10 text-indigo-600'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                    flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="{{ $menu->menu_icon }}" />
-                                        </svg>
-
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
-                                            {{ $menu->menu_name }}
-                                        </span>
-
-                                    </div>
-
-                                    <svg class="chevron h-4 w-4 transition-transform"
-                                        :class="open ? 'rotate-180' : ''"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round">
-
-                                        <path d="M6 9l6 6 6-6" />
-
-                                    </svg>
-
-                                </button>
-
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
-
-                                    @foreach ($children as $child)
-
-                                        <li>
-
-                                            <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
-                                                    ? 'text-indigo-600'
-                                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                block rounded-md px-3 py-1.5 text-sm">
-
-                                                {{ $child->menu_name }}
-
-                                            </a>
-
-                                        </li>
-
-                                    @endforeach
-
-                                </ul>
-
-                            </li>
-
-                        @endif
-
-                    @endforeach
-
-                        </ul>
-
-                    </li>
-
-                @endif
-
-                <!-- ================= MODUL HR ================= -->
-                @php
-                    $hrMenu = $rootMenus->firstWhere('menu_id', 'HR');
-                    $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
-
-                    $visibleMenus = collect();
-
-                    if ($hrMenu) {
-                        $visibleMenus = $hrMenu->children->filter(function ($menu) use ($allowedIds) {
-
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-
-                            // show menu only if:
-                            // - has visible children
-                            // OR
-                            // - menu itself is allowed AND has route
-                            return $children->isNotEmpty()
-                                || (
-                                    in_array($menu->menu_id, $allowedIds)
-                                    && !empty($menu->menu_route)
-                                );
-                        });
-                    }
-                @endphp
-
-                @if ($hrMenu && $visibleMenus->isNotEmpty())
-
-                    <li class="mt-4" x-data="{ open: true }">
-
-                        <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
-                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $hrMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $hrMenu->menu_name }}</span></div>
-                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
-                        </button>
-
-                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
-
-                    @foreach ($visibleMenus as $menu)
-
-                        @php
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-                            $isDirectMenu = !empty($menu->menu_route);
-                        @endphp
-
-                        {{-- SINGLE MENU --}}
-                        @if ($children->isEmpty() && $isDirectMenu)
-
-                            <li class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
-                                ? 'bg-indigo-500/10 text-indigo-600'
-                                : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
-
-                                <a href="{{ route($menu->menu_route) }}"
-                                    class="flex items-center gap-3 px-3 py-2 text-sm">
-
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="{{ $menu->menu_icon }}" />
-                                    </svg>
-
-                                    {{ $menu->menu_name }}
-                                </a>
-
-                            </li>
-
-                        {{-- PARENT MENU --}}
-                        @elseif ($children->isNotEmpty())
-
-                            @php
-                                $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
-                                );
-                            @endphp
-
-                            <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
-
-                                <button @click="open = !open"
-                                    class="{{ $isActive
-                                        ? 'bg-indigo-500/10 text-indigo-600'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                    flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="{{ $menu->menu_icon }}" />
-                                        </svg>
-
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
-                                            {{ $menu->menu_name }}
-                                        </span>
-
-                                    </div>
-
-                                    <svg class="chevron h-4 w-4 transition-transform"
-                                        :class="open ? 'rotate-180' : ''"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round">
-
-                                        <path d="M6 9l6 6 6-6" />
-
-                                    </svg>
-
-                                </button>
-
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
-
-                                    @foreach ($children as $child)
-
-                                        <li>
-                                            <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
-                                                    ? 'text-indigo-600'
-                                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                block rounded-md px-3 py-1.5 text-sm">
-
-                                                {{ $child->menu_name }}
-
-                                            </a>
-                                        </li>
-
-                                    @endforeach
-
-                                </ul>
-
-                            </li>
-
-                        @endif
-
-                    @endforeach
-
-                        </ul>
-
-                    </li>
-
-                @endif
-                <!-- ================= MODUL PURCHASING ================= -->
-
-                @php
-                    $purchasingMenu = $rootMenus->firstWhere('menu_id', 'PURCH');
-                    $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
-
-                    $visibleMenus = collect();
-
-                    if ($purchasingMenu) {
-                        $visibleMenus = $purchasingMenu->children->filter(function ($menu) use ($allowedIds) {
-
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-
-                            return $children->isNotEmpty()
-                                || (
-                                    in_array($menu->menu_id, $allowedIds)
-                                    && !empty($menu->menu_route)
-                                );
-                        });
-                    }
-                @endphp
-
-                @if ($purchasingMenu && $visibleMenus->isNotEmpty())
-
-                    <li class="mt-4" x-data="{ open: true }">
-
-                        <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
-                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $purchasingMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $purchasingMenu->menu_name }}</span></div>
-                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
-                        </button>
-
-                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
-
-                    @foreach ($visibleMenus as $menu)
-
-                        @php
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-                            $isDirectMenu = !empty($menu->menu_route);
-                        @endphp
-
-                        {{-- SINGLE MENU --}}
-                        @if ($children->isEmpty() && $isDirectMenu)
-
-                            <li class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
-                                ? 'bg-indigo-500/10 text-indigo-600'
-                                : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
-
-                                <a href="{{ route($menu->menu_route) }}"
-                                    class="flex items-center gap-3 px-3 py-2 text-sm">
-
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="{{ $menu->menu_icon }}" />
-                                    </svg>
-
-                                    {{ $menu->menu_name }}
-                                </a>
-
-                            </li>
-
-                        {{-- PARENT MENU --}}
-                        @elseif ($children->isNotEmpty())
-
-                            @php
-                                $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
-                                );
-                            @endphp
-
-                            <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
-
-                                <button @click="open = !open"
-                                    class="{{ $isActive
-                                        ? 'bg-indigo-500/10 text-indigo-600'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                    flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="{{ $menu->menu_icon }}" />
-                                        </svg>
-
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
-                                            {{ $menu->menu_name }}
-                                        </span>
-
-                                    </div>
-
-                                    <svg class="chevron h-4 w-4 transition-transform"
-                                        :class="open ? 'rotate-180' : ''"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round">
-
-                                        <path d="M6 9l6 6 6-6" />
-
-                                    </svg>
-
-                                </button>
-
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
-
-                                    @foreach ($children as $child)
-
-                                        <li>
-                                            <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
-                                                    ? 'text-indigo-600'
-                                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                block rounded-md px-3 py-1.5 text-sm">
-
-                                                {{ $child->menu_name }}
-
-                                            </a>
-                                        </li>
-
-                                    @endforeach
-
-                                </ul>
-
-                            </li>
-
-                        @endif
-
-                    @endforeach
-
-                        </ul>
-
-                    </li>
-
-                @endif
-
-                <!-- ================= MODUL PROMOTION LOYALTY ================= -->
-
-                @php
-                    $plMenu = $rootMenus->firstWhere('menu_id', 'PL');
-                    $allowedIds = isset($allowedMenuIds) ? $allowedMenuIds->toArray() : [];
-
-                    $visibleMenus = collect();
-
-                    if ($plMenu) {
-                        $visibleMenus = $plMenu->children->filter(function ($menu) use ($allowedIds) {
-
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-
-                            return $children->isNotEmpty()
-                                || (
-                                    in_array($menu->menu_id, $allowedIds)
-                                    && !empty($menu->menu_route)
-                                );
-                        });
-                    }
-                @endphp
-
-                @if ($plMenu && $visibleMenus->isNotEmpty())
-
-                    <li class="mt-4" x-data="{ open: true }">
-
-                        <button @click="open = !open"
-                            class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 transition-all duration-200 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30">
-                            <div class="flex items-center gap-2.5"><svg class="h-4 w-4 shrink-0 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $plMenu->menu_icon }}" /></svg><span class="whitespace-normal wrap-break-word leading-snug">{{ $plMenu->menu_name }}</span></div>
-                            <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
-                        </button>
-
-                        <ul x-show="open" x-collapse class="mt-1 space-y-1">
-
-                    @foreach ($visibleMenus as $menu)
-
-                        @php
-                            $children = $menu->children->whereIn('menu_id', $allowedIds);
-                            $isDirectMenu = !empty($menu->menu_route);
-                        @endphp
-
-                        {{-- SINGLE MENU --}}
-                        @if ($children->isEmpty() && $isDirectMenu)
-
-                            <li class="{{ Route::is([$menu->menu_route, $menu->menu_route . '.*'])
-                                ? 'bg-indigo-500/10 text-indigo-600'
-                                : 'hover:bg-gray-100 dark:hover:bg-gray-700' }} rounded-lg">
-
-                                <a href="{{ route($menu->menu_route) }}"
-                                    class="flex items-center gap-3 px-3 py-2 text-sm">
-
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="{{ $menu->menu_icon }}" />
-                                    </svg>
-
-                                    {{ $menu->menu_name }}
-                                </a>
-
-                            </li>
-
-                        {{-- PARENT MENU --}}
-                        @elseif ($children->isNotEmpty())
-
-                            @php
-                                $isActive = $children->contains(
-                                    fn ($c) => $c->menu_route && Route::is([$c->menu_route, $c->menu_route . '.*'])
-                                );
-                            @endphp
-
-                            <li x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
-
-                                <button @click="open = !open"
-                                    class="{{ $isActive
-                                        ? 'bg-indigo-500/10 text-indigo-600'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700' }}
-                                    flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm">
-
-                                    <div class="flex items-center gap-3">
-
-                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="1.5"
-                                                d="{{ $menu->menu_icon }}" />
-                                        </svg>
-
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">
-                                            {{ $menu->menu_name }}
-                                        </span>
-
-                                    </div>
-
-                                    <svg class="chevron h-4 w-4 transition-transform"
-                                        :class="open ? 'rotate-180' : ''"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round">
-
-                                        <path d="M6 9l6 6 6-6" />
-
-                                    </svg>
-
-                                </button>
-
-                                <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-9">
-
-                                    @foreach ($children as $child)
-
-                                        <li>
-                                            <a href="{{ $child->menu_route ? route($child->menu_route) : '#' }}"
-                                                class="{{ Route::is([$child->menu_route, $child->menu_route . '.*'])
-                                                    ? 'text-indigo-600'
-                                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' }}
-                                                block rounded-md px-3 py-1.5 text-sm">
-
-                                                {{ $child->menu_name }}
-
-                                            </a>
-                                        </li>
-
-                                    @endforeach
-
-                                </ul>
-
-                            </li>
-
-                        @endif
-
-                    @endforeach
-
-                        </ul>
-
-                    </li>
-
-                @endif
+                @endforeach
 
 
                 <!-- ================= MODUL SETTING ================= -->
@@ -1238,3 +490,41 @@
         </div>
     </aside>
 </div>
+
+<script>
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.favourite-star');
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const icon = btn.querySelector('.favourite-star-icon');
+
+    fetch('{{ route('menu-favourites.toggle') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            screen_id: btn.dataset.screenId,
+            application_id: btn.dataset.applicationId
+        })
+    })
+        .then(res => res.json())
+        .then(data => {
+            const favourited = data.favourited;
+            btn.dataset.favourited = favourited ? '1' : '0';
+            btn.classList.toggle('text-amber-400', favourited);
+            btn.classList.toggle('hover:text-amber-500', favourited);
+            btn.classList.toggle('text-gray-300', !favourited);
+            btn.classList.toggle('dark:text-gray-600', !favourited);
+            btn.title = favourited ? 'Remove from favourites' : 'Add to favourites';
+            icon.setAttribute('fill', favourited ? 'currentColor' : 'none');
+            window.dispatchEvent(new CustomEvent('favourites-changed'));
+        })
+        .catch(err => console.error('favourite toggle failed', err));
+});
+</script>

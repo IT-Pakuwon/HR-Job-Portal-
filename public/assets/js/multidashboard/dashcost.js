@@ -3,10 +3,12 @@
 
     let summaryRequest = null;
     let dataRequest    = null;
-    let dashboardTable = null;
-    let tableBuiltForTab = null;
     let rawImBudgetData = [];
     let countdownTimer = null;
+
+    let allRows = [];
+    let currentPage = 0;
+    let pageSize = 10;
 
     const urls = {
         summary:        "/cost-control-dashboard/summary-json",
@@ -57,6 +59,27 @@
 
     // ─── Summary ────────────────────────────────────────────────────────────────
 
+    function renderSummary(data) {
+        // Budget Monitoring is a currency total, not a count — it doesn't share
+        // a denominator with the other cards, so it gets no relative-share bar.
+        const counts = {
+            approval: data.waiting_approval || 0,
+            po:       data.pending_po || 0,
+            issue:    data.pending_issue || 0,
+            imBudget: data.im_budget || 0,
+        };
+
+        const total = Object.values(counts).reduce((sum, c) => sum + c, 0) || 1;
+
+        Object.entries(counts).forEach(([key, count]) => {
+            $(`#${key}Count`).text(count);
+            const pct = Math.round((count / total) * 100);
+            $(`#${key}Bar`).css("width", `${pct}%`);
+        });
+
+        $("#budgetCount").text(formatCurrency(data.budget));
+    }
+
     function loadSummary() {
         if (summaryRequest) summaryRequest.abort();
         summaryRequest = new AbortController();
@@ -73,14 +96,7 @@
                 return r.json();
             })
             .then((res) => {
-                const data = res.data || {};
-
-                $("#approvalCount").text(data.waiting_approval || 0);
-                $("#poCount").text(data.pending_po || 0);
-                $("#issueCount").text(data.pending_issue || 0);
-                $("#budgetCount").text(formatCurrency(data.budget));
-                $("#imBudgetCount").text(data.im_budget || 0);
-
+                renderSummary(res.data || {});
                 startCountdown(20);
             })
             .catch((err) => {
@@ -88,54 +104,55 @@
             });
     }
 
-    // ─── Link renderers ──────────────────────────────────────────────────────────
+    // ─── Status badges ───────────────────────────────────────────────────────────
 
-    function docLinkRender(data, type, row) {
-        const key = row.hid || row.eid;
-        return `
-            <a href="${row.url}/${key}" target="_blank" rel="noopener noreferrer"
-               class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
-                <span class="font-medium text-white">${data}</span>
-                <i class="fas fa-arrow-up-right-from-square text-xs"></i>
-            </a>`;
+    function approvalStatusBadge(row) {
+        const isDark = document.documentElement.classList.contains("dark");
+
+        const badge = (text, bg, color) =>
+            `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block shrink-0 rounded-full px-2.5 py-0.5 text-center text-[11px] font-semibold whitespace-nowrap">${text}</span>`;
+
+        const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
+
+        if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
+            return isDark
+                ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
+                : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
+        }
+
+        const map = isDark ? {
+            P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
+            A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
+        } : {
+            P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
+            A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
+        };
+
+        const s = map[row.status] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
+        return badge(s.text, s.bg, s.color);
     }
 
     function imBudgetStatusBadge(status) {
         const map = {
-            H: ["On Hold",      "bg-amber-100 text-amber-700 border-amber-200"],
-            P: ["On Progress",  "bg-blue-100 text-blue-700 border-blue-200"],
-            C: ["Completed",    "bg-emerald-100 text-emerald-700 border-emerald-200"],
+            H: ["On Hold",     "bg-amber-100 text-amber-700 border-amber-200"],
+            P: ["On Progress", "bg-blue-100 text-blue-700 border-blue-200"],
+            C: ["Completed",   "bg-emerald-100 text-emerald-700 border-emerald-200"],
         };
         const [label, cls] = map[status] ?? [status, "bg-slate-100 text-slate-600 border-slate-200"];
-        return `<span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold whitespace-nowrap ${cls}">${label}</span>`;
+        return `<span class="inline-block shrink-0 rounded-full border px-2.5 py-0.5 text-center text-[11px] font-semibold whitespace-nowrap ${cls}">${label}</span>`;
     }
 
-    function applyImBudgetFilter(data) {
-        const val = ($("#dashboardFilter").val() || "ALL").trim();
-        if (val === "ALL") return data;
-        return data.filter((r) => (r.status || "").toUpperCase() === val);
-    }
+    // ─── Private note (approval tab only) ───────────────────────────────────────
 
-    function loadImBudgetStatusFilter() {
-        const select = $("#dashboardFilter");
-        const current = select.val() || "ALL";
-        select.empty();
-        select.append(`<option value="ALL">All Status</option>`);
-        select.append(`<option value="H">On Hold</option>`);
-        select.append(`<option value="P">On Progress</option>`);
-        select.append(`<option value="C">Completed</option>`);
-        select.val(current);
-    }
-
-    function privateNoteRender(data, type, row) {
+    function privateNoteButton(row) {
         const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
         if (doctype !== "CS") return "";
 
         return `
-            <button type="button" class="private-note-btn relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-gray-600 text-white shadow transition hover:bg-gray-700"
+            <button type="button" class="private-note-btn relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-600 text-white shadow transition hover:bg-gray-700"
                 data-doctype="CS" data-refnbr="${row.docid}" title="Private Note">
-                🔒
-                <span class="note-count-badge absolute -top-1 -right-1 hidden min-w-[16px] rounded-full bg-red-500 px-1 text-[10px] font-bold leading-4 text-white" data-refnbr="${row.docid}"></span>
+                🗒️
+                <span class="note-count-badge absolute -top-1 -right-1 hidden min-w-4 rounded-full bg-red-500 px-1 text-[10px] font-bold leading-4 text-white" data-refnbr="${row.docid}"></span>
             </button>`;
     }
 
@@ -173,16 +190,7 @@
         }
     }
 
-    function imBudgetLinkRender(data, type, row) {
-        return `
-            <a href="/showimbudgets/${row.eid}" target="_blank" rel="noopener noreferrer"
-               class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black text-white border border-black hover:bg-gray-900 transition-all dark:bg-cyan-600 dark:border-cyan-600 dark:hover:bg-cyan-500">
-                <span class="font-medium text-white">${data}</span>
-                <i class="fas fa-arrow-up-right-from-square text-xs"></i>
-            </a>`;
-    }
-
-    // ─── Doctype filter ──────────────────────────────────────────────────────────
+    // ─── Doctype / status filter (repurposed per tab) ───────────────────────────
 
     function loadDocTypes() {
         fetch(urls.doctypes + "?tab=" + activeTab, {
@@ -205,205 +213,244 @@
                     );
                 });
 
-                select.val(current);
+                select.val(current).trigger("change");
             })
             .catch(console.error);
     }
 
-    // ─── DataTable ───────────────────────────────────────────────────────────────
+    function loadImBudgetStatusFilter() {
+        const select = $("#dashboardFilter");
+        const current = select.val() || "ALL";
+        select.empty();
+        select.append(`<option value="ALL">All Status</option>`);
+        select.append(`<option value="H">On Hold</option>`);
+        select.append(`<option value="P">On Progress</option>`);
+        select.append(`<option value="C">Completed</option>`);
+        select.val(current).trigger("change");
+    }
 
-    function buildDataTable(data, tab) {
-        if ($.fn.DataTable.isDataTable("#dashboardTable") && tableBuiltForTab === tab) {
-            const savedPage    = dashboardTable.page();
-            const savedPageLen = dashboardTable.page.len();
+    function applyImBudgetFilter(data) {
+        const val = ($("#dashboardFilter").val() || "ALL").trim();
+        if (val === "ALL") return data;
+        return data.filter((r) => (r.status || "").toUpperCase() === val);
+    }
 
-            dashboardTable.clear().rows.add(data);
-            dashboardTable.page.len(savedPageLen);
-            dashboardTable.draw(false);
+    // ─── Per-tab card field mapping ──────────────────────────────────────────────
 
-            const totalPages = dashboardTable.page.info().pages;
-            const targetPage = Math.min(savedPage, Math.max(0, totalPages - 1));
-            if (totalPages > 0 && dashboardTable.page() !== targetPage) {
-                dashboardTable.page(targetPage).draw(false);
+    const tabConfig = {
+        approval: {
+            icon: "✅", badgeBg: "bg-emerald-100 dark:bg-emerald-900/30",
+            title: row => row.docid,
+            link: row => `${row.url}/${row.hid}`,
+            status: row => approvalStatusBadge(row),
+            extra: row => privateNoteButton(row),
+            fields: row => [
+                { label: "Company", value: row.cpnyid },
+                { label: "Dept", value: row.departementid },
+                { label: "Since", value: row.docdate },
+                { label: "Desc", value: row.infohd },
+            ],
+            searchFields: row => [row.docid, row.cpnyid, row.departementid, row.infohd],
+        },
+        "approval-history": {
+            icon: "📋", badgeBg: "bg-slate-100 dark:bg-slate-700",
+            title: row => row.docid,
+            link: row => `${row.url}/${row.hid}`,
+            status: row => approvalStatusBadge(row),
+            fields: row => [
+                { label: "Company", value: row.cpnyid },
+                { label: "Dept", value: row.departementid },
+                { label: "Date", value: row.docdate },
+                { label: "Desc", value: row.infohd },
+            ],
+            searchFields: row => [row.docid, row.cpnyid, row.departementid, row.infohd],
+        },
+        po: {
+            icon: "📦", badgeBg: "bg-orange-100 dark:bg-orange-900/30",
+            title: row => row.order_no,
+            link: null,
+            fields: row => [
+                { label: "Date", value: row.order_date },
+                { label: "Company", value: row.cpny_id },
+                { label: "Dept", value: row.department_id },
+                { label: "Requester", value: row.user_peminta },
+                { label: "Purchaser", value: row.purchaser },
+            ],
+            searchFields: row => [row.order_no, row.cpny_id, row.department_id, row.user_peminta, row.purchaser],
+        },
+        issue: {
+            icon: "🚚", badgeBg: "bg-rose-100 dark:bg-rose-900/30",
+            title: row => row.issue_id,
+            link: null,
+            fields: row => [
+                { label: "Date", value: row.issue_date },
+                { label: "Company", value: row.cpny_id },
+                { label: "Dept", value: row.department_id },
+                { label: "Requester", value: row.user_peminta },
+                { label: "Keeper", value: row.keeper },
+            ],
+            searchFields: row => [row.issue_id, row.cpny_id, row.department_id, row.user_peminta, row.keeper],
+        },
+        budget: {
+            icon: "💰", badgeBg: "bg-blue-100 dark:bg-blue-900/30",
+            title: row => row.account_id,
+            link: null,
+            fields: row => [
+                { label: "Company", value: row.cpny_id },
+                { label: "BU", value: row.business_unit_id },
+                { label: "Dept", value: row.department_fin_id },
+                { label: "Activity", value: row.activity_descr },
+                { label: "Remaining", value: formatCurrency(row.remaining_budget) },
+            ],
+            searchFields: row => [row.cpny_id, row.business_unit_id, row.department_fin_id, row.account_id, row.activity_descr],
+        },
+        imbudget: {
+            icon: "📊", badgeBg: "bg-violet-100 dark:bg-violet-900/30",
+            title: row => row.imbudgetid,
+            link: row => `/showimbudgets/${row.eid}`,
+            status: row => imBudgetStatusBadge(row.status),
+            fields: row => [
+                { label: "Date", value: row.imbudgetdate },
+                { label: "Company", value: row.cpny_id },
+                { label: "Dept", value: row.department_id },
+                { label: "Requester", value: row.user_peminta },
+                { label: "CS Ref", value: row.csid },
+                { label: "Requested", value: formatCurrency(row.total_budget_requested) },
+            ],
+            searchFields: row => [row.imbudgetid, row.cpny_id, row.department_id, row.user_peminta, row.csid],
+        },
+    };
+
+    function renderCard(row, tab) {
+        const cfg = tabConfig[tab];
+        const title = cfg.title(row) || "-";
+        const href = cfg.link ? cfg.link(row) : null;
+        const statusHtml = cfg.status ? cfg.status(row) : "";
+        const extraHtml = cfg.extra ? cfg.extra(row) : "";
+
+        const fieldsHtml = cfg.fields(row)
+            .filter(f => f.value)
+            .map(f => `<div class="truncate"><span class="text-slate-400 dark:text-slate-500">${f.label}:</span> ${f.value}</div>`)
+            .join("");
+
+        const inner = `
+            <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${cfg.badgeBg} text-base">
+                ${cfg.icon}
+            </div>
+
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">${title}</span>
+                    <div class="flex shrink-0 items-center gap-2">${statusHtml}${extraHtml}</div>
+                </div>
+                <div class="mt-1 grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-3">
+                    ${fieldsHtml}
+                </div>
+            </div>
+        `;
+
+        return href
+            ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="-mx-4 flex items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30">${inner}</a>`
+            : `<div class="-mx-4 flex items-start gap-3 px-4 py-3">${inner}</div>`;
+    }
+
+    function renderApprovalTable(rows, cfg, tab) {
+        const dateLabel = tab === "approval-history" ? "Date" : "Since";
+        const rowsHtml = rows.map(row => {
+            const title = cfg.title(row) || "-";
+            const href = cfg.link ? cfg.link(row) : null;
+            const statusHtml = cfg.status ? cfg.status(row) : "";
+            const extraHtml = cfg.extra ? cfg.extra(row) : "";
+            const fields = cfg.fields(row);
+            const get = label => (fields.find(f => f.label === label) || {}).value || "-";
+
+            const titleCell = href
+                ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center rounded-md bg-gray-700 px-2 py-1 text-[11px] font-bold text-white transition-colors hover:bg-gray-800 dark:bg-cyan-700 dark:hover:bg-cyan-600">${title}</a>`
+                : `<span class="inline-flex items-center rounded-md bg-gray-700 px-2 py-1 text-[11px] font-bold text-white dark:bg-cyan-700">${title}</span>`;
+
+            return `
+                <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700/30">
+                    <td class="whitespace-nowrap px-3 py-2 align-top">${titleCell}</td>
+                    <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Company")}</td>
+                    <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Dept")}</td>
+                    <td class="whitespace-nowrap px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get(dateLabel)}</td>
+                    <td class="px-3 py-2 align-top text-slate-600 dark:text-slate-300">${get("Desc")}</td>
+                    <td class="whitespace-nowrap px-3 py-2 align-top">${statusHtml}</td>
+                    ${extraHtml ? `<td class="whitespace-nowrap px-3 py-2 align-top">${extraHtml}</td>` : ""}
+                </tr>
+            `;
+        }).join("");
+
+        return `
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                        <tr>
+                            <th class="px-3 py-2 font-semibold">Doc ID</th>
+                            <th class="px-3 py-2 font-semibold">Company</th>
+                            <th class="px-3 py-2 font-semibold">Dept</th>
+                            <th class="px-3 py-2 font-semibold">${dateLabel}</th>
+                            <th class="px-3 py-2 font-semibold">Desc</th>
+                            <th class="px-3 py-2 font-semibold">Status</th>
+                            ${cfg.extra ? `<th class="px-3 py-2 font-semibold"></th>` : ""}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    function applySearchFilter(rows, tab) {
+        const term = ($("#dashboardSearch").val() || "").trim().toLowerCase();
+        if (!term) return rows;
+
+        const cfg = tabConfig[tab];
+        return rows.filter(row =>
+            cfg.searchFields(row).some(f => (f || "").toString().toLowerCase().includes(term))
+        );
+    }
+
+    function draw(tab) {
+        const filtered = applySearchFilter(allRows, tab);
+        const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+        currentPage = Math.min(currentPage, totalPages - 1);
+
+        const start = currentPage * pageSize;
+        const pageRows = filtered.slice(start, start + pageSize);
+
+        const list = $("#dashboardCardList");
+        list.empty();
+
+        if (pageRows.length === 0) {
+            $("#dashboardEmptyState").removeClass("hidden");
+        } else {
+            $("#dashboardEmptyState").addClass("hidden");
+            if (tab === "approval" || tab === "approval-history") {
+                list.html(renderApprovalTable(pageRows, tabConfig[tab], tab));
+            } else {
+                pageRows.forEach(row => list.append(renderCard(row, tab)));
             }
-
-            return;
         }
 
-        if ($.fn.DataTable.isDataTable("#dashboardTable")) {
-            $("#dashboardTable").DataTable().clear().destroy();
-            $("#dashboardTable").empty();
-        }
+        const from = filtered.length === 0 ? 0 : start + 1;
+        const to = Math.min(start + pageSize, filtered.length);
 
-        tableBuiltForTab = tab;
+        $("#paginationInfo").text(`Showing ${from} to ${to} of ${filtered.length} entries`);
 
-        let columns = [];
+        $("#prevPage").prop("disabled", currentPage === 0);
+        $("#nextPage").prop("disabled", currentPage >= totalPages - 1);
 
-        switch (tab) {
-            case "approval":
-                columns = [
-                    { data: "docid",         title: "Document",    render: docLinkRender },
-                    { data: "docdate",        title: "Waiting Since" },
-                    { data: "cpnyid",         title: "Company" },
-                    { data: "departementid",  title: "Department" },
-                    { data: "infohd",         title: "Description" },
-                    {
-                        data: "status",
-                        title: "Status",
-                        render: function (v, type, row) {
-                            const isDark = document.documentElement.classList.contains("dark");
-                            const badge = (text, bg, color) =>
-                                `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block rounded-full px-3 py-1 text-center text-xs font-semibold whitespace-nowrap">${text}</span>`;
-                            const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
-                            if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
-                                return isDark
-                                    ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
-                                    : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
-                            }
-                            const map = isDark ? {
-                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
-                                A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
-                            } : {
-                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
-                                A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
-                            };
-                            const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
-                            return badge(s.text, s.bg, s.color);
-                        },
-                    },
-                    {
-                        data: "docid",
-                        title: "Note",
-                        orderable: false,
-                        searchable: false,
-                        className: "text-center",
-                        render: privateNoteRender,
-                    },
-                ];
-                break;
+        if (tab === "approval") refreshPrivateNoteCounts();
+    }
 
-            case "approval-history":
-                columns = [
-                    { data: "docid",         title: "Document",      render: docLinkRender },
-                    { data: "docdate",        title: "Approval Date" },
-                    { data: "cpnyid",         title: "Company" },
-                    { data: "departementid",  title: "Department" },
-                    { data: "infohd",         title: "Description" },
-                    {
-                        data: "status",
-                        title: "Status",
-                        render: function (v, type, row) {
-                            const isDark = document.documentElement.classList.contains("dark");
-                            const badge = (text, bg, color) =>
-                                `<span style="background:${bg};color:${color};border:1px solid ${color}60" class="inline-block rounded-full px-3 py-1 text-center text-xs font-semibold whitespace-nowrap">${text}</span>`;
-                            const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
-                            if (doctype === "CS" && row.flag_imbudget && row.imbudgetid && row.status_imbudget !== "C") {
-                                return isDark
-                                    ? badge("Waiting IM Budget", "rgba(245,158,11,0.15)", "#fbbf24")
-                                    : badge("Waiting IM Budget", "rgba(245,158,11,0.12)", "#b45309");
-                            }
-                            const map = isDark ? {
-                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.15)", color: "#93c5fd" },
-                                A: { text: "Approved",         bg: "rgba(34,197,94,0.15)",  color: "#86efac" },
-                            } : {
-                                P: { text: "Waiting Approval", bg: "rgba(59,130,246,0.1)", color: "#2563eb" },
-                                A: { text: "Approved",         bg: "rgba(34,197,94,0.1)",  color: "#16a34a" },
-                            };
-                            const s = map[v] || { text: "Unknown", bg: "rgba(156,163,175,0.1)", color: "#6b7280" };
-                            return badge(s.text, s.bg, s.color);
-                        },
-                    },
-                ];
-                break;
-
-            case "po":
-                columns = [
-                    { data: "order_no",      title: "PO Number" },
-                    { data: "order_date",    title: "Date" },
-                    { data: "cpny_id",       title: "Company" },
-                    { data: "department_id", title: "Department" },
-                    { data: "user_peminta",  title: "Requester" },
-                    { data: "purchaser",     title: "Purchaser" },
-                ];
-                break;
-
-            case "issue":
-                columns = [
-                    { data: "issue_id",      title: "Issue Number" },
-                    { data: "issue_date",    title: "Date" },
-                    { data: "cpny_id",       title: "Company" },
-                    { data: "department_id", title: "Department" },
-                    { data: "user_peminta",  title: "Requester" },
-                    { data: "keeper",        title: "Keeper" },
-                ];
-                break;
-
-            case "budget":
-                columns = [
-                    { data: "cpny_id",            title: "Company" },
-                    { data: "business_unit_id",   title: "Business Unit" },
-                    { data: "department_fin_id",  title: "Department" },
-                    { data: "account_id",         title: "Account" },
-                    { data: "activity_descr",     title: "Activity" },
-                    {
-                        data: "remaining_budget",
-                        title: "Remaining Budget",
-                        className: "text-right",
-                        render: (data) => formatCurrency(data),
-                    },
-                ];
-                break;
-
-            case "imbudget":
-                columns = [
-                    { data: "imbudgetid",              title: "IM Budget",       render: imBudgetLinkRender },
-                    { data: "imbudgetdate",            title: "Date" },
-                    { data: "cpny_id",                 title: "Company" },
-                    { data: "department_id",           title: "Department" },
-                    { data: "user_peminta",            title: "Requester" },
-                    { data: "csid",                    title: "CS Reference" },
-                    {
-                        data: "total_budget_requested",
-                        title: "Budget Requested",
-                        className: "text-right",
-                        render: (data) => formatCurrency(data),
-                    },
-                    {
-                        data: "status",
-                        title: "Status",
-                        render: (data) => imBudgetStatusBadge(data),
-                    },
-                ];
-                break;
-        }
-
-        dashboardTable = $("#dashboardTable").DataTable({
-            data: data,
-            columns: columns,
-            pageLength: 10,
-            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-            responsive: true,
-            searching: true,
-            ordering: true,
-            paging: true,
-            info: true,
-            autoWidth: false,
-            destroy: true,
-            order: [[1, "desc"]],
-            language: {
-                search: "",
-                searchPlaceholder: "Search...",
-                lengthMenu: "Show _MENU_",
-                info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                emptyTable: "No data available",
-            },
-            drawCallback: function () {
-                if (tab === "approval") refreshPrivateNoteCounts();
-            },
-        });
-
-        const search = $("#dashboardSearch").val();
-        if (search) dashboardTable.search(search).draw();
+    function renderCardList(rows, tab) {
+        allRows = rows;
+        currentPage = 0;
+        draw(tab);
     }
 
     // ─── Load tab data ───────────────────────────────────────────────────────────
@@ -450,7 +497,7 @@
                     rows = applyImBudgetFilter(rows);
                 }
 
-                buildDataTable(rows, tab);
+                renderCardList(rows, tab);
                 startCountdown(20);
             })
             .catch((err) => {
@@ -472,16 +519,14 @@
                     : "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700";
         });
 
-        const filterWrap = $("#dashboardFilter").closest(".lg\\:col-span-5");
-
         if (tab === "approval" || tab === "approval-history") {
             loadDocTypes();
-            filterWrap.show();
+            $("#dashboardFilterCol").show();
         } else if (tab === "imbudget") {
             loadImBudgetStatusFilter();
-            filterWrap.show();
+            $("#dashboardFilterCol").show();
         } else {
-            filterWrap.hide();
+            $("#dashboardFilterCol").hide();
         }
 
         loadTab(tab);
@@ -501,13 +546,33 @@
             if (activeTab === "approval" || activeTab === "approval-history") {
                 loadTab(activeTab);
             } else if (activeTab === "imbudget") {
-                buildDataTable(applyImBudgetFilter(rawImBudgetData), "imbudget");
+                renderCardList(applyImBudgetFilter(rawImBudgetData), "imbudget");
             }
         });
 
         $("#dashboardSearch").on("keyup", function () {
-            if (!dashboardTable) return;
-            dashboardTable.search(this.value).draw();
+            currentPage = 0;
+            draw(activeTab);
+        });
+
+        $("#dashboardPageSize").on("change", function () {
+            pageSize = parseInt($(this).val(), 10) || 10;
+            currentPage = 0;
+            draw(activeTab);
+        });
+
+        $("#applyFilter").on("click", () => loadTab(activeTab));
+
+        $("#prevPage").on("click", () => {
+            if (currentPage > 0) {
+                currentPage--;
+                draw(activeTab);
+            }
+        });
+
+        $("#nextPage").on("click", () => {
+            currentPage++;
+            draw(activeTab);
         });
 
         $("#refreshDashboard").on("click", () => {
@@ -518,7 +583,7 @@
         $("#openAllDocument").on("click", function () {
             if (activeTab !== "approval" && activeTab !== "approval-history") return;
 
-            const rows = dashboardTable?.rows()?.data()?.toArray() || [];
+            const rows = applySearchFilter(allRows, activeTab);
             rows.forEach((row) => {
                 const key = row.hid || row.eid;
                 if (row.url && key) window.open(`${row.url}/${key}`, "_blank");
@@ -541,12 +606,16 @@
     // ─── Init ────────────────────────────────────────────────────────────────────
 
     function init() {
-        if (!$("#dashboardTable").length) return;
+        if (!$("#dashboardCardList").length) return;
+
+        $("#dashboardFilter").select2({
+            width: "100%",
+            minimumResultsForSearch: 5,
+            dropdownParent: $("#dashboardFilterWrap"),
+        });
 
         bindEvents();
         loadSummary();
-
-        $("#dashboardFilter").closest(".lg\\:col-span-5").hide();
 
         activateTab("approval");
     }

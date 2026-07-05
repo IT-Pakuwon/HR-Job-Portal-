@@ -125,6 +125,7 @@ use App\Http\Controllers\SysAccessRightController;
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
 use App\Http\Controllers\SysMenuController;
+use App\Http\Controllers\SysMenuFavouriteController;
 use App\Http\Controllers\SysRoleController;
 use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\SysScreenController;
@@ -1733,6 +1734,12 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
+
+        Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/toggle', 'toggle')->name('toggle');
+            Route::post('/reorder', 'reorder')->name('reorder');
+        });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
 

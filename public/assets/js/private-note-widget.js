@@ -1,6 +1,7 @@
 (function () {
     let currentDoctype = null;
     let currentRefnbr = null;
+    let lastNoteCount = 0;
 
     function timeAgo(dateStr) {
         if (!dateStr) return '';
@@ -26,15 +27,24 @@
 
     function openPanel() {
         $('#privateNotePanel').removeClass('hidden').addClass('flex');
+        $('#privateNoteToggleBtn').addClass('hidden');
+        $('#privateNoteToggleBadge').addClass('hidden');
     }
 
     function closePanel() {
         $('#privateNotePanel').removeClass('flex').addClass('hidden');
+        if (currentRefnbr) {
+            $('#privateNoteToggleBtn').removeClass('hidden');
+        }
+        if (lastNoteCount > 0) {
+            $('#privateNoteToggleBadge').text(lastNoteCount > 99 ? '99+' : lastNoteCount).removeClass('hidden');
+        }
     }
 
     function updateToggleBadge(count) {
+        lastNoteCount = count;
         const badge = $('#privateNoteToggleBadge');
-        if (count > 0) {
+        if (count > 0 && !isOpen()) {
             badge.text(count > 99 ? '99+' : count).removeClass('hidden');
         } else {
             badge.addClass('hidden');
@@ -145,6 +155,13 @@
     $(document).ready(function () {
         const widget = document.getElementById('privateNoteWidget');
         if (!widget) return;
+
+        // Re-parent to <body> so the fixed positioning is always relative to
+        // the viewport, regardless of which scrollable/nested container the
+        // widget was originally included in.
+        if (widget.parentElement !== document.body) {
+            document.body.appendChild(widget);
+        }
 
         const initialDoctype = widget.dataset.doctype || null;
         const initialRefnbr = widget.dataset.refnbr || null;
