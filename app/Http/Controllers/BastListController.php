@@ -72,9 +72,10 @@ class BastListController extends Controller
             ->when(!empty($deptList), fn ($q) => $q->whereIn('department_id', $deptList))
             ->count();
 
+        // Note: no department filter here, mirroring scope=allactive in json()
+        // which also ignores department_id so admin sees the true cross-department total.
         $allActive = TrBast::query()
             ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
-            ->when(!empty($deptList), fn ($q) => $q->whereIn('department_id', $deptList))
             ->whereIn('status', ['P', 'C']) // Only On Progress + Completed
             ->count();
 
