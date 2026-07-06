@@ -158,6 +158,7 @@ class PoController extends Controller
 
         $poHistory = TrReceipt::query()
             ->where('ponbr', $po->ponbr)
+            ->where('cpny_id', $po->cpny_id)
             ->when(!empty($po->vendorid), fn($q) => $q->where('vendorid', $po->vendorid))
             ->orderByDesc('receiptdate')
             ->orderByDesc('created_at')

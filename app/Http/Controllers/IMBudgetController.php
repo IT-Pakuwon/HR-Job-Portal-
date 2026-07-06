@@ -147,12 +147,13 @@ class IMBudgetController extends Controller
 
         $columns = [
             0 => 'imb.imbudgetid',
-            1 => 'imb.imbudgetdate',
-            2 => 'imb.csid',
-            3 => 'imb.sppbjktid',
+            1 => 'imb.imbudgetid',
+            2 => 'imb.imbudgetdate',
+            3 => 'imb.imbudgetid',
             4 => 'imb.cpny_id',
             5 => 'imb.user_peminta',
-            6 => 'imb.status',
+            6 => 'imb.keperluan',
+            7 => 'imb.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 1);
@@ -182,8 +183,14 @@ class IMBudgetController extends Controller
                 $q->where('imb.imbudgetid', 'ilike', $like)
                     ->orWhere('imb.csid', 'ilike', $like)
                     ->orWhere('imb.sppbjktid', 'ilike', $like)
+                    ->orWhere('imb.spbid', 'ilike', $like)
+                    ->orWhere('imb.issueid', 'ilike', $like)
+                    ->orWhere('imb.rfp_id', 'ilike', $like)
+                    ->orWhere('imb.rfpnonpurchaseid', 'ilike', $like)
+                    ->orWhere('imb.calrnonpurchaseid', 'ilike', $like)
                     ->orWhere('imb.cpny_id', 'ilike', $like)
                     ->orWhere('imb.user_peminta', 'ilike', $like)
+                    ->orWhere('imb.keperluan', 'ilike', $like)
                     ->orWhere('imb.status', 'ilike', $like);
             });
         }
@@ -196,8 +203,14 @@ class IMBudgetController extends Controller
                 'imb.imbudgetdate',
                 'imb.csid',
                 'imb.sppbjktid',
+                'imb.spbid',
+                'imb.issueid',
+                'imb.rfp_id',
+                'imb.rfpnonpurchaseid',
+                'imb.calrnonpurchaseid',
                 'imb.cpny_id',
                 'imb.user_peminta',
+                'imb.keperluan',
                 'imb.status',
                 'imb.created_by'
             )
@@ -219,6 +232,19 @@ class IMBudgetController extends Controller
             if (!$row->eid && $row->imbudgetid) {
                 $row->eid = rawurlencode($row->imbudgetid);
             }
+
+            $row->refnbr = collect([
+                    $row->csid,
+                    $row->sppbjktid,
+                    $row->spbid,
+                    $row->issueid,
+                    $row->rfp_id,
+                    $row->rfpnonpurchaseid,
+                    $row->calrnonpurchaseid,
+                ])
+                ->map(fn ($value) => trim((string) $value))
+                ->filter()
+                ->implode(' - ');
 
             unset($row->rid);
             return $row;
@@ -1278,9 +1304,14 @@ class IMBudgetController extends Controller
             ?? 'system';
 
         $sourceDocid = trim((string) $calr->calrnonpurchaseid);
+        $rfpNonPurchaseId = trim((string) $calr->rfpnonpurchaseid);
 
         if ($sourceDocid === '') {
             throw new \Exception('CALR Non Purchase ID tidak ditemukan.');
+        }
+
+        if ($rfpNonPurchaseId === '') {
+            throw new \Exception("RFP/RCA Non Purchase ID untuk CALR {$sourceDocid} tidak ditemukan.");
         }
 
         /*
@@ -1332,7 +1363,7 @@ class IMBudgetController extends Controller
         |--------------------------------------------------------------------------
         */
         $rows = TrRfpNonPurchDetail::query()
-            ->where('rfpnonpurchaseid', $calr->rfpnonpurchaseid)
+            ->where('rfpnonpurchaseid', $rfpNonPurchaseId)
             ->where('refid', $sourceDocid)
             ->orderBy('id')
             ->get();
@@ -1612,7 +1643,7 @@ class IMBudgetController extends Controller
             $header->spbid = null;
             $header->issueid = null;
             $header->rfp_id = null;
-            $header->rfpnonpurchaseid = null;
+            $header->rfpnonpurchaseid = $rfpNonPurchaseId;
             $header->calrnonpurchaseid = $sourceDocid;
 
             $header->cpny_id = $cpnyid;
@@ -1647,7 +1678,7 @@ class IMBudgetController extends Controller
                 $detail->spbid = null;
                 $detail->issueid = null;
                 $detail->rfp_id = null;
-                $detail->rfpnonpurchaseid = null;
+                $detail->rfpnonpurchaseid = $rfpNonPurchaseId;
                 $detail->calrnonpurchaseid = $sourceDocid;
 
                 $detail->budget_perpost = $d['budget_perpost'];
@@ -3329,6 +3360,10 @@ class IMBudgetController extends Controller
             $imbudget->updated_by = Auth::user()->username ?? Auth::id();
             $imbudget->updated_at = now();
             $imbudget->save();
+
+            $csid = $imbudget->csid;
+            $statusIm = 'X';
+            $this->updateCSImBudgetStatus($csid, $statusIm);
 
             DB::commit();
 
