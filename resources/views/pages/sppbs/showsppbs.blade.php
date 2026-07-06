@@ -907,6 +907,8 @@
         </div>
     </div>
 
+    @include('partials.private-note-widget', ['doctype' => 'PB', 'refnbr' => $sppb->sppbid])
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
     <script>

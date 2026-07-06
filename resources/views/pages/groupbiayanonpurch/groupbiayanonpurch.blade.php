@@ -183,7 +183,7 @@
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700 dark:text-white" required>
                         </div>
 
-                        <div>
+                        <div class="hidden">
                             <label class="mb-1 block text-sm font-medium text-gray-600 dark:text-gray-300">Is Budget</label>
                             <select id="is_budget" name="is_budget"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700 dark:text-white">
@@ -192,7 +192,7 @@
                             </select>
                         </div>
 
-                        <div>
+                        <div class="hidden">
                             <label class="mb-1 block text-sm font-medium text-gray-600 dark:text-gray-300">Is Deposit</label>
                             <select id="is_deposit" name="is_deposit"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700 dark:text-white">

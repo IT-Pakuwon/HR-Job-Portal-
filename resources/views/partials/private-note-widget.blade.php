@@ -14,7 +14,7 @@
                 </button>
             </div>
             <p class="border-b border-gray-200 bg-gray-100 px-4 py-1.5 text-[11px] italic text-gray-600 dark:border-gray-700 dark:bg-gray-700/50 dark:text-gray-300">
-                Only visible to Cost Control.
+                Only visible to you.
             </p>
             <div id="privateNoteList" class="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-3">
                 <p class="py-4 text-center text-sm italic text-gray-500">Select a document to view notes.</p>

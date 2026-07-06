@@ -27,7 +27,125 @@
 
         <!-- CONTENT -->
         <div class="space-y-4 p-4">
+
+            @php
+                $menuSearchIndex = collect();
+                $allowedIdsForSearch = collect($allowedMenuIds ?? [])->all();
+
+                foreach (($rootMenus ?? collect()) as $rootMenu) {
+                    foreach ($rootMenu->children as $lvl1) {
+                        $lvl2 = $lvl1->children->whereIn('menu_id', $allowedIdsForSearch);
+
+                        if ($lvl2->isEmpty() && !empty($lvl1->menu_route)) {
+                            $menuSearchIndex->push([
+                                'menu_name'   => $lvl1->menu_name,
+                                'menu_icon'   => $lvl1->menu_icon,
+                                'parent_name' => $rootMenu->menu_name,
+                                'url'         => Route::has($lvl1->menu_route) ? route($lvl1->menu_route) : '#',
+                            ]);
+                        } elseif ($lvl2->isNotEmpty()) {
+                            foreach ($lvl2 as $leaf) {
+                                if (!empty($leaf->menu_route)) {
+                                    $menuSearchIndex->push([
+                                        'menu_name'   => $leaf->menu_name,
+                                        'menu_icon'   => $leaf->menu_icon,
+                                        'parent_name' => $lvl1->menu_name,
+                                        'url'         => Route::has($leaf->menu_route) ? route($leaf->menu_route) : '#',
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $menuSearchIndex = $menuSearchIndex->values();
+            @endphp
+
+            <!-- ================= MENU SEARCH ================= -->
+            <div class="relative" x-data="sidebarMenuSearch({{ $menuSearchIndex->toJson() }})">
+                <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-4.35-4.35m1.35-5.15a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z" />
+                    </svg>
+
+                    <input type="text" x-model="query" @input="open = query.length > 0"
+                        @focus="open = query.length > 0" @keydown.escape="query = ''; open = false"
+                        placeholder="Search menu..."
+                        class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-8 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-400 focus:bg-white focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:bg-gray-900">
+
+                    <button type="button" x-show="query.length > 0" @click="query = ''; open = false"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div x-show="open" @click.outside="open = false" x-transition
+                    class="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+
+                    <template x-if="results.length === 0">
+                        <p class="px-3 py-4 text-center text-sm text-gray-400 dark:text-gray-500">No menu found.</p>
+                    </template>
+
+                    <template x-for="item in results" :key="item.url + item.menu_name">
+                        <a :href="item.url" @click="open = false"
+                            class="flex items-center gap-3 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <svg class="h-4 w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="item.menu_icon"></path>
+                            </svg>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate text-gray-700 dark:text-gray-200" x-text="item.menu_name"></span>
+                                <span class="block truncate text-[11px] text-gray-400 dark:text-gray-500" x-text="item.parent_name"></span>
+                            </span>
+                        </a>
+                    </template>
+                </div>
+            </div>
+
             <ul class="space-y-1">
+
+                <!-- ================= FAVORITES ================= -->
+                <li class="mt-0" x-data="sidebarFavourites()" x-init="init()" x-show="items.length > 0" x-cloak>
+
+                    <button @click="open = !open"
+                        class="flex w-full items-center justify-between rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-amber-700 bg-amber-50 transition-all duration-200 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-900/20 dark:hover:bg-amber-900/30">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="h-4 w-4 shrink-0 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 2.5l2.29 4.64 5.12.74-3.7 3.61.87 5.1L10 14.9l-4.58 2.4.87-5.1-3.7-3.61 5.12-.74L10 2.5z" />
+                            </svg>
+                            <span class="whitespace-normal wrap-break-word leading-snug">Favorites</span>
+                        </div>
+                        <svg class="h-3 w-3 transition-transform" :class="open ? 'rotate-180' : ''"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 9l6 6 6-6" />
+                        </svg>
+                    </button>
+
+                    <ul x-show="open" x-collapse class="mt-1 space-y-1">
+                        <template x-for="item in items" :key="item.id">
+                            <li class="flex items-center justify-between rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <a :href="item.url" class="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-sm">
+                                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="item.menu_icon" />
+                                    </svg>
+                                    <span class="truncate" x-text="item.menu_name"></span>
+                                </a>
+
+                                <button type="button" @click.prevent.stop="removeItem(item)"
+                                    class="mr-2 shrink-0 rounded p-1 text-amber-400 transition-colors hover:text-amber-500"
+                                    title="Remove from favourites">
+                                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10 2.5l2.29 4.64 5.12.74-3.7 3.61.87 5.1L10 14.9l-4.58 2.4.87-5.1-3.7-3.61 5.12-.74L10 2.5z" />
+                                    </svg>
+                                </button>
+                            </li>
+                        </template>
+                    </ul>
+                </li>
 
                 <!-- ================= DYNAMIC MENU MODULES (order = menu_sort_order, from Sys Menu Tree) ================= -->
                 @foreach ($rootMenus as $rootMenu)
@@ -492,6 +610,65 @@
 </div>
 
 <script>
+function sidebarMenuSearch(index) {
+    return {
+        index: index,
+        query: '',
+        open: false,
+
+        get results() {
+            const term = this.query.trim().toLowerCase();
+            if (!term) return [];
+
+            return this.index.filter(item =>
+                item.menu_name.toLowerCase().includes(term) ||
+                (item.parent_name || '').toLowerCase().includes(term)
+            ).slice(0, 8);
+        }
+    };
+}
+
+function sidebarFavourites() {
+    return {
+        items: [],
+        open: true,
+
+        init() {
+            this.load();
+            window.addEventListener('favourites-changed', () => this.load());
+        },
+
+        async load() {
+            try {
+                const res = await fetch('{{ route('menu-favourites.index') }}', { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) return;
+                const { data = [] } = await res.json();
+                this.items = data;
+            } catch (e) {
+                console.error('sidebar favourites load failed', e);
+            }
+        },
+
+        async removeItem(item) {
+            try {
+                await fetch('{{ route('menu-favourites.toggle') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ screen_id: item.screen_id, application_id: item.application_id })
+                });
+                this.items = this.items.filter(i => i.id !== item.id);
+                window.dispatchEvent(new CustomEvent('favourites-changed'));
+            } catch (e) {
+                console.error('sidebar remove favourite failed', e);
+            }
+        }
+    };
+}
+
 document.addEventListener('click', function (e) {
     const btn = e.target.closest('.favourite-star');
     if (!btn) return;

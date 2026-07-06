@@ -146,39 +146,49 @@
 
     // ─── Private note (approval tab only) ───────────────────────────────────────
 
+    const PRIVATE_NOTE_DOCTYPES = ["CS", "PB", "PJ", "PK", "PT", "IM"];
+
     function privateNoteButton(row) {
         const doctype = (row.docid || "").match(/^[A-Z]+/)?.[0];
-        if (doctype !== "CS") return "";
+        if (!PRIVATE_NOTE_DOCTYPES.includes(doctype)) return "";
 
         return `
             <button type="button" class="private-note-btn relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-600 text-white shadow transition hover:bg-gray-700"
-                data-doctype="CS" data-refnbr="${row.docid}" title="Private Note">
+                data-doctype="${doctype}" data-refnbr="${row.docid}" title="Private Note">
                 🗒️
                 <span class="note-count-badge absolute -top-1 -right-1 hidden min-w-4 rounded-full bg-red-500 px-1 text-[10px] font-bold leading-4 text-white" data-refnbr="${row.docid}"></span>
             </button>`;
     }
 
     function refreshPrivateNoteCounts() {
-        const refnbrs = Array.from(document.querySelectorAll(".private-note-btn"))
-            .map((el) => el.dataset.refnbr)
-            .filter(Boolean);
+        const byDoctype = {};
 
-        if (!refnbrs.length) return;
+        Array.from(document.querySelectorAll(".private-note-btn")).forEach((el) => {
+            const doctype = el.dataset.doctype;
+            const refnbr = el.dataset.refnbr;
+            if (!doctype || !refnbr) return;
+            if (!byDoctype[doctype]) byDoctype[doctype] = [];
+            byDoctype[doctype].push(refnbr);
+        });
 
-        fetch(`/private-notes-counts/CS?refnbrs=${encodeURIComponent(refnbrs.join(","))}`, {
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                Accept: "application/json",
-            },
-        })
-            .then((r) => r.json())
-            .then((res) => {
-                const counts = res.counts || {};
-                Object.keys(counts).forEach((refnbr) => {
-                    applyPrivateNoteCount(refnbr, counts[refnbr]);
-                });
+        Object.keys(byDoctype).forEach((doctype) => {
+            const refnbrs = byDoctype[doctype];
+
+            fetch(`/private-notes-counts/${doctype}?refnbrs=${encodeURIComponent(refnbrs.join(","))}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
+                },
             })
-            .catch((err) => console.error("Error loading private note counts:", err));
+                .then((r) => r.json())
+                .then((res) => {
+                    const counts = res.counts || {};
+                    Object.keys(counts).forEach((refnbr) => {
+                        applyPrivateNoteCount(refnbr, counts[refnbr]);
+                    });
+                })
+                .catch((err) => console.error("Error loading private note counts:", err));
+        });
     }
 
     function applyPrivateNoteCount(refnbr, count) {
@@ -652,7 +662,7 @@
         });
 
         $(document).on("privatenote:count-updated", function (e, doctype, refnbr, count) {
-            if (doctype !== "CS" || !refnbr) return;
+            if (!refnbr) return;
             applyPrivateNoteCount(refnbr, count);
         });
     }

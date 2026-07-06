@@ -864,6 +864,8 @@
         </div>
     </div>
 
+    @include('partials.private-note-widget', ['doctype' => 'PK', 'refnbr' => $sppk->sppkid])
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
     <script>

@@ -108,6 +108,7 @@ class SendCommentController extends Controller
         $notes = TrMessage::where('doctype', $doctype)
             ->where('refnbr', $id)
             ->where('message_type', 'Private')
+            ->where('username', $username)
             ->orderByDesc('message_date')
             ->get();
 
@@ -141,6 +142,7 @@ class SendCommentController extends Controller
 
         $counts = TrMessage::where('doctype', $doctype)
             ->where('message_type', 'Private')
+            ->where('username', $username)
             ->whereIn('refnbr', $refnbrs)
             ->selectRaw('refnbr, count(*) as total')
             ->groupBy('refnbr')
