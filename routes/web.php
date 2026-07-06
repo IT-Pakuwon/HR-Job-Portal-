@@ -498,18 +498,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/budgetmonitor/options/departments', [BudgetMonitorController::class, 'departments'])->name('budgetmonitor.options.departments');
         Route::get('/budgetmonitor/master.json', [BudgetMonitorController::class, 'masterJson'])->name('budgetmonitor.master.json');
         Route::get('/budgetmonitor/trx.json', [BudgetMonitorController::class, 'trxJson'])->name('budgetmonitor.trx.json');
-
-        Route::get('/mapping-po-erp', [MappingPoERPController::class, 'index'])->name('mapping_po_erp.index');
-        Route::get('/mapping-po-erp/json', [MappingPoERPController::class, 'json'])->name('mapping_po_erp.json');
-        Route::get('/mapping-po-erp/integration-types', [MappingPoERPController::class, 'integrationTypes'])->name('mapping_po_erp.integration-types');
-        Route::get('/mapping-po-erp/{id}', [MappingPoERPController::class, 'showMapping'])->name('mapping_po_erp.show');
-        Route::put('/mapping-po-erp/{id}', [MappingPoERPController::class, 'updateMapping'])->name('mapping_po_erp.update');
-
-        Route::get('/mapping-issue-erp', [MappingIssueERPController::class, 'index'])->name('mapping_issue_erp.index');
-        Route::get('/mapping-issue-erp/json', [MappingIssueERPController::class, 'json'])->name('mapping_issue_erp.json');
-        Route::get('/mapping-issue-erp/integration-types', [MappingIssueERPController::class, 'integrationTypes'])->name('mapping_issue_erp.integration-types');
-        Route::get('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'showMapping'])->whereNumber('id')->name('mapping_issue_erp.show');
-        Route::put('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'updateMapping'])->whereNumber('id')->name('mapping_issue_erp.update');
     });
 
     Route::middleware('access:BUDGET,CREATE')->group(function () {
@@ -526,6 +514,28 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/budget/{id}/reject', [BudgetController::class, 'rejectBudget']);
         Route::post('/budget/{id}/revise', [BudgetController::class, 'reviseBudget']);
         Route::post('/budgets/{budget}/import', [BudgetController::class, 'import'])->name('budgets.import.edit');
+    });
+
+    Route::middleware('access:POMAP,VIEW')->group(function () {
+        Route::get('/mapping-po-erp', [MappingPoERPController::class, 'index'])->name('mapping_po_erp.index');
+        Route::get('/mapping-po-erp/json', [MappingPoERPController::class, 'json'])->name('mapping_po_erp.json');
+        Route::get('/mapping-po-erp/integration-types', [MappingPoERPController::class, 'integrationTypes'])->name('mapping_po_erp.integration-types');
+        Route::get('/mapping-po-erp/{id}', [MappingPoERPController::class, 'showMapping'])->name('mapping_po_erp.show');
+    });
+
+    Route::middleware('access:POMAP,EDIT')->group(function () {
+        Route::put('/mapping-po-erp/{id}', [MappingPoERPController::class, 'updateMapping'])->name('mapping_po_erp.update');
+    });
+
+    Route::middleware('access:ISSUEMAP,VIEW')->group(function () {
+        Route::get('/mapping-issue-erp', [MappingIssueERPController::class, 'index'])->name('mapping_issue_erp.index');
+        Route::get('/mapping-issue-erp/json', [MappingIssueERPController::class, 'json'])->name('mapping_issue_erp.json');
+        Route::get('/mapping-issue-erp/integration-types', [MappingIssueERPController::class, 'integrationTypes'])->name('mapping_issue_erp.integration-types');
+        Route::get('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'showMapping'])->whereNumber('id')->name('mapping_issue_erp.show');
+    });
+
+    Route::middleware('access:ISSUEMAP,EDIT')->group(function () {
+        Route::put('/mapping-issue-erp/{id}', [MappingIssueERPController::class, 'updateMapping'])->whereNumber('id')->name('mapping_issue_erp.update');
     });
 
     // 👀 VIEW SPPB
@@ -1081,20 +1091,30 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/nonstockjobs/{eid}/rollback', [NonstockJobsController::class, 'rollbackInventory'])->name('nonstockjobs.rollback');
     });
 
-    Route::get('/kontrak', [KontrakController::class, 'index'])->name('kontrak');
-    Route::get('/kontrak/json', [KontrakController::class, 'json'])->name('kontrak.json');
-    Route::get('/showkontrak/{hash}', [KontrakController::class, 'showKontrak'])->name('kontrak.show');
-    Route::get('/createkontrak/{hash}', [KontrakController::class, 'createKontrak'])->name('kontrak.create');
-    Route::post('/kontrak/{kontrakid}/submit', [KontrakController::class, 'submitKontrak'])->name('kontrak.submit');
-    Route::get('/kontrak/edit/{eid}', [KontrakController::class, 'editKontrak'])->name('kontrak.edit');
-    Route::post('/kontrak/{eid}/reuse', [KontrakController::class, 'reuse'])->name('kontrak.reuse');
-    Route::post('/kontrak/{eid}/terminate', [KontrakController::class, 'terminate'])->name('kontrak.terminate');
+    Route::middleware('access:KONTRAK,VIEW')->group(function () {
+        Route::get('/kontrak', [KontrakController::class, 'index'])->name('kontrak');
+        Route::get('/kontrak/json', [KontrakController::class, 'json'])->name('kontrak.json');
+        Route::get('/showkontrak/{hash}', [KontrakController::class, 'showKontrak'])->name('kontrak.show');
+    });
+
+    Route::middleware('access:KONTRAK,CREATE')->group(function () {
+        Route::get('/createkontrak/{hash}', [KontrakController::class, 'createKontrak'])->name('kontrak.create');
+        Route::post('/kontrak/{kontrakid}/submit', [KontrakController::class, 'submitKontrak'])->name('kontrak.submit');
+    });
+
+    Route::middleware('access:KONTRAK,EDIT')->group(function () {
+        Route::get('/kontrak/edit/{eid}', [KontrakController::class, 'editKontrak'])->name('kontrak.edit');
+        Route::post('/kontrak/{eid}/reuse', [KontrakController::class, 'reuse'])->name('kontrak.reuse');
+        Route::post('/kontrak/{eid}/terminate', [KontrakController::class, 'terminate'])->name('kontrak.terminate');
+    });
 
     Route::get('/kendaraan/all', [MasterController::class, 'listKendaraan'])->name('kendaraan.all');
     Route::get('/lookup/tenants', [MasterController::class, 'tenants'])->name('tenants.search');
     Route::get('/lookup/users', [MasterController::class, 'users'])->name('users.search');
     Route::get('/api/tenants/show', [MasterController::class, 'showTenant'])->name('tenants.show');
-    Route::get('/vendorscs', [MasterController::class, 'vendors']);
+    Route::middleware('access:VENDOR,VIEW')->group(function () {
+        Route::get('/vendorscs', [MasterController::class, 'vendors']);
+    });
     Route::get('/taxes', [MasterController::class, 'taxes'])->name('taxes.index');
     Route::get('/sites', [MasterController::class, 'sitesWarehouse'])->name('sites.index');
     Route::get('/inventory/list', [MasterController::class, 'InventoryList'])->name('inventory.list');
@@ -2159,8 +2179,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/kendaraan/{id}', [KendaraanController::class, 'update'])->name('kendaraan.update');
     Route::put('/kendaraan/{id}/toggle-status', [KendaraanController::class, 'toggleStatus'])->name('kendaraan.toggle-status');
 
-    Route::get('/inventories-user', [InventoryUserController::class, 'index'])->name('inventories-user');
-    Route::get('/inventories-user/json', [InventoryUserController::class, 'json'])->name('inventories-user.json');
+    Route::middleware('access:INVENTORIESUSER,VIEW')->group(function () {
+        Route::get('/inventories-user', [InventoryUserController::class, 'index'])->name('inventories-user');
+        Route::get('/inventories-user/json', [InventoryUserController::class, 'json'])->name('inventories-user.json');
+    });
 
     Route::middleware(['auth'])->group(function () {
         // halaman setting + tombol run
