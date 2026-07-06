@@ -1446,6 +1446,7 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/detail/{hash}', 'detail')->name('ticket.detail');
                     Route::get('/tracking/{hash}', 'tracking')->name('ticket.tracking');
                     Route::get('/comments/{hash}', 'comments')->name('ticket.comments');
+                    Route::get('/mentionable-users/{hash}', 'mentionableUsers')->name('ticket.mentionable-users');
                     Route::get('/category-search', 'categorySearch')->name('ticket.categorySearch');
                     Route::get('/subcategory-search', 'subcategorySearch')->name('ticket.subcategorySearch');
                     Route::get('/priority-search', 'prioritySearch')->name('ticket.prioritySearch');
@@ -1598,6 +1599,7 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/detail/{hash}', 'detail')->name('access-request.detail');
                     Route::get('/tracking/{hash}', 'tracking')->name('access-request.tracking');
                     Route::get('/comments/{hash}', 'comments')->name('access-request.comments');
+                    Route::get('/mentionable-users/{hash}', 'mentionableUsers')->name('access-request.mentionable-users');
                     Route::get('/category-search', 'categorySearch')->name('access-request.category-search');
                 });
 
@@ -1691,6 +1693,7 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/detail/{hash}', 'detail')->name('it-recommendation.detail');
                     Route::get('/tracking/{hash}', 'tracking')->name('it-recommendation.tracking');
                     Route::get('/comments/{docid}', 'comments')->name('it-recommendation.comments');
+                    Route::get('/mentionable-users/{hash}', 'mentionableUsers')->name('it-recommendation.mentionable-users');
                     Route::get('/inventory-search', 'inventorySearch')->name('it-recommendation.inventory-search');
                     Route::get('/ticket-search', 'ticketSearch')->name('it-recommendation.ticket-search');
                 });
@@ -1801,6 +1804,7 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
+        Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
 
         Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {
             Route::get('/', 'index')->name('index');

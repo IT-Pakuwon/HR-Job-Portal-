@@ -35,4 +35,29 @@ class DocumentNotificationController extends Controller
 
         return response()->json(['data' => $data]);
     }
+
+    public function markRead(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['success' => false], 401);
+
+        $key = trim((string) $request->input('key'));
+        if ($key === '') return response()->json(['success' => false], 422);
+
+        $username = strtolower(trim((string) $user->username));
+        $readCacheKey = 'doc_notif_read_' . $username;
+
+        $readKeys = Cache::get($readCacheKey, []);
+        if (!in_array($key, $readKeys, true)) {
+            $readKeys[] = $key;
+            $readKeys = array_slice($readKeys, -300);
+        }
+        Cache::put($readCacheKey, $readKeys, now()->addDays(60));
+
+        // Force the notification list to rebuild without this item on the next poll,
+        // instead of waiting up to 90 seconds for the existing cache to expire.
+        Cache::forget('doc_notif_' . $username);
+
+        return response()->json(['success' => true]);
+    }
 }

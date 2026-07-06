@@ -64,7 +64,7 @@
             <template x-for="item in items" :key="item.key">
                 <li>
                     <a :href="item.href || `${item.url}/${item.hid}`"
-                        @click="open = false"
+                        @click="markRead(item); open = false"
                         class="group flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors">
 
                         {{-- Status Icon --}}
@@ -122,6 +122,18 @@
                                 <template x-if="statusCfg(item.status).cat === 'bast_approve'">
                                     <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                    </svg>
+                                </template>
+                                {{-- Comment mention: at-sign (violet) --}}
+                                <template x-if="statusCfg(item.status).cat === 'mention'">
+                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 11-8 0 4 4 0 018 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-4.5 7.79"/>
+                                    </svg>
+                                </template>
+                                {{-- New comment: chat bubble (sky) --}}
+                                <template x-if="statusCfg(item.status).cat === 'comment'">
+                                    <svg :class="statusCfg(item.status).iconText" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                     </svg>
                                 </template>
                             </div>
@@ -228,6 +240,18 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                         </svg>
                     </template>
+                    {{-- Comment mention: at-sign (violet) --}}
+                    <template x-if="statusCfg(toast.item?.status).cat === 'mention'">
+                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 11-8 0 4 4 0 018 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-4.5 7.79"/>
+                        </svg>
+                    </template>
+                    {{-- New comment: chat bubble (sky) --}}
+                    <template x-if="statusCfg(toast.item?.status).cat === 'comment'">
+                        <svg :class="statusCfg(toast.item?.status).iconText" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </template>
                 </div>
 
                 <div class="min-w-0 flex-1">
@@ -244,7 +268,7 @@
                     <p x-text="toast.item?.docid" class="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
                     <p x-text="toast.item?.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
                     <a :href="toast.item ? (toast.item.href || `${toast.item.url}/${toast.item.hid}`) : '#'"
-                        @click="toast.show = false"
+                        @click="markRead(toast.item); toast.show = false"
                         :class="statusCfg(toast.item?.status).iconText"
                         class="mt-2 inline-flex items-center gap-1 text-xs font-semibold hover:underline">
                         View document
@@ -304,6 +328,9 @@ function docNotifications() {
                 // BAST statuses
                 'BAST_JOB':   { iconBg: 'bg-orange-100 dark:bg-orange-900/30', iconText: 'text-orange-600 dark:text-orange-400', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', bar: 'bg-orange-500', cat: 'hold'    },
                 'BAST_APRV1': { iconBg: 'bg-teal-100 dark:bg-teal-900/30',    iconText: 'text-teal-600 dark:text-teal-400',    badge: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',         bar: 'bg-teal-500',   cat: 'bast_approve' },
+                // Comment mentions
+                'MENTION':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'mention' },
+                'COMMENT':    { iconBg: 'bg-sky-100 dark:bg-sky-900/30',       iconText: 'text-sky-600 dark:text-sky-400',       badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',             bar: 'bg-sky-500',    cat: 'comment' },
             };
             return map[status] || { iconBg: 'bg-gray-100 dark:bg-gray-700', iconText: 'text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400', bar: 'bg-gray-500', cat: 'default' };
         },
@@ -412,9 +439,13 @@ function docNotifications() {
                     const _proceedStatuses = new Set(['D', 'H', 'ITR_D', 'ITR_PIC_W', 'ITR_PIC_I', 'ACC_C', 'TKT_CREATED']);
                     const reAlertMsg = first.status === 'TKT_CREATED' && first.sla_days
                         ? `This ticket has exceeded its ${first.sla_days}-day SLA. Please review and respond immediately.`
-                        : _proceedStatuses.has(first.status)
-                            ? 'Please proceed your document.'
-                            : 'Please wait, your document is still in process.';
+                        : first.status === 'MENTION'
+                            ? 'You are mentioned in this document, please check.'
+                            : first.status === 'COMMENT'
+                                ? 'There is a new comment in this document, please check.'
+                                : _proceedStatuses.has(first.status)
+                                ? 'Please proceed your document.'
+                                : 'Please wait, your document is still in process.';
                     const toastMsg   = isReAlert ? reAlertMsg : first.message;
 
                     // Mark all fresh items as seen and record first-seen timestamp.
@@ -434,7 +465,7 @@ function docNotifications() {
                             icon: '/favicon.ico',
                             tag: first.key,
                         });
-                        n.onclick = () => { window.focus(); window.location.href = `${first.url}/${first.hid}`; };
+                        n.onclick = () => { this.markRead(first); window.focus(); window.location.href = `${first.url}/${first.hid}`; };
                     }
                 }
 
@@ -448,7 +479,28 @@ function docNotifications() {
             } catch (e) {
                 console.error('doc-notifications load failed', e);
             }
-        }
+        },
+
+        // Comment/mention notifications disappear for good once opened — tell the server
+        // so it's excluded on the next poll, instead of relying on client-side seen state.
+        markRead(item) {
+            if (!item || (item.status !== 'MENTION' && item.status !== 'COMMENT')) return;
+
+            this.items = this.items.filter(i => i.key !== item.key);
+            this.count = this.items.length;
+
+            try {
+                fetch('/document-notifications/mark-read', {
+                    method: 'POST',
+                    keepalive: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    },
+                    body: JSON.stringify({ key: item.key }),
+                });
+            } catch (e) { /* best effort */ }
+        },
     };
 }
 </script>

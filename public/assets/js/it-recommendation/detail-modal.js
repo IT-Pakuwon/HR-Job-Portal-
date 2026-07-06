@@ -806,7 +806,7 @@ function renderDiscussionMessages(messages = []) {
                                 `
                         }
                     ">
-                        ${row.message || "-"}
+                        ${highlightMentions(row.message || "-")}
                     </div>
 
                     <div class="
@@ -876,6 +876,15 @@ $(document).on("click", "#btnSendDiscussion", async function () {
     } finally {
         btn.prop("disabled", false);
     }
+});
+
+attachMentionAutocomplete({
+    inputSelector: "#discussionInput",
+    fetchUrlFn: function () {
+        return currentDiscussionHash
+            ? `/it-recommendation/mentionable-users/${currentDiscussionHash}`
+            : null;
+    },
 });
 
 $(document).on("click", ".cancel-btn", async function () {

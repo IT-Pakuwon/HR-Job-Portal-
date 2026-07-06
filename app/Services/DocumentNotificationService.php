@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
@@ -11,7 +12,9 @@ use App\Models\TrAccess;
 use App\Models\TrApproval;
 use App\Models\TrIMBudget;
 use App\Models\TrItrecommend;
+use App\Models\TrMessage;
 use App\Models\TrTicket;
+use App\Models\User;
 use App\Models\Viewtrxall;
 use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
@@ -461,6 +464,111 @@ class DocumentNotificationService
             Log::warning('DocumentNotificationService: BAST Approval Level 1 fetch failed', ['err' => $e->getMessage()]);
         }
 
+        // ── 8. Comment activity: @mention notifies only the mentioned user(s); a plain
+        //      comment (no valid mention) notifies the creator + approval line instead ──
+        try {
+            $commentDocTypes = [
+                'TIC' => ['model' => TrTicket::class,       'idCol' => 'ticketid', 'url' => '/showticket'],
+                'ACR' => ['model' => TrAccess::class,        'idCol' => 'docid',    'url' => '/showaccessrequest'],
+                'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation'],
+            ];
+
+            $readKeys = collect(Cache::get('doc_notif_read_' . $username, []));
+
+            foreach ($commentDocTypes as $commentDoctype => $cfg) {
+                $rows = TrMessage::where('doctype', $commentDoctype)
+                    ->where('message_date', '>=', now()->subDays(14))
+                    ->whereRaw("lower(trim(coalesce(username,''))) != ?", [$username])
+                    ->get();
+
+                foreach ($rows as $row) {
+                    $key = 'CMT_' . $commentDoctype . '_' . $row->id;
+                    if ($readKeys->contains($key)) {
+                        continue;
+                    }
+
+                    $doc = $cfg['model']::where($cfg['idCol'], $row->refnbr)->first();
+                    if (!$doc) {
+                        continue;
+                    }
+
+                    preg_match_all('/@([\w.]+)/', (string) $row->message, $m);
+                    $tokens = collect($m[1] ?? [])->map(fn($t) => strtolower($t))->unique();
+
+                    $mentionedUsernames = collect();
+                    if ($tokens->isNotEmpty()) {
+                        $mentionedUsernames = User::query()
+                            ->whereIn(DB::raw('lower(username)'), $tokens->all())
+                            ->pluck('username')
+                            ->map(fn($u) => strtolower(trim($u)));
+                    }
+
+                    if ($mentionedUsernames->isNotEmpty()) {
+                        if (!$mentionedUsernames->contains($username)) {
+                            continue;
+                        }
+
+                        $data->push([
+                            'key'        => $key,
+                            'hid'        => Hashids::encode($doc->id),
+                            'docid'      => $row->refnbr,
+                            'status'     => 'MENTION',
+                            'label'      => 'Mentioned',
+                            'message'    => 'You are mentioned in this document, please check.',
+                            'cpnyid'     => $row->cpny_id,
+                            'url'        => $cfg['url'],
+                            'by'         => $row->name,
+                            'updated_at' => $row->message_date,
+                        ]);
+                        continue;
+                    }
+
+                    $recipients = self::resolveCommentRecipients($commentDoctype, $doc);
+                    if (!$recipients->contains($username)) {
+                        continue;
+                    }
+
+                    $data->push([
+                        'key'        => $key,
+                        'hid'        => Hashids::encode($doc->id),
+                        'docid'      => $row->refnbr,
+                        'status'     => 'COMMENT',
+                        'label'      => 'New Comment',
+                        'message'    => 'There is a new comment in this document, please check.',
+                        'cpnyid'     => $row->cpny_id,
+                        'url'        => $cfg['url'],
+                        'by'         => $row->name,
+                        'updated_at' => $row->message_date,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: Comment activity fetch failed', ['err' => $e->getMessage()]);
+        }
+
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();
+    }
+
+    // Creator + approval-line-equivalent audience for a plain (non-mention) comment.
+    private static function resolveCommentRecipients(string $doctype, $doc): \Illuminate\Support\Collection
+    {
+        if ($doctype === 'TIC') {
+            return collect([$doc->user_peminta])
+                ->merge(
+                    MsTicketCategoryDept::where('ticket_categoryid', $doc->ticket_categoryid)
+                        ->where('status', 'A')
+                        ->pluck('username')
+                )
+                ->filter()
+                ->map(fn($u) => strtolower(trim($u)))
+                ->unique();
+        }
+
+        // ACR and ITR both use user_peminta/created_by + TrApproval approval line, keyed by docid.
+        return collect([$doc->user_peminta, $doc->created_by])
+            ->merge(TrApproval::where('refnbr', $doc->docid)->pluck('aprv_username'))
+            ->filter()
+            ->map(fn($u) => strtolower(trim($u)))
+            ->unique();
     }
 }

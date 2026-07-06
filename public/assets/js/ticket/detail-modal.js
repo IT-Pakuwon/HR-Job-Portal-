@@ -1556,7 +1556,7 @@ function renderTicketComments(comments = []) {
                             dark:text-gray-300
                         ">
 
-                            ${nl2br(message)}
+                            ${nl2br(highlightMentions(message))}
 
                         </div>
 

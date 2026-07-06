@@ -8,6 +8,14 @@ function initTicketComment() {
 
     bindCommentAttachmentLabel();
 
+    attachMentionAutocomplete({
+        inputSelector: '#comment_message',
+        fetchUrlFn: function () {
+            const eid = String($('#comment_ticket_id').val() || '').trim();
+            return eid ? `/ticket/mentionable-users/${eid}` : null;
+        },
+    });
+
 }
 
 function bindCommentAttachmentLabel() {

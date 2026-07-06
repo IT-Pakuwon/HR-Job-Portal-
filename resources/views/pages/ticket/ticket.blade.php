@@ -1806,6 +1806,8 @@
     <script src="{{ asset('assets/js/ticket/helper.js') }}"></script>
     <script src="{{ asset('assets/js/ticket/modal.js') }}"></script>
 
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
+
     <script src="{{ asset('assets/js/ticket/datatable.js') }}"></script>
     <script src="{{ asset('assets/js/ticket/detail-modal.js') }}"></script>
 

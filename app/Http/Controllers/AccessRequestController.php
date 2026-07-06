@@ -9,6 +9,7 @@ use App\Models\TrAccessDetail;
 use App\Models\TrApproval;
 use App\Models\TrAttachment;
 use App\Models\TrMessage;
+use App\Models\SysUserRole;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -1842,6 +1843,37 @@ class AccessRequestController extends Controller
             'success' => true,
             'data' => $comments,
         ]);
+    }
+
+    public function mentionableUsers($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $access = TrAccess::findOrFail($id);
+
+        $approverUsernames = TrApproval::where('refnbr', $access->docid)
+            ->pluck('aprv_username');
+
+        $roleUsernames = SysUserRole::whereIn('role_id', ['ITHARDWARE', 'ITSOFTWARE'])
+            ->where('status', 'A')
+            ->pluck('username');
+
+        $usernames = collect([$access->user_peminta, $access->created_by])
+            ->merge($approverUsernames)
+            ->merge($roleUsernames)
+            ->filter()
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
+
+        $users = User::query()
+            ->whereIn(DB::raw('lower(username)'), $usernames->all())
+            ->get(['username', 'name'])
+            ->values();
+
+        return response()->json($users);
     }
 
     public function comment(Request $request, $hash)

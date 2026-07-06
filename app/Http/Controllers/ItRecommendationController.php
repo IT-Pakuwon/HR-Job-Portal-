@@ -2039,6 +2039,37 @@ class ItRecommendationController extends Controller
         return response()->json($comments);
     }
 
+    public function mentionableUsers($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $header = TrItrecommend::findOrFail($id);
+
+        $approverUsernames = TrApproval::where('refnbr', $header->docid)
+            ->pluck('aprv_username');
+
+        $roleUsernames = SysUserRole::where('role_id', 'ITHARDWARE')
+            ->where('status', 'A')
+            ->pluck('username');
+
+        $usernames = collect([$header->user_peminta, $header->created_by])
+            ->merge($approverUsernames)
+            ->merge($roleUsernames)
+            ->filter()
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
+
+        $users = User::query()
+            ->whereIn(DB::raw('lower(username)'), $usernames->all())
+            ->get(['username', 'name'])
+            ->values();
+
+        return response()->json($users);
+    }
+
     public function print($hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;

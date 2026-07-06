@@ -1127,6 +1127,7 @@
     window.authUsername = @json(auth()->user()->username);
     window.authRole = @json(auth()->user()->role_id);
 </script>
+<script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/core.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/helper.js') }}"></script>
 <script src="{{ asset('assets/js/access-request/attachment.js') }}"></script>

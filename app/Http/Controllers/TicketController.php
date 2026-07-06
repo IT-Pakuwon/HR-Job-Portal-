@@ -18,6 +18,7 @@ use App\Models\TrMessage;
 use App\Models\TrServiceorderEnvision;
 use App\Models\TrTicket;
 use App\Models\TrTicketActivity;
+use App\Models\User;
 use App\Services\TicketNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -2098,6 +2099,33 @@ class TicketController extends Controller
             'success' => true,
             'data' => $comments,
         ]);
+    }
+
+    public function mentionableUsers($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        $usernames = collect([$ticket->user_peminta])
+            ->merge(
+                MsTicketCategoryDept::where('ticket_categoryid', $ticket->ticket_categoryid)
+                    ->where('status', 'A')
+                    ->pluck('username')
+            )
+            ->filter()
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->reject(fn ($u) => $u === strtolower(auth()->user()->username));
+
+        $users = User::query()
+            ->whereIn(DB::raw('lower(username)'), $usernames->all())
+            ->get(['username', 'name'])
+            ->values();
+
+        return response()->json($users);
     }
 
     public function comment(Request $request, $hash)

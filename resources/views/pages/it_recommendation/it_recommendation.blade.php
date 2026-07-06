@@ -1482,6 +1482,7 @@
 
     <script src="{{ asset('assets/js/it-recommendation/request-form.js') }}"></script>
 
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
     <script src="{{ asset('assets/js/it-recommendation/detail-modal.js') }}"></script>
 
     <script src="{{ asset('assets/js/it-recommendation/process.js') }}"></script>
