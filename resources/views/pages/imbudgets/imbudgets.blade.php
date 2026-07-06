@@ -113,13 +113,13 @@
                             <th class="w-32 px-6 py-2 font-medium">
                                 Date</th>
                             <th class="w-32 px-6 py-2 font-medium">
-                                CSID</th>
-                            <th class="w-32 px-6 py-2 font-medium">
-                                SPPBJKTID</th>
+                                RefNbr</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Company</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 User Peminta</th>
+                            <th class="min-w-64 px-6 py-2 font-medium">
+                                Keperluan</th>
                             <th class="w-32 px-6 py-2 font-medium">
                                 Status</th>
                         </tr>
@@ -491,8 +491,8 @@
                     orderable: false
                 }],
                 order: [
-                    [1, 'desc'],
-                    [0, 'desc']
+                    [2, 'desc'],
+                    [1, 'desc']
                 ], // Date desc, lalu DocID desc
 
 
@@ -574,12 +574,7 @@
                         className: 'text-left'
                     },
                     {
-                        data: 'csid',
-                        className: 'text-center w-32',
-                        defaultContent: '-'
-                    },
-                    {
-                        data: 'sppbjktid',
+                        data: 'refnbr',
                         className: 'text-center w-32',
                         defaultContent: '-'
                     },
@@ -592,6 +587,21 @@
                         data: 'user_peminta',
                         className: 'text-center',
                         defaultContent: '-'
+                    },
+                    {
+                        data: 'keperluan',
+                        className: 'min-w-64 text-left',
+                        defaultContent: '-',
+                        render: function(data, type) {
+                            const text = data || '-';
+
+                            if (type !== 'display') {
+                                return text;
+                            }
+
+                            const safeText = $('<div>').text(text).html();
+                            return `<span class="block max-w-md whitespace-normal break-words" title="${safeText}">${safeText}</span>`;
+                        }
                     },
 
                     // Status (badge)

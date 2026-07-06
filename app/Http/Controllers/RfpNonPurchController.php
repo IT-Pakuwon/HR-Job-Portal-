@@ -410,7 +410,7 @@ class RfpNonPurchController extends Controller
             // GENERATE DOC ID
             // =========================
             $auto = $this->nextAutonbr($doctype, $year, $month, $username, $docName);
-            $docid = $doctype . substr($year, 2) . $month . sprintf('%03d', $auto['next']);
+            $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $auto['next']);
 
             // =========================
             // HEADER
