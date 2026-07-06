@@ -8,6 +8,8 @@
     let allRows = [];
     let currentPage = 0;
     let pageSize = 10;
+    let sortColumn = null;
+    let sortDirection = "asc";
 
     const urls = {
         summary: "/it-dashboard/summary-json",
@@ -287,6 +289,37 @@
         `;
     }
 
+    function sortableHeader(col, label) {
+        const active = sortColumn === col;
+        const icon = active ? (sortDirection === "asc" ? "▲" : "▼") : "⇅";
+        const iconClass = active ? "text-slate-700 dark:text-slate-200" : "text-slate-300 dark:text-slate-600";
+        return `<th class="cursor-pointer select-none px-3 py-2 font-semibold transition-colors hover:text-slate-700 dark:hover:text-slate-300" data-sort="${col}">${label}<span class="ml-1 inline-block text-[10px] ${iconClass}">${icon}</span></th>`;
+    }
+
+    function compareSortValues(a, b) {
+        return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+    }
+
+    function getSortValue(row, cfg, column) {
+        switch (column) {
+            case "docid":   return (cfg.title(row) || "").toString();
+            case "company": return (row.cpnyid || "").toString();
+            case "dept":    return (row.departementid || "").toString();
+            case "date":    return (cfg.date(row) || "").toString();
+            case "desc":    return (row.infohd || "").toString();
+            case "status":  return (cfg.status ? cfg.status(row) : "").replace(/<[^>]*>/g, "").trim();
+            default:        return "";
+        }
+    }
+
+    function applySort(rows, cfg) {
+        if (!sortColumn) return rows;
+        const sorted = rows.slice().sort((a, b) =>
+            compareSortValues(getSortValue(a, cfg, sortColumn), getSortValue(b, cfg, sortColumn))
+        );
+        return sortDirection === "desc" ? sorted.reverse() : sorted;
+    }
+
     function renderApprovalTable(rows, cfg, tab) {
         const dateLabel = tab === "approval-history" ? "Date" : "Since";
         const rowsHtml = rows.map(row => {
@@ -315,12 +348,12 @@
                 <table class="w-full text-left text-sm">
                     <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400">
                         <tr>
-                            <th class="px-3 py-2 font-semibold">Doc ID</th>
-                            <th class="px-3 py-2 font-semibold">Company</th>
-                            <th class="px-3 py-2 font-semibold">Dept</th>
-                            <th class="px-3 py-2 font-semibold">${dateLabel}</th>
-                            <th class="px-3 py-2 font-semibold">Desc</th>
-                            <th class="px-3 py-2 font-semibold">Status</th>
+                            ${sortableHeader("docid", "Doc ID")}
+                            ${sortableHeader("company", "Company")}
+                            ${sortableHeader("dept", "Dept")}
+                            ${sortableHeader("date", dateLabel)}
+                            ${sortableHeader("desc", "Desc")}
+                            ${sortableHeader("status", "Status")}
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -346,7 +379,12 @@
 
     function draw(tab) {
 
-        const filtered = applySearchFilter(allRows, tab);
+        let filtered = applySearchFilter(allRows, tab);
+
+        if (tab === "approval" || tab === "approval-history") {
+            filtered = applySort(filtered, rowConfig[tab]);
+        }
+
         const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 
         currentPage = Math.min(currentPage, totalPages - 1);
@@ -546,6 +584,8 @@
         function activateTab(tab) {
 
         activeTab = tab;
+        sortColumn = null;
+        sortDirection = "asc";
 
         [
             "approval",
@@ -716,6 +756,26 @@
                         );
 
                     }
+
+                }
+            );
+
+        $("#dashboardCardList")
+            .on(
+                "click",
+                "th[data-sort]",
+                function(){
+
+                    const col = $(this).data("sort");
+
+                    if (sortColumn === col) {
+                        sortDirection = sortDirection === "asc" ? "desc" : "asc";
+                    } else {
+                        sortColumn = col;
+                        sortDirection = "asc";
+                    }
+
+                    draw(activeTab);
 
                 }
             );
