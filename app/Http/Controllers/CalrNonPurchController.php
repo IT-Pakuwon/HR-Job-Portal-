@@ -997,7 +997,7 @@ class CalrNonPurchController extends Controller
                 'CALR Non Purchase'
             );
 
-            $docid = $doctype . substr($year, 2) . $month . sprintf('%03d', $auto['next']);
+            $docid = $doctype . substr($year, 2) . $month . sprintf('%04d', $auto['next']);
 
             /*
             |--------------------------------------------------------------------------
@@ -1146,10 +1146,7 @@ class CalrNonPurchController extends Controller
                     $request->cpnyid ?? $rfp->cpny_id,
                     'Submit',
                     $username
-                );
-
-                $header->flag_imbudget = true;
-                $header->save();
+                );                
 
             }
 

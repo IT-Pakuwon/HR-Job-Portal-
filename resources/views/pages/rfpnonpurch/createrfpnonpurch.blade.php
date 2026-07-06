@@ -155,7 +155,7 @@
 
                             {{-- Customer Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Customer Name
                                 </label>
                                 <input type="text"
@@ -168,7 +168,7 @@
 
                             {{-- Store Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Store Name
                                 </label>
                                 <input type="text"
@@ -181,7 +181,7 @@
 
                             {{-- Unit ID --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Unit ID
                                 </label>
                                 <input type="text"
@@ -194,7 +194,7 @@
 
                             {{-- Transfer To --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Transfer To
                                 </label>
                                 <input type="text"
@@ -207,7 +207,7 @@
 
                             {{-- Bank Name --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Bank Name
                                 </label>
                                 <input type="text"
@@ -220,7 +220,7 @@
 
                             {{-- Bank Account --}}
                             <div class="flex flex-col gap-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <label class="req block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Bank Account
                                 </label>
                                 <input type="text"
