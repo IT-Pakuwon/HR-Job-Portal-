@@ -20,6 +20,8 @@ class MultiDashboardController extends Controller
                 ->exists()
             : false;
 
+        $isItStaff = $user && $user->user_role === 'admin';
+
         $dataFeed = new DataFeed();
 
         $doctypes = Autonbr::query()
@@ -42,6 +44,7 @@ class MultiDashboardController extends Controller
             'tr_approval' => collect(),
             'doctypes' => $doctypes,
             'akses_cc' => $akses_cc,
+            'isItStaff' => $isItStaff,
         ]);
     }
 

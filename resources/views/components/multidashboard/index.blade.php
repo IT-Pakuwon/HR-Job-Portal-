@@ -22,4 +22,8 @@
 
     </div>
 
+    @include('partials.update-notification-panel')
+
+    <script src="{{ asset('assets/js/multidashboard/update-notification.js') }}?v={{ filemtime(public_path('assets/js/multidashboard/update-notification.js')) }}"></script>
+
 </x-app-layout>

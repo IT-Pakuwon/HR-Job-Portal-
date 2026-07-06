@@ -365,7 +365,7 @@ class MsGroupbiayaNonPurchController extends Controller
     private function hasCostCtrlRole(string $username): bool
     {
         return SysUserRole::where('username', $username)
-            ->where('role_id', 'COSTCTRLACCESS')
+            ->whereIn('role_id', ['COSTCTRLACCESS', 'APFINACCESS'])
             ->where(function ($q) { $q->whereNull('status')->orWhere('status', 'A'); })
             ->exists();
     }

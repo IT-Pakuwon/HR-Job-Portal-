@@ -137,6 +137,7 @@ use App\Http\Controllers\TicketSetupController;
 use App\Http\Controllers\TopController;
 use App\Http\Controllers\TrainingRegistrationController;
 use App\Http\Controllers\TrAttachmentController;
+use App\Http\Controllers\UpdateNotificationController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UsersEngController;
 use App\Http\Controllers\UserSyncController;
@@ -1533,7 +1534,7 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('spinwheel')->controller(SpinwheelController::class)->group(function () {
-            Route::middleware('access:SPINWHEEL,VIEW')->group(function () {
+            Route::middleware('access:SPINWHEELS,VIEW')->group(function () {
                 Route::get('/', 'index')->name('spinwheel');
                 Route::get('/download-template', 'downloadTemplate')->name('spinwheel.downloadTemplate');
 
@@ -1546,7 +1547,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/pick-candidates', 'pickCandidates')->name('spinwheel.pickCandidates');
             });
 
-            Route::middleware('access:SPINWHEEL,CREATE')->group(function () {
+            Route::middleware('access:SPINWHEELS,CREATE')->group(function () {
                 Route::post('/import-preview', 'importPreview')->name('spinwheel.importPreview');
                 Route::post('/import', 'import')->name('spinwheel.import');
                 Route::post('/confirm-winner', 'confirmWinner')->name('spinwheel.confirmWinner');
@@ -1742,6 +1743,11 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/dashboard', [MultiDashboardController::class, 'index'])->name('dashboard');
+
+        Route::prefix('update-notification')->controller(UpdateNotificationController::class)->name('update-notification.')->group(function () {
+            Route::get('/json', 'json')->name('json');
+            Route::post('/', 'store')->name('store');
+        });
 
         Route::prefix('it-dashboard')->controller(ItDashboardController::class)->name('it-dashboard.')->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('summary-json');

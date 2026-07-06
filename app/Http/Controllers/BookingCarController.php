@@ -798,6 +798,10 @@ class BookingCarController extends Controller
 
             $booking->status = 'P';
 
+            $booking->completed_by = null;
+
+            $booking->completed_at = null;
+
             $booking->updated_by =
                 $username;
 
