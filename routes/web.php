@@ -1417,52 +1417,67 @@ Route::middleware(['auth'])->group(function () {
             });
 
         Route::prefix('ticket')->controller(TicketController::class)->group(function () {
-            Route::get('/', 'index')->name('ticket');
-            Route::get('/export', 'export')->name('ticket.export');
+            Route::middleware('access:TICKET,VIEW')->group(function () {
+                Route::get('/', 'index')->name('ticket');
+                Route::get('/export', 'export')->name('ticket.export');
 
-            Route::middleware('ajax')->group(function () {
-                Route::get('/json', 'json')->name('ticket.json');
-                Route::get('/detail/{hash}', 'detail')->name('ticket.detail');
-                Route::get('/tracking/{hash}', 'tracking')->name('ticket.tracking');
-                Route::get('/comments/{hash}', 'comments')->name('ticket.comments');
-                Route::get('/category-search', 'categorySearch')->name('ticket.categorySearch');
-                Route::get('/subcategory-search', 'subcategorySearch')->name('ticket.subcategorySearch');
-                Route::get('/priority-search', 'prioritySearch')->name('ticket.prioritySearch');
-                Route::get('/location-search', 'locationSearch')->name('ticket.locationSearch');
-                Route::get('/sub-location-search', 'subLocationSearch')->name('ticket.subLocationSearch');
-                Route::get('/pic-search', 'picSearch')->name('ticket.picSearch');
-                Route::get('/counts', 'counts')->name('ticket.counts');
-                Route::get('/companies-search', 'companiesSearch')->name('ticket.companiesSearch');
-                Route::get('/create-dropdown', 'createDropdown')->name('ticket.create-dropdown');
-                Route::get('/service-orders/json', 'serviceOrderJson')->name('ticket.serviceOrders.json');
-                Route::post('/service-orders/{id}/non-aktif', 'serviceOrderNonAktif')->name('ticket.serviceOrders.nonAktif');
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('ticket.json');
+                    Route::get('/detail/{hash}', 'detail')->name('ticket.detail');
+                    Route::get('/tracking/{hash}', 'tracking')->name('ticket.tracking');
+                    Route::get('/comments/{hash}', 'comments')->name('ticket.comments');
+                    Route::get('/category-search', 'categorySearch')->name('ticket.categorySearch');
+                    Route::get('/subcategory-search', 'subcategorySearch')->name('ticket.subcategorySearch');
+                    Route::get('/priority-search', 'prioritySearch')->name('ticket.prioritySearch');
+                    Route::get('/location-search', 'locationSearch')->name('ticket.locationSearch');
+                    Route::get('/sub-location-search', 'subLocationSearch')->name('ticket.subLocationSearch');
+                    Route::get('/pic-search', 'picSearch')->name('ticket.picSearch');
+                    Route::get('/counts', 'counts')->name('ticket.counts');
+                    Route::get('/companies-search', 'companiesSearch')->name('ticket.companiesSearch');
+                    Route::get('/create-dropdown', 'createDropdown')->name('ticket.create-dropdown');
+                    Route::get('/service-orders/json', 'serviceOrderJson')->name('ticket.serviceOrders.json');
+                });
+
+                Route::get('/print/{hash}', 'printTicket')->name('ticket.print');
             });
 
-            Route::post('/store', 'store')->name('ticket.store');
-            Route::post('/update/{hash}', 'update')->name('ticket.update');
-            Route::post('/cancel/{hash}', 'cancel')->name('ticket.cancel');
-            Route::post('/response/{hash}', 'responseTicket')->name('ticket.response');
-            Route::post('/process/{hash}', 'processTicket')->name('ticket.process');
-            Route::post('/pending/{hash}', 'pendingTicket')->name('ticket.pending');
-            Route::post('/envision/{hash}', 'envisionTicket')->name('ticket.envision');
-            Route::post('/transfer/{hash}', 'transferTicket')->name('ticket.transfer');
-            Route::post('/complete/{hash}', 'completeTicket')->name('ticket.complete');
-            Route::post('/reopen/{hash}', 'reopenTicket')->name('ticket.reopen');
-            Route::post('/comment/{hash}', 'comment')->name('ticket.comment');
+            Route::middleware('access:TICKET,CREATE')->group(function () {
+                Route::post('/store', 'store')->name('ticket.store');
+            });
 
-            Route::get('/print/{hash}', 'printTicket')->name('ticket.print');
+            Route::middleware('access:TICKET,EDIT')->group(function () {
+                Route::post('/update/{hash}', 'update')->name('ticket.update');
+                Route::post('/cancel/{hash}', 'cancel')->name('ticket.cancel');
+                Route::post('/response/{hash}', 'responseTicket')->name('ticket.response');
+                Route::post('/process/{hash}', 'processTicket')->name('ticket.process');
+                Route::post('/pending/{hash}', 'pendingTicket')->name('ticket.pending');
+                Route::post('/envision/{hash}', 'envisionTicket')->name('ticket.envision');
+                Route::post('/transfer/{hash}', 'transferTicket')->name('ticket.transfer');
+                Route::post('/complete/{hash}', 'completeTicket')->name('ticket.complete');
+                Route::post('/reopen/{hash}', 'reopenTicket')->name('ticket.reopen');
+                Route::post('/comment/{hash}', 'comment')->name('ticket.comment');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::post('/service-orders/{id}/non-aktif', 'serviceOrderNonAktif')->name('ticket.serviceOrders.nonAktif');
+                });
+            });
         });
 
         Route::controller(TicketController::class)->group(function () {
-            Route::get('/showticket/{eid}', 'index');
-            Route::get('/editticket/{eid}', 'index');
-            Route::get('/responseticket/{eid}', 'index');
-            Route::get('/processticket/{eid}', 'index');
-            Route::get('/pendingticket/{eid}', 'index');
-            Route::get('/envisionticket/{eid}', 'index');
-            Route::get('/transferticket/{eid}', 'index');
-            Route::get('/completeticket/{eid}', 'index');
-            Route::get('/reopenticket/{eid}', 'index');
+            Route::middleware('access:TICKET,VIEW')->group(function () {
+                Route::get('/showticket/{eid}', 'index');
+            });
+
+            Route::middleware('access:TICKET,EDIT')->group(function () {
+                Route::get('/editticket/{eid}', 'index');
+                Route::get('/responseticket/{eid}', 'index');
+                Route::get('/processticket/{eid}', 'index');
+                Route::get('/pendingticket/{eid}', 'index');
+                Route::get('/envisionticket/{eid}', 'index');
+                Route::get('/transferticket/{eid}', 'index');
+                Route::get('/completeticket/{eid}', 'index');
+                Route::get('/reopenticket/{eid}', 'index');
+            });
         });
 
         Route::prefix('ticket-setup')->controller(TicketSetupController::class)->group(function () {
@@ -1555,39 +1570,51 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('access-request')->controller(AccessRequestController::class)->group(function () {
-            Route::get('/', 'index')->name('accessrequest');
+            Route::middleware('access:ACCESSREQUEST,VIEW')->group(function () {
+                Route::get('/', 'index')->name('accessrequest');
 
-            Route::middleware('ajax')->group(function () {
-                Route::get('/json', 'json')->name('access-request.json');
-                Route::get('/detail/{hash}', 'detail')->name('access-request.detail');
-                Route::get('/tracking/{hash}', 'tracking')->name('access-request.tracking');
-                Route::get('/comments/{hash}', 'comments')->name('access-request.comments');
-                Route::get('/category-search', 'categorySearch')->name('access-request.category-search');
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('access-request.json');
+                    Route::get('/detail/{hash}', 'detail')->name('access-request.detail');
+                    Route::get('/tracking/{hash}', 'tracking')->name('access-request.tracking');
+                    Route::get('/comments/{hash}', 'comments')->name('access-request.comments');
+                    Route::get('/category-search', 'categorySearch')->name('access-request.category-search');
+                });
+
+                Route::get('/print/{hash}', 'print')->name('access-request.print');
             });
 
-            Route::post('/store', 'store')->name('access-request.store');
-            Route::post('/update/{hash}', 'update')->name('access-request.update');
-            Route::post('/cancel/{hash}', 'cancel')->name('access-request.cancel');
+            Route::middleware('access:ACCESSREQUEST,CREATE')->group(function () {
+                Route::post('/store', 'store')->name('access-request.store');
+            });
 
-            Route::post('/upload-attachment', 'uploadAttachment')->name('access-request.upload-attachment');
+            Route::middleware('access:ACCESSREQUEST,EDIT')->group(function () {
+                Route::post('/update/{hash}', 'update')->name('access-request.update');
+                Route::post('/cancel/{hash}', 'cancel')->name('access-request.cancel');
 
-            Route::post('/approve/{docid}', 'approve')->name('access-request.approve');
-            Route::post('/reject/{docid}', 'reject')->name('access-request.reject');
-            Route::post('/revise/{docid}', 'revise')->name('access-request.revise');
+                Route::post('/upload-attachment', 'uploadAttachment')->name('access-request.upload-attachment');
 
-            Route::post('/process-hardware/{hash}', 'processHardware')->name('access-request.process-hardware');
-            Route::post('/process-software/{hash}', 'processSoftware')->name('access-request.process-software');
+                Route::post('/approve/{docid}', 'approve')->name('access-request.approve');
+                Route::post('/reject/{docid}', 'reject')->name('access-request.reject');
+                Route::post('/revise/{docid}', 'revise')->name('access-request.revise');
 
-            Route::post('/comment/{hash}', 'comment')->name('access-request.comment');
+                Route::post('/process-hardware/{hash}', 'processHardware')->name('access-request.process-hardware');
+                Route::post('/process-software/{hash}', 'processSoftware')->name('access-request.process-software');
 
-            Route::get('/print/{hash}', 'print')->name('access-request.print');
+                Route::post('/comment/{hash}', 'comment')->name('access-request.comment');
+            });
         });
 
         Route::controller(AccessRequestController::class)->group(function () {
-            Route::get('/showaccessrequest/{eid}', 'index');
-            Route::get('/editaccessrequest/{eid}', 'index');
-            Route::get('/processhardwareaccess/{eid}', 'index');
-            Route::get('/processsoftwareaccess/{eid}', 'index');
+            Route::middleware('access:ACCESSREQUEST,VIEW')->group(function () {
+                Route::get('/showaccessrequest/{eid}', 'index');
+            });
+
+            Route::middleware('access:ACCESSREQUEST,EDIT')->group(function () {
+                Route::get('/editaccessrequest/{eid}', 'index');
+                Route::get('/processhardwareaccess/{eid}', 'index');
+                Route::get('/processsoftwareaccess/{eid}', 'index');
+            });
         });
 
         Route::controller(MeetingController::class)->group(function () {
@@ -1636,41 +1663,60 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('it-recommendation')->controller(ItRecommendationController::class)->group(function () {
-            Route::get('/', 'index')->name('it-recommendation');
+            Route::middleware('access:ITRECOMMENDATION,VIEW')->group(function () {
+                Route::get('/', 'index')->name('it-recommendation');
 
-            Route::middleware('ajax')->group(function () {
-                Route::get('/json', 'json')->name('it-recommendation.json');
-                Route::get('/detail/{hash}', 'detail')->name('it-recommendation.detail');
-                Route::get('/tracking/{hash}', 'tracking')->name('it-recommendation.tracking');
-                Route::get('/comments/{docid}', 'comments')->name('it-recommendation.comments');
-                Route::get('/inventory-search', 'inventorySearch')->name('it-recommendation.inventory-search');
-                Route::get('/ticket-search', 'ticketSearch')->name('it-recommendation.ticket-search');
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('it-recommendation.json');
+                    Route::get('/detail/{hash}', 'detail')->name('it-recommendation.detail');
+                    Route::get('/tracking/{hash}', 'tracking')->name('it-recommendation.tracking');
+                    Route::get('/comments/{docid}', 'comments')->name('it-recommendation.comments');
+                    Route::get('/inventory-search', 'inventorySearch')->name('it-recommendation.inventory-search');
+                    Route::get('/ticket-search', 'ticketSearch')->name('it-recommendation.ticket-search');
+                });
+
+                Route::get('/print/{hash}', 'print')->name('it-recommendation.print');
             });
 
-            Route::post('/store', 'store')->name('it-recommendation.store');
-            Route::put('/update/{hash}', 'update')->name('it-recommendation.update');
-            Route::post('/cancel/{hash}', 'cancel')->name('it-recommendation.cancel');
-            Route::post('/process/{hash}', 'process')->name('it-recommendation.process');
-            Route::post('/upload-attachment/{hash}', 'uploadAttachment')
-                ->name('it-recommendation.upload-attachment');
+            Route::middleware('access:ITRECOMMENDATION,CREATE')->group(function () {
+                Route::post('/store', 'store')->name('it-recommendation.store');
+            });
 
-            Route::delete('/delete-attachment/{attachment}', 'deleteAttachment')
-                ->name('it-recommendation.delete-attachment');
-            Route::post('/it-revise/{hash}', 'itRevise')->name('it-recommendation.it-revise');
-            Route::post('/it-reject/{hash}', 'itReject')->name('it-recommendation.it-reject');
-            Route::post('/approve/{docid}', 'approve')->name('it-recommendation.approve');
-            Route::post('/reject/{docid}', 'reject')->name('it-recommendation.reject');
-            Route::post('/revise/{docid}', 'revise')->name('it-recommendation.revise');
-            Route::post('/comment/{hash}', 'comment')->name('it-recommendation.comment');
-            Route::get('/print/{hash}', 'print')->name('it-recommendation.print');
+            Route::middleware('access:ITRECOMMENDATION,EDIT')->group(function () {
+                Route::put('/update/{hash}', 'update')->name('it-recommendation.update');
+                Route::post('/cancel/{hash}', 'cancel')->name('it-recommendation.cancel');
+                Route::post('/process/{hash}', 'process')->name('it-recommendation.process');
+                Route::post('/upload-attachment/{hash}', 'uploadAttachment')
+                    ->name('it-recommendation.upload-attachment');
+
+                Route::post('/it-revise/{hash}', 'itRevise')->name('it-recommendation.it-revise');
+                Route::post('/it-reject/{hash}', 'itReject')->name('it-recommendation.it-reject');
+                Route::post('/approve/{docid}', 'approve')->name('it-recommendation.approve');
+                Route::post('/reject/{docid}', 'reject')->name('it-recommendation.reject');
+                Route::post('/revise/{docid}', 'revise')->name('it-recommendation.revise');
+                Route::post('/comment/{hash}', 'comment')->name('it-recommendation.comment');
+            });
+
+            Route::middleware('access:ITRECOMMENDATION,DELETE')->group(function () {
+                Route::delete('/delete-attachment/{attachment}', 'deleteAttachment')
+                    ->name('it-recommendation.delete-attachment');
+            });
         });
 
         Route::controller(ItRecommendationController::class)->group(function () {
-            Route::get('/showitrecommendation/{eid}', 'index');
-            Route::get('/edititrecommendation/{eid}', 'index');
-            Route::get('/processitrecommendation/{eid}', 'index');
-            Route::get('/edit-processitrecommendation/{eid}', 'index');
-            Route::get('/createitrecommendation', 'index');
+            Route::middleware('access:ITRECOMMENDATION,VIEW')->group(function () {
+                Route::get('/showitrecommendation/{eid}', 'index');
+            });
+
+            Route::middleware('access:ITRECOMMENDATION,EDIT')->group(function () {
+                Route::get('/edititrecommendation/{eid}', 'index');
+                Route::get('/processitrecommendation/{eid}', 'index');
+                Route::get('/edit-processitrecommendation/{eid}', 'index');
+            });
+
+            Route::middleware('access:ITRECOMMENDATION,CREATE')->group(function () {
+                Route::get('/createitrecommendation', 'index');
+            });
         });
 
         Route::prefix('gm-report')
@@ -2302,7 +2348,7 @@ Route::middleware(['auth'])->group(function () {
         return view('manual.layout', compact('rootMenus', 'root', 'parent', 'child'));
     })->middleware('auth')->name('manual');
 
-    Route::prefix('report-warehouse')->group(function () {
+    Route::prefix('report-warehouse')->middleware('access:REPORTWH,VIEW')->group(function () {
         Route::get('/', [ReportWarehouseController::class, 'index'])
             ->name('reportwh');
 
@@ -2330,7 +2376,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    Route::prefix('report-purchasing')->group(function () {
+    Route::prefix('report-purchasing')->middleware('access:REPORTREQUEST,VIEW')->group(function () {
         Route::get('/', [ReportPurchasingController::class, 'index'])
             ->name('reportpurchasing');
 
@@ -2341,7 +2387,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('report.purchasing.export');
     });
 
-    Route::prefix('report-cs')->group(function () {
+    Route::prefix('report-cs')->middleware('access:REPORTCS,VIEW')->group(function () {
         Route::get('/', [ReportCanvassSheetController::class, 'index'])
             ->name('reportcs');
 
@@ -2365,7 +2411,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/cs/{hash}/tracking', [ReportCanvassSheetController::class, 'tracking']);
     });
 
-    Route::prefix('report-operational')->group(function () {
+    Route::prefix('report-operational')->middleware('access:REPORTWO,VIEW')->group(function () {
         Route::get('/', [ReportOperationalController::class, 'index'])
             ->name('reportoperational');
 
@@ -2380,7 +2426,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    Route::prefix('report-bast')->group(function () {
+    Route::prefix('report-bast')->middleware('access:REPORTBAST,VIEW')->group(function () {
         Route::get('/', [ReportBastController::class, 'index'])
             ->name('reportbast');
 

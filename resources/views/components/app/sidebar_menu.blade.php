@@ -441,7 +441,7 @@
                             </ul>
                         </li>
                     @elseif(\App\Models\SysUserRole::where('username', auth()->user()->username ?? '')
-                            ->where('role_id', 'COSTCTRLACCESS')
+                            ->whereIn('role_id', ['COSTCTRLACCESS', 'APFINACCESS'])
                             ->where(function ($q) { $q->whereNull('status')->orWhere('status', 'A'); })
                             ->exists())
                         {{-- Cost Control: only Group Biaya Non Purch under Settings --}}

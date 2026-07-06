@@ -3,7 +3,7 @@
     const BADGE_FRESH_HOURS = 7;
     const POPUP_LAST_ID_KEY = 'updateNotificationPopupLastId';
     const POPUP_PERIODS_KEY = 'updateNotificationPopupPeriods';
-    const POPUP_FRESH_DAYS = 2;
+    const POPUP_FRESH_DAYS = 1;
     const POPUP_AUTO_HIDE_MS = 10000;
     const POLL_INTERVAL_MS = 20000;
 

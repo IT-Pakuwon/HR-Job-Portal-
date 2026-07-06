@@ -1,5 +1,9 @@
 <x-app-layout>
 
+    @php
+        $isAdmin = auth()->user()->user_role === 'admin';
+    @endphp
+
     <style>
         header.sticky {
             display: none;
@@ -204,45 +208,47 @@
             <div id="eventWorkspace" class="relative hidden">
 
                 {{-- STATS --}}
-                <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                @if ($isAdmin)
+                    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
 
-                    <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/[.07]">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-slate-400">Total Entries</p>
-                                <p id="statTotalEntries" class="mt-1 text-3xl font-extrabold text-white">0</p>
-                            </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-xl shadow-md shadow-blue-500/30">
-                                🎫
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/[.07]">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-slate-400">Total Entries</p>
+                                    <p id="statTotalEntries" class="mt-1 text-3xl font-extrabold text-white">0</p>
+                                </div>
+                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-xl shadow-md shadow-blue-500/30">
+                                    🎫
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/[.07]">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-slate-400">Eligible Participants</p>
-                                <p id="statEligible" class="mt-1 text-3xl font-extrabold text-emerald-400">0</p>
-                            </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xl shadow-md shadow-emerald-500/30">
-                                ✅
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/[.07]">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-slate-400">Eligible Participants</p>
+                                    <p id="statEligible" class="mt-1 text-3xl font-extrabold text-emerald-400">0</p>
+                                </div>
+                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-xl shadow-md shadow-emerald-500/30">
+                                    ✅
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/[.07]">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-slate-400">Winners Drawn</p>
-                                <p id="statWinners" class="mt-1 text-3xl font-extrabold text-amber-400">0</p>
-                            </div>
-                            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 text-xl shadow-md shadow-fuchsia-500/30">
-                                🏆
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/[.07]">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-slate-400">Winners Drawn</p>
+                                    <p id="statWinners" class="mt-1 text-3xl font-extrabold text-amber-400">0</p>
+                                </div>
+                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 text-xl shadow-md shadow-fuchsia-500/30">
+                                    🏆
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                </div>
+                    </div>
+                @endif
 
                 <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
 
@@ -303,23 +309,35 @@
 
                         <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
 
-                            <div class="sm:col-span-2">
-                                <label class="mb-2 block text-sm font-medium text-slate-300">
-                                    Show On Wheel
-                                </label>
-                                <select id="displayCombo" class="w-full">
-                                    <option value="name_company">Customer Name + Company Name</option>
-                                    <option value="name_refnbr">Customer Name + Ref Nbr</option>
-                                </select>
-                            </div>
+                            @if ($isAdmin)
+                                <div class="sm:col-span-2">
+                                    <label class="mb-2 block text-sm font-medium text-slate-300">
+                                        Show On Wheel
+                                    </label>
+                                    <select id="displayCombo" class="w-full">
+                                        <option value="name_company">Customer Name + Company Name</option>
+                                        <option value="name_refnbr">Customer Name + Ref Nbr</option>
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label class="mb-2 block text-sm font-medium text-slate-300">
-                                    Number of Candidates
-                                </label>
-                                <input type="number" id="candidateCount" min="1" value="1"
-                                    class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white shadow-sm focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20">
-                            </div>
+                                <div>
+                                    <label class="mb-2 block text-sm font-medium text-slate-300">
+                                        Number of Candidates
+                                    </label>
+                                    <input type="number" id="candidateCount" min="1" value="1"
+                                        class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white shadow-sm focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20">
+                                </div>
+                            @else
+                                <input type="hidden" id="displayCombo" value="name_company">
+
+                                <div class="sm:col-span-3">
+                                    <label class="mb-2 block text-sm font-medium text-slate-300">
+                                        Number of Candidates
+                                    </label>
+                                    <input type="number" id="candidateCount" min="1" value="1"
+                                        class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white shadow-sm focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20">
+                                </div>
+                            @endif
 
                         </div>
 
@@ -449,6 +467,8 @@
     </div>
 
     <script>
+        const isAdmin = @json($isAdmin);
+
         let tableWinner;
         let spinning = false;
         let flickerTimer = null;
@@ -615,7 +635,10 @@
                 placeholder: 'Select Event',
                 allowClear: true
             });
-            applySelect2($('#displayCombo'));
+
+            if ($('#displayCombo').is('select')) {
+                applySelect2($('#displayCombo'));
+            }
         });
 
         $('#eventSelect').on('change', function() {
@@ -804,6 +827,17 @@
 
                 const label = candidateLabel(candidate, combo);
 
+                const actionsHtml = isAdmin ? `
+                    <div class="candidate-actions flex flex-wrap items-center gap-2">
+                        <button type="button" class="btn-valid rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500">
+                            Valid
+                        </button>
+                        <button type="button" class="btn-invalid rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500">
+                            Invalid
+                        </button>
+                    </div>
+                ` : '';
+
                 const card = $(`
                     <div class="candidate-card relative overflow-hidden rounded-xl border border-amber-400/30 bg-amber-400/5 p-4" data-index="${idx}">
                         <div class="candidate-accent absolute inset-y-0 left-0 w-1 bg-amber-400"></div>
@@ -811,14 +845,7 @@
                             <div class="text-sm font-semibold text-white">
                                 🏆 ${label}
                             </div>
-                            <div class="candidate-actions flex flex-wrap items-center gap-2">
-                                <button type="button" class="btn-valid rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500">
-                                    Valid
-                                </button>
-                                <button type="button" class="btn-invalid rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500">
-                                    Invalid
-                                </button>
-                            </div>
+                            ${actionsHtml}
                         </div>
                     </div>
                 `);
@@ -829,7 +856,12 @@
 
             });
 
-            pendingCandidates = candidates.length;
+            pendingCandidates = isAdmin ? candidates.length : 0;
+
+            if (!isAdmin) {
+                spinning = false;
+                $('#spinBtn').prop('disabled', false);
+            }
 
         }
 
