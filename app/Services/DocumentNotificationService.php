@@ -7,13 +7,28 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Models\MsTicketCategoryDept;
+use App\Models\Personnel;
 use App\Models\SysUserRole;
 use App\Models\TrAccess;
 use App\Models\TrApproval;
+use App\Models\TrBast;
+use App\Models\TrCalr;
+use App\Models\TrCalrNonPurch;
+use App\Models\TrCS;
 use App\Models\TrIMBudget;
+use App\Models\TrItemRequest;
 use App\Models\TrItrecommend;
 use App\Models\TrMessage;
+use App\Models\TrParkingRegistration;
+use App\Models\TrRfca;
+use App\Models\TrRfp;
+use App\Models\TrRfpNonPurch;
+use App\Models\TrSPPB;
+use App\Models\TrSPPJ;
+use App\Models\TrSPPK;
+use App\Models\TrSPPT;
 use App\Models\TrTicket;
+use App\Models\TrWO;
 use App\Models\User;
 use App\Models\Viewtrxall;
 use App\Models\ViewJobApply;
@@ -473,6 +488,14 @@ class DocumentNotificationService
                 'ITR' => ['model' => TrItrecommend::class,   'idCol' => 'docid',    'url' => '/showitrecommendation'],
             ];
 
+            foreach (self::extendedDocTypeConfig() as $extDoctype => $extCfg) {
+                $commentDocTypes[$extDoctype] = [
+                    'model' => $extCfg['model'],
+                    'idCol' => $extCfg['idCol'],
+                    'url'   => $extCfg['url'],
+                ];
+            }
+
             $readKeys = collect(Cache::get('doc_notif_read_' . $username, []));
 
             foreach ($commentDocTypes as $commentDoctype => $cfg) {
@@ -564,11 +587,94 @@ class DocumentNotificationService
                 ->unique();
         }
 
+        $extCfg = self::extendedDocTypeConfig()[$doctype] ?? null;
+        if ($extCfg) {
+            $creatorUsernames = collect($extCfg['creatorFields'])->map(fn($f) => $doc->{$f} ?? null);
+
+            $approvalUsernames = !empty($extCfg['approvalDoctype'])
+                ? TrApproval::where('refnbr', $doc->{$extCfg['idCol']})
+                    ->where('aprv_doctype', $extCfg['approvalDoctype'])
+                    ->pluck('aprv_username')
+                : collect();
+
+            $picUsernames = isset($extCfg['picField']) ? collect([$doc->{$extCfg['picField']} ?? null]) : collect();
+
+            $roleUsernames = !empty($extCfg['roleIds'])
+                ? self::resolveRoleUsernamesForCompany($extCfg['roleIds'], $doc->{$extCfg['companyCol'] ?? 'cpny_id'} ?? null)
+                : collect();
+
+            return $creatorUsernames->merge($approvalUsernames)->merge($picUsernames)->merge($roleUsernames)
+                ->filter()
+                ->map(fn($u) => strtolower(trim($u)))
+                ->unique();
+        }
+
         // ACR and ITR both use user_peminta/created_by + TrApproval approval line, keyed by docid.
         return collect([$doc->user_peminta, $doc->created_by])
             ->merge(TrApproval::where('refnbr', $doc->docid)->pluck('aprv_username'))
             ->filter()
             ->map(fn($u) => strtolower(trim($u)))
             ->unique();
+    }
+
+    // Single source of truth for the 9 "creator + approval line (+ optional PIC)" modules,
+    // shared by resolveCommentRecipients() above and SendCommentController::mentionableUsers().
+    public static function extendedDocTypeConfig(): array
+    {
+        return [
+            'PB' => ['model' => TrSPPB::class,        'idCol' => 'sppbid',     'url' => '/showsppbs',     'creatorFields' => ['created_by'],               'approvalDoctype' => 'PB'],
+            'PJ' => ['model' => TrSPPJ::class,        'idCol' => 'sppjid',     'url' => '/showsppjs',     'creatorFields' => ['created_by'],               'approvalDoctype' => 'PJ'],
+            'PK' => ['model' => TrSPPK::class,        'idCol' => 'sppkid',     'url' => '/showsppks',     'creatorFields' => ['created_by'],               'approvalDoctype' => 'PK'],
+            'PT' => ['model' => TrSPPT::class,        'idCol' => 'spptid',     'url' => '/showsppts',     'creatorFields' => ['created_by'],               'approvalDoctype' => 'PT'],
+            'IM' => ['model' => TrIMBudget::class,    'idCol' => 'imbudgetid', 'url' => '/showimbudgets', 'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'IM'],
+            'CS' => ['model' => TrCS::class,          'idCol' => 'csid',       'url' => '/showcs',        'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'CS'],
+            'WO' => ['model' => TrWO::class,          'idCol' => 'woid',       'url' => '/showwos',       'creatorFields' => ['picrequester', 'created_by'], 'approvalDoctype' => 'WO', 'picField' => 'pic_wo'],
+            'BA' => ['model' => TrBast::class,        'idCol' => 'bastid',     'url' => '/showbast',      'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'BA'],
+            'SR' => ['model' => TrItemRequest::class, 'idCol' => 'irid',       'url' => '/showitemreq',   'creatorFields' => ['created_by', 'pic_item_req'], 'approvalDoctype' => 'SR'],
+
+            'PKR' => ['model' => TrParkingRegistration::class, 'idCol' => 'docid',            'url' => '/showparkingregistration', 'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'PKR'],
+            'PRF' => ['model' => Personnel::class,              'idCol' => 'docid',            'url' => '/showpersonnels',          'creatorFields' => ['created_user'],               'approvalDoctype' => 'PRF'],
+
+            'RFP' => ['model' => TrRfpNonPurch::class, 'idCol' => 'rfpnonpurchaseid', 'url' => '/showrfpnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'RFP', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+            'RCA' => ['model' => TrRfpNonPurch::class, 'idCol' => 'rfpnonpurchaseid', 'url' => '/showrfpnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'RCA', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+            'CAR' => ['model' => TrCalrNonPurch::class, 'idCol' => 'calrnonpurchaseid', 'url' => '/showcalrnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'CAR', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+
+            'RP' => ['model' => TrRfp::class,  'idCol' => 'rfp_id', 'url' => '/showrfp',  'creatorFields' => ['created_by'],               'approvalDoctype' => 'RP', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+            // RFCA has no TrApproval line of its own (routed via TrRfcaStep instead) — no approvalDoctype by design.
+            'RC' => ['model' => TrRfca::class, 'idCol' => 'rfcaid', 'url' => '/showrfca', 'creatorFields' => ['user_peminta', 'created_by'], 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+            'CA' => ['model' => TrCalr::class, 'idCol' => 'calrid', 'url' => '/showcalr', 'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'CA', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+        ];
+    }
+
+    // Company-scoped role broadcast: e.g. all APFINACCESS/APTREACCESS holders who share the
+    // document's own company. No existing "role-holders by company" query existed to reuse —
+    // this combines the role-list pluck idiom (SysUserRole::whereIn('role_id',...)->pluck)
+    // with the comma-separated User.cpny_id parsing idiom already used elsewhere in the app.
+    public static function resolveRoleUsernamesForCompany(array $roleIds, $cpnyId): \Illuminate\Support\Collection
+    {
+        if (empty($roleIds) || !$cpnyId) {
+            return collect();
+        }
+
+        $roleUsernames = SysUserRole::whereIn('role_id', $roleIds)
+            ->where('status', 'A')
+            ->pluck('username')
+            ->map(fn($u) => strtolower(trim($u)))
+            ->unique();
+
+        if ($roleUsernames->isEmpty()) {
+            return collect();
+        }
+
+        return User::whereIn(DB::raw('lower(username)'), $roleUsernames->all())
+            ->get(['username', 'cpny_id'])
+            ->filter(function ($u) use ($cpnyId) {
+                $ids = is_string($u->cpny_id)
+                    ? array_filter(array_map('trim', explode(',', $u->cpny_id)))
+                    : (array) $u->cpny_id;
+                return in_array((string) $cpnyId, $ids, true);
+            })
+            ->pluck('username')
+            ->map(fn($u) => strtolower(trim($u)));
     }
 }

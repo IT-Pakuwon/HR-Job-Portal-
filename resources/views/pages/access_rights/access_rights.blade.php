@@ -13,6 +13,52 @@
                 </button>
             </div>
 
+            {{-- Manage by Role: matrix view --}}
+            <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-600">
+                <div class="flex flex-wrap items-end gap-3">
+                    <div class="min-w-[240px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Manage by Role
+                        </label>
+                        <select id="matrixRole"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">-- Select a Role to manage its access rights --</option>
+                            @foreach ($roles as $r)
+                                <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div id="matrixActions" class="hidden flex flex-wrap items-center gap-2">
+                        <input id="matrixSearch" type="text" placeholder="Search screen..."
+                            class="rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        <button type="button" id="matrixSave"
+                            class="rounded-lg bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div id="matrixEmpty" class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                    Pick a role above to see and edit all of its screen access rights in one place.
+                    Screens without an Application ID assigned aren't shown here &mdash; manage those via
+                    <span class="font-semibold">+ Add Access Right</span> below.
+                </div>
+
+                <div id="matrixTableWrap" class="mt-3 hidden overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="border-b text-gray-600 dark:text-gray-300">
+                                <th class="px-2 py-2">Screen</th>
+                                @foreach ($accessNames as $an)
+                                    <th class="px-2 py-2 text-center">{{ $an }}</th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody id="matrixTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="mb-3 flex flex-wrap items-end gap-3">
                 <div class="min-w-[200px] flex-1">
                     <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
@@ -341,6 +387,123 @@
                 table.draw();
             });
 
+            // ===== Manage by Role: matrix =====
+            const accessColumns = @json($accessNames);
+            const matrixScreens = @json($matrixScreens);
+
+            function renderAccessMatrix(rights) {
+                const rows = matrixScreens.map(s => {
+                    const key = s.menu_id + '|' + s.application_id;
+                    const checkedNames = new Set(rights[key] || []);
+
+                    const cells = accessColumns.map(name => `
+                        <td class="px-2 py-1 text-center">
+                            <input type="checkbox" class="matrixAccessChk h-4 w-4"
+                                   data-screen="${s.menu_id}" data-app="${s.application_id}"
+                                   data-name="${name}" ${checkedNames.has(name) ? 'checked' : ''}>
+                        </td>
+                    `).join('');
+
+                    return `
+                        <tr class="matrix-row border-b dark:border-gray-600"
+                            data-search="${(s.menu_name + ' ' + s.menu_id).toLowerCase()}">
+                            <td class="whitespace-nowrap px-2 py-1">
+                                ${s.menu_name} <span class="text-gray-400">(${s.menu_id})</span>
+                            </td>
+                            ${cells}
+                        </tr>
+                    `;
+                }).join('');
+
+                $('#matrixTableBody').html(rows);
+                $('#matrixTableWrap').removeClass('hidden');
+                $('#matrixEmpty').addClass('hidden');
+                $('#matrixActions').removeClass('hidden');
+            }
+
+            $('#matrixRole').on('change', function() {
+                const roleId = $(this).val();
+
+                if (!roleId) {
+                    $('#matrixTableWrap').addClass('hidden');
+                    $('#matrixTableBody').empty();
+                    $('#matrixActions').addClass('hidden');
+                    $('#matrixEmpty').removeClass('hidden');
+                    return;
+                }
+
+                showLoading();
+                $.get(`/access-rights/by-role/${roleId}`, function(data) {
+                    hideLoading();
+                    renderAccessMatrix(data.rights || {});
+                }).fail(function() {
+                    hideLoading();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load access rights for this role'
+                    });
+                });
+            });
+
+            $('#matrixSearch').on('input', function() {
+                const q = $(this).val().toLowerCase();
+                $('.matrix-row').each(function() {
+                    $(this).toggle($(this).data('search').includes(q));
+                });
+            });
+
+            $('#matrixSave').on('click', function() {
+                const roleId = $('#matrixRole').val();
+                if (!roleId) return;
+
+                const byScreen = {};
+                $('.matrixAccessChk:checked').each(function() {
+                    const $chk = $(this);
+                    const key = $chk.data('screen') + '|' + $chk.data('app');
+                    if (!byScreen[key]) {
+                        byScreen[key] = {
+                            screen_id: String($chk.data('screen')),
+                            application_id: String($chk.data('app')),
+                            access_names: []
+                        };
+                    }
+                    byScreen[key].access_names.push(String($chk.data('name')));
+                });
+
+                showLoading();
+                $.ajax({
+                    url: "{{ route('access_rights.save_by_role') }}",
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        role_id: roleId,
+                        rights: Object.values(byScreen)
+                    },
+                    success: function() {
+                        hideLoading();
+                        table.ajax.reload();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Saved',
+                            text: 'Access rights updated for this role',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to save access rights'
+                        });
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
 
             function resetAccessModal() {
                 $('#accessRightForm')[0].reset();

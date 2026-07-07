@@ -715,6 +715,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/relativeTime.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
 
     <script>
         dayjs.extend(dayjs_plugin_relativeTime);
@@ -809,7 +810,7 @@
                                     ${comment.username}
                                     <span class="text-sm text-gray-500">(${timeAgo})</span>
                                 </p>
-                                <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                <p class="text-gray-800 dark:text-gray-200">${highlightMentions(comment.message)}</p>
                             </div>
                         `);
                     });
@@ -878,6 +879,11 @@
         $(document).ready(function() {
             loadApproval(rfpid, doctype);
             loadComments(rfpid, doctype);
+
+            attachMentionAutocomplete({
+                inputSelector: '#commentInput',
+                fetchUrlFn: () => `/mentionable-users/${doctype}/${rfpid}`,
+            });
 
             $('#postCommentBtn').on('click', function(e) {
                 e.preventDefault();

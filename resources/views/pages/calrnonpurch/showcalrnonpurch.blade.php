@@ -632,9 +632,15 @@
     </script>
 
     {{-- Comments --}}
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
     <script>
         $(function() {
             loadComments(calrid, doctype);
+
+            attachMentionAutocomplete({
+                inputSelector: '#commentInput',
+                fetchUrlFn: () => `/mentionable-users/${doctype}/${calrid}`,
+            });
 
             function loadComments(refnbr, doctype) {
                 const commentList = $('#commentList');
@@ -664,7 +670,7 @@
                                         ${comment.username}
                                         <span class="text-sm text-gray-500">(${timeAgo})</span>
                                     </p>
-                                    <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
+                                    <p class="text-gray-800 dark:text-gray-200">${highlightMentions(comment.message)}</p>
                                 </div>
                             `);
                         });
