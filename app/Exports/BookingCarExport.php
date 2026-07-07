@@ -70,6 +70,13 @@ class BookingCarExport implements
 
             ->whereIn('bc.cpny_id', $companyIds)
 
+            ->leftJoin(
+                'tr_booking_car_detail as bcd',
+                'bcd.docid',
+                '=',
+                'bc.docid'
+            )
+
             ->select([
                 'bc.docid',
 
@@ -80,10 +87,6 @@ class BookingCarExport implements
                 'bc.user_peminta',
 
                 'bc.purpose_descr',
-
-                'bc.location_from',
-
-                'bc.destination',
 
                 'bc.start_time',
 
@@ -100,6 +103,12 @@ class BookingCarExport implements
                 'bc.created_by',
 
                 'bc.created_at',
+
+                'bcd.booking_order',
+
+                'bcd.origin',
+
+                'bcd.destination',
             ]);
 
         /*
@@ -142,12 +151,17 @@ class BookingCarExport implements
 
         return $query
             ->orderBy('bc.booking_date', 'desc')
+            ->orderBy('bcd.booking_order')
             ->get()
 
-            ->map(function ($row) use (
+            ->groupBy('docid')
+
+            ->map(function ($group) use (
                 $users,
                 $departments
             ) {
+
+                $row = $group->first();
 
                 /*
                 |--------------------------------------------------------------------------
@@ -155,50 +169,18 @@ class BookingCarExport implements
                 |--------------------------------------------------------------------------
                 */
 
-                $origins = [];
+                $routes = $group
+                    ->map(function ($detail) {
 
-                if (is_array($row->location_from)) {
+                        if (!$detail->origin && !$detail->destination) {
+                            return null;
+                        }
 
-                    $origins = $row->location_from;
-
-                } elseif (!empty($row->location_from)) {
-
-                    $decoded = json_decode(
-                        $row->location_from,
-                        true
-                    );
-
-                    $origins = is_array($decoded)
-                        ? $decoded
-                        : [$row->location_from];
-                }
-
-                $destinations = [];
-
-                if (is_array($row->destination)) {
-
-                    $destinations = $row->destination;
-
-                } elseif (!empty($row->destination)) {
-
-                    $decoded = json_decode(
-                        $row->destination,
-                        true
-                    );
-
-                    $destinations = is_array($decoded)
-                        ? $decoded
-                        : [$row->destination];
-                }
-
-                $routes = [];
-
-                foreach ($origins as $i => $from) {
-
-                    $to = $destinations[$i] ?? '-';
-
-                    $routes[] = $from.' → '.$to;
-                }
+                        return ($detail->origin ?: '-').' → '.($detail->destination ?: '-');
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
 
                 /*
                 |--------------------------------------------------------------------------
@@ -292,6 +274,8 @@ class BookingCarExport implements
                             ->format('d-M-Y H:i')
                         : '-',
                 ];
-            });
+            })
+
+            ->values();
     }
 }
