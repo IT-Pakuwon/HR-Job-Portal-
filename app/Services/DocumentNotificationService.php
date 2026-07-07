@@ -639,10 +639,10 @@ class DocumentNotificationService
             'RCA' => ['model' => TrRfpNonPurch::class, 'idCol' => 'rfpnonpurchaseid', 'url' => '/showrfpnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'RCA', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
             'CAR' => ['model' => TrCalrNonPurch::class, 'idCol' => 'calrnonpurchaseid', 'url' => '/showcalrnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'CAR', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
 
-            'RP' => ['model' => TrRfp::class,  'idCol' => 'rfp_id', 'url' => '/showrfp',  'creatorFields' => ['created_by'],               'approvalDoctype' => 'RP', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+            'RP' => ['model' => TrRfp::class,  'idCol' => 'rfp_id', 'url' => '/showrfp',  'creatorFields' => ['created_by'],               'approvalDoctype' => 'RP', 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
             // RFCA has no TrApproval line of its own (routed via TrRfcaStep instead) — no approvalDoctype by design.
-            'RC' => ['model' => TrRfca::class, 'idCol' => 'rfcaid', 'url' => '/showrfca', 'creatorFields' => ['user_peminta', 'created_by'], 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
-            'CA' => ['model' => TrCalr::class, 'idCol' => 'calrid', 'url' => '/showcalr', 'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'CA', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+            'RC' => ['model' => TrRfca::class, 'idCol' => 'rfcaid', 'url' => '/showrfca', 'creatorFields' => ['user_peminta', 'created_by'], 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
+            'CA' => ['model' => TrCalr::class, 'idCol' => 'calrid', 'url' => '/showcalr', 'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'CA', 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
         ];
     }
 
