@@ -1,7 +1,7 @@
 <x-app-layout>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <div class="max-w-7xl mx-auto w-full p-4">
+    <div class="max-w-9xl mx-auto w-full p-4">
         <div class="rounded-xl bg-white p-5 shadow-sm dark:bg-gray-800">
             <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
                 <div>

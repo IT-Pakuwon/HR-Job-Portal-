@@ -2,7 +2,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         <div class="grid">
 
-            <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
                 <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <h2 class="text-base font-bold text-gray-800 dark:text-white">📌 Assessments List</h2>
                     <button id="addAppBtn"

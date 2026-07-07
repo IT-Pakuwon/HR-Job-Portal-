@@ -39,7 +39,6 @@ use App\Http\Controllers\DocumentNotificationController;
 use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\FinanceDashboardController;
 use App\Http\Controllers\GADashboardController;
-use App\Http\Controllers\TreasuryDashboardController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
@@ -121,8 +120,8 @@ use App\Http\Controllers\SppkController;
 use App\Http\Controllers\SpptController;
 use App\Http\Controllers\StockJobsController;
 use App\Http\Controllers\StrukturOrgController;
-// INTEGRATION
 use App\Http\Controllers\SysAccessRightController;
+// INTEGRATION
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
 use App\Http\Controllers\SysMenuController;
@@ -138,6 +137,7 @@ use App\Http\Controllers\TicketSetupController;
 use App\Http\Controllers\TopController;
 use App\Http\Controllers\TrainingRegistrationController;
 use App\Http\Controllers\TrAttachmentController;
+use App\Http\Controllers\TreasuryDashboardController;
 use App\Http\Controllers\UpdateNotificationController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\UsersEngController;
@@ -1852,7 +1852,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/approval-doctypes', 'approvalDocTypes')->name('operational.doctypes');
         });
 
-        Route::prefix('ga-dashboard')->controller(GaDashboardController::class)->group(function () {
+        Route::prefix('ga-dashboard')->controller(GADashboardController::class)->group(function () {
             Route::get('/summary-json', 'summaryJson')->name('ga.summary');
             Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('ga.approval');
             Route::get('/approval-history-json', 'approvalHistoryJson')->name('ga.approval-history');
@@ -1863,25 +1863,25 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::prefix('finance-dashboard')->controller(FinanceDashboardController::class)->group(function () {
-            Route::get('/summary-json',               'summaryJson')->name('finance.summary');
-            Route::get('/waiting-approval-json',      'waitingApprovalJson')->name('finance.approval');
-            Route::get('/approval-history-json',      'approvalHistoryJson')->name('finance.approval-history');
-            Route::get('/rfca-purchase-fr-json',      'rfcaPurchaseFrJson')->name('finance.rfca-purchase-fr');
-            Route::get('/calr-purchase-fr-json',      'calrPurchaseFrJson')->name('finance.calr-purchase-fr');
-            Route::get('/rfp-nonpurch-waiting-json',  'rfpNonPurchWaitingJson')->name('finance.rfp-nonpurch-waiting');
+            Route::get('/summary-json', 'summaryJson')->name('finance.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('finance.approval');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('finance.approval-history');
+            Route::get('/rfca-purchase-fr-json', 'rfcaPurchaseFrJson')->name('finance.rfca-purchase-fr');
+            Route::get('/calr-purchase-fr-json', 'calrPurchaseFrJson')->name('finance.calr-purchase-fr');
+            Route::get('/rfp-nonpurch-waiting-json', 'rfpNonPurchWaitingJson')->name('finance.rfp-nonpurch-waiting');
             Route::get('/calr-nonpurch-waiting-json', 'calrNonPurchWaitingJson')->name('finance.calr-nonpurch-waiting');
-            Route::get('/approval-doctypes',          'approvalDocTypes')->name('finance.approval-doctypes');
+            Route::get('/approval-doctypes', 'approvalDocTypes')->name('finance.approval-doctypes');
         });
 
         Route::prefix('treasury-dashboard')->controller(TreasuryDashboardController::class)->group(function () {
-            Route::get('/summary-json',                'summaryJson')->name('treasury.summary');
-            Route::get('/waiting-approval-json',       'waitingApprovalJson')->name('treasury.approval');
-            Route::get('/approval-history-json',       'approvalHistoryJson')->name('treasury.approval-history');
-            Route::get('/rfca-purchase-tp-json',       'rfcaPurchaseTpJson')->name('treasury.rfca-purchase-tp');
-            Route::get('/calr-purchase-tp-json',       'calrPurchaseTpJson')->name('treasury.calr-purchase-tp');
-            Route::get('/rfp-nonpurch-fr-done-json',   'rfpNonPurchFrDoneJson')->name('treasury.rfp-nonpurch-fr-done');
-            Route::get('/calr-nonpurch-fr-done-json',  'calrNonPurchFrDoneJson')->name('treasury.calr-nonpurch-fr-done');
-            Route::get('/approval-doctypes',           'approvalDocTypes')->name('treasury.approval-doctypes');
+            Route::get('/summary-json', 'summaryJson')->name('treasury.summary');
+            Route::get('/waiting-approval-json', 'waitingApprovalJson')->name('treasury.approval');
+            Route::get('/approval-history-json', 'approvalHistoryJson')->name('treasury.approval-history');
+            Route::get('/rfca-purchase-tp-json', 'rfcaPurchaseTpJson')->name('treasury.rfca-purchase-tp');
+            Route::get('/calr-purchase-tp-json', 'calrPurchaseTpJson')->name('treasury.calr-purchase-tp');
+            Route::get('/rfp-nonpurch-fr-done-json', 'rfpNonPurchFrDoneJson')->name('treasury.rfp-nonpurch-fr-done');
+            Route::get('/calr-nonpurch-fr-done-json', 'calrNonPurchFrDoneJson')->name('treasury.calr-nonpurch-fr-done');
+            Route::get('/approval-doctypes', 'approvalDocTypes')->name('treasury.approval-doctypes');
         });
 
         Route::prefix('warehouse-dashboard')->controller(WarehouseDashboardController::class)->group(function () {
@@ -1968,194 +1968,207 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('/test', [DashboardController::class, 'test'])->name('test');
 
     Route::middleware('admin')->group(function () {
+        // Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
+        // Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
 
-    Route::get('/test-email', [TestEmailController::class, 'index'])->name('test-email.index');
-    Route::post('/test-email/send', [TestEmailController::class, 'send'])->name('test-email.send');
+        // Route::get('/settings/account', function () {
+        //     return view('profile/show');
+        // })->name('account');
+        // Route::get('/settings/account', [DashboardController::class, 'showProfile'])->name('profile.showx');
 
-    // Route::get('/settings/account', function () {
-    //     return view('profile/show');
-    // })->name('account');
-    // Route::get('/settings/account', [DashboardController::class, 'showProfile'])->name('profile.showx');
+        Route::get('/settings/notifications', function () {
+            return view('pages/settings/notifications');
+        })->name('notifications');
 
-    Route::get('/settings/notifications', function () {
-        return view('pages/settings/notifications');
-    })->name('notifications');
+        Route::get('/users', [UsersController::class, 'index'])->name('users');
+        Route::get('/users/json', [UsersController::class, 'json'])->name('users.json');
+        Route::get('/users/duplicates/json', [UsersController::class, 'duplicatesJson'])->name('users.duplicates.json');
+        Route::post('/users', [UsersController::class, 'store'])->name('users.store');
+        Route::get('/users/{id}/edit', [UsersController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{post}', [UsersController::class, 'update'])->name('users.update');
+        Route::put('/users/{id}/toggle-status', [UsersController::class, 'toggleStatus']);
+        Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
 
-    Route::get('/users', [UsersController::class, 'index'])->name('users');
-    Route::get('/users/json', [UsersController::class, 'json'])->name('users.json');
-    Route::post('/users', [UsersController::class, 'store'])->name('users.store');
-    Route::get('/users/{id}/edit', [UsersController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{post}', [UsersController::class, 'update'])->name('users.update');
-    Route::put('/users/{id}/toggle-status', [UsersController::class, 'toggleStatus']);
-    Route::post('/settings/password', [UsersController::class, 'updatePassword'])->name('password.update.custom');
+        Route::post('/users/{id}/reset-password', [UsersController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users.impersonate');
 
-    Route::post('/users/{id}/reset-password', [UsersController::class, 'resetPassword'])->name('users.reset-password');
-    Route::post('/users/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users.impersonate');
+        // === APPLICATION MASTER ===
+        Route::get('/applications', [SysApplicationController::class, 'index'])->name('applications');
+        Route::get('/applications/json', [SysApplicationController::class, 'json'])->name('applications.json');
+        Route::post('/applications', [SysApplicationController::class, 'store'])->name('applications.store');
+        Route::get('/applications/{id}/edit', [SysApplicationController::class, 'edit'])->name('applications.edit');
+        Route::put('/applications/{id}', [SysApplicationController::class, 'update'])->name('applications.update');
+        Route::put('/applications/{id}/toggle-status', [SysApplicationController::class, 'toggleStatus'])->name('applications.toggle-status');
 
-    // === APPLICATION MASTER ===
-    Route::get('/applications', [SysApplicationController::class, 'index'])->name('applications');
-    Route::get('/applications/json', [SysApplicationController::class, 'json'])->name('applications.json');
-    Route::post('/applications', [SysApplicationController::class, 'store'])->name('applications.store');
-    Route::get('/applications/{id}/edit', [SysApplicationController::class, 'edit'])->name('applications.edit');
-    Route::put('/applications/{id}', [SysApplicationController::class, 'update'])->name('applications.update');
-    Route::put('/applications/{id}/toggle-status', [SysApplicationController::class, 'toggleStatus'])->name('applications.toggle-status');
+        // === SCREEN MASTER ===
+        Route::get('/screens', [SysScreenController::class, 'index'])->name('screens');
+        Route::get('/screens/json', [SysScreenController::class, 'json'])->name('screens.json');
+        Route::post('/screens', [SysScreenController::class, 'store'])->name('screens.store');
+        Route::get('/screens/{id}/edit', [SysScreenController::class, 'edit'])->name('screens.edit');
+        Route::put('/screens/{id}', [SysScreenController::class, 'update'])->name('screens.update');
+        Route::put('/screens/{id}/toggle-status', [SysScreenController::class, 'toggleStatus'])->name('screens.toggle-status');
 
-    // === SCREEN MASTER ===
-    Route::get('/screens', [SysScreenController::class, 'index'])->name('screens');
-    Route::get('/screens/json', [SysScreenController::class, 'json'])->name('screens.json');
-    Route::post('/screens', [SysScreenController::class, 'store'])->name('screens.store');
-    Route::get('/screens/{id}/edit', [SysScreenController::class, 'edit'])->name('screens.edit');
-    Route::put('/screens/{id}', [SysScreenController::class, 'update'])->name('screens.update');
-    Route::put('/screens/{id}/toggle-status', [SysScreenController::class, 'toggleStatus'])->name('screens.toggle-status');
+        Route::get('/menus', [SysMenuController::class, 'index'])->name('menus');
+        Route::get('/menus/json', [SysMenuController::class, 'json'])->name('menus.json');
+        Route::post('/menus', [SysMenuController::class, 'store'])->name('menus.store');
+        Route::get('/menus/{id}/edit', [SysMenuController::class, 'edit'])->name('menus.edit');
+        Route::put('/menus/{id}', [SysMenuController::class, 'update'])->name('menus.update');
+        Route::put('/menus/{id}/toggle-status', [SysMenuController::class, 'toggleStatus'])->name('menus.toggle-status');
 
-    Route::get('/menus', [SysMenuController::class, 'index'])->name('menus');
-    Route::get('/menus/json', [SysMenuController::class, 'json'])->name('menus.json');
-    Route::post('/menus', [SysMenuController::class, 'store'])->name('menus.store');
-    Route::get('/menus/{id}/edit', [SysMenuController::class, 'edit'])->name('menus.edit');
-    Route::put('/menus/{id}', [SysMenuController::class, 'update'])->name('menus.update');
-    Route::put('/menus/{id}/toggle-status', [SysMenuController::class, 'toggleStatus'])->name('menus.toggle-status');
+        Route::get('/roles', [SysRoleController::class, 'index'])->name('roles');
+        Route::get('/roles/json', [SysRoleController::class, 'json'])->name('roles.json');
+        Route::post('/roles', [SysRoleController::class, 'store'])->name('roles.store');
+        Route::get('/roles/{id}/edit', [SysRoleController::class, 'edit'])->name('roles.edit');
+        Route::put('/roles/{id}', [SysRoleController::class, 'update'])->name('roles.update');
+        Route::put('/roles/{id}/toggle-status', [SysRoleController::class, 'toggleStatus'])->name('roles.toggle-status');
 
-    Route::get('/roles', [SysRoleController::class, 'index'])->name('roles');
-    Route::get('/roles/json', [SysRoleController::class, 'json'])->name('roles.json');
-    Route::post('/roles', [SysRoleController::class, 'store'])->name('roles.store');
-    Route::get('/roles/{id}/edit', [SysRoleController::class, 'edit'])->name('roles.edit');
-    Route::put('/roles/{id}', [SysRoleController::class, 'update'])->name('roles.update');
-    Route::put('/roles/{id}/toggle-status', [SysRoleController::class, 'toggleStatus'])->name('roles.toggle-status');
+        // ================== SYS ROLE MENU ==================
+        Route::get('/role-menus', [SysRoleMenuController::class, 'index'])->name('role_menus');
+        Route::get('/role-menus/json', [SysRoleMenuController::class, 'json'])->name('role_menus.json');
+        Route::post('/role-menus', [SysRoleMenuController::class, 'store'])->name('role_menus.store');
+        Route::get('/role-menus/by-role/{role_id}', [SysRoleMenuController::class, 'byRole'])->name('role_menus.by_role');
+        Route::post('/role-menus/save-by-role', [SysRoleMenuController::class, 'saveByRole'])->name('role_menus.save_by_role');
+        Route::get('/role-menus/{id}/edit', [SysRoleMenuController::class, 'edit'])->name('role_menus.edit');
+        Route::put('/role-menus/{id}', [SysRoleMenuController::class, 'update'])->name('role_menus.update');
+        Route::put('/role-menus/{id}/toggle-status', [SysRoleMenuController::class, 'toggleStatus'])->name('role_menus.toggle-status');
 
-    // ================== SYS ROLE MENU ==================
-    Route::get('/role-menus', [SysRoleMenuController::class, 'index'])->name('role_menus');
-    Route::get('/role-menus/json', [SysRoleMenuController::class, 'json'])->name('role_menus.json');
-    Route::post('/role-menus', [SysRoleMenuController::class, 'store'])->name('role_menus.store');
-    Route::get('/role-menus/by-role/{role_id}', [SysRoleMenuController::class, 'byRole'])->name('role_menus.by_role');
-    Route::post('/role-menus/save-by-role', [SysRoleMenuController::class, 'saveByRole'])->name('role_menus.save_by_role');
-    Route::get('/role-menus/{id}/edit', [SysRoleMenuController::class, 'edit'])->name('role_menus.edit');
-    Route::put('/role-menus/{id}', [SysRoleMenuController::class, 'update'])->name('role_menus.update');
-    Route::put('/role-menus/{id}/toggle-status', [SysRoleMenuController::class, 'toggleStatus'])->name('role_menus.toggle-status');
+        // ================== SYS ACCESS RIGHT ==================
+        Route::get('/access-rights', [SysAccessRightController::class, 'index'])->name('access_rights');
+        Route::get('/access-rights/json', [SysAccessRightController::class, 'json'])->name('access_rights.json');
+        Route::post('/access-rights', [SysAccessRightController::class, 'store'])->name('access_rights.store');
+        Route::get('/access-rights/by-role/{role_id}', [SysAccessRightController::class, 'byRole'])->name('access_rights.by_role');
+        Route::post('/access-rights/save-by-role', [SysAccessRightController::class, 'saveByRole'])->name('access_rights.save_by_role');
+        Route::get('/access-rights/{id}/edit', [SysAccessRightController::class, 'edit'])->name('access_rights.edit');
+        Route::put('/access-rights/{id}', [SysAccessRightController::class, 'update'])->name('access_rights.update');
+        Route::put('/access-rights/{id}/toggle-status', [SysAccessRightController::class, 'toggleStatus'])->name('access_rights.toggle-status');
 
-    // ================== SYS ACCESS RIGHT ==================
-    Route::get('/access-rights', [SysAccessRightController::class, 'index'])->name('access_rights');
-    Route::get('/access-rights/json', [SysAccessRightController::class, 'json'])->name('access_rights.json');
-    Route::post('/access-rights', [SysAccessRightController::class, 'store'])->name('access_rights.store');
-    Route::get('/access-rights/by-role/{role_id}', [SysAccessRightController::class, 'byRole'])->name('access_rights.by_role');
-    Route::post('/access-rights/save-by-role', [SysAccessRightController::class, 'saveByRole'])->name('access_rights.save_by_role');
-    Route::get('/access-rights/{id}/edit', [SysAccessRightController::class, 'edit'])->name('access_rights.edit');
-    Route::put('/access-rights/{id}', [SysAccessRightController::class, 'update'])->name('access_rights.update');
-    Route::put('/access-rights/{id}/toggle-status', [SysAccessRightController::class, 'toggleStatus'])->name('access_rights.toggle-status');
+        Route::get('/approvals', [MsApprovalController::class, 'index'])->name('approvals');
+        Route::get('/approvals/json', [MsApprovalController::class, 'json'])->name('approvals.json');
+        Route::post('/approvals', [MsApprovalController::class, 'store'])->name('approvals.store');
+        Route::get('/approvals/{id}/edit', [MsApprovalController::class, 'edit']);
+        Route::put('/approvals/{id}', [MsApprovalController::class, 'update']);
+        Route::put('/approvals/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus']);
+        Route::get('/approvals/departments', [MsApprovalController::class, 'departmentHR'])->name('approvals.departments');
+        Route::get('/approvals/conditions', [MsApprovalController::class, 'conditions'])->name('approvals.conditions');
+        Route::get('/approvals/group', [MsApprovalController::class, 'groupLines'])->name('approvals.group');
+        Route::get('/approvals/departments-by-source', [MsApprovalController::class, 'departmentsBySource'])->name('approvals.departments_by_source');
 
-    Route::get('/approvals', [MsApprovalController::class, 'index'])->name('approvals');
-    Route::get('/approvals/json', [MsApprovalController::class, 'json'])->name('approvals.json');
-    Route::post('/approvals', [MsApprovalController::class, 'store'])->name('approvals.store');
-    Route::get('/approvals/{id}/edit', [MsApprovalController::class, 'edit']);
-    Route::put('/approvals/{id}', [MsApprovalController::class, 'update']);
-    Route::put('/approvals/{id}/toggle-status', [MsApprovalController::class, 'toggleStatus']);
-    Route::get('/approvals/departments', [MsApprovalController::class, 'departmentHR'])->name('approvals.departments');
-    Route::get('/approvals/conditions', [MsApprovalController::class, 'conditions'])->name('approvals.conditions');
+        Route::get('/approvals-groupbiaya', [MsApprovalGroupBiayaController::class, 'index'])->name('approvalsgroupbiaya');
+        Route::get('/approvals-groupbiaya/json', [MsApprovalGroupBiayaController::class, 'json'])->name('approvalsgroupbiaya.json');
+        Route::post('/approvals-groupbiaya', [MsApprovalGroupBiayaController::class, 'store'])->name('approvalsgroupbiaya.store');
+        Route::get('/approvals-groupbiaya/{id}/edit', [MsApprovalGroupBiayaController::class, 'edit'])->name('approvalsgroupbiaya.edit');
+        Route::put('/approvals-groupbiaya/{id}', [MsApprovalGroupBiayaController::class, 'update'])->name('approvalsgroupbiaya.update');
+        Route::put('/approvals-groupbiaya/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya.toggle');
+        Route::get('/approvals-groupbiaya/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya.departments');
 
-    Route::get('/approvals-groupbiaya', [MsApprovalGroupBiayaController::class, 'index'])->name('approvalsgroupbiaya');
-    Route::get('/approvals-groupbiaya/json', [MsApprovalGroupBiayaController::class, 'json'])->name('approvalsgroupbiaya.json');
-    Route::post('/approvals-groupbiaya', [MsApprovalGroupBiayaController::class, 'store'])->name('approvalsgroupbiaya.store');
-    Route::get('/approvals-groupbiaya/{id}/edit', [MsApprovalGroupBiayaController::class, 'edit'])->name('approvalsgroupbiaya.edit');
-    Route::put('/approvals-groupbiaya/{id}', [MsApprovalGroupBiayaController::class, 'update'])->name('approvalsgroupbiaya.update');
-    Route::put('/approvals-groupbiaya/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya.toggle');
-    Route::get('/approvals-groupbiaya/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya.departments');
+        Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
+        Route::get('/companies/json', [CompanyController::class, 'json'])->name('companies.json');
+        Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+        Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
+        Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
+        Route::put('/companies/{id}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
 
-    Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
-    Route::get('/companies/json', [CompanyController::class, 'json'])->name('companies.json');
-    Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
-    Route::get('/companies/{id}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
-    Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
-    Route::put('/companies/{id}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
+        Route::get('/department', [DepartmentsController::class, 'index'])->name('department');
+        Route::get('/department/json', [DepartmentsController::class, 'json'])->name('department.json');
+        Route::post('/department', [DepartmentsController::class, 'store'])->name('department.store');
+        Route::get('/department/{id}/edit', [DepartmentsController::class, 'edit'])->name('department.edit');
+        Route::put('/department/{id}', [DepartmentsController::class, 'update'])->name('department.update');
+        Route::put('/department/{id}/toggle-status', [DepartmentsController::class, 'toggleStatus'])->name('department.toggle-status');
 
-    Route::get('/department', [DepartmentsController::class, 'index'])->name('department');
-    Route::get('/department/json', [DepartmentsController::class, 'json'])->name('department.json');
-    Route::post('/department', [DepartmentsController::class, 'store'])->name('department.store');
-    Route::get('/department/{id}/edit', [DepartmentsController::class, 'edit'])->name('department.edit');
-    Route::put('/department/{id}', [DepartmentsController::class, 'update'])->name('department.update');
-    Route::put('/department/{id}/toggle-status', [DepartmentsController::class, 'toggleStatus'])->name('department.toggle-status');
+        Route::get('/department/fin/json', [DepartmentsController::class, 'jsonFin'])->name('department.fin.json');
+        Route::post('/department/fin', [DepartmentsController::class, 'storeFin'])->name('department.fin.store');
+        Route::get('/department/fin/{id}/edit', [DepartmentsController::class, 'editFin'])->name('department.fin.edit');
+        Route::put('/department/fin/{id}', [DepartmentsController::class, 'updateFin'])->name('department.fin.update');
+        Route::put('/department/fin/{id}/toggle-status', [DepartmentsController::class, 'toggleStatusFin'])->name('department.fin.toggle-status');
 
-    Route::get('/categories', [MsCategoryController::class, 'index'])->name('categories');
-    Route::get('/categories/json', [MsCategoryController::class, 'json'])->name('categories.json');
-    Route::post('/categories', [MsCategoryController::class, 'store'])->name('categories.store');
-    Route::get('/categories/{id}/edit', [MsCategoryController::class, 'edit']);
-    Route::put('/categories/{id}', [MsCategoryController::class, 'update']);
-    Route::put('/categories/{id}/toggle-status', [MsCategoryController::class, 'toggleStatus']);
+        Route::get('/department/hr/json', [DepartmentsController::class, 'jsonHr'])->name('department.hr.json');
+        Route::post('/department/hr', [DepartmentsController::class, 'storeHr'])->name('department.hr.store');
+        Route::get('/department/hr/{id}/edit', [DepartmentsController::class, 'editHr'])->name('department.hr.edit');
+        Route::put('/department/hr/{id}', [DepartmentsController::class, 'updateHr'])->name('department.hr.update');
+        Route::put('/department/hr/{id}/toggle-status', [DepartmentsController::class, 'toggleStatusHr'])->name('department.hr.toggle-status');
 
-    Route::get('/autonbrs', [AutonbrController::class, 'index'])->name('autonbrs');
-    Route::get('/autonbrs/json', [AutonbrController::class, 'json'])->name('autonbrs.json');
-    Route::post('/autonbrs', [AutonbrController::class, 'store'])->name('autonbrs.store');
-    Route::get('/autonbrs/{id}/edit', [AutonbrController::class, 'edit']);
-    Route::put('/autonbrs/{id}', [AutonbrController::class, 'update']);
-    Route::put('/autonbrs/{id}/toggle-status', [AutonbrController::class, 'toggleStatus']);
+        Route::get('/categories', [MsCategoryController::class, 'index'])->name('categories');
+        Route::get('/categories/json', [MsCategoryController::class, 'json'])->name('categories.json');
+        Route::post('/categories', [MsCategoryController::class, 'store'])->name('categories.store');
+        Route::get('/categories/{id}/edit', [MsCategoryController::class, 'edit']);
+        Route::put('/categories/{id}', [MsCategoryController::class, 'update']);
+        Route::put('/categories/{id}/toggle-status', [MsCategoryController::class, 'toggleStatus']);
 
-    Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
-    Route::get('/vendors/json', [VendorController::class, 'json'])->name('vendors.json');
-    Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
-    Route::get('/vendors/{id}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
-    Route::put('/vendors/{id}', [VendorController::class, 'update'])->name('vendors.update');
-    Route::put('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
-    Route::post('/vendors/sync', [VendorController::class, 'syncVendor'])->name('vendors.sync');
+        Route::get('/autonbrs', [AutonbrController::class, 'index'])->name('autonbrs');
+        Route::get('/autonbrs/json', [AutonbrController::class, 'json'])->name('autonbrs.json');
+        Route::post('/autonbrs', [AutonbrController::class, 'store'])->name('autonbrs.store');
+        Route::get('/autonbrs/{id}/edit', [AutonbrController::class, 'edit']);
+        Route::put('/autonbrs/{id}', [AutonbrController::class, 'update']);
+        Route::put('/autonbrs/{id}/toggle-status', [AutonbrController::class, 'toggleStatus']);
 
-    Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories');
-    Route::get('/inventories/json', [InventoryController::class, 'json'])->name('inventories.json');
-    Route::post('/inventories', [InventoryController::class, 'store'])->name('inventories.store');
-    Route::get('/inventories/{id}/edit', [InventoryController::class, 'edit'])->name('inventories.edit');
-    Route::put('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
-    Route::put('/inventories/{id}/toggle-status', [InventoryController::class, 'toggleStatus'])->name('inventories.toggle-status');
+        Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
+        Route::get('/vendors/json', [VendorController::class, 'json'])->name('vendors.json');
+        Route::post('/vendors', [VendorController::class, 'store'])->name('vendors.store');
+        Route::get('/vendors/{id}/edit', [VendorController::class, 'edit'])->name('vendors.edit');
+        Route::put('/vendors/{id}', [VendorController::class, 'update'])->name('vendors.update');
+        Route::put('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
+        Route::post('/vendors/sync', [VendorController::class, 'syncVendor'])->name('vendors.sync');
 
-    Route::get('/locations', [LocationController::class, 'index'])->name('locations');
+        Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories');
+        Route::get('/inventories/json', [InventoryController::class, 'json'])->name('inventories.json');
+        Route::post('/inventories', [InventoryController::class, 'store'])->name('inventories.store');
+        Route::get('/inventories/{id}/edit', [InventoryController::class, 'edit'])->name('inventories.edit');
+        Route::put('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
+        Route::put('/inventories/{id}/toggle-status', [InventoryController::class, 'toggleStatus'])->name('inventories.toggle-status');
 
-    Route::get('/locations/json', [LocationController::class, 'locationJson'])->name('locations.json');
-    Route::post('/locations', [LocationController::class, 'storeLocation'])->name('locations.store');
-    Route::get('/locations/{id}/edit', [LocationController::class, 'editLocation'])->name('locations.edit');
-    Route::put('/locations/{id}', [LocationController::class, 'updateLocation'])->name('locations.update');
-    Route::put('/locations/{id}/toggle-status', [LocationController::class, 'toggleLocationStatus'])->name('locations.toggle-status');
+        Route::get('/locations', [LocationController::class, 'index'])->name('locations');
 
-    Route::get('/sub-locations/json', [LocationController::class, 'subLocationJson'])->name('sub_locations.json');
-    Route::post('/sub-locations', [LocationController::class, 'storeSubLocation'])->name('sub_locations.store');
-    Route::get('/sub-locations/{id}/edit', [LocationController::class, 'editSubLocation'])->name('sub_locations.edit');
-    Route::put('/sub-locations/{id}', [LocationController::class, 'updateSubLocation'])->name('sub_locations.update');
-    Route::put('/sub-locations/{id}/toggle-status', [LocationController::class, 'toggleSubLocationStatus'])->name('sub_locations.toggle-status');
+        Route::get('/locations/json', [LocationController::class, 'locationJson'])->name('locations.json');
+        Route::post('/locations', [LocationController::class, 'storeLocation'])->name('locations.store');
+        Route::get('/locations/{id}/edit', [LocationController::class, 'editLocation'])->name('locations.edit');
+        Route::put('/locations/{id}', [LocationController::class, 'updateLocation'])->name('locations.update');
+        Route::put('/locations/{id}/toggle-status', [LocationController::class, 'toggleLocationStatus'])->name('locations.toggle-status');
 
-    Route::get('/tops', [TopController::class, 'index'])->name('tops');
-    Route::get('/tops/json', [TopController::class, 'topJson'])->name('tops.json');
-    Route::post('/tops', [TopController::class, 'storeTop'])->name('tops.store');
-    Route::get('/tops/{id}/edit', [TopController::class, 'editTop'])->name('tops.edit');
-    Route::put('/tops/{id}', [TopController::class, 'updateTop'])->name('tops.update');
-    Route::put('/tops/{id}/toggle-status', [TopController::class, 'toggleTopStatus'])->name('tops.toggle-status');
+        Route::get('/sub-locations/json', [LocationController::class, 'subLocationJson'])->name('sub_locations.json');
+        Route::post('/sub-locations', [LocationController::class, 'storeSubLocation'])->name('sub_locations.store');
+        Route::get('/sub-locations/{id}/edit', [LocationController::class, 'editSubLocation'])->name('sub_locations.edit');
+        Route::put('/sub-locations/{id}', [LocationController::class, 'updateSubLocation'])->name('sub_locations.update');
+        Route::put('/sub-locations/{id}/toggle-status', [LocationController::class, 'toggleSubLocationStatus'])->name('sub_locations.toggle-status');
 
-    Route::get('/top-details/json', [TopController::class, 'topDetailJson'])->name('top_details.json');
-    Route::post('/top-details', [TopController::class, 'storeTopDetail'])->name('top_details.store');
-    Route::get('/top-details/{id}/edit', [TopController::class, 'editTopDetail'])->name('top_details.edit');
-    Route::put('/top-details/{id}', [TopController::class, 'updateTopDetail'])->name('top_details.update');
-    Route::put('/top-details/{id}/toggle-status', [TopController::class, 'toggleTopDetailStatus'])->name('top_details.toggle-status');
+        Route::get('/tops', [TopController::class, 'index'])->name('tops');
+        Route::get('/tops/json', [TopController::class, 'topJson'])->name('tops.json');
+        Route::post('/tops', [TopController::class, 'storeTop'])->name('tops.store');
+        Route::get('/tops/{id}/edit', [TopController::class, 'editTop'])->name('tops.edit');
+        Route::put('/tops/{id}', [TopController::class, 'updateTop'])->name('tops.update');
+        Route::put('/tops/{id}/toggle-status', [TopController::class, 'toggleTopStatus'])->name('tops.toggle-status');
 
-    Route::get('/tenants', [TenantController::class, 'index'])->name('tenants');
-    Route::get('/tenants/json', [TenantController::class, 'json'])->name('tenants.json');
-    Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
-    Route::get('/tenants/{id}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
-    Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
-    Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
+        Route::get('/top-details/json', [TopController::class, 'topDetailJson'])->name('top_details.json');
+        Route::post('/top-details', [TopController::class, 'storeTopDetail'])->name('top_details.store');
+        Route::get('/top-details/{id}/edit', [TopController::class, 'editTopDetail'])->name('top_details.edit');
+        Route::put('/top-details/{id}', [TopController::class, 'updateTopDetail'])->name('top_details.update');
+        Route::put('/top-details/{id}/toggle-status', [TopController::class, 'toggleTopDetailStatus'])->name('top_details.toggle-status');
 
-    Route::get('/sys-calendar', [SysCalendarController::class, 'index'])->name('sys-calendar');
-    Route::get('/sys-calendar/json', [SysCalendarController::class, 'json'])->name('sys-calendar.json');
-    Route::post('/sys-calendar', [SysCalendarController::class, 'store'])->name('sys-calendar.store');
-    Route::get('/sys-calendar/{id}/edit', [SysCalendarController::class, 'edit'])->name('sys-calendar.edit');
-    Route::post('/sys-calendar/{id}', [SysCalendarController::class, 'update'])->name('sys-calendar.update');
-    Route::put('/sys-calendar/{id}/toggle-status', [SysCalendarController::class, 'toggleStatus'])->name('sys-calendar.toggle-status');
+        Route::get('/tenants', [TenantController::class, 'index'])->name('tenants');
+        Route::get('/tenants/json', [TenantController::class, 'json'])->name('tenants.json');
+        Route::post('/tenants', [TenantController::class, 'store'])->name('tenants.store');
+        Route::get('/tenants/{id}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
+        Route::put('/tenants/{id}', [TenantController::class, 'update'])->name('tenants.update');
+        Route::put('/tenants/{id}/toggle-status', [TenantController::class, 'toggleStatus'])->name('tenants.toggle-status');
 
-    Route::get('/business-units', [BusinessUnitController::class, 'index'])->name('business-units');
-    Route::get('/business-units/json', [BusinessUnitController::class, 'json'])->name('business-units.json');
-    Route::post('/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store');
-    Route::get('/business-units/{id}/edit', [BusinessUnitController::class, 'edit'])->name('business-units.edit');
-    Route::put('/business-units/{id}', [BusinessUnitController::class, 'update'])->name('business-units.update');
-    Route::put('/business-units/{id}/toggle-status', [BusinessUnitController::class, 'toggleStatus'])->name('business-units.toggle-status');
+        Route::get('/sys-calendar', [SysCalendarController::class, 'index'])->name('sys-calendar');
+        Route::get('/sys-calendar/json', [SysCalendarController::class, 'json'])->name('sys-calendar.json');
+        Route::post('/sys-calendar', [SysCalendarController::class, 'store'])->name('sys-calendar.store');
+        Route::get('/sys-calendar/{id}/edit', [SysCalendarController::class, 'edit'])->name('sys-calendar.edit');
+        Route::post('/sys-calendar/{id}', [SysCalendarController::class, 'update'])->name('sys-calendar.update');
+        Route::put('/sys-calendar/{id}/toggle-status', [SysCalendarController::class, 'toggleStatus'])->name('sys-calendar.toggle-status');
 
-    Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
-    Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
-    Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
-    Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
-        ->name('attachments.delete');
+        Route::get('/business-units', [BusinessUnitController::class, 'index'])->name('business-units');
+        Route::get('/business-units/json', [BusinessUnitController::class, 'json'])->name('business-units.json');
+        Route::post('/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store');
+        Route::get('/business-units/{id}/edit', [BusinessUnitController::class, 'edit'])->name('business-units.edit');
+        Route::put('/business-units/{id}', [BusinessUnitController::class, 'update'])->name('business-units.update');
+        Route::put('/business-units/{id}/toggle-status', [BusinessUnitController::class, 'toggleStatus'])->name('business-units.toggle-status');
 
+        Route::get('/attachments-master', [AttachmentMasterController::class, 'index'])->name('attachments-master');
+        Route::get('/attachments-master/json', [AttachmentMasterController::class, 'json'])->name('attachments-master.json');
+        Route::put('/attachments-master/{id}/toggle-status', [AttachmentMasterController::class, 'toggleStatus'])->name('attachments-master.toggle-status');
+        Route::delete('/attachments/{id}', [AttachmentMasterController::class, 'delete'])
+            ->name('attachments.delete');
     }); // end admin middleware
 
     // ── Group Biaya Non Purch (admin + cost control) ──────────────────────────
@@ -2174,15 +2187,15 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/groupbiaya-nonpurch/budget/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'budgetToggleStatus'])->name('groupbiayanonpurch.budget.toggle-status');
     Route::get('/groupbiaya-nonpurch/{groupbiayaId}/budget', [MsGroupbiayaNonPurchController::class, 'budgetJson'])->name('groupbiayanonpurch.budget.json');
     // Cost Controller Access (Tab 2)
-    Route::get('/groupbiaya-nonpurch/cc/companies',         [MsGroupbiayaNonPurchController::class, 'ccCompaniesJson'])->name('groupbiayanonpurch.cc.companies');
-    Route::get('/groupbiaya-nonpurch/cc/departments-fin',   [MsGroupbiayaNonPurchController::class, 'ccDepartmentFinJson'])->name('groupbiayanonpurch.cc.departments-fin');
-    Route::get('/groupbiaya-nonpurch/cc/all-groupbiaya',    [MsGroupbiayaNonPurchController::class, 'ccAllGroupbiayaJson'])->name('groupbiayanonpurch.cc.all-groupbiaya');
-    Route::get('/groupbiaya-nonpurch/cc/business-units',    [MsGroupbiayaNonPurchController::class, 'ccBusinessUnitsJson'])->name('groupbiayanonpurch.cc.business-units');
-    Route::get('/groupbiaya-nonpurch/cc/budget-coa',        [MsGroupbiayaNonPurchController::class, 'ccBudgetCoaJson'])->name('groupbiayanonpurch.cc.budget-coa');
-    Route::get('/groupbiaya-nonpurch/cc/{deptFinId}/groupbiaya',        [MsGroupbiayaNonPurchController::class, 'ccGroupbiayaJson'])->name('groupbiayanonpurch.cc.groupbiaya');
-    Route::get('/groupbiaya-nonpurch/cc/{deptFinId}/{groupbiayaId}/coa',[MsGroupbiayaNonPurchController::class, 'ccCoaJson'])->name('groupbiayanonpurch.cc.coa');
-    Route::post('/groupbiaya-nonpurch/cc/assign-groupbiaya',[MsGroupbiayaNonPurchController::class, 'ccAssignGroupbiaya'])->name('groupbiayanonpurch.cc.assign-groupbiaya');
-    Route::post('/groupbiaya-nonpurch/cc/assign-coa',       [MsGroupbiayaNonPurchController::class, 'ccAssignCoa'])->name('groupbiayanonpurch.cc.assign-coa');
+    Route::get('/groupbiaya-nonpurch/cc/companies', [MsGroupbiayaNonPurchController::class, 'ccCompaniesJson'])->name('groupbiayanonpurch.cc.companies');
+    Route::get('/groupbiaya-nonpurch/cc/departments-fin', [MsGroupbiayaNonPurchController::class, 'ccDepartmentFinJson'])->name('groupbiayanonpurch.cc.departments-fin');
+    Route::get('/groupbiaya-nonpurch/cc/all-groupbiaya', [MsGroupbiayaNonPurchController::class, 'ccAllGroupbiayaJson'])->name('groupbiayanonpurch.cc.all-groupbiaya');
+    Route::get('/groupbiaya-nonpurch/cc/business-units', [MsGroupbiayaNonPurchController::class, 'ccBusinessUnitsJson'])->name('groupbiayanonpurch.cc.business-units');
+    Route::get('/groupbiaya-nonpurch/cc/budget-coa', [MsGroupbiayaNonPurchController::class, 'ccBudgetCoaJson'])->name('groupbiayanonpurch.cc.budget-coa');
+    Route::get('/groupbiaya-nonpurch/cc/{deptFinId}/groupbiaya', [MsGroupbiayaNonPurchController::class, 'ccGroupbiayaJson'])->name('groupbiayanonpurch.cc.groupbiaya');
+    Route::get('/groupbiaya-nonpurch/cc/{deptFinId}/{groupbiayaId}/coa', [MsGroupbiayaNonPurchController::class, 'ccCoaJson'])->name('groupbiayanonpurch.cc.coa');
+    Route::post('/groupbiaya-nonpurch/cc/assign-groupbiaya', [MsGroupbiayaNonPurchController::class, 'ccAssignGroupbiaya'])->name('groupbiayanonpurch.cc.assign-groupbiaya');
+    Route::post('/groupbiaya-nonpurch/cc/assign-coa', [MsGroupbiayaNonPurchController::class, 'ccAssignCoa'])->name('groupbiayanonpurch.cc.assign-coa');
 
     Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
     Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');
@@ -2212,8 +2225,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware('admin')->group(function () {
-        Route::get('/user-sync', [UserSyncController::class, 'index'])->name('user_sync.index');
-        Route::post('/user-sync/run', [UserSyncController::class, 'run'])->name('user_sync.run');
+        // // Route::get('/user-sync', [UserSyncController::class, 'index'])->name('user_sync.index');
+        // Route::post('/user-sync/run', [UserSyncController::class, 'run'])->name('user_sync.run');
     });
 
     // User must be logged in to START OAuth

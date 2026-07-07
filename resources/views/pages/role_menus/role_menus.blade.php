@@ -4,22 +4,90 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">Role Menu Mapping</h1>
-                <button id="addRoleMenuBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                    + Add Role Menu
+        <div>
+            {{-- Tab nav --}}
+            <div class="mt-4 flex gap-1 border-b border-gray-200 dark:border-gray-700">
+                <button type="button" id="tabBtnList"
+                    class="role-menu-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
+                    📋 Role Menu List
+                </button>
+                <button type="button" id="tabBtnAssign"
+                    class="role-menu-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🔑 Assign Menus
                 </button>
             </div>
 
-            {{-- Manage by Role: matrix view --}}
-            <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-600">
+            {{-- Tab: Role Menu List --}}
+            <div id="tabPanelList"
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                <div class="mb-3 flex items-center justify-between">
+                    <h1 class="text-base font-bold text-gray-800 dark:text-white">📋 Role Menu List</h1>
+                    <button id="addRoleMenuBtn"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        + Add Role Menu
+                    </button>
+                </div>
+
+                {{-- Filter Company & Department --}}
+                <div class="mb-3 flex flex-wrap items-end gap-3">
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Role
+                        </label>
+                        <select id="filterRole"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">All Role</option>
+                            @foreach ($roles as $r)
+                                <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Menu
+                        </label>
+                        <select id="filterMenu"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">All Menu</option>
+                            @foreach ($menus as $m)
+                                <option value="{{ $m->menu_id }}">{{ $m->menu_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mt-6">
+                        <button id="clearUserFilters" type="button"
+                            class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                            Clear Filter
+                        </button>
+                    </div>
+                </div>
+                <div class="rounded-base relative overflow-x-auto">
+                    <table id="roleMenusTable" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            <tr>
+                                <th></th>
+                                <th class="w-32 px-4 py-3 text-center">Actions</th>
+                                <th class="px-4 py-3 text-left">Role ID</th>
+                                <th class="px-4 py-3 text-left">Menu ID</th>
+                                {{-- <th class="px-4 py-3 text-left">Parent Menu</th> --}}
+                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Tab: Assign Menus (matrix view) --}}
+            <div id="tabPanelAssign"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                <h1 class="mb-3 text-base font-bold text-gray-800 dark:text-white">🔑 Assign Menus</h1>
+
                 <div class="flex flex-wrap items-end gap-3">
                     <div class="min-w-[240px] flex-1">
-                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                            Manage by Role
-                        </label>
                         <select id="matrixRole"
                             class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                             <option value="">-- Select a Role to manage its menus --</option>
@@ -52,58 +120,6 @@
 
                 <div id="matrixGrid" class="mt-3 hidden grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
                 </div>
-            </div>
-
-            {{-- Filter Company & Department --}}
-            <div class="mb-3 flex flex-wrap items-end gap-3">
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Role
-                    </label>
-                    <select id="filterRole"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                        <option value="">All Role</option>
-                        @foreach ($roles as $r)
-                            <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Menu
-                    </label>
-                    <select id="filterMenu"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                        <option value="">All Menu</option>
-                        @foreach ($menus as $m)
-                            <option value="{{ $m->menu_id }}">{{ $m->menu_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="mt-6">
-                    <button id="clearUserFilters" type="button"
-                        class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
-                        Clear Filter
-                    </button>
-                </div>
-            </div>
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="roleMenusTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Role ID</th>
-                            <th class="px-4 py-3 text-left">Menu ID</th>
-                            {{-- <th class="px-4 py-3 text-left">Parent Menu</th> --}}
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
             </div>
         </div>
 
@@ -185,6 +201,31 @@
         }
 
         $(document).ready(function() {
+            // ===== Tabs =====
+            function activateTab(tab) {
+                const isList = tab === 'list';
+                $('#tabPanelList').toggleClass('hidden', !isList);
+                $('#tabPanelAssign').toggleClass('hidden', isList);
+
+                $('#tabBtnList')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isList);
+                $('#tabBtnAssign')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', !isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', isList);
+
+                if (isList) {
+                    table.columns.adjust().draw(false);
+                }
+            }
+
+            $('#tabBtnList').on('click', function() {
+                activateTab('list');
+            });
+            $('#tabBtnAssign').on('click', function() {
+                activateTab('assign');
+            });
+
             let table = $('#roleMenusTable').DataTable({
                 ajax: {
                     url: "{{ route('role_menus.json') }}",

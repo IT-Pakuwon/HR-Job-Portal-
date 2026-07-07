@@ -6,13 +6,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\MsDepartment;
+use App\Models\DepartmentFin;
+use App\Models\DepartmentHR;
+use App\Models\MsDivision;
 
 class DepartmentsController extends Controller
 {
     public function index()
     {
+        $divisions = MsDivision::where('status', 'A')
+            ->orderBy('division_name')
+            ->get(['division_id', 'division_name']);
+
         // view boleh kamu taruh di resources/views/pages/department/department.blade.php
-        return view('pages.department.department');
+        return view('pages.department.department', compact('divisions'));
     }
 
     public function json()
@@ -131,6 +138,274 @@ class DepartmentsController extends Controller
             'status'     => $status,
             'updated_by' => Auth::check() ? Auth::user()->username : 'system',
             'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'status'  => $status,
+        ]);
+    }
+
+    // =========================================================
+    // Department Fin (ms_department_fin)
+    // =========================================================
+
+    public function jsonFin()
+    {
+        $department = DepartmentFin::select([
+                'id',
+                'department_fin_id',
+                'department_name',
+                'cpny_id',
+                'ifca_dept_cd',
+                'solomon_subaccount_dept',
+                'status',
+            ])
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json(['data' => $department]);
+    }
+
+    public function storeFin(Request $request)
+    {
+        $request->validate([
+            'department_fin_id'       => 'required|string|max:50|unique:pgsql.ms_department_fin,department_fin_id',
+            'department_name'         => 'required|string|max:200',
+            'cpny_id'                 => 'nullable|string|max:50',
+            'ifca_dept_cd'            => 'nullable|string|max:50',
+            'solomon_subaccount_dept' => 'nullable|string|max:50',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $loginUser = Auth::user();
+
+            $dept = DepartmentFin::create([
+                'department_fin_id'       => strtoupper($request->department_fin_id),
+                'department_name'         => strtoupper($request->department_name),
+                'cpny_id'                 => strtoupper($request->cpny_id ?? ''),
+                'ifca_dept_cd'            => strtoupper($request->ifca_dept_cd ?? ''),
+                'solomon_subaccount_dept' => strtoupper($request->solomon_subaccount_dept ?? ''),
+                'status'                  => 'A',
+                'created_by'              => $loginUser->username ?? 'system',
+                'created_at'              => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'data'    => $dept,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan department finance',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function editFin($id)
+    {
+        $dept = DepartmentFin::findOrFail($id);
+
+        return response()->json([
+            'id'                      => $dept->id,
+            'department_fin_id'       => $dept->department_fin_id,
+            'department_name'         => $dept->department_name,
+            'cpny_id'                 => $dept->cpny_id,
+            'ifca_dept_cd'            => $dept->ifca_dept_cd,
+            'solomon_subaccount_dept' => $dept->solomon_subaccount_dept,
+            'status'                  => $dept->status,
+        ]);
+    }
+
+    public function updateFin(Request $request, $id)
+    {
+        $dept = DepartmentFin::findOrFail($id);
+
+        $request->validate([
+            'department_fin_id'       => 'required|string|max:50|unique:pgsql.ms_department_fin,department_fin_id,' . $dept->id,
+            'department_name'         => 'required|string|max:200',
+            'cpny_id'                 => 'nullable|string|max:50',
+            'ifca_dept_cd'            => 'nullable|string|max:50',
+            'solomon_subaccount_dept' => 'nullable|string|max:50',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $loginUser = Auth::user();
+
+            $dept->update([
+                'department_fin_id'       => strtoupper($request->department_fin_id),
+                'department_name'         => strtoupper($request->department_name),
+                'cpny_id'                 => strtoupper($request->cpny_id ?? ''),
+                'ifca_dept_cd'            => strtoupper($request->ifca_dept_cd ?? ''),
+                'solomon_subaccount_dept' => strtoupper($request->solomon_subaccount_dept ?? ''),
+                'updated_by'              => $loginUser->username ?? 'system',
+                'updated_at'              => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal update department finance',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function toggleStatusFin($id)
+    {
+        $dept = DepartmentFin::findOrFail($id);
+
+        $status = request('status');
+
+        $dept->update([
+            'status'     => $status,
+            'updated_by' => Auth::check() ? Auth::user()->username : 'system',
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'status'  => $status,
+        ]);
+    }
+
+    // =========================================================
+    // Department & Division HR (hr_ms_department)
+    // =========================================================
+
+    public function jsonHr()
+    {
+        $department = DepartmentHR::query()
+            ->leftJoin('hr_ms_division', 'hr_ms_department.division_id', '=', 'hr_ms_division.division_id')
+            ->select([
+                'hr_ms_department.id',
+                'hr_ms_department.department_id',
+                'hr_ms_department.department_name',
+                'hr_ms_department.division_id',
+                'hr_ms_division.division_name',
+                'hr_ms_department.status',
+            ])
+            ->orderByDesc('hr_ms_department.id')
+            ->get();
+
+        return response()->json(['data' => $department]);
+    }
+
+    public function storeHr(Request $request)
+    {
+        $request->validate([
+            'department_id'   => 'required|string|max:50|unique:mysql3.hr_ms_department,department_id',
+            'department_name' => 'required|string|max:200',
+            'division_id'     => 'required|string|max:50',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $loginUser = Auth::user();
+
+            $dept = DepartmentHR::create([
+                'department_id'   => strtoupper($request->department_id),
+                'department_name' => strtoupper($request->department_name),
+                'division_id'     => $request->division_id,
+                'status'          => 'A',
+                'created_user'    => $loginUser->username ?? 'system',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'data'    => $dept,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan department HR',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function editHr($id)
+    {
+        $dept = DepartmentHR::findOrFail($id);
+
+        return response()->json([
+            'id'              => $dept->id,
+            'department_id'   => $dept->department_id,
+            'department_name' => $dept->department_name,
+            'division_id'     => $dept->division_id,
+            'status'          => $dept->status,
+        ]);
+    }
+
+    public function updateHr(Request $request, $id)
+    {
+        $dept = DepartmentHR::findOrFail($id);
+
+        $request->validate([
+            'department_id'   => 'required|string|max:50|unique:mysql3.hr_ms_department,department_id,' . $dept->id,
+            'department_name' => 'required|string|max:200',
+            'division_id'     => 'required|string|max:50',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $loginUser = Auth::user();
+
+            $dept->update([
+                'department_id'   => strtoupper($request->department_id),
+                'department_name' => strtoupper($request->department_name),
+                'division_id'     => $request->division_id,
+                'updated_user'    => $loginUser->username ?? 'system',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal update department HR',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function toggleStatusHr($id)
+    {
+        $dept = DepartmentHR::findOrFail($id);
+
+        $status = request('status');
+
+        $dept->update([
+            'status'       => $status,
+            'updated_user' => Auth::check() ? Auth::user()->username : 'system',
         ]);
 
         return response()->json([

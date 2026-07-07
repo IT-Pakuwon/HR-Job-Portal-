@@ -103,7 +103,7 @@
             </a>
             @endif
         </div>
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 {{-- Changed text-lg to text-base --}}
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>

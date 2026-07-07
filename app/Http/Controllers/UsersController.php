@@ -92,6 +92,89 @@ class UsersController extends Controller
     }
 
 
+    public function duplicatesJson()
+    {
+        $emailKeys = User::query()
+            ->select(DB::raw('LOWER(TRIM(email)) as key_val'))
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->groupBy(DB::raw('LOWER(TRIM(email))'))
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('key_val');
+
+        $usernameKeys = User::query()
+            ->select(DB::raw('LOWER(TRIM(username)) as key_val'))
+            ->whereNotNull('username')
+            ->where('username', '!=', '')
+            ->groupBy(DB::raw('LOWER(TRIM(username))'))
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('key_val');
+
+        $npkKeys = User::query()
+            ->select('npk')
+            ->whereNotNull('npk')
+            ->where('npk', '!=', '')
+            ->groupBy('npk')
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('npk');
+
+        if ($emailKeys->isEmpty() && $usernameKeys->isEmpty() && $npkKeys->isEmpty()) {
+            return response()->json(['data' => []]);
+        }
+
+        $users = User::query()
+            ->select([
+                'id',
+                'name',
+                'username',
+                'email',
+                'npk',
+                'cpny_id',
+                'department_id',
+                'business_unit_id',
+                'jabatan',
+                'status',
+                'created_at',
+            ])
+            ->where(function ($q) use ($emailKeys, $usernameKeys, $npkKeys) {
+                if ($emailKeys->isNotEmpty()) {
+                    $q->orWhereIn(DB::raw('LOWER(TRIM(email))'), $emailKeys);
+                }
+                if ($usernameKeys->isNotEmpty()) {
+                    $q->orWhereIn(DB::raw('LOWER(TRIM(username))'), $usernameKeys);
+                }
+                if ($npkKeys->isNotEmpty()) {
+                    $q->orWhereIn('npk', $npkKeys);
+                }
+            })
+            ->orderByRaw('LOWER(TRIM(email)) ASC NULLS LAST, LOWER(TRIM(username)) ASC NULLS LAST')
+            ->get();
+
+        $users = $users->map(function ($u) use ($emailKeys, $usernameKeys, $npkKeys) {
+            $emailKey = $u->email ? mb_strtolower(trim($u->email)) : null;
+            $usernameKey = $u->username ? mb_strtolower(trim($u->username)) : null;
+
+            $reasons = [];
+            if ($emailKey && $emailKeys->contains($emailKey)) {
+                $reasons[] = 'Email';
+            }
+            if ($usernameKey && $usernameKeys->contains($usernameKey)) {
+                $reasons[] = 'Username';
+            }
+            if ($u->npk && $npkKeys->contains($u->npk)) {
+                $reasons[] = 'NPK';
+            }
+
+            $u->duplicate_reason = implode(', ', $reasons);
+            $u->group_key = $emailKey ?: ($usernameKey ?: $u->npk);
+
+            return $u;
+        });
+
+        return response()->json(['data' => $users->values()]);
+    }
+
+
     public function store(Request $request)
     {
         $request->validate([

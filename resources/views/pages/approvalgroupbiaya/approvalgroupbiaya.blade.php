@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             {{-- header + tombol add --}}
             <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <h1 class="text-base font-bold text-gray-800 dark:text-white">✅ Ms Approval Group Biaya List</h1>
@@ -139,7 +139,7 @@
                             <select id="aprv_departementid" name="aprv_departementid"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                 <option value="">choose </option>
-                            </select>                          
+                            </select>
                         </div>
                         {{-- GROUP BIAYA --}}
                         <div>
@@ -171,7 +171,7 @@
                         <div
                             class="mb-1 hidden grid-cols-4 gap-2 text-sm font-semibold text-gray-600 md:grid dark:text-gray-300">
                             <div>Level</div>
-                            <div>Name</div>                            
+                            <div>Name</div>
                             <div>Type Condition</div>
                         </div>
 
@@ -396,7 +396,15 @@
             // ===== Helper baris approval line =====
             function buildOptions(arr, selected) {
                 let html = `<option value=""></option>`;
-                arr.forEach(v => {
+                const list = arr.slice();
+
+                // Preserve a stored value even if it's not one of the current options
+                // (e.g. legacy data), instead of silently dropping it from the dropdown.
+                if (selected && !list.some(v => String(v) === String(selected))) {
+                    list.push(selected);
+                }
+
+                list.forEach(v => {
                     const sel = (selected && String(selected) === String(v)) ? 'selected' : '';
                     html += `<option value="${escapeHtml(v)}" ${sel}>${escapeHtml(v)}</option>`;
                 });
@@ -477,7 +485,7 @@
                     }
                     $usernameSelect.val(selected).trigger('change');
                 }
-                
+
             }
 
             // ADD line
@@ -688,7 +696,7 @@
                         text: errorMsg
                     });
                     return;
-                }           
+                }
 
                 let id = $('#id').val();
                 let url = id ? `/approvals-groupbiaya/${id}` : "{{ route('approvalsgroupbiaya.store') }}";
@@ -785,7 +793,7 @@
             return /^\d+(\.\d{1,2})?$/.test(val);
         }
 
-   
+
 
         $(document).on('input', '.level-input', function() {
             let v = $(this).val();
@@ -799,8 +807,8 @@
                 v = parts[0] + '.' + parts[1].slice(0, 2);
             }
             $(this).val(v);
-        });        
-   
+        });
+
     </script>
 
 

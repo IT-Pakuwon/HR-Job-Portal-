@@ -100,7 +100,7 @@
             </button>
             @endif
         </div>
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
                 <!-- LEFT -->

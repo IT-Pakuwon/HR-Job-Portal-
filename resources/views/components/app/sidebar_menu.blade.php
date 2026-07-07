@@ -540,18 +540,18 @@
                                                 ACUM VMS Integration
                                             </a>
                                         </li>
-                                        <li>
+                                        {{-- <li>
                                             <a href="{{ route('user_sync.index') }}"
                                                 class="{{ Request::segment(1) === 'user_sync' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                                 User Sync
                                             </a>
-                                        </li>
-                                        <li>
+                                        </li> --}}
+                                        {{-- <li>
                                             <a href="{{ route('test-email.index') }}"
                                                 class="{{ Request::segment(1) === 'test-email' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
                                                 TESTING EMAIL
                                             </a>
-                                        </li>
+                                        </li> --}}
 
 
                                     </ul>

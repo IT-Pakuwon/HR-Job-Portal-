@@ -325,6 +325,37 @@ class MsApprovalController extends Controller
         ]);
     }
 
+    /**
+     * Ambil semua approval lines untuk 1 kombinasi doctype+company+department.
+     * Dipakai untuk fitur "duplicate / copy from existing template".
+     */
+    public function groupLines(Request $request)
+    {
+        $doctype = $request->query('doctype');
+        $cpnyId  = $request->query('cpnyid');
+        $deptId  = $request->query('departementid');
+
+        if (!$doctype || !$cpnyId || !$deptId) {
+            return response()->json(['lines' => []]);
+        }
+
+        $rows = MsApproval::where('aprv_doctype', $doctype)
+            ->where('aprv_cpnyid', $cpnyId)
+            ->where('aprv_departementid', $deptId)
+            ->orderBy('aprv_leveling')
+            ->get([
+                'aprv_leveling',
+                'aprv_username',
+                'aprv_name',
+                'aprv_type',
+                'aprv_condition',
+                'aprv_start_nominal',
+                'aprv_end_nominal',
+            ]);
+
+        return response()->json(['lines' => $rows]);
+    }
+
     public function conditions(Request $request)
     {
         $doctype = strtoupper(trim((string) $request->query('doctype', '')));
@@ -336,6 +367,40 @@ class MsApprovalController extends Controller
             ->orderBy('category_name')
             ->pluck('category_name')
             ->values();
+
+        return response()->json($items);
+    }
+
+    /**
+     * Daftar department untuk filter di halaman list, dipilih berdasarkan sumber
+     * data (Finance / HR), independen dari Doc Type.
+     */
+    public function departmentsBySource(Request $request)
+    {
+        $source = strtoupper(trim((string) $request->query('source', '')));
+
+        $finance = fn() => MsDepartment::query()
+            ->selectRaw("department_id as value, department_name as text")
+            ->where('status', 'A')
+            ->whereNotNull('department_id')
+            ->where('department_id', '<>', '')
+            ->get();
+
+        $hr = fn() => DepartmentHR::query()
+            ->selectRaw("department_id as value, department_name as text")
+            ->whereNotNull('department_id')
+            ->where('department_id', '<>', '')
+            ->get();
+
+        if ($source === 'FIN') {
+            $items = $finance();
+        } elseif ($source === 'HR') {
+            $items = $hr();
+        } else {
+            $items = $finance()->concat($hr());
+        }
+
+        $items = $items->unique('value')->sortBy('value')->values();
 
         return response()->json($items);
     }

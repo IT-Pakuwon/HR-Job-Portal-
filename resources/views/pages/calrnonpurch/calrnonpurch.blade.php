@@ -114,7 +114,7 @@
             @endif
         </div>
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">CALR Non Purchase</h1>
             </div>
@@ -261,7 +261,7 @@
                         <th></th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Action</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Document ID</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Date</th>                  
+                        <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Company</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Department</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Please Pay To</th>
@@ -305,7 +305,7 @@
                             data: 'rfpnonpurchasedate',
                             render: (_v, _t, row) => row.rfpnonpurchasedate_fmt ?? '',
                             className: 'text-left'
-                        },                        
+                        },
                         {
                             data: 'cpny_id',
                             className: 'text-left'

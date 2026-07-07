@@ -31,7 +31,7 @@
                     </div>
                     <p class="shrink-0 text-base font-extrabold">{{ $onProgress }}</p>
                 </div>
-            </a>    
+            </a>
 
             <a href="#" class="status-filter group block h-full" data-status="D">
                 <div class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
@@ -86,7 +86,7 @@
             @endif
         </div>
 
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div class="flex flex-wrap items-center gap-4">
                     <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request For Payment</h1>
@@ -394,7 +394,7 @@
                                 maximumFractionDigits: 2
                             });
                         }
-                    },                
+                    },
                     {
                         data: null,
                         orderable: false,
@@ -538,7 +538,7 @@
                                         ${reminderItem}
                                     </div>
                                 </div>
-                            `;                           
+                            `;
                         }
                     },
 
@@ -678,7 +678,7 @@
                 financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
                 table.ajax.reload(null, true);
             });
-            
+
             document.querySelectorAll('.status-filter').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -686,13 +686,13 @@
                     this.classList.add('active');
                 });
             });
-     
+
             function formatRupiah(num) {
                 return parseFloat(num || 0).toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
-            }          
+            }
 
             let selectedActionHash = null;
             let selectedActionMode = null;

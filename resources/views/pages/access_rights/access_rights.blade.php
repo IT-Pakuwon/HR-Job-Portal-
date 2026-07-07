@@ -4,22 +4,93 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">Access Rights</h1>
-                <button id="addAccessRightBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                    + Add Access Right
+        <div>
+            {{-- Tab nav --}}
+            <div class="mt-4 flex gap-1 border-b border-gray-200 dark:border-gray-700">
+                <button type="button" id="tabBtnList"
+                    class="access-right-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
+                    📋 Access Rights List
+                </button>
+                <button type="button" id="tabBtnAssign"
+                    class="access-right-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                    🔑 Manage by Role
                 </button>
             </div>
 
-            {{-- Manage by Role: matrix view --}}
-            <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-600">
+            {{-- Tab: Access Rights List --}}
+            <div id="tabPanelList"
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                <div class="mb-3 flex items-center justify-between">
+                    <h1 class="text-base font-bold text-gray-800 dark:text-white">📋 Access Rights List</h1>
+                    <button id="addAccessRightBtn"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        + Add Access Right
+                    </button>
+                </div>
+
+                <div class="mb-3 flex flex-wrap items-end gap-3">
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Role
+                        </label>
+                        <select id="filterRole"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">All Role</option>
+                            @foreach ($roles as $r)
+                                <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="min-w-[200px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Filter Screen
+                        </label>
+                        <select id="filterScreen"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">All Screen</option>
+                            @foreach ($screens as $s)
+                                <option value="{{ $s->menu_id }}">{{ $s->menu_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mt-6">
+                        <button id="clearUserFilters" type="button"
+                            class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                            Clear Filter
+                        </button>
+                    </div>
+                </div>
+
+                <div class="rounded-base relative overflow-x-auto">
+                    <table id="accessRightsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            <tr>
+                                <th></th>
+                                <th class="w-32 px-4 py-3 text-center">Actions</th>
+                                <th class="px-4 py-3 text-left">Role</th>
+                                <th class="px-4 py-3 text-left">Screen ID</th>
+                                <th class="px-4 py-3 text-left">App ID</th>
+                                <th class="px-4 py-3 text-left">Access Name</th>
+                                <th class="px-4 py-3 text-left">Allowed?</th>
+                                <th class="px-4 py-3 text-left">Type</th>
+                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Tab: Manage by Role (matrix view) --}}
+            <div id="tabPanelAssign"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                <h1 class="mb-3 text-base font-bold text-gray-800 dark:text-white">🔑 Manage by Role</h1>
+
                 <div class="flex flex-wrap items-end gap-3">
                     <div class="min-w-[240px] flex-1">
-                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                            Manage by Role
-                        </label>
                         <select id="matrixRole"
                             class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
                             <option value="">-- Select a Role to manage its access rights --</option>
@@ -41,7 +112,7 @@
                 <div id="matrixEmpty" class="mt-3 text-sm text-gray-500 dark:text-gray-400">
                     Pick a role above to see and edit all of its screen access rights in one place.
                     Screens without an Application ID assigned aren't shown here &mdash; manage those via
-                    <span class="font-semibold">+ Add Access Right</span> below.
+                    <span class="font-semibold">+ Add Access Right</span> in the list tab.
                 </div>
 
                 <div id="matrixTableWrap" class="mt-3 hidden overflow-x-auto">
@@ -57,61 +128,6 @@
                         <tbody id="matrixTableBody"></tbody>
                     </table>
                 </div>
-            </div>
-
-            <div class="mb-3 flex flex-wrap items-end gap-3">
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Role
-                    </label>
-                    <select id="filterRole"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                        <option value="">All Role</option>
-                        @foreach ($roles as $r)
-                            <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="min-w-[200px] flex-1">
-                    <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        Filter Screen
-                    </label>
-                    <select id="filterScreen"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
-                        <option value="">All Screen</option>
-                        @foreach ($screens as $s)
-                            <option value="{{ $s->menu_id }}">{{ $s->menu_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="mt-6">
-                    <button id="clearUserFilters" type="button"
-                        class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
-                        Clear Filter
-                    </button>
-                </div>
-            </div>
-
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="accessRightsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Role</th>
-                            <th class="px-4 py-3 text-left">Screen ID</th>
-                            <th class="px-4 py-3 text-left">App ID</th>
-                            <th class="px-4 py-3 text-left">Access Name</th>
-                            <th class="px-4 py-3 text-left">Allowed?</th>
-                            <th class="px-4 py-3 text-left">Type</th>
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
             </div>
         </div>
 
@@ -250,6 +266,31 @@
             $('#loadingOverlay').addClass('hidden');
         }
         $(document).ready(function() {
+            // ===== Tabs =====
+            function activateTab(tab) {
+                const isList = tab === 'list';
+                $('#tabPanelList').toggleClass('hidden', !isList);
+                $('#tabPanelAssign').toggleClass('hidden', isList);
+
+                $('#tabBtnList')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isList);
+                $('#tabBtnAssign')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', !isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', isList);
+
+                if (isList) {
+                    table.columns.adjust().draw(false);
+                }
+            }
+
+            $('#tabBtnList').on('click', function() {
+                activateTab('list');
+            });
+            $('#tabBtnAssign').on('click', function() {
+                activateTab('assign');
+            });
+
             let table = $('#accessRightsTable').DataTable({
                 ajax: {
                     url: "{{ route('access_rights.json') }}",

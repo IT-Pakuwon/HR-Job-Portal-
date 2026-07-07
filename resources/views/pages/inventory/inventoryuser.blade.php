@@ -34,7 +34,7 @@
     </style>
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="mt-4 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row flex-wrap items-center justify-between gap-4">
 
                 <!-- LEFT: TITLE -->

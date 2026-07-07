@@ -29,7 +29,22 @@
         }
     </style>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="mt-4 flex flex-col gap-4 rounded-lg bg-white p-4 dark:bg-gray-800">
+        {{-- Tab nav --}}
+        <div class="mt-4 flex gap-1 border-b border-gray-200 dark:border-gray-700">
+            <button type="button" id="tabBtnList"
+                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
+                👥 Users List
+            </button>
+            <button type="button" id="tabBtnDuplicates"
+                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                🧬 Duplicate Users
+                <span id="dupCountBadge"
+                    class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+            </button>
+        </div>
+
+        <div id="tabPanelList"
+            class="flex flex-col gap-4 rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Users List</h1>
                 <button id="addAppBtn"
@@ -123,6 +138,41 @@
                 </table>
             </div>
 
+        </div>
+
+        <div id="tabPanelDuplicates"
+            class="hidden flex-col gap-4 rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+            <div>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">🧬 Duplicate Users</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Users sharing the same email, username, or NPK. Review and deactivate the extra
+                    accounts to keep one active record per person.
+                </p>
+            </div>
+
+            <div class="rounded-base relative overflow-x-auto">
+                <table id="dupUsersTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-40 px-4 py-3 font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Matched By</th>
+                            <th class="px-4 py-3 text-left font-medium">Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Username</th>
+                            <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">NPK</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Departement</th>
+                            <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
+                            <th class="px-4 py-3 text-left font-medium">Jabatan</th>
+                            <th class="px-4 py-3 text-left font-medium">Created</th>
+                            <th class="w-32 px-4 py-3 text-center font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Modal -->
@@ -398,8 +448,197 @@
         </div>
     </div>
 
+    <style>
+        tr.group-alt {
+            background-color: rgba(250, 204, 21, 0.06);
+        }
+    </style>
+
     <script>
         $(document).ready(function() {
+
+            // ===== Tabs =====
+            let dupTable = null;
+            let dupTableLoaded = false;
+
+            function initDupTable() {
+                if (dupTableLoaded) return;
+                dupTableLoaded = true;
+
+                let lastGroupKey = null;
+                let groupToggle = false;
+
+                dupTable = $('#dupUsersTable').DataTable({
+                    ajax: {
+                        url: "{{ route('users.duplicates.json') }}",
+                        dataSrc: function(json) {
+                            updateDupBadge(json.data ? json.data.length : 0);
+                            return json.data;
+                        }
+                    },
+                    processing: true,
+                    serverSide: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    order: [],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                    createdRow: function(row, data) {
+                        if (data.group_key !== lastGroupKey) {
+                            groupToggle = !groupToggle;
+                            lastGroupKey = data.group_key;
+                        }
+                        if (groupToggle) {
+                            $(row).addClass('group-alt');
+                        }
+                    },
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        },
+                        {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="flex justify-center space-x-2">
+                                        <label class="switch cursor-pointer">
+                                            <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <button type="button"
+                                                class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Login As">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Reset Password">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        },
+                        {
+                            data: 'duplicate_reason',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                if (!data) return '';
+                                return data.split(', ').map(r =>
+                                    `<span class="mr-1 inline-block rounded bg-amber-200/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${r}</span>`
+                                ).join('');
+                            }
+                        },
+                        {
+                            data: 'name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'username',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'email',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'npk',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'cpny_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'department_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'business_unit_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'jabatan',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'created_at',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data ? new Date(data).toLocaleDateString() : '';
+                            }
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            }
+
+            function updateDupBadge(count) {
+                if (count > 0) {
+                    $('#dupCountBadge').removeClass('hidden').text(count);
+                } else {
+                    $('#dupCountBadge').addClass('hidden');
+                }
+            }
+
+            // Preload the duplicate count badge even before the tab is opened
+            $.getJSON("{{ route('users.duplicates.json') }}", function(json) {
+                updateDupBadge(json.data ? json.data.length : 0);
+            });
+
+            function activateTab(tab) {
+                const isList = tab === 'list';
+                $('#tabPanelList').toggleClass('hidden', !isList);
+                $('#tabPanelDuplicates').toggleClass('hidden', isList).toggleClass('flex', !isList);
+
+                $('#tabBtnList')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isList);
+                $('#tabBtnDuplicates')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', !isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', isList);
+
+                if (isList) {
+                    table.columns.adjust().draw(false);
+                } else {
+                    initDupTable();
+                    if (dupTable) dupTable.columns.adjust().draw(false);
+                }
+            }
+
+            $('#tabBtnList').on('click', function() {
+                activateTab('list');
+            });
+            $('#tabBtnDuplicates').on('click', function() {
+                activateTab('duplicates');
+            });
+
             let table = $('#usersTable').DataTable({
                 ajax: "{{ route('users.json') }}",
                 processing: true,
