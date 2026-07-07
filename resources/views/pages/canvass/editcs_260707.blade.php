@@ -1,0 +1,2268 @@
+<x-app-layout>
+    <div class="max-w-9xl mx-auto w-full p-2">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:grid-rows-[minmax(0,auto)_1fr]">
+            <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
+                <form id="csForm" class="flex flex-col gap-4" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="doc" value="{{ $doc }}">
+                    <input type="hidden" name="src_id" value="{{ $src_id }}">
+                    <input type="hidden" name="sppbjktid" value="{{ $docno }}">
+                    <input type="hidden" name="cpny_id" value="{{ $header->cpny_id }}">
+                    <input type="hidden" name="department_id" value="{{ $header->department_id }}">
+                    <input type="hidden" name="bqid" value="{{ $header->bqid ?? '' }}">
+                    <input type="hidden" name="user_peminta" value="{{ optional($header->creator)->name }}">
+                    <input type="hidden" name="assigndate" value="{{ $header->assigndate ?? '' }}">
+
+                    <div class="flex w-full flex-col gap-4 rounded-2xl bg-white px-8 py-6 text-xs shadow-sm dark:bg-gray-900">
+                        <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
+                            <h2 class="font-bold text-gray-800 dark:text-white">
+                                <span class="text-indigo-500">🆔</span> {{ $cs->csid }}
+                            </h2>
+                        </div>
+
+                        @php
+                            $labelClass = 'font-semibold text-gray-800 dark:text-gray-200';
+                            $valueClass = 'text-gray-600 dark:text-gray-400';
+                            $csidForBQ = $eid ?? null;
+                        @endphp
+
+                        <div class="grid grid-cols-1 gap-y-3 md:grid-cols-2 lg:grid-cols-3">
+                            <div>
+                                <span class="{{ $labelClass }}">SPPB/J/K/T ID:</span>
+                                <span class="{{ $valueClass }}">{{ $docno }}</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">User:</span>
+                                <span class="{{ $valueClass }}">
+                                    {{ ucwords(strtolower(optional($header->creator)->name)) }}
+                                </span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Company:</span>
+                                <span class="{{ $valueClass }}">{{ $header->cpny_id }}</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Department:</span>
+                                <span class="{{ $valueClass }}">{{ $header->department_id }}</span>
+                            </div>
+
+                            <div>
+                                <span class="{{ $labelClass }}">Purchaser:</span>
+                                <span class="{{ $valueClass }}">
+                                    {{ ucwords(strtolower(optional($header->purchaser)->name)) }}
+                                </span>
+                            </div>
+
+                            @if (in_array($doc, ['SPPJ', 'SPPT']))
+                                <div class="flex items-center gap-4">
+                                    <div>
+                                        <span class="{{ $labelClass }}">BQ ID:</span>
+                                        <span class="{{ $valueClass }}">{{ $header->bqid ?? '-' }}</span>
+                                    </div>
+
+                                    <div>
+                                        @if ($bq && $bq_eid)
+                                            <a href="{{ route('bqcs.edit', $bq_eid) }}"
+                                                class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-700">
+                                                Open BQ CS
+                                            </a>
+                                        @elseif ($csidForBQ)
+                                            <a href="{{ route('bqcs.createFromCS', $csidForBQ) }}"
+                                                class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 font-semibold text-white hover:bg-blue-700">
+                                                Create BQ CS
+                                            </a>
+                                        @else
+                                            <button type="button"
+                                                class="cursor-not-allowed rounded-lg bg-gray-400 px-3 py-1.5 font-semibold text-white">
+                                                Create BQ CS
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="border-t border-gray-100 dark:border-gray-800"></div>
+
+                        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            <div class="flex flex-col gap-4">
+                                <div class="flex flex-col gap-2">
+                                    <span class="{{ $labelClass }}">Vendor:</span>
+
+                                    <select id="vendorSelect"
+                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                        <option value="">Select</option>
+                                    </select>
+
+                                    <span class="text-gray-500 dark:text-gray-400">
+                                        Vendor can be selected more than once.
+                                    </span>
+                                </div>
+
+                                <div class="flex w-full flex-col gap-2">
+                                    <span class="{{ $labelClass }}">Purpose:</span>
+
+                                    <div class="{{ $valueClass }} whitespace-pre-line break-words">
+                                        {{ $header->keperluan }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <span class="{{ $labelClass }}">Note CS:</span>
+
+                                <textarea name="csnote" id="csnote"
+                                    class="min-h-[180px] w-full rounded-md border border-gray-300 bg-white p-4 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">{{ $cs->csnote }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex w-full flex-col rounded-xl bg-white shadow-md dark:bg-gray-800">
+                        <div class="p-4">
+                            <div class="border-b border-gray-200 pb-4 text-xs font-bold text-gray-800 dark:border-gray-700 dark:text-white">
+                                CS Detail
+                            </div>
+                            <div class="mt-4 overflow-x-auto">
+                                <table id="cvTable" class="w-max table-auto border text-xs text-gray-700 dark:text-gray-200">
+                                    <thead>
+                                        <tr class="bg-gray-100 dark:bg-gray-700">
+                                            <th class="w-64 border px-3 py-2">Inventory Descr</th>
+                                            <th class="w-20 border px-3 py-2 text-center">Qty</th>
+                                            <th class="w-20 border px-3 py-2 text-center">UOM</th>
+                                            <th class="w-40 border px-3 py-2 text-center">Note</th>
+                                            <th class="w-28 border px-3 py-2 text-center">Last Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cvBody">
+                                        @foreach ($items as $row)
+                                            <tr data-cs_no="{{ $row->cs_no ?? '' }}"
+                                                data-sppbjkt_no="{{ $row->sppbjkt_no ?? '' }}"
+                                                data-inventoryid="{{ $row->inventoryid ?? '' }}"
+                                                data-inventory_descr="{{ $row->inventory_descr }}"
+                                                data-uom="{{ $row->uom }}"
+                                                data-inventory_type="{{ $row->inventory_type ?? '' }}"
+                                                data-inventory_sub_type="{{ $row->inventory_sub_type ?? '' }}"
+                                                data-inventory_category="{{ $row->inventory_category ?? '' }}"
+                                                data-siteid="{{ $row->siteid ?? '' }}"
+                                                data-lastprice="{{ (float) ($row->last_unitcost ?? $row->inventory_last_price ?? 0) }}"
+                                                data-original_qty="{{ (float) $row->qty }}"
+                                                data-note="{{ $row->csnote_detail ?? '' }}">
+                                                <td class="border px-3 py-2 align-top">
+                                                    <div class="flex flex-col gap-1">
+                                                        <span class="font-medium text-gray-800 dark:text-gray-100">
+                                                            {{ $row->inventory_descr ?? '-' }}
+                                                        </span>
+
+                                                        @if (!empty($row->inventory_sub_type) || !empty($row->inventory_category))
+                                                            <div class="text-xs text-gray-400">
+                                                                {{ $row->inventory_sub_type ?? '-' }}
+                                                                @if (!empty($row->inventory_sub_type) && !empty($row->inventory_category))
+                                                                    -
+                                                                @endif
+                                                                {{ $row->inventory_category ?? '-' }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </td>
+
+                                                <td class="border px-3 py-2 text-center">
+                                                    <input type="text"
+                                                        class="qty-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                                        value="{{ number_format((float) $row->qty, 2, ',', '') }}"
+                                                        inputmode="decimal" autocomplete="off" placeholder="0,00"
+                                                        aria-label="Qty">
+                                                </td>
+
+                                                <td class="border px-3 py-2 text-center">{{ $row->uom }}</td>
+
+                                                <td class="border px-3 py-2 text-center">
+                                                    <textarea
+                                                        class="note-input w-full resize-none rounded-md border border-gray-400 px-2 py-1 shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                                        rows="2" autocomplete="off" placeholder="Add note..." aria-label="Note">{{ $row->csnote_detail ?? '' }}</textarea>
+                                                </td>
+
+                                                <td class="border px-3 py-2 text-right font-semibold">
+                                                    {{ number_format((float) ($row->last_unitcost ?? 0), 2, ',', '.') }}
+                                                    <button type="button"
+                                                        class="btn-lastprice inline-flex h-7 w-7 items-center justify-center rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                                        title="View Last Price History"
+                                                        data-inventoryid="{{ $row->inventoryid }}"
+                                                        data-inventorydescr="{{ $row->inventory_descr ?? '' }}">
+                                                        🔍
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot>
+                                        <tr id="summaryRow" class="bg-gray-50 dark:bg-gray-700">
+                                            <td colspan="5" class="border px-3 py-2 text-right font-semibold">
+                                                Summary
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                            <div class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+                                <h3 class="text-xs font-bold text-gray-800 dark:text-white">Attachments {{ $doc }}</h3>
+                            </div>
+
+                            @if (($attachment ?? collect())->count())
+                                <div class="mt-4 overflow-x-auto">
+                                    <table class="w-full text-xs">
+                                        <thead class="text-gray-600 dark:text-gray-300">
+                                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                                <th class="p-3 text-left font-semibold">Filename</th>
+                                                <th class="p-3 text-left font-semibold">Created By</th>
+                                                <th class="p-3 text-left font-semibold">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($attachment as $at)
+                                                <tr class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700">
+                                                    <td class="px-3 py-2">
+                                                        @if ($at->url)
+                                                            <a href="{{ $at->url }}" target="_blank"
+                                                                class="flex items-center gap-2 font-medium text-indigo-600 hover:underline dark:text-indigo-400">
+                                                                📎 {{ $at->display_name }}
+                                                            </a>
+                                                        @else
+                                                            <span class="flex items-center gap-2 text-gray-500 dark:text-gray-300"
+                                                                title="Signed URL tidak tersedia/expired">
+                                                                📎 {{ $at->display_name }} <em class="text-xs">(no link)</em>
+                                                            </span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-3 py-2">{{ $at->created_by }}</td>
+                                                    <td class="px-3 py-2">
+                                                        {{ \Carbon\Carbon::parse($at->created_at)->format('d M Y') }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">Attachment Empty.</p>
+                            @endif
+                        </div>
+
+                        <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
+                            <details class="group" open>
+                                <summary
+                                    class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-4 text-base font-extrabold text-gray-800 dark:border-gray-700 dark:text-white">
+                                    <span>Attachments CS</span>
+                                    <span class="text-xs font-medium text-gray-500 transition-all group-open:hidden">See details &rarr;</span>
+                                    <span class="hidden text-xs font-medium text-gray-500 transition-all group-open:inline">Hide details &darr;</span>
+                                </summary>
+
+                                <div class="flex h-auto flex-col justify-start">
+                                    <div id="attachmentsContainer">
+                                        @foreach ($attachmentCS as $attach)
+                                            <div class="attachment-row flex items-center gap-2" data-attachid="{{ $attach->id }}">
+                                                @if ($attach->url)
+                                                    <a href="{{ $attach->url }}" target="_blank" class="mt-4 w-full border p-3 text-xs">
+                                                        📎 {{ $attach->display_name }}
+                                                    </a>
+                                                @else
+                                                    <div class="mt-4 w-full border p-3 text-xs text-gray-500 dark:text-gray-300"
+                                                        title="Signed URL tidak tersedia/expired">
+                                                        📎 {{ $attach->display_name }} <em class="text-xs">(no link)</em>
+                                                    </div>
+                                                @endif
+                                                <button type="button"
+                                                    class="removeAttachment2 mt-4 rounded border border-red-700 bg-red-200/10 px-3 py-3 text-white hover:border-red-700 hover:bg-red-400/30 dark:bg-red-700/30"
+                                                    data-id="{{ $attach->id }}">🗑️</button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <button type="button" id="addAttachment"
+                                    class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"
+                                            clip-rule="evenodd" />
+                                    </svg> Add Attachment
+                                </button>
+                            </details>
+
+                            <div class="mt-4 flex flex-row justify-between gap-4 md:flex-row md:items-center md:justify-between">
+                                <button type="button" id="backBtn" onclick="history.back()"
+                                    class="flex items-center gap-2 rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    <span>Back</span>
+                                </button>
+
+                                <div class="flex flex-col gap-3 md:flex-row md:items-center">
+                                    <button type="button" id="cancelBtn"
+                                        class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                        <span id="cancelText">Cancel</span>
+                                        <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                    </button>
+
+                                    {{-- <button type="button" id="saveBtn"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto">
+                                        <span id="saveText">Save CS</span>
+                                        <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                    </button> --}}
+                                    <button type="button" id="saveBtn"
+                                        class="mb-4 mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-white md:w-auto">
+                                        <span id="saveText">Save CS</span>
+                                        <svg id="saveSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                    </button>
+
+                                    <button type="submit" id="submitBtn"
+                                        class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        <span id="btnText">Submit Approval</span>
+                                        <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="taxModal" class="fixed inset-0 z-[3000] hidden">
+                <div id="taxModalOverlay" class="absolute inset-0 bg-black/50  "></div>
+                <div
+                    class="absolute left-1/2 top-1/2 w-[90vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                    <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
+                        <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100">Pilih Pajak</h3>
+                        <button id="taxModalClose"
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                    </div>
+                    <div class="p-4">
+                        <div class="mb-3 flex items-center gap-2">
+                            <input id="taxSearch" type="text" placeholder="Cari taxid/descr..."
+                                class="w-full rounded border border-gray-300 px-3 py-2 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                        </div>
+                        <div class="max-h-[55vh] overflow-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Tax ID</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Rate (%)</th>
+                                        <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Description</th>
+                                        <th class="px-3 py-2"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="taxTableBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bqcsMismatchModal" class="fixed inset-0 z-[3500] hidden">
+                <div class="absolute inset-0 bg-black/50  "></div>
+                <div
+                    class="absolute left-1/2 top-1/2 w-[92vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-4 shadow-xl dark:bg-gray-800">
+                    <div class="mb-3 flex items-center justify-between border-b pb-2 dark:border-gray-700">
+                        <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100">Tidak bisa Submit — Perbedaan Nilai BQ vs CS</h3>
+                        <button id="bqcsMismatchClose"
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">✖</button>
+                    </div>
+                    <p class="mb-3 text-xs text-gray-700 dark:text-gray-300">
+                        Terdapat vendor dengan nilai berbeda antara <b>(BQ: Total BQ)</b> dan <b>(CS: Total sebelum PPN/PPH)</b>.
+                        Periksa tabel di bawah ini:
+                    </p>
+                    <div class="max-h-[60vh] overflow-auto">
+                        <table class="min-w-full divide-y divide-gray-200 text-xs dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-3 py-2 text-left font-semibold">Vendor</th>
+                                    <th class="px-3 py-2 text-right font-semibold">Total BQ</th>
+                                    {{-- <th class="px-3 py-2 text-right font-semibold">Total CS</th> --}}
+                                    <th class="px-3 py-2 text-right font-semibold">Total CS (Before Tax)</th>
+                                    <th class="px-3 py-2 text-right font-semibold">Selisih</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bqcsMismatchBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 text-right">
+                        <button id="bqcsMismatchOk"
+                            class="rounded bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">OK</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="lastPriceModal" class="fixed inset-0 z-[4000] hidden">
+                <div id="lastPriceModalOverlay" class="absolute inset-0 bg-black/50  "></div>
+
+                <div
+                    class="absolute left-1/2 top-1/2 w-[92vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white shadow-xl dark:bg-gray-800">
+                    <div class="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
+                        <div class="flex flex-col">
+                            <h3 class="text-xs font-semibold text-gray-800 dark:text-gray-100">Last Price History</h3>
+                            <h3 id="lpTitle" class="text-xs font-semibold text-gray-800 dark:text-gray-100"></h3>
+                        </div>
+                        <button type="button" id="lastPriceModalClose"
+                            class="rounded px-2 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">✖</button>
+                    </div>
+
+                    <div class="p-4">
+                        <div id="lpLoading" class="mb-3 hidden text-xs text-gray-600 dark:text-gray-300">Loading...</div>
+
+                        <div class="max-h-[60vh] overflow-auto rounded border border-gray-200 dark:border-gray-700">
+                            <table class="min-w-full text-xs">
+                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left font-semibold">PO Nbr</th>
+                                        <th class="px-3 py-2 text-left font-semibold">PO Date</th>
+                                        <th class="px-3 py-2 text-left font-semibold">CS ID</th>
+                                        <th class="px-3 py-2 text-left font-semibold">Vendor</th>
+                                        <th class="px-3 py-2 text-right font-semibold">Unit Cost</th>
+                                        <th class="px-3 py-2 text-left font-semibold">Purchaser</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lpBody" class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                            </table>
+                        </div>
+
+                        <div id="lpEmpty" class="mt-3 hidden text-xs text-gray-500 dark:text-gray-300">
+                            No history found.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="successMessage" class="mt-4 hidden font-bold text-green-600 lg:col-span-2">
+                CS Created Successfully!
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">
+                Processing
+                <span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showOverlay(text = 'Processing') {
+            const $ov = $('#loadingSpinnerContainer');
+            $ov.find('.loading-text').html(
+                (text || 'Processing') +
+                '<span class="loading-ellipsis"><span>.</span><span>.</span><span>.</span></span>'
+            );
+            $ov.stop(true, true).fadeIn(120);
+        }
+
+        function hideOverlay() {
+            $('#loadingSpinnerContainer').stop(true, true).fadeOut(120);
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const VENDORS_USED = @json($vendorsUsed ?? []);
+        const DETAIL_MATRIX = @json($detailVendorMatrix ?? []);
+        const CS_VENDOR_TOTALS = @json($csVendorTotals ?? []);
+        const BQ_VENDOR_TOTALS = @json($bqVendorTotals ?? []);
+        const BQ_EXISTS = @json(!!($bq ?? null));
+    </script>
+
+    <script>
+        function parseQty(val) {
+            if (typeof val !== 'string') val = String(val ?? '');
+            val = val.trim().replace(/[^0-9.,]/g, '');
+
+            const lastComma = val.lastIndexOf(',');
+            const lastDot = val.lastIndexOf('.');
+            const decimalSep = (lastComma > lastDot) ? ',' : '.';
+
+            if (decimalSep === ',') {
+                val = val.replace(/\./g, '').replace(',', '.');
+            } else {
+                val = val.replace(/,/g, '');
+            }
+
+            const n = parseFloat(val);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function formatQty2(val) {
+            const n = isNaN(val) ? 0 : Number(val);
+            return n.toFixed(2).replace('.', ',');
+        }
+
+        function parsePrice(val) {
+            if (typeof val !== 'string') val = String(val ?? '');
+            val = val.trim().replace(/[^0-9.,]/g, '');
+
+            const lastComma = val.lastIndexOf(',');
+            const lastDot = val.lastIndexOf('.');
+            const decimalSep = (lastComma > lastDot) ? ',' : '.';
+
+            if (decimalSep === ',') {
+                val = val.replace(/\./g, '').replace(',', '.');
+            } else {
+                val = val.replace(/,/g, '');
+            }
+
+            const n = parseFloat(val);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function formatPrice2(n) {
+            const num = isNaN(n) ? 0 : Number(n);
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        function formatNumID(n) {
+            n = Number(n || 0);
+            return n.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function numFromText(text) {
+            if (!text) return 0;
+            return parseFloat(
+                String(text).trim().replace(/\./g, '').replace(',', '.').replace(/[^0-9.-]/g, '')
+            ) || 0;
+        }
+
+        function round2(n) {
+            return Math.round((+n + Number.EPSILON) * 100) / 100;
+        }
+
+        window.htmlEscape = function(s) {
+            s = String(s ?? '');
+            return s.replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m]));
+        };
+    </script>
+
+    <script>
+        let vendorMaster = [];
+        let vendorInstanceSeq = 0;
+
+        function syncVendorInstanceSeq() {
+            let maxSeq = 0;
+
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                const colKey = String($(this).data('col-key') || '');
+                const m = colKey.match(/^vcol_(\d+)$/);
+
+                if (m) {
+                    maxSeq = Math.max(maxSeq, parseInt(m[1], 10));
+                }
+            });
+
+            vendorInstanceSeq = Math.max(vendorInstanceSeq, maxSeq);
+        }
+
+        function nextVendorColKey() {
+            syncVendorInstanceSeq();
+
+            let colKey;
+
+            do {
+                vendorInstanceSeq++;
+                colKey = 'vcol_' + vendorInstanceSeq;
+            } while (
+                $(`#th-vendor-${colKey}`).length ||
+                $(`#td-sum-${colKey}`).length ||
+                $(`input.price-input[data-col-key="${colKey}"]`).length
+            );
+
+            return colKey;
+        }
+        // let vendorMaster = [];
+        // let vendorInstanceSeq = 0;
+
+        // function nextVendorColKey() {
+        //     vendorInstanceSeq++;
+        //     return 'vcol_' + vendorInstanceSeq;
+        // }
+
+        function formatNum(n) {
+            return (+n || 0).toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getVendorColumns() {
+            return $('#cvTable thead th[id^="th-vendor-"]');
+        }
+
+        function getVendorCountById(vendorPkId) {
+            let count = 0;
+            getVendorColumns().each(function() {
+                if (String($(this).data('vendor-pk-id')) === String(vendorPkId)) {
+                    count++;
+                }
+            });
+            return count;
+        }
+
+        function recalcSummaryVendor(colKey) {
+            colKey = String(colKey);
+
+            const $sumCell = $(`#td-sum-${colKey}`);
+            if (!$sumCell.length) return;
+
+            let total = 0;
+            let selBase = 0;
+
+            $('#cvBody tr').each(function() {
+                const $tr = $(this);
+                const qty = parseQty($tr.find('.qty-input').val());
+                const $priceInput = $tr.find(`input.price-input[data-col-key="${colKey}"]`);
+                if (!$priceInput.length) return;
+
+                const price = parsePrice($priceInput.val());
+                const lineTotal = qty * price;
+
+                total += lineTotal;
+
+                $priceInput.closest('td').find('.total-label').text(formatNum(lineTotal));
+
+                const picked = String($tr.find('input.pick-vendor:checked').val() || '');
+                if (picked === colKey) {
+                    selBase += lineTotal;
+                }
+            });
+
+            const ppn = Number($sumCell.find('.sum-ppn').val() || 0) / 100;
+            const pph = Number($sumCell.find('.sum-pph').val() || 0) / 100;
+
+            const grand = total + (total * ppn) + (total * pph);
+            const selGrand = selBase + (selBase * ppn) + (selBase * pph);
+
+            $sumCell.find('.sum-total').text(formatNum(total));
+            $sumCell.find('.sum-grand').text(formatNum(grand));
+            $sumCell.find('.sum-selected').text(formatNum(selGrand));
+            $sumCell.find('.sum-selected-base').text(String(selBase));
+        }
+
+        function recalcAllVendors() {
+            getVendorColumns().each(function() {
+                const colKey = String($(this).data('col-key'));
+                recalcSummaryVendor(colKey);
+            });
+        }
+
+        window.calcCellTotal = function($input) {
+            const $tr = $input.closest('tr');
+            const qty = parseQty($tr.find('.qty-input').val());
+            const price = parsePrice($input.val());
+            const total = qty * price;
+
+            $input.closest('td').find('.total-label').text(formatNum(total));
+            recalcSummaryVendor(String($input.data('col-key')));
+        };
+
+        function addHeader(colKey, v, preload = {}) {
+            // const TOPS = @json($tops->map(fn($t) => ['id' => $t->topid, 'name' => $t->top_name]));
+            // const TOPS_OPTIONS_HTML =
+            //     '<option value="" disabled selected>Select TOP</option>' +
+            //     TOPS.map(t => `<option value="${_.escape(String(t.id))}">${_.escape(t.name)}</option>`).join('');
+            const RAW_TOPS = @json($tops->map(fn($t) => ['id' => $t->topid, 'name' => $t->top_name]));
+
+            const TOPS = Array.from(
+                new Map(
+                    (RAW_TOPS || []).map(t => [String(t.id), t])
+                ).values()
+            );
+
+            const TOPS_OPTIONS_HTML =
+                '<option value="" disabled selected>Select TOP</option>' +
+                TOPS.map(t => `<option value="${_.escape(String(t.id))}">${_.escape(t.name)}</option>`).join('');
+
+            const duplicateNo = preload.duplicate_no ?? (getVendorCountById(v.id) + 1);
+
+            const safeColKey = _.escape(String(colKey));
+            const safeVendorPkId = _.escape(String(v.id ?? ''));
+            const safeVendorCode = _.escape(String(v.vendor_id ?? ''));
+            const safeVendorName = _.escape(String(v.vendor_name ?? ''));
+            const safeVendorAddr = _.escape(String(v.vendor_addr1 ?? ''));
+            const safeVendorPhone = _.escape(String(v.phone_number ?? ''));
+            const safeVendorCp = _.escape(String(v.contact_person ?? ''));
+            const displayName = `${safeVendorName} (${duplicateNo})`;
+
+            const $th = $(`
+                <th id="th-vendor-${safeColKey}"
+                    class="relative border px-3 py-2 align-top w-72 max-w-xs sm:w-80 sm:max-w-sm md:w-96 md:max-w-md lg:w-[20rem]"
+                    data-col-key="${safeColKey}"
+                    data-vendor-pk-id="${safeVendorPkId}"
+                    data-vendor-id="${safeVendorCode}"
+                    data-vendor-code="${safeVendorCode}"
+                    data-vendor-name="${safeVendorName}"
+                    data-vendor-addr="${safeVendorAddr}"
+                    data-vendor-phone="${safeVendorPhone}"
+                    data-vendor-cp="${safeVendorCp}"
+                    data-duplicate-no="${duplicateNo}">
+                    <div class="flex flex-col text-left text-xs">
+                        <div class="flex items-center gap-1 font-bold text-gray-800 dark:text-gray-100 break-words">
+                            <span>${displayName}</span>
+
+                            <div class="relative group inline-block cursor-default">
+                                <div class="flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-gray-700 text-[10px] dark:bg-gray-700 dark:text-gray-200 cursor-default">
+                                    i
+                                </div>
+
+                                <div class="pointer-events-none absolute left-1/2 top-full z-50 mt-2
+                                            w-64 -translate-x-1/2 rounded-md bg-gray-900 p-3 text-xs text-gray-200
+                                            shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                                            transition-opacity duration-200">
+                                    <div class="font-semibold text-white mb-1">${safeVendorName}</div>
+                                    <div class="space-y-1 text-gray-300 leading-4">
+                                        <div>✉️ ${safeVendorCp || '-'}</div>
+                                        <div>☎️ ${safeVendorPhone || '-'}</div>
+                                        <div>🏠 ${safeVendorAddr || '-'}</div>
+                                    </div>
+                                    <div class="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs font-semibold text-gray-600 dark:text-gray-300">Payment Term:</span>
+                            <select name="cara_bayar_${safeColKey}"
+                                class="cara-bayar w-40 rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-medium shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                ${TOPS_OPTIONS_HTML}
+                            </select>
+                        </div>
+
+                        <div class="mt-2">
+                            <textarea id="vendornote_${safeColKey}" name="vendornote_${safeColKey}"
+                                class="vendornote mt-1 w-full rounded-md border border-gray-300 bg-white px-2 py-2 text-xs text-gray-900 shadow-sm
+                                    focus:border-indigo-500 focus:ring focus:ring-indigo-500/50
+                                    dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                                rows="2"
+                                placeholder="Vendor Note"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="button"
+                        class="btn-del absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow hover:bg-red-700"
+                        data-col-key="${safeColKey}">✕</button>
+                </th>
+            `);
+
+            $('#cvTable thead tr').append($th);
+
+            const $sumTd = $(`
+                <td id="td-sum-${safeColKey}" class="border px-3 py-2 text-xs align-top" style="width:22rem;max-width:22rem;" data-col-key="${safeColKey}">
+                    <div class="flex flex-col gap-2 text-gray-700 dark:text-gray-200">
+                        <div><span class="font-semibold">Total:</span> <span class="sum-total">0,00</span></div>
+
+                        <div class="flex justify-between gap-2">
+                            <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                                <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPN</span>
+                                <input type="number"
+                                    class="sum-ppn tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                    value="11.00" step="0.01" min="0">
+                                <button type="button"
+                                    class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
+                                    data-for="ppn" data-col-key="${safeColKey}" title="Pilih PPN">🔍</button>
+                                <input type="hidden" class="sum-ppn-id" value="PPN11">
+                            </div>
+
+                            <div class="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-700">
+                                <span class="text-xs font-medium whitespace-nowrap shrink-0 min-w-[25px]">PPh</span>
+                                <input type="number"
+                                    class="sum-pph tax-input w-16 rounded border border-gray-300 px-1 text-right text-xs focus:border-indigo-500 focus:ring focus:ring-indigo-500/50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200"
+                                    value="0" step="0.01" min="0">
+                                <button type="button"
+                                    class="btn-pick-tax rounded bg-indigo-100 px-1 text-xs text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800 dark:text-white dark:hover:bg-indigo-700"
+                                    data-for="pph" data-col-key="${safeColKey}" title="Pilih PPh">🔍</button>
+                                <input type="hidden" class="sum-pph-id" value="">
+                            </div>
+                        </div>
+
+                        <div><span class="font-semibold">Grand Total:</span> <span class="sum-grand">0,00</span></div>
+                        <div><span class="font-semibold">G.Total Selected:</span><span class="sum-selected">0,00</span><span class="sum-selected-base hidden">0</span></div>
+                    </div>
+                </td>
+            `);
+
+            $('#summaryRow').append($sumTd);
+
+            if (preload.top) {
+                $th.find('select.cara-bayar').val(preload.top);
+            }
+
+            if (preload.vendornote) {
+                $th.find('textarea.vendornote').val(preload.vendornote);
+            }
+
+            const preloadPpn = Number(preload.ppn ?? 11);
+            const preloadPph = Number(preload.pph ?? 0);
+
+            $sumTd.find('.sum-ppn').val(preloadPpn.toFixed(2));
+            $sumTd.find('.sum-pph').val(preloadPph.toFixed(2));
+
+            let ppnId = preload.ppn_id || '';
+            let pphId = preload.pph_id || '';
+
+            const preloadTaxcode = String(preload.taxcode || '').trim().toUpperCase();
+            if (!ppnId && preloadTaxcode === 'PPN11') ppnId = 'PPN11';
+            if (!ppnId && preloadTaxcode === 'NONTAX') ppnId = 'NONTAX';
+
+            $sumTd.find('.sum-ppn-id').val(ppnId);
+            $sumTd.find('.sum-pph-id').val(pphId);
+
+            $sumTd.find('.sum-ppn, .sum-pph').on('input', function() {
+                recalcSummaryVendor(colKey);
+            });
+        }
+
+        function addPriceCells(colKey) {
+            $('#cvBody tr').each(function(rowIdx) {
+                const $input = $(`
+                    <input type="text"
+                        class="price-input w-full rounded-md border border-gray-400 px-2 py-1 text-right shadow-sm focus:ring-2 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                        data-row="${rowIdx}" data-col-key="${colKey}"
+                        value="0,00" inputmode="decimal" autocomplete="off" placeholder="0,00">
+                `);
+
+                const $td = $(`<td class="border px-3 py-2"><div class="flex flex-col items-center gap-0.5 w-full"></div></td>`);
+                const $total = $(`<small class="total-label text-right text-xs dark:text-gray-300 font-bold text-gray-600">0,00</small>`);
+                const $radio = $(`
+                    <div class="flex justify-center mt-0.5">
+                        <input type="radio" name="selected_vendor_${rowIdx}" value="${colKey}" class="pick-vendor h-3 w-3 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                    </div>
+                `);
+
+                $td.find('div').append($input, $total, $radio);
+                $(this).append($td);
+
+                $input.on('input', function() {
+                    window.calcCellTotal($(this));
+                });
+            });
+        }
+
+        function collectVendorsPayload() {
+            const vendors = [];
+
+            getVendorColumns().each(function(i) {
+                if (vendors.length >= 6) return;
+
+                const $th = $(this);
+                const colKey = String($th.data('col-key'));
+                const vendorPkId = String($th.data('vendor-pk-id'));
+                const vendorIdCode = String($th.data('vendor-code'));
+                const $sum = $(`#td-sum-${colKey}`);
+
+                const total = numFromText($sum.find('.sum-total').text());
+                const ppn = Number($sum.find('.sum-ppn').val() || 0);
+                const pph = Number($sum.find('.sum-pph').val() || 0);
+
+                let ppnId = $sum.find('.sum-ppn-id').val() || '';
+                let pphId = $sum.find('.sum-pph-id').val() || '';
+
+                if (!ppnId) {
+                    if (ppn === 11) {
+                        ppnId = 'PPN11';
+                    } else if (ppn === 0 && pph === 0) {
+                        ppnId = 'NONTAX';
+                    }
+                }
+
+                const tax = total * (ppn / 100) + total * (pph / 100);
+                const grand = total + tax;
+
+                const selBase = Number($sum.find('.sum-selected-base').text() || 0);
+                const selTax = selBase * (ppn / 100) + selBase * (pph / 100);
+                const selGrand = selBase + selTax;
+
+                vendors.push({
+                    col_key: colKey,
+                    id: vendorPkId,
+                    vendorid: vendorIdCode,
+                    vendorname: String($th.data('vendor-name') || ''),
+                    vendoralamat: String($th.data('vendor-addr') || ''),
+                    vendortelp: String($th.data('vendor-phone') || ''),
+                    vendorcp: String($th.data('vendor-cp') || ''),
+                    vendortop: $th.find('select.cara-bayar').val() || '',
+                    vendornote: String($(`#vendornote_${colKey}`).val() || ''),
+                    total: round2(total),
+                    ppn: round2(ppn),
+                    pph: round2(pph),
+                    taxcode: [ppnId, pphId].filter(Boolean).join('+'),
+                    tax: round2(tax),
+                    grand: round2(grand),
+                    selected_total: round2(selBase),
+                    selected_tax: round2(selTax),
+                    selected_grand: round2(selGrand),
+                });
+            });
+
+            return vendors;
+        }
+
+        function collectDetailsPayload() {
+            const details = [];
+            const docType = String($('input[name="doc"]').val() || '').toUpperCase();
+
+            $('#cvBody tr').each(function(rowIdx) {
+                const $tr = $(this);
+
+                const qty = parseQty($tr.find('.qty-input').val());
+                const uom = String($tr.data('uom') || '');
+                const invId = String($tr.data('inventoryid') || '');
+                const invDescr = String($tr.data('inventory_descr') || '');
+                const lastPrice = Number($tr.data('lastprice') || 0);
+                const csNote = String($tr.find('.note-input').val() || '');
+
+                // const csNo = $tr.data('cs_no') || '';
+                // const sppbjktNo = $tr.data('sppbjkt_no') || '';
+                const normalizeNullable = (v) => {
+                    v = String(v ?? '').trim();
+                    return v === '' ? null : v;
+                };
+
+                const csNo = normalizeNullable($tr.data('cs_no'));
+                const sppbjktNo = normalizeNullable($tr.data('sppbjkt_no'));
+
+                const row = {
+                    row_index: rowIdx,
+
+                    // key CS lama
+                    cs_no: csNo,
+                    sppbjkt_no: sppbjktNo,
+
+                    // key source sesuai doc supaya backend tidak fallback ke inventoryid/uom/descr saja
+                    sppb_no: docType === 'SPPB' ? sppbjktNo : null,
+                    sppj_no: docType === 'SPPJ' ? sppbjktNo : null,
+                    sppk_no: docType === 'SPPK' ? sppbjktNo : null,
+                    sppt_no: docType === 'SPPT' ? sppbjktNo : null,
+
+                    inventoryid: invId,
+                    inventory_descr: invDescr,
+                    inventory_type: String($tr.data('inventory_type') || ''),
+                    inventory_sub_type: String($tr.data('inventory_sub_type') || ''),
+                    inventory_category: String($tr.data('inventory_category') || ''),
+                    siteid: String($tr.data('siteid') || ''),
+
+                    qty: round2(qty),
+                    uom: uom,
+                    inventory_last_price: round2(lastPrice),
+                    csnote_detail: csNote,
+                    vendor: []
+                };
+
+                const pickedColKey = String($tr.find('input.pick-vendor:checked').val() || '');
+
+                getVendorColumns().each(function(i) {
+                    if (i >= 6) return;
+
+                    const $th = $(this);
+                    const colKey = String($th.data('col-key'));
+                    const vendorPkId = String($th.data('vendor-pk-id'));
+                    const vendorIdCode = String($th.data('vendor-code'));
+
+                    const $priceInput = $tr.find(`input.price-input[data-col-key="${colKey}"]`);
+                    const price = parsePrice($priceInput.val());
+                    const total = qty * price;
+
+                    row.vendor.push({
+                        col_key: colKey,
+                        id: vendorPkId,
+                        vendorid: vendorIdCode,
+                        price: round2(price),
+                        total: round2(total),
+                        selected: colKey === pickedColKey
+                    });
+                });
+
+                details.push(row);
+            });
+
+            return details;
+        }
+
+        // function collectDetailsPayload() {
+        //     const details = [];
+
+        //     $('#cvBody tr').each(function(rowIdx) {
+        //         const $tr = $(this);
+        //         const qty = parseQty($tr.find('.qty-input').val());
+        //         const uom = $tr.data('uom') || '';
+        //         const invId = $tr.data('inventoryid') || '';
+        //         const invDescr = $tr.data('inventory_descr') || '';
+        //         const lastPrice = Number($tr.data('lastprice') || 0);
+        //         const csNote = String($tr.find('.note-input').val() || '');
+
+        //         const row = {
+        //             inventoryid: invId,
+        //             inventory_descr: invDescr,
+        //             qty: round2(qty),
+        //             uom: uom,
+        //             inventory_last_price: round2(lastPrice),
+        //             csnote_detail: csNote,
+        //             vendor: []
+        //         };
+
+        //         const pickedColKey = String($tr.find('input.pick-vendor:checked').val() || '');
+
+        //         getVendorColumns().each(function(i) {
+        //             if (i >= 6) return;
+
+        //             const $th = $(this);
+        //             const colKey = String($th.data('col-key'));
+        //             const vendorPkId = String($th.data('vendor-pk-id'));
+        //             const vendorIdCode = String($th.data('vendor-code'));
+
+        //             const $priceInput = $tr.find(`input.price-input[data-col-key="${colKey}"]`);
+        //             const price = parsePrice($priceInput.val());
+        //             const total = qty * price;
+
+        //             row.vendor.push({
+        //                 col_key: colKey,
+        //                 id: vendorPkId,
+        //                 vendorid: vendorIdCode,
+        //                 price: round2(price),
+        //                 total: round2(total),
+        //                 selected: colKey === pickedColKey
+        //             });
+        //         });
+
+        //         details.push(row);
+        //     });
+
+        //     return details;
+        // }
+    </script>
+
+    <script>
+        // $(function() {
+        //     $('#vendorSelect').empty().append('<option></option>');
+
+        //     $.getJSON('/vendorscs', function(data) {
+        //         vendorMaster = data || [];
+        //         vendorMaster.forEach(v => $('#vendorSelect').append(new Option(v.vendor_name, v.id)));
+        //     });
+
+        //     $('#vendorSelect').select2({
+        //         width: '100%',
+        //         theme: 'default',
+        //         placeholder: 'Select',
+        //         allowClear: true
+        //     });
+
+        //     $('#vendorSelect').on('select2:select', function(e) {
+        //         const vendorPkId = String(e.params.data.id);
+        //         const v = vendorMaster.find(x => String(x.id) === vendorPkId);
+        //         if (!v) return;
+
+        //         if (getVendorColumns().length >= 6) {
+        //             toastr.warning('Maksimal 6 vendor.');
+        //             $(this).val(null).trigger('change');
+        //             return;
+        //         }
+
+        //         const colKey = nextVendorColKey();
+        //         addHeader(colKey, v);
+        //         addPriceCells(colKey);
+
+        //         $(this).val(null).trigger('change');
+        //         recalcSummaryVendor(colKey);
+        //     });
+
+        //     if (Array.isArray(VENDORS_USED) && VENDORS_USED.length) {
+        //         VENDORS_USED.forEach((v, idx) => {
+        //             const masterVendor = vendorMaster.find(x => String(x.vendor_id) === String(v.vendor_id));
+        //             const vendorObj = masterVendor || {
+        //                 id: v.id || v.vendor_pk_id || idx + 1,
+        //                 vendor_id: v.vendor_id,
+        //                 vendor_name: v.vendor_name,
+        //                 vendor_addr1: v.vendor_addr1,
+        //                 phone_number: v.phone_number,
+        //                 contact_person: v.contact_person
+        //             };
+
+        //             const colKey = v.col_key || nextVendorColKey();
+
+        //             addHeader(colKey, vendorObj, {
+        //                 duplicate_no: v.duplicate_no || (idx + 1),
+        //                 top: v.top || v.vendortop || '',
+        //                 vendornote: v.vendornote || '',
+        //                 ppn: v.ppn ?? 11,
+        //                 pph: v.pph ?? 0,
+        //                 ppn_id: v.ppn_id || '',
+        //                 pph_id: v.pph_id || '',
+        //                 taxcode: v.taxcode || ''
+        //             });
+
+        //             addPriceCells(colKey);
+        //         });
+
+        //         if (Array.isArray(DETAIL_MATRIX)) {
+        //             $('#cvBody tr').each(function(rowIdx) {
+        //                 const rowMap = DETAIL_MATRIX[rowIdx] || {};
+        //                 Object.keys(rowMap).forEach(colKey => {
+        //                     const cell = rowMap[colKey];
+        //                     const $price = $(`#cvBody tr:eq(${rowIdx}) input.price-input[data-col-key="${colKey}"]`);
+        //                     if (!$price.length) return;
+
+        //                     $price.val(formatPrice2(cell.price ?? 0));
+        //                     $price.closest('td').find('.total-label').text(formatNumID(cell.total ?? 0));
+
+        //                     if (cell.selected) {
+        //                         $price.closest('td').find('input.pick-vendor').prop('checked', true);
+        //                     }
+        //                 });
+        //             });
+        //         }
+
+        //         recalcAllVendors();
+        //     }
+        // });
+        $(function() {
+            $('#vendorSelect').empty().append('<option></option>');
+
+            $('#vendorSelect').select2({
+                width: '100%',
+                theme: 'default',
+                placeholder: 'Select',
+                allowClear: true
+            });
+
+            $('#vendorSelect').on('select2:select', function(e) {
+                const vendorPkId = String(e.params.data.id);
+                const v = vendorMaster.find(x => String(x.id) === vendorPkId);
+                if (!v) return;
+
+                if (getVendorColumns().length >= 6) {
+                    toastr.warning('Maksimal 6 vendor.');
+                    $(this).val(null).trigger('change');
+                    return;
+                }
+
+                const colKey = nextVendorColKey();
+                addHeader(colKey, v);
+                addPriceCells(colKey);
+
+                $(this).val(null).trigger('change');
+                recalcSummaryVendor(colKey);
+            });
+
+            $.getJSON('/vendorscs', function(data) {
+                vendorMaster = data || [];
+                vendorMaster.forEach(v => {
+                    $('#vendorSelect').append(new Option(v.vendor_name, v.id));
+                });
+
+                preloadExistingVendors();
+            }).fail(function() {
+                vendorMaster = [];
+                preloadExistingVendors();
+            });
+
+            function preloadExistingVendors() {
+                if (!Array.isArray(VENDORS_USED) || !VENDORS_USED.length) return;
+
+                VENDORS_USED.forEach((v, idx) => {
+                    const masterVendor = vendorMaster.find(x =>
+                        String(x.vendor_id) === String(v.vendor_id)
+                    );
+
+                    const vendorObj = masterVendor || {
+                        id: v.id || v.vendor_pk_id || v.vendor_id || idx + 1,
+                        vendor_id: v.vendor_id,
+                        vendor_name: v.vendor_name,
+                        vendor_addr1: v.vendor_addr1 || v.vendoralamat || '',
+                        phone_number: v.phone_number || v.vendortelp || '',
+                        contact_person: v.contact_person || v.vendorcp || ''
+                    };
+
+                    const colKey = v.col_key || nextVendorColKey();
+
+                    addHeader(colKey, vendorObj, {
+                        duplicate_no: v.duplicate_no || (idx + 1),
+                        top: v.top || v.vendortop || '',
+                        vendornote: v.vendornote || '',
+                        ppn: v.ppn ?? 11,
+                        pph: v.pph ?? 0,
+                        ppn_id: v.ppn_id || '',
+                        pph_id: v.pph_id || '',
+                        taxcode: v.taxcode || ''
+                    });
+
+                    addPriceCells(colKey);
+                });
+
+                syncVendorInstanceSeq();
+
+                if (Array.isArray(DETAIL_MATRIX)) {
+                    $('#cvBody tr').each(function(rowIdx) {
+                        const rowMap = DETAIL_MATRIX[rowIdx] || {};
+
+                        Object.keys(rowMap).forEach(colKey => {
+                            const cell = rowMap[colKey];
+                            const $price = $(`#cvBody tr:eq(${rowIdx}) input.price-input[data-col-key="${colKey}"]`);
+
+                            if (!$price.length) return;
+
+                            $price.val(formatPrice2(cell.price ?? 0));
+                            $price.closest('td').find('.total-label').text(formatNumID(cell.total ?? 0));
+
+                            if (cell.selected) {
+                                $price.closest('td').find('input.pick-vendor').prop('checked', true);
+                            }
+                        });
+                    });
+                }
+
+                recalcAllVendors();
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#addAttachment').click(function() {
+                $('#attachmentsContainer').append(`
+                    <div class="attachment-row flex items-center gap-2">
+                        <input type="file" name="attachments[]" class="mt-2 flex-grow rounded-md border border-gray-200 bg-white px-4 py-2 text-xs text-gray-700 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-indigo-700 hover:file:bg-indigo-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:file:bg-indigo-700 dark:file:text-white dark:hover:file:bg-indigo-600">
+                        <button type="button" class="removeAttachment rounded border border-red-600 bg-red-200/30 p-3 text-red-600 transition hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">🗑️</button>
+                    </div>
+                `);
+                toggleDeleteButton();
+            });
+
+            $(document).on('click', '.removeAttachment', function() {
+                $(this).closest('.attachment-row').remove();
+                toggleDeleteButton();
+            });
+
+            function toggleDeleteButton() {
+                if ($('.attachment-row').length > 1) {
+                    $('.removeAttachment').removeClass('hidden');
+                } else {
+                    $('.removeAttachment').addClass('hidden');
+                }
+            }
+
+            $(document).on('click', '.removeAttachment2', function() {
+                const attachmentId = $(this).data('id');
+                const row = $(this).closest('.attachment-row');
+                const confirmDelete = confirm('Are you sure you want to remove this attachment?');
+
+                if (!confirmDelete) return false;
+
+                $.ajax({
+                    url: "/remove-attachment/" + attachmentId,
+                    type: "POST",
+                    data: {
+                        _method: "PUT",
+                        _token: "{{ csrf_token() }}"
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            row.remove();
+                            alert("Attachment removed successfully!");
+                        } else {
+                            alert("Failed to remove attachment.");
+                        }
+                    },
+                    error: function(xhr) {
+                        alert("Error! Unable to remove attachment.");
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).on('click', '.btn-del', function() {
+            const colKey = String($(this).data('col-key'));
+            const $header = $('#th-vendor-' + colKey);
+            const colIdx = $header.index();
+
+            $header.remove();
+            $('#td-sum-' + colKey).remove();
+
+            $('#cvBody tr').each(function() {
+                $(this).children('td').eq(colIdx).remove();
+            });
+
+            recalcAllVendors();
+        });
+
+        $(document).on('change', '.pick-vendor', function() {
+            recalcAllVendors();
+        });
+    </script>
+
+    <script>
+        $(document).on('keypress', '.qty-input', function(e) {
+            const code = e.which || e.keyCode;
+            if ([8, 9, 13, 37, 38, 39, 40, 46].includes(code)) return;
+
+            const ch = String.fromCharCode(code);
+            if (!/[0-9.,]/.test(ch)) {
+                e.preventDefault();
+                return;
+            }
+
+            const v = $(this).val() || '';
+            if ((ch === ',' || ch === '.') && /[.,]/.test(v)) {
+                e.preventDefault();
+            }
+        });
+
+        $(document).on('input', '.qty-input', function() {
+            let v = $(this).val() || '';
+            v = v.replace(/[^0-9.,]/g, '');
+            const firstSepIdx = v.search(/[.,]/);
+            if (firstSepIdx !== -1) {
+                const head = v.slice(0, firstSepIdx + 1);
+                const tail = v.slice(firstSepIdx + 1).replace(/[.,]/g, '');
+                v = head + tail;
+            }
+            $(this).val(v);
+
+            const $row = $(this).closest('tr');
+            $row.find('input.price-input').each(function() {
+                window.calcCellTotal($(this));
+            });
+        });
+
+        $(document).on('blur', '.qty-input', function() {
+            const num = parseQty($(this).val());
+            $(this).val(formatQty2(num));
+            const $row = $(this).closest('tr');
+            $row.find('input.price-input').each(function() {
+                window.calcCellTotal($(this));
+            });
+        });
+    </script>
+
+    <script>
+        $(document).on('keypress', '.price-input', function(e) {
+            const code = e.which || e.keyCode;
+            if ([8, 9, 13, 37, 38, 39, 40, 46].includes(code)) return;
+
+            const ch = String.fromCharCode(code);
+            if (!/[0-9.,]/.test(ch)) {
+                e.preventDefault();
+                return;
+            }
+
+            const v = $(this).val() || '';
+            if ((ch === ',' || ch === '.') && /[.,]/.test(v)) {
+                e.preventDefault();
+            }
+        });
+
+        $(document).on('input', '.price-input', function() {
+            let v = $(this).val() || '';
+            v = v.replace(/[^0-9.,]/g, '');
+            const firstSep = v.search(/[.,]/);
+            if (firstSep !== -1) {
+                const head = v.slice(0, firstSep + 1);
+                const tail = v.slice(firstSep + 1).replace(/[.,]/g, '');
+                v = head + tail;
+            }
+            $(this).val(v);
+        });
+
+        $(document).on('blur', '.price-input', function() {
+            const num = parsePrice($(this).val());
+            $(this).val(formatPrice2(num));
+            window.calcCellTotal($(this));
+        });
+    </script>
+
+    <script>
+        $(function() {
+            let taxCache = null;
+            let taxTargetInput = null;
+            let taxTargetColKey = null;
+            let taxTargetType = null;
+
+            function openTaxModal($input, colKey, type) {
+                taxTargetInput = $input;
+                taxTargetColKey = String(colKey);
+                taxTargetType = String(type);
+
+                const $modal = $('#taxModal');
+                $modal.removeClass('hidden');
+
+                if (!taxCache) {
+                    $.getJSON('{{ route('taxes.index') }}', function(data) {
+                        taxCache = Array.isArray(data) ? data : [];
+                        renderTaxTable(taxCache);
+                    });
+                } else {
+                    renderTaxTable(taxCache);
+                }
+
+                setTimeout(() => $('#taxSearch').trigger('focus'), 50);
+            }
+
+            function closeTaxModal() {
+                $('#taxModal').addClass('hidden');
+                taxTargetInput = null;
+                taxTargetColKey = null;
+                taxTargetType = null;
+            }
+
+            function renderTaxTable(rows) {
+                const $tbody = $('#taxTableBody');
+                $tbody.empty();
+                rows.forEach(r => {
+                    $tbody.append(`
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-3 py-2 text-xs">${r.taxid ?? ''}</td>
+                            <td class="px-3 py-2 text-xs">${Number(r.taxrate ?? 0).toFixed(2)}</td>
+                            <td class="px-3 py-2 text-xs">${r.descr ?? ''}</td>
+                            <td class="px-3 py-2 text-right">
+                                <button type="button" class="btn-choose-tax rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
+                                    data-taxid="${r.taxid}" data-taxrate="${r.taxrate}">Choose</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+
+            $(document).on('click', '.btn-pick-tax', function() {
+                const colKey = $(this).data('col-key');
+                const type = $(this).data('for');
+                const $cell = $(`#td-sum-${String(colKey)}`);
+                const $input = (type === 'ppn') ? $cell.find('.sum-ppn') : $cell.find('.sum-pph');
+                openTaxModal($input, colKey, type);
+            });
+
+            $('#taxModalClose, #taxModalOverlay').on('click', closeTaxModal);
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape') closeTaxModal();
+            });
+
+            $('#taxSearch').on('input', function() {
+                const q = ($(this).val() || '').toLowerCase();
+                if (!taxCache) return;
+                const filtered = taxCache.filter(r => {
+                    const s1 = String(r.taxid ?? '').toLowerCase();
+                    const s2 = String(r.descr ?? '').toLowerCase();
+                    const s3 = String(r.taxrate ?? '').toLowerCase();
+                    return s1.includes(q) || s2.includes(q) || s3.includes(q);
+                });
+                renderTaxTable(filtered);
+            });
+
+            $(document).on('click', '.btn-choose-tax', function() {
+                if (!taxTargetInput) return;
+
+                const taxid = $(this).data('taxid');
+                const rate = Number($(this).data('taxrate') || 0);
+
+                taxTargetInput.val(rate.toFixed(2)).trigger('input');
+
+                const $cell = $(`#td-sum-${taxTargetColKey}`);
+                if (taxTargetType === 'ppn') {
+                    $cell.find('.sum-ppn-id').val(taxid);
+                } else {
+                    $cell.find('.sum-pph-id').val(taxid);
+                }
+
+                recalcSummaryVendor(String(taxTargetColKey));
+                closeTaxModal();
+            });
+        });
+    </script>
+
+    <script>
+        function validateQtyLimit() {
+            let ok = true;
+
+            $('#cvBody tr').each(function() {
+                const $tr = $(this);
+                const max = Number($tr.data('original_qty'));
+                const $inp = $tr.find('.qty-input');
+                const cur = parseQty($inp.val());
+
+                $inp.removeClass('is-invalid');
+                $tr.find('.qty-error').remove();
+
+                if (isFinite(max) && cur > max) {
+                    ok = false;
+                    $inp.addClass('is-invalid');
+                    $('<div class="error-feedback qty-error">Qty tidak boleh melebihi ' + formatQty2(max) + '.</div>')
+                        .insertAfter($inp);
+                }
+            });
+
+            return ok;
+        }
+
+        $(document).on('blur', '.qty-input', function() {
+            const $tr = $(this).closest('tr');
+            const max = Number($tr.data('original_qty'));
+            const curN = parseQty($(this).val());
+
+            if (isFinite(max) && curN > max) {
+                $(this).addClass('is-invalid');
+                $tr.find('.qty-error').remove();
+                $('<div class="error-feedback qty-error">Qty dikembalikan ke maksimum: ' + formatQty2(max) + '.</div>')
+                    .insertAfter($(this));
+
+                $(this).val(formatQty2(max));
+                $tr.find('input.price-input').each(function() {
+                    window.calcCellTotal($(this));
+                });
+            } else {
+                $(this).removeClass('is-invalid');
+                $tr.find('.qty-error').remove();
+            }
+        });
+    </script>
+    {{-- <script>
+        (function() {
+            const EPS = 1;
+
+            function fmtIDR(n) {
+                return (Number(n) || 0).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function showMismatchTable(rows) {
+                const $tbody = $('#bqcsMismatchBody').empty();
+                rows.forEach(r => {
+                    const cls = 'text-red-600 dark:text-red-400 font-semibold';
+                    $tbody.append(`
+                        <tr>
+                            <td class="px-3 py-2">${_.escape(r.vendor_label)}</td>
+                            <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.bq)}</td>
+                            <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.cs_before_tax)}</td>
+                            <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.diff)}</td>
+                        </tr>
+                    `);
+                });
+                $('#bqcsMismatchModal').removeClass('hidden');
+            }
+
+            $('#bqcsMismatchClose, #bqcsMismatchOk').on('click', function() {
+                $('#bqcsMismatchModal').addClass('hidden');
+            });
+
+            window.validateBQvsCS = function() {
+                const docType = "{{ $doc }}";
+                const requiresBQ = (docType === 'SPPJ' || docType === 'SPPT');
+
+                if (requiresBQ && !BQ_EXISTS) {
+                    toastr.error('BQ belum dibuat untuk dokumen ini. Buat/isi BQ terlebih dahulu sebelum submit.');
+                    return false;
+                }
+
+                if (!requiresBQ) return true;
+                if (!CS_VENDOR_TOTALS || !BQ_VENDOR_TOTALS) return true;
+
+                const mismatches = [];
+
+                for (let i = 1; i <= 6; i++) {
+                    const csRow = CS_VENDOR_TOTALS[i];
+                    // const bqRow = BQ_VENDOR_TOTALS[i];
+                    const normalizeVendorName = (s) => String(s || '')
+                        .toUpperCase()
+                        .replace(/\s+/g, ' ')
+                        .replace(/\s*,\s*/g, ',')
+                        .trim();
+
+                    const csVendorName = normalizeVendorName(csRow?.vendorname || '');
+
+                    // const bqRow = Object.values(BQ_VENDOR_TOTALS || {}).find(v =>
+                    //     normalizeVendorName(v.vendorname || '') === csVendorName
+                    // );
+                    const bqRow = BQ_VENDOR_TOTALS[i] || null;
+
+                    if (!csRow && !bqRow) continue;
+
+                    const vendorName = (csRow?.vendorname || csRow?.vendorid || `Vendor ${i}`);
+
+                    // CS yang dibandingkan = total sebelum pajak
+                    const csBeforeTax = Number(csRow?.total_cs || 0);
+
+                    // BQ diasumsikan juga total sebelum pajak
+                    const bqSum = Number(bqRow?.sum_bq || 0);
+
+                    const diff = bqSum - csBeforeTax;
+                    if (Math.abs(diff) > EPS) {
+                        mismatches.push({
+                            idx: i,
+                            vendor_label: vendorName,
+                            bq: bqSum,
+                            cs_before_tax: csBeforeTax,
+                            diff: diff
+                        });
+                    }
+                }
+
+                if (mismatches.length > 0) {
+                    showMismatchTable(mismatches);
+                    return false;
+                }
+
+                return true;
+            };
+        })();
+    </script> --}}
+    <script>
+        (function() {
+            const EPS = 1;
+
+            function fmtIDR(n) {
+                return (Number(n) || 0).toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function showMismatchTable(rows) {
+                const $tbody = $('#bqcsMismatchBody').empty();
+
+                rows.forEach(r => {
+                    const cls = 'text-red-600 dark:text-red-400 font-semibold';
+
+                    $tbody.append(`
+                        <tr>
+                            <td class="px-3 py-2">${_.escape(r.vendor_label)}</td>
+                            <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.bq)}</td>
+                            <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.cs_before_tax)}</td>
+                            <td class="px-3 py-2 text-right ${cls}">${fmtIDR(r.diff)}</td>
+                        </tr>
+                    `);
+                });
+
+                $('#bqcsMismatchModal').removeClass('hidden');
+            }
+
+            $('#bqcsMismatchClose, #bqcsMismatchOk').on('click', function() {
+                $('#bqcsMismatchModal').addClass('hidden');
+            });
+
+            window.validateBQvsCS = function() {
+                const docType = "{{ $doc }}";
+                const requiresBQ = (docType === 'SPPJ' || docType === 'SPPT');
+
+                if (requiresBQ && !BQ_EXISTS) {
+                    toastr.error('BQ belum dibuat untuk dokumen ini. Buat/isi BQ terlebih dahulu sebelum submit.');
+                    return false;
+                }
+
+                if (!requiresBQ) return true;
+                if (!CS_VENDOR_TOTALS || !BQ_VENDOR_TOTALS) return true;
+
+                const mismatches = [];
+
+                for (let i = 1; i <= 6; i++) {
+                    const csRow = CS_VENDOR_TOTALS[i] || null;
+                    const bqRow = BQ_VENDOR_TOTALS[i] || null;
+
+                    if (!csRow && !bqRow) continue;
+
+                    const csVendorId = String(csRow?.vendorid || '').trim();
+                    const bqVendorId = String(bqRow?.vendorid || '').trim();
+
+                    const csBeforeTax = Number(csRow?.total_cs || 0);
+                    const bqSum = Number(bqRow?.sum_bq || 0);
+
+                    // Kalau slot kosong dan dua-duanya 0, skip
+                    if (!csVendorId && !bqVendorId && csBeforeTax === 0 && bqSum === 0) {
+                        continue;
+                    }
+
+                    const vendorLabel = csRow?.vendorname ||
+                        csRow?.vendorid ||
+                        bqRow?.vendorname ||
+                        bqRow?.vendorid ||
+                        `Vendor ${i}`;
+
+                    /*
+                    * IMPORTANT:
+                    * Compare berdasarkan slot vendor ke-i.
+                    * Jangan cari berdasarkan vendor name/vendor id saja,
+                    * karena vendor yang sama boleh muncul lebih dari satu kolom:
+                    * vendor1 = VV00531, vendor2 = VV00531.
+                    */
+                    const diff = bqSum - csBeforeTax;
+
+                    if (Math.abs(diff) > EPS) {
+                        mismatches.push({
+                            idx: i,
+                            vendor_label: `${vendorLabel} #${i}`,
+                            bq: bqSum,
+                            cs_before_tax: csBeforeTax,
+                            diff: diff
+                        });
+                    }
+                }
+
+                if (mismatches.length > 0) {
+                    showMismatchTable(mismatches);
+                    return false;
+                }
+
+                return true;
+            };
+        })();
+    </script>
+
+    
+    <script>
+        function validatePaymentTerms() {
+            let ok = true;
+
+            $('#cvTable thead th[id^="th-vendor-"] select.cara-bayar').removeClass('is-invalid');
+
+            $('#cvTable thead th[id^="th-vendor-"]').each(function() {
+                const $th = $(this);
+                const $top = $th.find('select.cara-bayar');
+                const val = $top.val();
+
+                if (!val) {
+                    ok = false;
+                    $top.addClass('is-invalid');
+                    const th = $th.get(0);
+                    if (th && th.scrollIntoView) th.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest',
+                        inline: 'center'
+                    });
+                    setTimeout(() => $top.trigger('focus'), 150);
+                    return false;
+                }
+            });
+
+            if (!ok) {
+                toastr.error('Payment Term (TOP) wajib diisi untuk semua vendor.');
+            }
+            return ok;
+        }
+
+        $(document).on('change', 'select.cara-bayar', function() {
+            if ($(this).val()) $(this).removeClass('is-invalid');
+        });
+    </script>
+
+    <script>
+        function validateUniqueVendorColKeys() {
+            const used = {};
+            let duplicate = false;
+
+            getVendorColumns().each(function() {
+                const colKey = String($(this).data('col-key') || '');
+
+                if (!colKey) return;
+
+                if (used[colKey]) {
+                    duplicate = true;
+                    return false;
+                }
+
+                used[colKey] = true;
+            });
+
+            if (duplicate) {
+                toastr.error('Vendor column key duplicate. Silakan refresh halaman lalu input ulang vendor.');
+                return false;
+            }
+
+            return true;
+        }
+
+        function unlockApprovalSubmit() {
+            isSubmittingApproval = false;
+
+            $('#submitBtn')
+                .prop('disabled', false)
+                .removeClass('hidden cursor-not-allowed opacity-60');
+
+            $('#btnText').text('Submit Approval');
+            $('#loadingSpinner').addClass('hidden');
+
+            $('#saveBtn, #cancelBtn, #backBtn, #addAttachment')
+                .prop('disabled', false)
+                .removeClass('cursor-not-allowed opacity-60 pointer-events-none');
+
+            $('#csForm')
+                .find('input, select, textarea, button')
+                .prop('disabled', false);
+
+            hideOverlay();
+        }
+
+        $('#saveBtn').on('click', function(e) {
+            e.preventDefault();
+
+            // cegah double click / request kedua
+            if (isSavingCs || isSubmittingApproval) {
+                return false;
+            }
+
+            isSavingCs = true;
+
+            if (!validateQtyLimit()) {
+                toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
+                return;
+            }
+
+            const $vendorCols = getVendorColumns();
+            if ($vendorCols.length === 0) {
+                toastr.error('Pilih minimal 1 vendor.');
+                return;
+            }
+
+            if (!validateUniqueVendorColKeys()) return;
+
+            if (!validatePaymentTerms()) return;
+
+            let allVendorTotalsZero = true;
+            $vendorCols.each(function() {
+                const colKey = String($(this).data('col-key'));
+                const total = numFromText($(`#td-sum-${colKey} .sum-total`).text());
+                if (total > 0) allVendorTotalsZero = false;
+            });
+
+            if (allVendorTotalsZero) {
+                toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
+                return;
+            }
+
+            const vendors = collectVendorsPayload();
+            const details = collectDetailsPayload();
+
+            const fd = new FormData(document.getElementById('csForm'));
+            fd.append('vendors', JSON.stringify(vendors));
+            fd.append('details', JSON.stringify(details));
+            fd.append('action', 'save');
+            fd.append('_method', 'PUT');
+
+            showOverlay('Submitting');
+
+            $.ajax({
+                url: "{{ route('csjobs.update', $cs->csid) }}",
+                method: 'POST',
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    hideOverlay();
+                    toastr.success('CS berhasil disimpan.');
+                    window.location.href = res.redirect ?? window.location.href;
+                },
+                // error: function(xhr) {
+                //     hideOverlay();
+                //     let msg = 'Gagal menyimpan CS.';
+                //     if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                //     toastr.error(msg);
+                // }
+                error: function(xhr) {
+                    hideOverlay();
+
+                    isSavingCs = false;
+
+                    $('#saveBtn')
+                        .prop('disabled', false)
+                        .removeClass('cursor-not-allowed opacity-60');
+
+                    $('#saveText').text('Save CS');
+                    $('#saveSpinner').addClass('hidden');
+
+                    let msg = 'Gagal menyimpan CS.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    toastr.error(msg);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        function lockApprovalSubmit(text = 'Submitting approval...') {
+            isSubmittingApproval = true;
+
+            $('#submitBtn')
+                .prop('disabled', true)
+                .addClass('hidden cursor-not-allowed opacity-60');
+
+            $('#btnText').text(text);
+            $('#loadingSpinner').removeClass('hidden');
+
+            $('#saveBtn, #cancelBtn, #backBtn, #addAttachment')
+                .prop('disabled', true)
+                .addClass('cursor-not-allowed opacity-60 pointer-events-none');
+
+            showOverlay(text);
+        }
+        $('#submitBtn').on('click', function(e) {
+            e.preventDefault();
+
+            if (isSubmittingApproval || isSavingCs) {
+                return false;
+            }
+
+            if (!validateQtyLimit()) {
+                toastr.error('Ada qty yang melebihi qty awal. Periksa kembali.');
+                return;
+            }
+
+            if (!validateBQvsCS()) {
+                return;
+            }
+
+            if (!validatePaymentTerms()) return;
+
+            const $vendorCols = getVendorColumns();
+            if ($vendorCols.length === 0) {
+                toastr.error('Pilih minimal 1 vendor.');
+                return;
+            }
+
+            let allVendorTotalsZero = true;
+            $vendorCols.each(function() {
+                const colKey = String($(this).data('col-key'));
+                const total = numFromText($(`#td-sum-${colKey} .sum-total`).text());
+                if (total > 0) allVendorTotalsZero = false;
+            });
+
+            if (allVendorTotalsZero) {
+                toastr.error('Total tidak boleh 0. Isi harga minimal pada salah satu vendor.');
+                return;
+            }
+
+            if ($('.pick-vendor:checked').length === 0) {
+                toastr.error('Pilih vendor pada minimal satu item.');
+                return;
+            }
+
+            let rowWithoutVendor = false;
+            $('#cvBody tr').each(function() {
+                let hasPrice = false;
+
+                $(this).find('input.price-input').each(function() {
+                    const num = parsePrice($(this).val() || '');
+                    if (num > 0) {
+                        hasPrice = true;
+                        return false;
+                    }
+                });
+
+                if (hasPrice && $(this).find('.pick-vendor:checked').length === 0) {
+                    rowWithoutVendor = true;
+                    return false;
+                }
+            });
+
+            if (rowWithoutVendor) {
+                toastr.error('Ada baris yang memiliki harga tetapi belum memilih vendor.');
+                return;
+            }
+
+            const vendors = collectVendorsPayload();
+            const details = collectDetailsPayload();
+
+            const doc = $('input[name="doc"]').val();
+            const src_id = $('input[name="src_id"]').val();
+
+            // showOverlay('Validating qty...');
+            lockApprovalSubmit('Validating qty...');
+
+            $.ajax({
+                url: "{{ route('cs.check-qty') }}",
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    doc,
+                    src_id,
+                    details: JSON.stringify(details)
+                },
+                success: function(res) {
+                    const fd = new FormData(document.getElementById('csForm'));
+                    fd.append('vendors', JSON.stringify(vendors));
+                    fd.append('details', JSON.stringify(details));
+                    fd.append('action', 'submit');
+                    fd.append('_method', 'PUT');
+
+                    showOverlay('Submitting...');
+
+                    $.ajax({
+                        url: "{{ route('csjobs.update', $cs->csid) }}",
+                        method: 'POST',
+                        data: fd,
+                        processData: false,
+                        contentType: false,
+                        success: function() {
+                            hideOverlay();
+                            toastr.success('CS berhasil disubmit.');
+                            // window.location.href = "/cslist";
+                            window.location.replace(res.redirect || "/cslist");
+                        },
+                        error: function(xhr) {
+                            // hideOverlay();
+                            unlockApprovalSubmit();
+                            toastr.error(xhr.responseJSON?.message || 'Gagal menyimpan CS.');
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    // hideOverlay();
+                    unlockApprovalSubmit();
+                    const res = xhr.responseJSON || {};
+                    toastr.error(res.message || 'Qty tidak valid.');
+
+                    if (Array.isArray(res.errors)) {
+                        res.errors.forEach(err => {
+                            $('#cvBody tr').eq(err.row_index).addClass('bg-red-100');
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $('#cancelBtn').on('click', function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Cancel CS?',
+                text: 'CS akan dibatalkan (Cancel). Proses ini tidak bisa dibatalkan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Cancel',
+                cancelButtonText: 'No',
+                reverseButtons: true
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Reason (optional)',
+                    input: 'text',
+                    inputPlaceholder: 'Tulis alasan cancel...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit Cancel',
+                    cancelButtonText: 'Back'
+                }).then((r2) => {
+                    if (!r2.isConfirmed) return;
+
+                    const reason = (r2.value || '').trim();
+
+                    showOverlay('Cancelling...');
+
+                    $.ajax({
+                        url: "{{ route('csjobs.cancel', $cs->csid) }}",
+                        method: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            _method: 'PUT',
+                            reason: reason
+                        },
+                        success: function(res) {
+                            hideOverlay();
+                            toastr.success(res.message || 'CS berhasil dicancel.');
+                            window.location.href = res.redirect || '/cslist';
+                        },
+                        error: function(xhr) {
+                            hideOverlay();
+                            toastr.error(xhr.responseJSON?.message || 'Gagal cancel CS.');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+    <script>
+        function openLastPriceModal() {
+            $('#lastPriceModal').removeClass('hidden');
+        }
+
+        function closeLastPriceModal() {
+            $('#lastPriceModal').addClass('hidden');
+            $('#lpBody').empty();
+            $('#lpEmpty').addClass('hidden');
+            $('#lpLoading').addClass('hidden');
+            $('#lpTitle').text('');
+        }
+
+        $('#lastPriceModalClose, #lastPriceModalOverlay').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeLastPriceModal();
+        });
+
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') closeLastPriceModal();
+        });
+
+        $(document).on('click', '.btn-lastprice', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const inventoryid = String($(this).data('inventoryid') || '');
+            const inventorydescr = String($(this).data('inventorydescr') || '');
+
+            if (!inventoryid) {
+                toastr.error('Inventory ID kosong.');
+                return;
+            }
+
+            $('#lpTitle').text(inventoryid + (inventorydescr ? (' — ' + inventorydescr) : ''));
+            $('#lpBody').empty();
+            $('#lpEmpty').addClass('hidden');
+            $('#lpLoading').removeClass('hidden');
+
+            openLastPriceModal();
+
+            $.ajax({
+                url: "{{ route('cs.lastprice.history.entry') }}",
+                method: "GET",
+                data: {
+                    inventoryid
+                },
+                success: function(res) {
+                    $('#lpLoading').addClass('hidden');
+
+                    const rows = (res && res.data) ? res.data : [];
+                    if (!rows.length) {
+                        $('#lpEmpty').removeClass('hidden');
+                        return;
+                    }
+
+                    rows.forEach(r => {
+                        const tr = `
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="px-3 py-2">${r.ponbr ?? ''}</td>
+                                <td class="px-3 py-2">${r.podate ?? ''}</td>
+                                <td class="px-3 py-2">${r.csid ?? ''}</td>
+                                <td class="px-3 py-2">${r.vendorname ?? ''}</td>
+                                <td class="px-3 py-2 text-right font-semibold">${formatNumID(r.unitcost)}</td>
+                                <td class="px-3 py-2">${r.purchaser ?? ''}</td>
+                            </tr>
+                        `;
+                        $('#lpBody').append(tr);
+                    });
+                },
+                error: function(xhr) {
+                    $('#lpLoading').addClass('hidden');
+                    const msg = (xhr.responseJSON && xhr.responseJSON.message) ?
+                        xhr.responseJSON.message :
+                        'Gagal ambil history.';
+                    toastr.error(msg);
+                }
+            });
+        });
+
+        document.getElementById('csForm').addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter') return;
+
+            const tag = e.target.tagName;
+            const type = (e.target.type || '').toLowerCase();
+
+            if (tag === 'TEXTAREA') return;
+            if (type === 'file') return;
+
+            e.preventDefault();
+
+            const inputs = Array.from(
+                this.querySelectorAll('input, select, textarea')
+            ).filter(el =>
+                !el.disabled &&
+                el.offsetParent !== null
+            );
+
+            const index = inputs.indexOf(document.activeElement);
+
+            if (index > -1 && index + 1 < inputs.length) {
+                inputs[index + 1].focus();
+            }
+        });
+    </script>
+    <script>
+        // $('#csForm').on('submit', function(e) {
+        //     e.preventDefault();
+
+        //     if (isSubmittingApproval) {
+        //         return false;
+        //     }
+
+        //     $('#submitBtn').trigger('click');
+        // });
+        $('#csForm').on('submit', function(e) {
+            e.preventDefault();
+
+            if (isSubmittingApproval) {
+                return false;
+            }
+
+            // hanya trigger submit approval kalau tombol submit masih aktif
+            if ($('#submitBtn').length && !$('#submitBtn').prop('disabled')) {
+                $('#submitBtn').trigger('click');
+            }
+
+            return false;
+        });
+    </script>
+    <script>
+        let isSubmittingApproval = false;
+        let isSavingCs = false;
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+</x-app-layout>
