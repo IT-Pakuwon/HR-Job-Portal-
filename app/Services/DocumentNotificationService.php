@@ -637,9 +637,9 @@ class DocumentNotificationService
             'PKR' => ['model' => TrParkingRegistration::class, 'idCol' => 'docid',            'url' => '/showparkingregistration', 'creatorFields' => ['user_peminta', 'created_by'], 'approvalDoctype' => 'PKR'],
             'PRF' => ['model' => Personnel::class,              'idCol' => 'docid',            'url' => '/showpersonnels',          'creatorFields' => ['created_user'],               'approvalDoctype' => 'PRF'],
 
-            'RFP' => ['model' => TrRfpNonPurch::class, 'idCol' => 'rfpnonpurchaseid', 'url' => '/showrfpnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'RFP', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
-            'RCA' => ['model' => TrRfpNonPurch::class, 'idCol' => 'rfpnonpurchaseid', 'url' => '/showrfpnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'RCA', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
-            'CAR' => ['model' => TrCalrNonPurch::class, 'idCol' => 'calrnonpurchaseid', 'url' => '/showcalrnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'CAR', 'roleIds' => ['APFINACCESS', 'APTREACCESS']],
+            'RFP' => ['model' => TrRfpNonPurch::class, 'idCol' => 'rfpnonpurchaseid', 'url' => '/showrfpnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'RFP', 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
+            'RCA' => ['model' => TrRfpNonPurch::class, 'idCol' => 'rfpnonpurchaseid', 'url' => '/showrfpnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'RCA', 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
+            'CAR' => ['model' => TrCalrNonPurch::class, 'idCol' => 'calrnonpurchaseid', 'url' => '/showcalrnonpurch', 'creatorFields' => ['created_by'], 'approvalDoctype' => 'CAR', 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
 
             'RP' => ['model' => TrRfp::class,  'idCol' => 'rfp_id', 'url' => '/showrfp',  'creatorFields' => ['created_by'],               'approvalDoctype' => 'RP', 'roleIds' => ['APFINACCESS', 'APTREACCESS', 'FINACCESS']],
             // RFCA has no TrApproval line of its own (routed via TrRfcaStep instead) — no approvalDoctype by design.
@@ -669,13 +669,17 @@ class DocumentNotificationService
         }
 
         return User::whereIn(DB::raw('lower(username)'), $roleUsernames->all())
-            ->get(['username', 'cpny_id'])
+            ->get(['username', 'cpny_id', 'user_role'])
             ->filter(function ($u) use ($cpnyId) {
                 $ids = is_string($u->cpny_id)
                     ? array_filter(array_map('trim', explode(',', $u->cpny_id)))
                     : (array) $u->cpny_id;
                 return in_array((string) $cpnyId, $ids, true);
             })
+            // Admin accounts sometimes pick up finance/treasury access roles for testing or
+            // oversight — they're not real finance/treasury staff, so skip them here rather
+            // than spamming an admin account on every document comment in these doctypes.
+            ->reject(fn($u) => strtolower(trim((string) $u->user_role)) === 'admin')
             ->pluck('username')
             ->map(fn($u) => strtolower(trim($u)));
     }
