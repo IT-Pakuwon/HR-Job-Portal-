@@ -175,7 +175,7 @@
             function renderPONbr(_v, row) {
                 const url = `/showpo/${row.eid}`;
                 const text = row.ponbr || row.eid;
-                return `<a href="${url}" class="inline-flex min-w-[90px] justify-center rounded bg-gray-500 px-2 py-1 text-sm font-semibold text-white hover:bg-gray-700" rel="noopener">${text}</a>`;
+                return `<a href="${url}" target="_blank" class="inline-flex min-w-[90px] justify-center rounded bg-gray-500 px-2 py-1 text-sm font-semibold text-white hover:bg-gray-700" rel="noopener">${text}</a>`;
             }
 
             function renderStatusBadge(row) {

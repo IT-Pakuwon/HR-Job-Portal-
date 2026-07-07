@@ -1082,7 +1082,7 @@ class IMBudgetController extends Controller
                 | budget_needed/requested = selisih expense - budget_remain.
                 |--------------------------------------------------------------------------
                 */
-                $budgetRemain = max(0.0, $remain);
+                $budgetRemain = max(0.0, $remain + $expense);
                 $needed = max(0.0, $expense - $budgetRemain);
                 $requested = $needed;
 
@@ -1558,16 +1558,27 @@ class IMBudgetController extends Controller
 
                 $expense = $calrBudgetRemain;
 
+                $remain = round((float) $getBudgetRemain(
+                    $g['perpost'],
+                    $g['cpny'],
+                    $g['bu'],
+                    $g['deptfin'],
+                    $g['account'],
+                    $g['activity'],
+                    $g['actdescr']
+                ), 2);
+
                 /*
                 |--------------------------------------------------------------------------
                 | Logic kekurangan budget
                 |--------------------------------------------------------------------------
-                | Khusus CALR Non Purchase:
-                | nilai yang dipakai adalah selisih amountsettlement - amountrfp.
+                | budget_remain = sisa budget yang tersedia (jika minus dibulatkan ke 0).
+                | budget_needed/requested = selisih expense - budget_remain.
+                | Khusus CALR Non Purchase, expense memakai selisih settlement - RFP.
                 |--------------------------------------------------------------------------
                 */
-                $budgetRemain = $calrBudgetRemain;
-                $needed = $calrBudgetRemain;
+                $budgetRemain = max(0.0, $remain + $expense);
+                $needed = max(0.0, $expense - $budgetRemain);
                 $requested = $needed;
 
                 if ($needed <= 0) {

@@ -591,6 +591,14 @@ class PoController extends Controller
             $po->updated_at = $now;
             $po->save();
 
+            TrPOterm::where('ponbr', $po->ponbr)
+                ->where('cpny_id', $po->cpny_id)
+                ->update([
+                    'status' => 'X',
+                    'updated_by' => $username,
+                    'updated_at' => $now,
+                ]);
+
             /*
             |--------------------------------------------------------------------------
             | 4) Insert detail ke tabel Reuse
