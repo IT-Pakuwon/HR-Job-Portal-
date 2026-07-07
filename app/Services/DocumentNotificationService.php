@@ -502,7 +502,7 @@ class DocumentNotificationService
 
             foreach ($commentDocTypes as $commentDoctype => $cfg) {
                 $rows = TrMessage::where('doctype', $commentDoctype)
-                    ->where('message_date', '>=', now()->subDays(14))
+                    ->where('message_date', '>=', now()->subDays(7))
                     ->whereRaw("lower(trim(coalesce(username,''))) != ?", [$username])
                     ->get();
 
