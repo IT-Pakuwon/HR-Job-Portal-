@@ -269,7 +269,7 @@
                                         <div>
                                             <label class="mb-2 block text-sm font-medium">Division</label>
                                             <select name="division_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select division access" required>
+                                                data-placeholder="Search and select division access">
                                                 <option></option>
                                                 @foreach ($divisions as $d)
                                                     <option value="{{ $d->division_id }}">
@@ -282,7 +282,7 @@
                                         <div>
                                             <label class="mb-2 block text-sm font-medium">Business Unit</label>
                                             <select name="business_unit_id[]" class="select2 w-full" multiple
-                                                data-placeholder="Search and select business unit access" required>
+                                                data-placeholder="Search and select business unit access">
                                                 <option></option>
                                                 @foreach ($businessUnits as $bu)
                                                     <option value="{{ $bu->business_unit_id }}">

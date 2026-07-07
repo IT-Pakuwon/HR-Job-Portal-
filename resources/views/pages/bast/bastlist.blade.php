@@ -142,7 +142,7 @@
                 {{-- End Date --}}
                 <input type="date" id="filter_end" class="w-full rounded border px-3 py-2 text-sm">
 
-                <button onclick="resetFilters()" class="rounded bg-gray-500 px-3 py-2 text-white">
+                <button type="button" id="reset_filters" class="rounded bg-gray-500 px-3 py-2 text-white">
                     Reset
                 </button>
             </div>
@@ -494,6 +494,8 @@
 
                 table.ajax.reload();
             }
+
+            $('#reset_filters').on('click', resetFilters);
 
             function renderPlusCreate(row) {
                 // create BAST → kirim hash id PO (hasil mapping di controller)

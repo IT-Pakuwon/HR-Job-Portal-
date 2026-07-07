@@ -125,32 +125,7 @@
                             @endif
                         </h1>
 
-                        {{-- @php
-                            // Mapping status PO (versi baru)
-                            $statusText = match ($po->status) {
-                                'H' => 'Hold',
-                                'P' => 'Purchase Order',
-                                'O' => 'Partial Release',
-                                'C' => 'Completed',
-                                'X' => 'Canceled',
-                                'D' => 'Reuse',
-                                default => 'Unknown',
-                            };
-
-                            $statusClasses = match ($po->status) {
-                                'H' => 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-300',
-                                'P' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-300',
-                                'O' => 'bg-amber-100 text-amber-700 dark:bg-amber-800/30 dark:text-amber-300',
-                                'C' => 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-300',
-                                'X' => 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-300',
-                                'R' => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
-                                default => 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300',
-                            };
-
-                            // Helper number format
-                            $nf0 = fn($n) => number_format((float) $n, 0, ',', '.');
-                            $nf2 = fn($n) => number_format((float) $n, 2, ',', '.');
-                        @endphp --}}
+                       
 
                         @php
                             /*
@@ -1124,7 +1099,7 @@
                                     </table>
                                 </div>
 
-                                @if ($po->status === 'H' || $po->send_email === false)
+                                {{-- @if ($po->status === 'H' || $po->send_email === false) --}}
                                     {{-- Upload (status HOLD saja yang boleh) --}}
                                     <form id="poAttachmentUploadForm" enctype="multipart/form-data"
                                         class="sticky bottom-0 z-10 mt-6 rounded-b-lg border-t border-gray-200 bg-gray-100 p-4 shadow-sm   dark:border-gray-700 dark:bg-gray-700">
@@ -1168,7 +1143,7 @@
                                                 0%</p>
                                         </div>
                                     </form>
-                                @endif
+                                {{-- @endif --}}
                             </div>
 
 

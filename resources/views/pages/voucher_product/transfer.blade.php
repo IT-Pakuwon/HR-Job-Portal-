@@ -133,7 +133,7 @@
 {{-- ======================================================== --}}
 <div id="productSearchModal" class="fixed inset-0 z-[90] hidden items-center justify-center p-4">
     <div class="modal-backdrop absolute inset-0 bg-slate-900/70 opacity-0 transition-opacity duration-200"></div>
-    <div class="modal-panel modal-scroll relative z-10 flex max-h-[80vh] w-full max-w-3xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[80vh] w-full max-w-4xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
         <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
             <h3 class="text-sm font-bold text-slate-800 dark:text-white">Select Product</h3>
             <button type="button" id="closeProductSearchModal">
@@ -147,7 +147,9 @@
                         <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Product ID</th>
                         <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Product Name</th>
                         <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Expired Date</th>
-                        <th class="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">Qty Available</th>
+                        <th class="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">Stock</th>
+                        <th class="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">Reserved</th>
+                        <th class="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">Available</th>
                         <th class="px-3 py-2"></th>
                     </tr>
                 </thead>

@@ -2,7 +2,7 @@
 
     {{-- Bell Button --}}
     <button
-        @click.prevent="open = !open"
+        @click.prevent="open = !open; if (open) load()"
         class="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
         :class="{ 'bg-gray-100 dark:bg-gray-700': open }"
         title="Document Notifications">
@@ -346,6 +346,11 @@ function docNotifications() {
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
+            // Comment/mention items the user has actually seen in the open dropdown
+            // count as read even if they never click through to the document.
+            this.$watch('open', (value) => {
+                if (!value) this.markVisibleCommentsRead();
+            });
         },
 
         // ── Seen tracking (expires after 7 days → triggers re-alert) ──
@@ -481,13 +486,23 @@ function docNotifications() {
             }
         },
 
-        // Comment/mention notifications disappear for good once opened — tell the server
-        // so it's excluded on the next poll, instead of relying on client-side seen state.
-        markRead(item) {
-            if (!item || (item.status !== 'MENTION' && item.status !== 'COMMENT')) return;
+        // Fire the mark-read request in a way that survives the page navigating away
+        // right after this fires (clicking a notification both marks it read AND
+        // follows its href in the same click). Plain fetch(..., {keepalive:true}) is
+        // not reliably delivered once the browser starts unloading the page — that's
+        // exactly what sendBeacon exists for. _token rides in the JSON body since
+        // sendBeacon can't set custom headers, but Laravel's CSRF check reads
+        // input('_token') before falling back to the X-CSRF-TOKEN header.
+        _sendMarkRead(keys) {
+            if (!keys || keys.length === 0) return;
 
-            this.items = this.items.filter(i => i.key !== item.key);
-            this.count = this.items.length;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const payload = JSON.stringify({ keys, _token: csrf });
+
+            if (navigator.sendBeacon) {
+                const blob = new Blob([payload], { type: 'application/json' });
+                if (navigator.sendBeacon('/document-notifications/mark-read', blob)) return;
+            }
 
             try {
                 fetch('/document-notifications/mark-read', {
@@ -495,11 +510,34 @@ function docNotifications() {
                     keepalive: true,
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                        'X-CSRF-TOKEN': csrf,
                     },
-                    body: JSON.stringify({ key: item.key }),
+                    body: payload,
                 });
             } catch (e) { /* best effort */ }
+        },
+
+        // Comment/mention notifications disappear for good once opened — tell the server
+        // so it's excluded on the next poll, instead of relying on client-side seen state.
+        markRead(item) {
+            if (!item || (item.status !== 'MENTION' && item.status !== 'COMMENT')) return;
+
+            this.items = this.items.filter(i => i.key !== item.key);
+            this.count = this.items.length;
+            this._sendMarkRead([item.key]);
+        },
+
+        // Comment/mention items the user saw rendered in the open dropdown are
+        // "read" even without clicking through — dismiss them once the panel closes.
+        markVisibleCommentsRead() {
+            const keys = this.items
+                .filter(i => i.status === 'MENTION' || i.status === 'COMMENT')
+                .map(i => i.key);
+            if (keys.length === 0) return;
+
+            this.items = this.items.filter(i => i.status !== 'MENTION' && i.status !== 'COMMENT');
+            this.count = this.items.length;
+            this._sendMarkRead(keys);
         },
     };
 }

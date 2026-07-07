@@ -13,6 +13,47 @@
                 </button>
             </div>
 
+            {{-- Manage by Role: matrix view --}}
+            <div class="rounded-lg border border-gray-200 p-4 dark:border-gray-600">
+                <div class="flex flex-wrap items-end gap-3">
+                    <div class="min-w-[240px] flex-1">
+                        <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
+                            Manage by Role
+                        </label>
+                        <select id="matrixRole"
+                            class="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                            <option value="">-- Select a Role to manage its menus --</option>
+                            @foreach ($roles as $r)
+                                <option value="{{ $r->role_id }}">{{ $r->role_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div id="matrixActions" class="hidden flex flex-wrap items-center gap-2">
+                        <input id="matrixSearch" type="text" placeholder="Search menu..."
+                            class="rounded-lg border border-gray-300 px-2 py-1 text-sm dark:bg-gray-700">
+                        <button type="button" id="matrixSelectAll"
+                            class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                            Select All
+                        </button>
+                        <button type="button" id="matrixSelectNone"
+                            class="rounded-lg border px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-600">
+                            Select None
+                        </button>
+                        <button type="button" id="matrixSave"
+                            class="rounded-lg bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-700">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div id="matrixEmpty" class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                    Pick a role above to see and edit all of its menus in one place.
+                </div>
+
+                <div id="matrixGrid" class="mt-3 hidden grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+                </div>
+            </div>
+
             {{-- Filter Company & Department --}}
             <div class="mb-3 flex flex-wrap items-end gap-3">
                 <div class="min-w-[200px] flex-1">
@@ -265,6 +306,105 @@
                 table.draw();
             });
 
+            // ===== Manage by Role: matrix =====
+            const allMenus = @json($menus->map(fn($m) => ['menu_id' => $m->menu_id, 'menu_name' => $m->menu_name])->values());
+
+            function renderMatrix(checkedMenuIds) {
+                const checkedSet = new Set(checkedMenuIds);
+                const html = allMenus.map(m => `
+                    <label class="matrix-row flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+                           data-name="${(m.menu_name + ' ' + m.menu_id).toLowerCase()}">
+                        <input type="checkbox" class="matrixMenuChk h-4 w-4" value="${m.menu_id}"
+                               ${checkedSet.has(m.menu_id) ? 'checked' : ''}>
+                        <span>${m.menu_name} <span class="text-gray-400">(${m.menu_id})</span></span>
+                    </label>
+                `).join('');
+
+                $('#matrixGrid').html(html).removeClass('hidden');
+                $('#matrixEmpty').addClass('hidden');
+                $('#matrixActions').removeClass('hidden');
+            }
+
+            $('#matrixRole').on('change', function() {
+                const roleId = $(this).val();
+
+                if (!roleId) {
+                    $('#matrixGrid').addClass('hidden').empty();
+                    $('#matrixActions').addClass('hidden');
+                    $('#matrixEmpty').removeClass('hidden');
+                    return;
+                }
+
+                showLoading();
+                $.get(`/role-menus/by-role/${roleId}`, function(data) {
+                    hideLoading();
+                    renderMatrix(data.menu_ids || []);
+                }).fail(function() {
+                    hideLoading();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load menus for this role'
+                    });
+                });
+            });
+
+            $('#matrixSearch').on('input', function() {
+                const q = $(this).val().toLowerCase();
+                $('.matrix-row').each(function() {
+                    $(this).toggle($(this).data('name').includes(q));
+                });
+            });
+
+            $('#matrixSelectAll').on('click', function() {
+                $('.matrix-row:visible .matrixMenuChk').prop('checked', true);
+            });
+
+            $('#matrixSelectNone').on('click', function() {
+                $('.matrix-row:visible .matrixMenuChk').prop('checked', false);
+            });
+
+            $('#matrixSave').on('click', function() {
+                const roleId = $('#matrixRole').val();
+                if (!roleId) return;
+
+                const menuIds = $('.matrixMenuChk:checked').map(function() {
+                    return $(this).val();
+                }).get();
+
+                showLoading();
+                $.ajax({
+                    url: "{{ route('role_menus.save_by_role') }}",
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        role_id: roleId,
+                        menu_id: menuIds
+                    },
+                    success: function() {
+                        hideLoading();
+                        table.ajax.reload();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Saved',
+                            text: 'Menus updated for this role',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to save role menus'
+                        });
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
 
             // Add
             $('#addRoleMenuBtn').click(function() {

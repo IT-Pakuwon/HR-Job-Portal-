@@ -26,15 +26,93 @@ class SysAccessRightController extends Controller
             ->table('sys_menu')
             ->where('status', 'A')
             ->orderBy('menu_id')
-            ->get(['menu_id', 'menu_name']);
+            ->get(['menu_id', 'menu_name', 'application_id']);
 
         $applications = SysApplication::on('pgsql2')
             ->where('status', 'A')
             ->orderBy('application_id')
             ->get(['application_id', 'application_name']);
 
+        $accessNames = collect(['VIEW', 'CREATE', 'EDIT', 'DELETE'])
+            ->merge(
+                SysAccessRight::whereNotNull('access_name')
+                    ->distinct()
+                    ->pluck('access_name')
+            )
+            ->map(fn ($n) => strtoupper(trim($n)))
+            ->unique()
+            ->values();
 
-        return view('pages.access_rights.access_rights', compact('roles', 'screens','applications'));
+        $matrixScreens = $screens->whereNotNull('application_id')->map(fn ($s) => [
+            'menu_id'        => $s->menu_id,
+            'menu_name'      => $s->menu_name,
+            'application_id' => $s->application_id,
+        ])->values();
+
+        return view('pages.access_rights.access_rights', compact('roles', 'screens', 'applications', 'accessNames', 'matrixScreens'));
+    }
+
+    public function byRole($roleId)
+    {
+        $rows = SysAccessRight::where('role_id', $roleId)
+            ->where('status', 'A')
+            ->get(['screen_id', 'application_id', 'access_name']);
+
+        $rights = $rows->groupBy(fn ($r) => $r->screen_id . '|' . $r->application_id)
+            ->map(fn ($group) => $group->pluck('access_name'));
+
+        return response()->json(['rights' => $rights]);
+    }
+
+    public function saveByRole(Request $request)
+    {
+        $request->validate([
+            'role_id' => 'required|string|max:50',
+            'rights'  => 'array',
+        ]);
+
+        DB::connection('pgsql2')->beginTransaction();
+
+        try {
+            $user = Auth::user();
+
+            SysAccessRight::where('role_id', $request->role_id)->delete();
+
+            foreach ($request->input('rights', []) as $entry) {
+                $screenId = $entry['screen_id'] ?? null;
+                $appId    = $entry['application_id'] ?? null;
+                $names    = $entry['access_names'] ?? [];
+
+                if (!$screenId || !$appId || empty($names)) {
+                    continue;
+                }
+
+                foreach (array_unique($names) as $name) {
+                    SysAccessRight::create([
+                        'role_id'        => $request->role_id,
+                        'screen_id'      => $screenId,
+                        'application_id' => $appId,
+                        'access_name'    => strtoupper(trim($name)),
+                        'access_right'   => true,
+                        'access_type'    => 'NORMAL',
+                        'status'         => 'A',
+                        'created_by'     => $user->username ?? 'system',
+                        'updated_by'     => $user->username ?? 'system',
+                    ]);
+                }
+            }
+
+            DB::connection('pgsql2')->commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::connection('pgsql2')->rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan access rights',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function json()

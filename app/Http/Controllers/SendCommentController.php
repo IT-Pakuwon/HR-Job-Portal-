@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\SysUserRole;
+use App\Models\TrApproval;
 use App\Models\TrMessage;
+use App\Models\User;
+use App\Services\DocumentNotificationService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SendCommentController extends Controller
 {
@@ -15,6 +19,45 @@ class SendCommentController extends Controller
         return SysUserRole::where('username', $username)
             ->where('role_id', 'COSTCTRLACCESS')
             ->exists();
+    }
+
+    // Generic @mention-audience resolver for the "creator + approval line (+ optional PIC)"
+    // modules (SPPB/SPPJ/SPPK/SPPT, IMBudget, CS, WO, BAST, Item Request). Ticket/ACR/ITR keep
+    // their own dedicated mentionableUsers() endpoints and are not served by this route.
+    public function mentionableUsers(string $doctype, $id)
+    {
+        $config = DocumentNotificationService::extendedDocTypeConfig()[$doctype] ?? null;
+
+        abort_if(!$config, 404);
+
+        $doc = $config['model']::where($config['idCol'], $id)->firstOrFail();
+
+        $creatorUsernames = collect($config['creatorFields'])->map(fn ($f) => $doc->{$f} ?? null);
+
+        $approvalUsernames = !empty($config['approvalDoctype'])
+            ? TrApproval::where('refnbr', $id)
+                ->where('aprv_doctype', $config['approvalDoctype'])
+                ->pluck('aprv_username')
+            : collect();
+
+        $picUsernames = isset($config['picField']) ? collect([$doc->{$config['picField']} ?? null]) : collect();
+
+        $roleUsernames = !empty($config['roleIds'])
+            ? DocumentNotificationService::resolveRoleUsernamesForCompany($config['roleIds'], $doc->{$config['companyCol'] ?? 'cpny_id'} ?? null)
+            : collect();
+
+        $usernames = $creatorUsernames->merge($approvalUsernames)->merge($picUsernames)->merge($roleUsernames)
+            ->filter()
+            ->map(fn ($u) => strtolower(trim($u)))
+            ->unique()
+            ->reject(fn ($u) => $u === strtolower(Auth::user()->username));
+
+        $users = User::query()
+            ->whereIn(DB::raw('lower(username)'), $usernames->all())
+            ->get(['username', 'name'])
+            ->values();
+
+        return response()->json($users);
     }
 
     public function sendmsg(int $id, string $doctype, Request $request)

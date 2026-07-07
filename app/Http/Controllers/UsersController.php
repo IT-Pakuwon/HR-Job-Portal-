@@ -99,8 +99,8 @@ class UsersController extends Controller
             'email' => 'required',
             'cpny_id' => 'required|array',
             'department_id' => 'required|array',
-            'division_id' => 'required|array',
-            'business_unit_id' => 'required|array',
+            'division_id' => 'nullable|array',
+            'business_unit_id' => 'nullable|array',
             'homepage' => 'nullable|string',
             'jabatan' => 'required',
             'role' => 'required',
@@ -113,8 +113,8 @@ class UsersController extends Controller
 
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
-            $businessUnitIdsString = implode(',', $request->business_unit_id);
-            $divisionIdsString = implode(',', $request->division_id);
+            $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
+            $divisionIdsString = implode(',', $request->division_id ?? []);
 
             $email    = $request->email;
             $username = $request->filled('username')
@@ -162,7 +162,7 @@ class UsersController extends Controller
             }
 
             // USERDIVISION
-            foreach ($request->division_id as $div) {
+            foreach ($request->division_id ?? [] as $div) {
                 Userdivision::create([
                     'username'   => $username,
                     'division_id'=> $div,
@@ -173,7 +173,7 @@ class UsersController extends Controller
 
 
             // USERBUSINESSUNIT (dengan cpny_id)
-            $buIds = $request->business_unit_id;
+            $buIds = $request->business_unit_id ?? [];
 
             // ambil mapping cpny_id per business_unit_id (1 query)
             $buCpnyMap = BusinessUnit::query()
@@ -250,8 +250,8 @@ class UsersController extends Controller
             'email'         => 'required',
             'cpny_id'       => 'required|array',
             'department_id' => 'required|array',
-            'division_id'   => 'required|array',
-            'business_unit_id' => 'required|array',
+            'division_id'   => 'nullable|array',
+            'business_unit_id' => 'nullable|array',
             'homepage'      => 'nullable|string',
             'jabatan'       => 'required',
             'role'          => 'required',
@@ -272,8 +272,8 @@ class UsersController extends Controller
 
             $companyIdsString = implode(',', $request->cpny_id);
             $deptIdsString    = implode(',', $request->department_id);
-            $divisionIdsString = implode(',', $request->division_id);
-            $businessUnitIdsString = implode(',', $request->business_unit_id);
+            $divisionIdsString = implode(',', $request->division_id ?? []);
+            $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
 
             $updateData = [
                 'name' => strtoupper($request->name),
@@ -321,7 +321,7 @@ class UsersController extends Controller
                 ]);
             }
 
-            foreach ($request->division_id as $div) {
+            foreach ($request->division_id ?? [] as $div) {
                 Userdivision::create([
                     'username'   => $newUsername,
                     'division_id'=> $div,
@@ -330,7 +330,7 @@ class UsersController extends Controller
                 ]);
             }
 
-            $buIds = $request->business_unit_id;
+            $buIds = $request->business_unit_id ?? [];
             $buCpnyMap = BusinessUnit::query()
                 ->whereIn('business_unit_id', $buIds)
                 ->pluck('cpny_id', 'business_unit_id');

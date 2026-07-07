@@ -88,6 +88,14 @@ class BastListController extends Controller
     {
         $scope = strtolower((string) $req->query('scope', 'bastjobs'));
         $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'draw' => (int) $req->input('draw', 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+            ], 401);
+        }
 
         // parse cpny_id & department_id multiple
         $cpnyRaw = $user->cpny_id ?? '';
@@ -106,18 +114,7 @@ class BastListController extends Controller
         $startDate = $req->query('start_date');
         $endDate = $req->query('end_date');
 
-        if ($scope === 'bastjobs') {
-            // Sumber list “jobs” dari TrPOterm
-            // $base = TrPOterm::query()
-            //     ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
-            //     ->when(!empty($deptList), fn($q) => $q->whereIn('department_id', $deptList))
-            //     ->where('flag_bast', true)
-            //     ->whereNull('bastid')
-            //     ->select([
-            //         'id', 'ponbr', 'cpny_id', 'vendorname', 'created_by',
-            //         'terms_name', 'progress_pct', 'payment_pct',
-            //         DB::raw("'HOLD' as status") // <= status dummy utk jobs
-            //     ]);
+        if ($scope === 'bastjobs') {     
             $base = TrPOterm::query()
                 ->from('tr_po_term as t') // sesuaikan kalau table name TrPOterm beda
                 ->when(!empty($cpnyList), fn ($q) => $q->whereIn('t.cpny_id', $cpnyList))
@@ -162,33 +159,29 @@ class BastListController extends Controller
             if ($endDate) {
                 $base->whereDate('p.spkendtworkingdate', '<=', $endDate);
             }
-            // $orderColumns = [
-            //     0=>'ponbr', 1=>'ponbr', 2=>'cpny_id', 3=>'vendorname',
-            //     4=>'terms_name', 5=>'progress_pct', 6=>'payment_pct', 7=>'created_by',
-            //     8=>'status',
-            // ];
+            
             $orderColumns = [
-                0 => 'ponbr',       // dtr-control (abaikan)
-                1 => 'ponbr',       // action (abaikan)
-                2 => 'ponbr',
-                3 => 'cpny_id',
-                4 => 'vendorname',
-                5 => 'spkstartworkingdate',
-                6 => 'spkendtworkingdate',
-                7 => 'terms_name',
-                8 => 'progress_pct',
-                9 => 'payment_pct',
-                10 => 'created_by',
-                11 => 'status',
+                0 => 't.ponbr',       // dtr-control (abaikan)
+                1 => 't.ponbr',       // action (abaikan)
+                2 => 't.ponbr',
+                3 => 't.cpny_id',
+                4 => 't.vendorname',
+                5 => 'p.spkstartworkingdate',
+                6 => 'p.spkendtworkingdate',
+                7 => 't.terms_name',
+                8 => 't.progress_pct',
+                9 => 't.payment_pct',
+                10 => 't.created_by',
+                11 => 't.ponbr',
             ];
 
             if ($search !== '') {
                 $base->where(function ($q) use ($search) {
-                    $q->where('ponbr', 'ilike', "%{$search}%")
-                    ->orWhere('cpny_id', 'ilike', "%{$search}%")
-                    ->orWhere('vendorname', 'ilike', "%{$search}%")
-                    ->orWhere('created_by', 'ilike', "%{$search}%")
-                    ->orWhere('terms_name', 'ilike', "%{$search}%");
+                    $q->where('t.ponbr', 'ilike', "%{$search}%")
+                    ->orWhere('t.cpny_id', 'ilike', "%{$search}%")
+                    ->orWhere('t.vendorname', 'ilike', "%{$search}%")
+                    ->orWhere('t.created_by', 'ilike', "%{$search}%")
+                    ->orWhere('t.terms_name', 'ilike', "%{$search}%");
                 });
             }
         } else {
@@ -254,26 +247,18 @@ class BastListController extends Controller
 
         $orderIdx = (int) $req->input('order.0.column', $scope === 'bastjobs' ? 1 : 1);
         $orderDir = $req->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $orderColumns[$orderIdx] ?? ($scope === 'bastjobs' ? 'ponbr' : 'bastdate');
+        $orderCol = $orderColumns[$orderIdx] ?? ($scope === 'bastjobs' ? 't.ponbr' : 'bastdate');
 
-        $rows = $base->orderBy($orderCol, $orderDir)
-                    ->orderBy($scope === 'bastjobs' ? 'ponbr' : 'bastid', 'desc')
-                    ->skip($start)->take($length)
-                    ->get();
+        $rowsQuery = $base->orderBy($orderCol, $orderDir)
+                    ->orderBy($scope === 'bastjobs' ? 't.ponbr' : 'bastid', 'desc')
+                    ->skip($start);
 
-        // ========= ENRICH / FORMAT =========
-        // Map PONBR -> id (TrPo) supaya link PO bisa dipakai
-        // $poIdMap = [];
-        // $ponbrsForMap = $rows->pluck('ponbr')->filter()->unique()->values()->all();
-        // if (!empty($ponbrsForMap)) {
-        //     // $poIdMap = TrPo::whereIn('ponbr', $ponbrsForMap)
-        //     //     ->pluck('id', 'ponbr')
-        //     //     ->toArray();
-        //     $poIdMap = TrPO::whereIn('ponbr', $ponbrsForMap)
-        //         ->when(!empty($cpnyList), fn ($q) => $q->where('cpny_id', $cpnyList))
-        //         ->pluck('id', 'ponbr')
-        //         ->toArray();
-        // }
+        if ($length > 0) {
+            $rowsQuery->take($length);
+        }
+
+        $rows = $rowsQuery->get();
+       
         $poIdMap = [];
         $ponbrsForMap = $rows->pluck('ponbr')->filter()->unique()->values()->all();
 
