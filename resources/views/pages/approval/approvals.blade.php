@@ -111,100 +111,131 @@
 
             {{-- ===================== TAB: Add / Duplicate Approval ===================== --}}
             <div id="tabPanelForm"
-                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-                <h1 id="approvalFormTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">
-                    ➕ Add Approval
-                </h1>
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-[#0f172a] md:p-6">
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-5 md:items-start">
+                <div class="mb-5 flex items-center gap-3">
+                    <div
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-indigo-600 to-violet-700 text-lg text-white shadow-sm">
+                        <i class="fa-solid fa-diagram-project"></i>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-400">
+                            Approval Workflow
+                        </div>
+                        <h1 id="approvalFormTitle" class="text-base font-semibold text-gray-900 dark:text-white">
+                            Add Approval
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 lg:grid-cols-5 lg:items-start">
                     {{-- Copy from Existing Template (left panel) --}}
                     <div id="copyTemplateSection"
-                        class="min-w-0 rounded-lg border border-dashed border-indigo-300 bg-indigo-50 p-3 dark:border-indigo-500 dark:bg-indigo-900/20 md:col-span-2">
-                        <div class="mb-2 text-sm font-semibold text-indigo-700 dark:text-indigo-200">
-                            📋 Copy from Existing Template
+                        class="min-w-0 overflow-hidden rounded-lg border border-indigo-200 bg-indigo-50/60 dark:border-indigo-500/20 dark:bg-indigo-500/10 lg:col-span-2">
+                        <div class="border-b border-indigo-100 px-4 py-3 dark:border-indigo-500/20">
+                            <div class="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                                <i class="fa-solid fa-clone"></i> Copy from Existing Template
+                            </div>
+                            <p class="mt-1 text-xs leading-relaxed text-indigo-700/70 dark:text-indigo-300/70">
+                                Pick an existing combination to copy its approval lines. They'll appear here as a
+                                read-only reference and also get copied into the form on the right — nothing is
+                                overwritten until you click Save.
+                            </p>
                         </div>
-                        <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
-                            Pick an existing combination to copy its approval lines. The lines will appear here as a
-                            read-only reference, and also get copied into the editable form on the right — nothing
-                            is overwritten until you click Save.
-                        </p>
-                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                            <div>
-                                <label class="mb-1 block text-xs text-gray-600 dark:text-gray-300">Source
-                                    Doctype</label>
-                                <select id="copySrcDoctype"
-                                    class="w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
-                                    <option value="">choose </option>
-                                    @foreach ($doctypes as $dt)
-                                        <option value="{{ $dt->doctype }}">{{ $dt->doctype }} -
-                                            {{ $dt->doctype_descr }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-xs text-gray-600 dark:text-gray-300">Source
-                                    Company</label>
-                                <select id="copySrcCompany"
-                                    class="w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
-                                    <option value="">choose </option>
-                                    @foreach ($companies as $c)
-                                        <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} —
-                                            {{ $c->cpny_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-xs text-gray-600 dark:text-gray-300">Source
-                                    Department</label>
-                                <select id="copySrcDepartment"
-                                    class="w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
-                                    <option value="">choose </option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="button" id="loadTemplateBtn"
-                            class="mt-2 w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
-                            Load Template
-                        </button>
 
-                        {{-- Read-only preview of the loaded template --}}
-                        <div id="templatePreviewContainer"
-                            class="mt-3 hidden border-t border-indigo-200 pt-3 dark:border-indigo-700">
-                            <div class="mb-2 text-sm font-semibold text-indigo-700 dark:text-indigo-200">
-                                Reference — lines in the source template
+                        <div class="p-4">
+                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                <div>
+                                    <label
+                                        class="mb-1 block text-xs font-semibold uppercase tracking-wide text-indigo-700/70 dark:text-indigo-300/70">
+                                        Source Doctype
+                                    </label>
+                                    <select id="copySrcDoctype"
+                                        class="w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                                        <option value="">choose </option>
+                                        @foreach ($doctypes as $dt)
+                                            <option value="{{ $dt->doctype }}">{{ $dt->doctype }} -
+                                                {{ $dt->doctype_descr }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-1 block text-xs font-semibold uppercase tracking-wide text-indigo-700/70 dark:text-indigo-300/70">
+                                        Source Company
+                                    </label>
+                                    <select id="copySrcCompany"
+                                        class="w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                                        <option value="">choose </option>
+                                        @foreach ($companies as $c)
+                                            <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} —
+                                                {{ $c->cpny_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="mb-1 block text-xs font-semibold uppercase tracking-wide text-indigo-700/70 dark:text-indigo-300/70">
+                                        Source Department
+                                    </label>
+                                    <select id="copySrcDepartment"
+                                        class="w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700">
+                                        <option value="">choose </option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-sm">
-                                    <thead>
-                                        <tr class="text-gray-500 dark:text-gray-400">
-                                            <th class="py-1 pr-2 text-left font-semibold">Lvl</th>
-                                            <th class="py-1 pr-2 text-left font-semibold">Name</th>
-                                            <th class="py-1 pr-2 text-left font-semibold">Type</th>
-                                            <th class="py-1 pr-2 text-left font-semibold">Condition</th>
-                                            <th class="py-1 text-right font-semibold">Nominal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="templatePreviewList"></tbody>
-                                </table>
+
+                            <button type="button" id="loadTemplateBtn"
+                                class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                                <i class="fa-solid fa-download"></i> Load Template
+                            </button>
+
+                            {{-- Read-only preview of the loaded template --}}
+                            <div id="templatePreviewContainer"
+                                class="mt-4 hidden border-t border-indigo-200/70 pt-4 dark:border-indigo-500/20">
+                                <div
+                                    class="mb-2 flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                                    <i class="fa-solid fa-eye"></i> Reference — lines in the source template
+                                </div>
+                                <div
+                                    class="overflow-x-auto rounded-lg border border-indigo-100 bg-white/60 dark:border-indigo-500/20 dark:bg-white/3">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr
+                                                class="text-xs font-semibold uppercase tracking-wide text-indigo-700/60 dark:text-indigo-300/60">
+                                                <th class="py-2 pr-2 pl-3 text-left">Lvl</th>
+                                                <th class="py-2 pr-2 text-left">Name</th>
+                                                <th class="py-2 pr-2 text-left">Type</th>
+                                                <th class="py-2 pr-2 text-left">Condition</th>
+                                                <th class="py-2 pr-3 text-right">Nominal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="templatePreviewList"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- Main form (right panel) --}}
-                    <div class="min-w-0 md:col-span-3">
+                    <div class="min-w-0 lg:col-span-3">
                         <form id="approvalForm">
                             @csrf
                             <input type="hidden" id="id" name="id">
 
                             {{-- Target: Doctype, Company, Department --}}
-                            <div class="mb-4 rounded-lg border bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800">
-                                <div class="mb-3 text-sm font-semibold text-gray-800 dark:text-gray-100">
-                                    🎯 Target Doctype / Company / Department
+                            <div
+                                class="mb-4 rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/2">
+                                <div
+                                    class="flex items-center gap-2 border-b border-gray-100 px-4 py-3 text-sm font-semibold text-gray-900 dark:border-white/10 dark:text-gray-100">
+                                    <i class="fa-solid fa-bullseye text-indigo-600 dark:text-indigo-400"></i>
+                                    Target Doctype / Company / Department
                                 </div>
-                                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                <div class="grid grid-cols-1 gap-4 p-4 md:grid-cols-3">
                                     {{-- DOCTYPE --}}
                                     <div>
-                                        <label class="mb-1 block text-sm text-gray-700 dark:text-white">Doctype</label>
+                                        <label
+                                            class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Doctype</label>
                                         <select id="aprv_doctype" name="aprv_doctype"
                                             class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                             <option value="">choose </option>
@@ -218,7 +249,8 @@
 
                                     {{-- COMPANY --}}
                                     <div>
-                                        <label class="mb-1 block text-sm text-gray-700 dark:text-white">Company</label>
+                                        <label
+                                            class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Company</label>
                                         <select id="aprv_cpnyid_select" name="aprv_cpnyid"
                                             class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                             <option value="">choose </option>
@@ -232,7 +264,8 @@
 
                                     {{-- DEPARTMENT --}}
                                     <div>
-                                        <label class="mb-1 block text-sm text-gray-700 dark:text-white">Department</label>
+                                        <label
+                                            class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</label>
                                         <select id="aprv_departementid" name="aprv_departementid"
                                             class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
                                             <option value="">choose </option>
@@ -242,37 +275,47 @@
                             </div>
 
                             {{-- Approval Lines --}}
-                            <div class="rounded-lg border bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800">
-                                <div class="mb-2 flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                                        🧾 Approval Lines
+                            <div
+                                class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/2">
+                                <div
+                                    class="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-white/10">
+                                    <span
+                                        class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        <i class="fa-solid fa-list-check text-indigo-600 dark:text-indigo-400"></i>
+                                        Approval Lines
                                     </span>
                                     <button type="button" id="addLineBtn"
-                                        class="rounded bg-indigo-500 px-3 py-1 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-600">
-                                        + ADD
+                                        class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700">
+                                        <i class="fa-solid fa-plus"></i> Add Line
                                     </button>
                                 </div>
 
-                                <div
-                                    class="mb-1 hidden grid-cols-12 gap-2 text-sm font-semibold text-gray-600 md:grid dark:text-gray-300">
-                                    <div class="col-span-1">Level</div>
-                                    <div class="col-span-3">Name</div>
-                                    <div class="col-span-2">Type</div>
-                                    <div class="col-span-2">Condition</div>
-                                    <div class="col-span-2">Start Nominal</div>
-                                    <div class="col-span-2">End Nominal</div>
-                                </div>
+                                <div class="p-4">
+                                    <div
+                                        class="mb-2 hidden grid-cols-12 gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400 md:grid">
+                                        <div class="col-span-1">Level</div>
+                                        <div class="col-span-3">Name</div>
+                                        <div class="col-span-2">Type</div>
+                                        <div class="col-span-2">Condition</div>
+                                        <div class="col-span-2">Start Nominal</div>
+                                        <div class="col-span-2">End Nominal</div>
+                                    </div>
 
-                                <div id="linesContainer" class="space-y-2">
-                                    {{-- baris dynamic via JS --}}
+                                    <div id="linesContainer" class="space-y-2">
+                                        {{-- baris dynamic via JS --}}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex justify-end space-x-2">
+                            <div class="mt-5 flex justify-end gap-2">
                                 <button type="button" id="closeApprovalModal"
-                                    class="rounded-lg bg-red-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-red-600">Cancel</button>
+                                    class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10">
+                                    Cancel
+                                </button>
                                 <button type="submit"
-                                    class="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors duration-200 hover:bg-blue-600">Save</button>
+                                    class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">
+                                    <i class="fa-solid fa-floppy-disk"></i> Save
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -692,53 +735,60 @@
                     const startNom = data?.aprv_start_nominal ?? '';
                     const endNom = data?.aprv_end_nominal ?? '';
 
+                    const fieldClass =
+                        'w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm shadow-sm transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-gray-100';
+                    const labelClass = 'mb-1 block text-xs font-medium text-gray-500 md:hidden dark:text-gray-400';
+
                     return `
-                        <div class="grid grid-cols-1 items-start gap-2 rounded-lg border border-gray-200 p-2 md:grid-cols-12 md:border-0 md:p-0 line-row dark:border-gray-600" data-row="${idx}">
+                        <div class="line-row group grid grid-cols-1 items-start gap-3 rounded-lg border border-gray-200 bg-gray-50/70 p-3 transition md:grid-cols-12 md:gap-2 md:hover:border-indigo-200 md:hover:bg-indigo-50/40 dark:border-white/10 dark:bg-white/2 md:dark:hover:border-indigo-500/30 md:dark:hover:bg-indigo-500/5" data-row="${idx}">
                         <div class="md:col-span-1">
-                            <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Level</label>
+                            <label class="${labelClass}">Level</label>
                             <input type="text" name="aprv_leveling[]"
-                            class="level-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                            class="level-input ${fieldClass}"
                             value="${level}" placeholder="0.00" inputmode="decimal" autocomplete="off" required>
                         </div>
 
                         <div class="md:col-span-3">
-                            <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Name</label>
+                            <label class="${labelClass}">Name</label>
                             <select name="aprv_username[${idx}][]"
                             class="sel-username w-full dark:bg-gray-700"
                             multiple required></select>
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Type</label>
+                            <label class="${labelClass}">Type</label>
                             <select name="aprv_type[]"
-                            class="w-full rounded-lg border px-2 py-1 text-sm sel-type dark:bg-gray-700">
+                            class="sel-type ${fieldClass}">
                             ${buildOptions(TYPE_OPTIONS, typeVal)}
                             </select>
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Condition</label>
+                            <label class="${labelClass}">Condition</label>
                             <select name="aprv_condition[]"
-                            class="w-full rounded-lg border px-2 py-1 text-sm sel-condition dark:bg-gray-700">
+                            class="sel-condition ${fieldClass}">
                             ${buildOptions(condOptions, condVal)}
                             </select>
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">Start Nominal</label>
+                            <label class="${labelClass}">Start Nominal</label>
                             <input type="text" name="aprv_start_nominal[]"
-                            class="nominal-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                            class="nominal-input ${fieldClass}"
                             value="${startNom}" inputmode="decimal" autocomplete="off">
                         </div>
 
-                        <div class="flex gap-2 md:col-span-2">
+                        <div class="flex items-end gap-2 md:col-span-2">
                             <div class="flex-1">
-                            <label class="md:hidden text-sm text-gray-500 dark:text-gray-300">End Nominal</label>
+                            <label class="${labelClass}">End Nominal</label>
                             <input type="text" name="aprv_end_nominal[]"
-                                class="nominal-input w-full rounded-lg border px-2 py-1 text-sm dark:bg-gray-700"
+                                class="nominal-input ${fieldClass}"
                                 value="${endNom}" inputmode="decimal" autocomplete="off">
                             </div>
-                            <button type="button" class="removeLineBtn self-start rounded bg-red-500 px-2 py-1.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-red-600">✕</button>
+                            <button type="button" title="Remove line"
+                                class="removeLineBtn inline-flex h-[38px] w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
                         </div>
                         </div>
                     `;
@@ -852,7 +902,7 @@
 
             // ===== Add / Duplicate tab =====
             function resetAddForm() {
-                $('#approvalFormTitle').text('➕ Add Approval');
+                $('#approvalFormTitle').text('Add Approval');
                 $('#approvalForm')[0].reset();
                 $('#id').val('');
                 $('#addLineBtn').removeClass('hidden');
@@ -1060,7 +1110,7 @@
                 // line rows (with the multi-select "Name" field) are built.
                 showTab('form');
                 resetAddForm();
-                $('#approvalFormTitle').text('📑 Duplicate Approval Template');
+                $('#approvalFormTitle').text('Duplicate Approval Template');
 
                 $('#copySrcDoctype').val(doctype).trigger('change');
                 $('#copySrcCompany').val(cpnyid).trigger('change');
