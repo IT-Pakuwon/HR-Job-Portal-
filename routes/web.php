@@ -40,6 +40,7 @@ use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\FinanceDashboardController;
 use App\Http\Controllers\GADashboardController;
 use App\Http\Controllers\TreasuryDashboardController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
@@ -1806,6 +1807,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/my-document-notifications', [DocumentNotificationController::class, 'index'])->name('my.document.notifications');
         Route::post('/document-notifications/mark-read', [DocumentNotificationController::class, 'markRead'])->name('document.notifications.mark-read');
+
+        Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
 
         Route::prefix('menu-favourites')->controller(SysMenuFavouriteController::class)->name('menu-favourites.')->group(function () {
             Route::get('/', 'index')->name('index');
