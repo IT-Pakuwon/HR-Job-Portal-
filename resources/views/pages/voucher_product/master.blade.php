@@ -270,7 +270,7 @@
         </div>
 
         {{-- FILTER TOOLBAR --}}
-        <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-[#0f172a]">
+        <div class="mt-2 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-[#0f172a]">
 
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
 

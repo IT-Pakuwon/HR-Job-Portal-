@@ -133,7 +133,7 @@
         </div>
 
         {{-- TABLE --}}
-        <div class="mt-6 flex flex-col rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="mt-2 flex flex-col rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="mb-4 flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 id="parkingTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
                     Parking Registration
@@ -151,7 +151,7 @@
                     </a>
                 </div>
             </div>
-            
+
             <div id="masterFilterBox" class="mb-4 hidden rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
 
@@ -306,7 +306,7 @@
                     </div>
                 </div>
             </div>
-            
+
 
             <div class="rounded-base relative overflow-x-auto">
                 <table id="parkingRegistrationTable" class="text-body w-full text-left text-sm rtl:text-right">
@@ -335,8 +335,8 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        <script>       
-            
+        <script>
+
             const currentUser = @json(auth()->user()->username ?? '');
             let parkingStatus = '';
             let parkingScope = 'my';
@@ -713,7 +713,7 @@
                 });
             }
 
-            
+
 
             function resetMasterFilters() {
                 $('#filter_site_parking').val('');

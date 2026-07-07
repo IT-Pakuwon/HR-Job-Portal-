@@ -13,7 +13,7 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         {{-- <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6"> --}}
-            <div
+        <div
                 class="xl:grid-cols-{{ $xlCols }} grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 
             {{-- Bast Jobs --}}
@@ -121,7 +121,7 @@
                 </button>
             @endif
         </div>
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Bast</h1>
             </div>

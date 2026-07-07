@@ -170,7 +170,7 @@
                 </a>
             </button>
         </div>
-        <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
+        <div class="mt-2 rounded-xl bg-white dark:bg-gray-800">
             <div class="flex items-center justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
 
                 <h1 class="whitespace-nowrap text-base font-extrabold text-gray-700 dark:text-white">

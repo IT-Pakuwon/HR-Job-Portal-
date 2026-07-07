@@ -77,7 +77,7 @@
 
 
         {{-- TABLES --}}
-        <div class="mt-6 flex flex-col rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="mt-2 flex flex-col rounded-xl bg-white p-4 dark:bg-gray-800">
 
             {{-- JOBS WRAP --}}
             <div id="jobsWrap" class="flex flex-col gap-6 rounded-xl bg-white dark:bg-gray-800">
