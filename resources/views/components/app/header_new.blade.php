@@ -10,12 +10,12 @@
         </svg>
     </button>
 
-    <div class="ml-auto flex items-center gap-3">
-        <!-- Global document search (jump to a document by ID or name) -->
-        <div class="w-48 sm:w-64">
-            <x-app.global-search />
-        </div>
+    <!-- Global document search (jump to a document by ID or name) -->
+    <div class="w-48 sm:w-72">
+        <x-app.global-search />
+    </div>
 
+    <div class="ml-auto flex items-center gap-3">
         <!-- Document status notifications (revised / rejected) -->
         <x-app.document-notifications />
 

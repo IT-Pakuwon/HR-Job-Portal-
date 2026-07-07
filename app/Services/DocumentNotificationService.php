@@ -79,7 +79,7 @@ class DocumentNotificationService
             $appM       = new ViewJobApply();
             $purchM     = new ViewtrPurch();
             $dasM       = new ViewDasAll();
-            $selectCols = ['id', 'cpnyid', 'url', 'docid'];
+            $selectCols = ['id', 'cpnyid', 'url', 'docid', 'status'];
 
             $fetch = function (string $conn, string $table) use ($docids, $selectCols) {
                 $out = collect();
@@ -110,6 +110,8 @@ class DocumentNotificationService
                     $key      = strtoupper(trim($r->docid));
                     $approval = $approvalMap->get($key);
                     if (!$approval) return null;
+                    // Document was cancelled (header status X) after the D/R approval step — no longer actionable.
+                    if (strtoupper(trim((string) ($r->status ?? ''))) === 'X') return null;
                     $meta = $statusMeta[$approval->status] ?? ['label' => $approval->status, 'message' => ''];
                     return [
                         'key'        => $key . '_' . $approval->status,

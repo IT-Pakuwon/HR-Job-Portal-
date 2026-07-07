@@ -34,7 +34,7 @@
         x-transition:leave="transition ease-in duration-100"
         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
         x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-        class="absolute right-0 z-50 mt-2 w-full min-w-88 origin-top-right overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
+        class="absolute left-0 z-50 mt-2 w-full min-w-88 origin-top-left overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800"
         style="display: none;">
 
         <ul class="max-h-105 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">
