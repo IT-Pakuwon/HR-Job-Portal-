@@ -1150,6 +1150,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/remove-attachment/{id}', [TrAttachmentController::class, 'removeAttachment']);
     Route::get('/comments/{doctype}/{id}', [SendCommentController::class, 'fetchComments']);
     Route::post('/comments/{doctype}/{id}', [SendCommentController::class, 'storeComment']);
+    Route::get('/mentionable-users/{doctype}/{id}', [SendCommentController::class, 'mentionableUsers']);
     Route::get('/private-notes/{doctype}/{id}', [SendCommentController::class, 'fetchPrivateNotes']);
     Route::post('/private-notes/{doctype}/{id}', [SendCommentController::class, 'storePrivateNote']);
     Route::get('/private-notes-counts/{doctype}', [SendCommentController::class, 'countPrivateNotes']);
@@ -2022,6 +2023,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/role-menus', [SysRoleMenuController::class, 'index'])->name('role_menus');
     Route::get('/role-menus/json', [SysRoleMenuController::class, 'json'])->name('role_menus.json');
     Route::post('/role-menus', [SysRoleMenuController::class, 'store'])->name('role_menus.store');
+    Route::get('/role-menus/by-role/{role_id}', [SysRoleMenuController::class, 'byRole'])->name('role_menus.by_role');
+    Route::post('/role-menus/save-by-role', [SysRoleMenuController::class, 'saveByRole'])->name('role_menus.save_by_role');
     Route::get('/role-menus/{id}/edit', [SysRoleMenuController::class, 'edit'])->name('role_menus.edit');
     Route::put('/role-menus/{id}', [SysRoleMenuController::class, 'update'])->name('role_menus.update');
     Route::put('/role-menus/{id}/toggle-status', [SysRoleMenuController::class, 'toggleStatus'])->name('role_menus.toggle-status');
@@ -2030,6 +2033,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/access-rights', [SysAccessRightController::class, 'index'])->name('access_rights');
     Route::get('/access-rights/json', [SysAccessRightController::class, 'json'])->name('access_rights.json');
     Route::post('/access-rights', [SysAccessRightController::class, 'store'])->name('access_rights.store');
+    Route::get('/access-rights/by-role/{role_id}', [SysAccessRightController::class, 'byRole'])->name('access_rights.by_role');
+    Route::post('/access-rights/save-by-role', [SysAccessRightController::class, 'saveByRole'])->name('access_rights.save_by_role');
     Route::get('/access-rights/{id}/edit', [SysAccessRightController::class, 'edit'])->name('access_rights.edit');
     Route::put('/access-rights/{id}', [SysAccessRightController::class, 'update'])->name('access_rights.update');
     Route::put('/access-rights/{id}/toggle-status', [SysAccessRightController::class, 'toggleStatus'])->name('access_rights.toggle-status');

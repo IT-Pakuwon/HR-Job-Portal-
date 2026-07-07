@@ -47,6 +47,19 @@
     .favourite-wiggle:nth-child(3n) {
         animation-delay: -0.15s;
     }
+    .shortcut-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .shortcut-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .shortcut-scroll::-webkit-scrollbar-thumb {
+        background-color: rgb(209 213 219);
+        border-radius: 9999px;
+    }
+    .dark .shortcut-scroll::-webkit-scrollbar-thumb {
+        background-color: rgb(75 85 99);
+    }
 </style>
 
 <div class="col-span-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
@@ -143,26 +156,33 @@
                         class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100">
                 </div>
 
-                <div class="flex-1 overflow-y-auto px-2 pb-3">
+                <div class="shortcut-scroll flex-1 overflow-y-auto px-2 pb-3">
                     <template x-if="availableCatalog.length === 0">
                         <p class="px-3 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
                             No more menus to pin — everything is already a favourite.
                         </p>
                     </template>
 
-                    <template x-for="entry in availableCatalog" :key="entry.screen_id + '|' + entry.application_id">
-                        <button type="button" @click="addFromCatalog(entry)"
-                            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                            <span :class="colorFor(entry).bg" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-                                <svg class="h-4 w-4" :class="colorFor(entry).text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="entry.menu_icon"></path>
-                                </svg>
-                            </span>
-                            <span class="min-w-0 flex-1">
-                                <span class="block truncate font-medium text-gray-700 dark:text-gray-200" x-text="entry.menu_name"></span>
-                                <span class="block truncate text-xs text-gray-400 dark:text-gray-500" x-text="entry.parent_name"></span>
-                            </span>
-                        </button>
+                    <template x-for="group in groupedCatalog" :key="group.name">
+                        <div class="mb-2">
+                            <p class="sticky top-0 z-10 -mx-2 bg-white/95 px-5 pb-1.5 pt-3 text-[11px] font-bold uppercase tracking-wider text-gray-400 backdrop-blur dark:bg-gray-800/95 dark:text-gray-500"
+                                x-text="group.name"></p>
+
+                            <template x-for="entry in group.items" :key="entry.screen_id + '|' + entry.application_id">
+                                <button type="button" @click="addFromCatalog(entry)"
+                                    class="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-indigo-50 dark:hover:bg-gray-700/50">
+                                    <span :class="colorFor(entry).bg" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105">
+                                        <svg class="h-4 w-4" :class="colorFor(entry).text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="entry.menu_icon"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="min-w-0 flex-1 truncate font-medium text-gray-700 dark:text-gray-200" x-text="entry.menu_name"></span>
+                                    <svg class="h-4 w-4 shrink-0 text-gray-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
                     </template>
                 </div>
             </div>
@@ -210,6 +230,16 @@ function favouriteMenus(catalog) {
                 return entry.menu_name.toLowerCase().includes(term)
                     || (entry.parent_name || '').toLowerCase().includes(term);
             });
+        },
+
+        get groupedCatalog() {
+            const groups = new Map();
+            for (const entry of this.availableCatalog) {
+                const name = entry.parent_name || 'Other';
+                if (!groups.has(name)) groups.set(name, []);
+                groups.get(name).push(entry);
+            }
+            return Array.from(groups, ([name, items]) => ({ name, items }));
         },
 
         init() {

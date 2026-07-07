@@ -673,12 +673,18 @@
             });
         });
     </script> --}}
+    <script src="{{ asset('assets/js/shared/mention-autocomplete.js') }}"></script>
     <script>
         $(function() {
             const docid = @json($personnel->docid);
             const $list = $('#commentList');
             const $input = $('#commentInput');
             const $btn = $('#postCommentBtn');
+
+            attachMentionAutocomplete({
+                inputSelector: '#commentInput',
+                fetchUrlFn: () => `/mentionable-users/PRF/${docid}`,
+            });
 
             function escapeHtml(s) {
                 return String(s)
@@ -710,7 +716,7 @@
                 }
                 comments.forEach(c => {
                     const user = escapeHtml(c.username ?? 'User');
-                    const msg = escapeHtml(c.message ?? '');
+                    const msg = highlightMentions(c.message ?? '');
                     const when = prettyTime(c.created_at ?? c.createdAt ?? '');
                     $list.append(`
         <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
