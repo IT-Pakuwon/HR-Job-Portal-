@@ -290,7 +290,7 @@
             // =========================================================
             // Master Department
             // =========================================================
-            function initMasterTable() {
+            window.initMasterTable = function() {
                 window.masterTable = $('#departmentTable').DataTable({
                     ajax: {
                         url: "{{ route('department.json') }}",
@@ -526,7 +526,7 @@
             // =========================================================
             // Department Fin
             // =========================================================
-            function initFinTable() {
+            window.initFinTable = function() {
                 window.finTable = $('#departmentFinTable').DataTable({
                     ajax: {
                         url: "{{ route('department.fin.json') }}",
@@ -774,7 +774,7 @@
             // =========================================================
             // Department & Division HR
             // =========================================================
-            function initHrTable() {
+            window.initHrTable = function() {
                 window.hrTable = $('#departmentHrTable').DataTable({
                     ajax: {
                         url: "{{ route('department.hr.json') }}",
