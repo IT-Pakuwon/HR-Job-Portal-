@@ -1,5 +1,12 @@
 <x-app-layout>
     @php
+        $isEditMode = ($formMode ?? 'create') === 'edit';
+        $isKontrak = strtoupper(trim((string) $rfp->type_po)) === 'KONTRAK';
+        $submitUrl = $submitUrl ?? route('rfp.kontrak-budget.submit', ['hash' => $hash]);
+        $cancelUrl = $cancelUrl ?? route('rfp.kontrak-budget.cancel', ['hash' => $hash]);
+        $pageTitle = $isEditMode ? 'Edit RFP Kontrak Budget ID' : 'Create RFP Kontrak Budget ID';
+        $successRedirectUrl = $successRedirectUrl ?? route('rfp');
+
         $statusText = match ($rfp->status) {
             'D' => 'Revise / Draft',
             'P' => 'On Progress',
@@ -62,7 +69,7 @@
             ['label' => 'Total Amount', 'value' => $formatMoney($rfp->rfp_amount)],
             ['label' => 'Payment Type', 'value' => $rfp->payment_type ?: '-'],
             ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? $formatMoney($rfp->amount_payment) : '-'],
-            ['label' => 'Terbilang', 'value' => $rfp->terbilang ?: '-'],
+            ['label' => 'Terbilang', 'value' => $terbilang ?: '-'],
         ];
 
         $irNoteValue = trim((string) ($rfp->ir_note ?? ''));
@@ -82,7 +89,7 @@
                     <header class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-700">
                         <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
-                                Create RFP Kontrak Budget ID
+                                {{ $pageTitle }}
                             </span>
                             {{ $rfp->rfp_id }}
                         </h2>
@@ -154,6 +161,8 @@
 
             <form id="kontrakBudgetSubmitForm" class="xl:col-span-12">
                 @csrf
+                <input type="hidden" name="cpnyid" value="{{ $rfp->cpny_id }}">
+                @if ($isKontrak)
                 <section class="rounded-xl bg-white shadow-sm dark:bg-gray-800">
                     <header class="flex flex-col gap-3 border-b border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-700 dark:bg-gray-700 sm:flex-row sm:items-center sm:justify-between">
                         <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">
@@ -183,12 +192,17 @@
                                     <th class="p-3">Account</th>
                                     <th class="p-3">Activity</th>
                                     <th class="p-3">Activity Description</th>
-                                    <th class="p-3 text-right">Base Amount</th>
+                                    <th class="p-3 text-right">Amount</th>
+                                    <th class="p-3 text-right">Remaining Budget</th>
                                     <th class="p-3 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="kontrakBudgetTableBody" class="divide-y divide-gray-100 dark:divide-gray-700">
                                 @forelse ($budgets as $i => $budget)
+                                    @php
+                                        $remainingBudget = (float) ($budget->budget_remaining ?? 0);
+                                        $amountBudget = (float) ($budget->rfp_base_amount ?? 0);
+                                    @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                         <td class="budget-row-no p-3">{{ $i + 1 }}</td>
                                         <td class="p-3">
@@ -219,9 +233,14 @@
                                             {{ $budget->budget_activity_descr ?: '-' }}
                                             <input type="hidden" name="budget_activity_descr[]" value="{{ $budget->budget_activity_descr }}">
                                         </td>
+                                        <td class="p-3">
+                                            <input type="text" inputmode="decimal" name="rfp_base_amount[]" value="{{ number_format($amountBudget, 2, ',', '.') }}"
+                                                class="budget-amount-input w-40 rounded border border-gray-300 bg-white px-3 py-2 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                                                data-max="{{ $remainingBudget }}">
+                                        </td>
                                         <td class="p-3 text-right">
-                                            {{ $formatMoney($budget->rfp_base_amount) }}
-                                            <input type="hidden" name="rfp_base_amount[]" value="{{ $budget->rfp_base_amount }}">
+                                            {{ $formatMoney($remainingBudget) }}
+                                            <input type="hidden" name="rfp_available_amount[]" value="{{ $remainingBudget }}">
                                         </td>
                                         <td class="p-3 text-center">
                                             <button type="button"
@@ -232,7 +251,7 @@
                                     </tr>
                                 @empty
                                     <tr id="emptyKontrakBudgetRow">
-                                        <td colspan="10" class="p-6 text-center text-sm italic text-gray-500">
+                                        <td colspan="11" class="p-6 text-center text-sm italic text-gray-500">
                                             Detail kontrak budget belum tersedia.
                                         </td>
                                     </tr>
@@ -241,7 +260,11 @@
                         </table>
                     </div>
 
-                    <div class="flex justify-end border-t border-gray-200 p-4 dark:border-gray-700">
+                    <div class="flex items-center justify-between border-t border-gray-200 p-4 dark:border-gray-700">
+                        <button type="button" id="cancelRfpBtn"
+                            class="flex items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                            Cancel RFP
+                        </button>
                         <button type="submit" id="submitBtn"
                             class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                             <span id="btnText">Submit Approval</span>
@@ -254,9 +277,30 @@
                         </button>
                     </div>
                 </section>
+                @else
+                    <section class="rounded-xl bg-white shadow-sm dark:bg-gray-800">
+                        <div class="flex items-center justify-between border-t border-gray-200 p-4 dark:border-gray-700">
+                            <button type="button" id="cancelRfpBtn"
+                                class="flex items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                Cancel RFP
+                            </button>
+                            <button type="submit" id="submitBtn"
+                                class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                <span id="btnText">Submit Approval</span>
+                                <svg id="loadingSpinner" class="hidden h-5 w-5 animate-spin text-white"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </section>
+                @endif
             </form>
         </div>
 
+        @if ($isKontrak)
         <div id="kontrakBudgetModal" class="fixed inset-0 z-[1000] hidden items-center justify-center bg-black/40 p-4">
             <div class="w-full max-w-4xl rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                 <div class="mb-3 flex items-center justify-between border-b pb-2 dark:border-gray-700">
@@ -308,6 +352,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
     <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
@@ -322,14 +367,17 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         const kontrakBudgetContext = {
+            is_kontrak: @json($isKontrak),
             cpnyid: @json($rfp->cpny_id),
             deptid: @json($rfp->department_id),
             perpost: @json($budgetPerpost),
             business_unit_id: @json($firstBudget?->budget_business_unit_id),
             rfp_cpny_id: @json($rfp->cpny_id),
+            rfp_base_amount: @json($rfp->rfp_base_amount),
         };
 
         function escapeHtml(value) {
@@ -351,6 +399,27 @@
 
         function formatCurrency(value) {
             return 'Rp ' + formatNumber(value, 2);
+        }
+
+        function formatAmountInputValue(value) {
+            return formatNumber(parseAmount(value), 2);
+        }
+
+        function parseAmount(value) {
+            value = String(value ?? '').trim();
+
+            if (value === '') {
+                return 0;
+            }
+
+            if (value.includes(',') && value.includes('.')) {
+                value = value.replace(/\./g, '').replace(',', '.');
+            } else if (value.includes(',')) {
+                value = value.replace(',', '.');
+            }
+
+            const amount = Number(value);
+            return Number.isFinite(amount) ? amount : 0;
         }
 
         function showOverlay(text = 'Processing') {
@@ -382,7 +451,7 @@
                 if ($('#emptyKontrakBudgetRow').length === 0) {
                     $('#kontrakBudgetTableBody').append(`
                         <tr id="emptyKontrakBudgetRow">
-                            <td colspan="10" class="p-6 text-center text-sm italic text-gray-500">
+                            <td colspan="11" class="p-6 text-center text-sm italic text-gray-500">
                                 Detail kontrak budget belum tersedia.
                             </td>
                         </tr>
@@ -531,7 +600,7 @@
 
             $(document).on('click', '.chooseKontrakBudget', function () {
                 const $btn = $(this);
-                const amount = Number($btn.data('remaining') || 0);
+                const remainingBudget = parseAmount($btn.data('remaining') || 0);
 
                 $('#emptyKontrakBudgetRow').addClass('hidden');
                 $('#kontrakBudgetTableBody').append(`
@@ -565,9 +634,14 @@
                             ${escapeHtml($btn.data('activity-descr') || '-')}
                             <input type="hidden" name="budget_activity_descr[]" value="${escapeHtml($btn.data('activity-descr') || '')}">
                         </td>
+                        <td class="p-3">
+                            <input type="text" inputmode="decimal" name="rfp_base_amount[]" value="${escapeHtml(formatNumber(remainingBudget, 2))}"
+                                class="budget-amount-input w-40 rounded border border-gray-300 bg-white px-3 py-2 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                                data-max="${escapeHtml(remainingBudget)}">
+                        </td>
                         <td class="p-3 text-right">
-                            ${formatCurrency(amount)}
-                            <input type="hidden" name="rfp_base_amount[]" value="${escapeHtml(amount)}">
+                            ${formatCurrency(remainingBudget)}
+                            <input type="hidden" name="rfp_available_amount[]" value="${escapeHtml(remainingBudget)}">
                         </td>
                         <td class="p-3 text-center">
                             <button type="button"
@@ -587,6 +661,62 @@
                 refreshKontrakBudgetNumbers();
             });
 
+            $(document).on('blur', '.budget-amount-input', function () {
+                $(this).val(formatAmountInputValue($(this).val()));
+            });
+
+            $('#cancelRfpBtn').on('click', function () {
+                Swal.fire({
+                    title: 'Anda Yakin Cancel?',
+                    text: 'Status RFP akan diubah menjadi Cancel.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Cancel',
+                    cancelButtonText: 'Tidak',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280'
+                }).then(function (result) {
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                    $('#cancelRfpBtn').prop('disabled', true);
+                    showOverlay('Cancelling');
+
+                    $.ajax({
+                        url: @json($cancelUrl),
+                        type: 'POST',
+                        data: {
+                            _token: @json(csrf_token())
+                        }
+                    })
+                    .done(function (res) {
+                        Swal.fire({
+                            title: 'Berhasil',
+                            text: res.message || 'RFP berhasil di-cancel.',
+                            icon: 'success',
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+
+                        setTimeout(function () {
+                            window.location.href = @json($successRedirectUrl);
+                        }, 900);
+                    })
+                    .fail(function (xhr) {
+                        if (xhr.responseJSON?.message) {
+                            toastr.error(xhr.responseJSON.message);
+                        } else {
+                            toastr.error('Gagal cancel RFP.');
+                        }
+                    })
+                    .always(function () {
+                        $('#cancelRfpBtn').prop('disabled', false);
+                        hideOverlay();
+                    });
+                });
+            });
+
             $('#kontrakBudgetSubmitForm').on('submit', function (e) {
                 e.preventDefault();
 
@@ -594,9 +724,44 @@
                     return $(this).find('input[name="budget_account_id[]"]').length > 0;
                 });
 
-                if (rows.length <= 0) {
-                    toastr.error('Minimal 1 detail budget harus dipilih.');
-                    return;
+                if (kontrakBudgetContext.is_kontrak) {
+                    if (rows.length <= 0) {
+                        toastr.error('Minimal 1 detail budget harus dipilih.');
+                        return;
+                    }
+
+                    let invalidMessage = '';
+                    let totalAmount = 0;
+                    const rfpBaseAmount = parseAmount(kontrakBudgetContext.rfp_base_amount || 0);
+
+                    rows.each(function (index) {
+                        const $amount = $(this).find('input[name="rfp_base_amount[]"]');
+                        const amount = parseAmount($amount.val());
+                        const hasMaxAmount = $amount.attr('data-max') !== undefined && $amount.attr('data-max') !== '';
+                        const maxAmount = parseAmount($amount.data('max'));
+
+                        if (amount <= 0) {
+                            invalidMessage = `Amount budget baris ${index + 1} harus lebih besar dari 0.`;
+                            return false;
+                        }
+
+                        if (hasMaxAmount && amount > maxAmount) {
+                            invalidMessage = `Amount budget baris ${index + 1} tidak boleh lebih besar dari remaining budget.`;
+                            return false;
+                        }
+
+                        totalAmount += amount;
+                    });
+
+                    if (invalidMessage !== '') {
+                        toastr.error(invalidMessage);
+                        return;
+                    }
+
+                    if (rfpBaseAmount > 0 && totalAmount > rfpBaseAmount) {
+                        toastr.error('Total amount budget tidak boleh lebih besar dari RFP base amount.');
+                        return;
+                    }
                 }
 
                 $('#submitBtn').prop('disabled', true);
@@ -607,7 +772,7 @@
                 const formData = new FormData(this);
 
                 $.ajax({
-                    url: @json(route('rfp.kontrak-budget.submit', ['hash' => $hash])),
+                    url: @json($submitUrl),
                     type: 'POST',
                     data: formData,
                     processData: false,
@@ -616,7 +781,7 @@
                 .done(function (res) {
                     toastr.success(res.message || 'Submit berhasil!');
                     setTimeout(function () {
-                        window.location.href = @json(route('rfp'));
+                        window.location.href = @json($successRedirectUrl);
                     }, 700);
                 })
                 .fail(function (xhr) {

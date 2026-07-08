@@ -3,19 +3,37 @@
         <x-approval-actions
             :status="$rfp->status"
             :is-approver="$isApprover"
+            :edit-url="url('/editrfpkontrakbudget/' . $hash)"
         />
+
+        @php
+            $typePoText = trim((string) ($rfp->type_po ?? ''));
+            $typePoKey = strtoupper($typePoText);
+            $isKontrak = $typePoKey === 'KONTRAK';
+            $typePoClasses = match ($typePoKey) {
+                'KONTRAK' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300',
+                'PO' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-300',
+                'NON PO' => 'bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-300',
+                'SPK' => 'bg-sky-100 text-sky-700 dark:bg-sky-800/30 dark:text-sky-300',
+                default => 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
+            };
+        @endphp
 
          <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- LEFT CARD --}}
-                <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                <div class="flex flex-1 flex-col gap-6">
+                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                             <span class="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-sm font-semibold text-purple-700">
                                 ID
                             </span>
                             {{ $rfp->rfp_id }}
+                            <span class="{{ $typePoClasses }} inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold">
+                                {{ $typePoText !== '' ? $typePoText : '-' }}
+                            </span>
                         </h1>
 
                         @php
@@ -101,7 +119,6 @@
                                 ['label' => 'IR ID', 'value' => $rfp->ir_id ?: '-'],
                                 ['label' => 'IR Date', 'value' => $rfp->ir_date ? \Carbon\Carbon::parse($rfp->ir_date)->format('d M Y H:i:s') : '-'],
                                 ['label' => 'IR Submit Date', 'value' => $rfp->ir_submit_date ? \Carbon\Carbon::parse($rfp->ir_submit_date)->format('d M Y H:i:s') : '-'],
-                                ['label' => 'Type PO', 'value' => $rfp->type_po ?: '-'],
                                 ['label' => 'Type Payment', 'value' => e($typepayment ?: '-')],
                                 ['label' => 'Payment Period', 'value' => $rfp->period_payment ?: '-'],
                                 ['label' => 'Base Amount', 'value' => $baseAmount],
@@ -109,7 +126,7 @@
                                 ['label' => 'Total Amount', 'value' => $totalAmount],
                                 ['label' => 'Payment Type', 'value' => $rfp->payment_type ?: '-'],
                                 ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? 'Rp ' . number_format((float) $rfp->amount_payment, 2, ',', '.') : '-'],
-                                ['label' => 'Terbilang', 'value' => $rfp->terbilang ?: '-'],
+                                ['label' => 'Terbilang', 'value' => $terbilang ?: '-'],
                             ];
 
                             $irNoteValue = trim((string) ($rfp->ir_note ?? ''));
@@ -139,6 +156,168 @@
                             </span>
                         </div>
                     </div>
+                    </div>
+
+                    @if ($isKontrak)
+                    <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
+                        <header class="flex items-center justify-between border-b px-6 py-2 bg-gray-50 dark:bg-gray-700">
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                    Detail Kontrak Budget
+                                </h2>
+
+                                <span class="rounded-full bg-indigo-100 px-2.5 py-0.5 text-sm font-semibold text-indigo-700">
+                                    {{ $kontrakBudgets->count() }} row
+                                </span>
+                            </div>
+                        </header>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-160 table-fixed text-sm">
+                                <colgroup>
+                                    <col class="w-[50px]">
+                                    <col class="w-auto">
+                                    <col class="w-40">
+                                </colgroup>
+
+                                <thead class="border-b text-gray-600 dark:text-gray-300">
+                                    <tr>
+                                        <th class="p-2 text-center">No</th>
+                                        <th class="p-2 text-left">Budget</th>
+                                        <th class="p-2 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y dark:divide-gray-700">
+                                    @forelse ($kontrakBudgets as $i => $budget)
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                            <td class="p-2 text-center">{{ $i + 1 }}</td>
+                                            <td class="p-2">
+                                                <div class="group relative inline-block cursor-help">
+                                                    @php
+                                                        $budgetData = $budget->budget_data ?? null;
+
+                                                        $budgetValue = (float) ($budgetData->totalbudget ?? 0);
+                                                        $additional = (float) ($budgetData->totalbudget_add ?? 0);
+                                                        $reserved = (float) ($budgetData->total_reserve ?? 0);
+                                                        $used = (float) ($budgetData->total_used ?? 0);
+                                                        $totalBudget = $budgetValue + $additional;
+                                                        $available = $totalBudget - $reserved - $used;
+                                                    @endphp
+
+                                                    <div class="budget-trigger"
+                                                        data-budget="{{ $budgetValue }}"
+                                                        data-additional="{{ $additional }}"
+                                                        data-reserved="{{ $reserved }}"
+                                                        data-used="{{ $used }}"
+                                                        data-available="{{ $available }}"
+                                                        data-desc="{{ $budget->budget_activity_descr ?: $budget->budget_activity_id ?: '-' }}"
+                                                        data-account="{{ $budget->budget_account_id ?: '-' }}"
+                                                        data-coa="{{ optional($budgetData)->account_descr ?: '-' }}"
+                                                        data-bu="{{ $budget->budget_business_unit_id ?: '-' }}">
+
+                                                        <div class="flex flex-wrap items-center gap-2 text-sm">
+                                                            @if (!empty($budget->budget_department_fin_id))
+                                                                <span class="rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-300">
+                                                                    {{ $budget->budget_department_fin_id }}
+                                                                </span>
+                                                            @endif
+
+                                                            @if (!empty($budget->budget_business_unit_id))
+                                                                <span class="rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-800/30 dark:text-purple-300">
+                                                                    {{ $budget->budget_business_unit_id }}
+                                                                </span>
+                                                            @endif
+
+                                                            <span class="font-semibold text-gray-700 dark:text-gray-200">
+                                                                {{ $budget->budget_account_id ?: '-' }}
+                                                            </span>
+
+                                                            <span class="text-gray-400 dark:text-gray-500">|</span>
+
+                                                            <span class="max-w-[240px] truncate text-gray-500 dark:text-gray-400">
+                                                                {{ $budget->budget_activity_descr ?: $budget->budget_activity_id ?: '-' }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                {{ is_numeric($budget->rfp_base_amount ?? null) ? 'Rp ' . number_format((float) $budget->rfp_base_amount, 2, ',', '.') : '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center text-gray-500 italic p-3">
+                                                Detail kontrak budget belum tersedia.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+
+                                @if ($kontrakBudgets->count() > 0)
+                                    <tfoot class="border-t text-gray-700 dark:border-gray-700 dark:text-gray-200">
+                                        <tr>
+                                            <td colspan="2" class="p-2 text-right font-semibold">Total</td>
+                                            <td class="p-2 text-right font-semibold">
+                                                Rp {{ number_format((float) $kontrakBudgets->sum('rfp_base_amount'), 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                @endif
+                            </table>
+
+                            @if ($kontrakBudgets->count() > 0)
+                                <div id="budgetTooltip"
+                                    class="fixed z-[9999] hidden w-72 rounded-xl border border-gray-200 bg-white p-4 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900">
+
+                                    <div class="space-y-1">
+                                        <div id="ttDesc" class="font-semibold text-gray-900 dark:text-white"></div>
+
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                            <span id="ttAccount"></span>
+                                            <span class="mx-1 text-gray-300">|</span>
+                                            <span id="ttCoa"></span>
+                                            <span class="mx-1 text-gray-300">|</span>
+                                            <span id="ttBU"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="my-3 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                    <div class="space-y-1.5">
+                                        <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                            <span>Budget</span>
+                                            <span id="ttBudget"></span>
+                                        </div>
+
+                                        <div class="flex justify-between text-gray-600 dark:text-gray-400">
+                                            <span>Additional</span>
+                                            <span id="ttAdditional"></span>
+                                        </div>
+
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Reserved</span>
+                                            <span id="ttReserved" class="text-red-500"></span>
+                                        </div>
+
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Used</span>
+                                            <span id="ttUsed" class="text-red-500"></span>
+                                        </div>
+
+                                        <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+
+                                        <div class="flex justify-between font-semibold">
+                                            <span class="text-gray-700 dark:text-gray-300">Available</span>
+                                            <span id="ttAvailable"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 {{-- RIGHT CARD --}}
@@ -317,6 +496,7 @@
                             </table>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -762,6 +942,66 @@
             $('#btnResetRfpAttachment').on('click', function() {
                 $('#rfpAttachFiles').val('');
             });
+        });
+    </script>
+    <script>
+        function formatBudgetNumber(value) {
+            value = Number(value || 0);
+
+            return value.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        $(document).on('mouseenter', '.budget-trigger', function() {
+            const $el = $(this);
+            const $tooltip = $('#budgetTooltip');
+
+            $('#ttDesc').text($el.data('desc') || '-');
+            $('#ttAccount').text($el.data('account') || '-');
+            $('#ttCoa').text($el.data('coa') || '-');
+            $('#ttBU').text($el.data('bu') || '-');
+
+            $('#ttBudget').text(formatBudgetNumber($el.data('budget')));
+            $('#ttAdditional').text(formatBudgetNumber($el.data('additional')));
+            $('#ttReserved').text(formatBudgetNumber($el.data('reserved')));
+            $('#ttUsed').text(formatBudgetNumber($el.data('used')));
+
+            const available = Number($el.data('available') || 0);
+            $('#ttAvailable')
+                .text(formatBudgetNumber(available))
+                .removeClass('text-red-600 text-emerald-600')
+                .addClass(available < 0 ? 'text-red-600' : 'text-emerald-600');
+
+            $tooltip.removeClass('hidden');
+        });
+
+        $(document).on('mousemove', '.budget-trigger', function(e) {
+            const $tooltip = $('#budgetTooltip');
+
+            let left = e.clientX + 16;
+            let top = e.clientY + 16;
+
+            const tooltipWidth = $tooltip.outerWidth() || 288;
+            const tooltipHeight = $tooltip.outerHeight() || 220;
+
+            if (left + tooltipWidth > window.innerWidth) {
+                left = e.clientX - tooltipWidth - 16;
+            }
+
+            if (top + tooltipHeight > window.innerHeight) {
+                top = e.clientY - tooltipHeight - 16;
+            }
+
+            $tooltip.css({
+                left: left + 'px',
+                top: top + 'px'
+            });
+        });
+
+        $(document).on('mouseleave', '.budget-trigger', function() {
+            $('#budgetTooltip').addClass('hidden');
         });
     </script>
 </x-app-layout>

@@ -1220,6 +1220,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/showrfp/{hash}', [RfpController::class, 'showRfp']);
     Route::get('/createrfpkontrakbudget/{hash}', [RfpController::class, 'createRfpKontrakBudget'])->name('rfp.kontrak-budget.create');
     Route::post('/createrfpkontrakbudget/{hash}/submit', [RfpController::class, 'submitRfpKontrakBudget'])->name('rfp.kontrak-budget.submit');
+    Route::get('/editrfpkontrakbudget/{hash}', [RfpController::class, 'editRfpKontrakBudget'])->name('rfp.kontrak-budget.edit');
+    Route::post('/editrfpkontrakbudget/{hash}/update', [RfpController::class, 'updateRfpKontrakBudget'])->name('rfp.kontrak-budget.update');
+    Route::post('/rfp/{hash}/cancel-kontrak-budget', [RfpController::class, 'cancelRfpKontrakBudget'])->name('rfp.kontrak-budget.cancel');
     Route::post('/rfp/{hash}/received', [RfpController::class, 'updateReceived'])->name('rfp.received');
     Route::post('/rfp/{hash}/treasury', [RfpController::class, 'updateTreasury'])->name('rfp.treasury');
     Route::get('/rfp/{id}/tracking', [RfpController::class, 'tracking'])->name('rfp.tracking');
