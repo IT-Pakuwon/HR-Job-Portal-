@@ -198,19 +198,20 @@
                                     <i class="fa-solid fa-eye"></i> Reference — lines in the source template
                                 </div>
                                 <div
-                                    class="overflow-x-auto rounded-lg border border-indigo-100 bg-white/60 dark:border-indigo-500/20 dark:bg-white/3">
+                                    class="overflow-x-auto rounded-xl border border-indigo-100 bg-white shadow-sm dark:border-indigo-500/20 dark:bg-white/3">
                                     <table class="w-full text-sm">
                                         <thead>
                                             <tr
-                                                class="text-xs font-semibold uppercase tracking-wide text-indigo-700/60 dark:text-indigo-300/60">
-                                                <th class="py-2 pr-2 pl-3 text-left">Lvl</th>
-                                                <th class="py-2 pr-2 text-left">Name</th>
-                                                <th class="py-2 pr-2 text-left">Type</th>
-                                                <th class="py-2 pr-2 text-left">Condition</th>
-                                                <th class="py-2 pr-3 text-right">Nominal</th>
+                                                class="border-b border-indigo-100 bg-indigo-50/70 text-xs font-semibold uppercase tracking-wide text-indigo-700/70 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300/70">
+                                                <th class="py-2.5 pr-2 pl-3 text-left">Lvl</th>
+                                                <th class="py-2.5 pr-2 text-left">Name</th>
+                                                <th class="py-2.5 pr-2 text-left">Type</th>
+                                                <th class="py-2.5 pr-2 text-left">Condition</th>
+                                                <th class="py-2.5 pr-3 text-right">Nominal</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="templatePreviewList"></tbody>
+                                        <tbody id="templatePreviewList"
+                                            class="divide-y divide-gray-100 dark:divide-white/5"></tbody>
                                     </table>
                                 </div>
                             </div>
@@ -425,6 +426,80 @@
     <script>
         const TYPE_OPTIONS = @json($type->pluck('category_name')->values());
     </script>
+
+    {{-- Select2 "Name" multi-select: theme the stock chip layout (Select2 already
+    wraps chips and grows the box on its own) instead of fighting it with flexbox. --}}
+    <style>
+        #linesContainer .select2-container--default .select2-selection--multiple,
+        #editLinesContainer .select2-container--default .select2-selection--multiple {
+            min-height: 38px;
+            border-radius: 0.5rem;
+            border-color: #d1d5db;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        #linesContainer .select2-container--default.select2-container--focus .select2-selection--multiple,
+        #editLinesContainer .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
+        }
+
+        #linesContainer .select2-selection--multiple .select2-selection__choice,
+        #editLinesContainer .select2-selection--multiple .select2-selection__choice {
+            background: #eef2ff !important;
+            border-color: #c7d2fe !important;
+            color: #4338ca !important;
+            border-radius: 4px !important;
+            font-size: 12px;
+        }
+
+        #linesContainer .select2-selection--multiple .select2-selection__choice__remove,
+        #editLinesContainer .select2-selection--multiple .select2-selection__choice__remove {
+            color: #6366f1 !important;
+            border-color: #c7d2fe !important;
+        }
+
+        #linesContainer .select2-selection--multiple .select2-selection__choice__remove:hover,
+        #editLinesContainer .select2-selection--multiple .select2-selection__choice__remove:hover {
+            color: #ef4444 !important;
+            background: #fee2e2 !important;
+        }
+
+        #linesContainer .select2-search--inline .select2-search__field,
+        #editLinesContainer .select2-search--inline .select2-search__field {
+            font-size: 13px;
+        }
+
+        .dark #linesContainer .select2-container--default .select2-selection--multiple,
+        .dark #editLinesContainer .select2-container--default .select2-selection--multiple {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark #linesContainer .select2-selection__rendered,
+        .dark #editLinesContainer .select2-selection__rendered {
+            color: #f3f4f6;
+        }
+
+        .dark #linesContainer .select2-search--inline .select2-search__field,
+        .dark #editLinesContainer .select2-search--inline .select2-search__field {
+            background: transparent;
+            color: #f3f4f6;
+        }
+
+        .dark #linesContainer .select2-selection--multiple .select2-selection__choice,
+        .dark #editLinesContainer .select2-selection--multiple .select2-selection__choice {
+            background: rgba(99, 102, 241, 0.15) !important;
+            border-color: rgba(99, 102, 241, 0.3) !important;
+            color: #c7d2fe !important;
+        }
+
+        .dark #linesContainer .select2-selection--multiple .select2-selection__choice__remove,
+        .dark #editLinesContainer .select2-selection--multiple .select2-selection__choice__remove {
+            color: #a5b4fc !important;
+            border-color: rgba(99, 102, 241, 0.3) !important;
+        }
+    </style>
 
     <script>
         $(document).ready(function() {
@@ -1035,12 +1110,16 @@
                         '0';
 
                     $list.append(`
-                        <tr class="border-t border-indigo-100 align-top dark:border-indigo-800">
-                            <td class="py-1 pr-2 font-semibold text-gray-700 dark:text-gray-200">${escapeHtml(level)}</td>
-                            <td class="py-1 pr-2 text-gray-600 dark:text-gray-300" title="${escapeHtml(name)}">${escapeHtml(name)}</td>
-                            <td class="py-1 pr-2 text-gray-500 dark:text-gray-400">${escapeHtml(type)}</td>
-                            <td class="py-1 pr-2 text-gray-500 dark:text-gray-400">${escapeHtml(cond)}</td>
-                            <td class="py-1 whitespace-nowrap text-right text-gray-500 dark:text-gray-400">${startNom} — ${endNom}</td>
+                        <tr class="align-middle transition hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5">
+                            <td class="py-2 pr-2 pl-3">
+                                <span class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">${escapeHtml(level)}</span>
+                            </td>
+                            <td class="max-w-[160px] truncate py-2 pr-2 font-medium text-gray-800 dark:text-gray-100" title="${escapeHtml(name)}">${escapeHtml(name)}</td>
+                            <td class="py-2 pr-2">
+                                <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">${escapeHtml(type)}</span>
+                            </td>
+                            <td class="py-2 pr-2 text-gray-500 dark:text-gray-400">${escapeHtml(cond)}</td>
+                            <td class="py-2 pr-3 text-right font-mono text-xs whitespace-nowrap text-gray-500 dark:text-gray-400">${startNom} — ${endNom}</td>
                         </tr>
                     `);
                 });

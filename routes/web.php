@@ -127,6 +127,7 @@ use App\Http\Controllers\SysCalendarController;
 use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysMenuFavouriteController;
 use App\Http\Controllers\SysRoleController;
+use App\Http\Controllers\AccessControlStudioController;
 use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
@@ -1991,6 +1992,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/users/{id}/reset-password', [UsersController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('/users/{id}/impersonate', [UsersController::class, 'impersonate'])->name('users.impersonate');
+        Route::delete('/users/{id}', [UsersController::class, 'destroy'])->name('users.destroy');
 
         // === APPLICATION MASTER ===
         Route::get('/applications', [SysApplicationController::class, 'index'])->name('applications');
@@ -2041,6 +2043,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/access-rights/{id}/edit', [SysAccessRightController::class, 'edit'])->name('access_rights.edit');
         Route::put('/access-rights/{id}', [SysAccessRightController::class, 'update'])->name('access_rights.update');
         Route::put('/access-rights/{id}/toggle-status', [SysAccessRightController::class, 'toggleStatus'])->name('access_rights.toggle-status');
+
+        // ================== ACCESS CONTROL STUDIO (guided one-page console) ==================
+        Route::get('/access-control-studio', [AccessControlStudioController::class, 'index'])->name('access_control_studio');
+        Route::get('/access-control-studio/coverage', [AccessControlStudioController::class, 'coverage'])->name('access_control_studio.coverage');
 
         Route::get('/approvals', [MsApprovalController::class, 'index'])->name('approvals');
         Route::get('/approvals/json', [MsApprovalController::class, 'json'])->name('approvals.json');

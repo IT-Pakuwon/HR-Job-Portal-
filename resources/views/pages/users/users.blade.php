@@ -533,6 +533,11 @@
                                                 data-id="${data}" title="Reset Password">
                                             <i class="fas fa-undo"></i>
                                         </button>
+                                        <button type="button"
+                                                class="hardDeleteBtn bg-gray-800 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" data-name="${row.name ?? ''}" title="Delete Permanently">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 `;
                             }
@@ -1164,6 +1169,62 @@
                         }
                     });
 
+                }
+
+            });
+        });
+
+        // 🗑️ Hard delete: permanently remove the user record
+        $(document).on('click', '.hardDeleteBtn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            let userId = $(this).data('id');
+            let userName = $(this).data('name') || 'this user';
+
+            Swal.fire({
+                title: "Delete Permanently?",
+                html: `This will <b>permanently delete</b> <b>${userName}</b> and all of its access records. This action cannot be undone.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#1f2937",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Yes, Delete Permanently",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/users/${userId}`,
+                        type: "DELETE",
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        success: function(res) {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: res.message || "User permanently deleted.",
+                                icon: "success",
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+
+                            if ($.fn.DataTable.isDataTable('#dupUsersTable')) {
+                                $('#dupUsersTable').DataTable().ajax.reload(null, false);
+                            }
+                            if ($.fn.DataTable.isDataTable('#usersTable')) {
+                                $('#usersTable').DataTable().ajax.reload(null, false);
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                title: "Failed!",
+                                text: xhr.responseJSON?.message ||
+                                    "Failed to delete user.",
+                                icon: "error"
+                            });
+                        }
+                    });
                 }
 
             });

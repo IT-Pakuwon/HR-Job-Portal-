@@ -308,6 +308,7 @@
                                 'roles',
                                 'access_rights',
                                 'role_menus',
+                                'access_control_studio',
                                 'applications',
                                 'screens',
                                 'menus',
@@ -343,13 +344,28 @@
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-2">
 
                                 <!-- ================================================= -->
+                                <!-- ACCESS CONTROL STUDIO (guided one-page console) -->
+                                <!-- ================================================= -->
+                                <li>
+                                    <a href="{{ route('access_control_studio') }}"
+                                        class="{{ Request::segment(1) === 'access_control_studio' ? 'text-white bg-indigo-600 dark:bg-indigo-500' : 'text-indigo-700 bg-indigo-50 dark:text-indigo-300 dark:bg-indigo-900/20' }} mb-2 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500">
+                                        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z" />
+                                        </svg>
+                                        <span>Access Control Studio</span>
+                                    </a>
+                                </li>
+
+                                <!-- ================================================= -->
                                 <!-- USER & ACCESS -->
                                 <!-- ================================================= -->
                                 @php $ua = ['users','roles','access_rights','role_menus']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $ua) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">User &
                                             Access</span>
@@ -365,7 +381,7 @@
                                         <li><a href="{{ route('users') }}"
                                                 class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Users</a>
                                         </li>
-                                        <li><a href="{{ route('roles') }}"
+                                        {{-- <li><a href="{{ route('roles') }}"
                                                 class="{{ Request::segment(1) === 'roles' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Roles</a>
                                         </li>
                                         <li><a href="{{ route('access_rights') }}"
@@ -373,18 +389,18 @@
                                                 Rights</a></li>
                                         <li><a href="{{ route('role_menus') }}"
                                                 class="{{ Request::segment(1) === 'role_menus' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Role
-                                                Menus</a></li>
+                                                Menus</a></li> --}}
                                     </ul>
                                 </li>
 
                                 <!-- ================================================= -->
                                 <!-- APPLICATION -->
                                 <!-- ================================================= -->
-                                @php $app = ['applications','screens','menus']; @endphp
+                                {{-- @php $app = ['applications','screens','menus']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $app) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Application</span>
@@ -407,7 +423,7 @@
                                                 class="{{ Request::segment(1) === 'menus' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Menus</a>
                                         </li>
                                     </ul>
-                                </li>
+                                </li> --}}
 
                                 <!-- ================================================= -->
                                 <!-- ORGANIZATION -->
@@ -416,7 +432,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $org) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Organization</span>
@@ -456,7 +472,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $md) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Master
                                             Data</span>
@@ -508,7 +524,7 @@
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
 
                                         <span
                                             class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Workflow</span>
@@ -582,7 +598,7 @@
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-2">
                                 <li x-data="{ open: true }">
                                     <button @click="open = !open"
-                                        class="flex w-full items-center justify-between px-4 py-2 text-xs font-semibold uppercase text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
                                         <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Master Data</span>
                                         <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

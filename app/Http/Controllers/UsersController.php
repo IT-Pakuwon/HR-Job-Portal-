@@ -584,4 +584,44 @@ class UsersController extends Controller
             'message' => 'Password berhasil di-reset ke default.',
         ]);
     }
+
+    /**
+     * 🗑️ Hard delete: permanently remove a user and its related access rows.
+     */
+    public function destroy($id)
+    {
+        $currentUser = Auth::user();
+
+        if (!$currentUser || $currentUser->user_role !== 'admin') {
+            abort(403, 'Unauthorized');
+        }
+
+        $user = User::findOrFail($id);
+
+        if ($user->id === $currentUser->id) {
+            return response()->json(['message' => 'You cannot delete your own account.'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $username = $user->username;
+
+            Usercpny::where('username', $username)->delete();
+            Userdept::where('username', $username)->delete();
+            Userdivision::where('username', $username)->delete();
+            Userbusinessunit::where('username', $username)->delete();
+            SysUserRole::where('username', $username)->delete();
+
+            $user->delete();
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'User permanently deleted.']);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal menghapus user.',
+                'error'   => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
