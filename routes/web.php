@@ -232,30 +232,40 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/news/remove-attachment/{id}', [NewsController::class, 'removeAttachment']);
     Route::get('/news/{id}/check-approval/{action}', [NewsController::class, 'checkApproval']);
 
-    Route::get('/personnels', [PersonnelController::class, 'index'])->name('personnels');
-    Route::get('/personnels/json', [PersonnelController::class, 'json'])->name('personnels.json');
-    Route::get('/createpersonnels', [PersonnelController::class, 'createPersonnel']);
-    Route::post('/personnels', [PersonnelController::class, 'storePersonnel'])->name('personnels.store');
-    Route::get('/showpersonnels/{hash}', [PersonnelController::class, 'showPersonnel']);
-    Route::get('/personnel/{id}/comments', [PersonnelController::class, 'fetchComments']);
-    Route::post('/personnel/{id}/comments', [PersonnelController::class, 'storeComment']);
-    Route::post('/personnel/{id}/approve', [PersonnelController::class, 'approvePersonnel']);
-    Route::post('/personnel/{id}/reject', [PersonnelController::class, 'rejectPersonnel']);
-    Route::post('/personnel/{id}/revise', [PersonnelController::class, 'revisePersonnel']);
-    Route::get('/editpersonnels/{hash}', [PersonnelController::class, 'editPersonnel']);
-    Route::put('/personnels/{id}', [PersonnelController::class, 'updatePersonnel'])->name('personnels.update');
-    Route::put('/personnels/remove-attachment/{id}', [PersonnelController::class, 'removeAttachment']);
-    Route::get('/personnel/{id}/check-approval/{action}', [PersonnelController::class, 'checkApproval']);
-    Route::get('/api/sites/{cpnyid}', [PersonnelController::class, 'getSitesByCompany']);
-    Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
-    Route::get('/api/vacant-employees/{deptId}', [PersonnelController::class, 'getVacantByTopParent']);
-    Route::get('/api/replacement-employees/{deptname}', [PersonnelController::class, 'getReplacementByTopParent']);
-    Route::get('/createpersonnelsx', [PersonnelController::class, 'createPersonnelx']);
-    Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
-    Route::get('/api/job-parent-info-edit/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getJobParentInfoEdit']);
-    Route::get('/attachments/view/{id}', [PersonnelController::class, 'viewAttachment'])->name('attachments.view');
-    Route::get('/hr/departments', [PersonnelController::class, 'byDivision'])->name('hr.departments');
-    Route::post('/jobposting/toggle-status', [PersonnelController::class, 'toggleJobPostingStatus']);
+    Route::middleware('access:PRF,VIEW')->group(function () {
+        Route::get('/personnels', [PersonnelController::class, 'index'])->name('personnels');
+        Route::get('/personnels/json', [PersonnelController::class, 'json'])->name('personnels.json');
+        Route::get('/showpersonnels/{hash}', [PersonnelController::class, 'showPersonnel']);
+        Route::get('/personnel/{id}/comments', [PersonnelController::class, 'fetchComments']);
+        Route::get('/personnel/{id}/check-approval/{action}', [PersonnelController::class, 'checkApproval']);
+        Route::get('/api/sites/{cpnyid}', [PersonnelController::class, 'getSitesByCompany']);
+        Route::get('/api/job-parent-info/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getParentJobInfo']);
+        Route::get('/api/vacant-employees/{deptId}', [PersonnelController::class, 'getVacantByTopParent']);
+        Route::get('/api/replacement-employees/{deptname}', [PersonnelController::class, 'getReplacementByTopParent']);
+        Route::get('/api/job-parent-info-edit/{parentId}/{departementId}/{deptId}', [PersonnelController::class, 'getJobParentInfoEdit']);
+        Route::get('/attachments/view/{id}', [PersonnelController::class, 'viewAttachment'])->name('attachments.view');
+        Route::get('/hr/departments', [PersonnelController::class, 'byDivision'])->name('hr.departments');
+    });
+
+    Route::middleware('access:PRF,CREATE')->group(function () {
+        Route::get('/createpersonnels', [PersonnelController::class, 'createPersonnel']);
+        Route::post('/personnels', [PersonnelController::class, 'storePersonnel'])->name('personnels.store');
+        Route::get('/createpersonnelsx', [PersonnelController::class, 'createPersonnelx']);
+    });
+
+    Route::middleware('access:PRF,EDIT')->group(function () {
+        Route::post('/personnel/{id}/comments', [PersonnelController::class, 'storeComment']);
+        Route::post('/personnel/{id}/approve', [PersonnelController::class, 'approvePersonnel']);
+        Route::post('/personnel/{id}/reject', [PersonnelController::class, 'rejectPersonnel']);
+        Route::post('/personnel/{id}/revise', [PersonnelController::class, 'revisePersonnel']);
+        Route::get('/editpersonnels/{hash}', [PersonnelController::class, 'editPersonnel']);
+        Route::put('/personnels/{id}', [PersonnelController::class, 'updatePersonnel'])->name('personnels.update');
+        Route::put('/personnels/remove-attachment/{id}', [PersonnelController::class, 'removeAttachment']);
+    });
+
+    Route::middleware('access:PRF,DELETE')->group(function () {
+        Route::post('/jobposting/toggle-status', [PersonnelController::class, 'toggleJobPostingStatus']);
+    });
 
     Route::get('/tasks', [ProjectTaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/json', [ProjectTaskController::class, 'json'])->name('tasks.json');
@@ -368,29 +378,45 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/showjobpostings/{id}', [JobpostingController::class, 'showJobposting']);
     Route::get('/jobposting/list', [JobpostingController::class, 'list'])->name('jobposting.list');
     // Route::post('/applicant/mapping', [ApplicantController::class, 'storeMapping'])->name('applicant.mapping.store');
-    Route::post('/applicant/mapping', [SelfRegisterApplicantController::class, 'storeMapping'])
-        ->name('applicant.mapping.store');
-    Route::post('/applicant/mapping/rollback', [SelfRegisterApplicantController::class, 'rollbackMapping'])
-        ->name('applicant.mapping.rollback');
-    Route::post('/applicant/tag', [SelfRegisterApplicantController::class, 'storeTag'])
-        ->name('applicant.tag.store');
-    Route::post('/applicant/reject', [SelfRegisterApplicantController::class, 'storeReject'])
-        ->name('applicant.reject.store');
-    Route::get('/applicant/departments', [SelfRegisterApplicantController::class, 'getDepartments'])
-        ->name('applicant.departments');
+    Route::middleware('access:SELFREGISTER,VIEW')->group(function () {
+        Route::get('/applicant/departments', [SelfRegisterApplicantController::class, 'getDepartments'])
+            ->name('applicant.departments');
+        Route::get('/selfregister', [SelfRegisterApplicantController::class, 'index'])->name('selfregister');
+        Route::get('/selfregister/json', [SelfRegisterApplicantController::class, 'json'])->name('selfregister.json');
+        Route::get('/showselfregister/{hash}', [SelfRegisterApplicantController::class, 'showSelfRegister']);
+        Route::get('/selfregister/download/{hash}/{type}', [SelfRegisterApplicantController::class, 'downloadDocument'])->name('selfregister.download');
+    });
 
-    Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
-    Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');
-    Route::get('/jobapplicant/applicants/{jobId}', [JobapplicantController::class, 'JobApplicants'])->name('jobapplicant.applicants');
-    Route::post('/jobapplicant/remap', [JobapplicantController::class, 'storeRemap'])->name('jobapplicant.remap');
-    // Route::get('/jobapplicant/counts', [JobapplicantController::class, 'getCounts'])->name('jobapplicant.counts');
+    Route::middleware('access:SELFREGISTER,CREATE')->group(function () {
+        Route::post('/applicant/mapping', [SelfRegisterApplicantController::class, 'storeMapping'])
+            ->name('applicant.mapping.store');
+    });
 
-    Route::get('/job-filters/tl', [JobapplicantController::class, 'jobTitleLevels'])->name('jobfilters.tl');
+    Route::middleware('access:SELFREGISTER,EDIT')->group(function () {
+        Route::post('/applicant/tag', [SelfRegisterApplicantController::class, 'storeTag'])
+            ->name('applicant.tag.store');
+        Route::post('/applicant/reject', [SelfRegisterApplicantController::class, 'storeReject'])
+            ->name('applicant.reject.store');
+    });
 
-    Route::get('/selfregister', [SelfRegisterApplicantController::class, 'index'])->name('selfregister');
-    Route::get('/selfregister/json', [SelfRegisterApplicantController::class, 'json'])->name('selfregister.json');
-    Route::get('/showselfregister/{hash}', [SelfRegisterApplicantController::class, 'showSelfRegister']);
-    Route::get('/selfregister/download/{hash}/{type}', [SelfRegisterApplicantController::class, 'downloadDocument'])->name('selfregister.download');
+    Route::middleware('access:SELFREGISTER,DELETE')->group(function () {
+        Route::post('/applicant/mapping/rollback', [SelfRegisterApplicantController::class, 'rollbackMapping'])
+            ->name('applicant.mapping.rollback');
+    });
+
+    Route::middleware('access:APPPORTAL,VIEW')->group(function () {
+        Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
+        Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');
+        Route::get('/jobapplicant/applicants/{jobId}', [JobapplicantController::class, 'JobApplicants'])->name('jobapplicant.applicants');
+        // Route::get('/jobapplicant/counts', [JobapplicantController::class, 'getCounts'])->name('jobapplicant.counts');
+        Route::get('/job-filters/tl', [JobapplicantController::class, 'jobTitleLevels'])->name('jobfilters.tl');
+    });
+
+    Route::middleware('access:APPPORTAL,EDIT')->group(function () {
+        Route::post('/jobapplicant/remap', [JobapplicantController::class, 'storeRemap'])->name('jobapplicant.remap');
+    });
+
+
 
     Route::get('/applicants', [ApplicantController::class, 'index'])->name('applicants');
     Route::get('/applicants/json', [ApplicantController::class, 'json'])->name('applicants.json');
@@ -493,7 +519,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/showbudgets/{hash}', [BudgetController::class, 'showBudget']);
         Route::get('/pdf_budgets/{hash}', [BudgetController::class, 'printBudget']);
         Route::get('/get-business-units/{cpny_id}', [BudgetController::class, 'getBusinessUnits']);
+    });
 
+    Route::middleware('access:BUDGETMONITOR,VIEW')->group(function () {
         Route::get('/budgetmonitor', [BudgetMonitorController::class, 'index'])->name('budgetmonitor');
         Route::get('/budgetmonitor/options/companies', [BudgetMonitorController::class, 'companies'])->name('budgetmonitor.options.companies');
         Route::get('/budgetmonitor/options/business-units', [BudgetMonitorController::class, 'businessUnits'])->name('budgetmonitor.options.businessUnits');
@@ -772,7 +800,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/cs/lastprice/history.entry', [CanvassController::class, 'getLastPriceHistoryEntry'])->name('cs.lastprice.history.entry');
         // Route::get('/pdf_bqcs/{hash}', [BQCSController::class, 'printBQCS']);
         Route::get('/pdf_bqcs/{hash}/{idx}', [BQCSController::class, 'printBQCSVend'])->whereNumber('idx')->name('bqcs.print.vendor');
+    });
 
+    Route::middleware('access:LASTORDER,VIEW')->group(function () {
         Route::get('/purchasing/last-order', [LastOrderController::class, 'index'])->name('lastorder');
         Route::get('/purchasing/last-order/inventory/json', [LastOrderController::class, 'inventoryJson'])->name('lastorder.inventory.json');
         Route::get('/purchasing/last-order/bq/json', [LastOrderController::class, 'bqJson'])->name('lastorder.bq.json');
@@ -842,10 +872,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/showwos/{hash}', [WoController::class, 'showWo']);
         Route::get('/wos/{id}/tracking', [WoController::class, 'tracking'])->name('wos.tracking');
         Route::get('/pdf_wos/{hash}', [WoController::class, 'printWo'])->name('wos.print');
-        // Job Monitoring (READ ONLY)
-        Route::get('/wojobs', [WoController::class, 'woJobs'])->name('wojobs');
-        Route::get('/wos/jsonJobs', [WoController::class, 'jsonJobs'])->name('wos.jsonJobs');
-        Route::get('/wo-business-units', [WoController::class, 'businessUnits']);
     });
 
     Route::middleware('access:WOLIST,CREATE')->group(function () {
@@ -864,6 +890,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/wo/{id}/revise', [WoController::class, 'reviseWo']);
         // WO Job Actions (affects process)
         Route::post('/wo/{woid}/process', [WoController::class, 'processWo'])->name('wo.process');
+    });
+
+    Route::middleware('access:WOJOBS,VIEW')->group(function () {
+        // Job Monitoring (READ ONLY)
+        Route::get('/wojobs', [WoController::class, 'woJobs'])->name('wojobs');
+        Route::get('/wos/jsonJobs', [WoController::class, 'jsonJobs'])->name('wos.jsonJobs');
+        Route::get('/wo-business-units', [WoController::class, 'businessUnits']);
+    });
+
+    Route::middleware('access:WOJOBS,EDIT')->group(function () {
         Route::post('/wo/{woid}/job-status', [WoController::class, 'updateJobStatus'])->name('wo.jobstatus');
     });
 

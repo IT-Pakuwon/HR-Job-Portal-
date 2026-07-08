@@ -719,7 +719,7 @@
                     type: 'PUT',
                     headers: { 'X-CSRF-TOKEN': STUDIO_CSRF },
                     data: { status: newStatus },
-                    success: () => dt.ajax.reload(null, false)
+                    success: () => { dt.ajax.reload(null, false); if (cfg.onSaved) cfg.onSaved(); }
                 });
             });
 
@@ -854,6 +854,44 @@
 
             const lastCreated = { application: null, screen: null, menu: null, role: null };
 
+            // Keeps cross-step <select> options (and the Access Rights app-name
+            // labels) in sync after AJAX create/edit/toggle, so nothing needs a
+            // full page reload to show up in a later step.
+            function studioReloadSelectOptions($sel, url, buildOption) {
+                const current = $sel.val();
+                $.get(url, function(res) {
+                    const rows = (res.data || []).filter(r => r.status === 'A');
+                    const $placeholder = $sel.find('option').first();
+                    $sel.empty();
+                    if ($placeholder.length) $sel.append($placeholder);
+                    rows.forEach(r => $sel.append(buildOption(r)));
+                    $sel.val(current).trigger('change');
+                });
+            }
+
+            function refreshApplicationSelects() {
+                const url = "{{ route('applications.json') }}";
+                ['#scr_application_id', '#mnu_application_id'].forEach(sel => {
+                    studioReloadSelectOptions($(sel), url, r => `<option value="${r.application_id}">${r.application_id} - ${r.application_name}</option>`);
+                });
+                $.get(url, function(res) {
+                    arAppNames = {};
+                    (res.data || []).filter(r => r.status === 'A').forEach(r => arAppNames[r.application_id] = r.application_name);
+                });
+            }
+
+            function refreshScreenSelects() {
+                studioReloadSelectOptions($('#mnu_screen_id'), "{{ route('screens.json') }}",
+                    r => `<option value="${r.screen_id}" data-app="${r.application_id}">${r.screen_id} - ${r.screen_name}</option>`);
+            }
+
+            function refreshRoleSelects() {
+                const url = "{{ route('roles.json') }}";
+                ['#rm_roleSelect', '#ar_roleSelect', '#ar_copyFrom'].forEach(sel => {
+                    studioReloadSelectOptions($(sel), url, r => `<option value="${r.role_id}">${r.role_name}</option>`);
+                });
+            }
+
             // ===== Step 1: Application =====
             studioMiniCrud({
                 tableSel: '#app_table', prefix: 'app', jsonUrl: "{{ route('applications.json') }}",
@@ -866,7 +904,7 @@
                 editUrl: (id) => `/applications/${id}/edit`,
                 updateUrl: (id) => `/applications/${id}`,
                 toggleUrl: (id) => `/applications/${id}/toggle-status`,
-                onSaved: (resp) => { if (resp?.data?.application_id) lastCreated.application = resp.data.application_id; }
+                onSaved: (resp) => { if (resp?.data?.application_id) lastCreated.application = resp.data.application_id; refreshApplicationSelects(); }
             });
 
             // ===== Step 2: Screen =====
@@ -882,7 +920,7 @@
                 updateUrl: (id) => `/screens/${id}`,
                 toggleUrl: (id) => `/screens/${id}/toggle-status`,
                 onOpenAdd: () => { if (lastCreated.application) $('#scr_application_id').val(lastCreated.application).trigger('change'); },
-                onSaved: (resp) => { if (resp?.data?.screen_id) lastCreated.screen = resp.data.screen_id; }
+                onSaved: (resp) => { if (resp?.data?.screen_id) lastCreated.screen = resp.data.screen_id; refreshScreenSelects(); }
             });
 
             // ===== Step 3: Menu (tree) =====
@@ -929,7 +967,7 @@
             }
 
             function mnuLoadTree() {
-                $('#mnu_treeContainer').html('<div class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">Loading menus...</div>');
+                $('#mnu_treeContainer').css('opacity', 1).html('<div class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">Loading menus...</div>');
                 $.get("{{ route('menus.json') }}", function(res) {
                     mnuTreeData = res.data || [];
                     mnuRefreshParentOptions();
@@ -1261,15 +1299,16 @@
                 editUrl: (id) => `/roles/${id}/edit`,
                 updateUrl: (id) => `/roles/${id}`,
                 toggleUrl: (id) => `/roles/${id}/toggle-status`,
-                onSaved: (resp) => { if (resp?.data?.role_id) lastCreated.role = resp.data.role_id; }
+                onSaved: (resp) => { if (resp?.data?.role_id) lastCreated.role = resp.data.role_id; refreshRoleSelects(); }
             });
 
             // ===== Step 5: Role Menu matrix (grouped like the Menu tree) =====
-            const allMenus = @json($menus->map(fn($m) => ['menu_id' => $m->menu_id, 'menu_name' => $m->menu_name, 'parent_menu_id' => $m->parent_menu_id])->values());
-
+            // Reads live from mnuTreeData (kept fresh by mnuLoadTree on every
+            // menu add/edit/drag/toggle) instead of a static PHP-baked array,
+            // so newly created menus show up here without a page reload.
             function rmChildrenOf(parentId) {
-                return allMenus
-                    .filter(m => (m.parent_menu_id || null) === (parentId || null))
+                return mnuTreeData
+                    .filter(m => (m.parent_menu_id || null) === (parentId || null) && m.status === 'A')
                     .sort((a, b) => (a.menu_name || '').localeCompare(b.menu_name || ''));
             }
 
@@ -1378,12 +1417,23 @@
 
             // ===== Step 6: Access Rights matrix (grouped by Application) =====
             const accessColumns = @json($accessNames);
-            const matrixScreens = @json($matrixScreens);
-            const arAppNames = @json($applications->pluck('application_name', 'application_id'));
+            // arAppNames is reassigned by refreshApplicationSelects() after an
+            // Application is saved/toggled, so keep it mutable.
+            let arAppNames = @json($applications->pluck('application_name', 'application_id'));
+
+            // Same live source as the Role Menu matrix: menus with an
+            // application_id assigned act as the "screens" row-set here, read
+            // straight from mnuTreeData so new/edited menus show up without a
+            // page reload.
+            function getMatrixScreens() {
+                return mnuTreeData
+                    .filter(m => m.status === 'A' && m.application_id)
+                    .map(m => ({ menu_id: m.menu_id, menu_name: m.menu_name, application_id: m.application_id }));
+            }
 
             function renderAccessMatrix(rights) {
                 const groups = {};
-                matrixScreens.forEach(s => {
+                getMatrixScreens().forEach(s => {
                     const key = s.application_id || '(no application)';
                     (groups[key] = groups[key] || []).push(s);
                 });

@@ -55,22 +55,8 @@ class AccessControlStudioController extends Controller
             ->unique()
             ->values();
 
-        // Same source the standalone Access Rights matrix uses today, kept
-        // identical here so both pages show the same rows.
-        $matrixScreens = SysMenu::on('pgsql2')
-            ->where('status', 'A')
-            ->whereNotNull('application_id')
-            ->orderBy('menu_id')
-            ->get(['menu_id', 'menu_name', 'application_id'])
-            ->map(fn ($s) => [
-                'menu_id'        => $s->menu_id,
-                'menu_name'      => $s->menu_name,
-                'application_id' => $s->application_id,
-            ])
-            ->values();
-
         return view('pages.access_control_studio.index', compact(
-            'applications', 'screens', 'menus', 'roles', 'accessNames', 'matrixScreens'
+            'applications', 'screens', 'menus', 'roles', 'accessNames'
         ));
     }
 
