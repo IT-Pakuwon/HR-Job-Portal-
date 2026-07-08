@@ -2087,11 +2087,23 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/department/fin/{id}', [DepartmentsController::class, 'updateFin'])->name('department.fin.update');
         Route::put('/department/fin/{id}/toggle-status', [DepartmentsController::class, 'toggleStatusFin'])->name('department.fin.toggle-status');
 
+        Route::get('/department/finmaster/json', [DepartmentsController::class, 'jsonFinMaster'])->name('department.finmaster.json');
+        Route::post('/department/finmaster', [DepartmentsController::class, 'storeFinMaster'])->name('department.finmaster.store');
+        Route::get('/department/finmaster/{id}/edit', [DepartmentsController::class, 'editFinMaster'])->name('department.finmaster.edit');
+        Route::put('/department/finmaster/{id}', [DepartmentsController::class, 'updateFinMaster'])->name('department.finmaster.update');
+        Route::put('/department/finmaster/{id}/toggle-status', [DepartmentsController::class, 'toggleStatusFinMaster'])->name('department.finmaster.toggle-status');
+
         Route::get('/department/hr/json', [DepartmentsController::class, 'jsonHr'])->name('department.hr.json');
         Route::post('/department/hr', [DepartmentsController::class, 'storeHr'])->name('department.hr.store');
         Route::get('/department/hr/{id}/edit', [DepartmentsController::class, 'editHr'])->name('department.hr.edit');
         Route::put('/department/hr/{id}', [DepartmentsController::class, 'updateHr'])->name('department.hr.update');
         Route::put('/department/hr/{id}/toggle-status', [DepartmentsController::class, 'toggleStatusHr'])->name('department.hr.toggle-status');
+
+        Route::get('/department/division/json', [DepartmentsController::class, 'jsonDivision'])->name('department.division.json');
+        Route::post('/department/division', [DepartmentsController::class, 'storeDivision'])->name('department.division.store');
+        Route::get('/department/division/{id}/edit', [DepartmentsController::class, 'editDivision'])->name('department.division.edit');
+        Route::put('/department/division/{id}', [DepartmentsController::class, 'updateDivision'])->name('department.division.update');
+        Route::put('/department/division/{id}/toggle-status', [DepartmentsController::class, 'toggleStatusDivision'])->name('department.division.toggle-status');
 
         Route::get('/categories', [MsCategoryController::class, 'index'])->name('categories');
         Route::get('/categories/json', [MsCategoryController::class, 'json'])->name('categories.json');

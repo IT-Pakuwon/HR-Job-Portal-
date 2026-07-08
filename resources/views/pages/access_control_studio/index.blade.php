@@ -71,22 +71,22 @@
                     <div>
                         <h3 class="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Menus missing a Screen</h3>
                         <p class="mt-0.5 text-xs text-gray-400">Leaf menus (no sub-menus) with no Screen set — jump to the Menu step and edit them.</p>
-                        <ul id="gaps_menusMissingScreen" class="mt-2 max-h-56 space-y-1 overflow-y-auto text-sm"></ul>
+                        <ul id="gaps_menusMissingScreen" class="gaps-list mt-2"></ul>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold uppercase tracking-wide text-red-600 dark:text-red-400">Screens with no route wired</h3>
                         <p class="mt-0.5 text-xs text-gray-400">No <code>access:SCREEN,ACTION</code> middleware anywhere in web.php uses this screen yet.</p>
-                        <ul id="gaps_screensWithoutRoute" class="mt-2 max-h-56 space-y-1 overflow-y-auto text-sm"></ul>
+                        <ul id="gaps_screensWithoutRoute" class="gaps-list mt-2"></ul>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">Unregistered screen IDs in routes</h3>
                         <p class="mt-0.5 text-xs text-gray-400">Used in <code>access:</code> middleware but not found in Screen master data — check for typos/naming mismatches.</p>
-                        <ul id="gaps_unregisteredScreens" class="mt-2 max-h-56 space-y-1 overflow-y-auto text-sm"></ul>
+                        <ul id="gaps_unregisteredScreens" class="gaps-list mt-2"></ul>
                     </div>
                 </div>
                 <details class="mt-4">
                     <summary class="cursor-pointer text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Show screens that ARE wired up correctly</summary>
-                    <ul id="gaps_screensWithRoute" class="mt-2 max-h-56 space-y-1 overflow-y-auto text-sm"></ul>
+                    <ul id="gaps_screensWithRoute" class="gaps-list mt-2"></ul>
                 </details>
             </div>
         </div>
@@ -415,16 +415,26 @@
                         <input type="text" id="mnu_menu_name" name="menu_name" class="studio-input" required>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="studio-label">Screen</label>
-                    <select id="mnu_screen_id" name="screen_id" class="studio-input studio-select2">
-                        <option value="">-- Select Screen --</option>
-                        @foreach ($screens as $s)
-                            <option value="{{ $s->screen_id }}" data-app="{{ $s->application_id }}">{{ $s->screen_id }} - {{ $s->screen_name }}</option>
-                        @endforeach
-                    </select>
+                <div class="mb-3 grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="studio-label">Application</label>
+                        <select id="mnu_application_id" name="application_id" class="studio-input studio-select2">
+                            <option value="">-- Select Application --</option>
+                            @foreach ($applications as $app)
+                                <option value="{{ $app->application_id }}">{{ $app->application_id }} - {{ $app->application_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="studio-label">Screen (optional)</label>
+                        <select id="mnu_screen_id" name="screen_id" class="studio-input studio-select2">
+                            <option value="">-- Select Screen --</option>
+                            @foreach ($screens as $s)
+                                <option value="{{ $s->screen_id }}" data-app="{{ $s->application_id }}">{{ $s->screen_id }} - {{ $s->screen_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
-                <input type="hidden" id="mnu_application_id" name="application_id">
                 <div class="mb-3">
                     <label class="studio-label">Parent Menu (optional)</label>
                     <select id="mnu_parent_menu_id" name="parent_menu_id" class="studio-input studio-select2">
@@ -596,6 +606,29 @@
         .step-panel { animation: studioFadeIn .18s ease-out; }
         @keyframes studioFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* ---- setup gaps listing ---- */
+        .gaps-list {
+            max-height: 14rem; overflow-y: auto; font-size: 0.8125rem;
+            border: 1px solid #f3f4f6; border-radius: 0.6rem;
+        }
+        .dark .gaps-list { border-color: #374151; }
+        .gaps-list li {
+            padding: 0.4rem 0.6rem; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; gap: 0.4rem; line-height: 1.3;
+        }
+        .dark .gaps-list li { border-color: #374151; }
+        .gaps-list li:last-child { border-bottom: none; }
+        .gaps-list li:hover { background-color: #f9fafb; }
+        .dark .gaps-list li:hover { background-color: rgba(255,255,255,0.03); }
+        .gaps-list::-webkit-scrollbar { width: 6px; }
+        .gaps-list::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 3px; }
+        .dark .gaps-list::-webkit-scrollbar-thumb { background-color: #4b5563; }
+        .gaps-id-badge {
+            font-family: ui-monospace, monospace; font-size: 0.6875rem; flex-shrink: 0;
+            padding: 0.05rem 0.4rem; border-radius: 0.35rem; background-color: #f3f4f6; color: #4b5563;
+        }
+        .dark .gaps-id-badge { background-color: rgba(255,255,255,0.06); color: #d1d5db; }
+
         /* ---- select2 sizing + dark mode ---- */
         .studio-select2 + .select2-container .select2-selection--single {
             height: 2.6rem; border-radius: 0.6rem; border-color: #d1d5db; display: flex; align-items: center;
@@ -751,7 +784,7 @@
             function gapsRenderList(sel, items, render) {
                 const $ul = $(sel);
                 if (!items.length) {
-                    $ul.html('<li class="text-xs italic text-gray-400">None — all clear.</li>');
+                    $ul.html('<li class="italic text-gray-400">None — all clear.</li>');
                     return;
                 }
                 $ul.html(items.map(render).join(''));
@@ -773,16 +806,28 @@
                     $('#gaps_summary').text(total ? `${total} thing${total === 1 ? '' : 's'} need attention` : 'Everything is wired up');
 
                     gapsRenderList('#gaps_menusMissingScreen', data.menus_missing_screen, (m) =>
-                        `<li><button type="button" class="gaps-jump-menu text-left text-indigo-600 hover:underline dark:text-indigo-400" data-menu-id="${m.id}">${m.menu_name} <span class="text-gray-400">(${m.menu_id})</span></button></li>`);
+                        `<li>
+                            <button type="button" class="gaps-jump-menu flex min-w-0 flex-1 items-center gap-1.5 text-left text-indigo-600 hover:underline dark:text-indigo-400" data-menu-id="${m.id}">
+                                <span class="truncate">${m.menu_name}</span>
+                                <span class="gaps-id-badge">${m.menu_id}</span>
+                            </button>
+                        </li>`);
 
                     gapsRenderList('#gaps_screensWithoutRoute', data.screens_without_route, (s) =>
-                        `<li class="text-gray-700 dark:text-gray-200">${s.screen_name} <span class="text-gray-400">(${s.screen_id})</span></li>`);
+                        `<li>
+                            <span class="min-w-0 flex-1 truncate text-gray-700 dark:text-gray-200">${s.screen_name}</span>
+                            <span class="gaps-id-badge">${s.screen_id}</span>
+                        </li>`);
 
                     gapsRenderList('#gaps_unregisteredScreens', data.unregistered_screen_ids, (id) =>
-                        `<li class="font-mono text-xs text-gray-700 dark:text-gray-200">${id}</li>`);
+                        `<li><span class="gaps-id-badge">${id}</span></li>`);
 
                     gapsRenderList('#gaps_screensWithRoute', data.screens_with_route, (s) =>
-                        `<li class="text-gray-600 dark:text-gray-300">${s.screen_name} <span class="text-gray-400">(${s.screen_id})</span> — <span class="text-green-600 dark:text-green-400">${s.actions.join(', ') || 'mapped'}</span></li>`);
+                        `<li>
+                            <span class="min-w-0 flex-1 truncate text-gray-600 dark:text-gray-300">${s.screen_name}</span>
+                            <span class="gaps-id-badge">${s.screen_id}</span>
+                            <span class="shrink-0 text-xs text-green-600 dark:text-green-400">${s.actions.join(', ') || 'mapped'}</span>
+                        </li>`);
                 });
             }
 
@@ -848,7 +893,9 @@
 
             $('#mnu_screen_id').on('change', function() {
                 const app = $(this).find(':selected').data('app');
-                $('#mnu_application_id').val(app || '');
+                if (app && !$('#mnu_application_id').val()) {
+                    $('#mnu_application_id').val(app).trigger('change');
+                }
             });
 
             function mnuEscapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
@@ -975,7 +1022,7 @@
             function mnuResetForm() {
                 $('#mnu_form')[0].reset();
                 $('#mnu_id').val('');
-                $('#mnu_application_id').val('');
+                $('#mnu_application_id').val(null).trigger('change');
                 $('#mnu_screen_id').val(null).trigger('change');
                 mnuRefreshParentOptions();
                 $('#mnu_parent_menu_id').val(null).trigger('change');
@@ -1011,8 +1058,8 @@
                     $('#mnu_menu_url').val(data.menu_url);
                     $('#mnu_menu_icon').val(data.menu_icon);
                     $('#mnu_menu_sort_order').val(data.menu_sort_order);
+                    $('#mnu_application_id').val(data.application_id).trigger('change');
                     $('#mnu_screen_id').val(data.screen_id).trigger('change');
-                    $('#mnu_application_id').val(data.application_id);
                     mnuRefreshParentOptions(data.menu_id);
                     $('#mnu_parent_menu_id').val(data.parent_menu_id).trigger('change');
                     hideLoading();
