@@ -2153,7 +2153,7 @@
 
                         if (res.message) toastr.warning(res.message);
 
-                        const esc = v => $('<div>').text(v ?? '').html();
+                        const esc = v => $('<div>').text(v ?? '').html().replace(/"/g, '&quot;');
 
                         const rows = (res.data || []).map(item => {
                             const id = item.account_id ?? '';

@@ -1827,6 +1827,8 @@
                                 alert(res.message);
                             }
                         }
+                        const escAttr = (v) => $('<div>').text(v ?? '').html().replace(/"/g, '&quot;');
+
                         const rows = (res.data || []).map(item => {
                             const id = item.account_id ?? '';
                             const actId = item.activity_id ?? '';
@@ -1853,12 +1855,12 @@
                     </td>
                     <td class="border p-2 text-center">
                         <button type="button" class="chooseCoa rounded border px-2 py-1 hover:bg-gray-100"
-                        data-id="${id}"
-                        data-activity_id="${actId}"
-                        data-business_unit_id="${buId}"
-                        data-department_fin_id="${deptFinId}"
-                        data-activity_descr="${actDescr}"
-                        data-label="${$('<div>').text(label).html()}">
+                        data-id="${escAttr(id)}"
+                        data-activity_id="${escAttr(actId)}"
+                        data-business_unit_id="${escAttr(buId)}"
+                        data-department_fin_id="${escAttr(deptFinId)}"
+                        data-activity_descr="${escAttr(actDescr)}"
+                        data-label="${escAttr(label)}">
                         Choose
                         </button>
                     </td>

@@ -1490,7 +1490,7 @@
             function loadCoa() {
                 $coaTbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
 
-                const esc = v => $('<div>').text(v ?? '').html();
+                const esc = v => $('<div>').text(v ?? '').html().replace(/"/g, '&quot;');
 
                 const url = coaState.woid ?
                     "{{ route('coa.byWoSPB') }}" :
