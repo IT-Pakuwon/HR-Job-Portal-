@@ -8,6 +8,8 @@
     let countdown = 20;
     let countdownTimer = null;
     let allDoctypeOptions = [];
+    let isHovering = false;
+    let refreshPending = false;
 
     let allRows = [];
     let currentPage = 0;
@@ -69,6 +71,15 @@
         updateCountdown();
     }
 
+    // ── Rebuilds the card list on a timer; pausing this while the user's
+    // mouse is over the list keeps a mid-click refresh from yanking the
+    // Doc ID link out from under them (the "blinking, needs several clicks" bug). ──
+    function performRefresh() {
+        resetCountdown();
+        loadSummary();
+        loadTab(activeTab);
+    }
+
     function startCountdown() {
 
         if (countdownTimer) {
@@ -89,13 +100,34 @@
 
             if (countdown <= 0) {
 
-                resetCountdown();
+                if (isHovering) {
+                    refreshPending = true;
+                    countdown = 0;
+                    updateCountdown();
+                    return;
+                }
 
-                loadSummary();
-                loadTab(activeTab);
+                performRefresh();
             }
 
         }, 1000);
+    }
+
+    function bindHoverPause() {
+
+        $("#approvalCardList").on("mouseenter", function () {
+            isHovering = true;
+        });
+
+        $("#approvalCardList").on("mouseleave", function () {
+
+            isHovering = false;
+
+            if (refreshPending) {
+                refreshPending = false;
+                performRefresh();
+            }
+        });
     }
 
     // ── Stat cards: count + relative-share progress bar ──
@@ -507,14 +539,7 @@
             .on("click", () => activateTab("history"));
 
         $("#refreshApproval")
-            .on("click", () => {
-
-                resetCountdown();
-
-                loadSummary();
-                loadTab(activeTab);
-
-            });
+            .on("click", () => performRefresh());
 
         $("#applyApprovalFilter")
             .on("click", () => loadTab(activeTab));
@@ -525,6 +550,7 @@
         bindDoctype();
         bindPagination();
         bindOpenAll();
+        bindHoverPause();
     }
 
     function init() {
@@ -555,10 +581,7 @@
                 return;
             }
 
-            resetCountdown();
-
-            loadSummary();
-            loadTab(activeTab);
+            performRefresh();
 
         });
     }

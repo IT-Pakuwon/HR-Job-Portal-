@@ -54,12 +54,19 @@ class TicketSetupController extends Controller
 
     public function typeJson(Request $request)
     {
+        $departments = MsDepartment::query()
+            ->pluck('department_name', 'department_id');
+
         $data = MsTicketType::query()
             ->where('status', '<>', 'X');
 
         return DataTables::of($data)
 
             ->addIndexColumn()
+
+            ->addColumn('department_name', function ($row) use ($departments) {
+                return $departments[$row->department_id] ?? $row->department_id;
+            })
 
             ->addColumn('status_badge', function ($row) {
                 return $row->status == 'A'
@@ -283,7 +290,20 @@ class TicketSetupController extends Controller
             ->pluck('cpny_name', 'cpny_id');
 
         $data = MsWaSetting::query()
-            ->where('status', '<>', 'X');
+
+            ->where('ms_wa_setting.status', '<>', 'X')
+
+            ->leftJoin(
+                'ms_ticket_type',
+                'ms_ticket_type.ticket_type',
+                '=',
+                'ms_wa_setting.ticket_type'
+            )
+
+            ->select(
+                'ms_wa_setting.*',
+                'ms_ticket_type.ticket_type_name'
+            );
 
         return DataTables::of($data)
 
@@ -291,6 +311,10 @@ class TicketSetupController extends Controller
 
             ->addColumn('cpny_name', function ($row) use ($companies) {
                 return $companies[$row->cpny_id] ?? $row->cpny_id;
+            })
+
+            ->addColumn('ticket_type_name', function ($row) {
+                return $row->ticket_type_name ?: $row->ticket_type;
             })
 
             ->addColumn('status_badge', function ($row) {
@@ -311,6 +335,7 @@ class TicketSetupController extends Controller
         $request->validate([
             'ticket_type' => 'required|string|max:20|unique:pgsql5.ms_ticket_type,ticket_type',
             'ticket_type_name' => 'required|string|max:255',
+            'department_id' => 'required',
             'status' => 'required|in:A,I',
         ]);
 
@@ -319,6 +344,8 @@ class TicketSetupController extends Controller
                 'ticket_type' => strtoupper($request->ticket_type),
 
                 'ticket_type_name' => $request->ticket_type_name,
+
+                'department_id' => $request->department_id,
 
                 'status' => $request->status,
 
@@ -336,6 +363,7 @@ class TicketSetupController extends Controller
     {
         $request->validate([
             'cpny_id' => 'required',
+            'ticket_type' => 'required|string|max:20',
             'chat_id' => 'required|string|max:255',
             'status' => 'required|in:A,I',
         ]);
@@ -343,6 +371,8 @@ class TicketSetupController extends Controller
         DB::connection('pgsql5')->transaction(function () use ($request) {
             MsWaSetting::create([
                 'cpny_id' => $request->cpny_id,
+
+                'ticket_type' => $request->ticket_type,
 
                 'chat_id' => trim($request->chat_id),
 
@@ -634,12 +664,14 @@ class TicketSetupController extends Controller
 
         $request->validate([
             'ticket_type_name' => 'required|string|max:255',
+            'department_id' => 'required',
             'status' => 'required|in:A,I',
         ]);
 
         DB::connection('pgsql5')->transaction(function () use ($request, $data) {
             $data->update([
                 'ticket_type_name' => $request->ticket_type_name,
+                'department_id' => $request->department_id,
                 'status' => $request->status,
                 'updated_by' => auth()->user()->username,
             ]);
@@ -659,6 +691,7 @@ class TicketSetupController extends Controller
 
         $request->validate([
             'cpny_id' => 'required',
+            'ticket_type' => 'required|string|max:20',
             'chat_id' => 'required|string|max:255',
             'status' => 'required|in:A,I',
         ]);
@@ -669,6 +702,8 @@ class TicketSetupController extends Controller
         ) {
             $data->update([
                 'cpny_id' => $request->cpny_id,
+
+                'ticket_type' => $request->ticket_type,
 
                 'chat_id' => trim($request->chat_id),
 

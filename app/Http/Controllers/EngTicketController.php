@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\TicketExport;
+use App\Exports\EngTicketExport;
 use App\Http\Controllers\Traits\HasAutonbr;
+use App\Models\MsCategory;
 use App\Models\MsCompany;
 use App\Models\MsLocation;
 use App\Models\MsSubLocation;
 use App\Models\MsTicketCategory;
 use App\Models\MsTicketCategoryDept;
-use App\Models\SysUserRole;
 use App\Models\MsTicketPriority;
 use App\Models\MsTicketSubcategory;
 use App\Models\MsTicketType;
 use App\Models\SysCalendar;
+use App\Models\SysUserRole;
+use App\Models\TrApproval;
 use App\Models\TrMessage;
-use App\Models\TrServiceorderEnvision;
 use App\Models\TrTicket;
 use App\Models\TrTicketActivity;
 use App\Models\User;
@@ -27,11 +28,28 @@ use Maatwebsite\Excel\Facades\Excel;
 use Vinkla\Hashids\Facades\Hashids;
 use Yajra\DataTables\Facades\DataTables;
 
-class TicketController extends Controller
+class EngTicketController extends Controller
 {
     use HasAutonbr;
 
-    protected const IT_DEPARTMENT_ID = 'IT';
+    /*
+    |--------------------------------------------------------------------------
+    | Eng Ticket Constants
+    |--------------------------------------------------------------------------
+    | Eng Ticket reuses the tr_ticket / tr_ticket_activity tables from the IT
+    | Ticket module. Rows are scoped by ticket_type (ENGSUPPORTTICKET /
+    | BSFOSUPPORTTICKET) directly rather than a dedicated table.
+    */
+
+    protected const DOCTYPE = 'TOK';
+
+    protected const BSFO_TICKET_TYPE = 'BSFOSUPPORTTICKET';
+
+    protected const ENG_TICKET_TYPE = 'ENGSUPPORTTICKET';
+
+    protected const ENG_ROLE_ID = 'OPRTEKNIKENG';
+
+    protected const BSFO_ROLE_ID = 'OPRTEKNIKBS';
 
     protected $notificationService;
 
@@ -50,29 +68,18 @@ class TicketController extends Controller
         ],
 
         'process' => [
-            'RESPONSE',
+            'APPROVED',
             'REOPEN',
             'PENDING',
-            'ENVISION',
         ],
 
         'pending' => [
             'PROCESS',
         ],
 
-        'envision' => [
-            'PENDING',
-            'PROCESS',
-        ],
-
-        'ENVISION CHECKED / SOLVED' => [
-            'ENVISION',
-        ],
-
         'complete' => [
             'PROCESS',
             'PENDING',
-            'ENVISION CHECKED / SOLVED',
         ],
 
         'transfer' => [
@@ -96,6 +103,108 @@ class TicketController extends Controller
             $current,
             $this->workflowTransitions[$action] ?? []
         );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ticket types handled by this module (Engineering + BS&FO)
+    |--------------------------------------------------------------------------
+    | Anchored on the ticket_type codes themselves rather than department_id —
+    | ms_ticket_type.department_id has changed independently in the past
+    | (OPR TEKNIK -> ENGINEERING / BUILDING SERVICE) and is not a stable key
+    | to scope this module by.
+    */
+
+    protected function engTicketTypes(): array
+    {
+        return MsTicketType::query()
+            ->whereIn('ticket_type', [
+                self::ENG_TICKET_TYPE,
+                self::BSFO_TICKET_TYPE,
+            ])
+            ->where('status', 'A')
+            ->pluck('ticket_type')
+            ->toArray();
+    }
+
+    protected function approvalConditionFor(TrTicket $ticket): string
+    {
+        return $ticket->ticket_type === self::BSFO_TICKET_TYPE
+            ? 'BSFO'
+            : 'Engineering';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Engineering / BS&FO Access Flags
+    |--------------------------------------------------------------------------
+    | Two independent tracks: dept-membership (ms_ticket_category_dept, scoped
+    | to a specific ticket_type) and a broader system role (sys_user_role).
+    | Either one grants the same rights for that ticket_type.
+    */
+
+    protected function isEng(): bool
+    {
+        return MsTicketCategoryDept::query()
+            ->where('username', auth()->user()->username)
+            ->where('ticket_type', self::ENG_TICKET_TYPE)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    protected function isBSFO(): bool
+    {
+        return MsTicketCategoryDept::query()
+            ->where('username', auth()->user()->username)
+            ->where('ticket_type', self::BSFO_TICKET_TYPE)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    protected function isENGRole(): bool
+    {
+        return SysUserRole::query()
+            ->where('username', auth()->user()->username)
+            ->where('role_id', self::ENG_ROLE_ID)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    protected function isBSFORole(): bool
+    {
+        return SysUserRole::query()
+            ->where('username', auth()->user()->username)
+            ->where('role_id', self::BSFO_ROLE_ID)
+            ->where('status', 'A')
+            ->exists();
+    }
+
+    protected function canActOnTicketType(string $ticketType): bool
+    {
+        if ($ticketType === self::BSFO_TICKET_TYPE) {
+            return $this->isBSFO() || $this->isBSFORole();
+        }
+
+        return $this->isEng() || $this->isENGRole();
+    }
+
+    /**
+     * Ticket types (ENGSUPPORTTICKET / BSFOSUPPORTTICKET) the user has broad
+     * (non-owner) access to, based on dept-membership or role.
+     */
+    protected function broadAccessTicketTypes(): array
+    {
+        $types = [];
+
+        if ($this->isEng() || $this->isENGRole()) {
+            $types[] = self::ENG_TICKET_TYPE;
+        }
+
+        if ($this->isBSFO() || $this->isBSFORole()) {
+            $types[] = self::BSFO_TICKET_TYPE;
+        }
+
+        return $types;
     }
 
     public function index(Request $request, $eid = null)
@@ -124,19 +233,26 @@ class TicketController extends Controller
             ];
         })->values();
 
-        $isIT = $this->isITRole();
+        $broadTypes = $this->broadAccessTicketTypes();
 
-        $itTypes = $this->itTicketTypes();
+        $isEng = !empty($broadTypes);
+
+        $engTypes = $this->engTicketTypes();
 
         $userCompanies    = $companies->pluck('cpny_id')->toArray();
         $userDepartments  = $departments->pluck('department_id')->toArray();
 
-        $baseCount = function () use ($isIT, $userCompanies, $userDepartments, $itTypes) {
-            $q = TrTicket::query()->whereIn('ticket_type', $itTypes);
-            if (!$isIT) {
-                $q->whereIn('cpny_id', $userCompanies)
-                  ->whereIn('department_id', $userDepartments);
-            }
+        $baseCount = function () use ($broadTypes, $userCompanies, $userDepartments, $engTypes) {
+            $q = TrTicket::query()->whereIn('ticket_type', $engTypes);
+
+            $q->where(function ($q2) use ($broadTypes, $userCompanies, $userDepartments) {
+                $q2->whereIn('ticket_type', $broadTypes)
+                    ->orWhere(function ($q3) use ($userCompanies, $userDepartments) {
+                        $q3->whereIn('cpny_id', $userCompanies)
+                            ->whereIn('department_id', $userDepartments);
+                    });
+            });
+
             return $q;
         };
 
@@ -153,6 +269,11 @@ class TicketController extends Controller
                 'RESPONSE'
             )->count(),
 
+            'approved' => $baseCount()->where(
+                'status_pekerjaan',
+                'APPROVED'
+            )->count(),
+
             'process' => $baseCount()->where(
                 'status_pekerjaan',
                 'PROCESS'
@@ -161,11 +282,6 @@ class TicketController extends Controller
             'pending' => $baseCount()->where(
                 'status_pekerjaan',
                 'PENDING'
-            )->count(),
-
-            'envision' => $baseCount()->where(
-                'status_pekerjaan',
-                'ENVISION'
             )->count(),
 
             'transfer' => $baseCount()->where(
@@ -188,20 +304,15 @@ class TicketController extends Controller
                 'CANCEL'
             )->count(),
 
-            'ENVISION CHECKED / SOLVED' => $baseCount()->where(
-                'status_pekerjaan',
-                'ENVISION CHECKED / SOLVED'
-            )->count(),
-
             'my_ticket' => TrTicket::query()
-                ->whereIn('ticket_type', $itTypes)
+                ->whereIn('ticket_type', $engTypes)
                 ->where('pic_ticket', $user->username)
                 ->count(),
         ];
 
         $categories = MsTicketCategory::query()
             ->where('status', 'A')
-            ->whereIn('ticket_type', $itTypes)
+            ->whereIn('ticket_type', $engTypes)
             ->orderBy('ticket_category_name')
             ->get(['ticket_categoryid', 'ticket_category_name']);
 
@@ -210,14 +321,15 @@ class TicketController extends Controller
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
-        return view('pages.ticket.ticket', [
-            'title' => 'Ticket',
+        return view('pages.eng-ticket.ticket', [
+            'title' => 'Eng Ticket',
             'eid' => $eid,
             'companies' => $companies,
             'departments' => $departments,
             'counts' => $counts,
             'categories' => $categories,
             'allCompanies' => $allCompanies,
+            'isEng' => $isEng,
         ]);
     }
 
@@ -225,9 +337,9 @@ class TicketController extends Controller
     {
         $user = auth()->user();
 
-        $isIT = $this->isITRole();
+        $broadTypes = $this->broadAccessTicketTypes();
 
-        $itTypes = $this->itTicketTypes();
+        $engTypes = $this->engTicketTypes();
 
         $query = TrTicket::with([
             'category',
@@ -238,14 +350,13 @@ class TicketController extends Controller
             'responseActivity',
         ])
             ->whereNull('deleted_at')
-            ->whereIn('ticket_type', $itTypes);
+            ->whereIn('ticket_type', $engTypes);
 
-        if (!$isIT) {
-            $query->where(function ($q) use ($user) {
-                $q->where('created_by', $user->username)
-                    ->orWhere('pic_ticket', $user->username);
-            });
-        }
+        $query->where(function ($q) use ($broadTypes, $user) {
+            $q->whereIn('ticket_type', $broadTypes)
+                ->orWhere('created_by', $user->username)
+                ->orWhere('pic_ticket', $user->username);
+        });
 
         if ($request->filled('status')) {
             if ($request->status === 'MY_TICKET') {
@@ -385,33 +496,6 @@ class TicketController extends Controller
             ->make(true);
     }
 
-    protected function itTicketTypes(): array
-    {
-        return MsTicketType::query()
-            ->where('department_id', self::IT_DEPARTMENT_ID)
-            ->where('status', 'A')
-            ->pluck('ticket_type')
-            ->toArray();
-    }
-
-    protected function isITRole()
-    {
-        return MsTicketCategoryDept::query()
-            ->where('username', auth()->user()->username)
-            ->whereIn('ticket_type', $this->itTicketTypes())
-            ->where('status', 'A')
-            ->exists();
-    }
-
-    protected function isITByRole()
-    {
-        return SysUserRole::query()
-            ->where('username', auth()->user()->username)
-            ->whereIn('role_id', ['ITHARDWARE', 'ITSOFTWARE'])
-            ->where('status', 'A')
-            ->exists();
-    }
-
     protected function canAccessTicket($ticket)
     {
         $user = auth()->user();
@@ -419,12 +503,36 @@ class TicketController extends Controller
         return
             $ticket->created_by === $user->username
             || $ticket->pic_ticket === $user->username
-            || $this->isITRole();
+            || $this->canActOnTicketType($ticket->ticket_type);
+    }
+
+    protected function isApprover($ticket): bool
+    {
+        $username = strtolower(auth()->user()->username);
+
+        return TrApproval::query()
+            ->where('refnbr', $ticket->ticketid)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->contains(function ($row) use ($username) {
+                $list = array_map(
+                    'trim',
+                    preg_split('/[;,]/', (string) $row->aprv_username)
+                );
+
+                return in_array(
+                    $username,
+                    array_map('strtolower', $list),
+                    true
+                );
+            });
     }
 
     public function store(Request $request)
     {
-        $doctype = 'TIC';
+        $doctype = self::DOCTYPE;
 
         $user = $request->user();
 
@@ -456,9 +564,9 @@ class TicketController extends Controller
         ]);
 
         abort_unless(
-            in_array($request->ticket_type, $this->itTicketTypes(), true),
+            in_array($request->ticket_type, $this->engTicketTypes(), true),
             422,
-            'Invalid ticket type for IT Ticket.'
+            'Invalid ticket type for Engineering Ticket.'
         );
 
         DB::connection('pgsql5')->beginTransaction();
@@ -469,7 +577,7 @@ class TicketController extends Controller
                 $year,
                 $month,
                 $username,
-                'TIC'
+                'TOK'
             );
 
             $urutan = (int) $auto['next'];
@@ -532,19 +640,17 @@ class TicketController extends Controller
                 'created_by' => $username,
             ]);
 
-            $uploadResult = null;
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
 
-                    'doctype' => 'TIC',
+                    'doctype' => self::DOCTYPE,
 
                     'cpny_id' => $ticket->cpny_id,
 
                     'department_id' => $ticket->department_id,
 
-                    'base_folder' => 'att-ticket/tic',
+                    'base_folder' => 'att-ticket/tok',
 
                     'created_by' => $username,
                 ];
@@ -556,11 +662,10 @@ class TicketController extends Controller
                         TrAttachmentController::class
                     );
 
-                    $uploadResult =
-                        $uploader->uploadInternal(
-                            $meta,
-                            $files
-                        );
+                    $uploader->uploadInternal(
+                        $meta,
+                        $files
+                    );
                 } catch (\Throwable $e) {
                     DB::connection('pgsql5')
                         ->rollBack();
@@ -626,9 +731,9 @@ class TicketController extends Controller
         ]);
 
         abort_unless(
-            in_array($request->ticket_type, $this->itTicketTypes(), true),
+            in_array($request->ticket_type, $this->engTicketTypes(), true),
             422,
-            'Invalid ticket type for IT Ticket.'
+            'Invalid ticket type for Engineering Ticket.'
         );
 
         DB::connection('pgsql5')->beginTransaction();
@@ -658,19 +763,17 @@ class TicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
-            $uploadResult = null;
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
 
-                    'doctype' => 'TIC',
+                    'doctype' => self::DOCTYPE,
 
                     'cpny_id' => $ticket->cpny_id,
 
                     'department_id' => $ticket->department_id,
 
-                    'base_folder' => 'att-ticket/tic',
+                    'base_folder' => 'att-ticket/tok',
 
                     'created_by' => auth()->user()->username,
                 ];
@@ -682,11 +785,10 @@ class TicketController extends Controller
                         TrAttachmentController::class
                     );
 
-                    $uploadResult =
-                        $uploader->uploadInternal(
-                            $meta,
-                            $files
-                        );
+                    $uploader->uploadInternal(
+                        $meta,
+                        $files
+                    );
                 } catch (\Throwable $e) {
                     DB::connection('pgsql5')
                         ->rollBack();
@@ -730,13 +832,13 @@ class TicketController extends Controller
         $username    = auth()->user()->username;
         $isRequester = $ticket->created_by === $username;
         $isPIC       = $ticket->pic_ticket  === $username;
-        $isITByRole  = $this->isITByRole();
+        $isEng       = $this->canActOnTicketType($ticket->ticket_type);
 
         abort_if(
             !(
                 ($isRequester && $ticket->status_pekerjaan === 'CREATED')
                 || ($isPIC && $ticket->status_pekerjaan !== 'COMPLETED')
-                || ($isITByRole && $ticket->status_pekerjaan !== 'COMPLETED')
+                || ($isEng && $ticket->status_pekerjaan !== 'COMPLETED')
             ),
             403
         );
@@ -749,6 +851,12 @@ class TicketController extends Controller
                 'status_pekerjaan' => 'CANCEL',
                 'updated_by' => $username,
             ]);
+
+            TrApproval::query()
+                ->where('refnbr', $ticket->ticketid)
+                ->where('aprv_doctype', self::DOCTYPE)
+                ->where('status', 'P')
+                ->update(['status' => 'X']);
 
             $this->createActivity([
                 'ticketid'         => $ticket->ticketid,
@@ -799,10 +907,6 @@ class TicketController extends Controller
             'subLocation',
         ])->findOrFail($id);
 
-        $this->syncEnvisionSolved($ticket);
-
-        $ticket->refresh();
-
         /*
         |--------------------------------------------------------------------------
         | Attachments
@@ -815,7 +919,7 @@ class TicketController extends Controller
         $attachmentResponse =
             $attachmentController->listAttachments(
                 request(),
-                'TIC',
+                self::DOCTYPE,
                 $ticket->ticketid
             );
 
@@ -833,7 +937,7 @@ class TicketController extends Controller
 
         $comments = TrMessage::query()
             ->where('refnbr', $ticket->ticketid)
-            ->where('doctype', 'TIC')
+            ->where('doctype', self::DOCTYPE)
             ->orderBy('created_at')
             ->get()
             ->map(function ($comment) {
@@ -867,13 +971,15 @@ class TicketController extends Controller
             $comments
         );
 
-        $serviceOrder = TrServiceorderEnvision::query()
-            ->where(
-                'ticketid',
-                $ticket->ticketid
-            )
-            ->latest('serviceorderdate')
-            ->first();
+        /*
+        |--------------------------------------------------------------------------
+        | Approval Line
+        |--------------------------------------------------------------------------
+        */
+
+        $approval = app(ApprovalController::class)
+            ->getApprovalByDocument($ticket->ticketid, self::DOCTYPE)
+            ->getData(true)['data'] ?? [];
 
         return response()->json([
             'success' => true,
@@ -960,8 +1066,6 @@ class TicketController extends Controller
 
                     'completed_by' => $ticket->completed_by,
 
-                    'serviceorder_action' =>$serviceOrder?->serviceorder_action,
-
                     'completed_at' => optional(
                         $ticket->completed_at
                     )->format('Y-m-d H:i:s'),
@@ -972,6 +1076,8 @@ class TicketController extends Controller
                 'comments' => $comments,
 
                 'tracking' => $tracking,
+
+                'approval' => $approval,
 
                 'actions' => $this->buildActions($ticket),
             ],
@@ -996,7 +1102,7 @@ class TicketController extends Controller
 
         $comments = TrMessage::query()
             ->where('refnbr', $ticket->ticketid)
-            ->where('doctype', 'TIC')
+            ->where('doctype', self::DOCTYPE)
             ->orderBy('created_at')
             ->get();
 
@@ -1011,16 +1117,16 @@ class TicketController extends Controller
 
     public function responseTicket(Request $request, $hash)
     {
-        abort_unless(
-            $this->isITRole(),
-            403
-        );
-
         $id = Hashids::decode($hash)[0] ?? null;
 
         abort_if(!$id, 404);
 
         $ticket = TrTicket::findOrFail($id);
+
+        abort_unless(
+            $this->canActOnTicketType($ticket->ticket_type),
+            403
+        );
 
         abort_if(
             !$this->canTransition(
@@ -1050,6 +1156,22 @@ class TicketController extends Controller
             ),
             422,
             'Selected PIC is invalid.'
+        );
+
+        $approvalCondition = $this->approvalConditionFor($ticket);
+
+        $approvalCtl = app(ApprovalController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate approval line setup exists before mutating anything
+        |--------------------------------------------------------------------------
+        */
+
+        $approvalCtl->loadLines(
+            self::DOCTYPE,
+            $ticket->cpny_id,
+            $ticket->department_id
         );
 
         DB::connection('pgsql5')->beginTransaction();
@@ -1106,12 +1228,43 @@ class TicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
+            [$firstApprover, $linesCount] = $approvalCtl->generateForDocument(
+                $ticket->ticketid,
+                self::DOCTYPE,
+                $ticket->cpny_id,
+                $ticket->department_id,
+                auth()->user()->username,
+                ['approval_condition' => $approvalCondition],
+                now()
+            );
+
             $ticket->refresh();
 
             DB::connection('pgsql5')->commit();
 
             $this->notificationService
                 ->ticketAssigned($ticket);
+
+            $this->notificationService->ticketWhatsapp(
+                $ticket,
+                'RESPONSE',
+                "PIC : {$ticket->pic_ticket}\nPriority : {$ticket->ticket_priority}"
+            );
+
+            $eid = Hashids::encode($ticket->id);
+
+            $approvalCtl->notifyFirstApprover(
+                $ticket->ticketid,
+                self::DOCTYPE,
+                'P',
+                'Eng Ticket',
+                url('/showengticket/'.$eid),
+                [
+                    'info' => $ticket->issue_summary,
+                    'createdby' => $ticket->created_by,
+                    'date' => now()->toDateTimeString(),
+                ]
+            );
 
             return response()->json([
                 'success' => true,
@@ -1127,6 +1280,164 @@ class TicketController extends Controller
                 'message' => $th->getMessage(),
             ], 500);
         }
+    }
+
+    public function approveTicket(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        $user = auth()->user();
+
+        $eid = Hashids::encode($ticket->id);
+
+        $docUrl = url('/showengticket/'.$eid);
+
+        $approvalCtl = app(ApprovalController::class);
+
+        $result = $approvalCtl->approveStep(
+            $ticket->ticketid,
+            self::DOCTYPE,
+            $user->username,
+            $user->name,
+
+            // all approval levels done
+            function (string $refnbr, Carbon $now) use ($ticket, $docUrl) {
+                $ticket->update([
+                    'status_pekerjaan' => 'APPROVED',
+                    'updated_by' => auth()->user()->username,
+                ]);
+
+                $this->createActivity([
+                    'ticketid' => $ticket->ticketid,
+                    'cpny_id' => $ticket->cpny_id,
+                    'department_id' => $ticket->department_id,
+                    'pic_ticket' => $ticket->pic_ticket,
+                    'response_date' => $now,
+                    'response_summary' => 'Ticket Fully Approved',
+                    'response_descr' => 'All approval levels have approved this ticket.',
+                    'status_pekerjaan' => 'APPROVED',
+                    'status' => 'A',
+                    'created_by' => auth()->user()->username,
+                ]);
+
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $ticket->ticketid,
+                    'Eng Ticket',
+                    'A',
+                    $ticket->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid' => $ticket->cpny_id,
+                        'deptname' => $ticket->department_id,
+                        'info' => $ticket->issue_summary,
+                    ]
+                );
+            },
+
+            // notify next approver
+            function ($next, Carbon $now) use ($ticket, $docUrl) {
+                app(ApprovalController::class)->notifyFirstApprover(
+                    $ticket->ticketid,
+                    self::DOCTYPE,
+                    'P',
+                    'Eng Ticket',
+                    $docUrl,
+                    [
+                        'info' => $ticket->issue_summary,
+                        'createdby' => $ticket->created_by,
+                        'date' => $now->toDateTimeString(),
+                    ]
+                );
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Approve failed',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket approved successfully.',
+        ]);
+    }
+
+    public function rejectTicket(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        abort_if(!$id, 404);
+
+        $ticket = TrTicket::findOrFail($id);
+
+        $request->validate([
+            'response_descr' => 'required',
+        ]);
+
+        $user = auth()->user();
+
+        $eid = Hashids::encode($ticket->id);
+
+        $docUrl = url('/showengticket/'.$eid);
+
+        $result = app(ApprovalController::class)->rejectStep(
+            $ticket->ticketid,
+            self::DOCTYPE,
+            $user->username,
+            $user->name,
+
+            function (string $refnbr, Carbon $now) use ($ticket, $request, $docUrl) {
+                $ticket->update([
+                    'status' => 'P',
+                    'status_pekerjaan' => 'CREATED',
+                    'updated_by' => auth()->user()->username,
+                ]);
+
+                $this->createActivity([
+                    'ticketid' => $ticket->ticketid,
+                    'cpny_id' => $ticket->cpny_id,
+                    'department_id' => $ticket->department_id,
+                    'pic_ticket' => auth()->user()->username,
+                    'response_date' => $now,
+                    'response_summary' => 'Ticket Approval Rejected',
+                    'response_descr' => $request->response_descr,
+                    'status_pekerjaan' => 'CREATED',
+                    'status' => 'A',
+                    'created_by' => auth()->user()->username,
+                ]);
+
+                app(ApprovalController::class)->notifyRequesterOnStatus(
+                    $ticket->ticketid,
+                    'Eng Ticket',
+                    'R',
+                    $ticket->created_by,
+                    $docUrl,
+                    [
+                        'cpnyid' => $ticket->cpny_id,
+                        'deptname' => $ticket->department_id,
+                        'info' => $request->response_descr,
+                    ]
+                );
+            }
+        );
+
+        if (!$result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Reject failed',
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket approval rejected.',
+        ]);
     }
 
     public function processTicket(Request $request, $hash)
@@ -1238,19 +1549,17 @@ class TicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
-            $uploadResult = null;
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
 
-                    'doctype' => 'TIC',
+                    'doctype' => self::DOCTYPE,
 
                     'cpny_id' => $ticket->cpny_id,
 
                     'department_id' => $ticket->department_id,
 
-                    'base_folder' => 'att-ticket/tic-workflow',
+                    'base_folder' => 'att-ticket/tok-workflow',
 
                     'created_by' => auth()->user()->username,
                 ];
@@ -1262,11 +1571,10 @@ class TicketController extends Controller
                         TrAttachmentController::class
                     );
 
-                    $uploadResult =
-                        $uploader->uploadInternal(
-                            $meta,
-                            $files
-                        );
+                    $uploader->uploadInternal(
+                        $meta,
+                        $files
+                    );
                 } catch (\Throwable $e) {
                     DB::connection('pgsql5')
                         ->rollBack();
@@ -1284,6 +1592,12 @@ class TicketController extends Controller
             }
 
             DB::connection('pgsql5')->commit();
+
+            $this->notificationService->ticketWhatsapp(
+                $ticket,
+                'PROCESS',
+                "Ticket is now being processed by {$ticket->pic_ticket}."
+            );
 
             return response()->json([
                 'success' => true,
@@ -1401,19 +1715,17 @@ class TicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
-            $uploadResult = null;
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
 
-                    'doctype' => 'TIC',
+                    'doctype' => self::DOCTYPE,
 
                     'cpny_id' => $ticket->cpny_id,
 
                     'department_id' => $ticket->department_id,
 
-                    'base_folder' => 'att-ticket/tic-workflow',
+                    'base_folder' => 'att-ticket/tok-workflow',
 
                     'created_by' => auth()->user()->username,
                 ];
@@ -1425,11 +1737,10 @@ class TicketController extends Controller
                         TrAttachmentController::class
                     );
 
-                    $uploadResult =
-                        $uploader->uploadInternal(
-                            $meta,
-                            $files
-                        );
+                    $uploader->uploadInternal(
+                        $meta,
+                        $files
+                    );
                 } catch (\Throwable $e) {
                     DB::connection('pgsql5')
                         ->rollBack();
@@ -1464,188 +1775,6 @@ class TicketController extends Controller
         }
     }
 
-    public function envisionTicket(Request $request, $hash)
-    {
-        $id = Hashids::decode($hash)[0] ?? null;
-
-        abort_if(!$id, 404);
-
-        $ticket = TrTicket::findOrFail($id);
-
-        abort_if(
-            $ticket->pic_ticket !== auth()->user()->username,
-            403
-        );
-
-        abort_if(
-            $ticket->status !== 'P',
-            403
-        );
-
-        abort_if(
-            !$this->canTransition(
-                $ticket->status_pekerjaan,
-                'envision'
-            ),
-            403
-        );
-
-        $request->validate([
-            'response_summary' => 'required|string|max:255',
-            'response_descr' => 'required',
-
-            'working_start_date' => 'required|date',
-
-            'working_end_date' => [
-                'nullable',
-                'date',
-                'after_or_equal:working_start_date',
-            ],
-
-            'attachments.*' => [
-                'nullable',
-                'file',
-                'max:5120',
-                'mimes:jpg,jpeg,png,pdf,xlsx,xls,doc,docx',
-            ],
-        ]);
-
-        DB::connection('pgsql5')->beginTransaction();
-
-        try {
-            /*
-        |--------------------------------------------------------------------------
-        | Working Schedule
-        |--------------------------------------------------------------------------
-        */
-
-            $workingStart = $request->working_start_date;
-
-            $workingEnd = $request->working_end_date ?: null;
-
-            /*
-        |--------------------------------------------------------------------------
-        | Update Ticket
-        |--------------------------------------------------------------------------
-        */
-
-            $ticket->update([
-                'status' => 'P',
-
-                'status_pekerjaan' => 'ENVISION',
-
-                'updated_by' => auth()->user()->username,
-            ]);
-
-            /*
-        |--------------------------------------------------------------------------
-        | Create Activity
-        |--------------------------------------------------------------------------
-        */
-
-            $this->createActivity([
-                'ticketid' => $ticket->ticketid,
-
-                'cpny_id' => $ticket->cpny_id,
-
-                'department_id' => $ticket->department_id,
-
-                'pic_ticket' => auth()->user()->username,
-
-                'response_date' => now(),
-
-                'response_summary' => $request->response_summary,
-
-                'response_descr' => $request->response_descr,
-
-                'working_start_date' => $workingStart,
-
-                'working_end_date' => $workingEnd,
-
-                'status_pekerjaan' => 'ENVISION',
-
-                'status' => 'A',
-
-                'created_by' => auth()->user()->username,
-            ]);
-            $uploadResult = null;
-
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr' => $ticket->ticketid,
-
-                    'doctype' => 'TIC',
-
-                    'cpny_id' => $ticket->cpny_id,
-
-                    'department_id' => $ticket->department_id,
-
-                    'base_folder' => 'att-ticket/tic-workflow',
-
-                    'created_by' => auth()->user()->username,
-                ];
-
-                $files = (array) $request->file('attachments');
-
-                try {
-                    $uploader = app(
-                        TrAttachmentController::class
-                    );
-
-                    $uploadResult =
-                        $uploader->uploadInternal(
-                            $meta,
-                            $files
-                        );
-                } catch (\Throwable $e) {
-                    DB::connection('pgsql5')
-                        ->rollBack();
-
-                    return response()->json([
-                        'success' => false,
-
-                        'message' => 'Failed upload attachment',
-
-                        'error' => config('app.debug')
-                            ? $e->getMessage()
-                            : null,
-                    ], 500);
-                }
-            }
-
-            DB::connection('pgsql5')->commit();
-
-            $ticket->refresh();
-        } catch (\Throwable $th) {
-            DB::connection('pgsql5')->rollBack();
-
-            return response()->json([
-                'success' => false,
-
-                'message' => $th->getMessage(),
-            ], 500);
-        }
-
-        try {
-            $this->notificationService->ticketEnvision(
-                $ticket,
-                $request->response_summary,
-                $request->response_descr
-            );
-        } catch (\Throwable $e) {
-            \Log::error('ticketEnvision notification failed', [
-                'ticketid' => $ticket->ticketid,
-                'cpny_id'  => $ticket->cpny_id,
-                'error'    => $e->getMessage(),
-            ]);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Ticket envision updated successfully.',
-        ]);
-    }
-
     public function transferTicket(Request $request, $hash)
     {
         $id = Hashids::decode($hash)[0] ?? null;
@@ -1655,7 +1784,7 @@ class TicketController extends Controller
         $ticket = TrTicket::findOrFail($id);
 
         abort_if(
-            !$this->isITRole()
+            !$this->canActOnTicketType($ticket->ticket_type)
                 && $ticket->pic_ticket !== auth()->user()->username,
             403
         );
@@ -1679,9 +1808,9 @@ class TicketController extends Controller
         ]);
 
         abort_unless(
-            in_array($request->ticket_type, $this->itTicketTypes(), true),
+            in_array($request->ticket_type, $this->engTicketTypes(), true),
             422,
-            'Invalid ticket type for IT Ticket.'
+            'Invalid ticket type for Engineering Ticket.'
         );
 
         if ($request->filled('pic_ticket')) {
@@ -1784,24 +1913,24 @@ class TicketController extends Controller
                             ?? 3
                     ),
 
-                /*
-            |--------------------------------------------------------------------------
-            | Reset Working Schedule
-            |--------------------------------------------------------------------------
-            */
-
-                /*
-            |--------------------------------------------------------------------------
-            | Workflow
-            |--------------------------------------------------------------------------
-            */
-
                 'status' => 'P',
 
                 'status_pekerjaan' => 'TRANSFER',
 
                 'updated_by' => auth()->user()->username,
             ]);
+
+            /*
+        |--------------------------------------------------------------------------
+        | Cancel any pending approval line — category/type may have changed
+        |--------------------------------------------------------------------------
+        */
+
+            TrApproval::query()
+                ->where('refnbr', $ticket->ticketid)
+                ->where('aprv_doctype', self::DOCTYPE)
+                ->where('status', 'P')
+                ->update(['status' => 'X']);
 
             /*
         |--------------------------------------------------------------------------
@@ -1872,10 +2001,6 @@ class TicketController extends Controller
 
         $ticket = TrTicket::findOrFail($id);
 
-        $this->syncEnvisionSolved($ticket);
-
-        $ticket->refresh();
-
         abort_if(
             $ticket->pic_ticket !== auth()->user()->username,
             403
@@ -1932,19 +2057,17 @@ class TicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
-            $uploadResult = null;
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
 
-                    'doctype' => 'TIC',
+                    'doctype' => self::DOCTYPE,
 
                     'cpny_id' => $ticket->cpny_id,
 
                     'department_id' => $ticket->department_id,
 
-                    'base_folder' => 'att-ticket/tic-workflow',
+                    'base_folder' => 'att-ticket/tok-workflow',
 
                     'created_by' => auth()->user()->username,
                 ];
@@ -1956,11 +2079,10 @@ class TicketController extends Controller
                         TrAttachmentController::class
                     );
 
-                    $uploadResult =
-                        $uploader->uploadInternal(
-                            $meta,
-                            $files
-                        );
+                    $uploader->uploadInternal(
+                        $meta,
+                        $files
+                    );
                 } catch (\Throwable $e) {
                     DB::connection('pgsql5')
                         ->rollBack();
@@ -1983,6 +2105,12 @@ class TicketController extends Controller
 
             $this->notificationService
                 ->ticketCompleted($ticket);
+
+            $this->notificationService->ticketWhatsapp(
+                $ticket,
+                'COMPLETED',
+                "Solution : {$ticket->solution_descr}"
+            );
 
             return response()->json([
                 'success' => true,
@@ -2007,7 +2135,7 @@ class TicketController extends Controller
         $ticket = TrTicket::findOrFail($id);
 
         abort_unless(
-            $this->isITRole(),
+            $this->canActOnTicketType($ticket->ticket_type),
             403
         );
 
@@ -2129,7 +2257,7 @@ class TicketController extends Controller
 
         $comments = TrMessage::query()
             ->where('refnbr', $ticket->ticketid)
-            ->where('doctype', 'TIC')
+            ->where('doctype', self::DOCTYPE)
             ->orderBy('created_at')
             ->get();
 
@@ -2218,7 +2346,7 @@ class TicketController extends Controller
             TrMessage::create([
                 'refnbr' => $ticket->ticketid,
 
-                'doctype' => 'TIC',
+                'doctype' => self::DOCTYPE,
 
                 'message_date' => now(),
 
@@ -2238,19 +2366,17 @@ class TicketController extends Controller
                 'created_by' => auth()->user()->username,
             ]);
 
-            $uploadResult = null;
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $ticket->ticketid,
 
-                    'doctype' => 'TIC',
+                    'doctype' => self::DOCTYPE,
 
                     'cpny_id' => $ticket->cpny_id,
 
                     'department_id' => $ticket->department_id,
 
-                    'base_folder' => 'att-ticket/tic-comment',
+                    'base_folder' => 'att-ticket/tok-comment',
 
                     'created_by' => auth()->user()->username,
                 ];
@@ -2262,11 +2388,10 @@ class TicketController extends Controller
                         TrAttachmentController::class
                     );
 
-                    $uploadResult =
-                        $uploader->uploadInternal(
-                            $meta,
-                            $files
-                        );
+                    $uploader->uploadInternal(
+                        $meta,
+                        $files
+                    );
                 } catch (\Throwable $e) {
                     DB::connection('pgsql5')
                         ->rollBack();
@@ -2309,7 +2434,7 @@ class TicketController extends Controller
                 }
             } catch (\Throwable $e) {
                 \Log::warning(
-                    'Ticket comment notification failed',
+                    'Eng Ticket comment notification failed',
                     [
                         'ticketid' => $ticket->ticketid,
                         'error' => $e->getMessage(),
@@ -2335,28 +2460,25 @@ class TicketController extends Controller
 
     public function counts()
     {
-        $user    = auth()->user();
-        $isIT    = $this->isITRole();
+        $user = auth()->user();
+        $broadTypes = $this->broadAccessTicketTypes();
+        $engTypes = $this->engTicketTypes();
 
-        $itTypes = $this->itTicketTypes();
+        $base = function () use ($broadTypes, $user, $engTypes) {
+            $q = TrTicket::query()->whereIn('ticket_type', $engTypes);
 
-        $userCompanies   = collect(explode(',', $user->cpny_id))->filter()->map(fn($v) => trim($v))->toArray();
-        $userDepartments = collect(explode(',', $user->department_id))->filter()->map(fn($v) => trim($v))->toArray();
+            $q->where(function ($q2) use ($broadTypes, $user) {
+                $q2->whereIn('ticket_type', $broadTypes)
+                    ->orWhere('created_by', $user->username)
+                    ->orWhere('pic_ticket', $user->username);
+            });
 
-        $base = function () use ($isIT, $userCompanies, $userDepartments, $user, $itTypes) {
-            $q = TrTicket::query()->whereIn('ticket_type', $itTypes);
-            if (!$isIT) {
-                $q->where(function ($q2) use ($user) {
-                    $q2->where('created_by', $user->username)
-                       ->orWhere('pic_ticket', $user->username);
-                });
-            }
             return $q;
         };
 
         $statuses = [
-            'created', 'response', 'process', 'pending',
-            'envision', 'transfer', 'completed', 'reopen', 'cancel',
+            'created', 'response', 'approved', 'process', 'pending',
+            'transfer', 'completed', 'reopen', 'cancel',
         ];
 
         $counts = ['all' => $base()->count()];
@@ -2365,12 +2487,8 @@ class TicketController extends Controller
             $counts[$s] = $base()->where('status_pekerjaan', strtoupper($s))->count();
         }
 
-        $counts['envision_solved'] = $base()
-            ->where('status_pekerjaan', 'ENVISION CHECKED / SOLVED')
-            ->count();
-
         $counts['my_ticket'] = TrTicket::query()
-            ->whereIn('ticket_type', $itTypes)
+            ->whereIn('ticket_type', $engTypes)
             ->where('pic_ticket', $user->username)
             ->count();
 
@@ -2406,9 +2524,13 @@ class TicketController extends Controller
                 'location_name',
                 'cpny_id',
             ]);
+
         $types = MsTicketType::query()
+            ->whereIn('ticket_type', [
+                self::ENG_TICKET_TYPE,
+                self::BSFO_TICKET_TYPE,
+            ])
             ->where('status', 'A')
-            ->where('department_id', self::IT_DEPARTMENT_ID)
             ->orderBy('ticket_type_name')
             ->get([
                 'ticket_type',
@@ -2465,6 +2587,34 @@ class TicketController extends Controller
                     return [
                         'id' => $row->ticket_subcategoryid,
                         'text' => $row->ticket_subcategory_name,
+                    ];
+                }),
+        ]);
+    }
+
+    public function issueSummarySearch(Request $request)
+    {
+        $query = MsCategory::query()
+            ->where('doctype', self::DOCTYPE)
+            ->where('groups', 'OPRTICKET')
+            ->where('status', 'A');
+
+        if ($request->filled('search')) {
+            $query->where(
+                'category_name',
+                'ilike',
+                '%'.$request->search.'%'
+            );
+        }
+
+        return response()->json([
+            'results' => $query
+                ->orderBy('category_name')
+                ->get()
+                ->map(function ($row) {
+                    return [
+                        'id' => $row->categoryid,
+                        'text' => $row->category_name,
                     ];
                 }),
         ]);
@@ -2619,7 +2769,7 @@ class TicketController extends Controller
             ->get(['cpny_id', 'cpny_name']);
 
         return response()->json([
-            'results' => $companies->map(fn($c) => [
+            'results' => $companies->map(fn ($c) => [
                 'id'   => $c->cpny_id,
                 'text' => $c->cpny_name,
             ])->values(),
@@ -2630,7 +2780,7 @@ class TicketController extends Controller
     {
         $holidays = SysCalendar::whereIn('date_calendar_type', ['LIBUR_NASIONAL', 'CUTI_BERSAMA'])
             ->pluck('date_calendar')
-            ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
+            ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))
             ->toArray();
 
         $date = ($from ?? now())->copy()->startOfDay();
@@ -2769,8 +2919,10 @@ class TicketController extends Controller
         $isPIC =
             $ticket->pic_ticket === $user->username;
 
-        $isIT       = $this->isITRole();
-        $isITByRole = $this->isITByRole();
+        $isEng = $this->canActOnTicketType($ticket->ticket_type);
+
+        $isApprover = $ticket->status_pekerjaan === 'RESPONSE'
+            && $this->isApprover($ticket);
 
         return [
             'can_edit' => $isRequester
@@ -2780,23 +2932,26 @@ class TicketController extends Controller
             'can_cancel' => (
                 ($isRequester && $ticket->status_pekerjaan === 'CREATED')
                 || ($isPIC && $ticket->status_pekerjaan !== 'COMPLETED')
-                || ($isITByRole && $ticket->status_pekerjaan !== 'COMPLETED')
+                || ($isEng && $ticket->status_pekerjaan !== 'COMPLETED')
             ),
 
-            'can_response' => $isIT
+            'can_response' => $isEng
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
                     'CREATED',
                     'TRANSFER',
                 ]),
 
+            'can_approve' => $isApprover,
+
+            'can_reject' => $isApprover,
+
             'can_process' => $isPIC
                 && $ticket->status === 'P'
                 && in_array($ticket->status_pekerjaan, [
-                    'RESPONSE',
+                    'APPROVED',
                     'PENDING',
                     'REOPEN',
-                    'ENVISION',
                 ]),
 
             'can_pending' => $isPIC
@@ -2805,15 +2960,8 @@ class TicketController extends Controller
                     'PROCESS',
                 ]),
 
-            'can_envision' => $isPIC
-                && $ticket->status === 'P'
-                && in_array($ticket->status_pekerjaan, [
-                    'PENDING',
-                    'PROCESS',
-                ]),
-
             'can_transfer' => (
-                $isIT
+                $isEng
                 || $isPIC
             )
                 && $ticket->status === 'P'
@@ -2829,10 +2977,9 @@ class TicketController extends Controller
                 && in_array($ticket->status_pekerjaan, [
                     'PROCESS',
                     'PENDING',
-                    'ENVISION CHECKED / SOLVED',
                 ]),
 
-            'can_reopen' => $isIT
+            'can_reopen' => $isEng
                 && (
                     ($ticket->status === 'C' && $ticket->status_pekerjaan === 'COMPLETED')
                     || ($ticket->status === 'X' && $ticket->status_pekerjaan === 'CANCEL')
@@ -2872,7 +3019,7 @@ class TicketController extends Controller
 
         $attachmentResponse = $attachmentController->listAttachments(
             request(),
-            'TIC',
+            self::DOCTYPE,
             $ticket->ticketid
         );
 
@@ -2885,7 +3032,7 @@ class TicketController extends Controller
                 try {
                     $bytes = file_get_contents($att['url']);
                     $mime  = $ext === 'png' ? 'image/png' : 'image/jpeg';
-                    $att['base64'] = 'data:' . $mime . ';base64,' . base64_encode($bytes);
+                    $att['base64'] = 'data:'.$mime.';base64,'.base64_encode($bytes);
                 } catch (\Throwable $e) {
                     $att['base64'] = null;
                 }
@@ -2905,8 +3052,8 @@ class TicketController extends Controller
                             $bytes = file_get_contents($src);
                             $ext   = strtolower(pathinfo(parse_url($src, PHP_URL_PATH), PATHINFO_EXTENSION));
                             $mime  = $ext === 'png' ? 'image/png' : ($ext === 'gif' ? 'image/gif' : 'image/jpeg');
-                            $b64   = 'data:' . $mime . ';base64,' . base64_encode($bytes);
-                            return '<img' . $m[1] . 'src="' . $b64 . '"' . $m[3] . '>';
+                            $b64   = 'data:'.$mime.';base64,'.base64_encode($bytes);
+                            return '<img'.$m[1].'src="'.$b64.'"'.$m[3].'>';
                         } catch (\Throwable $e) {
                             return $m[0];
                         }
@@ -2923,7 +3070,7 @@ class TicketController extends Controller
 
         $respondedBy = $responseActivity?->created_by ?? $ticket->pic_ticket;
 
-        $pdf = \PDF::loadView('pages.ticket.print', compact('ticket', 'attachments', 'respondedBy'))
+        $pdf = \PDF::loadView('pages.eng-ticket.print', compact('ticket', 'attachments', 'respondedBy'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream("TICKET-{$ticket->ticketid}.pdf");
@@ -2931,141 +3078,16 @@ class TicketController extends Controller
 
     public function export(Request $request)
     {
+        $broadTypes = $this->broadAccessTicketTypes();
+
         abort_unless(
-            $this->isITRole(),
+            !empty($broadTypes),
             403
         );
 
         return Excel::download(
-            new TicketExport($request),
-            'ticket-export-'.now()->format('YmdHis').'.xlsx'
+            new EngTicketExport($request, $broadTypes),
+            'eng-ticket-export-'.now()->format('YmdHis').'.xlsx'
         );
-    }
-
-    protected function hasEnvisionSO(TrTicket $ticket): bool
-    {
-        return TrServiceorderEnvision::query()
-            ->where('ticketid', $ticket->ticketid)
-            ->exists();
-    }
-
-  protected function syncEnvisionSolved(
-    TrTicket $ticket
-): void {
-
-    if (
-        $ticket->status_pekerjaan !== 'ENVISION'
-    ) {
-        return;
-    }
-
-    if (
-        !$this->hasEnvisionSO($ticket)
-    ) {
-        return;
-    }
-
-    $so = TrServiceorderEnvision::query()
-        ->where(
-            'ticketid',
-            $ticket->ticketid
-        )
-        ->latest('serviceorderdate')
-        ->first();
-
-    $ticket->update([
-        'status_pekerjaan' => 'ENVISION CHECKED / SOLVED',
-        'updated_by'       => 'SYSTEM',
-    ]);
-
-    $existsActivity =
-        TrTicketActivity::query()
-            ->where(
-                'ticketid',
-                $ticket->ticketid
-            )
-            ->where(
-                'status_pekerjaan',
-                'ENVISION CHECKED / SOLVED'
-            )
-            ->exists();
-
-    if (!$existsActivity) {
-
-        $this->createActivity([
-            'ticketid'          => $ticket->ticketid,
-            'cpny_id'           => $ticket->cpny_id,
-            'department_id'     => $ticket->department_id,
-            'pic_ticket'        => $ticket->pic_ticket,
-            'response_date'     => now(),
-
-            'response_summary'  => 'Envision Solved',
-
-            'response_descr'    =>
-                'Note: ' .
-                ($so->serviceorder_action ?? '-'),
-
-            'status_pekerjaan'  =>
-                'ENVISION CHECKED / SOLVED',
-
-            'status'            => 'A',
-
-            'created_by'        => 'SYSTEM',
-        ]);
-    }
-}
-
-    public function serviceOrderJson(Request $request)
-    {
-        abort_unless($this->isITRole(), 403);
-
-        $query = TrServiceorderEnvision::query()
-            ->whereNull('deleted_at');
-
-        if ($request->filled('search_so')) {
-            $s = $request->search_so;
-            $query->where(function ($q) use ($s) {
-                $q->where('serviceorderid', 'ilike', "%{$s}%")
-                  ->orWhere('ticketid',       'ilike', "%{$s}%")
-                  ->orWhere('user_pic',        'ilike', "%{$s}%")
-                  ->orWhere('job_type',        'ilike', "%{$s}%");
-            });
-        }
-
-        if ($request->filled('so_job_status')) {
-            $query->where('job_status', $request->so_job_status);
-        }
-
-        if ($request->filled('so_date_from')) {
-            $query->whereDate('serviceorderdate', '>=', $request->so_date_from);
-        }
-
-        if ($request->filled('so_date_to')) {
-            $query->whereDate('serviceorderdate', '<=', $request->so_date_to);
-        }
-
-        return DataTables::of($query->orderByDesc('serviceorderdate'))
-            ->addColumn('ticket_link', function ($row) {
-                return $row->ticketid;
-            })
-            ->toJson();
-    }
-
-    public function serviceOrderNonAktif(int $id)
-    {
-        abort_unless($this->isITRole(), 403);
-
-        $so = TrServiceorderEnvision::findOrFail($id);
-
-        abort_if($so->status === 'X', 422, 'Service order is already non-active.');
-
-        $user = auth()->user();
-
-        $so->update([
-            'status'     => 'X',
-            'updated_by' => $user->username,
-        ]);
-
-        return response()->json(['message' => 'Service order set to non-active.']);
     }
 }

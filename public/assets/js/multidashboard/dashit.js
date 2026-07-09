@@ -4,6 +4,8 @@
     let summaryRequest = null;
     let dataRequest = null;
     let countdownTimer = null;
+    let isHovering = false;
+    let refreshPending = false;
 
     let allRows = [];
     let currentPage = 0;
@@ -35,6 +37,11 @@
         countdownTimer = setInterval(() => {
             remaining--;
             if (remaining <= 0) {
+                if (isHovering) {
+                    refreshPending = true;
+                    el.innerText = fmt(0);
+                    return;
+                }
                 clearInterval(countdownTimer);
                 el.innerText = fmt(0);
                 if (!document.hidden) {
@@ -47,6 +54,22 @@
                 el.innerText = fmt(remaining);
             }
         }, 1000);
+    }
+
+    // ── Pausing the auto-refresh while the mouse is over the card list keeps
+    // it from yanking a Doc ID link out from under an in-progress click. ──
+    function bindHoverPause() {
+        $("#dashboardCardList").on("mouseenter", function () {
+            isHovering = true;
+        });
+        $("#dashboardCardList").on("mouseleave", function () {
+            isHovering = false;
+            if (refreshPending) {
+                refreshPending = false;
+                loadSummary();
+                loadTab(activeTab);
+            }
+        });
     }
 
     // ── Stat cards: count + relative-share progress bar ──
@@ -863,6 +886,8 @@
 
                 }
             );
+
+        bindHoverPause();
     }
     function init() {
 

@@ -22,6 +22,12 @@ class TicketCreatedMail extends Mailable
 
     public function build()
     {
+        $systemLabel = match ($this->ticket->ticket_type) {
+            'ENGSUPPORTTICKET' => 'Engineering Ticketing System',
+            'BSFOSUPPORTTICKET' => 'BS-FO Ticketing System',
+            default => 'IT Ticketing System',
+        };
+
         return $this
 
             ->subject(
@@ -31,6 +37,8 @@ class TicketCreatedMail extends Mailable
 
             ->view(
                 'emails.ticket-created'
-            );
+            )
+
+            ->with('systemLabel', $systemLabel);
     }
 }
