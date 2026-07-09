@@ -13,6 +13,8 @@
     let pageSize = 10;
     let sortColumn = null;
     let sortDirection = "asc";
+    let pendingRows = null;
+    let pendingTab = null;
 
     const urls = {
         summary:        "/cost-control-dashboard/summary-json",
@@ -66,6 +68,16 @@
         });
         $("#dashboardCardList").on("mouseleave", function () {
             isHovering = false;
+
+            if (pendingRows) {
+                const rows = pendingRows;
+                const tab = pendingTab;
+                pendingRows = null;
+                pendingTab = null;
+                renderCardList(rows, tab);
+                startCountdown(20);
+            }
+
             if (refreshPending) {
                 refreshPending = false;
                 loadSummary();
@@ -569,6 +581,12 @@
                 if (tab === "imbudget") {
                     rawImBudgetData = rows;
                     rows = applyImBudgetFilter(rows);
+                }
+
+                if (isHovering) {
+                    pendingRows = rows;
+                    pendingTab = tab;
+                    return;
                 }
 
                 renderCardList(rows, tab);

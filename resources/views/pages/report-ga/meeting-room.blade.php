@@ -21,8 +21,7 @@
             {{-- ROOM --}}
             <div class="space-y-1">
                 <label class="text-xs font-medium text-gray-500">Room</label>
-                <select id="room" class="form-input w-full">
-                    <option value="">All Rooms</option>
+                <select id="room" class="form-input w-full" multiple>
                     @foreach ($rooms as $room)
                         <option value="{{ $room->room_name }}">
                             {{ $room->room_name }}
@@ -113,10 +112,19 @@
       </div>
 
   </div>
+  {{-- Select2 CDN --}}
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script>
       $(function() {
 
           let type = 'meeting-room';
+
+          $('#room').select2({
+              width: '100%',
+              placeholder: 'All Rooms',
+              allowClear: true
+          });
 
           let table = $('#meetingRoomTable').DataTable({
               processing: true,
@@ -197,10 +205,16 @@
           $('#filterBtn').click(() => table.ajax.reload());
 
           $('#resetBtn').click(() => {
-              $('#date_from, #date_to, #room, #requester').val('');
+              $('#date_from, #date_to, #requester').val('');
+              $('#room').val(null).trigger('change');
               $('#status').val('');
               table.ajax.reload();
           });
+
+            function buildRoomQuery() {
+                let rooms = $('#room').val() || [];
+                return rooms.map(r => '&room[]=' + encodeURIComponent(r)).join('');
+            }
 
             $('#exportExcelBtn').click(() => {
 
@@ -208,7 +222,7 @@
 
                 url += '?date_from=' + $('#date_from').val();
                 url += '&date_to=' + $('#date_to').val();
-                url += '&room=' + $('#room').val();
+                url += buildRoomQuery();
                 url += '&requester=' + $('#requester').val();
                 url += '&status=' + $('#status').val();
 
@@ -221,7 +235,7 @@
 
                 url += '?date_from=' + $('#date_from').val();
                 url += '&date_to=' + $('#date_to').val();
-                url += '&room=' + $('#room').val();
+                url += buildRoomQuery();
                 url += '&requester=' + $('#requester').val();
                 url += '&status=' + $('#status').val();
 

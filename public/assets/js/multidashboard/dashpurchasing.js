@@ -6,12 +6,16 @@
     let rawCsData      = [];
     let rawPoData      = [];
     let countdownTimer = null;
+    let isHovering = false;
+    let refreshPending = false;
 
     let allRows = [];
     let currentPage = 0;
     let pageSize = 10;
     let sortColumn = null;
     let sortDirection = "asc";
+    let pendingRows = null;
+    let pendingTab = null;
 
     const urls = window.purchasingRoutes || {};
 
@@ -29,6 +33,11 @@
         countdownTimer = setInterval(() => {
             remaining--;
             if (remaining <= 0) {
+                if (isHovering) {
+                    refreshPending = true;
+                    el.innerText = fmt(0);
+                    return;
+                }
                 clearInterval(countdownTimer);
                 el.innerText = fmt(0);
                 if (!document.hidden) {
@@ -43,6 +52,33 @@
                 el.innerText = fmt(remaining);
             }
         }, 1000);
+    }
+
+    // ── Pausing the auto-refresh while the mouse is over the card list keeps
+    // it from yanking a Doc ID link out from under an in-progress click. ──
+    function bindHoverPause() {
+        $("#dashboardCardList").on("mouseenter", function () {
+            isHovering = true;
+        });
+        $("#dashboardCardList").on("mouseleave", function () {
+            isHovering = false;
+
+            if (pendingRows) {
+                const rows = pendingRows;
+                const tab = pendingTab;
+                pendingRows = null;
+                pendingTab = null;
+                renderCardList(rows, tab);
+            }
+
+            if (refreshPending) {
+                refreshPending = false;
+                rawCsData = [];
+                rawPoData = [];
+                loadSummary();
+                loadTab(activeTab);
+            }
+        });
     }
 
     // ── Stat cards: count + relative-share progress bar ──
@@ -438,6 +474,12 @@
                     rows = applyPoFilter(rows);
                 }
 
+                if (isHovering) {
+                    pendingRows = rows;
+                    pendingTab = tab;
+                    return;
+                }
+
                 renderCardList(rows, tab);
             })
             .catch((err) => { if (err.name !== "AbortError") console.error(err); });
@@ -541,6 +583,8 @@
                 if (href) window.open(href, "_blank");
             });
         });
+
+        bindHoverPause();
     }
 
     // ── Init ──
