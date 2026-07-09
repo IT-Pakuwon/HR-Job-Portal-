@@ -201,7 +201,7 @@
                                 @forelse ($budgets as $i => $budget)
                                     @php
                                         $remainingBudget = (float) ($budget->budget_remaining ?? 0);
-                                        $amountBudget = (float) ($budget->rfp_base_amount ?? 0);
+                                        $amountBudget = (float) ($rfp->rfp_base_amount ?? 0);
                                     @endphp
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                         <td class="budget-row-no p-3">{{ $i + 1 }}</td>
@@ -235,12 +235,10 @@
                                         </td>
                                         <td class="p-3">
                                             <input type="text" inputmode="decimal" name="rfp_base_amount[]" value="{{ number_format($amountBudget, 2, ',', '.') }}"
-                                                class="budget-amount-input w-40 rounded border border-gray-300 bg-white px-3 py-2 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                                                data-max="{{ $remainingBudget }}">
+                                                class="budget-amount-input w-40 rounded border border-gray-300 bg-white px-3 py-2 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                                         </td>
                                         <td class="p-3 text-right">
                                             {{ $formatMoney($remainingBudget) }}
-                                            <input type="hidden" name="rfp_available_amount[]" value="{{ $remainingBudget }}">
                                         </td>
                                         <td class="p-3 text-center">
                                             <button type="button"
@@ -601,6 +599,7 @@
             $(document).on('click', '.chooseKontrakBudget', function () {
                 const $btn = $(this);
                 const remainingBudget = parseAmount($btn.data('remaining') || 0);
+                const amountBudget = parseAmount(kontrakBudgetContext.rfp_base_amount || 0);
 
                 $('#emptyKontrakBudgetRow').addClass('hidden');
                 $('#kontrakBudgetTableBody').append(`
@@ -635,13 +634,11 @@
                             <input type="hidden" name="budget_activity_descr[]" value="${escapeHtml($btn.data('activity-descr') || '')}">
                         </td>
                         <td class="p-3">
-                            <input type="text" inputmode="decimal" name="rfp_base_amount[]" value="${escapeHtml(formatNumber(remainingBudget, 2))}"
-                                class="budget-amount-input w-40 rounded border border-gray-300 bg-white px-3 py-2 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                                data-max="${escapeHtml(remainingBudget)}">
+                            <input type="text" inputmode="decimal" name="rfp_base_amount[]" value="${escapeHtml(formatNumber(amountBudget, 2))}"
+                                class="budget-amount-input w-40 rounded border border-gray-300 bg-white px-3 py-2 text-right dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                         </td>
                         <td class="p-3 text-right">
                             ${formatCurrency(remainingBudget)}
-                            <input type="hidden" name="rfp_available_amount[]" value="${escapeHtml(remainingBudget)}">
                         </td>
                         <td class="p-3 text-center">
                             <button type="button"
@@ -737,16 +734,9 @@
                     rows.each(function (index) {
                         const $amount = $(this).find('input[name="rfp_base_amount[]"]');
                         const amount = parseAmount($amount.val());
-                        const hasMaxAmount = $amount.attr('data-max') !== undefined && $amount.attr('data-max') !== '';
-                        const maxAmount = parseAmount($amount.data('max'));
 
                         if (amount <= 0) {
                             invalidMessage = `Amount budget baris ${index + 1} harus lebih besar dari 0.`;
-                            return false;
-                        }
-
-                        if (hasMaxAmount && amount > maxAmount) {
-                            invalidMessage = `Amount budget baris ${index + 1} tidak boleh lebih besar dari remaining budget.`;
                             return false;
                         }
 
@@ -758,8 +748,8 @@
                         return;
                     }
 
-                    if (rfpBaseAmount > 0 && totalAmount > rfpBaseAmount) {
-                        toastr.error('Total amount budget tidak boleh lebih besar dari RFP base amount.');
+                    if (rfpBaseAmount > 0 && Math.abs(totalAmount - rfpBaseAmount) > 0.01) {
+                        toastr.error(`Total amount budget harus sama dengan RFP base amount (${formatCurrency(rfpBaseAmount)}). Total saat ini ${formatCurrency(totalAmount)}.`);
                         return;
                     }
                 }

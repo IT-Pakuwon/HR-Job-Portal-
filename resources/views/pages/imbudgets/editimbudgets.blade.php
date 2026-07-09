@@ -354,7 +354,7 @@
                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
                                 <button type="button" id="cancelBtn"
                                     class="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
-                                    <span id="cancelText">Cancel</span>
+                                    <span id="cancelText">Cancel IM Budget</span>
                                     <svg id="cancelSpinner" class="hidden h-5 w-5 animate-spin text-white"
                                         xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10"
@@ -692,9 +692,21 @@
         });
 
         // ===== Cancel Button =====
-        $('#cancelBtn').click(function() {
-            const confirmed = confirm("Are you sure you want to cancel this document? This action cannot be undone.");
-            if (!confirmed) return;
+        $('#cancelBtn').click(async function() {
+            const confirmed = await Swal.fire({
+                icon: 'warning',
+                title: 'Cancel IM Budget?',
+                text: 'Are you sure you want to cancel this document? This action cannot be undone.',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, cancel it',
+                cancelButtonText: 'No',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                focusCancel: true,
+            });
+
+            if (!confirmed.isConfirmed) return;
 
             $('#cancelBtn').prop('disabled', true);
             $('#cancelText').text('Cancelling...');
@@ -715,7 +727,7 @@
                 error: function(xhr) {
                     toastr.error(xhr.responseJSON?.message || 'Failed to cancel document.');
                     $('#cancelBtn').prop('disabled', false);
-                    $('#cancelText').text('Cancel');
+                    $('#cancelText').text('Cancel IM Budget');
                     $('#cancelSpinner').addClass('hidden');
                     hideOverlay();
                 }

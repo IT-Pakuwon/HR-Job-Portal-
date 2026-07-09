@@ -9,7 +9,7 @@
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
                                 Edit {{ $rfpnonpurch->rfpnonpurchase_type }} Non Purchase
-                                <span class="text-indigo-600">#{{ $rfpnonpurch->rfpnonpurchaseid }}</span>
+                                <span class="text-indigo-600">{{ $rfpnonpurch->rfpnonpurchaseid }}</span>
                             </h2>
                         </div>
 
@@ -475,10 +475,17 @@
                                 Back
                             </button>
 
-                            <button type="submit" id="submitBtn"
-                                class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-                                <span id="btnText">Update Document</span>
-                            </button>
+                            <div class="flex items-center gap-3">
+                                <button type="button" id="cancelRfpBtn"
+                                    class="flex items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700">
+                                    Cancel RFP
+                                </button>
+
+                                <button type="submit" id="submitBtn"
+                                    class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                                    <span id="btnText">Update Approval</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -685,6 +692,7 @@
 
         const groupBiayaBudgetSettings = @json($groupbiayaBudgetSettings ?? []);
         const departmentFinMap = @json($departmentFinMap ?? []);
+        const initialBusinessUnitId = @json($rfpnonpurch->business_unit_id);
 
         function selectedDepartmentFinId() {
             const dept = String($('#departementid').val() || '').trim();
@@ -694,7 +702,7 @@
         function budgetSettingKey() {
             return [
                 $('#cpnyid').val(),
-                $('#business_unit_id').val(),
+                $('#business_unit_id').val() || initialBusinessUnitId,
                 selectedDepartmentFinId(),
                 $('#groupbiaya_id').val()
             ].map(v => String(v || '').trim()).join('|');
@@ -1298,6 +1306,50 @@
             });
 
             toggleDeleteAttachmentButton();
+
+            $('#cancelRfpBtn').on('click', function () {
+                Swal.fire({
+                    title: 'Cancel RFP?',
+                    text: 'Dokumen akan diubah menjadi Cancelled.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Cancel',
+                    cancelButtonText: 'Tidak',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                }).then(function (result) {
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                    $('#cancelRfpBtn, #submitBtn, #backBtn').prop('disabled', true);
+                    showOverlay('Cancelling');
+
+                    $.ajax({
+                        url: "{{ route('rfpnonpurch.cancel', $hash) }}",
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            _method: "PUT"
+                        }
+                    })
+                    .done(function (res) {
+                        toastr.success(res.message || 'RFP Non Purchase cancelled successfully.');
+
+                        setTimeout(function () {
+                            window.location.href = "{{ url('/showrfpnonpurch/'.$hash) }}";
+                        }, 700);
+                    })
+                    .fail(function (xhr) {
+                        toastr.error(xhr.responseJSON?.message || 'Gagal cancel RFP Non Purchase.');
+                        console.error(xhr.responseText);
+                    })
+                    .always(function () {
+                        $('#cancelRfpBtn, #submitBtn, #backBtn').prop('disabled', false);
+                        hideOverlay();
+                    });
+                });
+            });
 
             $('#rfpnonpurchForm').on('submit', function (e) {
                 e.preventDefault();

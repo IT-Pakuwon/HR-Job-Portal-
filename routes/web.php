@@ -2052,6 +2052,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/rfpnonpurch', [RfpNonPurchController::class, 'storeRfpNonPurch'])->name('rfpnonpurch.store');
     Route::get('/editrfpnonpurch/{hash}', [RfpNonPurchController::class, 'editRfpNonPurch']);
     Route::put('/updaterfpnonpurch/{hash}', [RfpNonPurchController::class, 'updateRfpNonPurch'])->name('rfpnonpurch.update');
+    Route::put('/rfpnonpurch/{hash}/cancel', [RfpNonPurchController::class, 'cancelRfpNonPurch'])->name('rfpnonpurch.cancel');
     Route::post('/rfpnonpurch/{hash}/reminder', [RfpNonPurchController::class, 'reminderRfpNonPurch'])->name('rfpnonpurch.reminder');
     Route::post('/rfpnonpurch/{hash}/finance-revise', [RfpNonPurchController::class, 'financeReviseRfpNonPurch'])->name('rfpnonpurch.finance-revise');
 

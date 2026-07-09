@@ -732,26 +732,104 @@
             });
 
             $(document).on("click", "#approveBtn", function() {
+                approveRfpWithIMCheck(rfpid);
+            });
+
+            function approveRfpWithIMCheck(rfpid, confirmGenerateIM = false) {
+                const $spinner = $("#loadingSpinnerContainer");
+
+                $("#approveBtn")
+                    .prop("disabled", true)
+                    .addClass("pointer-events-none opacity-60");
+
+                $spinner.fadeIn();
+
                 $.ajax({
-                    url: `/rfp/${rfpid}/approve`,
+                    url: `/rfp/${encodeURIComponent(rfpid)}/approve`,
                     type: "POST",
                     data: {
                         _token: csrf,
-                        rfpid: rfpid
+                        rfpid: rfpid,
+                        confirm_generate_im: confirmGenerateIM ? 1 : 0
                     },
                     success: function(response) {
-                        if (response.success) {
-                            toastr.success("RP approved successfully!");
+                        if (response?.need_confirm_generate_im) {
+                            $spinner.fadeOut();
+
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            Swal.fire({
+                                title: 'Generate IM Budget?',
+                                text: response.message || 'Dokumen ini membutuhkan IM Budget. Generate sekarang?',
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes, generate',
+                                cancelButtonText: 'No'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    approveRfpWithIMCheck(rfpid, true);
+                                }
+                            });
+
+                            return;
+                        }
+
+                        if (response?.code === 'IM_IN_PROGRESS') {
+                            $spinner.fadeOut();
+
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Tidak bisa approve',
+                                text: response.message || 'Masih On Progress IM Budget.'
+                            });
+
+                            return;
+                        }
+
+                        if (response?.code === 'IM_CREATED_HOLD') {
+                            $spinner.fadeOut();
+
+                            toastr.success(response.message || 'IM Budget berhasil dibuat.');
+
+                            if (response.imbudget_show_url) {
+                                window.location.href = response.imbudget_show_url;
+                            } else {
+                                closeOrRedirect("/rfp");
+                            }
+
+                            return;
+                        }
+
+                        $spinner.fadeOut();
+
+                        if (response?.success) {
+                            toastr.success(response.message || "RP approved successfully!");
                             closeOrRedirect("/rfp");
                         } else {
-                            toastr.error(response.message || "Failed to approve RP.");
+                            $("#approveBtn")
+                                .prop("disabled", false)
+                                .removeClass("pointer-events-none opacity-60");
+
+                            toastr.error(response?.message || "Failed to approve RP.");
                         }
                     },
                     error: function(xhr) {
+                        $spinner.fadeOut();
+
+                        $("#approveBtn")
+                            .prop("disabled", false)
+                            .removeClass("pointer-events-none opacity-60");
+
                         toastr.error(xhr.responseJSON?.message || "Unable to approve RP.");
                     }
                 });
-            });
+            }
 
             $(document).on("click", "#rejectBtn", function() {
                 checkApproval(rfpid, "reject");

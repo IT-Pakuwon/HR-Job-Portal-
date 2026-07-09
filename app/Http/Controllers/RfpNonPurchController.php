@@ -1397,25 +1397,13 @@ class RfpNonPurchController extends Controller
                 $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
-                // =========================
-                // EMAIL TO REQUESTER
-                // =========================
-                app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $rfpnonpurch->rfpnonpurchaseid,
+                $this->sendCompletedRfpNonPurchEmail(
+                    $rfpnonpurch,
                     $doctype,
-                    'C',
-                    $rfpnonpurch->created_by,
+                    $docName,
                     $docUrl,
-                    [
-                        'cpnyid'    => $rfpnonpurch->cpny_id ?? '',
-                        'deptname'  => $rfpnonpurch->department_id ?? '',
-                        'date'      => $now->toDateTimeString(),
-                        'info'      => $rfpnonpurch->keperluan ?? '',
-                        'fullname'  => $fullname,
-                        'name'      => $fullname,
-                        'createdby' => $fullname,
-                        'docname'   => $docName,
-                    ]
+                    $fullname,
+                    $now
                 );
             },
 
@@ -1595,13 +1583,15 @@ class RfpNonPurchController extends Controller
                 $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
-                $this->reserveBudget(
-                    $doctype,
-                    $rfpnonpurch->rfpnonpurchaseid,
-                    $request->cpnyid ?? $rfpnonpurch->cpny_id,
-                    'Reject',
-                    $user->username
-                );
+                if ($this->needsIMBudgetFromRfpNonPurchDetail($rfpnonpurch->rfpnonpurchaseid)) {
+                    $this->reserveBudget(
+                        $doctype,
+                        $rfpnonpurch->rfpnonpurchaseid,
+                        $request->cpnyid ?? $rfpnonpurch->cpny_id,
+                        'Reject',
+                        $user->username
+                    );
+                }
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $rfpnonpurch->rfpnonpurchaseid,
@@ -1696,13 +1686,15 @@ class RfpNonPurchController extends Controller
                 $rfpnonpurch->updated_by = $user->username;
                 $rfpnonpurch->save();
 
-                $this->reserveBudget(
-                    $doctype,
-                    $rfpnonpurch->rfpnonpurchaseid,
-                    $request->cpnyid ?? $rfpnonpurch->cpny_id,
-                    'Revise',
-                    $user->username
-                );
+                if ($this->needsIMBudgetFromRfpNonPurchDetail($rfpnonpurch->rfpnonpurchaseid)) {
+                    $this->reserveBudget(
+                        $doctype,
+                        $rfpnonpurch->rfpnonpurchaseid,
+                        $request->cpnyid ?? $rfpnonpurch->cpny_id,
+                        'Revise',
+                        $user->username
+                    );
+                }
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $rfpnonpurch->rfpnonpurchaseid,
@@ -1855,6 +1847,27 @@ class RfpNonPurchController extends Controller
 
                 return [$key => 1];
             });
+
+        $hasExistingBudgetDetail = $rfpnonpurchasedetail->contains(function ($row) {
+            return trim((string) ($row->budget_department_fin_id ?? '')) !== ''
+                || trim((string) ($row->budget_account_id ?? '')) !== ''
+                || trim((string) ($row->budget_activity_id ?? '')) !== ''
+                || trim((string) ($row->budget_activity_descr ?? '')) !== '';
+        });
+
+        $currentDepartmentFinId = $departmentFinMap[$rfpnonpurch->department_id] ?? null;
+
+        if ($hasExistingBudgetDetail && $selectedBuId && $currentDepartmentFinId && $rfpnonpurch->groupbiaya_id) {
+            $currentBudgetKey = trim((string) $rfpnonpurch->cpny_id)
+                . '|'
+                . trim((string) $selectedBuId)
+                . '|'
+                . trim((string) $currentDepartmentFinId)
+                . '|'
+                . trim((string) $rfpnonpurch->groupbiaya_id);
+
+            $groupbiayaBudgetSettings->put($currentBudgetKey, 1);
+        }
 
         // =========================
         // USER KEPADA / TEMBUSAN
@@ -2193,9 +2206,15 @@ class RfpNonPurchController extends Controller
             // =========================
             // RESET APPROVAL LAMA
             // =========================
-            // TrApproval::query()
-            //     ->where('refnbr', $docid)
-            //     ->delete();
+            TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->update([
+                    'status' => 'X',
+                    'updated_by' => $username,
+                    'updated_at' => $dt,
+                ]);
 
             // =========================
             // APPROVAL BARU
@@ -2254,6 +2273,7 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
+                        ->where('status', 'P')
                         ->exists();
 
                     if (!$exists) {
@@ -2401,6 +2421,42 @@ class RfpNonPurchController extends Controller
             ], 500);
         }
     }
+
+    public function cancelRfpNonPurch(Request $request, $hash)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not authenticated',
+            ], 401);
+        }
+
+        $id = Hashids::decode($hash)[0] ?? null;
+
+        if (!$id) {
+            return response()->json([
+                'message' => 'RFP/RCA Non Purchase tidak ditemukan.',
+            ], 404);
+        }
+
+        $rfpnonpurch = TrRfpNonPurch::find($id);
+
+        if (!$rfpnonpurch) {
+            return response()->json([
+                'message' => 'RFP/RCA Non Purchase tidak ditemukan.',
+            ], 404);
+        }
+
+        $rfpnonpurch->status = 'X';
+        $rfpnonpurch->updated_by = $user->username ?? 'system';
+        $rfpnonpurch->updated_at = now();
+        $rfpnonpurch->save();
+
+        return response()->json([
+            'message' => 'RFP/RCA Non Purchase berhasil di-cancel.',
+        ]);
+    }
     
    
     public function printPdfRfpNonPurch($hash)
@@ -2414,6 +2470,13 @@ class RfpNonPurchController extends Controller
 
         $rfpnonpurch = TrRfpNonPurch::with(['creator:username,name'])->findOrFail($id);
 
+        $pdf = $this->buildRfpNonPurchPdf($rfpnonpurch);
+
+        return $pdf->stream("RFP_{$rfpnonpurch->rfpnonpurchaseid}.pdf");
+    }
+
+    private function buildRfpNonPurchPdf(TrRfpNonPurch $rfpnonpurch)
+    {
         // =========================
         // APPROVAL
         // =========================
@@ -2476,7 +2539,85 @@ class RfpNonPurchController extends Controller
 
         $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->stream("RFP_{$rfpnonpurch->rfpnonpurchaseid}.pdf");
+        return $pdf;
+    }
+
+    private function sendCompletedRfpNonPurchEmail(
+        TrRfpNonPurch $rfpnonpurch,
+        string $doctype,
+        string $docName,
+        string $docUrl,
+        string $fullname,
+        \Carbon\Carbon $now
+    ): void {
+        $requesterEmail = User::query()
+            ->where('username', $rfpnonpurch->created_by)
+            ->where('status', 'A')
+            ->value('notification_email');
+
+        $requesterEmail = trim((string) $requesterEmail);
+
+        if ($requesterEmail === '') {
+            return;
+        }
+
+        $ccUsernames = SysUserRole::query()
+            ->where('role_id', 'APFINACCESS')
+            ->where('status', 'A')
+            ->pluck('username')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $ccEmails = User::query()
+            ->whereIn('username', $ccUsernames)
+            ->whereRaw(
+                "? = ANY(string_to_array(REPLACE(COALESCE(cpny_id, ''), ' ', ''), ','))",
+                [trim((string) $rfpnonpurch->cpny_id)]
+            )
+            ->where('status', 'A')
+            ->pluck('notification_email')
+            ->filter(fn ($email) => trim((string) $email) !== '')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $mailData = [
+            'docid'     => $rfpnonpurch->rfpnonpurchaseid,
+            'cpnyid'    => $rfpnonpurch->cpny_id ?? '',
+            'deptname'  => $rfpnonpurch->department_id ?? '',
+            'date'      => $now->toDateTimeString(),
+            'name'      => $fullname,
+            'status'    => 'C',
+            'docname'   => $docName,
+            'url'       => $docUrl,
+            'info'      => $rfpnonpurch->keperluan ?? '',
+            'createdby' => $fullname,
+        ];
+
+        $pdf = $this->buildRfpNonPurchPdf($rfpnonpurch);
+        $pdfFilename = 'RFP_' . $rfpnonpurch->rfpnonpurchaseid . '.pdf';
+
+        Mail::send('emails.mailapprovehold', $mailData, function ($message) use (
+            $requesterEmail,
+            $ccEmails,
+            $rfpnonpurch,
+            $docName,
+            $pdf,
+            $pdfFilename
+        ) {
+            $message->to($requesterEmail);
+
+            if (!empty($ccEmails)) {
+                $message->cc($ccEmails);
+            }
+
+            $message->subject($rfpnonpurch->rfpnonpurchaseid . ' - Completed ' . $docName)
+                ->from(config('mail.from.address'), config('app.name'))
+                ->attachData($pdf->output(), $pdfFilename, [
+                    'mime' => 'application/pdf',
+                ]);
+        });
     }
 
     private function terbilang($angka)
@@ -2706,6 +2847,19 @@ class RfpNonPurchController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    private function needsIMBudgetFromRfpNonPurchDetail(string $docid): bool
+    {
+        return TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $docid)       
+            ->whereNotNull('budget_department_fin_id')
+            ->where('budget_department_fin_id', '<>', '')
+            ->whereNotNull('budget_account_id')
+            ->where('budget_account_id', '<>', '')
+            ->whereNotNull('budget_activity_id')
+            ->where('budget_activity_id', '<>', '')
+            ->exists();
     }
 
     private function isTruthy($value): bool

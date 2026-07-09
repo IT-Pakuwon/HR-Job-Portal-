@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\BudgetDetail;
+use App\Models\MsPurchSetting;
 use App\Models\MsCompany;
+use App\Models\SysUserRole;
 use App\Models\TrApproval;
 use App\Models\TrApprovalHistory;
 use App\Models\TrAttachment;
+use App\Models\TrIMBudget;
 use App\Models\TrRfp;
 use App\Models\TrRfpKontrakBudget;
 use App\Models\TrPO;
@@ -1082,8 +1085,6 @@ class RfpController extends Controller
                 'budget_activity_descr.*' => ['required'],
                 'rfp_base_amount' => ['required', 'array', 'min:1'],
                 'rfp_base_amount.*' => ['required'],
-                'rfp_available_amount' => ['nullable', 'array'],
-                'rfp_available_amount.*' => ['nullable'],
             ]);
         }
 
@@ -1127,7 +1128,6 @@ class RfpController extends Controller
                 $activityIds = $request->input('budget_activity_id', []);
                 $activityDescrs = $request->input('budget_activity_descr', []);
                 $amounts = $request->input('rfp_base_amount', []);
-                $availableAmounts = $request->input('rfp_available_amount', []);
 
                 $rfpBaseAmount = $toFloat($rfp->rfp_base_amount ?? 0);
                 $totalAmount = 0;
@@ -1142,8 +1142,6 @@ class RfpController extends Controller
                     }
 
                     $amount = $toFloat($amounts[$i] ?? 0);
-                    $availableAmountRaw = $availableAmounts[$i] ?? null;
-                    $availableAmount = $toFloat($availableAmountRaw ?? 0);
 
                     if ($amount <= 0) {
                         DB::rollBack();
@@ -1152,17 +1150,6 @@ class RfpController extends Controller
                             'message' => 'Amount budget harus lebih besar dari 0.',
                             'errors' => [
                                 "rfp_base_amount.{$i}" => ['Amount budget harus lebih besar dari 0.'],
-                            ],
-                        ], 422);
-                    }
-
-                    if ($availableAmountRaw !== null && $availableAmountRaw !== '' && $amount > $availableAmount) {
-                        DB::rollBack();
-
-                        return response()->json([
-                            'message' => 'Amount budget tidak boleh lebih besar dari remaining budget.',
-                            'errors' => [
-                                "rfp_base_amount.{$i}" => ['Amount budget tidak boleh lebih besar dari remaining budget.'],
                             ],
                         ], 422);
                     }
@@ -1183,13 +1170,13 @@ class RfpController extends Controller
                     ], 422);
                 }
 
-                if ($rfpBaseAmount > 0 && $totalAmount > $rfpBaseAmount) {
+                if ($rfpBaseAmount > 0 && abs($totalAmount - $rfpBaseAmount) > 0.01) {
                     DB::rollBack();
 
                     return response()->json([
-                        'message' => 'Total amount budget tidak boleh lebih besar dari RFP base amount.',
+                        'message' => 'Total amount budget harus sama dengan RFP base amount.',
                         'errors' => [
-                            'rfp_base_amount' => ['Total amount budget tidak boleh lebih besar dari RFP base amount.'],
+                            'rfp_base_amount' => ['Total amount budget harus sama dengan RFP base amount.'],
                         ],
                     ], 422);
                 }
@@ -1435,16 +1422,116 @@ class RfpController extends Controller
     public function approveRfp(Request $request, $docid)
     {
         $user = $request->user();
-        $doctype = 'RP';
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated',
+            ], 401);
+        }
 
         $rfp = TrRfp::with('creator')->where('rfp_id', $docid)->first();
         if (!$rfp) {
             return response()->json(['success' => false, 'message' => 'RP not found'], 404);
         }
 
+        $doctype = 'RP';
+        $docName = 'RFP';
         $eid = Hashids::encode($rfp->id);
-        $docUrl = url('/showrfp/'.$eid);
-        $fullname = data_get($rfp, 'creator.name') ?: $rfp->created_by;
+        $docUrl = url('/showrfp/' . $eid);
+        $fullname = optional($rfp->creator)->name ?: $rfp->created_by;
+
+        /*
+        |----------------------------------------------------------------------
+        | CHECK IM BUDGET BEFORE APPROVE
+        |----------------------------------------------------------------------
+        | RFP Purchase tidak menyimpan flag IM di header, jadi cek kebutuhan dari
+        | detail kontrak budget dan cek dokumen IM Budget lewat tr_imbudget.rfp_id.
+        */
+        $needsIMBudget = $this->needsIMBudgetFromRfpKontrakBudget($rfp->rfp_id);
+
+        $existingIMBudget = TrIMBudget::query()
+            ->where('rfp_id', $rfp->rfp_id)
+            ->where('doctype', $doctype)
+            ->where('status', '<>', 'X')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($existingIMBudget) {
+            $statusIM = strtoupper(trim((string) ($existingIMBudget->status ?? '')));
+
+            if (!in_array($statusIM, ['C', 'COMPLETED'], true)) {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'IM_IN_PROGRESS',
+                    'message' => 'Masih On Progress IM Budget.',
+                    'imbudgetid' => $existingIMBudget->imbudgetid,
+                    'imbudget_show_url' => url('/showimbudgets/' . Hashids::encode($existingIMBudget->id)),
+                ], 200);
+            }
+        }
+
+        $imGenerateLevel = (float) (
+            MsPurchSetting::query()
+                ->where('setting_id', 'IMGENRFP')
+                ->value('setting_value_int')          
+            ?? 0
+        );
+
+        if ($needsIMBudget && !$existingIMBudget && $imGenerateLevel > 0) {
+            $currentApproval = TrApproval::query()
+                ->where('refnbr', $rfp->rfp_id)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->where(function ($q) use ($user) {
+                    $q->where('aprv_username', $user->username)
+                        ->orWhereRaw("? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))", [$user->username]);
+                })
+                ->orderBy('aprv_leveling')
+                ->first();
+
+            $currentLevel = (float) ($currentApproval->aprv_leveling ?? 0);
+
+            if ($currentApproval && $currentLevel == $imGenerateLevel) {
+                if (!$request->boolean('confirm_generate_im')) {
+                    return response()->json([
+                        'success' => false,
+                        'need_confirm_generate_im' => true,
+                        'message' => 'Dokumen ini membutuhkan IM Budget. Generate IM Budget sekarang?',
+                    ], 200);
+                }
+
+                DB::connection('pgsql')->beginTransaction();
+
+                try {
+                    $imbudget = app(IMBudgetController::class)->generateIMBudgetFromRfp(
+                        $rfp,
+                        $user,
+                        now()
+                    );
+
+                    DB::connection('pgsql')->commit();
+
+                    return response()->json([
+                        'success' => true,
+                        'code' => 'IM_CREATED_HOLD',
+                        'message' => 'IM Budget berhasil dibuat dan status approval di-HOLD.',
+                        'imbudgetid' => $imbudget->imbudgetid,
+                        'imbudget_show_url' => url('/showimbudgets/' . Hashids::encode($imbudget->id)),
+                    ], 200);
+                } catch (\Throwable $e) {
+                    DB::connection('pgsql')->rollBack();
+                    report($e);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => config('app.debug')
+                            ? $e->getMessage()
+                            : 'Gagal generate IM Budget.',
+                    ], 500);
+                }
+            }
+        }
 
         $result = app(ApprovalController::class)->approveStep(
             $rfp->rfp_id,
@@ -1452,49 +1539,46 @@ class RfpController extends Controller
             $user->username,
             $user->name,
 
-            // complete: update header/detail + email creator complete
-            function (string $refnbr, \Carbon\Carbon $now) use ($rfp, $fullname, $docUrl) {
-                $rfp->status = 'C';               
-                $rfp->completed_by = $rfp->completed_by ?: auth()->user()->username;
+            // FINAL APPROVAL
+            function (string $refnbr, \Carbon\Carbon $now) use (
+                $rfp,
+                $doctype,
+                $docName,
+                $fullname,
+                $docUrl,
+                $user
+            ) {
+                $rfp->status_receive = 'P';
+                $rfp->status_payment = 'P';
+                $rfp->status = 'C';
+                $rfp->completed_by = $rfp->completed_by ?: $user->username;
                 $rfp->completed_at = $now;
+                $rfp->updated_by = $user->username;
                 $rfp->save();
 
-                app(ApprovalController::class)->notifyRequesterOnStatus(
-                    $rfp->rfp_id,
-                    'RFP',
-                    'C',
-                    $rfp->created_by,
+                $this->sendCompletedRfpEmail(
+                    $rfp,
+                    $doctype,
+                    $docName,
                     $docUrl,
-                    [
-                        'cpnyid' => $rfp->cpny_id ?? $rfp->cpnyid ?? '',
-                        'deptname' => $rfp->department_id ?? $rfp->departementid ?? '',
-                        'date' => $rfp->rfp_date,
-                        'info' => $rfp->keperluan,
-                        'fullname' => $fullname,
-                        'name' => $fullname,
-                        'createdby' => $fullname,
-                    ]
+                    $fullname,
+                    $now
                 );
             },
 
-            // notify next approver
-            function ($next, \Carbon\Carbon $now) use ($rfp, $docUrl) {
-                app(ApprovalController::class)->notifyFirstApprover(
-                    $rfp->rfp_id,
-                    'RP',
-                    'P',
-                    'RFP',
-                    $docUrl,
-                    [
-                        'info' => $rfp->keperluan,
-                        'createdby' => $rfp->created_by,
-                        'date' => $now->toDateTimeString(),
-                    ]
-                );
+            // NEXT APPROVER
+            function ($next, \Carbon\Carbon $now) use (
+                $rfp,
+                $doctype,
+                $docName,
+                $docUrl,
+                $user
+            ) {
+                $this->sendWaitingApprovalRfpEmail($next, $rfp, $doctype, $docName, $docUrl, $now);
 
-                // jejak terakhir diproses (optional)
-                $rfp->completed_by = auth()->user()->username;
+                $rfp->completed_by = $user->username;
                 $rfp->completed_at = $now;
+                $rfp->updated_by = $user->username;
                 $rfp->save();
             }
         );
@@ -1503,7 +1587,247 @@ class RfpController extends Controller
             return response()->json(['success' => false, 'message' => $result['message'] ?? 'Approve failed'], 403);
         }
 
-        return response()->json(['success' => true, 'message' => 'Task approved successfully']);
+        return response()->json(['success' => true, 'message' => $docName . ' approved successfully']);
+    }
+
+    private function needsIMBudgetFromRfpKontrakBudget(string $docid): bool
+    {
+        $details = TrRfpKontrakBudget::query()
+            ->where('rfp_id', $docid)
+            ->where('status', '<>', 'X')
+            ->get();
+
+        foreach ($details as $detail) {
+            $amount = (float) ($detail->rfp_base_amount ?? 0);
+
+            if ($amount <= 0) {
+                continue;
+            }
+
+            $budget = BudgetDetail::query()
+                ->where('perpost', $detail->budget_perpost)
+                ->where('cpny_id', $detail->budget_cpny_id)
+                ->where('status', 'C')
+                ->when($detail->budget_business_unit_id, fn ($q) => $q->where('business_unit_id', $detail->budget_business_unit_id))
+                ->when($detail->budget_department_fin_id, fn ($q) => $q->where('department_fin_id', $detail->budget_department_fin_id))
+                ->when($detail->budget_account_id, fn ($q) => $q->where('account_id', $detail->budget_account_id))
+                ->when($detail->budget_activity_descr, fn ($q) => $q->where('activity_descr', $detail->budget_activity_descr))
+                ->when($detail->budget_activity_id, fn ($q) => $q->where('activity_id', $detail->budget_activity_id))
+                ->first();
+
+            if (!$budget) {
+                return true;
+            }
+
+            $remain = ((float) ($budget->totalbudget ?? 0) + (float) ($budget->totalbudget_add ?? 0))
+                - ((float) ($budget->total_reserve ?? 0) + (float) ($budget->total_used ?? 0));
+
+            $availableBeforeCurrentReserve = max(0, $remain + $amount);
+
+            if ($amount > $availableBeforeCurrentReserve) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getApFinCcEmails(string $cpnyId): array
+    {
+        $ccUsernames = SysUserRole::query()
+            ->where('role_id', 'APFINACCESS')
+            ->where('status', 'A')
+            ->pluck('username')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return User::query()
+            ->whereIn('username', $ccUsernames)
+            ->whereRaw(
+                "? = ANY(string_to_array(REPLACE(COALESCE(cpny_id, ''), ' ', ''), ','))",
+                [trim($cpnyId)]
+            )
+            ->where('status', 'A')
+            ->pluck('notification_email')
+            ->filter(fn ($email) => trim((string) $email) !== '')
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    private function sendWaitingApprovalRfpEmail($next, TrRfp $rfp, string $doctype, string $docName, string $docUrl, \Carbon\Carbon $now): void
+    {
+        $usernames = str_replace(';', ',', (string) $next->aprv_username);
+        $approvers = array_filter(array_map('trim', explode(',', $usernames)));
+
+        $toEmails = User::query()
+            ->whereIn('username', $approvers)
+            ->where('status', 'A')
+            ->pluck('notification_email')
+            ->filter(fn ($email) => trim((string) $email) !== '')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        if (empty($toEmails)) {
+            return;
+        }
+
+        $ccEmails = $this->getApFinCcEmails((string) $rfp->cpny_id);
+
+        $mailData = [
+            'docid'     => $rfp->rfp_id,
+            'cpnyid'    => $rfp->cpny_id ?? '',
+            'deptname'  => $rfp->department_id ?? '',
+            'date'      => $now->toDateTimeString(),
+            'name'      => $rfp->created_by,
+            'status'    => 'P',
+            'docname'   => $docName,
+            'url'       => $docUrl,
+            'info'      => $rfp->keperluan ?? '',
+            'createdby' => $rfp->created_by,
+        ];
+
+        Mail::send('emails.mailapprovenew', $mailData, function ($message) use (
+            $toEmails,
+            $ccEmails,
+            $rfp,
+            $docName
+        ) {
+            $message->to($toEmails);
+
+            if (!empty($ccEmails)) {
+                $message->cc($ccEmails);
+            }
+
+            $message->subject($rfp->rfp_id . ' - WaitingApproval ' . $docName)
+                ->from(config('mail.from.address'), config('app.name'));
+        });
+    }
+
+    private function sendCompletedRfpEmail(
+        TrRfp $rfp,
+        string $doctype,
+        string $docName,
+        string $docUrl,
+        string $fullname,
+        \Carbon\Carbon $now
+    ): void {
+        $requesterEmail = User::query()
+            ->where('username', $rfp->created_by)
+            ->where('status', 'A')
+            ->value('notification_email');
+
+        $requesterEmail = trim((string) $requesterEmail);
+
+        if ($requesterEmail === '') {
+            return;
+        }
+
+        $ccEmails = $this->getApFinCcEmails((string) $rfp->cpny_id);
+
+        $mailData = [
+            'docid'     => $rfp->rfp_id,
+            'cpnyid'    => $rfp->cpny_id ?? '',
+            'deptname'  => $rfp->department_id ?? '',
+            'date'      => $now->toDateTimeString(),
+            'name'      => $fullname,
+            'status'    => 'C',
+            'docname'   => $docName,
+            'url'       => $docUrl,
+            'info'      => $rfp->keperluan ?? '',
+            'createdby' => $fullname,
+        ];
+
+        $pdf = $this->buildRfpPdf($rfp);
+        $pdfFilename = 'RFP_' . $rfp->rfp_id . '.pdf';
+
+        Mail::send('emails.mailapprovehold', $mailData, function ($message) use (
+            $requesterEmail,
+            $ccEmails,
+            $rfp,
+            $docName,
+            $pdf,
+            $pdfFilename
+        ) {
+            $message->to($requesterEmail);
+
+            if (!empty($ccEmails)) {
+                $message->cc($ccEmails);
+            }
+
+            $message->subject($rfp->rfp_id . ' - Completed ' . $docName)
+                ->from(config('mail.from.address'), config('app.name'))
+                ->attachData($pdf->output(), $pdfFilename, [
+                    'mime' => 'application/pdf',
+                ]);
+        });
+    }
+
+    private function buildRfpPdf(TrRfp $rfp)
+    {
+        $rfp->loadMissing(['creator:username,name']);
+
+        $approval = TrApproval::where('refnbr', $rfp->rfp_id)
+            ->where('status', '<>', 'X')
+            ->orderBy('aprv_leveling')
+            ->orderBy('id')
+            ->get();
+
+        if ($approval->isEmpty()) {
+            $approval = TrApprovalHistory::where('refnbr', $rfp->rfp_id)
+                ->where('status', '<>', 'X')
+                ->orderBy('aprv_leveling')
+                ->orderBy('id')
+                ->get();
+        }
+
+        $rfp->rfp_date_fmt = $rfp->rfp_date
+            ? Carbon::parse($rfp->rfp_date)->format('d M Y')
+            : '-';
+
+        $rfp->receive_date_fmt = $rfp->receive_date
+            ? Carbon::parse($rfp->receive_date)->format('d M Y H:i')
+            : '-';
+
+        $rfp->payment_date_fmt = $rfp->payment_date
+            ? Carbon::parse($rfp->payment_date)->format('d M Y H:i')
+            : '-';
+
+        $rfp->terbilang = trim($this->terbilang((int) $rfp->rfp_amount)) . ' Rupiah';
+
+        $statusMap = [
+            'P' => 'On Progress',
+            'R' => 'Rejected',
+            'D' => 'Revise',
+            'C' => 'Completed',
+            'X' => 'Cancel',
+        ];
+
+        $status_doc = $statusMap[$rfp->status] ?? 'Unknown';
+
+        $approve_count = $approval->count();
+        $created_by_name = $rfp->creator->name ?? null;
+        $created_by_username = $rfp->created_by;
+        $req_date_fmt = $rfp->created_at ? Carbon::parse($rfp->created_at)->format('d M Y H:i') : '-';
+        $company = MsCompany::where('cpny_id', $rfp->cpny_id)->first();
+        $cpny_name = $company->cpny_name ?? '';
+
+        $pdf = PDF::loadView('pages.rfp.pdf_rfp', [
+            'rfp' => $rfp,
+            'approval' => $approval,
+            'status_doc' => $status_doc,
+            'approve_count' => $approve_count,
+            'created_by_name' => $created_by_name,
+            'created_by_username' => $created_by_username,
+            'req_date_fmt' => $req_date_fmt,
+            'cpny_name' => $cpny_name,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf;
     }
 
     public function rejectRfp(Request $request, $docid)
