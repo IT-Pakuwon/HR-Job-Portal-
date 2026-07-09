@@ -274,7 +274,7 @@ class ReportGeneralGAController extends Controller
         }
 
         if ($request->room) {
-            $query->whereIn('r.room_name', (array) $request->room);
+            $query->whereIn(DB::raw('TRIM(r.room_name)'), (array) $request->room);
         }
 
         if ($request->requester) {
@@ -1109,7 +1109,7 @@ class ReportGeneralGAController extends Controller
 
         if ($request->room) {
             $data->whereIn(
-                'r.room_name',
+                DB::raw('TRIM(r.room_name)'),
                 (array) $request->room
             );
         }

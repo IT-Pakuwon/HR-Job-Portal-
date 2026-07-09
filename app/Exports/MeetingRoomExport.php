@@ -85,7 +85,7 @@ class MeetingRoomExport implements FromCollection, WithHeadings
         }
 
         if ($this->request->room) {
-            $query->whereIn('r.room_name', (array) $this->request->room);
+            $query->whereIn(DB::raw('TRIM(r.room_name)'), (array) $this->request->room);
         }
 
         if ($this->request->requester) {
