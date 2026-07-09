@@ -4,6 +4,8 @@ window.Ticket = window.Ticket || {};
 
 function initTicketSelect() {
 
+    initCompanySelect();
+
     initDepartmentSelect();
 
     initTicketTypeSelect();
@@ -230,6 +232,26 @@ function initTicketTypeSelect() {
 
         placeholder:
             'Select Ticket Type',
+
+        allowClear:
+            true,
+
+    });
+
+}
+
+function initCompanySelect() {
+
+    $('#cpny_id').select2({
+
+        width:
+            '100%',
+
+        dropdownParent:
+            $(Ticket.modal.create),
+
+        placeholder:
+            'Select Company',
 
         allowClear:
             true,
