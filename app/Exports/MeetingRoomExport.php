@@ -92,8 +92,12 @@ class MeetingRoomExport implements FromCollection, WithHeadings
             $query->where('m.user_peminta', 'ilike', "%{$this->request->requester}%");
         }
 
-        if ($this->request->status) {
-            $query->where('m.status', $this->request->status);
+        if ($this->request->status === 'A') {
+            $query->whereNotIn('m.status', ['X']);
+        }
+
+        if ($this->request->status === 'X') {
+            $query->where('m.status', 'X');
         }
 
         return $query->get()->map(function ($row) use ($users, $departments) {

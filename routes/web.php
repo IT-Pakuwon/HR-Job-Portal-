@@ -1574,7 +1574,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/store', 'store')->name('oprteknik-ticket.store');
             });
 
-            Route::middleware('access:OPRTIKET,EDIT')->group(function () {
+            Route::middleware('access:,EDIT')->group(function () {
                 Route::post('/update/{hash}', 'update')->name('oprteknik-ticket.update');
                 Route::post('/cancel/{hash}', 'cancel')->name('oprteknik-ticket.cancel');
                 Route::post('/response/{hash}', 'responseTicket')->name('oprteknik-ticket.response');
