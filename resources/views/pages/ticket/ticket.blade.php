@@ -1776,6 +1776,8 @@
 
             store: "{{ route('ticket.store') }}",
 
+            attachmentDelete: "{{ url('/attachments') }}/:id",
+
             cancel: "{{ url('/ticket/cancel') }}/:eid",
 
             response: "{{ url('/ticket/response') }}/:eid",
