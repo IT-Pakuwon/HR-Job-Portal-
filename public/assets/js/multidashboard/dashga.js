@@ -12,6 +12,8 @@
     let pageSize = 10;
     let sortColumn = null;
     let sortDirection = "asc";
+    let pendingRows = null;
+    let pendingTab = null;
 
     const urls = Object.assign({
         doctypes: "/ga-dashboard/approval-doctypes",
@@ -65,6 +67,15 @@
         });
         $("#dashboardCardList").on("mouseleave", function () {
             isHovering = false;
+
+            if (pendingRows) {
+                const rows = pendingRows;
+                const tab = pendingTab;
+                pendingRows = null;
+                pendingTab = null;
+                renderCardList(rows, tab);
+            }
+
             if (refreshPending) {
                 refreshPending = false;
                 loadSummary();
@@ -475,6 +486,12 @@
                             return match && match[0] === doctype;
                         });
                     }
+                }
+
+                if (isHovering) {
+                    pendingRows = rows;
+                    pendingTab = tab;
+                    return;
                 }
 
                 renderCardList(rows, tab);

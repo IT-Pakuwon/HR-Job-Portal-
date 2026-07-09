@@ -25,7 +25,13 @@ class MeetingRoomExport implements FromCollection, WithHeadings
 
         $query = DB::connection('pgsql5')
             ->table('tr_meeting as m')
-            ->leftJoin('ms_meeting_room as r', 'r.room_id', '=', 'm.room_id')
+            ->leftJoin('ms_meeting_room as r', function ($join) {
+                $join->on(
+                    DB::raw('r.room_id::text'),
+                    '=',
+                    DB::raw('m.room_id')
+                );
+            })
             ->leftJoin('ms_meeting_accessories as a', function ($join) {
                 $join->on(
                     DB::raw("a.acc_id::text"),
@@ -79,7 +85,7 @@ class MeetingRoomExport implements FromCollection, WithHeadings
         }
 
         if ($this->request->room) {
-            $query->where('r.room_name', $this->request->room);
+            $query->whereIn('r.room_name', (array) $this->request->room);
         }
 
         if ($this->request->requester) {

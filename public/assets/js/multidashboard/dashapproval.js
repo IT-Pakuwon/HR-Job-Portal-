@@ -16,6 +16,7 @@
     let pageSize = 10;
     let sortColumn = null;
     let sortDirection = "asc";
+    let pendingRows = null;
 
     const urls = {
         summary: "/approval-dashboard/summary-json",
@@ -122,6 +123,18 @@
         $("#approvalCardList").on("mouseleave", function () {
 
             isHovering = false;
+
+            // ── A fetch that started while the mouse was still over the list
+            // (tab switch, filter, doctype change, initial load) can resolve
+            // *after* the user hovers a row. Apply whatever it delivered now,
+            // once the cursor is safely off the list, instead of at the moment
+            // it arrived. ──
+            if (pendingRows) {
+                const rows = pendingRows;
+                pendingRows = null;
+                renderCardList(rows);
+                filterDoctypeOptions(rows);
+            }
 
             if (refreshPending) {
                 refreshPending = false;
@@ -406,6 +419,14 @@
             .then(res => {
 
                 const rows = res.data || [];
+
+                // ── Never swap the table out from under a hovering cursor,
+                // even if this fetch was already in flight before the mouse
+                // arrived — hold the result and apply it on mouseleave. ──
+                if (isHovering) {
+                    pendingRows = rows;
+                    return;
+                }
 
                 renderCardList(rows);
 
