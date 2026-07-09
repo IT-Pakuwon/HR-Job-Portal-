@@ -60,7 +60,25 @@ function resetCreateTicketForm() {
         Ticket.selectors.createForm
     );
 
+    $('#ticket_eid').val('');
+
+    $('.modal-title')
+        .text('Create Ticket');
+
+    $('.modal-description')
+        .text(
+            'Create new IT support ticket request.'
+        );
+
+    $('#btn_submit_ticket')
+        .html(`
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+            Submit Ticket
+        `);
+
     Ticket.state.createAttachments = [];
+    Ticket.state.existingAttachments = [];
+    Ticket.state.deletedAttachments = [];
 
     renderTicketAttachment();
 

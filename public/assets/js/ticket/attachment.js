@@ -405,6 +405,57 @@ function bindTicketAttachmentRemove() {
         }
     );
 
+    $(document).on(
+        'click',
+        '.btn-remove-existing-ticket-attachment',
+        function () {
+
+            const $btn = $(this);
+            const index = $btn.data('index');
+            const file = Ticket.state.existingAttachments[index];
+
+            if (!file) {
+                return;
+            }
+
+            $btn.prop('disabled', true);
+
+            $.ajax({
+
+                url:
+                    (Ticket.routes.attachmentDelete || '')
+                        .replace(':id', file.id),
+
+                type:
+                    'DELETE',
+
+                success: function () {
+
+                    Ticket.state.existingAttachments.splice(
+                        index,
+                        1
+                    );
+
+                    renderTicketAttachment();
+
+                },
+
+                error: function (xhr) {
+
+                    showError(
+                        xhr.responseJSON?.message ||
+                        'Failed to delete attachment'
+                    );
+
+                    $btn.prop('disabled', false);
+
+                },
+
+            });
+
+        }
+    );
+
 }
 
 function getTicketAttachmentsFormData() {

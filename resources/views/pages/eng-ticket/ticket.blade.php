@@ -1640,6 +1640,8 @@
 
             store: "{{ route('oprteknik-ticket.store') }}",
 
+            attachmentDelete: "{{ url('/attachments') }}/:id",
+
             cancel: "{{ url('/oprteknik-ticket/cancel') }}/:eid",
 
             response: "{{ url('/oprteknik-ticket/response') }}/:eid",
