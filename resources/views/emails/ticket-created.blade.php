@@ -7,7 +7,7 @@
 @section('header', 'New Ticket Created')
 
 @section('subtitle')
-A new support ticket has been submitted into the IT Ticketing System.
+A new support ticket has been submitted into the {{ $systemLabel }}.
 @endsection
 
 @section('content')

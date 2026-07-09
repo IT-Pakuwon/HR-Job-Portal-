@@ -22,11 +22,14 @@ use Illuminate\Support\Facades\Mail;
 class TicketNotificationService
 {
     protected function getCompanyChatId(
-        string $cpnyId
+        string $cpnyId,
+        string $ticketType
     ): ?string {
         return MsWaSetting::query()
 
             ->where('cpny_id', $cpnyId)
+
+            ->where('ticket_type', $ticketType)
 
             ->where('status', 'A')
 
@@ -41,6 +44,13 @@ class TicketNotificationService
 
         return $user->notification_email
             ?: $user->email;
+    }
+
+    protected function ticketDoctypeFor(TrTicket $ticket): string
+    {
+        return in_array($ticket->ticket_type, ['ENGSUPPORTTICKET', 'BSFOSUPPORTTICKET'], true)
+            ? 'TOK'
+            : 'TIC';
     }
 
     protected function getITUsers()
@@ -456,7 +466,7 @@ class TicketNotificationService
             try {
                 Mail::to($email)->send(
                     new \App\Mail\CommentNotificationMail(
-                        'TIC',
+                        $this->ticketDoctypeFor($ticket),
                         $ticket->ticketid,
                         $commenterName,
                         $message,
@@ -496,10 +506,10 @@ class TicketNotificationService
             'working_end_date' => $activity?->working_end_date,
         ]);
 
-        $chatId = MsWaSetting::query()
-            ->where('cpny_id', $ticket->cpny_id)
-            ->where('status', 'A')
-            ->value('chat_id');
+        $chatId = $this->getCompanyChatId(
+            $ticket->cpny_id,
+            $ticket->ticket_type
+        );
 
         if (!$chatId) {
             Log::warning(
@@ -507,6 +517,7 @@ class TicketNotificationService
                 [
                     'ticketid' => $ticket->ticketid,
                     'cpny_id' => $ticket->cpny_id,
+                    'ticket_type' => $ticket->ticket_type,
                 ]
             );
 
@@ -583,6 +594,102 @@ ORDER/MONTHLY : Monthly
                 [
                     'ticketid' => $ticket->ticketid,
                     'cpny_id' => $ticket->cpny_id,
+                    'chat_id' => $chatId,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
+            );
+        }
+    }
+
+    /**
+     * Eng/BSFO Ticket WhatsApp notification (Response, Process, Completed).
+     * Chat group is resolved from ms_wa_setting scoped by the ticket's own
+     * ticket_type (ENGSUPPORTTICKET / BSFOSUPPORTTICKET).
+     */
+    public function ticketWhatsapp(
+        TrTicket $ticket,
+        string $eventLabel,
+        string $detail = ''
+    ): void {
+        $chatId = $this->getCompanyChatId(
+            $ticket->cpny_id,
+            $ticket->ticket_type
+        );
+
+        if (!$chatId) {
+            Log::warning(
+                'WA Chat Group Not Found',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'cpny_id' => $ticket->cpny_id,
+                    'ticket_type' => $ticket->ticket_type,
+                ]
+            );
+
+            return;
+        }
+
+        $ticket->loadMissing([
+            'location',
+            'subLocation',
+        ]);
+
+        $requestDate = $ticket->ticketdate
+            ? Carbon::parse(
+                $ticket->ticketdate
+            )->format('d-m-Y')
+            : '-';
+
+        $plainDetail = html_entity_decode(
+            strip_tags($detail),
+            ENT_QUOTES | ENT_HTML5,
+            'UTF-8'
+        );
+
+        $message = "
+PAKUWON SYSTEM
+TICKET OPR TEKNIK
+=================
+STATUS : {$eventLabel}
+PROJECT : {$ticket->department_id}
+LOCATION : {$ticket->location?->location_name}
+SUB LOCATION : {$ticket->subLocation?->sub_location_name}
+
+TICKET DATE : {$requestDate}
+PIC : {$ticket->pic_ticket}
+----------------------------------
+NO TICKET : #{$ticket->ticketid}
+REQUESTER : {$ticket->created_by}
+DEPARTMENT : {$ticket->department_id}
+----------------------------------
+SUMMARY : {$ticket->issue_summary}
+
+{$plainDetail}
+----------------------------------
+";
+
+        try {
+            $result = $this->whatsapp->sendText(
+                $chatId,
+                $message
+            );
+
+            Log::info(
+                'Ticket WhatsApp Success',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'event' => $eventLabel,
+                    'chat_id' => $chatId,
+                    'response' => $result,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::error(
+                'Ticket WhatsApp Failed',
+                [
+                    'ticketid' => $ticket->ticketid,
+                    'event' => $eventLabel,
                     'chat_id' => $chatId,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),

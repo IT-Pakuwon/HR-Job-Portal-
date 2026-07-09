@@ -15,6 +15,7 @@ class MsTicketType extends Model
     protected $fillable = [
         'ticket_type',
         'ticket_type_name',
+        'department_id',
         'status',
         'created_by',
         'updated_by',

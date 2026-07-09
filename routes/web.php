@@ -132,6 +132,7 @@ use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
+use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketSetupController;
 use App\Http\Controllers\TopController;
@@ -1462,6 +1463,68 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/transferticket/{eid}', 'index');
             Route::get('/completeticket/{eid}', 'index');
             Route::get('/reopenticket/{eid}', 'index');
+        });
+
+        Route::prefix('oprteknik-ticket')->controller(EngTicketController::class)->group(function () {
+            Route::middleware('access:OPRTIKET,VIEW')->group(function () {
+                Route::get('/', 'index')->name('oprteknik-ticket');
+                Route::get('/export', 'export')->name('oprteknik-ticket.export');
+
+                Route::middleware('ajax')->group(function () {
+                    Route::get('/json', 'json')->name('oprteknik-ticket.json');
+                    Route::get('/detail/{hash}', 'detail')->name('oprteknik-ticket.detail');
+                    Route::get('/tracking/{hash}', 'tracking')->name('oprteknik-ticket.tracking');
+                    Route::get('/comments/{hash}', 'comments')->name('oprteknik-ticket.comments');
+                    Route::get('/mentionable-users/{hash}', 'mentionableUsers')->name('oprteknik-ticket.mentionable-users');
+                    Route::get('/category-search', 'categorySearch')->name('oprteknik-ticket.categorySearch');
+                    Route::get('/subcategory-search', 'subcategorySearch')->name('oprteknik-ticket.subcategorySearch');
+                    Route::get('/issue-summary-search', 'issueSummarySearch')->name('oprteknik-ticket.issueSummarySearch');
+                    Route::get('/priority-search', 'prioritySearch')->name('oprteknik-ticket.prioritySearch');
+                    Route::get('/location-search', 'locationSearch')->name('oprteknik-ticket.locationSearch');
+                    Route::get('/sub-location-search', 'subLocationSearch')->name('oprteknik-ticket.subLocationSearch');
+                    Route::get('/pic-search', 'picSearch')->name('oprteknik-ticket.picSearch');
+                    Route::get('/counts', 'counts')->name('oprteknik-ticket.counts');
+                    Route::get('/companies-search', 'companiesSearch')->name('oprteknik-ticket.companiesSearch');
+                    Route::get('/create-dropdown', 'createDropdown')->name('oprteknik-ticket.create-dropdown');
+                });
+
+                Route::get('/print/{hash}', 'printTicket')->name('oprteknik-ticket.print');
+            });
+
+            Route::middleware('access:OPRTIKET,CREATE')->group(function () {
+                Route::post('/store', 'store')->name('oprteknik-ticket.store');
+            });
+
+            Route::middleware('access:OPRTIKET,EDIT')->group(function () {
+                Route::post('/update/{hash}', 'update')->name('oprteknik-ticket.update');
+                Route::post('/cancel/{hash}', 'cancel')->name('oprteknik-ticket.cancel');
+                Route::post('/response/{hash}', 'responseTicket')->name('oprteknik-ticket.response');
+                Route::post('/approve/{hash}', 'approveTicket')->name('oprteknik-ticket.approve');
+                Route::post('/reject/{hash}', 'rejectTicket')->name('oprteknik-ticket.reject');
+                Route::post('/process/{hash}', 'processTicket')->name('oprteknik-ticket.process');
+                Route::post('/pending/{hash}', 'pendingTicket')->name('oprteknik-ticket.pending');
+                Route::post('/transfer/{hash}', 'transferTicket')->name('oprteknik-ticket.transfer');
+                Route::post('/complete/{hash}', 'completeTicket')->name('oprteknik-ticket.complete');
+                Route::post('/reopen/{hash}', 'reopenTicket')->name('oprteknik-ticket.reopen');
+                Route::post('/comment/{hash}', 'comment')->name('oprteknik-ticket.comment');
+            });
+        });
+
+        Route::controller(EngTicketController::class)->group(function () {
+            Route::middleware('access:OPRTIKET,VIEW')->group(function () {
+                Route::get('/showengticket/{eid}', 'index');
+            });
+
+            Route::middleware('access:OPRTIKET,EDIT')->group(function () {
+                Route::get('/editengticket/{eid}', 'index');
+                Route::get('/responseengticket/{eid}', 'index');
+                Route::get('/approveengticket/{eid}', 'index');
+                Route::get('/processengticket/{eid}', 'index');
+                Route::get('/pendingengticket/{eid}', 'index');
+                Route::get('/transferengticket/{eid}', 'index');
+                Route::get('/completeengticket/{eid}', 'index');
+                Route::get('/reopenengticket/{eid}', 'index');
+            });
         });
 
         Route::prefix('ticket-setup')->controller(TicketSetupController::class)->group(function () {
