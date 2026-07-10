@@ -584,8 +584,62 @@
         }
 
         /* ---- matrix group headers (Role Menu / Access Rights) ---- */
-        .ar-group-header td { background-color: #f8fafc; }
-        .dark .ar-group-header td { background-color: #111827; }
+        .ar-group-header td {
+            background: linear-gradient(90deg, rgba(79,70,229,.09), rgba(79,70,229,0) 55%), #eef0f4;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 0.5rem; padding-bottom: 0.5rem;
+        }
+        .ar-group-header:first-child td { border-top: none; }
+        .dark .ar-group-header td {
+            background: linear-gradient(90deg, rgba(99,102,241,.16), rgba(99,102,241,0) 55%), #161c28;
+            border-top-color: #374151;
+        }
+        .ar-group-icon {
+            display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+            width: 1.25rem; height: 1.25rem; border-radius: 0.35rem; background: #c7d2fe; color: #4338ca;
+        }
+        .dark .ar-group-icon { background: rgba(99,102,241,.25); color: #c7d2fe; }
+        .ar-group-label { font-size: 0.72rem; font-weight: 800; letter-spacing: .04em; color: #3730a3; text-transform: uppercase; }
+        .dark .ar-group-label { color: #a5b4fc; }
+        .ar-group-pill {
+            border-radius: 9999px; padding: 0.15rem 0.6rem; font-size: 0.65rem; font-weight: 700;
+            letter-spacing: normal; text-transform: none; white-space: nowrap;
+        }
+        .ar-group-pill-all { color: #4338ca; background: #e0e7ff; }
+        .ar-group-pill-all:hover { background: #c7d2fe; }
+        .ar-group-pill-none { color: #6b7280; background: #eef0f4; }
+        .ar-group-pill-none:hover { background: #e2e8f0; }
+        .dark .ar-group-pill-all { color: #a5b4fc; background: rgba(99,102,241,.18); }
+        .dark .ar-group-pill-all:hover { background: rgba(99,102,241,.3); }
+        .dark .ar-group-pill-none { color: #d1d5db; background: rgba(255,255,255,.06); }
+        .dark .ar-group-pill-none:hover { background: rgba(255,255,255,.12); }
+
+        /* ---- matrix folder sub-headers (organizational menu nodes, not real
+           screens — not checkable, just group screens visually by menu tree) ---- */
+        .ar-folder-header td { background-color: #fbfbfc; border-top: 1px solid #f1f5f9; }
+        .dark .ar-folder-header td { background-color: rgba(255,255,255,.01); border-top-color: #262f3d; }
+        .ar-folder-label {
+            position: relative; display: inline-flex; align-items: center; padding-left: 1rem;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: .02em; color: #94a3b8;
+        }
+        .dark .ar-folder-label { color: #64748b; }
+        .ar-folder-label::before {
+            content: ''; position: absolute; left: 0.15rem; top: -0.05rem; width: 0.5rem; height: 0.65rem;
+            border-left: 1.5px solid #d8dee7; border-bottom: 1.5px solid #d8dee7; border-bottom-left-radius: 4px;
+        }
+        .dark .ar-folder-label::before { border-color: #374151; }
+
+        /* ---- matrix child rows (screens under an application group) ---- */
+        .ar-screen-name { position: relative; display: inline-flex; align-items: center; padding-left: 1rem; }
+        .ar-screen-name::before {
+            content: ''; position: absolute; left: 0.15rem; top: -0.15rem; width: 0.55rem; height: 0.8rem;
+            border-left: 1.5px solid #cbd5e1; border-bottom: 1.5px solid #cbd5e1; border-bottom-left-radius: 4px;
+        }
+        .dark .ar-screen-name::before { border-color: #4b5563; }
+        .ar-row-alt td { background-color: #fafbfc; }
+        .dark .ar-row-alt td { background-color: rgba(255,255,255,.015); }
+        .ar-row:hover td { background-color: #eef2ff; }
+        .dark .ar-row:hover td { background-color: rgba(99,102,241,.08); }
 
         /* ---- stepper ---- */
         .step-circle svg { width: 1.15rem; height: 1.15rem; }
@@ -1421,52 +1475,103 @@
             // Application is saved/toggled, so keep it mutable.
             let arAppNames = @json($applications->pluck('application_name', 'application_id'));
 
-            // Same live source as the Role Menu matrix: menus with an
-            // application_id assigned act as the "screens" row-set here, read
-            // straight from mnuTreeData so new/edited menus show up without a
-            // page reload.
-            function getMatrixScreens() {
-                return mnuTreeData
-                    .filter(m => m.status === 'A' && m.application_id)
-                    .map(m => ({ menu_id: m.menu_id, menu_name: m.menu_name, application_id: m.application_id }));
+            // Menus are a real parent/child tree (parent_menu_id), and only the
+            // leaf nodes carry a screen_id — those are the actual "screens" that
+            // access:SCREEN,ACTION middleware checks. Folder-only nodes (e.g. "Human
+            // Resources" > "Recruitment" > "PRF") have screen_id = null and exist
+            // purely to organize the sidebar; they must never become a checkable
+            // row here, or the checkboxes save rights for a screen_id nothing
+            // ever reads. We still walk the tree (not a flat filter) so folders
+            // render as non-checkable sub-headers at their real depth instead of
+            // looking like flat siblings of the screens they contain.
+            function getMatrixTree() {
+                return mnuTreeData.filter(m => m.status === 'A' && m.application_id);
+            }
+
+            function arBuildAppRows(appId, appMenus, rights, accessColumns) {
+                const byId = new Map(appMenus.map(m => [m.menu_id, m]));
+                const childrenOf = (parentId) => appMenus
+                    .filter(m => (m.parent_menu_id || null) === (parentId || null))
+                    .sort((a, b) => (a.menu_sort_order ?? 0) - (b.menu_sort_order ?? 0) || a.menu_id.localeCompare(b.menu_id));
+                // A node's parent may be null, or may point outside this app's
+                // menu set (cross-app edge case) — either way it's a root here.
+                const roots = appMenus.filter(m => !m.parent_menu_id || !byId.has(m.parent_menu_id));
+
+                function hasLeafDescendant(m) {
+                    if (m.screen_id) return true;
+                    return childrenOf(m.menu_id).some(hasLeafDescendant);
+                }
+
+                let leafIndex = 0;
+                function walk(nodes, depth, isRootLevel, ancestors) {
+                    let rows = '';
+                    nodes.forEach(m => {
+                        if (!hasLeafDescendant(m)) return; // empty folder branch: nothing to show
+                        const kids = childrenOf(m.menu_id);
+                        let childAncestors = ancestors;
+                        if (!isRootLevel) {
+                            const pad = (0.75 + depth * 1.15).toFixed(2) + 'rem';
+                            if (m.screen_id) {
+                                const key = m.menu_id + '|' + appId;
+                                const checkedNames = new Set(rights[key] || []);
+                                const cells = accessColumns.map(name => `
+                                    <td class="px-3 py-1.5 text-center">
+                                        <input type="checkbox" class="ar-chk h-4 w-4 accent-indigo-600" data-screen="${m.menu_id}" data-app="${appId}" data-name="${name}" ${checkedNames.has(name) ? 'checked' : ''}>
+                                    </td>`).join('');
+                                rows += `<tr class="ar-row${leafIndex % 2 === 1 ? ' ar-row-alt' : ''} border-b dark:border-gray-700" data-search="${(m.menu_name + ' ' + m.menu_id).toLowerCase()}" data-app-group="${appId}" data-ancestors="${ancestors.join(',')}">
+                                    <td class="whitespace-nowrap py-1.5 pr-3" style="padding-left:${pad}">
+                                        <span class="ar-screen-name">${m.menu_name} <span class="text-gray-400">(${m.menu_id})</span></span>
+                                    </td>
+                                    ${cells}
+                                </tr>`;
+                                leafIndex++;
+                            } else {
+                                rows += `<tr class="ar-folder-header" data-app="${appId}" data-folder="${m.menu_id}">
+                                    <td colspan="${accessColumns.length + 1}" class="py-1 pr-3" style="padding-left:${pad}">
+                                        <span class="ar-folder-label">${m.menu_name}</span>
+                                    </td>
+                                </tr>`;
+                                childAncestors = ancestors.concat(m.menu_id);
+                            }
+                        }
+                        if (kids.length) rows += walk(kids, isRootLevel ? 0 : depth + 1, false, childAncestors);
+                    });
+                    return rows;
+                }
+
+                return walk(roots, 0, true, []);
             }
 
             function renderAccessMatrix(rights) {
                 const groups = {};
-                getMatrixScreens().forEach(s => {
-                    const key = s.application_id || '(no application)';
-                    (groups[key] = groups[key] || []).push(s);
+                getMatrixTree().forEach(m => {
+                    const key = m.application_id || '(no application)';
+                    (groups[key] = groups[key] || []).push(m);
                 });
 
                 const appIds = Object.keys(groups).sort((a, b) =>
                     (arAppNames[a] || a).localeCompare(arAppNames[b] || b));
+
+                const arGroupIconSvg = '<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>';
 
                 const html = appIds.map(appId => {
                     const label = arAppNames[appId] ? `${arAppNames[appId]} (${appId})` : appId;
 
                     const headerRow = `
                         <tr class="ar-group-header" data-app="${appId}">
-                            <td colspan="${accessColumns.length + 1}" class="px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                <div class="flex items-center gap-2">
-                                    <span>${label}</span>
-                                    <button type="button" class="ar-group-all text-[10px] font-semibold normal-case text-indigo-600 hover:underline dark:text-indigo-400" data-app="${appId}">select all</button>
-                                    <button type="button" class="ar-group-none text-[10px] font-semibold normal-case text-gray-400 hover:underline" data-app="${appId}">none</button>
+                            <td colspan="${accessColumns.length + 1}" class="px-3">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="ar-group-icon">${arGroupIconSvg}</span>
+                                    <span class="ar-group-label">${label}</span>
+                                    <span class="ml-auto flex items-center gap-1.5">
+                                        <button type="button" class="ar-group-all ar-group-pill ar-group-pill-all" data-app="${appId}">Select all</button>
+                                        <button type="button" class="ar-group-none ar-group-pill ar-group-pill-none" data-app="${appId}">None</button>
+                                    </span>
                                 </div>
                             </td>
                         </tr>`;
 
-                    const screenRows = groups[appId].map(s => {
-                        const key = s.menu_id + '|' + s.application_id;
-                        const checkedNames = new Set(rights[key] || []);
-                        const cells = accessColumns.map(name => `
-                            <td class="px-3 py-1.5 text-center">
-                                <input type="checkbox" class="ar-chk h-4 w-4" data-screen="${s.menu_id}" data-app="${s.application_id}" data-name="${name}" ${checkedNames.has(name) ? 'checked' : ''}>
-                            </td>`).join('');
-                        return `<tr class="ar-row border-b dark:border-gray-700" data-search="${(s.menu_name + ' ' + s.menu_id).toLowerCase()}" data-app-group="${appId}">
-                            <td class="whitespace-nowrap py-1.5 pl-7 pr-3">${s.menu_name} <span class="text-gray-400">(${s.menu_id})</span></td>
-                            ${cells}
-                        </tr>`;
-                    }).join('');
+                    const screenRows = arBuildAppRows(appId, groups[appId], rights, accessColumns);
 
                     return headerRow + screenRows;
                 }).join('');
@@ -1503,6 +1608,14 @@
             $('#ar_search').on('input', function() {
                 const q = $(this).val().toLowerCase();
                 $('.ar-row').each(function() { $(this).toggle($(this).data('search').includes(q)); });
+                $('.ar-folder-header').each(function() {
+                    const folder = String($(this).data('folder'));
+                    const app = $(this).data('app');
+                    const anyVisible = $(`.ar-row[data-app-group="${app}"]:visible`).filter(function() {
+                        return ($(this).data('ancestors') || '').toString().split(',').includes(folder);
+                    }).length > 0;
+                    $(this).toggle(anyVisible);
+                });
                 $('.ar-group-header').each(function() {
                     const app = $(this).data('app');
                     $(this).toggle($(`.ar-row[data-app-group="${app}"]:visible`).length > 0);

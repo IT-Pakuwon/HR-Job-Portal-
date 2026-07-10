@@ -2379,22 +2379,40 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('mastertraining')->group(function () {
-        Route::get('/mastertraining', [MasterTrainingController::class, 'index'])
-            ->name('mastertraining');
+        // 👀 VIEW MASTERTRAINING
+        Route::middleware('access:MASTERTRAINING,VIEW')->group(function () {
+            Route::get('/mastertraining', [MasterTrainingController::class, 'index'])
+                ->name('mastertraining');
+        });
 
-        Route::get('/create', [MasterTrainingController::class, 'create'])
-            ->name('mastertraining.create');
+        // ✍️ CREATE MASTERTRAINING
+        Route::middleware('access:MASTERTRAINING,CREATE')->group(function () {
+            Route::get('/create', [MasterTrainingController::class, 'create'])
+                ->name('mastertraining.create');
 
-        Route::post('/store', [MasterTrainingController::class, 'store'])
-            ->name('mastertraining.store');
+            Route::post('/store', [MasterTrainingController::class, 'store'])
+                ->name('mastertraining.store');
+        });
 
-        Route::get('/{id}', [MasterTrainingController::class, 'show'])
-            ->name('mastertraining.show');
+        // 👀 VIEW MASTERTRAINING (show)
+        Route::middleware('access:MASTERTRAINING,VIEW')->group(function () {
+            Route::get('/{id}', [MasterTrainingController::class, 'show'])
+                ->name('mastertraining.show');
+        });
 
-        Route::get('/mastertraining/{id}/edit', [MasterTrainingController::class, 'edit'])->name('mastertraining.edit');
+        // ✏️ EDIT MASTERTRAINING
+        Route::middleware('access:MASTERTRAINING,EDIT')->group(function () {
+            Route::get('/mastertraining/{id}/edit', [MasterTrainingController::class, 'edit'])->name('mastertraining.edit');
 
-        Route::put('/mastertraining/{id}', [MasterTrainingController::class, 'update'])
-            ->name('mastertraining.update');
+            Route::put('/mastertraining/{id}', [MasterTrainingController::class, 'update'])
+                ->name('mastertraining.update');
+        });
+
+        // 🗑️ DELETE MASTERTRAINING
+        Route::middleware('access:MASTERTRAINING,DELETE')->group(function () {
+            Route::delete('/mastertraining/{id}', [MasterTrainingController::class, 'destroy'])
+                ->name('mastertraining.destroy');
+        });
     });
 
     Route::get('/training-events', [TrainingRegistrationController::class, 'index'])

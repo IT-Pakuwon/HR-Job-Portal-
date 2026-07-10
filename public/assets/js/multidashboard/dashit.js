@@ -264,10 +264,15 @@
             badgeBg: "bg-blue-100 dark:bg-blue-900/30",
             title: row => row.ticketid,
             link: row => `/showticket/${row.eid}`,
-            subtitle: row => [row.cpny_id, row.department_id].filter(Boolean).join(" • "),
+            subtitle: row => [
+                row.cpny_id,
+                row.department_id,
+                row.ticket_category_name,
+                row.pic_ticket ? `PIC: ${row.pic_ticket}` : null,
+            ].filter(Boolean).join(" • "),
             date: row => row.ticketdate,
             status: row => statusBadge((row.status_pekerjaan || "-").toUpperCase()),
-            searchFields: row => [row.ticketid, row.issue_summary, row.user_peminta, row.cpny_id],
+            searchFields: row => [row.ticketid, row.issue_summary, row.user_peminta, row.cpny_id, row.ticket_category_name, row.pic_ticket],
         },
 
         access: {
@@ -275,10 +280,14 @@
             badgeBg: "bg-orange-100 dark:bg-orange-900/30",
             title: row => row.docid,
             link: row => `/showaccessrequest/${row.eid}`,
-            subtitle: row => [row.user_peminta, row.access_type].filter(Boolean).join(" • "),
+            subtitle: row => [
+                row.user_peminta,
+                row.access_type,
+                row.user_assign ? `PIC: ${row.user_assign}` : null,
+            ].filter(Boolean).join(" • "),
             date: row => row.created_at,
             status: row => accessStatusBadge(row.status),
-            searchFields: row => [row.docid, row.user_peminta, row.keperluan],
+            searchFields: row => [row.docid, row.user_peminta, row.keperluan, row.user_assign],
         },
 
         recommendation: {
@@ -286,10 +295,15 @@
             badgeBg: "bg-violet-100 dark:bg-violet-900/30",
             title: row => row.docid,
             link: row => `/showitrecommendation/${row.eid}`,
-            subtitle: row => [row.cpny_id, row.department_id].filter(Boolean).join(" • "),
+            subtitle: row => [
+                row.cpny_id,
+                row.department_id,
+                row.recommend_type,
+                row.recommend_pic ? `PIC: ${row.recommend_pic}` : null,
+            ].filter(Boolean).join(" • "),
             date: row => row.itrecommend_date,
             status: row => itrStatusBadge(row.status),
-            searchFields: row => [row.docid, row.user_peminta, row.recommend_type],
+            searchFields: row => [row.docid, row.user_peminta, row.recommend_type, row.recommend_pic],
         },
     };
 
