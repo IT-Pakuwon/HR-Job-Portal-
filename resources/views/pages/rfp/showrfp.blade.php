@@ -92,18 +92,36 @@
                                 ? 'Rp ' . number_format((float) $rfp->rfp_amount, 2, ',', '.')
                                 : '-';
 
+                            $createdUserValue = $isKontrak
+                                ? ($rfp->user_peminta ?: '-')
+                                : ($rfp->created_by ?: '-');
+
                             $fields = [
                                 ['label' => 'Company', 'value' => $rfp->cpny_id ?: '-'],
                                 ['label' => 'Department', 'value' => $rfp->department_id ?: '-'],
                                 ['label' => 'RP Date', 'value' => $rfp->rfp_date ? \Carbon\Carbon::parse($rfp->rfp_date)->format('d M Y') : '-'],
-                                ['label' => 'Created User', 'value' => optional($rfp->creator)->name ?: $rfp->created_by ?: '-'],
+                                ['label' => 'Created User', 'value' => e($createdUserValue)],
                                 ['label' => 'Vendor ID', 'value' => $rfp->vendor_id ?: '-'],
                                 ['label' => 'Vendor Name', 'value' => $rfp->vendor_name ?: '-'],
-                                ['label' => 'PO No',
-                                'value' => !empty($poUrl)
-                                    ? '<a href="' . e($poUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->ponbr) . '</a>'
-                                    : e($rfp->ponbr ?: '-')],
-                                ['label' => 'Contract ID', 'value' => $rfp->kontrak_id ?: '-'],
+                            ];
+
+                            if (trim((string) ($rfp->ponbr ?? '')) !== '') {
+                                $fields[] = [
+                                    'label' => 'PO No',
+                                    'value' => !empty($poUrl)
+                                        ? '<a href="' . e($poUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->ponbr) . '</a>'
+                                        : e($rfp->ponbr),
+                                ];
+                            }
+
+                            if (trim((string) ($rfp->kontrak_id ?? '')) !== '') {
+                                $fields[] = [
+                                    'label' => 'Contract ID',
+                                    'value' => e($rfp->kontrak_id),
+                                ];
+                            }
+
+                            $fields = array_merge($fields, [
                                 ['label' => 'CS ID',
                                 'value' => !empty($csUrl)
                                     ? '<a href="' . e($csUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->cs_id) . '</a>'
@@ -127,7 +145,16 @@
                                 ['label' => 'Payment Type', 'value' => $rfp->payment_type ?: '-'],
                                 ['label' => 'Amount Payment', 'value' => is_numeric($rfp->amount_payment ?? null) ? 'Rp ' . number_format((float) $rfp->amount_payment, 2, ',', '.') : '-'],
                                 ['label' => 'Terbilang', 'value' => $terbilang ?: '-'],
-                            ];
+                            ]);
+
+                            if (trim((string) ($rfp->imbudgetid ?? '')) !== '') {
+                                $fields[] = [
+                                    'label' => 'IM Budget',
+                                    'value' => !empty($imbudgetUrl)
+                                        ? '<a href="' . e($imbudgetUrl) . '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' . e($rfp->imbudgetid) . '</a>'
+                                        : e($rfp->imbudgetid),
+                                ];
+                            }
 
                             $irNoteValue = trim((string) ($rfp->ir_note ?? ''));
                             $purposeValue = trim((string) ($rfp->keperluan ?? ''));
@@ -442,6 +469,84 @@
                                     Type: RFP Purchase
                                 </span>
                             </div>
+
+                            @if ($hasApFinAccess || $hasApTreAccess)
+                                @php
+                                    $isReceiveCompleted = $rfp->status_receive === 'C'
+                                        || (!empty($rfp->user_receive) && !empty($rfp->receive_date));
+                                    $isPaymentCompleted = $rfp->status_payment === 'C'
+                                        || (!empty($rfp->user_payment) && !empty($rfp->payment_date));
+
+                                    if ($isPaymentCompleted) {
+                                        $finFlowStatus = 'Treasury Received';
+                                    } elseif ($isReceiveCompleted) {
+                                        $finFlowStatus = 'Finance Received';
+                                    } else {
+                                        $finFlowStatus = 'Waiting User';
+                                    }
+                                @endphp
+
+                                <div class="relative">
+                                    <button type="button" id="btnProgressAction"
+                                        class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                                        Action <span>v</span>
+                                    </button>
+
+                                    <div id="progressActionDropdown"
+                                        class="absolute right-0 top-full z-50 mt-1 hidden w-52 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+
+                                        @if ($hasApTreAccess && $isReceiveCompleted)
+                                            @php
+                                                $treAction = $isPaymentCompleted ? 'rollback' : 'update';
+                                                $treText = $isPaymentCompleted ? 'Rollback Treasury' : 'Update Treasury';
+                                            @endphp
+                                            <button type="button"
+                                                class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                data-mode="treasury"
+                                                data-action="{{ $treAction }}"
+                                                data-user="{{ $rfp->user_payment ?? '' }}"
+                                                data-date="{{ $rfp->payment_date ?? '' }}"
+                                                data-button-text="{{ $treText }}">
+                                                {{ $treText }}
+                                            </button>
+                                        @elseif ($hasApFinAccess && in_array($finFlowStatus, ['Waiting User', 'Finance Received']))
+                                            @php
+                                                $finAction = $isReceiveCompleted ? 'rollback' : 'update';
+                                                $finText = $isReceiveCompleted ? 'Rollback Received' : 'Update Received';
+                                            @endphp
+                                            <button type="button"
+                                                class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                                data-mode="received"
+                                                data-action="{{ $finAction }}"
+                                                data-user="{{ $rfp->user_receive ?? '' }}"
+                                                data-date="{{ $rfp->receive_date ?? '' }}"
+                                                data-button-text="{{ $finText }}">
+                                                {{ $finText }}
+                                            </button>
+                                        @endif
+
+                                        <button type="button"
+                                            class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-mode="revise"
+                                            data-action="update"
+                                            data-user=""
+                                            data-date=""
+                                            data-button-text="Submit Revise">
+                                            Revise
+                                        </button>
+
+                                        <button type="button"
+                                            class="progress-action-item block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            data-mode="reminder"
+                                            data-action="update"
+                                            data-user=""
+                                            data-date=""
+                                            data-button-text="Send Reminder">
+                                            Reminder
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
                         </header>
 
                         <div class="overflow-x-auto">
@@ -501,6 +606,41 @@
             </div>
         </div>
 
+        {{-- Finance Action Modal (Progress Steps) --}}
+        <div id="rfpProgressActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+            <div class="w-full max-w-lg rounded-xl bg-white p-6 dark:bg-gray-800">
+                <h2 id="progressActionTitle" class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Action</h2>
+
+                <div class="space-y-3 text-sm">
+                    <div><strong>RFP ID:</strong> {{ $rfp->rfp_id }}</div>
+                    <div><strong>Keperluan:</strong> {{ $rfp->keperluan ?: '-' }}</div>
+                    <div><strong>Amount:</strong> Rp {{ number_format((float) $rfp->rfp_amount, 2, ',', '.') }}</div>
+                    <div><strong id="progressModalUserLabel">User:</strong> <span id="progressModalUserValue">-</span></div>
+                    <div><strong id="progressModalDateLabel">Date:</strong> <span id="progressModalDateValue">-</span></div>
+
+                    <div id="progressModalMessageWrapper" class="hidden">
+                        <label id="progressModalMessageLabel" class="mb-1 block font-semibold text-gray-700 dark:text-gray-200">
+                            Message
+                        </label>
+                        <textarea id="progressModalMessage" rows="4"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            placeholder="Input message..."></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2">
+                    <button type="button" id="closeProgressActionModal"
+                        class="rounded border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700">
+                        Cancel
+                    </button>
+                    <button type="button" id="submitProgressActionBtn"
+                        class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                        Update
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="loadingSpinnerContainer" role="status" aria-live="polite" aria-label="Loading">
             <div class="loading-card">
                 <div class="loading-spinner"></div>
@@ -555,6 +695,7 @@
         dayjs.extend(dayjs_plugin_relativeTime);
 
         const rfpid = @json($rfp->rfp_id);
+        const rfpHash = @json($hash);
         const doctype = "RP";
         const csrf = @json(csrf_token());
 
@@ -904,6 +1045,148 @@
                     error: function(xhr) {
                         toastr.error(xhr.responseJSON?.message || "Unable to revise RP.");
                     }
+                });
+            });
+
+            function formatNow() {
+                const now = new Date();
+                const day = String(now.getDate()).padStart(2, '0');
+                const month = now.toLocaleString('en-US', { month: 'short' });
+                const year = now.getFullYear();
+                const time = now.toTimeString().slice(0, 8);
+
+                return `${day} ${month} ${year} ${time}`;
+            }
+
+            let progressActionMode = null;
+            let progressActionType = null;
+
+            $('#btnProgressAction').on('click', function(e) {
+                e.stopPropagation();
+                $('#progressActionDropdown').toggleClass('hidden');
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#btnProgressAction, #progressActionDropdown').length) {
+                    $('#progressActionDropdown').addClass('hidden');
+                }
+            });
+
+            $(document).on('click', '.progress-action-item', function() {
+                $('#progressActionDropdown').addClass('hidden');
+
+                progressActionMode = $(this).data('mode');
+                progressActionType = $(this).data('action');
+
+                const user = $(this).data('user') || '';
+                const date = $(this).data('date') || '';
+                const buttonText = $(this).data('button-text') || 'Update';
+
+                $('#progressModalMessageWrapper').addClass('hidden');
+                $('#progressModalMessage').val('');
+
+                if (progressActionMode === 'received') {
+                    $('#progressActionTitle').text(progressActionType === 'rollback' ? 'Rollback Received Finance' : 'Received Finance');
+                    $('#progressModalUserLabel').text('User Receive:');
+                    $('#progressModalDateLabel').text('Date Receive:');
+                    $('#progressModalUserValue').text(user || '-');
+                    $('#progressModalDateValue').text(date || '-');
+                } else if (progressActionMode === 'treasury') {
+                    $('#progressActionTitle').text(progressActionType === 'rollback' ? 'Rollback Treasury' : 'Received Treasury');
+                    $('#progressModalUserLabel').text('User Payment:');
+                    $('#progressModalDateLabel').text('Date Payment:');
+                    $('#progressModalUserValue').text(user || '-');
+                    $('#progressModalDateValue').text(date || '-');
+                } else if (progressActionMode === 'revise') {
+                    $('#progressActionTitle').text('Revise RFP');
+                    $('#progressModalUserLabel').text('Action:');
+                    $('#progressModalDateLabel').text('Date:');
+                    $('#progressModalUserValue').text('Revise');
+                    $('#progressModalDateValue').text(formatNow());
+                    $('#progressModalMessageWrapper').removeClass('hidden');
+                    $('#progressModalMessage').attr('placeholder', 'Input revise reason/message...');
+                } else if (progressActionMode === 'reminder') {
+                    $('#progressActionTitle').text('Send Reminder');
+                    $('#progressModalUserLabel').text('Action:');
+                    $('#progressModalDateLabel').text('Date:');
+                    $('#progressModalUserValue').text('Reminder');
+                    $('#progressModalDateValue').text(formatNow());
+                    $('#progressModalMessageWrapper').removeClass('hidden');
+                    $('#progressModalMessage').attr('placeholder', 'Input reminder message...');
+                }
+
+                $('#submitProgressActionBtn')
+                    .text(buttonText)
+                    .removeClass('bg-indigo-600 hover:bg-indigo-700 bg-red-600 hover:bg-red-700 bg-yellow-600 hover:bg-yellow-700')
+                    .addClass(
+                        progressActionType === 'rollback' ? 'bg-red-600 hover:bg-red-700' :
+                        progressActionMode === 'revise' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                        'bg-indigo-600 hover:bg-indigo-700'
+                    );
+
+                $('#rfpProgressActionModal').removeClass('hidden').addClass('flex');
+            });
+
+            $('#closeProgressActionModal').on('click', function() {
+                $('#rfpProgressActionModal').addClass('hidden').removeClass('flex');
+            });
+
+            $('#submitProgressActionBtn').on('click', function() {
+                if (!progressActionMode) {
+                    return;
+                }
+
+                let message = '';
+                if (progressActionMode === 'revise' || progressActionMode === 'reminder') {
+                    message = ($('#progressModalMessage').val() || '').trim();
+
+                    if (!message) {
+                        toastr.error('Message wajib diisi.');
+                        $('#progressModalMessage').focus();
+                        return;
+                    }
+                }
+
+                const urlMap = {
+                    received: `/rfp/${rfpHash}/received`,
+                    treasury: `/rfp/${rfpHash}/treasury`,
+                    revise: `/rfp/${rfpHash}/finance-revise`,
+                    reminder: `/rfp/${rfpHash}/reminder`,
+                };
+
+                const url = urlMap[progressActionMode];
+                if (!url) {
+                    toastr.error('Invalid action.');
+                    return;
+                }
+
+                $('#submitProgressActionBtn').prop('disabled', true).text('Processing...');
+
+                $.ajax({
+                    url,
+                    type: 'POST',
+                    data: {
+                        _token: csrf,
+                        action_type: progressActionType,
+                        message,
+                        comment: message,
+                        reason: message,
+                    },
+                    success: function(res) {
+                        if (res.success) {
+                            toastr.success(res.message || 'Action processed successfully.');
+                            $('#rfpProgressActionModal').addClass('hidden').removeClass('flex');
+                            setTimeout(() => location.reload(), 800);
+                        } else {
+                            toastr.error(res.message || 'Action failed.');
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error(xhr.responseJSON?.error || xhr.responseJSON?.message || 'Action failed.');
+                    },
+                    complete: function() {
+                        $('#submitProgressActionBtn').prop('disabled', false);
+                    },
                 });
             });
         });

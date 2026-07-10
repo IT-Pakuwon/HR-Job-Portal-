@@ -141,6 +141,21 @@ class RfpNonPurchController extends Controller
         $financeStatus = trim((string) $request->query('finance_status', ''));
         $type = strtoupper(trim((string) $request->query('type', '')));
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
+        $orderColumnIndex = (int) $request->input('order.0.column', 1);
+        $orderDirection = strtolower((string) $request->input('order.0.dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $orderColumns = [
+            1 => 'r.rfpnonpurchaseid',
+            2 => 'r.datediperlukan',
+            3 => 'r.cpny_id',
+            4 => 'r.department_id',
+            5 => 'r.user_peminta',
+            6 => 'g.groupbiayadescr',
+            7 => 'r.pleasepayto',
+            8 => 'r.keperluan',
+            9 => 'r.amountrequestpayment',
+            11 => 'r.status',
+        ];
+        $orderColumn = $orderColumns[$orderColumnIndex] ?? 'r.rfpnonpurchaseid';
 
         if (in_array($scope, ['rfp_all', 'rfp_finance'], true) && !$hasRfpAllAccess) {
             $scope = '';
@@ -240,6 +255,7 @@ class RfpNonPurchController extends Controller
                 'r.paymentdate',
                 'r.created_by'
             )
+            ->orderBy($orderColumn, $orderDirection)
             ->orderBy('r.rfpnonpurchaseid', 'desc')
             ->skip($start)
             ->take($length)
