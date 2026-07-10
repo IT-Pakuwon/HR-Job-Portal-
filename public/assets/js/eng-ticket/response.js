@@ -22,6 +22,12 @@ function openResponseTicketModal(eid) {
 
     openModal("#responseTicketModal");
 
+    const url = `/responseoprtekticket/${eid}`;
+
+    if (window.location.pathname !== url) {
+        window.history.pushState({}, "", url);
+    }
+
     loadResponseTicketDetail(eid);
 }
 
@@ -347,7 +353,7 @@ function initResponseTicket() {
     });
 }
 
-if (window.location.pathname.includes("/responseticket/")) {
+if (window.location.pathname.includes("/responseoprtekticket/")) {
     const eid = window.location.pathname.split("/").pop();
 
     openResponseTicketModal(eid);

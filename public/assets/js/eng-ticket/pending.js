@@ -39,6 +39,12 @@ function openPendingTicketModal(eid) {
         '#pendingTicketModal'
     );
 
+    const url = `/pendingoprtekticket/${eid}`;
+
+    if (window.location.pathname !== url) {
+        window.history.pushState({}, "", url);
+    }
+
     loadPendingTicketDetail(eid);
 }
 
@@ -546,7 +552,7 @@ function submitPendingTicket() {
 
 if (
     window.location.pathname.includes(
-        '/pendingticket/'
+        '/pendingoprtekticket/'
     )
 ) {
 

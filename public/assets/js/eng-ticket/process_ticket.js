@@ -24,6 +24,13 @@ function openProcessTicketModal(eid) {
     resetProcessTicketForm();
     $("#process_ticket_eid").val(eid);
     openModal("#processTicketModal");
+
+    const url = `/processoprtekticket/${eid}`;
+
+    if (window.location.pathname !== url) {
+        window.history.pushState({}, "", url);
+    }
+
     loadProcessTicketDetail(eid);
 }
 
@@ -259,7 +266,7 @@ function submitProcessTicket() {
     });
 }
 
-if (window.location.pathname.includes("/processticket/")) {
+if (window.location.pathname.includes("/processoprtekticket/")) {
     const eid = window.location.pathname.split("/").pop();
     openProcessTicketModal(eid);
 }

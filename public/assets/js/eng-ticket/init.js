@@ -1,5 +1,9 @@
 $(document).ready(function () {
 
+    initTicketViewToggle();
+
+    EngTicketApprovalPanel.init();
+
     initModal();
 
     initTicketSelect();
@@ -26,3 +30,19 @@ $(document).ready(function () {
 
     initCompleteTicket();
 });
+
+function initTicketViewToggle() {
+    if (!$(".js-toggle-ticket-view").length) {
+        return;
+    }
+
+    EngTicketCalendar.init();
+
+    $(document).on("click", ".js-toggle-ticket-view", function () {
+        $("#ticketCalendarWrapper").toggleClass("hidden");
+        $("#ticketTableWrapper").toggleClass("hidden");
+        $("#ticketFilterToolbar").toggleClass("hidden");
+        $("#ticketStatusFilterRow").toggleClass("hidden");
+        $("#ticketApprovalPanel").toggleClass("hidden");
+    });
+}

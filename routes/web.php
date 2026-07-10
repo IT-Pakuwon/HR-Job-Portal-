@@ -1551,6 +1551,8 @@ Route::middleware(['auth'])->group(function () {
 
                 Route::middleware('ajax')->group(function () {
                     Route::get('/json', 'json')->name('oprteknik-ticket.json');
+                    Route::get('/calendar-json', 'calendarJson')->name('oprteknik-ticket.calendar-json');
+                    Route::get('/pending-approval-json', 'pendingApprovalJson')->name('oprteknik-ticket.pending-approval-json');
                     Route::get('/detail/{hash}', 'detail')->name('oprteknik-ticket.detail');
                     Route::get('/tracking/{hash}', 'tracking')->name('oprteknik-ticket.tracking');
                     Route::get('/comments/{hash}', 'comments')->name('oprteknik-ticket.comments');
@@ -1574,7 +1576,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/store', 'store')->name('oprteknik-ticket.store');
             });
 
-            Route::middleware('access:,EDIT')->group(function () {
+            Route::middleware('access:OPRTIKET,EDIT')->group(function () {
                 Route::post('/update/{hash}', 'update')->name('oprteknik-ticket.update');
                 Route::post('/cancel/{hash}', 'cancel')->name('oprteknik-ticket.cancel');
                 Route::post('/response/{hash}', 'responseTicket')->name('oprteknik-ticket.response');
@@ -1591,18 +1593,18 @@ Route::middleware(['auth'])->group(function () {
 
         Route::controller(EngTicketController::class)->group(function () {
             Route::middleware('access:OPRTIKET,VIEW')->group(function () {
-                Route::get('/showengticket/{eid}', 'index');
+                Route::get('/showoprtekticket/{eid}', 'index');
             });
 
             Route::middleware('access:OPRTIKET,EDIT')->group(function () {
-                Route::get('/editengticket/{eid}', 'index');
-                Route::get('/responseengticket/{eid}', 'index');
-                Route::get('/approveengticket/{eid}', 'index');
-                Route::get('/processengticket/{eid}', 'index');
-                Route::get('/pendingengticket/{eid}', 'index');
-                Route::get('/transferengticket/{eid}', 'index');
-                Route::get('/completeengticket/{eid}', 'index');
-                Route::get('/reopenengticket/{eid}', 'index');
+                Route::get('/editoprtekticket/{eid}', 'index');
+                Route::get('/responseoprtekticket/{eid}', 'index');
+                Route::get('/approveoprtekticket/{eid}', 'index');
+                Route::get('/processoprtekticket/{eid}', 'index');
+                Route::get('/pendingoprtekticket/{eid}', 'index');
+                Route::get('/transferoprtekticket/{eid}', 'index');
+                Route::get('/completeoprtekticket/{eid}', 'index');
+                Route::get('/reopenoprtekticket/{eid}', 'index');
             });
         });
 

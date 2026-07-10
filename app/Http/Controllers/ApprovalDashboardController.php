@@ -314,6 +314,13 @@ class ApprovalDashboardController extends Controller
 
                 $approval = $approvalMap->get($docidKey);
 
+                // Eng Ticket (TOK) shares tr_ticket with the IT ticket module in
+                // the v_all_trx view, which still points its url at the IT
+                // module's /ticket route — override it to the Eng module's own.
+                $url = str_starts_with($docidKey, 'TOK')
+                    ? '/showoprtekticket'
+                    : $r->url;
+
                 return [
                     'hid' => Hashids::encode($r->id),
                     'docid' => $r->docid,
@@ -321,7 +328,7 @@ class ApprovalDashboardController extends Controller
                     'cpnyid' => $r->cpnyid,
                     'departementid' => $r->departementid,
                     'infohd' => $r->infohd,
-                    'url' => $r->url,
+                    'url' => $url,
                     'status' => $status,
                 ];
             })

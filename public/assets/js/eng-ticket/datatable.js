@@ -89,7 +89,7 @@ const ticketTable = $("#ticketTable").DataTable({
            render: function (data, type, row) {
 
     let url =
-        `/showengticket/${row.eid}`;
+        `/showoprtekticket/${row.eid}`;
 
     let cls = `
          inline-flex items-center justify-center
@@ -177,7 +177,7 @@ const ticketTable = $("#ticketTable").DataTable({
                 canEdit
                     ? `
                         <a
-                            href="/showengticket/${row.eid}"
+                            href="/showoprtekticket/${row.eid}"
                             class="
                                 inline-flex
                                 h-9 w-9
@@ -1001,7 +1001,6 @@ function doExportTicket() {
     window.open(`/oprteknik-ticket/export?${params.toString()}`, '_blank');
 }
 
-$(document).on('click', '#btn_export_ticket', doExportTicket);
 $(document).on('click', '#btn_export_filter', doExportTicket);
 
 function refreshStatusCards() {

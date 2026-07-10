@@ -53,7 +53,7 @@ function openTicketDetailModal(eid) {
 
     openModal("#ticketDetailModal");
 
-    const url = `/showengticket/${eid}`;
+    const url = `/showoprtekticket/${eid}`;
 
     if (window.location.pathname !== url) {
         window.history.pushState({}, "", url);
@@ -74,8 +74,8 @@ function closeTicketDetailModal() {
 function autoOpenTicketDetail() {
     const path = window.location.pathname;
 
-    if (path.includes("/showengticket/")) {
-        const eid = path.split("/showengticket/")[1];
+    if (path.includes("/showoprtekticket/")) {
+        const eid = path.split("/showoprtekticket/")[1];
 
         if (!eid) {
             return;
@@ -108,6 +108,8 @@ function loadTicketDetail(eid) {
             renderTicketAttachments(data.attachments || []);
 
             renderAttachmentTabPanel(data.attachments || []);
+
+            renderTicketApproval(data.approval || []);
         },
 
         error: function (xhr) {
@@ -443,7 +445,7 @@ $(document).on(
     '#ticketActionBtn',
     function (e) {
 
-        e.stopPropagation();
+        e.stopImmediatePropagation();
 
         $('#ticketActionDropdown')
             .toggleClass('hidden');
@@ -1371,6 +1373,115 @@ function getTimelineIconStyle(workflow) {
 
 }
 
+function renderTicketApproval(rows = []) {
+    const container = $("#ticketApprovalTimeline");
+
+    container.empty();
+
+    if (!rows.length) {
+        container.html(`
+            <div class="rounded-lg border border-dashed border-gray-300 px-5 py-10 text-center text-sm text-gray-400 dark:border-gray-700">
+                No approval line for this ticket
+            </div>
+        `);
+
+        return;
+    }
+
+    rows.forEach(function (row, index) {
+        const iconStyle = getApprovalIconStyle(row.status);
+        const level = row.aprv_leveling || (index + 1);
+        const actedDate = row.aprv_dateafter ? formatDateTime(row.aprv_dateafter) : null;
+        const activeDate = row.aprv_datebefore ? formatDateTime(row.aprv_datebefore) : null;
+
+        container.append(`
+            <div class="relative pl-10 pb-6">
+
+                ${
+                    index !== rows.length - 1
+                        ? `<div class="absolute left-[15px] top-10 bottom-0 w-px bg-gray-200 dark:bg-white/[0.06]"></div>`
+                        : ''
+                }
+
+                <div class="absolute left-0 top-1 flex h-8 w-8 items-center justify-center rounded-2xl ring-[1px] shadow-md ${iconStyle.wrap}">
+                    <i class="${iconStyle.icon} text-[11px]"></i>
+                </div>
+
+                <div class="rounded-lg border border-gray-200/80 bg-gray-50/20 px-4 py-2.5 dark:border-white/[0.05] dark:bg-[#111827]/90">
+
+                    <div class="flex items-start justify-between gap-3">
+
+                        <div class="min-w-0 flex-1">
+                            <div class="text-[13px] font-semibold text-gray-800 dark:text-white">
+                                Level ${level} &mdash; ${row.aprv_name || 'Unassigned'}
+                            </div>
+
+                            <div class="mt-0.5 text-[10px] text-gray-400 dark:text-gray-500">
+                                ${
+                                    actedDate
+                                        ? `Acted on ${actedDate}`
+                                        : activeDate
+                                          ? `Waiting since ${activeDate}`
+                                          : 'Not yet active'
+                                }
+                            </div>
+                        </div>
+
+                        <div class="shrink-0">
+                            ${approvalStatusBadge(row.status)}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        `);
+    });
+}
+
+function getApprovalIconStyle(status) {
+    switch ((status || '').toUpperCase()) {
+        case 'A':
+            return {
+                icon: 'fa-solid fa-check',
+                wrap: 'bg-emerald-500 text-white ring-emerald-100 dark:ring-emerald-500/10 shadow-emerald-500/20',
+            };
+
+        case 'R':
+            return {
+                icon: 'fa-solid fa-xmark',
+                wrap: 'bg-red-500 text-white ring-red-100 dark:ring-red-500/10 shadow-red-500/20',
+            };
+
+        case 'D':
+            return {
+                icon: 'fa-solid fa-rotate-left',
+                wrap: 'bg-blue-500 text-white ring-blue-100 dark:ring-blue-500/10 shadow-blue-500/20',
+            };
+
+        case 'P':
+        default:
+            return {
+                icon: 'fa-solid fa-clock',
+                wrap: 'bg-amber-500 text-white ring-amber-100 dark:ring-amber-500/10 shadow-amber-500/20',
+            };
+    }
+}
+
+function approvalStatusBadge(status) {
+    const map = {
+        P: { label: 'Pending', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
+        A: { label: 'Approved', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+        R: { label: 'Rejected', cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+        D: { label: 'Revise', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+    };
+
+    const entry = map[(status || '').toUpperCase()] || { label: status || '-', cls: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' };
+
+    return `<span class="inline-flex items-center rounded-lg px-2.5 py-1 text-[11px] font-semibold ${entry.cls}">${entry.label}</span>`;
+}
+
 function renderTicketComments(comments = []) {
     const container = $("#ticket_comment_list");
 
@@ -1591,6 +1702,10 @@ function bindTicketDetailTabs() {
 
         if (tab === "attachments") {
             $("#ticket_attachments_panel").removeClass("hidden");
+        }
+
+        if (tab === "approval") {
+            $("#ticket_approval_panel").removeClass("hidden");
         }
     });
 }

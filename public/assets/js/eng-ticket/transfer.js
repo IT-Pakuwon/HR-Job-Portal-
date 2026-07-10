@@ -29,6 +29,12 @@ function openTransferTicketModal(eid) {
         '#transferTicketModal'
     );
 
+    const url = `/transferoprtekticket/${eid}`;
+
+    if (window.location.pathname !== url) {
+        window.history.pushState({}, "", url);
+    }
+
     loadTransferTicketDetail(eid);
 }
 
@@ -689,7 +695,7 @@ function submitTransferTicket() {
 
 if (
     window.location.pathname.includes(
-        '/transferticket/'
+        '/transferoprtekticket/'
     )
 ) {
 

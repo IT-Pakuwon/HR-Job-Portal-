@@ -99,6 +99,12 @@ function openCompleteTicketModal(eid) {
         '#completeTicketModal'
     );
 
+    const url = `/completeoprtekticket/${eid}`;
+
+    if (window.location.pathname !== url) {
+        window.history.pushState({}, "", url);
+    }
+
     loadCompleteTicketDetail(eid);
 }
 
@@ -538,7 +544,7 @@ window.removeCompleteAttachment =
 
 if (
     window.location.pathname.includes(
-        '/completeticket/'
+        '/completeoprtekticket/'
     )
 ) {
 

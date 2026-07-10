@@ -56,6 +56,12 @@ function openEditTicketModal(eid) {
         Ticket.modal.create
     );
 
+    const url = `/editoprtekticket/${eid}`;
+
+    if (window.location.pathname !== url) {
+        window.history.pushState({}, "", url);
+    }
+
 }
 
 function loadEditTicket(eid) {
@@ -351,4 +357,12 @@ function submitUpdateTicket() {
 
     });
 
+}
+
+if (window.location.pathname.includes("/editoprtekticket/")) {
+    const eid = window.location.pathname.split("/").pop();
+
+    if (eid) {
+        openEditTicketModal(eid);
+    }
 }

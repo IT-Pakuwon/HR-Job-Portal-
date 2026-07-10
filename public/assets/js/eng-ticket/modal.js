@@ -8,7 +8,7 @@ let modalAnimating = false;
 function resetTicketUrl() {
 
     const cleanUrl =
-        `${window.location.origin}/ticket`;
+        `${window.location.origin}/oprteknik-ticket`;
 
     window.history.pushState(
         {},

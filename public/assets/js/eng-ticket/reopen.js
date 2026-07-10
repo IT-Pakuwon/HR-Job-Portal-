@@ -87,6 +87,12 @@ function openReopenTicketModal(eid) {
         '#reopenTicketModal'
     );
 
+    const url = `/reopenoprtekticket/${eid}`;
+
+    if (window.location.pathname !== url) {
+        window.history.pushState({}, "", url);
+    }
+
     loadReopenTicketDetail(eid);
 }
 
@@ -512,7 +518,7 @@ window.removeReopenAttachment =
 
 if (
     window.location.pathname.includes(
-        '/reopenticket/'
+        '/reopenoprtekticket/'
     )
 ) {
 

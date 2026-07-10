@@ -51,6 +51,8 @@ class EngTicketController extends Controller
 
     protected const BSFO_ROLE_ID = 'OPRTEKNIKBS';
 
+    protected const MGR_ROLE_ID = 'MGROPRTEKNIKACCESS';
+
     protected $notificationService;
 
     public function __construct(
@@ -179,8 +181,17 @@ class EngTicketController extends Controller
             ->exists();
     }
 
+    protected function isMgrOprTeknik(): bool
+    {
+        return (bool) auth()->user()?->hasRole(self::MGR_ROLE_ID);
+    }
+
     protected function canActOnTicketType(string $ticketType): bool
     {
+        if ($this->isMgrOprTeknik()) {
+            return true;
+        }
+
         if ($ticketType === self::BSFO_TICKET_TYPE) {
             return $this->isBSFO() || $this->isBSFORole();
         }
@@ -190,10 +201,14 @@ class EngTicketController extends Controller
 
     /**
      * Ticket types (ENGSUPPORTTICKET / BSFOSUPPORTTICKET) the user has broad
-     * (non-owner) access to, based on dept-membership or role.
+     * (non-owner) access to, based on dept-membership, role, or manager access.
      */
     protected function broadAccessTicketTypes(): array
     {
+        if ($this->isMgrOprTeknik()) {
+            return [self::ENG_TICKET_TYPE, self::BSFO_TICKET_TYPE];
+        }
+
         $types = [];
 
         if ($this->isEng() || $this->isENGRole()) {
@@ -236,6 +251,8 @@ class EngTicketController extends Controller
         $broadTypes = $this->broadAccessTicketTypes();
 
         $isEng = !empty($broadTypes);
+
+        $isMgrOprTeknik = $this->isMgrOprTeknik();
 
         $engTypes = $this->engTicketTypes();
 
@@ -330,6 +347,7 @@ class EngTicketController extends Controller
             'categories' => $categories,
             'allCompanies' => $allCompanies,
             'isEng' => $isEng,
+            'isMgrOprTeknik' => $isMgrOprTeknik,
         ]);
     }
 
@@ -496,6 +514,167 @@ class EngTicketController extends Controller
             ->make(true);
     }
 
+    public function pendingApprovalJson(Request $request)
+    {
+        abort_unless($this->isMgrOprTeknik(), 403);
+
+        $username = strtolower(auth()->user()->username);
+
+        $refnbrs = TrApproval::query()
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', 'P')
+            ->whereNotNull('aprv_datebefore')
+            ->get()
+            ->filter(fn ($row) => $this->matchesApprover($row->aprv_username, $username))
+            ->pluck('refnbr')
+            ->unique();
+
+        $tickets = TrTicket::query()
+            ->whereIn('ticketid', $refnbrs)
+            ->whereIn('ticket_type', [
+                self::ENG_TICKET_TYPE,
+                self::BSFO_TICKET_TYPE,
+            ])
+            ->orderBy('ticketdate')
+            ->get();
+
+        $data = $tickets->map(fn ($ticket) => [
+            'eid' => Hashids::encode($ticket->id),
+
+            'ticketid' => $ticket->ticketid,
+
+            'ticket_type' => $ticket->ticket_type,
+
+            'issue_summary' => $ticket->issue_summary,
+
+            'created_by' => $ticket->created_by,
+
+            'ticketdate' => optional($ticket->ticketdate)->toISOString(),
+
+            'ticket_priority' => $ticket->ticket_priority,
+        ]);
+
+        return response()->json([
+            'success' => true,
+
+            'data' => $data,
+        ]);
+    }
+
+    public function calendarJson(Request $request)
+    {
+        abort_unless($this->isMgrOprTeknik(), 403);
+
+        $tickets = TrTicket::with('responseActivity')
+            ->whereIn('ticket_type', [
+                self::ENG_TICKET_TYPE,
+                self::BSFO_TICKET_TYPE,
+            ])
+            ->get();
+
+        $scheduledActivities = TrTicketActivity::query()
+            ->whereIn('ticketid', $tickets->pluck('ticketid'))
+            ->whereNotNull('working_start_date')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('ticketid');
+
+        $data = $tickets->map(function ($ticket) use ($scheduledActivities) {
+            $response = $ticket->responseActivity;
+
+            $latestScheduled = optional(
+                $scheduledActivities->get($ticket->ticketid)
+            )->last();
+
+            $hasSchedule = $latestScheduled !== null;
+
+            $eventStart = $hasSchedule
+                ? $latestScheduled->working_start_date
+                : $ticket->ticketdate;
+
+            $eventEnd = $hasSchedule
+                ? $latestScheduled->working_end_date
+                : null;
+
+            return [
+                'eid' => Hashids::encode($ticket->id),
+
+                'ticketid' => $ticket->ticketid,
+
+                'ticket_type' => $ticket->ticket_type,
+
+                'issue_summary' => $ticket->issue_summary,
+
+                'status_pekerjaan' => $ticket->status_pekerjaan,
+
+                'pic_ticket' => $ticket->pic_ticket,
+
+                'cpny_id' => $ticket->cpny_id,
+
+                'department_id' => $ticket->department_id,
+
+                'event_start' => optional($eventStart)->toISOString(),
+
+                'event_end' => optional($eventEnd)->toISOString(),
+
+                'all_day' => !$hasSchedule,
+
+                'calendar_state' => $this->calendarState(
+                    $ticket,
+                    $response,
+                    $latestScheduled,
+                    $hasSchedule
+                ),
+
+                'can_edit' => $this->buildActions($ticket)['can_edit'],
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+
+            'data' => $data,
+        ]);
+    }
+
+    protected function calendarState(
+        TrTicket $ticket,
+        ?TrTicketActivity $response,
+        ?TrTicketActivity $latestScheduled,
+        bool $hasSchedule
+    ): string {
+        if ($ticket->status_pekerjaan === 'CANCEL') {
+            return 'CANCELLED';
+        }
+
+        if ($ticket->status_pekerjaan === 'COMPLETED') {
+            return 'COMPLETED';
+        }
+
+        if (!$hasSchedule) {
+            return 'UNSCHEDULED';
+        }
+
+        $isLate = $ticket->ticket_duedate
+            && now()->greaterThan($ticket->ticket_duedate);
+
+        if ($isLate) {
+            return 'LATE';
+        }
+
+        if (
+            $ticket->status_pekerjaan === 'PROCESS'
+            && $response?->working_start_date
+            && !$latestScheduled->working_start_date->isSameDay(
+                $response->working_start_date
+            )
+        ) {
+            return 'RESCHEDULE';
+        }
+
+        return 'SCHEDULED';
+    }
+
     protected function canAccessTicket($ticket)
     {
         $user = auth()->user();
@@ -516,18 +695,21 @@ class EngTicketController extends Controller
             ->where('status', 'P')
             ->whereNotNull('aprv_datebefore')
             ->get()
-            ->contains(function ($row) use ($username) {
-                $list = array_map(
-                    'trim',
-                    preg_split('/[;,]/', (string) $row->aprv_username)
-                );
+            ->contains(fn ($row) => $this->matchesApprover($row->aprv_username, $username));
+    }
 
-                return in_array(
-                    $username,
-                    array_map('strtolower', $list),
-                    true
-                );
-            });
+    protected function matchesApprover(?string $aprvUsername, string $username): bool
+    {
+        $list = array_map(
+            'trim',
+            preg_split('/[;,]/', (string) $aprvUsername)
+        );
+
+        return in_array(
+            strtolower($username),
+            array_map('strtolower', $list),
+            true
+        );
     }
 
     public function store(Request $request)
@@ -587,8 +769,17 @@ class EngTicketController extends Controller
             $ticketid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             $defaultPriority = MsTicketPriority::where(
-                'ticket_priority',
-                'Medium'
+                'ticket_type',
+                $request->ticket_type
+            )->where(
+                'ticket_categoryid',
+                $request->ticket_categoryid
+            )->where(
+                'is_default',
+                true
+            )->where(
+                'status',
+                'A'
             )->first();
 
             $ticket = TrTicket::create([
@@ -602,7 +793,7 @@ class EngTicketController extends Controller
                 'ticket_categoryid' => $request->ticket_categoryid,
                 'ticket_subcategoryid' => $request->ticket_subcategoryid,
 
-                'ticket_priority'  => 'Medium',
+                'ticket_priority'  => $defaultPriority?->ticket_priority ?? 'MEDIUM',
                 'ticket_sla_days'  => $defaultPriority?->ticket_sla_days ?? 3,
                 'ticket_duedate'   => $this->calculateDueDate($defaultPriority?->ticket_sla_days ?? 3),
 
@@ -1258,7 +1449,7 @@ class EngTicketController extends Controller
                 self::DOCTYPE,
                 'P',
                 'Eng Ticket',
-                url('/showengticket/'.$eid),
+                url('/showoprtekticket/'.$eid),
                 [
                     'info' => $ticket->issue_summary,
                     'createdby' => $ticket->created_by,
@@ -1294,7 +1485,7 @@ class EngTicketController extends Controller
 
         $eid = Hashids::encode($ticket->id);
 
-        $docUrl = url('/showengticket/'.$eid);
+        $docUrl = url('/showoprtekticket/'.$eid);
 
         $approvalCtl = app(ApprovalController::class);
 
@@ -1384,7 +1575,7 @@ class EngTicketController extends Controller
 
         $eid = Hashids::encode($ticket->id);
 
-        $docUrl = url('/showengticket/'.$eid);
+        $docUrl = url('/showoprtekticket/'.$eid);
 
         $result = app(ApprovalController::class)->rejectStep(
             $ticket->ticketid,

@@ -4,8 +4,8 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Status Filter --}}
-        <div
-            class="{{ $isEng ? '2xl:grid-cols-11' : '2xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div id="ticketStatusFilterRow"
+            class="{{ $isEng ? '2xl:grid-cols-11' : '2xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 @if ($isMgrOprTeknik) hidden @endif">
 
             {{-- All --}}
             <button type="button" class="text-left">
@@ -346,8 +346,8 @@
         </div>
         {{-- Filter Toolbar --}}
         @if ($isEng)
-            <div
-                class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <div id="ticketFilterToolbar"
+                class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900 @if ($isMgrOprTeknik) hidden @endif">
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
 
@@ -535,9 +535,62 @@
 
             </div>
         @endif
-        {{-- Table Wrapper --}}
-        <div
-            class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        @if ($isMgrOprTeknik)
+            <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start">
+                <div class="min-w-0 flex-1">
+            {{-- Calendar Wrapper --}}
+            <div id="ticketCalendarWrapper"
+                class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+
+                <div
+                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+                        Ticket Calendar
+                    </h2>
+
+                    <div class="flex flex-wrap items-center gap-4">
+
+                        {{-- Calendar Legend --}}
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                <span class="h-2.5 w-2.5 rounded-full bg-gray-400"></span> Unscheduled
+                            </span>
+                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> Scheduled
+                            </span>
+                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                <span class="h-2.5 w-2.5 rounded-full bg-orange-500"></span> Reschedule
+                            </span>
+                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span> Late
+                            </span>
+                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span> Completed
+                            </span>
+                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                <span class="h-2.5 w-2.5 rounded-full bg-slate-600"></span> Cancelled
+                            </span>
+                        </div>
+
+                        <button type="button"
+                            class="js-toggle-ticket-view inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+                            📋 Table View
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <div class="p-4">
+                    <div id="ticketCalendar"></div>
+                </div>
+
+            </div>
+        @endif
+            {{-- Table Wrapper --}}
+            <div id="ticketTableWrapper"
+                class="{{ $isMgrOprTeknik ? 'mt-4 hidden' : 'mt-4' }} rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
@@ -552,20 +605,10 @@
 
                 <div class="flex items-center gap-3">
 
-                    @if ($isEng)
-                        <button type="button" id="btn_export_ticket"
-                            class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-
-                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 16V4m0 12l-4-4m4 4l4-4m5 8H3" />
-
-                            </svg>
-
-                            Export
-
+                    @if ($isMgrOprTeknik)
+                        <button type="button"
+                            class="js-toggle-ticket-view inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+                            📅 Calendar View
                         </button>
                     @endif
 
@@ -667,6 +710,30 @@
             </div>
 
         </div>
+        @if ($isMgrOprTeknik)
+                </div>
+                {{-- Pending Approval Panel --}}
+                <div id="ticketApprovalPanel"
+                    class="flex w-full shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-80">
+
+                    <div class="shrink-0 border-b border-gray-100 p-4 dark:border-white/[0.06]">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                Pending My Approval
+                            </h3>
+                            <span id="ticketApprovalCount"
+                                class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                0
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="ticketApprovalBody" class="flex-1 space-y-2 overflow-y-auto p-3"
+                        style="max-height: 720px;"></div>
+
+                </div>
+            </div>
+        @endif
         {{-- CREATE TICKET MODAL --}}
         <div id="createTicketModal" data-form-modal="true"
             class="ticket-modal fixed inset-0 z-[50] hidden items-center justify-center p-4">
@@ -1422,10 +1489,10 @@
                                 class="border-b border-gray-200 bg-gray-50/70 px-6 py-2 dark:border-gray-800 dark:bg-gray-900/60">
 
                                 <div
-                                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                                    class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
 
                                     <button type="button"
-                                        class="ticket-detail-tab active inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200"
+                                        class="ticket-detail-tab active inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200"
                                         data-tab="tracking">
 
                                         <i class="fa-solid fa-clock-rotate-left text-[12px]"></i>
@@ -1435,7 +1502,7 @@
                                     </button>
 
                                     <button type="button"
-                                        class="ticket-detail-tab inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200"
+                                        class="ticket-detail-tab inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200"
                                         data-tab="discussion">
 
                                         <i class="fa-solid fa-comments text-[12px]"></i>
@@ -1445,12 +1512,22 @@
                                     </button>
 
                                     <button type="button"
-                                        class="ticket-detail-tab inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200"
+                                        class="ticket-detail-tab inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200"
                                         data-tab="attachments">
 
                                         <i class="fa-solid fa-paperclip text-[12px]"></i>
 
                                         Attachments
+
+                                    </button>
+
+                                    <button type="button"
+                                        class="ticket-detail-tab inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200"
+                                        data-tab="approval">
+
+                                        <i class="fa-solid fa-stamp text-[12px]"></i>
+
+                                        Approval
 
                                     </button>
 
@@ -1575,6 +1652,17 @@
 
                             </div>
 
+                            {{-- Approval Tab --}}
+                            <div id="ticket_approval_panel" class="ticket-tab-content hidden flex-1 overflow-y-auto p-6">
+
+                                <div class="mb-4">
+                                    <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">Approval Line</h3>
+                                </div>
+
+                                <div id="ticketApprovalTimeline" class="space-y-1"></div>
+
+                            </div>
+
                         </div>
 
                     </div>
@@ -1614,9 +1702,16 @@
         window.isITRole =
             @json($isEng);
 
+        window.isMgrOprTeknik =
+            @json($isMgrOprTeknik);
+
         window.ticketRoutes = {
 
             json: "{{ route('oprteknik-ticket.json') }}",
+
+            calendarJson: "{{ route('oprteknik-ticket.calendar-json') }}",
+
+            pendingApprovalJson: "{{ route('oprteknik-ticket.pending-approval-json') }}",
 
             counts: "{{ route('oprteknik-ticket.counts') }}",
 
@@ -1700,6 +1795,10 @@
     <script src="{{ asset('assets/js/eng-ticket/reopen.js') }}"></script>
     <script src="{{ asset('assets/js/eng-ticket/complete.js') }}"></script>
     <script src="{{ asset('assets/js/eng-ticket/cancel.js') }}"></script>
+
+    <script src="{{ asset('assets/js/eng-ticket/calendar.js') }}"></script>
+
+    <script src="{{ asset('assets/js/eng-ticket/approval-panel.js') }}"></script>
 
     <script src="{{ asset('assets/js/eng-ticket/init.js') }}"></script>
 </x-app-layout>

@@ -192,7 +192,7 @@ class DocumentNotificationService
                               ->where('updated_at', '>=', \Carbon\Carbon::yesterday()->startOfDay())
                     )
                 )
-                ->select('id', 'ticketid', 'cpny_id', 'status_pekerjaan', 'pic_ticket', 'updated_at', 'updated_by')
+                ->select('id', 'ticketid', 'ticket_type', 'cpny_id', 'status_pekerjaan', 'pic_ticket', 'updated_at', 'updated_by')
                 ->get()
                 ->filter(fn($r) =>
                     $r->status_pekerjaan !== 'CANCEL' ||
@@ -209,7 +209,7 @@ class DocumentNotificationService
                     'label'      => $meta['label'],
                     'message'    => $meta['message'],
                     'cpnyid'     => $r->cpny_id,
-                    'url'        => '/showticket',
+                    'url'        => self::ticketShowUrl($r->ticket_type),
                     'by'         => $r->pic_ticket,
                     'updated_at' => $r->updated_at,
                 ];
@@ -228,7 +228,7 @@ class DocumentNotificationService
                 $newTickets = TrTicket::where('status_pekerjaan', 'CREATED')
                     ->whereIn('ticket_categoryid', $assignedCategories)
                     ->where('updated_at', '>=', now()->subDays(90))
-                    ->select('id', 'ticketid', 'cpny_id', 'ticket_categoryid', 'ticket_sla_days', 'updated_at', 'created_by', 'user_peminta')
+                    ->select('id', 'ticketid', 'ticket_type', 'cpny_id', 'ticket_categoryid', 'ticket_sla_days', 'updated_at', 'created_by', 'user_peminta')
                     ->get();
 
                 $data = $data->concat($newTickets->map(fn($r) => [
@@ -239,7 +239,7 @@ class DocumentNotificationService
                     'label'      => 'New Ticket',
                     'message'    => 'Hi, a new ticket has been created from ' . ($r->user_peminta ?? $r->created_by) . ', please review and respond to the ticket.',
                     'cpnyid'     => $r->cpny_id,
-                    'url'        => '/showticket',
+                    'url'        => self::ticketShowUrl($r->ticket_type),
                     'by'         => $r->user_peminta ?? $r->created_by,
                     'sla_days'   => $r->ticket_sla_days,
                     'updated_at' => $r->updated_at,
@@ -621,6 +621,15 @@ class DocumentNotificationService
 
     // Single source of truth for the 9 "creator + approval line (+ optional PIC)" modules,
     // shared by resolveCommentRecipients() above and SendCommentController::mentionableUsers().
+    // tr_ticket is shared by three modules (IT / Eng / BS&FO support tickets),
+    // each with its own "show" route — the show URL depends on ticket_type.
+    private static function ticketShowUrl(?string $ticketType): string
+    {
+        return in_array($ticketType, ['ENGSUPPORTTICKET', 'BSFOSUPPORTTICKET'], true)
+            ? '/showoprtekticket'
+            : '/showticket';
+    }
+
     public static function extendedDocTypeConfig(): array
     {
         return [

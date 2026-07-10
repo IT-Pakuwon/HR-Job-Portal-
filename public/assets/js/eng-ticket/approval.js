@@ -55,6 +55,10 @@ function approveTicket(eid) {
                     $('#ticketTable').DataTable().ajax.reload(null, false);
                 }
 
+                if (typeof EngTicketApprovalPanel !== 'undefined') {
+                    EngTicketApprovalPanel.refresh();
+                }
+
             },
 
             error(xhr) {
@@ -133,6 +137,10 @@ function rejectTicket(eid) {
 
                 if ($.fn.DataTable && $('#ticketTable').length) {
                     $('#ticketTable').DataTable().ajax.reload(null, false);
+                }
+
+                if (typeof EngTicketApprovalPanel !== 'undefined') {
+                    EngTicketApprovalPanel.refresh();
                 }
 
             },
