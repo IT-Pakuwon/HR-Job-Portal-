@@ -289,7 +289,7 @@ const VplUsageForm = {
             VplUsageForm.resetCreateModal();
         })
         .fail((x) => {
-            VplUsage.toast('error', x.responseJSON?.error ?? 'Submit failed.');
+            VplUsage.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
         });
     },
 
@@ -478,7 +478,7 @@ const VplUsageForm = {
             VplUsageDatalist.refresh();
         })
         .fail((x) => {
-            VplUsage.toast('error', x.responseJSON?.error ?? 'Submit failed.');
+            VplUsage.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
         });
     },
 

@@ -28,7 +28,7 @@ const VplTransfer = {
         reject:  (id) => `${VplTransfer.routes.base}/${id}/reject`,
         revise:  (id) => `${VplTransfer.routes.base}/${id}/revise`,
         message: (id) => `${VplTransfer.routes.base}/${id}/message`,
-        show:    (id) => `${VplTransfer.routes.base}/${id}`,
+        show:    (eid) => `/showtransfervp/${eid}`,
     },
 
     boot(cfg) {
@@ -65,8 +65,11 @@ const VplTransfer = {
         });
     },
 
-    pushUrl(transferId) {
-        history.pushState({ transferId }, '', VplTransfer.routes.show(transferId));
+    pushUrl(transferEid) {
+        if (!transferEid) return;
+        const targetUrl = VplTransfer.routes.show(transferEid);
+        if (window.location.pathname === targetUrl) return;
+        history.pushState({ transferEid }, '', targetUrl);
     },
 
     clearUrl() {

@@ -735,6 +735,7 @@
         prodDetail: '{{ route("requestvp.product-details") }}',
         delDetail:  '{{ route("requestvp.detail.delete") }}',
         delAttach:  '{{ route("requestvp.attachment.delete") }}',
+        initialId:  {{ $initialId ?? 'null' }},
     };
     // cspell:enable
 </script>

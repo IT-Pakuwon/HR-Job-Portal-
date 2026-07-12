@@ -270,7 +270,7 @@ const VplReceiveForm = {
                     setTimeout(() => location.reload(), 1200);
                 },
                 error(xhr) {
-                    VplReceive.toast('error', xhr.responseJSON?.error ?? 'Error saving receive.');
+                    VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error saving receive.');
                 },
                 complete() {
                     $btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane text-xs"></i> Submit Approval');
@@ -431,7 +431,7 @@ const VplReceiveForm = {
                 setTimeout(() => location.reload(), 1200);
             },
             error(xhr) {
-                VplReceive.toast('error', xhr.responseJSON?.error ?? 'Error updating receive.');
+                VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error updating receive.');
             },
             complete() {
                 $btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane text-xs"></i> Resubmit Approval');

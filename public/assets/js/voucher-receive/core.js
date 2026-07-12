@@ -49,7 +49,9 @@ const VplReceive = {
     // --------------------------------------------------------
     pushUrl(receiveId) {
         if (!receiveId) return;
-        history.pushState({ receiveId }, '', VplReceive.routes.show(receiveId));
+        const targetUrl = VplReceive.routes.show(receiveId);
+        if (window.location.pathname === targetUrl) return;
+        history.pushState({ receiveId }, '', targetUrl);
     },
 
     clearUrl() {

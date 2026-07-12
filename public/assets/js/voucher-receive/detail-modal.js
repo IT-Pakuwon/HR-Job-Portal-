@@ -14,8 +14,8 @@ const VplReceiveDetailModal = {
             VplReceive.state.currentViewData = data;
             VplReceiveDetailModal.populate(data);
             VplReceiveModal.open('viewModal');
-            // Push URL so it becomes shareable (e.g. /showreceivevp/VPR266007)
-            VplReceive.pushUrl(data.receive?.receive_id);
+            // Push URL so it becomes shareable (e.g. /showreceivevp/{hash})
+            VplReceive.pushUrl(data.hash);
         }).fail(() => VplReceive.toast('error', 'Failed to load receive data.'));
     },
 
@@ -240,7 +240,7 @@ const VplReceiveDetailModal = {
                 VplReceive.toast('success', 'Document approved!');
                 setTimeout(() => location.reload(), 1200);
             })
-            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? 'Error approving.'));
+            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error approving.'));
     },
 
     _submitReject(id, reason) {
@@ -250,7 +250,7 @@ const VplReceiveDetailModal = {
                 VplReceive.toast('success', 'Document rejected.');
                 setTimeout(() => location.reload(), 1200);
             })
-            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? 'Error rejecting.'));
+            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error rejecting.'));
     },
 
     _submitRevise(id, reason) {
@@ -260,7 +260,7 @@ const VplReceiveDetailModal = {
                 VplReceive.toast('success', 'Document sent for revision.');
                 setTimeout(() => location.reload(), 1200);
             })
-            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? 'Error.'));
+            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error.'));
     },
 
     _submitCancel(id) {
@@ -270,7 +270,7 @@ const VplReceiveDetailModal = {
                 VplReceive.toast('success', 'Document cancelled.');
                 setTimeout(() => location.reload(), 1200);
             })
-            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? 'Error cancelling.'));
+            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error cancelling.'));
     },
 
     // --------------------------------------------------------

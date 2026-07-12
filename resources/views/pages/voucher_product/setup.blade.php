@@ -278,6 +278,7 @@
                             <option value="">All</option>
                             <option value="RECEIVE">Receive</option>
                             <option value="TRANSFER">Transfer</option>
+                            <option value="TRANSFER_RECEIVE">Transfer Receive</option>
                             <option value="USAGE">Usage</option>
                         </select>
                     </div>
@@ -357,6 +358,7 @@
                             <option value="">All</option>
                             <option value="RECEIVE">Receive</option>
                             <option value="TRANSFER">Transfer</option>
+                            <option value="TRANSFER_RECEIVE">Transfer Receive</option>
                             <option value="USAGE">Usage</option>
                         </select>
                     </div>

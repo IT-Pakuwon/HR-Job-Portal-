@@ -28,7 +28,7 @@ const VplUsage = {
         reject:  (id) => `${VplUsage.routes.base}/${id}/reject`,
         revise:  (id) => `${VplUsage.routes.base}/${id}/revise`,
         message: (id) => `${VplUsage.routes.base}/${id}/message`,
-        show:    (id) => `${VplUsage.routes.base}/${id}`,
+        show:    (eid) => `/showusagevp/${eid}`,
     },
 
     boot(cfg) {
@@ -65,8 +65,11 @@ const VplUsage = {
         });
     },
 
-    pushUrl(usageId) {
-        history.pushState({ usageId }, '', VplUsage.routes.show(usageId));
+    pushUrl(usageEid) {
+        if (!usageEid) return;
+        const targetUrl = VplUsage.routes.show(usageEid);
+        if (window.location.pathname === targetUrl) return;
+        history.pushState({ usageEid }, '', targetUrl);
     },
 
     clearUrl() {

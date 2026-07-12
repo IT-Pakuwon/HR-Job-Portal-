@@ -33,16 +33,20 @@ const VplTransferInit = {
         VplTransferForm.initEditModal();
         VplTransferForm.initProductSearchModal();
 
-        // Deep-link: open view modal if URL has /transfervp/{id}
-        const pathParts = window.location.pathname.replace(/^\//, '').split('/');
-        if (pathParts[0] === 'transfervp' && pathParts[1] && !isNaN(pathParts[1])) {
-            VplTransferDetailModal.open(parseInt(pathParts[1], 10));
+        // Deep-link: open view modal if page was loaded via /showtransfervp/{eid}
+        if (window.VplTransferConfig?.initialId) {
+            VplTransferDetailModal.open(window.VplTransferConfig.initialId);
         }
 
         // Browser back/forward
         window.addEventListener('popstate', (e) => {
-            if (e.state?.transferId) {
-                VplTransferDetailModal.open(e.state.transferId);
+            if (e.state?.transferEid) {
+                VplTransferDetailModal.open(VplTransfer.state.currentViewId);
+            } else {
+                // Close without pushing a new history entry (we're already reacting to one)
+                const modal = document.getElementById('viewModal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
             }
         });
     },
