@@ -762,7 +762,8 @@
         reject: (id) => `{{ url("usagevp") }}/${id}/reject`,
         revise: (id) => `{{ url("usagevp") }}/${id}/revise`,
         message: (id) => `{{ url("usagevp") }}/${id}/message`,
-        show: (id) => `{{ url("usagevp") }}/${id}`,
+        show: (eid) => `{{ url("showusagevp") }}/${eid}`,
+        initialId: {{ $initialId ?? 'null' }},
     };
 </script>
 

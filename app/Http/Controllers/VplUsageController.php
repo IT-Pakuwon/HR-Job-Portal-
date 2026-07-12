@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Vinkla\Hashids\Facades\Hashids;
 
 class VplUsageController extends Controller
 {
@@ -30,7 +31,7 @@ class VplUsageController extends Controller
     // -------------------------------------------------------
     // INDEX — serves view page OR DataTable AJAX
     // -------------------------------------------------------
-    public function index(Request $request)
+    public function index(Request $request, $eid = null)
     {
         $user = Auth::user();
         $multicpnyid = Usercpny::where('username', $user->username)->where('status', 'A')->pluck('cpny_id')->toArray();
@@ -63,6 +64,11 @@ class VplUsageController extends Controller
             return \DataTables::of($data)
                 ->addColumn('status_badge', fn ($r) => $this->statusBadge($r->status))
                 ->addColumn('usage_date_fmt', fn ($r) => $r->usage_date ? Carbon::parse($r->usage_date)->format('Y-m-d') : '')
+                ->addColumn('vp_type_label', fn ($r) => match (strtoupper($r->vp_type ?? '')) {
+                    'V'     => 'Voucher',
+                    'P'     => 'Product',
+                    default => $r->vp_type ?? '',
+                })
                 ->addColumn('usagetype_label', fn ($r) => match ($r->usagetype) {
                     'Usage' => 'Usage',
                     'Return' => 'Return',
@@ -93,8 +99,10 @@ class VplUsageController extends Controller
         $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
+        $initialId = $eid ? (Hashids::decode($eid)[0] ?? null) : null;
+
         return view('pages.voucher_product.usage', compact(
-            'user', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'counts'
+            'user', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'counts', 'initialId'
         ));
     }
 
@@ -167,6 +175,7 @@ class VplUsageController extends Controller
 
         return response()->json([
             'usage' => $usage,
+            'hash' => Hashids::encode($usage->id),
             'status_label' => $statusLabel,
             'vp_label' => $vpLabel,
             'usagetype_label' => $usagetypeLabel,
@@ -698,12 +707,13 @@ class VplUsageController extends Controller
     // -------------------------------------------------------
     private function statusBadge(string $status): string
     {
+        // Matches the badge style used in budgets.blade.php for visual consistency across modules
         return match ($status) {
-            'P' => '<span class="inline-block w-28 rounded bg-yellow-300/30 px-3 py-1.5 text-sm font-semibold text-yellow-600">On Progress</span>',
-            'C' => '<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Completed</span>',
-            'R' => '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Rejected</span>',
-            'X' => '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Cancelled</span>',
-            default => '<span class="inline-block w-28 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">Hold / Revise</span>',
+            'P' => '<span class="w-32 bg-orange-200/60 text-orange-800 dark:bg-orange-300/40 dark:text-orange-900 pointer-events-none border border-orange-600/40 font-semibold px-4 py-2 text-center rounded">On Progress</span>',
+            'C' => '<span class="w-32 bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 pointer-events-none border border-green-600/40 font-semibold px-4 py-2 text-center rounded">Completed</span>',
+            'R' => '<span class="w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded">Rejected</span>',
+            'X' => '<span class="w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded">Cancel</span>',
+            default => '<span class="w-32 bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 pointer-events-none border border-amber-600/40 font-semibold px-4 py-2 text-center rounded">Revise</span>',
         };
     }
 

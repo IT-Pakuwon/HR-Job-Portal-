@@ -6,26 +6,29 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\TrxVplTransfer;
 use App\Models\TrxVplTransferDetail;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductDetail;
 use App\Models\MsVplWarehouseDept;
 use App\Models\TrApproval;
-use App\Models\T_Message;
+use App\Models\TrMessage;
 use App\Models\Attachment;
 use App\Models\Company;
 use App\Models\User;
 use App\Models\Usercpny;
 use App\Models\Userdept;
-use App\Models\Autonbr;
 use App\Models\Site;
+use Vinkla\Hashids\Facades\Hashids;
 
 use DataTables;
 use Mail;
 
 class VplTransferController extends Controller
 {
+    use HasAutonbr;
+
     public const DOCTYPE     = 'VPT';
     public const DOCTYPE_DSC = 'Voucher Product Transfer';
 
@@ -33,7 +36,7 @@ class VplTransferController extends Controller
     // INDEX — serves the main page OR DataTable AJAX
     // -------------------------------------------------------
 
-    public function index(Request $request)
+    public function index(Request $request, $eid = null)
     {
         $user        = Auth::user();
         $multicpnyid = Usercpny::where('username', $user->username)->where('status', 'A')->pluck('cpny_id')->toArray();
@@ -56,6 +59,11 @@ class VplTransferController extends Controller
                 ->addColumn('status_badge', fn ($r) => $this->statusBadge($r->status))
                 ->addColumn('transfer_date_fmt', fn ($r) => $r->transfer_date
                     ? Carbon::parse($r->transfer_date)->format('Y-m-d') : '')
+                ->addColumn('vp_type_label', fn ($r) => match ($r->vp_type) {
+                    'V'     => 'Voucher',
+                    'P'     => 'Product',
+                    default => $r->vp_type ?? '',
+                })
                 ->addColumn('transfertype_label', fn ($r) => match ($r->transfertype) {
                     'Transfer' => 'Transfer',
                     'ReturnTf' => 'Return Transfer',
@@ -87,8 +95,10 @@ class VplTransferController extends Controller
         $userdept  = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
+        $initialId = $eid ? (Hashids::decode($eid)[0] ?? null) : null;
+
         return view('pages.voucher_product.transfer', compact(
-            'user', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'counts'
+            'user', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'counts', 'initialId'
         ));
     }
 
@@ -100,7 +110,17 @@ class VplTransferController extends Controller
     public function rejected(Request $request) { return $this->index($request); }
     public function all(Request $request)      { return $this->index($request); }
     public function add()                      { return $this->index(request()); }
-    public function show(int $id)              { return $this->index(request()); }
+    public function show($id)
+    {
+        // Accepts either the numeric row id or the human-readable transfer_id (e.g. "VPT2607004")
+        $transfer = is_numeric($id)
+            ? TrxVplTransfer::find($id)
+            : TrxVplTransfer::where('transfer_id', $id)->first();
+
+        $eid = $transfer ? Hashids::encode($transfer->id) : null;
+
+        return $this->index(request(), $eid);
+    }
     public function edit(int $id)              { return $this->index(request()); }
 
     // -------------------------------------------------------
@@ -131,8 +151,8 @@ class VplTransferController extends Controller
             ->where('status', 'A')
             ->get();
 
-        $messages = T_Message::where('docid', $transfer->transfer_id)
-            ->where('status', 'A')
+        $messages = TrMessage::where('refnbr', $transfer->transfer_id)
+            ->where('doctype', self::DOCTYPE)
             ->orderBy('created_at')
             ->get();
 
@@ -174,6 +194,7 @@ class VplTransferController extends Controller
 
         return response()->json([
             'transfer'            => $transfer,
+            'hash'                => Hashids::encode($transfer->id),
             'status_label'        => $statusLabel,
             'transfer_type_label' => $transferTypeLabel,
             'details'             => $details,
@@ -216,8 +237,6 @@ class VplTransferController extends Controller
     {
         $user         = Auth::user();
         $dt           = Carbon::now();
-        $year         = $dt->year;
-        $month        = $dt->month;
         $vp_type      = strtoupper($request->vp_type);   // 'V' or 'P'
         $transfertype = $request->transfertype;            // 'Transfer' or 'ReturnTf'
 
@@ -226,23 +245,16 @@ class VplTransferController extends Controller
             return response()->json(['error' => 'Reference Transfer ID is required for Return Transfer.'], 422);
         }
 
-        // Autonbr
-        $autonbr = Autonbr::where('doctype', self::DOCTYPE)
-            ->where('year', $year)
-            ->where('month', $month)
-            ->where('status', 'A')
-            ->first();
-
-        if (!$autonbr) {
-            return response()->json(['error' => 'Auto number not set for ' . self::DOCTYPE . '. Please contact IT!'], 422);
-        }
-
-        $urutan = $autonbr->number + 1;
-        $tglbln = substr((string) $year, 2) . sprintf('%02d', $month);
-        $docid  = self::DOCTYPE . $tglbln . sprintf('%03d', $urutan);
-
-        $autonbr->number = $urutan;
-        $autonbr->save();
+        // Autonbr — self-healing: auto-creates the year/month row if it doesn't exist yet
+        $autonbr = $this->nextAutonbr(
+            self::DOCTYPE,
+            $dt->year,
+            (string) $dt->month,
+            $user->username,
+            self::DOCTYPE_DSC
+        );
+        $tglbln = substr((string) $dt->year, 2) . sprintf('%02d', (int) $autonbr['month']);
+        $docid  = self::DOCTYPE . $tglbln . sprintf('%03d', $autonbr['next']);
 
         $transfer = TrxVplTransfer::create([
             'transfer_id'     => $docid,
@@ -282,7 +294,7 @@ class VplTransferController extends Controller
             }
         }
 
-        $this->saveAttachments($request, $docid, $year, $user);
+        $this->saveAttachments($request, $docid, $dt->year, $user);
 
         // Reserve stock in source warehouse for each detail line
         $this->adjustReserved($docid, +1);
@@ -574,14 +586,13 @@ class VplTransferController extends Controller
         $user     = Auth::user();
         $transfer = TrxVplTransfer::find($id);
 
-        T_Message::create([
-            'docid'        => $transfer->transfer_id,
-            'doctype'      => self::DOCTYPE,
-            'username'     => $user->username,
-            'name'         => $user->name,
-            'message'      => $request->message,
-            'status'       => 'A',
-            'created_user' => $user->name,
+        TrMessage::create([
+            'refnbr'     => $transfer->transfer_id,
+            'doctype'    => self::DOCTYPE,
+            'username'   => $user->username,
+            'name'       => $user->name,
+            'message'    => $request->message,
+            'created_by' => $user->name,
         ]);
 
         return response()->json(['success' => 'Message sent.']);
@@ -616,9 +627,19 @@ class VplTransferController extends Controller
     // -------------------------------------------------------
 
     /**
-     * Returns FROM warehouse for the given transfer type.
+     * Returns FROM warehouse candidates for the given transfer type.
      * Transfer   → central warehouse (activity_type = 'TRANSFER')
-     * ReturnTf   → department's receive warehouse (activity_type = 'RECEIVE')
+     * ReturnTf   → department's transfer-receiving warehouse (activity_type = 'TRANSFER_RECEIVE')
+     *
+     * 'TRANSFER_RECEIVE' is distinct from 'RECEIVE': 'RECEIVE' gates whether a
+     * department can create a Goods Receipt document (VplReceiveController),
+     * while 'TRANSFER_RECEIVE' gates whether a department can be the destination
+     * of an internal Transfer / source of a Return Transfer. A department may be
+     * allowed one without the other.
+     *
+     * A department can have more than one warehouse assigned to the same
+     * activity_type/vp_type — the frontend auto-fills when exactly one
+     * candidate is returned, or shows a picker when there are several.
      */
     public function getFromWhs(Request $request)
     {
@@ -628,21 +649,21 @@ class VplTransferController extends Controller
         $transfertype = $request->transfertype;
 
         // Both Transfer and ReturnTf filter by department — each dept has its own assigned warehouse
-        $activityType = $transfertype === 'Transfer' ? 'TRANSFER' : 'RECEIVE';
+        $activityType = $transfertype === 'Transfer' ? 'TRANSFER' : 'TRANSFER_RECEIVE';
 
-        $whs = MsVplWarehouseDept::where('cpnyid', $cpnyid)
+        $list = MsVplWarehouseDept::where('cpnyid', $cpnyid)
             ->where('department_id', $department)
             ->where('vp_type', $vp_type)
             ->where('activity_type', $activityType)
             ->where('status', 'A')
-            ->first();
+            ->get(['whs_id', 'department_id']);
 
-        return response()->json($whs);
+        return response()->json($list);
     }
 
     /**
      * Returns TO warehouse options.
-     * Transfer   → department receive warehouses (excluding FROM)
+     * Transfer   → department transfer-receiving warehouses (activity_type = 'TRANSFER_RECEIVE', excluding FROM)
      * ReturnTf   → central transfer warehouse
      */
     public function getToWhs(Request $request)
@@ -654,10 +675,10 @@ class VplTransferController extends Controller
         $fromWhsId    = $request->from_whs_id;
 
         if ($transfertype === 'Transfer') {
-            // All RECEIVE warehouses across all depts (open destination), excluding the FROM whs
+            // All TRANSFER_RECEIVE warehouses across all depts (open destination), excluding the FROM whs
             $list = MsVplWarehouseDept::where('cpnyid', $cpnyid)
                 ->where('vp_type', $vp_type)
-                ->where('activity_type', 'RECEIVE')
+                ->where('activity_type', 'TRANSFER_RECEIVE')
                 ->where('status', 'A')
                 ->when($fromWhsId, fn ($q) => $q->where('whs_id', '<>', $fromWhsId))
                 ->get(['whs_id', 'department_id']);
@@ -785,12 +806,13 @@ class VplTransferController extends Controller
 
     private function statusBadge(string $status): string
     {
+        // Matches the badge style used in budgets.blade.php for visual consistency across modules
         return match ($status) {
-            'P'     => '<span class="inline-block w-28 rounded bg-yellow-300/30 px-3 py-1.5 text-sm font-semibold text-yellow-600">On Progress</span>',
-            'C'     => '<span class="inline-block w-28 rounded bg-green-300/30 px-3 py-1.5 text-sm font-semibold text-green-600">Completed</span>',
-            'R'     => '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Rejected</span>',
-            'X'     => '<span class="inline-block w-24 rounded bg-red-300/30 px-3 py-1.5 text-sm font-semibold text-red-600">Cancelled</span>',
-            default => '<span class="inline-block w-28 rounded bg-blue-300/30 px-3 py-1.5 text-sm font-semibold text-blue-600">Hold / Revise</span>',
+            'P'     => '<span class="w-32 bg-orange-200/60 text-orange-800 dark:bg-orange-300/40 dark:text-orange-900 pointer-events-none border border-orange-600/40 font-semibold px-4 py-2 text-center rounded">On Progress</span>',
+            'C'     => '<span class="w-32 bg-green-200/60 text-green-800 dark:bg-green-300/40 dark:text-green-900 pointer-events-none border border-green-600/40 font-semibold px-4 py-2 text-center rounded">Completed</span>',
+            'R'     => '<span class="w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded">Rejected</span>',
+            'X'     => '<span class="w-32 bg-red-200/60 text-red-800 dark:bg-red-300/40 dark:text-red-900 pointer-events-none border border-red-600/40 font-semibold px-4 py-2 text-center rounded">Cancel</span>',
+            default => '<span class="w-32 bg-amber-200/60 text-amber-800 dark:bg-amber-300/40 dark:text-amber-900 pointer-events-none border border-amber-600/40 font-semibold px-4 py-2 text-center rounded">Revise</span>',
         };
     }
 
@@ -827,14 +849,13 @@ class VplTransferController extends Controller
 
     private function saveMessage(TrxVplTransfer $transfer, string $message, $user): void
     {
-        T_Message::create([
-            'docid'        => $transfer->transfer_id,
-            'doctype'      => self::DOCTYPE,
-            'username'     => $user->username,
-            'name'         => $user->name,
-            'message'      => $message,
-            'status'       => 'A',
-            'created_user' => $user->name,
+        TrMessage::create([
+            'refnbr'     => $transfer->transfer_id,
+            'doctype'    => self::DOCTYPE,
+            'username'   => $user->username,
+            'name'       => $user->name,
+            'message'    => $message,
+            'created_by' => $user->name,
         ]);
     }
 

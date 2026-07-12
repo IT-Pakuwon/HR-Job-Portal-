@@ -29,15 +29,19 @@ const VplUsageInit = {
         VplUsageForm.initEditModal();
         VplUsageForm.initProductSearchModal();
 
-        // Deep-link: open view modal if URL has /usagevp/{id}
-        const pathParts = window.location.pathname.replace(/^\//, '').split('/');
-        if (pathParts[0] === 'usagevp' && pathParts[1] && !isNaN(pathParts[1])) {
-            VplUsageDetailModal.open(parseInt(pathParts[1], 10));
+        // Deep-link: open view modal if page was loaded via /showusagevp/{eid}
+        if (window.VplUsageConfig?.initialId) {
+            VplUsageDetailModal.open(window.VplUsageConfig.initialId);
         }
 
         window.addEventListener('popstate', (e) => {
-            if (e.state?.usageId) {
-                VplUsageDetailModal.open(e.state.usageId);
+            if (e.state?.usageEid) {
+                VplUsageDetailModal.open(VplUsage.state.currentViewId);
+            } else {
+                // Close without pushing a new history entry (we're already reacting to one)
+                const modal = document.getElementById('viewModal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
             }
         });
     },

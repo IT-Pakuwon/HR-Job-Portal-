@@ -2818,8 +2818,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/usagevp/completed', [VplUsageController::class, 'completed'])->name('usagevp.completed');
         Route::get('/usagevp/rejected', [VplUsageController::class, 'rejected'])->name('usagevp.rejected');
         Route::get('/usagevp/all', [VplUsageController::class, 'all'])->name('usagevp.all');
-        Route::get('/usagevp/{id}', [VplUsageController::class, 'show'])->name('usagevp.show');
-        Route::get('/usagevp/{id}/data', [VplUsageController::class, 'showData'])->name('usagevp.data');
+        Route::get('/usagevp/{id}', [VplUsageController::class, 'show'])->where('id', '[0-9]+')->name('usagevp.show');
+        Route::get('/usagevp/{id}/data', [VplUsageController::class, 'showData'])->where('id', '[0-9]+')->name('usagevp.data');
         Route::get('/showusagevp/{eid}', [VplUsageController::class, 'index'])->name('showusagevp');
         Route::post('/usagevp/ajax/warehouse', [VplUsageController::class, 'getUsageWarehouse'])->name('usagevp.warehouse');
         Route::post('/usagevp/ajax/products', [VplUsageController::class, 'getUsageProducts'])->name('usagevp.products');

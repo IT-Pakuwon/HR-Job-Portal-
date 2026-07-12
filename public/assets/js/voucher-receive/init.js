@@ -36,6 +36,21 @@ const VplReceiveInit = {
         // 6. Create and Edit forms
         VplReceiveForm.initCreateModal();
         VplReceiveForm.initEditModal();
+
+        // 7. Deep link — auto-open view modal when page is loaded with /showreceivevp/{eid}
+        if (window.VplReceiveConfig?.initialId) {
+            VplReceiveDetailModal.open(window.VplReceiveConfig.initialId);
+        }
+
+        // 8. Browser back/forward — close modal or reopen it to match history state
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.receiveId) {
+                VplReceiveDetailModal.open(VplReceive.state.currentViewId);
+            } else {
+                VplReceiveModal.close('viewModal');
+                $('#v_discussionPanel').addClass('hidden');
+            }
+        });
     },
 };
 

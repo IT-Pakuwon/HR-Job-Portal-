@@ -6,6 +6,9 @@ use App\Models\TrApproval;
 use App\Models\TrBookingCar;
 use App\Models\TrCS;
 use App\Models\TrVoucherTaxi;
+use App\Models\TrxVplReceive;
+use App\Models\TrxVplTransfer;
+use App\Models\TrxVplUsage;
 use App\Models\ViewDasAll;
 use App\Models\ViewJobApply;
 use App\Models\ViewtrPurch;
@@ -299,6 +302,105 @@ class ApprovalDashboardController extends Controller
             }
         } catch (\Throwable $e) {
             Log::warning('approvalJson CS fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VPT (Voucher Product Transfer) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $vptDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPT'))->values();
+            if ($vptDocids->isNotEmpty()) {
+                $vptM     = new TrxVplTransfer();
+                $vptConn  = $vptM->getConnectionName() ?: config('database.default');
+                $vptTable = $vptM->getTable();
+                $vptRows  = collect();
+                foreach ($vptDocids->chunk(1200) as $chunk) {
+                    $vptRows = $vptRows->concat(
+                        DB::connection($vptConn)
+                            ->table($vptTable)
+                            ->whereIn('transfer_id', $chunk->all())
+                            ->select(
+                                'id',
+                                'transfer_date as docdate',
+                                'cpnyid',
+                                'department as departementid',
+                                'transfer_remark as infohd',
+                                'transfer_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showtransfervp']))
+                    );
+                }
+                $data = $data->concat($vptRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VPT fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VPR (Voucher Product Receive) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $vprDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPR'))->values();
+            if ($vprDocids->isNotEmpty()) {
+                $vprM     = new TrxVplReceive();
+                $vprConn  = $vprM->getConnectionName() ?: config('database.default');
+                $vprTable = $vprM->getTable();
+                $vprRows  = collect();
+                foreach ($vprDocids->chunk(1200) as $chunk) {
+                    $vprRows = $vprRows->concat(
+                        DB::connection($vprConn)
+                            ->table($vprTable)
+                            ->whereIn('receive_id', $chunk->all())
+                            ->select(
+                                'id',
+                                'receive_date as docdate',
+                                'cpnyid',
+                                'department as departementid',
+                                'receive_remark as infohd',
+                                'receive_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showreceivevp']))
+                    );
+                }
+                $data = $data->concat($vprRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VPR fetch failed', [
+                'err' => $e->getMessage(),
+            ]);
+        }
+
+        // VPU (Voucher Product Usage) — not in v_all_das/v_all_trx; fetch directly
+        try {
+            $vpuDocids = $docids->filter(fn ($id) => str_starts_with($id, 'VPU'))->values();
+            if ($vpuDocids->isNotEmpty()) {
+                $vpuM     = new TrxVplUsage();
+                $vpuConn  = $vpuM->getConnectionName() ?: config('database.default');
+                $vpuTable = $vpuM->getTable();
+                $vpuRows  = collect();
+                foreach ($vpuDocids->chunk(1200) as $chunk) {
+                    $vpuRows = $vpuRows->concat(
+                        DB::connection($vpuConn)
+                            ->table($vpuTable)
+                            ->whereIn('usage_id', $chunk->all())
+                            ->select(
+                                'id',
+                                'usage_date as docdate',
+                                'cpnyid',
+                                'department as departementid',
+                                'usage_remark as infohd',
+                                'usage_id as docid'
+                            )
+                            ->get()
+                            ->map(fn ($r) => (object) array_merge((array) $r, ['url' => '/showusagevp']))
+                    );
+                }
+                $data = $data->concat($vpuRows);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('approvalJson VPU fetch failed', [
                 'err' => $e->getMessage(),
             ]);
         }

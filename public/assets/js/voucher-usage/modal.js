@@ -8,7 +8,7 @@ const VplUsageDetailModal = {
                 VplUsage.state.currentViewData = data;
                 VplUsageDetailModal.populate(data);
                 VplUsageDetailModal.show();
-                VplUsage.pushUrl(data.usage.id);
+                VplUsage.pushUrl(data.hash);
             })
             .fail(() => VplUsage.toast('error', 'Failed to load usage data.'));
     },
@@ -145,7 +145,7 @@ const VplUsageDetailModal = {
                     VplUsageDetailModal.open(id);
                     VplUsageDatalist.refresh();
                 })
-                .fail((x) => VplUsage.toast('error', x.responseJSON?.error ?? 'Approve failed.'));
+                .fail((x) => VplUsage.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Approve failed.'));
         };
 
         document.getElementById('v_reviseBtn').onclick = async () => {
@@ -158,7 +158,7 @@ const VplUsageDetailModal = {
                     VplUsageDetailModal.open(id);
                     VplUsageDatalist.refresh();
                 })
-                .fail((x) => VplUsage.toast('error', x.responseJSON?.error ?? 'Revise failed.'));
+                .fail((x) => VplUsage.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Revise failed.'));
         };
 
         document.getElementById('v_rejectBtn').onclick = async () => {
@@ -171,7 +171,7 @@ const VplUsageDetailModal = {
                     VplUsageDetailModal.open(id);
                     VplUsageDatalist.refresh();
                 })
-                .fail((x) => VplUsage.toast('error', x.responseJSON?.error ?? 'Reject failed.'));
+                .fail((x) => VplUsage.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Reject failed.'));
         };
     },
 
@@ -188,7 +188,7 @@ const VplUsageDetailModal = {
                     VplUsageDetailModal.hide();
                     VplUsageDatalist.refresh();
                 })
-                .fail((x) => VplUsage.toast('error', x.responseJSON?.error ?? 'Cancel failed.'));
+                .fail((x) => VplUsage.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Cancel failed.'));
         };
 
         document.getElementById('v_editBtn').onclick = () => {

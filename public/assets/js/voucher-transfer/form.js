@@ -98,27 +98,76 @@ const VplTransferForm = {
         $.post(VplTransfer.routes.fromWhs, {
             _token: VplTransfer.csrf(),
             cpnyid, department: dept, vp_type: vpType, transfertype: transType,
-        }).done((whs) => {
-            const whsId  = whs?.whs_id ?? '';
-            const row    = document.getElementById(`${prefix}_row_${rowIdx}`);
+        }).done((list) => {
+            const row = document.getElementById(`${prefix}_row_${rowIdx}`);
             if (!row) return;
 
-            row.querySelector(`.${prefix}-from-whs-input`).value        = whsId;
-            row.querySelector(`.${prefix}-from-whs-display`).textContent = whsId || '—';
+            const input   = row.querySelector(`.${prefix}-from-whs-input`);
+            const $sel    = $(row).find(`.${prefix}-from-whs-sel`);
+            const isMulti = list.length > 1;
 
-            // Show warning and disable submit when department has no assigned warehouse
-            if (prefix === 'c') {
-                const warning   = document.getElementById('c_whs_warning');
-                const submitBtn = document.getElementById('submitCreateBtn');
-                if (!whsId) {
-                    warning?.classList.remove('hidden');
-                    if (submitBtn) { submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); }
-                } else {
-                    warning?.classList.add('hidden');
-                    if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
-                }
+            if (!$sel.data('select2')) {
+                $sel.select2({ placeholder: 'Select WHS', allowClear: true, width: '100%' });
+            }
+
+            // Always the same select2 dropdown — enabled to pick from when there are
+            // multiple candidates, pre-selected & disabled (read-only) when there's just one.
+            $sel.empty().append('<option value="">Select WHS</option>');
+            list.forEach((w) => $sel.append(new Option(w.whs_id, w.whs_id)));
+
+            if (isMulti) {
+                input.value = '';
+                $sel.prop('disabled', false).val('').trigger('change.select2');
+                VplTransferForm.updateWhsWarning(prefix, '', false);
+            } else {
+                // Exactly one (or zero) candidate — auto-fill, lock the picker
+                const whsId = list[0]?.whs_id ?? '';
+                input.value = whsId;
+                $sel.prop('disabled', true).val(whsId || '').trigger('change.select2');
+                VplTransferForm.updateWhsWarning(prefix, whsId, list.length === 0);
             }
         }).fail(() => VplTransfer.toast('warning', 'Could not load FROM warehouse.'));
+    },
+
+    // Show warning and disable submit when the create form has no FROM warehouse resolved yet.
+    // noWarehouseRegistered distinguishes "dept truly has 0 candidates" (show banner) from
+    // "dept has several candidates but user hasn't picked one yet" (submit stays disabled, no banner).
+    updateWhsWarning(prefix, whsId, noWarehouseRegistered = !whsId) {
+        if (prefix !== 'c') return;
+        const warning   = document.getElementById('c_whs_warning');
+        const submitBtn = document.getElementById('submitCreateBtn');
+        if (!whsId) {
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed'); }
+            warning?.classList.toggle('hidden', !noWarehouseRegistered);
+        } else {
+            warning?.classList.add('hidden');
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+        }
+    },
+
+    // Fired when the user picks a warehouse from the FROM WHS dropdown (multi-candidate case)
+    onFromWhsChange(mode, selectEl) {
+        const prefix = mode === 'create' ? 'c' : 'e';
+        const row    = selectEl.closest('tr');
+        if (!row) return;
+        const idx   = parseInt(row.dataset.idx, 10);
+        const whsId = selectEl.value;
+
+        row.querySelector(`.${prefix}-from-whs-input`).value = whsId;
+        // This handler only fires from the multi-candidate dropdown, so warehouses ARE
+        // registered — never show the "not registered" banner here, even if cleared back to empty.
+        VplTransferForm.updateWhsWarning(prefix, whsId, false);
+
+        // Reset the product pick since the FROM warehouse changed
+        row.querySelector(`.${prefix}-product-id-input`).value        = '';
+        row.querySelector(`.${prefix}-product-display`).textContent   = '— Select —';
+        row.querySelector(`.${prefix}-product-display`).title         = '';
+        row.querySelector(`.${prefix}-qty-avail-input`).value         = '0';
+        row.querySelector(`.${prefix}-qty-avail-display`).textContent = '0';
+        row.querySelector(`.${prefix}-exp-input`).value               = '';
+        row.querySelector(`.${prefix}-exp-display`).textContent       = '—';
+
+        if (whsId) VplTransferForm.loadToWhs(mode, idx);
     },
 
     // ------------------------------------------------------------------
@@ -283,6 +332,11 @@ const VplTransferForm = {
             if (btn) VplTransferForm.openProductSearch('create', parseInt(btn.dataset.idx, 10));
         });
 
+        // FROM WHS dropdown change (only visible when a dept/vp_type has >1 assigned warehouse)
+        $('#c_detailBody').on('change', '.c-from-whs-sel', function () {
+            VplTransferForm.onFromWhsChange('create', this);
+        });
+
         // Submit
         document.getElementById('submitCreateBtn').addEventListener('click', () => VplTransferForm.submitCreate());
     },
@@ -313,7 +367,7 @@ const VplTransferForm = {
             VplTransferForm.resetCreateModal();
         })
         .fail((x) => {
-            VplTransfer.toast('error', x.responseJSON?.error ?? 'Submit failed.');
+            VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
         });
     },
 
@@ -486,6 +540,11 @@ const VplTransferForm = {
             if (btn) VplTransferForm.openProductSearch('edit', parseInt(btn.dataset.idx, 10));
         });
 
+        // FROM WHS dropdown change (only visible when a dept/vp_type has >1 assigned warehouse)
+        $('#e_detailBody').on('change', '.e-from-whs-sel', function () {
+            VplTransferForm.onFromWhsChange('edit', this);
+        });
+
         // Submit
         document.getElementById('submitEditBtn').addEventListener('click', () => VplTransferForm.submitEdit());
     },
@@ -509,7 +568,7 @@ const VplTransferForm = {
             VplTransferDatalist.refresh();
         })
         .fail((x) => {
-            VplTransfer.toast('error', x.responseJSON?.error ?? 'Submit failed.');
+            VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
         });
     },
 
@@ -548,8 +607,8 @@ const VplTransferForm = {
 
             // If from_whs came back from product search, fill it
             if (fromWhs) {
-                row.querySelector(`.${prefix}-from-whs-input`).value       = fromWhs;
-                row.querySelector(`.${prefix}-from-whs-display`).textContent = fromWhs;
+                row.querySelector(`.${prefix}-from-whs-input`).value = fromWhs;
+                $(row).find(`.${prefix}-from-whs-sel`).val(fromWhs).trigger('change.select2');
                 VplTransferForm.loadToWhs(mode, rowIdx);
             }
 
