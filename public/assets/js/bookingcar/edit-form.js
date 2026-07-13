@@ -55,6 +55,14 @@ const BookingCarEditForm = {
             BookingCarEditForm.filterUserByDept();
         });
 
+        // Total Passenger — block negative values as the user types or spins
+        document.getElementById('edit_passenger')
+            ?.addEventListener('input', (e) => {
+                if (e.target.value !== '' && parseInt(e.target.value, 10) < 0) {
+                    e.target.value = '0';
+                }
+            });
+
         // Driver dropdown change — auto-fill handphone
         document.getElementById('ga_driver')
             ?.addEventListener('change', (e) => {

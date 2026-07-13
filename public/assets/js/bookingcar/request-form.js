@@ -34,6 +34,14 @@ const BookingCarForm = {
         $('#department_id, #cpny_id_site').on('change.bookingFilter', function () {
             BookingCarForm.filterUserByDept();
         });
+
+        // Total Passenger — block negative values as the user types or spins
+        document.getElementById('passenger')
+            ?.addEventListener('input', (e) => {
+                if (e.target.value !== '' && parseInt(e.target.value, 10) < 0) {
+                    e.target.value = '0';
+                }
+            });
     },
 
     // --------------------------------------------------------
@@ -194,8 +202,8 @@ const BookingCarForm = {
             return false;
         }
 
-        if (BookingCarHelper.isEmpty(passenger) || parseInt(passenger) < 1) {
-            BookingCar.toast('warning', 'Total passenger must be at least 1.');
+        if (BookingCarHelper.isEmpty(passenger) || parseInt(passenger) < 0) {
+            BookingCar.toast('warning', 'Total passenger cannot be negative.');
             return false;
         }
 

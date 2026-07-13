@@ -343,7 +343,7 @@
 
                                 </label>
 
-                                <input type="number" id="passenger" name="passenger" min="1"
+                                <input type="number" id="passenger" name="passenger" min="0"
                                     placeholder="Input total passenger"
                                     class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]"
                                     required>
@@ -1192,7 +1192,7 @@
                                     Total Passenger *
                                 </label>
 
-                                <input type="number" id="edit_passenger" name="passenger" min="1"
+                                <input type="number" id="edit_passenger" name="passenger" min="0"
                                     placeholder="Input total passenger"
                                     class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm dark:border-white/10 dark:bg-[#0b1220]"
                                     required>
