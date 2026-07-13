@@ -2047,8 +2047,9 @@ class ItRecommendationController extends Controller
 
         $header = TrItrecommend::findOrFail($id);
 
-        $approverUsernames = TrApproval::where('refnbr', $header->docid)
-            ->pluck('aprv_username');
+        $approverUsernames = \App\Services\DocumentNotificationService::splitApproverUsernames(
+            TrApproval::where('refnbr', $header->docid)->pluck('aprv_username')
+        );
 
         $roleUsernames = SysUserRole::where('role_id', 'ITHARDWARE')
             ->where('status', 'A')
