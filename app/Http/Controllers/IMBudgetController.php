@@ -1417,6 +1417,11 @@ class IMBudgetController extends Controller
                 throw new \Exception("Tidak ada nilai expense yang valid untuk RFP {$sourceDocid}.");
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Helper ambil remain budget
+            |--------------------------------------------------------------------------
+            */
             $getBudgetRemain = function ($perpost, $cpny, $bu, $deptfin, $account, $activity, $actdescr): float {
                 $q = BudgetDetail::query()
                     ->where('perpost', $perpost)
@@ -1434,8 +1439,12 @@ class IMBudgetController extends Controller
                     return 0.0;
                 }
 
-                return ((float) ($row->totalbudget ?? 0) + (float) ($row->totalbudget_add ?? 0))
-                    - ((float) ($row->total_reserve ?? 0) + (float) ($row->total_used ?? 0));
+                $totalBudget = (float) ($row->totalbudget ?? 0);
+                $totalAdditional = (float) ($row->totalbudget_add ?? 0);
+                $totalReserve = (float) ($row->total_reserve ?? 0);
+                $totalUsed = (float) ($row->total_used ?? 0);
+
+                return ($totalBudget + $totalAdditional) - ($totalReserve + $totalUsed);
             };
 
             $needDetails = [];
@@ -1558,6 +1567,17 @@ class IMBudgetController extends Controller
                 $detail->created_at = $dt;
                 $detail->save();
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update Source RFP Purchase
+            |--------------------------------------------------------------------------
+            */
+            $rfp->imbudgetid = $header->imbudgetid;
+            $rfp->status_imbudget = 'H';
+            $rfp->updated_by = $username;
+            $rfp->updated_at = $dt;
+            $rfp->save();
 
             $eid = Hashids::encode($header->id);
 
@@ -4383,7 +4403,13 @@ class IMBudgetController extends Controller
         string $username,
         \Carbon\Carbon $now
     ): void {
-        // TODO: isi nanti kalau model/table RFP sudah diberikan.
+        TrRfp::where('rfp_id', $rfpId)
+            ->update([
+                'imbudgetid' => $imbudgetid,
+                'status_imbudget' => $statusIm,
+                'updated_by' => $username,
+                'updated_at' => $now,
+            ]);
     }
 
 

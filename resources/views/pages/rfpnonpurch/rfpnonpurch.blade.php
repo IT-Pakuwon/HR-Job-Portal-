@@ -86,7 +86,7 @@
             @endif
         </div>
 
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="mt-3 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-3">
                     <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
@@ -601,6 +601,9 @@
                 ],
                 searchDelay: 400,
                 stateSave: true,
+                stateLoadParams: function(settings, data) {
+                    data.order = [[1, 'desc']];
+                },
                 responsive: true
             });
 

@@ -167,12 +167,12 @@ class RfpController extends Controller
             8  => 'rfp.vendor_name',
             9  => 'rfp.keperluan',
             10 => 'rfp.rfp_amount',
-            11 => 'rfp.status',
+            12 => 'rfp.status',
         ];
 
-        $orderIdx = (int) $request->input('order.0.column', 2);
+        $orderIdx = (int) $request->input('order.0.column', 1);
         $orderDir = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
-        $orderCol = $columns[$orderIdx] ?? 'rfp.rfp_date';
+        $orderCol = $columns[$orderIdx] ?? 'rfp.rfp_id';
 
         $base = TrRfp::from($baseTable . ' as rfp')
             ->whereIn('rfp.cpny_id', $cpnyIds)
@@ -327,6 +327,8 @@ class RfpController extends Controller
         if (!$user) {
             return redirect()->route('login');
         }
+        $hasApFinAccess = $user->hasRole('APFINACCESS');
+        $hasApTreAccess = $user->hasRole('APTREACCESS');
 
         $rfp = TrRfp::with([
             'creator:username,name',
@@ -490,7 +492,22 @@ class RfpController extends Controller
         if ($bastId) {
             $bastHash = Hashids::encode($bastId);
             $bastUrl = url("/showbast/{$bastHash}");
-        }       
+        }
+
+        $imbudgetUrl = null;
+        $imbudgetId = trim((string) ($rfp->imbudgetid ?? ''));
+
+        if ($imbudgetId !== '') {
+            $imbudget = TrIMBudget::query()
+                ->where('imbudgetid', $imbudgetId)
+                ->orderByDesc('id')
+                ->first();
+
+            if ($imbudget) {
+                $imbudgetHash = Hashids::encode($imbudget->id);
+                $imbudgetUrl = url('/showimbudgets/' . $imbudgetHash);
+            }
+        }
 
         $rows = TrAttachment::where('refnbr', $rfp->rfp_id)
             ->where('status', 'A')
@@ -669,12 +686,15 @@ class RfpController extends Controller
         $imBlockingStatus = $blockingIMBudget->status ?? null;
 
         $rfpSteps = collect();
+        $createdStepUser = strtoupper(trim((string) $rfp->type_po)) === 'KONTRAK'
+            ? ($rfp->user_peminta ?: '-')
+            : ($rfp->created_by ?: '-');
 
         // 1. CREATED
         $rfpSteps->push([
             'order' => 1,
             'description' => 'RFP Created',
-            'user' => $rfp->created_by,
+            'user' => $createdStepUser,
             'date' => $rfp->created_at,
             'status' => 'Done',
         ]);
@@ -713,10 +733,13 @@ class RfpController extends Controller
             'csUrl',
             'sppbjktUrl',
             'bastUrl',
+            'imbudgetUrl',
             'typepayment',
             'rfpSteps',
             'terbilang',
-            'kontrakBudgets'
+            'kontrakBudgets',
+            'hasApFinAccess',
+            'hasApTreAccess'
         ));
     }
 
@@ -1404,9 +1427,6 @@ class RfpController extends Controller
                 'message' => 'Finance receive belum completed.'
             ], 422);
         }
-
-        $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->loadLines($doctype, $rfp->cpny_id, $rfp->department_id);
 
         $updatedBy = $user->username ?? $user->name;
 
