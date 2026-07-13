@@ -574,6 +574,17 @@ class DocumentNotificationService
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();
     }
 
+    // aprv_username can hold a comma/semicolon-separated list of usernames for a single
+    // multi-approver level (see ApprovalController::normalizeApproverList) — split those
+    // out so each individual approver resolves to a User row instead of the whole combined
+    // string silently failing to match any username and dropping out of the audience.
+    public static function splitApproverUsernames(\Illuminate\Support\Collection $raw): \Illuminate\Support\Collection
+    {
+        return $raw->flatMap(fn ($u) => preg_split('/[;,]/', (string) $u) ?: [])
+            ->map(fn ($u) => trim($u))
+            ->filter();
+    }
+
     // Creator + approval-line-equivalent audience for a plain (non-mention) comment.
     private static function resolveCommentRecipients(string $doctype, $doc): \Illuminate\Support\Collection
     {
@@ -594,9 +605,11 @@ class DocumentNotificationService
             $creatorUsernames = collect($extCfg['creatorFields'])->map(fn($f) => $doc->{$f} ?? null);
 
             $approvalUsernames = !empty($extCfg['approvalDoctype'])
-                ? TrApproval::where('refnbr', $doc->{$extCfg['idCol']})
-                    ->where('aprv_doctype', $extCfg['approvalDoctype'])
-                    ->pluck('aprv_username')
+                ? self::splitApproverUsernames(
+                    TrApproval::where('refnbr', $doc->{$extCfg['idCol']})
+                        ->where('aprv_doctype', $extCfg['approvalDoctype'])
+                        ->pluck('aprv_username')
+                )
                 : collect();
 
             $picUsernames = isset($extCfg['picField']) ? collect([$doc->{$extCfg['picField']} ?? null]) : collect();
@@ -613,7 +626,7 @@ class DocumentNotificationService
 
         // ACR and ITR both use user_peminta/created_by + TrApproval approval line, keyed by docid.
         return collect([$doc->user_peminta, $doc->created_by])
-            ->merge(TrApproval::where('refnbr', $doc->docid)->pluck('aprv_username'))
+            ->merge(self::splitApproverUsernames(TrApproval::where('refnbr', $doc->docid)->pluck('aprv_username')))
             ->filter()
             ->map(fn($u) => strtolower(trim($u)))
             ->unique();

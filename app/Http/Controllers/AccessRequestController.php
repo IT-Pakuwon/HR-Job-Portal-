@@ -1853,8 +1853,9 @@ class AccessRequestController extends Controller
 
         $access = TrAccess::findOrFail($id);
 
-        $approverUsernames = TrApproval::where('refnbr', $access->docid)
-            ->pluck('aprv_username');
+        $approverUsernames = \App\Services\DocumentNotificationService::splitApproverUsernames(
+            TrApproval::where('refnbr', $access->docid)->pluck('aprv_username')
+        );
 
         $roleUsernames = SysUserRole::whereIn('role_id', ['ITHARDWARE', 'ITSOFTWARE'])
             ->where('status', 'A')

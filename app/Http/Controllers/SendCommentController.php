@@ -35,9 +35,11 @@ class SendCommentController extends Controller
         $creatorUsernames = collect($config['creatorFields'])->map(fn ($f) => $doc->{$f} ?? null);
 
         $approvalUsernames = !empty($config['approvalDoctype'])
-            ? TrApproval::where('refnbr', $id)
-                ->where('aprv_doctype', $config['approvalDoctype'])
-                ->pluck('aprv_username')
+            ? DocumentNotificationService::splitApproverUsernames(
+                TrApproval::where('refnbr', $id)
+                    ->where('aprv_doctype', $config['approvalDoctype'])
+                    ->pluck('aprv_username')
+            )
             : collect();
 
         $picUsernames = isset($config['picField']) ? collect([$doc->{$config['picField']} ?? null]) : collect();
