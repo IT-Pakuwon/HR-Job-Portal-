@@ -292,6 +292,7 @@ function docNotifications() {
         toast: { show: false, item: null },
         _seenKey:      'doc_notif_seen_v1',
         _firstSeenKey: 'doc_notif_first_v1',
+        _pendingKey:   'doc_notif_pending_dismiss_v1',
 
         // Returns styling config for each status type.
         // All class strings are full literals so Tailwind v4 includes them.
@@ -419,7 +420,49 @@ function docNotifications() {
             } catch (e) { /* AudioContext not supported */ }
         },
 
+        // ── Pending dismiss queue (survives a lost sendBeacon/keepalive call) ──
+        // The click handler removes an item from view instantly for a snappy UI, but the
+        // actual mark-read POST is fire-and-forget (sendBeacon has no success callback, and
+        // a stale CSRF/session token on a long-open tab makes it fail silently). Without this
+        // queue a lost request means the "dismissed" comment just comes back on the next poll.
+        _getPending() {
+            try { return JSON.parse(localStorage.getItem(this._pendingKey) || '[]'); } catch { return []; }
+        },
+
+        _addPending(keys) {
+            const pending = new Set(this._getPending());
+            keys.forEach(k => pending.add(k));
+            localStorage.setItem(this._pendingKey, JSON.stringify([...pending]));
+        },
+
+        _clearPending(keys) {
+            const remove = new Set(keys);
+            const remaining = this._getPending().filter(k => !remove.has(k));
+            localStorage.setItem(this._pendingKey, JSON.stringify(remaining));
+        },
+
+        // Retries any dismiss that never made it to the server, using a real awaited fetch
+        // (not sendBeacon) so we get a definitive success/failure instead of firing blind.
+        async _flushPending() {
+            const pending = this._getPending();
+            if (pending.length === 0) return;
+
+            try {
+                const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                const res = await fetch('/document-notifications/mark-read', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify({ keys: pending }),
+                });
+                if (res.ok) this._clearPending(pending);
+            } catch (e) { /* still pending, retried on next poll */ }
+        },
+
         async load() {
+            await this._flushPending();
             try {
                 const res = await fetch('/my-document-notifications', { headers: { 'Accept': 'application/json' } });
                 if (!res.ok) return;
@@ -495,6 +538,10 @@ function docNotifications() {
         // input('_token') before falling back to the X-CSRF-TOKEN header.
         _sendMarkRead(keys) {
             if (!keys || keys.length === 0) return;
+
+            // Recorded first so a lost beacon/keepalive call still gets retried by
+            // _flushPending() on the next poll instead of silently reappearing.
+            this._addPending(keys);
 
             const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
             const payload = JSON.stringify({ keys, _token: csrf });

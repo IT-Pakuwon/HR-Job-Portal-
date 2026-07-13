@@ -113,6 +113,59 @@ const VplUsageForm = {
         });
     },
 
+    // ------------------------------------------------------------------
+    // USAGE DATE (CUSTOMERSERVICE backdate, H-14)
+    // ------------------------------------------------------------------
+
+    USAGE_DATE_BACKDATE_DAYS: 14,
+
+    toggleUsageDateSection() {
+        const dept      = document.getElementById('c_department')?.value ?? '';
+        const usageType = document.getElementById('c_usagetype')?.value ?? '';
+        const show      = dept === 'CUSTOMERSERVICE' && usageType === 'Usage';
+
+        const wrapper = document.getElementById('c_usage_date_wrapper');
+        const input   = document.getElementById('c_usage_date');
+        wrapper?.classList.toggle('hidden', !show);
+
+        if (show && input) {
+            const today = new Date();
+            const earliest = new Date();
+            earliest.setDate(today.getDate() - VplUsageForm.USAGE_DATE_BACKDATE_DAYS);
+            const toISO = (d) => d.toISOString().substring(0, 10);
+            input.max = toISO(today);
+            input.min = toISO(earliest);
+            if (!input.value) input.value = toISO(today);
+        } else if (input) {
+            input.value = '';
+        }
+    },
+
+    /** Returns true if valid, otherwise toasts an error and returns false. */
+    validateUsageDate() {
+        const wrapper = document.getElementById('c_usage_date_wrapper');
+        if (wrapper?.classList.contains('hidden')) return true;
+
+        const input = document.getElementById('c_usage_date');
+        const value = input?.value ?? '';
+        if (!value) {
+            VplUsage.toast('error', 'Usage Date is required.');
+            return false;
+        }
+
+        const selected = new Date(value + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const earliest = new Date(today);
+        earliest.setDate(today.getDate() - VplUsageForm.USAGE_DATE_BACKDATE_DAYS);
+
+        if (selected < earliest || selected > today) {
+            VplUsage.toast('error', `Usage Date must be within H-${VplUsageForm.USAGE_DATE_BACKDATE_DAYS} to today.`);
+            return false;
+        }
+        return true;
+    },
+
     setReviewEnabled(enabled) {
         const reviewBtn = document.getElementById('c_reviewBtn');
         if (!reviewBtn) return;
@@ -198,6 +251,8 @@ const VplUsageForm = {
         document.getElementById(`${prefix}_ref_wrapper`)?.classList.toggle('hidden', !isReturn);
         document.getElementById(`${prefix}_whs_wrapper`)?.classList.toggle('hidden', isReturn);
 
+        if (prefix === 'c') VplUsageForm.toggleUsageDateSection();
+
         const addRowBtn = document.getElementById(`${prefix}_addRow`);
         if (addRowBtn) addRowBtn.classList.toggle('hidden', isReturn);
 
@@ -228,6 +283,7 @@ const VplUsageForm = {
         document.getElementById('openCreateBtn').addEventListener('click', () => {
             VplUsageForm.showModal('createModal');
             setTimeout(() => VplUsageForm.loadWarehouseOptions('create'), 50);
+            VplUsageForm.toggleUsageDateSection();
         });
 
         ['closeCreateModal', 'closeCreateModalFooter'].forEach((id) => {
@@ -254,6 +310,7 @@ const VplUsageForm = {
         });
 
         $('#c_cpnyid, #c_department, #c_vp_type').on('change', () => VplUsageForm.loadWarehouseOptions('create'));
+        $('#c_department').on('change', () => VplUsageForm.toggleUsageDateSection());
         $('#c_whs_id').on('change', () => VplUsageForm.applyWarehouseToRows('create', $('#c_whs_id').val() ?? ''));
         $('#c_usagetype').on('change', () => VplUsageForm.onUsageTypeChange('create'));
         $('#c_ref_usage_id').on('change', () => VplUsageForm.loadReturnLines('create'));
@@ -272,6 +329,8 @@ const VplUsageForm = {
             VplUsage.toast('error', 'Please select a Reference Usage Doc for Return.');
             return;
         }
+
+        if (!VplUsageForm.validateUsageDate()) return;
 
         const fd = new FormData(form);
 
@@ -311,6 +370,7 @@ const VplUsageForm = {
         document.getElementById('c_ref_wrapper').classList.add('hidden');
         document.getElementById('c_whs_wrapper').classList.remove('hidden');
         document.getElementById('c_addRow').classList.remove('hidden');
+        VplUsageForm.toggleUsageDateSection();
         VplUsageForm.showFormView('create');
     },
 
@@ -536,6 +596,10 @@ const VplUsageForm = {
             : (document.getElementById('e_usagetype_display')?.value ?? '');
         const refId    = document.getElementById(`${prefix}_ref_usage_id`)?.value ?? document.getElementById('e_ref_display')?.value ?? '';
         const remark   = document.getElementById(`${prefix}_remark`)?.value ?? '';
+        const usageDateWrapper = document.getElementById('c_usage_date_wrapper');
+        const usageDate = (prefix === 'c' && !usageDateWrapper?.classList.contains('hidden'))
+            ? document.getElementById('c_usage_date')?.value ?? ''
+            : '';
 
         const headerEl = document.getElementById(`${prefix}_previewHeader`);
         headerEl.innerHTML = `
@@ -544,6 +608,7 @@ const VplUsageForm = {
             <div><div class="text-xs text-slate-500">V/P Type</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${vpLabel}</div></div>
             <div><div class="text-xs text-slate-500">Usage Type</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${typeLabel}</div></div>
             ${refId ? `<div><div class="text-xs text-slate-500">Reference Doc</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${refId}</div></div>` : ''}
+            ${usageDate ? `<div><div class="text-xs text-slate-500">Usage Date</div><div class="mt-1 font-medium text-slate-800 dark:text-slate-100">${usageDate}</div></div>` : ''}
             <div class="md:col-span-4"><div class="text-xs text-slate-500">Remark</div><div class="mt-1 text-slate-700 dark:text-slate-200">${remark || '—'}</div></div>
         `;
 
