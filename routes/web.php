@@ -795,6 +795,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/cslist', [CsListController::class, 'index'])->name('cslist');
         Route::get('/cslist/json', [CsListController::class, 'json'])->name('cslist.json');
         Route::get('/pdf_cs/{hash}', [CanvassController::class, 'printCS']);
+        Route::get('/export_cs/{hash}', [CanvassController::class, 'exportDetail'])->name('cs.export');
         Route::get('/showcs/{hash}', [CanvassController::class, 'showCS']);
         Route::get('/showbqcs/{hash}', [BQCSController::class, 'showBQCS'])->name('bqcs.show');
         Route::get('/cs/lastprice/history', [CanvassController::class, 'getLastPriceHistory'])->name('cs.lastprice.history');
@@ -1685,6 +1686,8 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/prizes/{event_id}', 'prizesByEvent')->name('spinwheel.prizesByEvent');
                     Route::get('/summary/{event_id}', 'summary')->name('spinwheel.summary');
                     Route::get('/winner-json', 'winnerJson')->name('spinwheel.winnerJson');
+                    Route::get('/current-draw/{event_id}', 'currentDraw')->name('spinwheel.currentDraw');
+                    Route::get('/active-event', 'activeEventStatus')->name('spinwheel.activeEventStatus');
                 });
 
                 Route::post('/pick-candidates', 'pickCandidates')->name('spinwheel.pickCandidates');
@@ -1694,6 +1697,10 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/import-preview', 'importPreview')->name('spinwheel.importPreview');
                 Route::post('/import', 'import')->name('spinwheel.import');
                 Route::post('/confirm-winner', 'confirmWinner')->name('spinwheel.confirmWinner');
+                Route::post('/reject-candidate', 'rejectCandidate')->name('spinwheel.rejectCandidate');
+                Route::post('/save-settings', 'saveSettings')->name('spinwheel.saveSettings');
+                Route::post('/go-live', 'goLive')->name('spinwheel.goLive');
+                Route::post('/end-live', 'endLive')->name('spinwheel.endLive');
             });
         });
 

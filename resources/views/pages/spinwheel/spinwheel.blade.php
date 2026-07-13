@@ -1,30 +1,8 @@
 <x-app-layout>
 
-    @php
-        $isAdmin = auth()->user()->user_role === 'admin';
-    @endphp
-
     <style>
         header.sticky {
             display: none;
-        }
-
-        @keyframes wheelPulseGlow {
-            0%, 100% { box-shadow: 0 0 40px 0 rgba(139, 92, 246, .45), 0 10px 40px -5px rgba(88, 28, 135, .5); }
-            50% { box-shadow: 0 0 70px 12px rgba(236, 72, 153, .55), 0 10px 40px -5px rgba(88, 28, 135, .5); }
-        }
-
-        #wheel {
-            animation: wheelPulseGlow 3s ease-in-out infinite;
-        }
-
-        @keyframes twinkleLight {
-            0%, 100% { opacity: .35; transform: translate(-50%, -50%) rotate(var(--r)) translateY(-165px) scale(.85); }
-            50% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--r)) translateY(-165px) scale(1.2); }
-        }
-
-        .wheel-light {
-            animation: twinkleLight 1.6s ease-in-out infinite;
         }
 
         @keyframes spinBtnGlow {
@@ -34,6 +12,14 @@
 
         #spinBtn:not(:disabled) {
             animation: spinBtnGlow 2s ease-in-out infinite;
+        }
+
+        #spinwheelRoot:fullscreen,
+        #spinwheelRoot:-webkit-full-screen {
+            height: 100dvh;
+            width: 100vw;
+            max-width: none;
+            border-radius: 0;
         }
 
         .spinwheel-dark .neon-dots {
@@ -172,7 +158,7 @@
 
     <div class="max-w-9xl mx-auto w-full">
 
-        <div class="spinwheel-dark relative h-[calc(100dvh-72px)] overflow-y-auto rounded-3xl bg-gradient-to-br from-[#0b0a1a] via-[#151129] to-[#0b0a1a] p-4 shadow-2xl ring-1 ring-white/10 sm:p-8">
+        <div id="spinwheelRoot" class="spinwheel-dark relative flex h-[calc(100dvh-72px)] flex-col overflow-y-auto rounded-3xl bg-gradient-to-br from-[#0b0a1a] via-[#151129] to-[#0b0a1a] p-4 shadow-2xl ring-1 ring-white/10 sm:p-8">
 
             <div class="neon-dots pointer-events-none absolute inset-0 opacity-30"></div>
 
@@ -189,27 +175,79 @@
                     </p>
                 </div>
 
-                <div class="w-full sm:w-[26rem]">
-                    <select id="eventSelect" class="w-full">
+                <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
 
-                        <option value=""></option>
+                    @if ($isOperator)
+                        <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
 
-                        @foreach ($events as $event)
-                            <option value="{{ $event->event_id }}">
-                                {{ $event->event_name }} ({{ \Carbon\Carbon::parse($event->event_date)->format('d M Y') }})
-                            </option>
-                        @endforeach
+                            <div class="w-full sm:w-[26rem]">
+                                <select id="eventSelect" class="w-full">
 
-                    </select>
+                                    <option value=""></option>
+
+                                    @foreach ($events as $event)
+                                        <option value="{{ $event->event_id }}">
+                                            {{ $event->event_name }} ({{ \Carbon\Carbon::parse($event->event_date)->format('d M Y') }})
+                                        </option>
+                                    @endforeach
+
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span id="liveBadge" class="hidden items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-400 ring-1 ring-emerald-400/30">
+                                    <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> LIVE
+                                </span>
+                                <button type="button" id="goLiveBtn" disabled
+                                    class="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-40">
+                                    🔴 Go Live
+                                </button>
+                                <button type="button" id="endLiveBtn"
+                                    class="hidden rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/10">
+                                    End Live
+                                </button>
+                            </div>
+
+                        </div>
+                    @else
+                        <div class="text-right">
+                            <p id="audienceEventName" class="text-sm font-semibold text-white">
+                                @if ($activeEvent)
+                                    {{ $activeEvent->event_name }}
+                                @else
+                                    Waiting for event to start
+                                @endif
+                            </p>
+                            <p id="audienceEventDate" class="text-xs text-slate-400 {{ $activeEvent ? '' : 'hidden' }}">
+                                @if ($activeEvent)
+                                    {{ \Carbon\Carbon::parse($activeEvent->event_date)->format('d M Y') }}
+                                @endif
+                            </p>
+                        </div>
+                    @endif
+
+                    <button type="button" id="fullscreenBtn" title="Toggle Fullscreen"
+                        class="flex h-11 w-11 shrink-0 items-center justify-center self-end rounded-xl border border-white/15 bg-white/5 text-lg text-slate-200 transition hover:bg-white/10 sm:self-auto">
+                        ⛶
+                    </button>
+
                 </div>
 
             </div>
 
-            <div id="eventWorkspace" class="relative hidden">
+            @if (!$isOperator)
+                <div id="audienceWaiting" class="relative {{ $activeEvent ? 'hidden' : '' }} flex flex-col items-center justify-center gap-4 py-24 text-center">
+                    <div class="text-5xl">⏳</div>
+                    <h2 class="text-xl font-bold text-white">Waiting for the event to start</h2>
+                    <p class="max-w-sm text-sm text-slate-400">The organizer hasn't gone live yet. This page will update automatically once the draw begins.</p>
+                </div>
+            @endif
+
+            <div id="eventWorkspace" class="relative flex min-h-0 flex-1 flex-col {{ ($isOperator || !$activeEvent) ? 'hidden' : '' }}">
 
                 {{-- STATS --}}
-                @if ($isAdmin)
-                    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                @if ($isOperator)
+                    <div class="mb-6 shrink-0 grid grid-cols-1 gap-4 sm:grid-cols-3">
 
                         <div class="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm transition hover:-translate-y-0.5 hover:bg-white/[.07]">
                             <div class="flex items-center justify-between">
@@ -250,12 +288,12 @@
                     </div>
                 @endif
 
-                <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
+                <div class="grid min-h-0 flex-1 grid-cols-1 grid-rows-1 gap-4 lg:grid-cols-5">
 
-                    {{-- WHEEL + DRAW PANEL --}}
-                    <div class="lg:col-span-3 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
+                    {{-- ROULETTE + DRAW PANEL --}}
+                    <div id="drawWinnersPanel" class="flex h-full min-h-0 flex-col lg:col-span-3 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
 
-                        <div class="flex items-center justify-between">
+                        <div class="flex shrink-0 items-center justify-between">
 
                             <div class="flex items-center gap-2">
                                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-base shadow">🎯</span>
@@ -264,52 +302,39 @@
                                 </h3>
                             </div>
 
-                            <button type="button" onclick="toggleModal('#importModal', true)"
-                                class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-500">
-                                <span>⬆</span>
-                                <span>Import Participants</span>
-                            </button>
+                            <div class="flex items-center gap-2">
+
+                                <button type="button" id="toggleHistoryBtn"
+                                    class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10">
+                                    <span>🗂</span>
+                                    <span id="toggleHistoryLabel">Hide Table</span>
+                                </button>
+
+                                @if ($isOperator)
+                                    <button type="button" onclick="toggleModal('#importModal', true)"
+                                        class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-500">
+                                        <span>⬆</span>
+                                        <span>Import Participants</span>
+                                    </button>
+                                @endif
+
+                            </div>
 
                         </div>
 
-                        <div class="mt-8 flex flex-col items-center">
+                        <div class="mt-8 flex min-h-0 flex-1 flex-col items-center">
 
-                            <div class="relative h-80 w-80">
-
-                                <div class="absolute -inset-6 rounded-full bg-fuchsia-500 opacity-20 blur-2xl"></div>
-
-                                <div id="wheel"
-                                    class="relative h-80 w-80 rounded-full border-[6px] border-white/20 transition-transform duration-[4500ms] ease-out"
-                                    style="background: conic-gradient(#ef4444 0deg 30deg, #f97316 30deg 60deg, #eab308 60deg 90deg, #84cc16 90deg 120deg, #22c55e 120deg 150deg, #14b8a6 150deg 180deg, #06b6d4 180deg 210deg, #3b82f6 210deg 240deg, #6366f1 240deg 270deg, #8b5cf6 270deg 300deg, #a855f7 300deg 330deg, #ec4899 330deg 360deg);">
-                                </div>
-
-                                @for ($i = 0; $i < 16; $i++)
-                                    <span class="wheel-light absolute left-1/2 top-1/2 z-[5] h-3 w-3 rounded-full shadow-[0_0_8px_2px_rgba(236,72,153,0.8)]"
-                                        style="--r: {{ $i * 22.5 }}deg; transform: translate(-50%, -50%) rotate({{ $i * 22.5 }}deg) translateY(-165px); animation-delay: {{ $i * 0.1 }}s; background-color: {{ $i % 2 === 0 ? '#f472b6' : '#38bdf8' }};">
-                                    </span>
-                                @endfor
-
-                                <div class="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-1">
-                                    <div class="h-0 w-0 border-x-[14px] border-x-transparent border-t-[22px] border-t-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.9)]"></div>
-                                </div>
-
-                                <div class="absolute inset-0 z-[6] flex items-center justify-center">
-                                    <div class="flex h-28 w-28 items-center justify-center rounded-full border-4 border-fuchsia-400/40 bg-[#0b0a1a] text-4xl shadow-lg">
-                                        🎁
-                                    </div>
-                                </div>
-
-                            </div>
+                            @include('pages.spinwheel.partials.vertical-roulette')
 
                             <div id="spinStatus"
-                                class="mt-5 min-h-[2.5rem] text-center text-lg font-extrabold text-fuchsia-300">
+                                class="mt-5 min-h-[2.5rem] shrink-0 text-center text-lg font-extrabold text-fuchsia-300">
                             </div>
 
                         </div>
 
-                        <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        @if ($isOperator)
+                            <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
 
-                            @if ($isAdmin)
                                 <div class="sm:col-span-2">
                                     <label class="mb-2 block text-sm font-medium text-slate-300">
                                         Show On Wheel
@@ -327,32 +352,26 @@
                                     <input type="number" id="candidateCount" min="1" value="1"
                                         class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white shadow-sm focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20">
                                 </div>
-                            @else
-                                <input type="hidden" id="displayCombo" value="name_company">
 
-                                <div class="sm:col-span-3">
-                                    <label class="mb-2 block text-sm font-medium text-slate-300">
-                                        Number of Candidates
-                                    </label>
-                                    <input type="number" id="candidateCount" min="1" value="1"
-                                        class="w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white shadow-sm focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20">
-                                </div>
-                            @endif
+                            </div>
+                        @endif
 
-                        </div>
+                        @if (!$isOperator)
+                            <button type="button" id="spinBtn"
+                                class="mt-4 w-full rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 px-4 py-4 text-base font-extrabold tracking-wide text-white shadow-lg shadow-fuchsia-500/30 transition hover:from-fuchsia-500 hover:to-purple-500 disabled:cursor-not-allowed disabled:animate-none disabled:opacity-50">
+                                🎲 SPIN THE WHEEL
+                            </button>
+                        @endif
 
-                        <button type="button" id="spinBtn"
-                            class="mt-4 w-full rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 px-4 py-4 text-base font-extrabold tracking-wide text-white shadow-lg shadow-fuchsia-500/30 transition hover:from-fuchsia-500 hover:to-purple-500 disabled:cursor-not-allowed disabled:animate-none disabled:opacity-50">
-                            🎲 SPIN THE WHEEL
-                        </button>
-
-                        {{-- CANDIDATE VALIDATION CARDS --}}
-                        <div id="candidatesArea" class="mt-6 space-y-3"></div>
+                        @if ($isOperator)
+                            {{-- CANDIDATE VALIDATION CARDS --}}
+                            <div id="candidatesArea" class="mt-6 space-y-3"></div>
+                        @endif
 
                     </div>
 
                     {{-- WINNER HISTORY --}}
-                    <div class="lg:col-span-2 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
+                    <div id="winnerHistoryPanel" class="lg:col-span-2 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
 
                         <div class="flex items-center gap-2">
                             <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-base shadow">📜</span>
@@ -388,90 +407,194 @@
 
     </div>
 
-    {{-- IMPORT PARTICIPANTS MODAL --}}
-    <div id="importModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    @if ($isOperator)
+        {{-- IMPORT PARTICIPANTS MODAL --}}
+        <div id="importModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
 
-        <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-[#151129] shadow-2xl ring-1 ring-white/10">
+            <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-[#151129] shadow-2xl ring-1 ring-white/10">
 
-            <div class="flex items-center justify-between border-b border-white/10 px-6 py-4">
-                <div>
-                    <h2 class="text-lg font-semibold text-white">
-                        Import Participants
-                    </h2>
-                    <p class="mt-1 text-sm text-slate-400">
-                        Upload an Excel file with columns: CUSTOMER_NAME, COMPANY_NAME, REF_NBR (row 1 = header).
-                        Each row is one entry — a customer can appear multiple times for extra draw chances.
-                    </p>
+                <div class="flex items-center justify-between border-b border-white/10 px-6 py-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-white">
+                            Import Participants
+                        </h2>
+                        <p class="mt-1 text-sm text-slate-400">
+                            Upload an Excel file with columns: CUSTOMER_NAME, COMPANY_NAME, REF_NBR (row 1 = header).
+                            Each row is one entry — a customer can appear multiple times for extra draw chances.
+                        </p>
+                    </div>
+                    <button type="button" onclick="toggleModal('#importModal', false)"
+                        class="rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white">
+                        ✕
+                    </button>
                 </div>
-                <button type="button" onclick="toggleModal('#importModal', false)"
-                    class="rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white">
-                    ✕
-                </button>
-            </div>
 
-            <div class="p-6">
+                <div class="p-6">
 
-                <a href="{{ route('spinwheel.downloadTemplate') }}"
-                    class="mb-4 inline-flex items-center gap-2 rounded-xl border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-300 transition hover:bg-blue-500/20">
-                    <span>⬇</span>
-                    <span>Download Import Template</span>
-                </a>
+                    <a href="{{ route('spinwheel.downloadTemplate') }}"
+                        class="mb-4 inline-flex items-center gap-2 rounded-xl border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-300 transition hover:bg-blue-500/20">
+                        <span>⬇</span>
+                        <span>Download Import Template</span>
+                    </a>
 
-                <input type="file" id="importFile" accept=".xlsx,.xls"
-                    class="block w-full text-sm text-slate-300 file:mr-4 file:rounded-xl file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-emerald-500">
+                    <input type="file" id="importFile" accept=".xlsx,.xls"
+                        class="block w-full text-sm text-slate-300 file:mr-4 file:rounded-xl file:border-0 file:bg-emerald-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-emerald-500">
 
-                <div id="importPreviewWrap" class="mt-4 hidden">
+                    <div id="importPreviewWrap" class="mt-4 hidden">
 
-                    <p id="importPreviewSummary" class="mb-2 text-sm font-medium text-slate-300"></p>
+                        <p id="importPreviewSummary" class="mb-2 text-sm font-medium text-slate-300"></p>
 
-                    <div class="max-h-64 overflow-y-auto rounded-xl border border-white/10">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-white/5 text-slate-300">
-                                <tr>
-                                    <th class="px-3 py-2">Row</th>
-                                    <th class="px-3 py-2">Customer</th>
-                                    <th class="px-3 py-2">Company</th>
-                                    <th class="px-3 py-2">Ref Nbr</th>
-                                </tr>
-                            </thead>
-                            <tbody id="importPreviewBody" class="text-slate-200"></tbody>
-                        </table>
+                        <div class="max-h-64 overflow-y-auto rounded-xl border border-white/10">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-white/5 text-slate-300">
+                                    <tr>
+                                        <th class="px-3 py-2">Row</th>
+                                        <th class="px-3 py-2">Customer</th>
+                                        <th class="px-3 py-2">Company</th>
+                                        <th class="px-3 py-2">Ref Nbr</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="importPreviewBody" class="text-slate-200"></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                    <div id="importErrorWrap" class="mt-4 hidden">
+                        <p class="mb-2 text-sm font-medium text-red-400">Errors found — please fix and re-upload:</p>
+                        <div id="importErrorBody" class="max-h-40 overflow-y-auto rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"></div>
                     </div>
 
                 </div>
 
-                <div id="importErrorWrap" class="mt-4 hidden">
-                    <p class="mb-2 text-sm font-medium text-red-400">Errors found — please fix and re-upload:</p>
-                    <div id="importErrorBody" class="max-h-40 overflow-y-auto rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300"></div>
+                <div class="flex items-center justify-end gap-3 border-t border-white/10 px-6 py-4">
+                    <button type="button" onclick="toggleModal('#importModal', false)"
+                        class="rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/10">
+                        Cancel
+                    </button>
+                    <button type="button" id="previewBtn"
+                        class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        Preview
+                    </button>
+                    <button type="button" id="confirmImportBtn" disabled
+                        class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">
+                        Confirm Import
+                    </button>
                 </div>
 
             </div>
 
-            <div class="flex items-center justify-end gap-3 border-t border-white/10 px-6 py-4">
-                <button type="button" onclick="toggleModal('#importModal', false)"
-                    class="rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/10">
-                    Cancel
-                </button>
-                <button type="button" id="previewBtn"
-                    class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500">
-                    Preview
-                </button>
-                <button type="button" id="confirmImportBtn" disabled
-                    class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">
-                    Confirm Import
-                </button>
-            </div>
-
         </div>
-
-    </div>
+    @endif
 
     <script>
-        const isAdmin = @json($isAdmin);
+        const isOperator = @json($isOperator);
+
+        // event currently marked "live" by the operator (server-rendered on load, kept in sync via polling/actions below)
+        let liveEventId = @json($activeEvent->event_id ?? null);
 
         let tableWinner;
         let spinning = false;
-        let flickerTimer = null;
+        let lastSeenBatchId = null;
+        let currentBatchId = null;
+        let settingsLoaded = false;
+        let currentDisplayCombo = 'name_company';
+
+        function currentEventId() {
+            return isOperator ? $('#eventSelect').val() : liveEventId;
+        }
+
+        function updateGoLiveUI(selectedEventId) {
+
+            const isLive = !!selectedEventId && selectedEventId === liveEventId;
+
+            $('#liveBadge').toggleClass('hidden', !isLive).toggleClass('flex', isLive);
+            $('#goLiveBtn').toggleClass('hidden', isLive).prop('disabled', !selectedEventId);
+            $('#endLiveBtn').toggleClass('hidden', !isLive);
+
+        }
+
+        function resetRouletteIdle() {
+
+            const wrap = $('#rouletteReels');
+            wrap.html('');
+
+            const count = isOperator ? Math.max(1, parseInt($('#candidateCount').val() || '1', 10)) : 1;
+            const pool = (window.sampleNames && window.sampleNames.length) ? window.sampleNames : [{
+                customer_name: '???',
+                company_name: '',
+                ref_nbr: ''
+            }];
+
+            for (let i = 0; i < count; i++) {
+
+                const rows = [];
+                let lastLabel = null;
+
+                for (let r = 0; r < ROULETTE_VISIBLE_ROWS; r++) {
+                    const label = pickRouletteLabel(pool, currentDisplayCombo, lastLabel);
+                    rows.push(label);
+                    lastLabel = label;
+                }
+
+                const track = $('<div class="roulette-reel-track" style="transition:none;"></div>');
+                rows.forEach(label => track.append(`<div class="roulette-reel-row">${label}</div>`));
+
+                const reel = $('<div class="roulette-reel"></div>');
+                reel.append('<div class="roulette-marker"></div>');
+                reel.append(track);
+
+                wrap.append(reel);
+
+            }
+
+        }
+
+        function applyAudienceLive(eventId, eventName, eventDate) {
+
+            liveEventId = eventId;
+
+            $('#audienceEventName').text(eventName);
+            $('#audienceEventDate').text(eventDate).removeClass('hidden');
+            $('#audienceWaiting').addClass('hidden');
+            $('#eventWorkspace').removeClass('hidden');
+
+            lastSeenBatchId = null;
+            currentBatchId = null;
+            resetRouletteIdle();
+            spinning = false;
+            $('#spinBtn').prop('disabled', false);
+
+            loadSummary(eventId);
+            if (tableWinner) tableWinner.ajax.reload(null, false);
+            pollCurrentDraw();
+
+        }
+
+        function applyAudienceWaiting() {
+
+            liveEventId = null;
+
+            $('#audienceEventName').text('Waiting for event to start');
+            $('#audienceEventDate').addClass('hidden');
+            $('#eventWorkspace').addClass('hidden');
+            $('#audienceWaiting').removeClass('hidden');
+
+        }
+
+        function pollActiveEvent() {
+
+            $.get('{{ route('spinwheel.activeEventStatus') }}', function(response) {
+
+                if (response.event_id && response.event_id !== liveEventId) {
+                    applyAudienceLive(response.event_id, response.event_name, response.event_date);
+                } else if (!response.event_id && liveEventId) {
+                    applyAudienceWaiting();
+                }
+
+            });
+
+        }
 
         function applySelect2(el, options = {}) {
 
@@ -538,10 +661,6 @@
             });
         }
 
-        function currentEventId() {
-            return $('#eventSelect').val();
-        }
-
         function loadPrizes(eventId) {
 
             window.eventPrizes = [];
@@ -563,24 +682,6 @@
             });
 
             return html;
-
-        }
-
-        function escapeHtml(value) {
-            return $('<div>').text(value ?? '').html();
-        }
-
-        function candidateLabel(candidate, combo) {
-
-            const name = escapeHtml(candidate.customer_name);
-            const company = escapeHtml(candidate.company_name);
-            const refNbr = escapeHtml(candidate.ref_nbr);
-
-            if (combo === 'name_refnbr') {
-                return `${name} — ${refNbr}`;
-            }
-
-            return `${name}${company ? ' — ' + company : ''}`;
 
         }
 
@@ -616,176 +717,6 @@
 
         }
 
-        function loadSummary(eventId) {
-
-            $.get(`/spinwheel/summary/${eventId}`, function(response) {
-
-                $('#statTotalEntries').text(response.total_entries);
-                $('#statEligible').text(response.eligible_participants);
-                $('#statWinners').text(response.winners_drawn);
-
-                window.sampleNames = response.sample_names ?? [];
-
-            });
-
-        }
-
-        $(document).ready(function() {
-            applySelect2($('#eventSelect'), {
-                placeholder: 'Select Event',
-                allowClear: true
-            });
-
-            if ($('#displayCombo').is('select')) {
-                applySelect2($('#displayCombo'));
-            }
-        });
-
-        $('#eventSelect').on('change', function() {
-
-            const eventId = $(this).val();
-
-            if (!eventId) {
-                $('#eventWorkspace').addClass('hidden');
-                return;
-            }
-
-            $('#eventWorkspace').removeClass('hidden');
-            $('#candidatesArea').html('');
-            resetPendingState();
-
-            loadPrizes(eventId);
-            loadSummary(eventId);
-
-            tableWinner.ajax.reload();
-
-        });
-
-        $('#previewBtn').on('click', function() {
-
-            const eventId = currentEventId();
-            const file = $('#importFile')[0].files[0];
-
-            if (!eventId) {
-                showError('Please select an event first');
-                return;
-            }
-
-            if (!file) {
-                showError('Please choose a file to upload');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('event_id', eventId);
-            formData.append('file', file);
-            formData.append('_token', '{{ csrf_token() }}');
-
-            showLoading('Reading file...');
-
-            $.ajax({
-                url: '{{ route('spinwheel.importPreview') }}',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-
-                success: function(response) {
-
-                    Swal.close();
-
-                    $('#importErrorWrap').addClass('hidden');
-                    $('#importPreviewWrap').removeClass('hidden');
-                    $('#importPreviewSummary').text(`${response.count} entries ready to import.`);
-
-                    let rows = '';
-                    response.rows.forEach(r => {
-                        rows += `<tr class="border-t border-white/10">
-                            <td class="px-3 py-2">${r.row}</td>
-                            <td class="px-3 py-2">${r.customer_name}</td>
-                            <td class="px-3 py-2">${r.company_name ?? ''}</td>
-                            <td class="px-3 py-2">${r.ref_nbr}</td>
-                        </tr>`;
-                    });
-                    $('#importPreviewBody').html(rows);
-
-                    $('#confirmImportBtn').prop('disabled', false);
-
-                },
-
-                error: function(xhr) {
-
-                    Swal.close();
-
-                    $('#importPreviewWrap').addClass('hidden');
-                    $('#confirmImportBtn').prop('disabled', true);
-
-                    const data = xhr.responseJSON;
-
-                    if (data?.errors) {
-                        $('#importErrorWrap').removeClass('hidden');
-                        let html = '';
-                        data.errors.forEach(e => {
-                            html += `<div>Row ${e.row}: ${e.errors.join(', ')}</div>`;
-                        });
-                        $('#importErrorBody').html(html);
-                    }
-
-                    showError(data?.message ?? 'Failed to read file');
-
-                }
-            });
-
-        });
-
-        $('#confirmImportBtn').on('click', function() {
-
-            const eventId = currentEventId();
-            const file = $('#importFile')[0].files[0];
-
-            const formData = new FormData();
-            formData.append('event_id', eventId);
-            formData.append('file', file);
-            formData.append('_token', '{{ csrf_token() }}');
-
-            showLoading('Importing participants...');
-
-            $.ajax({
-                url: '{{ route('spinwheel.import') }}',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-
-                success: function(response) {
-                    showSuccess(response.message);
-                    toggleModal('#importModal', false);
-                    loadSummary(eventId);
-                },
-
-                error: function(xhr) {
-                    showError(xhr.responseJSON?.message ?? 'Failed to import participants');
-                }
-            });
-
-        });
-
-        function startFlicker() {
-
-            const names = (window.sampleNames && window.sampleNames.length) ? window.sampleNames : ['???'];
-
-            flickerTimer = setInterval(() => {
-                const name = names[Math.floor(Math.random() * names.length)];
-                $('#spinStatus').text(name);
-            }, 80);
-
-        }
-
-        function stopFlicker() {
-            clearInterval(flickerTimer);
-            $('#spinStatus').text('');
-        }
-
         function fireConfetti() {
             if (typeof confetti === 'function') {
                 confetti({
@@ -798,87 +729,119 @@
             }
         }
 
-        let pendingCandidates = 0;
+        function loadSummary(eventId) {
 
-        function resetPendingState() {
-            pendingCandidates = 0;
-            $('#spinBtn').prop('disabled', false);
-            spinning = false;
+            $.get(`/spinwheel/summary/${eventId}`, function(response) {
+
+                $('#statTotalEntries').text(response.total_entries);
+                $('#statEligible').text(response.eligible_participants);
+                $('#statWinners').text(response.winners_drawn);
+
+                window.sampleNames = response.sample_names ?? [];
+
+                if (!spinning) {
+                    resetRouletteIdle();
+                }
+
+            });
+
         }
 
-        function candidateResolved() {
+        function buildCandidateCard(candidate, combo, idx) {
 
-            pendingCandidates--;
+            const label = candidateLabel(candidate, combo);
 
-            if (pendingCandidates <= 0) {
-                pendingCandidates = 0;
-                spinning = false;
-                $('#spinBtn').prop('disabled', false);
+            let stateClasses = 'border-amber-400/30 bg-amber-400/5';
+            let accentClass = 'bg-amber-400';
+            let actionsHtml = `
+                <div class="candidate-actions flex flex-wrap items-center gap-2">
+                    <button type="button" class="btn-valid rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500">
+                        Valid
+                    </button>
+                    <button type="button" class="btn-invalid rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500">
+                        Invalid
+                    </button>
+                </div>
+            `;
+
+            if (candidate.decision === 'valid') {
+                stateClasses = 'border-emerald-400/30 bg-emerald-400/5';
+                accentClass = 'bg-emerald-400';
+                actionsHtml = `<span class="text-xs font-medium text-emerald-400">✔ Saved — ${escapeHtml(candidate.prize_name || '')}</span>`;
+            } else if (candidate.decision === 'invalid') {
+                stateClasses = 'border-red-400/30 bg-red-400/5';
+                accentClass = 'bg-red-400';
+                actionsHtml = '<span class="text-xs font-medium text-red-400">✘ Not Valid</span>';
             }
+
+            const card = $(`
+                <div class="candidate-card relative overflow-hidden rounded-xl border ${stateClasses} p-4" data-index="${idx}">
+                    <div class="candidate-accent absolute inset-y-0 left-0 w-1 ${accentClass}"></div>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="text-sm font-semibold text-white">
+                            🏆 ${label}
+                        </div>
+                        ${actionsHtml}
+                    </div>
+                </div>
+            `);
+
+            card.data('candidate', candidate);
+
+            return card;
 
         }
 
         function renderCandidates(candidates, combo) {
 
             const area = $('#candidatesArea');
+
+            if (!area.length) return;
+
             area.html('');
 
             candidates.forEach((candidate, idx) => {
-
-                const label = candidateLabel(candidate, combo);
-
-                const actionsHtml = isAdmin ? `
-                    <div class="candidate-actions flex flex-wrap items-center gap-2">
-                        <button type="button" class="btn-valid rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500">
-                            Valid
-                        </button>
-                        <button type="button" class="btn-invalid rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-500">
-                            Invalid
-                        </button>
-                    </div>
-                ` : '';
-
-                const card = $(`
-                    <div class="candidate-card relative overflow-hidden rounded-xl border border-amber-400/30 bg-amber-400/5 p-4" data-index="${idx}">
-                        <div class="candidate-accent absolute inset-y-0 left-0 w-1 bg-amber-400"></div>
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div class="text-sm font-semibold text-white">
-                                🏆 ${label}
-                            </div>
-                            ${actionsHtml}
-                        </div>
-                    </div>
-                `);
-
-                card.data('candidate', candidate);
-
-                area.append(card);
-
+                area.append(buildCandidateCard(candidate, combo, idx));
             });
-
-            pendingCandidates = isAdmin ? candidates.length : 0;
-
-            if (!isAdmin) {
-                spinning = false;
-                $('#spinBtn').prop('disabled', false);
-            }
 
         }
 
         $('#candidatesArea').on('click', '.btn-invalid', function() {
 
             const card = $(this).closest('.candidate-card');
+            const candidate = card.data('candidate');
+            const eventId = currentEventId();
 
-            card.removeClass('border-amber-400/30 bg-amber-400/5')
-                .addClass('border-red-400/30 bg-red-400/5');
+            $(this).closest('.candidate-actions').find('button').prop('disabled', true);
 
-            card.find('.candidate-accent').removeClass('bg-amber-400').addClass('bg-red-400');
+            $.ajax({
+                url: '{{ route('spinwheel.rejectCandidate') }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    event_id: eventId,
+                    batch_id: currentBatchId,
+                    ref_nbr: candidate.ref_nbr
+                },
 
-            card.find('.candidate-actions').html(
-                '<span class="text-xs font-medium text-red-400">✘ Not Valid</span>'
-            );
+                success: function() {
 
-            candidateResolved();
+                    card.removeClass('border-amber-400/30 bg-amber-400/5')
+                        .addClass('border-red-400/30 bg-red-400/5');
+
+                    card.find('.candidate-accent').removeClass('bg-amber-400').addClass('bg-red-400');
+
+                    card.find('.candidate-actions').html(
+                        '<span class="text-xs font-medium text-red-400">✘ Not Valid</span>'
+                    );
+
+                },
+
+                error: function(xhr) {
+                    card.find('.candidate-actions button').prop('disabled', false);
+                    showError(xhr.responseJSON?.message ?? 'Failed to mark candidate invalid');
+                }
+            });
 
         });
 
@@ -925,6 +888,7 @@
                 data: {
                     _token: '{{ csrf_token() }}',
                     event_id: eventId,
+                    batch_id: currentBatchId,
                     prize_id: prizeId,
                     ref_nbr: candidate.ref_nbr,
                     customer_name: candidate.customer_name,
@@ -939,7 +903,6 @@
 
                     loadSummary(eventId);
                     tableWinner.ajax.reload(null, false);
-                    candidateResolved();
 
                 },
 
@@ -956,8 +919,6 @@
             if (spinning) return;
 
             const eventId = currentEventId();
-            const combo = $('#displayCombo').val();
-            const candidateCount = parseInt($('#candidateCount').val() || '1', 10);
 
             if (!eventId) {
                 showError('Please select an event first');
@@ -966,51 +927,160 @@
 
             spinning = true;
             $('#spinBtn').prop('disabled', true);
-            $('#candidatesArea').html('');
+            $('#spinStatus').text('🎰 Drawing...');
+
+            const data = {
+                _token: '{{ csrf_token() }}',
+                event_id: eventId
+            };
+
+            if (isOperator) {
+                data.candidate_count = parseInt($('#candidateCount').val() || '1', 10);
+                data.display_combo = $('#displayCombo').val();
+            }
 
             $.ajax({
                 url: '{{ route('spinwheel.pickCandidates') }}',
                 type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    event_id: eventId,
-                    candidate_count: candidateCount
-                },
-
-                success: function(response) {
-
-                    const wheel = document.getElementById('wheel');
-                    const currentRotation = window.wheelRotation || 0;
-                    const nextRotation = currentRotation + 1800 + Math.floor(Math.random() * 360);
-                    window.wheelRotation = nextRotation;
-
-                    wheel.style.transform = `rotate(${nextRotation}deg)`;
-
-                    startFlicker();
-
-                    setTimeout(function() {
-
-                        stopFlicker();
-                        renderCandidates(response.candidates, combo);
-                        showCongratsPopup(response.candidates, combo);
-
-                        // spinning stays true (spin button disabled) until every
-                        // candidate is resolved via Valid/Save or Invalid
-
-                    }, 4500);
-
-                },
+                data: data,
 
                 error: function(xhr) {
                     spinning = false;
                     $('#spinBtn').prop('disabled', false);
+                    $('#spinStatus').text('');
                     showError(xhr.responseJSON?.message ?? 'Failed to pick candidates');
                 }
+
+                // success is intentionally a no-op: the poll loop below picks up
+                // the new batch (for every open screen, including this one) and
+                // plays the roulette so both screens stay perfectly in sync.
             });
 
         });
 
+        function pollCurrentDraw() {
+
+            const eventId = currentEventId();
+
+            if (!eventId) return;
+
+            $.get(`/spinwheel/current-draw/${eventId}`, function(response) {
+
+                const settings = response.settings || {
+                    display_combo: 'name_company',
+                    candidate_count: 1
+                };
+
+                if (isOperator && !settingsLoaded) {
+
+                    const combo = $('#displayCombo');
+                    combo.val(settings.display_combo);
+                    if (combo.hasClass('select2-hidden-accessible')) {
+                        combo.trigger('change.select2');
+                    }
+
+                    $('#candidateCount').val(settings.candidate_count);
+
+                    settingsLoaded = true;
+
+                }
+
+                const candidates = response.candidates || [];
+                const batchId = response.batch_id;
+                const combo = settings.display_combo;
+
+                if (combo !== currentDisplayCombo) {
+                    currentDisplayCombo = combo;
+                    if (!spinning) resetRouletteIdle();
+                }
+
+                if (batchId && batchId !== lastSeenBatchId) {
+
+                    lastSeenBatchId = batchId;
+                    currentBatchId = batchId;
+
+                    const isFreshBatch = candidates.some(c => c.decision === 'pending');
+
+                    if (isFreshBatch) {
+
+                        spinning = true;
+                        $('#spinBtn').prop('disabled', true);
+                        $('#spinStatus').text('🎰 Drawing...');
+
+                        spinVerticalRoulette(candidates, combo, 4500);
+
+                        setTimeout(function() {
+                            $('#spinStatus').text('');
+                            renderCandidates(candidates, combo);
+                            showCongratsPopup(candidates, combo);
+                        }, 4500);
+
+                    } else {
+                        // batch was already resolved in a previous session (e.g. stale
+                        // cache from a page reload) — sync state without replaying the
+                        // spin animation or congrats popup
+                        renderCandidates(candidates, combo);
+                    }
+
+                }
+
+                const allResolved = candidates.length > 0 && candidates.every(c => c.decision !== 'pending');
+
+                if (batchId && allResolved && spinning) {
+                    spinning = false;
+                    $('#spinBtn').prop('disabled', false);
+                }
+
+            });
+
+        }
+
+        function isSpinwheelFullscreen() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement);
+        }
+
+        $('#fullscreenBtn').on('click', function() {
+
+            const root = document.getElementById('spinwheelRoot');
+
+            if (!isSpinwheelFullscreen()) {
+                (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+            } else {
+                (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            }
+
+        });
+
+        $(document).on('fullscreenchange webkitfullscreenchange', function() {
+            $('#fullscreenBtn')
+                .text(isSpinwheelFullscreen() ? '⤢' : '⛶')
+                .attr('title', isSpinwheelFullscreen() ? 'Exit Fullscreen' : 'Toggle Fullscreen');
+        });
+
+        $('#toggleHistoryBtn').on('click', function() {
+
+            const hidden = $('#winnerHistoryPanel').toggleClass('hidden').hasClass('hidden');
+
+            $('#drawWinnersPanel')
+                .toggleClass('lg:col-span-3', !hidden)
+                .toggleClass('lg:col-span-5', hidden);
+
+            $('#toggleHistoryLabel').text(hidden ? 'Show Table' : 'Hide Table');
+
+        });
+
         $(document).ready(function() {
+
+            if (isOperator) {
+
+                applySelect2($('#eventSelect'), {
+                    placeholder: 'Select Event',
+                    allowClear: true
+                });
+
+                applySelect2($('#displayCombo'));
+
+            }
 
             tableWinner = $('#tableWinner').DataTable({
                 processing: true,
@@ -1069,7 +1139,249 @@
                 ]
             });
 
+            if (isOperator) {
+
+                if (liveEventId) {
+                    $('#eventSelect').val(liveEventId).trigger('change');
+                }
+
+            } else {
+
+                pollActiveEvent();
+                setInterval(pollActiveEvent, 2000);
+                setInterval(pollCurrentDraw, 2000);
+
+                if (liveEventId) {
+                    loadSummary(liveEventId);
+                    pollCurrentDraw();
+                }
+
+            }
+
         });
+
+        if (isOperator) {
+
+            $('#eventSelect').on('change', function() {
+
+                const eventId = $(this).val();
+
+                lastSeenBatchId = null;
+                currentBatchId = null;
+                settingsLoaded = false;
+
+                updateGoLiveUI(eventId);
+
+                if (!eventId) {
+                    $('#eventWorkspace').addClass('hidden');
+                    return;
+                }
+
+                $('#eventWorkspace').removeClass('hidden');
+                $('#candidatesArea').html('');
+                resetRouletteIdle();
+                spinning = false;
+                $('#spinBtn').prop('disabled', false);
+
+                loadPrizes(eventId);
+                loadSummary(eventId);
+
+                tableWinner.ajax.reload();
+
+                pollCurrentDraw();
+
+            });
+
+            $('#goLiveBtn').on('click', function() {
+
+                const eventId = $('#eventSelect').val();
+                if (!eventId) return;
+
+                $(this).prop('disabled', true);
+
+                $.post('{{ route('spinwheel.goLive') }}', {
+                    _token: '{{ csrf_token() }}',
+                    event_id: eventId
+                }, function(response) {
+
+                    liveEventId = response.event_id;
+                    updateGoLiveUI(eventId);
+                    showSuccess('Event is now live for the audience screen');
+
+                }).fail(function(xhr) {
+                    $('#goLiveBtn').prop('disabled', false);
+                    showError(xhr.responseJSON?.message ?? 'Failed to go live');
+                });
+
+            });
+
+            $('#endLiveBtn').on('click', function() {
+
+                $.post('{{ route('spinwheel.endLive') }}', {
+                    _token: '{{ csrf_token() }}'
+                }, function() {
+
+                    liveEventId = null;
+                    updateGoLiveUI($('#eventSelect').val());
+                    showSuccess('Event stopped');
+
+                }).fail(function(xhr) {
+                    showError(xhr.responseJSON?.message ?? 'Failed to end live');
+                });
+
+            });
+
+            $('#displayCombo').on('change', function() {
+
+                const eventId = currentEventId();
+
+                currentDisplayCombo = $('#displayCombo').val();
+                if (!spinning) resetRouletteIdle();
+
+                if (!eventId) return;
+
+                $.post('{{ route('spinwheel.saveSettings') }}', {
+                    _token: '{{ csrf_token() }}',
+                    event_id: eventId,
+                    display_combo: $('#displayCombo').val(),
+                    candidate_count: parseInt($('#candidateCount').val() || '1', 10)
+                });
+
+            });
+
+            $('#candidateCount').on('change', function() {
+
+                const eventId = currentEventId();
+
+                if (!spinning) resetRouletteIdle();
+
+                if (!eventId) return;
+
+                $.post('{{ route('spinwheel.saveSettings') }}', {
+                    _token: '{{ csrf_token() }}',
+                    event_id: eventId,
+                    display_combo: $('#displayCombo').val(),
+                    candidate_count: parseInt($('#candidateCount').val() || '1', 10)
+                });
+
+            });
+
+            $('#previewBtn').on('click', function() {
+
+                const eventId = currentEventId();
+                const file = $('#importFile')[0].files[0];
+
+                if (!eventId) {
+                    showError('Please select an event first');
+                    return;
+                }
+
+                if (!file) {
+                    showError('Please choose a file to upload');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('event_id', eventId);
+                formData.append('file', file);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                showLoading('Reading file...');
+
+                $.ajax({
+                    url: '{{ route('spinwheel.importPreview') }}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+
+                    success: function(response) {
+
+                        Swal.close();
+
+                        $('#importErrorWrap').addClass('hidden');
+                        $('#importPreviewWrap').removeClass('hidden');
+                        $('#importPreviewSummary').text(`${response.count} entries ready to import.`);
+
+                        let rows = '';
+                        response.rows.forEach(r => {
+                            rows += `<tr class="border-t border-white/10">
+                                <td class="px-3 py-2">${r.row}</td>
+                                <td class="px-3 py-2">${r.customer_name}</td>
+                                <td class="px-3 py-2">${r.company_name ?? ''}</td>
+                                <td class="px-3 py-2">${r.ref_nbr}</td>
+                            </tr>`;
+                        });
+                        $('#importPreviewBody').html(rows);
+
+                        $('#confirmImportBtn').prop('disabled', false);
+
+                    },
+
+                    error: function(xhr) {
+
+                        Swal.close();
+
+                        $('#importPreviewWrap').addClass('hidden');
+                        $('#confirmImportBtn').prop('disabled', true);
+
+                        const data = xhr.responseJSON;
+
+                        if (data?.errors) {
+                            $('#importErrorWrap').removeClass('hidden');
+                            let html = '';
+                            data.errors.forEach(e => {
+                                html += `<div>Row ${e.row}: ${e.errors.join(', ')}</div>`;
+                            });
+                            $('#importErrorBody').html(html);
+                        }
+
+                        showError(data?.message ?? 'Failed to read file');
+
+                    }
+                });
+
+            });
+
+            $('#confirmImportBtn').on('click', function() {
+
+                const eventId = currentEventId();
+                const file = $('#importFile')[0].files[0];
+
+                const formData = new FormData();
+                formData.append('event_id', eventId);
+                formData.append('file', file);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                showLoading('Importing participants...');
+
+                $.ajax({
+                    url: '{{ route('spinwheel.import') }}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+
+                    success: function(response) {
+                        showSuccess(response.message);
+                        toggleModal('#importModal', false);
+                        loadSummary(eventId);
+                    },
+
+                    error: function(xhr) {
+                        showError(xhr.responseJSON?.message ?? 'Failed to import participants');
+                    }
+                });
+
+            });
+
+            setInterval(function() {
+                if (currentEventId()) {
+                    pollCurrentDraw();
+                }
+            }, 2000);
+
+        }
     </script>
 
 </x-app-layout>
