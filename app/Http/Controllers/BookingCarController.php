@@ -454,7 +454,7 @@ class BookingCarController extends Controller
             'driver' => ['nullable'],
             'handphone' => ['nullable'],
             'no_polisi' => ['nullable'],
-            'passenger' => ['nullable'],
+            'passenger' => ['required', 'integer', 'min:0'],
         ]);
 
         $purpose = MsCategory::query()
@@ -697,7 +697,7 @@ class BookingCarController extends Controller
             'driver' => ['nullable'],
             'handphone' => ['nullable'],
             'no_polisi' => ['nullable'],
-            'passenger' => ['nullable'],
+            'passenger' => ['required', 'integer', 'min:0'],
         ]);
 
         $purpose = MsCategory::query()
