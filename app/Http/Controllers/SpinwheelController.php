@@ -11,7 +11,9 @@ use App\Models\TrLuckydrawWinner;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -30,7 +32,61 @@ class SpinwheelController extends Controller
             ->orderByDesc('event_date')
             ->get();
 
-        return view('pages.spinwheel.spinwheel', compact('events'));
+        $isOperator = $user->hasRole('ADEVENTACCESS');
+        $activeEventId = Cache::get($this->activeEventCacheKey());
+        $activeEvent = $activeEventId ? $events->firstWhere('event_id', $activeEventId) : null;
+
+        return view('pages.spinwheel.spinwheel', compact('events', 'activeEvent', 'isOperator'));
+    }
+
+    private function activeEventCacheKey(): string
+    {
+        return 'spinwheel.active_event_id';
+    }
+
+    public function activeEventStatus()
+    {
+        $eventId = Cache::get($this->activeEventCacheKey());
+
+        $event = $eventId
+            ? MsLuckydrawEvent::query()->where('event_id', $eventId)->where('status', 'A')->first()
+            : null;
+
+        return response()->json([
+            'event_id' => $event->event_id ?? null,
+            'event_name' => $event->event_name ?? null,
+            'event_date' => $event ? \Carbon\Carbon::parse($event->event_date)->format('d M Y') : null,
+        ]);
+    }
+
+    public function goLive(Request $request)
+    {
+        $request->validate([
+            'event_id' => 'required|string',
+        ]);
+
+        $event = MsLuckydrawEvent::query()
+            ->where('event_id', $request->event_id)
+            ->where('status', 'A')
+            ->firstOrFail();
+
+        Cache::put($this->activeEventCacheKey(), $event->event_id, now()->addDay());
+
+        return response()->json([
+            'success' => true,
+            'event_id' => $event->event_id,
+            'event_name' => $event->event_name,
+            'event_date' => \Carbon\Carbon::parse($event->event_date)->format('d M Y'),
+        ]);
+    }
+
+    public function endLive()
+    {
+        Cache::forget($this->activeEventCacheKey());
+
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     public function downloadTemplate()
@@ -74,7 +130,7 @@ class SpinwheelController extends Controller
         $sampleNames = (clone $eligible)
             ->inRandomOrder()
             ->limit(30)
-            ->pluck('customer_name');
+            ->get(['customer_name', 'company_name', 'ref_nbr']);
 
         return response()->json([
             'total_entries' => $totalEntries,
@@ -243,12 +299,73 @@ class SpinwheelController extends Controller
         ]);
     }
 
+    private function settingsCacheKey($eventId)
+    {
+        return "spinwheel.settings.{$eventId}";
+    }
+
+    private function drawCacheKey($eventId)
+    {
+        return "spinwheel.draw.{$eventId}";
+    }
+
+    private function defaultSettings(): array
+    {
+        return [
+            'display_combo' => 'name_company',
+            'candidate_count' => 1,
+        ];
+    }
+
+    public function saveSettings(Request $request)
+    {
+        $request->validate([
+            'event_id' => 'required|string',
+            'display_combo' => 'required|in:name_company,name_refnbr',
+            'candidate_count' => 'required|integer|min:1|max:100',
+        ]);
+
+        Cache::put($this->settingsCacheKey($request->event_id), [
+            'display_combo' => $request->display_combo,
+            'candidate_count' => (int) $request->candidate_count,
+        ], now()->addDay());
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
+    public function currentDraw($event_id)
+    {
+        $draw = Cache::get($this->drawCacheKey($event_id));
+        $settings = Cache::get($this->settingsCacheKey($event_id), $this->defaultSettings());
+
+        return response()->json([
+            'batch_id' => $draw['batch_id'] ?? null,
+            'candidates' => $draw['candidates'] ?? [],
+            'settings' => $settings,
+        ]);
+    }
+
     public function pickCandidates(Request $request)
     {
         $request->validate([
             'event_id' => 'required|string',
-            'candidate_count' => 'required|integer|min:1|max:100',
+            'candidate_count' => 'nullable|integer|min:1|max:100',
+            'display_combo' => 'nullable|in:name_company,name_refnbr',
         ]);
+
+        $settings = Cache::get($this->settingsCacheKey($request->event_id), $this->defaultSettings());
+
+        if ($request->filled('candidate_count')) {
+            $settings['candidate_count'] = (int) $request->candidate_count;
+        }
+
+        if ($request->filled('display_combo')) {
+            $settings['display_combo'] = $request->display_combo;
+        }
+
+        Cache::put($this->settingsCacheKey($request->event_id), $settings, now()->addDay());
 
         $wonRefNbrs = TrLuckydrawWinner::query()
             ->where('event_id', $request->event_id)
@@ -281,17 +398,59 @@ class SpinwheelController extends Controller
                 'ref_nbr' => $entry->ref_nbr,
                 'customer_name' => $entry->customer_name,
                 'company_name' => $entry->company_name,
+                'decision' => 'pending',
+                'prize_id' => null,
+                'prize_name' => null,
             ];
             $pickedRefNbrs[] = $entry->ref_nbr;
 
-            if (count($picked) >= (int) $request->candidate_count) {
+            if (count($picked) >= $settings['candidate_count']) {
                 break;
             }
         }
 
+        $batchId = (string) Str::uuid();
+
+        Cache::put($this->drawCacheKey($request->event_id), [
+            'batch_id' => $batchId,
+            'candidates' => $picked,
+        ], now()->addHours(6));
+
         return response()->json([
             'success' => true,
+            'batch_id' => $batchId,
             'candidates' => $picked,
+        ]);
+    }
+
+    public function rejectCandidate(Request $request)
+    {
+        $request->validate([
+            'event_id' => 'required|string',
+            'batch_id' => 'required|string',
+            'ref_nbr' => 'required|string',
+        ]);
+
+        $draw = Cache::get($this->drawCacheKey($request->event_id));
+
+        if (!$draw || $draw['batch_id'] !== $request->batch_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This batch is no longer active.',
+            ], 422);
+        }
+
+        foreach ($draw['candidates'] as &$candidate) {
+            if ($candidate['ref_nbr'] === $request->ref_nbr) {
+                $candidate['decision'] = 'invalid';
+            }
+        }
+        unset($candidate);
+
+        Cache::put($this->drawCacheKey($request->event_id), $draw, now()->addHours(6));
+
+        return response()->json([
+            'success' => true,
         ]);
     }
 
@@ -299,6 +458,7 @@ class SpinwheelController extends Controller
     {
         $request->validate([
             'event_id' => 'required|string',
+            'batch_id' => 'nullable|string',
             'prize_id' => 'required|string',
             'ref_nbr' => 'required|string',
             'customer_name' => 'required|string',
@@ -337,6 +497,23 @@ class SpinwheelController extends Controller
                 'created_by' => $username,
             ]);
         });
+
+        if ($request->batch_id) {
+            $draw = Cache::get($this->drawCacheKey($request->event_id));
+
+            if ($draw && $draw['batch_id'] === $request->batch_id) {
+                foreach ($draw['candidates'] as &$candidate) {
+                    if ($candidate['ref_nbr'] === $request->ref_nbr) {
+                        $candidate['decision'] = 'valid';
+                        $candidate['prize_id'] = $prize->prize_id;
+                        $candidate['prize_name'] = $prize->prize_name;
+                    }
+                }
+                unset($candidate);
+
+                Cache::put($this->drawCacheKey($request->event_id), $draw, now()->addHours(6));
+            }
+        }
 
         return response()->json([
             'success' => true,
