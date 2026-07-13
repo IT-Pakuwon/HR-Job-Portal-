@@ -3,6 +3,9 @@
         <x-approval-actions
             :status="$rfp->status"
             :is-approver="$isApprover"
+            :has-blocking-im="$hasBlockingIM"
+            :im-blocking-id="$imBlockingId"
+            :im-blocking-status="$imBlockingStatus"
             :edit-url="url('/editrfpkontrakbudget/' . $hash)"
         />
 

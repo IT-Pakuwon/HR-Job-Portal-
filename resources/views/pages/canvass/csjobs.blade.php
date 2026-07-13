@@ -84,7 +84,7 @@
 
         </div>
 
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
 
             {{-- === PANE: CS Jobs + Entry CS (dua tabel) === --}}
             <div id="pane-mine">

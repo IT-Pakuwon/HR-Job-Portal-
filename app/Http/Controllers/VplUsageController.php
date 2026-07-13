@@ -226,6 +226,17 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Reference Usage Doc is required for Return.'], 422);
         }
 
+        // CUSTOMERSERVICE Usage docs may be backdated up to H-14 (e.g. logging usage
+        // recorded late); every other department/type is always dated "today".
+        $usageDate = $dt->copy();
+        if ($request->department === 'CUSTOMERSERVICE' && $usagetype === 'Usage' && $request->filled('usage_date')) {
+            $usageDate = Carbon::parse($request->usage_date)->startOfDay();
+            $today = $dt->copy()->startOfDay();
+            if ($usageDate->lt($today->copy()->subDays(14)) || $usageDate->gt($today)) {
+                return response()->json(['error' => 'Usage Date must be within H-14 to today.'], 422);
+            }
+        }
+
         $conditionName = $this->resolveConditionName($vp_type, $usagetype);
         $category = MsCategory::where('doctype', self::DOCTYPE)
             ->where('categoryid', 'condition')
@@ -257,6 +268,10 @@ class VplUsageController extends Controller
             }
         }
 
+        // CUSTOMERSERVICE Usage docs skip the normal ms_approval chain entirely —
+        // there is only ever one "approver": the creator, auto-approved on submit.
+        $isAutoApprove = $request->department === 'CUSTOMERSERVICE' && $usagetype === 'Usage';
+
         $autonbr = $this->nextAutonbr(
             self::DOCTYPE,
             $dt->year,
@@ -264,14 +279,14 @@ class VplUsageController extends Controller
             $user->username,
             self::DOCTYPE_DSC
         );
-        $tglbln = substr((string) $dt->year, 2).$autonbr['month'];
+        $tglbln = substr((string) $dt->year, 2).sprintf('%02d', (int) $autonbr['month']);
         $docid = self::DOCTYPE.$tglbln.sprintf('%03d', $autonbr['next']);
 
         try {
-            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $docid, $vp_type, $usagetype, &$usage) {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $usageDate, $docid, $vp_type, $usagetype, $isAutoApprove, &$usage) {
                 $usage = TrxVplUsage::create([
                     'usage_id' => $docid,
-                    'usage_date' => $dt->format('Y-m-d'),
+                    'usage_date' => $usageDate->format('Y-m-d'),
                     'cpnyid' => $request->cpnyid,
                     'department' => $request->department,
                     'user_peminta' => $user->username,
@@ -312,9 +327,17 @@ class VplUsageController extends Controller
 
                 // Hold stock: Usage reserves, Return releases the hold
                 $this->adjustReservation($docid, +1);
+
+                if ($isAutoApprove) {
+                    $this->autoApproveCustomerService($usage, $user, $dt);
+                }
             });
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        if ($isAutoApprove) {
+            return response()->json(['success' => 'Usage document saved and auto-approved.']);
         }
 
         // Generate approvals after the detail/reservation transaction commits
@@ -768,6 +791,49 @@ class VplUsageController extends Controller
             'message' => $message,
             'created_by' => $user->name,
         ]);
+    }
+
+    /**
+     * CUSTOMERSERVICE Usage docs have no ms_approval chain — the creator is the
+     * sole, automatic approver. Records a single approved TrApproval row (for
+     * audit/history parity with the normal flow), completes the document, and
+     * finalizes stock immediately. Throws (rolling back the transaction) if
+     * stock is insufficient, mirroring the check normally done in approve().
+     */
+    private function autoApproveCustomerService(TrxVplUsage $usage, $user, Carbon $dt): void
+    {
+        foreach (TrxVplUsageDetail::where('usage_id', $usage->usage_id)->get() as $detail) {
+            $stock = MsVplProductDetail::where('product_id', $detail->product_id)
+                ->where('expired_date', $detail->expired_date)
+                ->where('whs_id', $detail->whs_id)
+                ->first();
+            if (!$stock || $stock->qty_available < $detail->qty_usage) {
+                $productName = MsVplProduct::where('product_id', $detail->product_id)->value('product_name') ?? $detail->product_id;
+                throw new \RuntimeException('Insufficient stock for '.$productName.' (Expired: '.$detail->expired_date.').');
+            }
+        }
+
+        TrApproval::create([
+            'refnbr' => $usage->usage_id,
+            'aprv_leveling' => '1',
+            'aprv_doctype' => self::DOCTYPE,
+            'aprv_cpnyid' => $usage->cpnyid,
+            'aprv_departementid' => $usage->department,
+            'aprv_username' => $user->username,
+            'aprv_name' => $user->name,
+            'aprv_type' => 'Normal',
+            'aprv_datebefore' => $dt,
+            'aprv_dateafter' => $dt,
+            'status' => 'A',
+            'created_by' => $user->name,
+        ]);
+
+        $usage->status = 'C';
+        $usage->completed_user = $user->username;
+        $usage->completed_at = $dt->toDateTimeString();
+        $usage->save();
+
+        $this->finalizeStock($usage->id);
     }
 
     /**

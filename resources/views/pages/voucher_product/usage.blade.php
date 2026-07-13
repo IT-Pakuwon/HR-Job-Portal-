@@ -225,6 +225,11 @@
                                 <option value="">Select Reference...</option>
                             </select>
                         </div>
+                        <div id="c_usage_date_wrapper" class="hidden">
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Usage Date <span class="text-red-500">*</span></label>
+                            <input type="date" name="usage_date" id="c_usage_date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
+                            <p class="mt-1 text-xs text-slate-400">CUSTOMERSERVICE can backdate up to H-14.</p>
+                        </div>
                         <div id="c_whs_wrapper" class="md:col-span-4">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Warehouse <span class="text-red-500">*</span></label>
                             <select id="c_whs_id" class="w-full select2-create" required>

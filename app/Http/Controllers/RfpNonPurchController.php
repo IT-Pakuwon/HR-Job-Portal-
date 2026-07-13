@@ -1038,6 +1038,8 @@ class RfpNonPurchController extends Controller
         $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
+        $hasBlockingIM = !empty($rfpnonpurch->imbudgetid) && $rfpnonpurch->status_imbudget !== 'C';
+
         // =========================
         // PROGRESS STEPS
         // =========================
@@ -1092,6 +1094,7 @@ class RfpNonPurchController extends Controller
             'isApprover',
             'hasApFinAccess',
             'hasApTreAccess',
+            'hasBlockingIM',
             'userdept',
             'userdept2',
             'rfpnonpurchSteps',

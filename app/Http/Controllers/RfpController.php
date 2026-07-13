@@ -671,6 +671,20 @@ class RfpController extends Controller
         $userdept = Userdept::where('username', '=', $user->username)->get();
         $userdept2 = Userdept::where('username', '=', $user->username)->first();
 
+        // RFP Purchase tidak menyimpan imbudgetid/status_imbudget di header,
+        // jadi IM Budget yang blocking dicek lewat tr_imbudget.rfp_id (lihat approveRfp()).
+        $blockingIMBudget = TrIMBudget::query()
+            ->where('rfp_id', $rfp->rfp_id)
+            ->where('doctype', 'RP')
+            ->where('status', '<>', 'X')
+            ->orderByDesc('id')
+            ->first();
+
+        $hasBlockingIM = $blockingIMBudget
+            && !in_array(strtoupper(trim((string) $blockingIMBudget->status)), ['C', 'COMPLETED'], true);
+        $imBlockingId = $blockingIMBudget->imbudgetid ?? null;
+        $imBlockingStatus = $blockingIMBudget->status ?? null;
+
         $rfpSteps = collect();
         $createdStepUser = strtoupper(trim((string) $rfp->type_po)) === 'KONTRAK'
             ? ($rfp->user_peminta ?: '-')
@@ -710,6 +724,9 @@ class RfpController extends Controller
             'hash',
             'canUpload',
             'isApprover',
+            'hasBlockingIM',
+            'imBlockingId',
+            'imBlockingStatus',
             'userdept',
             'userdept2',
             'poUrl',

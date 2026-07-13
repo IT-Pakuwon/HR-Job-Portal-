@@ -73,6 +73,14 @@
                                     Print PDF
                                 </button>
                             </a>
+
+                            {{-- Tombol Export Excel --}}
+                            <a href="{{ route('cs.export', $hash) }}">
+                                <button title="Klik untuk export ke Excel"
+                                    class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-green-600 px-4 py-1 text-sm font-semibold text-white transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    Export Excel
+                                </button>
+                            </a>
                         </div>
                     </header>
 

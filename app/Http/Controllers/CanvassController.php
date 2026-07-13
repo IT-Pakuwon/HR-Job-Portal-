@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\CsDetailExport;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\Autonbr;
 use App\Models\Bq;
@@ -40,6 +41,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Models\MsKontrakPrefix;
 
@@ -6053,6 +6055,104 @@ class CanvassController extends Controller
         $pdf->setPaper('A4', 'landscape');
 
         return $pdf->stream("pdf_cs_{$cs->csid}.pdf");
+    }
+
+    public function exportDetail($hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $cs = TrCS::findOrFail($id);
+
+        $csdetail = TrCSdetail::with([
+            'location:location_id,location_name',
+            'subLocation:sub_location_id,sub_location_name',
+        ])
+            ->where('csid', $cs->csid)
+            ->whereNotNull('qty')
+            ->where('qty', '!=', 0)
+            ->orderBy('cs_no')
+            ->get();
+
+        // ===== COA description per row (sama seperti showCS) =====
+        $budgets = BudgetDetail::leftJoin('ms_coa', function ($join) {
+            $join->on('ms_budget.account_id', '=', 'ms_coa.account_id')
+                ->on('ms_budget.cpny_id', '=', 'ms_coa.cpny_id');
+        })
+            ->where('ms_budget.status', 'C')
+            ->select(
+                'ms_budget.cpny_id',
+                'ms_budget.business_unit_id',
+                'ms_budget.department_fin_id',
+                'ms_budget.account_id',
+                'ms_budget.activity_descr',
+                'ms_budget.perpost',
+                'ms_coa.account_descr as account_descr'
+            )
+            ->get();
+
+        $budgetMap = [];
+        foreach ($budgets as $b) {
+            $key = implode('|', [
+                $b->cpny_id, $b->business_unit_id, $b->department_fin_id,
+                $b->account_id, $b->activity_descr, $b->perpost,
+            ]);
+            $budgetMap[$key] = $b;
+        }
+
+        $csdetail = $csdetail->map(function ($item) use ($budgetMap) {
+            $key = implode('|', [
+                $item->budget_cpny_id, $item->budget_business_unit_id, $item->budget_department_fin_id,
+                $item->budget_account_id, $item->budget_activity_descr, $item->budget_perpost,
+            ]);
+
+            $item->account_descr = $budgetMap[$key]->account_descr ?? null;
+
+            return $item;
+        });
+
+        // ===== Vendor columns (nama + payment term + summary header) =====
+        $tops = MsTop::pluck('top_name', 'topid');
+
+        $vendors = [];
+        for ($i = 1; $i <= 6; ++$i) {
+            $vid = $cs->{"vendorid{$i}"} ?? null;
+            if (!$vid) {
+                continue;
+            }
+
+            $topid = trim($cs->{"vendortop{$i}"} ?? '');
+
+            $vendors[] = [
+                'i' => $i,
+                'vendorname' => $cs->{"vendorname{$i}"} ?: "Vendor {$i}",
+                'top_name' => $tops[$topid] ?? $topid,
+                'total' => (float) ($cs->{"totalvendor{$i}"} ?? 0),
+                'grand' => (float) ($cs->{"grandtotalvendor{$i}"} ?? 0),
+                'selected_grand' => (float) ($cs->{"grandtotalselectedvendor{$i}"} ?? 0),
+            ];
+        }
+
+        // ===== Link ke dokumen sumber (SPPB/J/K/T) =====
+        $routeMap = ['PB' => 'showsppbs', 'PJ' => 'showsppjs', 'PK' => 'showsppks', 'PT' => 'showsppts'];
+        $modelMap = ['PB' => [TrSPPB::class, 'sppbid'], 'PJ' => [TrSPPJ::class, 'sppjid'], 'PK' => [TrSPPK::class, 'sppkid'], 'PT' => [TrSPPT::class, 'spptid']];
+
+        $prefix = strtoupper(substr((string) $cs->sppbjktid, 0, 2));
+        $docUrl = null;
+
+        if (isset($modelMap[$prefix])) {
+            [$modelClass, $column] = $modelMap[$prefix];
+            $srcHeader = $modelClass::where($column, $cs->sppbjktid)->first();
+
+            if ($srcHeader) {
+                $docUrl = url('/'.$routeMap[$prefix].'/'.Hashids::encode($srcHeader->id));
+            }
+        }
+
+        return Excel::download(
+            new CsDetailExport($cs, $csdetail, $vendors, $docUrl),
+            'CS_Detail_'.$cs->csid.'.xlsx'
+        );
     }
 
     private function generatePOFromCS(TrCS $cs, $user, $potype): void
