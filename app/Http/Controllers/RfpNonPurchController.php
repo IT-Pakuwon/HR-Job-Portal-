@@ -2831,6 +2831,16 @@ class RfpNonPurchController extends Controller
                 'updated_by' => $user->username,
             ]);
 
+            if ($this->needsIMBudgetFromRfpNonPurchDetail($rfpnonpurch->rfpnonpurchaseid)) {
+                    $this->reserveBudget(
+                        $doctype,
+                        $rfpnonpurch->rfpnonpurchaseid,
+                        $request->cpnyid ?? $rfpnonpurch->cpny_id,
+                        'Revise',
+                        $user->username
+                    );
+                }
+
             /*
             |--------------------------------------------------------------------------
             | Save message/comment
