@@ -25,6 +25,10 @@ use App\Models\TrBQCSDetail;
 use App\Models\MsVendor;
 use App\Models\TrCSdetail;
 use App\Models\TrPOReuse;
+use App\Models\TrKontrakBudget;
+use App\Models\BudgetDetail;
+use App\Models\Usercpny;
+use App\Models\Userbusinessunit;
 
 class KontrakController extends Controller
 {
@@ -42,10 +46,14 @@ class KontrakController extends Controller
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
             ->exists();
+        $hasCostCtrlAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'COSTCTRLACCESS')
+            ->exists();
 
         return view('pages.kontrak.kontrak', [
             'companies'       => $cpnyList,
             'isFinanceAccess' => $isFinanceAccess,
+            'hasCostCtrlAccess' => $hasCostCtrlAccess,
             'loginUser'       => $u,
         ]);
     }
@@ -56,10 +64,11 @@ class KontrakController extends Controller
         $user = Auth::user();
         $u    = $user->username ?? '';
 
-        $tab     = strtolower((string) $req->query('tab', 'my'));         // my | all
+        $tab     = strtolower((string) $req->query('tab', 'my'));         // my | all | finance
         $status  = strtoupper(trim((string) $req->query('status', '')));  // optional
         $company = strtoupper(trim((string) $req->query('company', ''))); // optional
         $creator = trim((string) $req->query('creator', ''));             // optional
+        $budgetStatus = strtolower(trim((string) $req->query('budget_status', 'need'))); // need | done
 
         // company list user
         $cpnyRaw  = $user->cpny_id ?? '';
@@ -68,6 +77,13 @@ class KontrakController extends Controller
         $isFinanceAccess = SysUserRole::where('username', $u)
             ->where('role_id', 'FINACCESS')
             ->exists();
+        $hasCostCtrlAccess = SysUserRole::where('username', $u)
+            ->where('role_id', 'COSTCTRLACCESS')
+            ->exists();
+
+        if ($tab === 'finance' && !$hasCostCtrlAccess) {
+            $tab = $isFinanceAccess ? 'all' : 'my';
+        }
 
         $base = TrKontrak::query();
 
@@ -84,7 +100,23 @@ class KontrakController extends Controller
         }
 
         // ===== tab behavior =====
-        if ($tab === 'my') {
+        if ($tab === 'finance') {
+            $budgetExists = function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('tr_kontrak_budget as kb')
+                    ->whereColumn('kb.kontrakid', 'tr_kontrak.kontrakid')
+                    ->where(function ($qq) {
+                        $qq->whereNull('kb.status')
+                            ->orWhere('kb.status', '<>', 'X');
+                    });
+            };
+
+            if ($budgetStatus === 'done') {
+                $base->whereExists($budgetExists);
+            } else {
+                $base->whereNotExists($budgetExists);
+            }
+        } elseif ($tab === 'my') {
             // creator filter: non-fin selalu dirinya sendiri
             if (!$isFinanceAccess) {
                 $base->where('created_by', $u);
@@ -480,31 +512,42 @@ class KontrakController extends Controller
             ->orderBy('bq_line_no')
             ->get();
 
-        // // ===== Kumpulkan semua vendorid dari detail =====
-        // $vendorIds = collect($details)
-        //     ->flatMap(function ($d) {
-        //         return [
-        //             $d->vendorid1,
-        //             $d->vendorid2,
-        //             $d->vendorid3,
-        //             $d->vendorid4,
-        //             $d->vendorid5,
-        //             $d->vendorid6,
-        //         ];
-        //     })
-        //     ->filter() // buang null / kosong
-        //     ->unique()
-        //     ->values();
+        $kontrakBudgets = TrKontrakBudget::query()
+            ->where('kontrakid', $kontrak->kontrakid)
+            ->where(function ($q) {
+                $q->whereNull('status')
+                    ->orWhere('status', '<>', 'X');
+            })
+            ->orderBy('budget_perpost')
+            ->orderBy('budget_account_id')
+            ->get();
 
-        // // ===== Ambil nama vendor sekali query =====
-        // $vendorMap = [];
-        // if ($vendorIds->isNotEmpty()) {
-        //     $vendorMap = MsVendor::query()
-        //         ->whereIn('vendor_id', $vendorIds)
-        //         ->pluck('vendor_name', 'vendor_id')
-        //         ->toArray();
-        // }
+        $aksesCc = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'COSTCTRLACCESS')
+            ->exists();
 
+        $userCpny = Usercpny::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->pluck('cpny_id')
+            ->values();
+
+        $userBu = Userbusinessunit::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->get(['cpny_id', 'business_unit_id']);
+
+        $userDeptFin = BudgetDetail::query()
+            ->whereIn('cpny_id', $userCpny)
+            ->where('status', 'C')
+            ->whereNotNull('department_fin_id')
+            ->select('cpny_id', 'business_unit_id', 'department_fin_id')
+            ->distinct()
+            ->orderBy('cpny_id')
+            ->orderBy('business_unit_id')
+            ->orderBy('department_fin_id')
+            ->get();
+       
         return view('pages.kontrak.showkontrak', [
             'kontrak'    => $kontrak,
             'attachment' => $attachment,
@@ -514,7 +557,230 @@ class KontrakController extends Controller
             'users'      => $users,
             'kontrakCategories' => $kontrakCategories,
             'details'    => $details,
+            'kontrakBudgets' => $kontrakBudgets,
+            'aksesCc' => $aksesCc,
+            'userCpny' => $userCpny,
+            'userBu' => $userBu,
+            'userDeptFin' => $userDeptFin,
             // 'vendorMap'  => $vendorMap,
+        ]);
+    }
+
+    public function kontrakBudgetOptions(Request $request, string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'COSTCTRLACCESS')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $cpnyId = trim((string) $request->get('cpnyid', ''));
+        $buId = trim((string) $request->get('business_unit_id', ''));
+        $deptFinId = trim((string) $request->get('deptid', ''));
+        $search = trim((string) $request->get('search', ''));
+        $page = max((int) $request->get('page', 1), 1);
+        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
+
+        if ($cpnyId === '' || $buId === '' || $deptFinId === '') {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+            ]);
+        }
+
+        $allowedCpny = Usercpny::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->where('cpny_id', $cpnyId)
+            ->exists();
+
+        $allowedBu = Userbusinessunit::query()
+            ->where('username', $user->username)
+            ->where('status', 'A')
+            ->where('cpny_id', $cpnyId)
+            ->where('business_unit_id', $buId)
+            ->exists();
+
+        if (!$allowedCpny || !$allowedBu) {
+            return response()->json(['message' => 'Budget filter is outside your access.'], 403);
+        }
+
+        $query = BudgetDetail::query()
+            ->from('ms_budget as b')
+            ->leftJoin('ms_coa as c', function ($join) {
+                $join->on('c.account_id', '=', 'b.account_id')
+                    ->on('c.cpny_id', '=', 'b.cpny_id');
+            })
+            ->where('b.status', 'C')
+            ->where('b.cpny_id', $cpnyId)
+            ->where('b.business_unit_id', $buId)
+            ->where('b.department_fin_id', $deptFinId);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('b.account_id', 'ilike', "%{$search}%")
+                    ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+                    ->orWhere('b.activity_id', 'ilike', "%{$search}%")
+                    ->orWhere('b.activity_descr', 'ilike', "%{$search}%")
+                    ->orWhere('b.perpost', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = $query
+            ->orderBy('b.account_id')
+            ->orderBy('b.activity_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get([
+                'b.cpny_id',
+                'b.business_unit_id',
+                'b.department_fin_id',
+                'b.account_id',
+                'c.account_descr',
+                'b.activity_id',
+                'b.activity_descr',
+                'b.perpost',
+            ]);
+
+        return response()->json([
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+        ]);
+    }
+
+    public function storeKontrakBudget(Request $request, string $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'COSTCTRLACCESS')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $validated = $request->validate([
+            'budget_cpny_id' => ['required', 'string'],
+            'budget_business_unit_id' => ['required', 'string'],
+            'budget_department_fin_id' => ['required', 'string'],
+            'budget_account_id' => ['required', 'string'],
+            'budget_activity_id' => ['nullable', 'string'],
+            'budget_activity_descr' => ['required', 'string'],
+            'budget_perpost' => ['nullable', 'string'],
+        ]);
+
+        $kontrak = TrKontrak::findOrFail($id);
+        $username = $user->username ?? $user->name;
+
+        $budgetExists = BudgetDetail::query()
+            ->where('status', 'C')
+            ->where('cpny_id', $validated['budget_cpny_id'])
+            ->where('business_unit_id', $validated['budget_business_unit_id'])
+            ->where('department_fin_id', $validated['budget_department_fin_id'])
+            ->where('account_id', $validated['budget_account_id'])
+            ->where('activity_descr', $validated['budget_activity_descr'])
+            ->when(!empty($validated['budget_perpost']), fn ($q) => $q->where('perpost', $validated['budget_perpost']))
+            ->exists();
+
+        if (!$budgetExists) {
+            return response()->json(['success' => false, 'message' => 'Budget tidak ditemukan.'], 422);
+        }
+
+        $duplicate = TrKontrakBudget::query()
+            ->where('kontrakid', $kontrak->kontrakid)
+            ->where(function ($q) {
+                $q->whereNull('status')
+                    ->orWhere('status', '<>', 'X');
+            })
+            ->where('budget_cpny_id', $validated['budget_cpny_id'])
+            ->where('budget_business_unit_id', $validated['budget_business_unit_id'])
+            ->where('budget_department_fin_id', $validated['budget_department_fin_id'])
+            ->where('budget_account_id', $validated['budget_account_id'])
+            ->where('budget_activity_descr', $validated['budget_activity_descr'])
+            ->when(!empty($validated['budget_perpost']), fn ($q) => $q->where('budget_perpost', $validated['budget_perpost']))
+            ->first();
+
+        if ($duplicate) {
+            return response()->json(['success' => false, 'message' => 'Budget sudah ada.'], 422);
+        }
+
+        $budget = TrKontrakBudget::create([
+            'kontrakid' => $kontrak->kontrakid,
+            'cpny_id' => $kontrak->cpny_id,
+            'csid' => $kontrak->csid,
+            'sppbjktid' => $kontrak->sppbjktid,
+            'department_id' => $kontrak->department_id,
+            'budget_perpost' => $validated['budget_perpost'] ?? null,
+            'budget_cpny_id' => $validated['budget_cpny_id'],
+            'budget_business_unit_id' => $validated['budget_business_unit_id'],
+            'budget_department_fin_id' => $validated['budget_department_fin_id'],
+            'budget_account_id' => $validated['budget_account_id'],
+            'budget_activity_id' => $validated['budget_activity_id'] ?? null,
+            'budget_activity_descr' => $validated['budget_activity_descr'],
+            'status' => 'A',
+            'created_by' => $username,
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Budget berhasil ditambahkan.',
+            'budget' => $budget,
+        ]);
+    }
+
+    public function deleteKontrakBudget(Request $request, string $hash, int $budgetId)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+
+        $hasAccess = SysUserRole::where('username', $user->username)
+            ->where('role_id', 'COSTCTRLACCESS')
+            ->exists();
+
+        if (!$hasAccess) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $kontrak = TrKontrak::findOrFail($id);
+
+        $budget = TrKontrakBudget::query()
+            ->where('id', $budgetId)
+            ->where('kontrakid', $kontrak->kontrakid)
+            ->firstOrFail();
+
+        $budget->status = 'X';
+        $budget->deleted_by = $user->username ?? $user->name;
+        $budget->deleted_at = now();
+        $budget->updated_by = $user->username ?? $user->name;
+        $budget->updated_at = now();
+        $budget->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Budget berhasil dihapus.',
         ]);
     }
 

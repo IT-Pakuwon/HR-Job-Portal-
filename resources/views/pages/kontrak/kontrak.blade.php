@@ -18,6 +18,13 @@
                 data-tab="all">
                 All Kontrak
             </button>
+
+            @if ($hasCostCtrlAccess)
+                <button type="button" id="tabFinance" class="kontrak-tab rounded-lg border px-4 py-2 text-sm font-semibold"
+                    data-tab="finance">
+                    Kontrak Finance
+                </button>
+            @endif
         </div>
 
         <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -48,6 +55,15 @@
                             <option value="H">Unsend</option>
                             <option value="P">On Progress</option>
                             <option value="C">Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2" id="wrapBudgetStatus" style="display:none;">
+                        <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Budget</label>
+                        <select id="filterBudgetStatus"
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                            <option value="need">Need Budget</option>
+                            <option value="done">Done Budget</option>
                         </select>
                     </div>
 
@@ -88,6 +104,7 @@
     <script>
         $(document).ready(function() {
             const isFinanceAccess = @json($isFinanceAccess);
+            const hasCostCtrlAccess = @json($hasCostCtrlAccess);
 
             // default tab:
             // - FINACCESS: all
@@ -96,6 +113,7 @@
 
             if (isFinanceAccess && activeTab === 'my') activeTab = 'all';
             if (!document.querySelector('.kontrak-tab[data-tab="my"]') && activeTab === 'my') activeTab = 'all';
+            if (!hasCostCtrlAccess && activeTab === 'finance') activeTab = isFinanceAccess ? 'all' : 'my';
 
             const $title = $('#kontrakTitle');
 
@@ -119,10 +137,19 @@
 
                 if (tab === 'my') {
                     $('#wrapStatus').show();
+                    $('#wrapBudgetStatus').hide();
+                    $('#filterBudgetStatus').val('need');
                     $title.text('Kontrak - My Kontrak');
+                } else if (tab === 'finance') {
+                    $('#wrapStatus').hide();
+                    $('#filterStatus').val('');
+                    $('#wrapBudgetStatus').show();
+                    $title.text('Kontrak - Kontrak Finance');
                 } else {
                     $('#wrapStatus').hide();
                     $('#filterStatus').val('');
+                    $('#wrapBudgetStatus').hide();
+                    $('#filterBudgetStatus').val('need');
                     $title.text('Kontrak - All Kontrak');
                 }
             }
@@ -232,6 +259,7 @@
                         d.company = ($('#filterCompany').val() || '');
                         d.creator = ($('#filterCreator').val() || '');
                         d.status = ($('#filterStatus').val() || '');
+                        d.budget_status = ($('#filterBudgetStatus').val() || 'need');
                     }
                 },
                 columns: [{
@@ -306,7 +334,7 @@
                 reloadAndResetState();
             });
 
-            $('#filterCompany, #filterStatus').on('change', function() {
+            $('#filterCompany, #filterStatus, #filterBudgetStatus').on('change', function() {
                 reloadAndResetState();
             });
 
@@ -318,6 +346,7 @@
             $('#btnReset').on('click', function() {
                 $('#filterCompany').val('');
                 $('#filterStatus').val('');
+                $('#filterBudgetStatus').val('need');
                 @if ($isFinanceAccess)
                     $('#filterCreator').val('');
                 @endif

@@ -1137,6 +1137,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/kontrak', [KontrakController::class, 'index'])->name('kontrak');
         Route::get('/kontrak/json', [KontrakController::class, 'json'])->name('kontrak.json');
         Route::get('/showkontrak/{hash}', [KontrakController::class, 'showKontrak'])->name('kontrak.show');
+        Route::get('/showkontrak/{hash}/budget-options', [KontrakController::class, 'kontrakBudgetOptions'])->name('kontrak.budget.options');
+        Route::post('/showkontrak/{hash}/budget', [KontrakController::class, 'storeKontrakBudget'])->name('kontrak.budget.store');
+        Route::delete('/showkontrak/{hash}/budget/{budgetId}', [KontrakController::class, 'deleteKontrakBudget'])->name('kontrak.budget.delete');
     });
 
     Route::middleware('access:KONTRAK,CREATE')->group(function () {
@@ -1226,6 +1229,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/createrfpkontrakbudget/{hash}/submit', [RfpController::class, 'submitRfpKontrakBudget'])->name('rfp.kontrak-budget.submit');
     Route::get('/editrfpkontrakbudget/{hash}', [RfpController::class, 'editRfpKontrakBudget'])->name('rfp.kontrak-budget.edit');
     Route::post('/editrfpkontrakbudget/{hash}/update', [RfpController::class, 'updateRfpKontrakBudget'])->name('rfp.kontrak-budget.update');
+    Route::get('/rfp/{hash}/kontrak-budget-options', [RfpController::class, 'kontrakBudgetOptions'])->name('rfp.kontrak-budget.options');
     Route::post('/rfp/{hash}/cancel-kontrak-budget', [RfpController::class, 'cancelRfpKontrakBudget'])->name('rfp.kontrak-budget.cancel');
     Route::post('/rfp/{hash}/received', [RfpController::class, 'updateReceived'])->name('rfp.received');
     Route::post('/rfp/{hash}/treasury', [RfpController::class, 'updateTreasury'])->name('rfp.treasury');

@@ -14,6 +14,7 @@ use App\Models\TrAttachment;
 use App\Models\TrIMBudget;
 use App\Models\TrRfp;
 use App\Models\TrRfpKontrakBudget;
+use App\Models\TrKontrakBudget;
 use App\Models\TrPO;
 use App\Models\TrCS;
 use App\Models\TrSPPB;
@@ -1022,6 +1023,104 @@ class RfpController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function kontrakBudgetOptions(Request $request, $hash)
+    {
+        $id = Hashids::decode($hash)[0] ?? null;
+        abort_if(!$id, 404);
+
+        $user = Auth::user();
+        abort_if(!$user, 401);
+
+        $rfp = TrRfp::findOrFail($id);
+        $kontrakId = trim((string) ($rfp->kontrak_id ?? ''));
+        if ($kontrakId === '') {
+            $kontrakId = trim((string) $request->get('kontrakid', ''));
+        }
+        $search = trim((string) $request->get('search', ''));
+        $page = max((int) $request->get('page', 1), 1);
+        $perPage = min(max((int) $request->get('per_page', 10), 1), 100);
+
+        if ($kontrakId === '') {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+                'message' => 'Kontrak ID tidak tersedia.',
+            ]);
+        }
+
+        $query = TrKontrakBudget::query()
+            ->from('tr_kontrak_budget as kb')
+            ->leftJoin('ms_budget as b', function ($join) {
+                $join->on('b.cpny_id', '=', 'kb.budget_cpny_id')
+                    ->on('b.business_unit_id', '=', 'kb.budget_business_unit_id')
+                    ->on('b.department_fin_id', '=', 'kb.budget_department_fin_id')
+                    ->on('b.account_id', '=', 'kb.budget_account_id')
+                    ->on('b.activity_id', '=', 'kb.budget_activity_id')
+                    ->on('b.activity_descr', '=', 'kb.budget_activity_descr')
+                    ->on('b.perpost', '=', 'kb.budget_perpost')
+                    ->where('b.status', 'C');
+            })
+            ->leftJoin('ms_coa as c', function ($join) {
+                $join->on('c.account_id', '=', 'kb.budget_account_id')
+                    ->on('c.cpny_id', '=', 'kb.budget_cpny_id');
+            })
+            ->leftJoin('ms_activity as a', function ($join) {
+                $join->on('a.activity_id', '=', 'kb.budget_activity_id')
+                    ->on('a.cpny_id', '=', 'kb.budget_cpny_id');
+            })
+            ->where('kb.kontrakid', $kontrakId)
+            ->where(function ($q) {
+                $q->whereNull('kb.status')
+                    ->orWhere('kb.status', '<>', 'X');
+            });
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('kb.budget_account_id', 'ilike', "%{$search}%")
+                    ->orWhere('c.account_descr', 'ilike', "%{$search}%")
+                    ->orWhere('kb.budget_activity_id', 'ilike', "%{$search}%")
+                    ->orWhere('kb.budget_activity_descr', 'ilike', "%{$search}%")
+                    ->orWhere('kb.budget_business_unit_id', 'ilike', "%{$search}%")
+                    ->orWhere('kb.budget_department_fin_id', 'ilike', "%{$search}%");
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $rows = $query
+            ->orderBy('kb.budget_account_id')
+            ->orderBy('kb.budget_activity_descr')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get([
+                'kb.budget_cpny_id as cpny_id',
+                'kb.budget_business_unit_id as business_unit_id',
+                'kb.budget_department_fin_id as department_fin_id',
+                'kb.budget_account_id as account_id',
+                'c.account_descr',
+                'kb.budget_activity_id as activity_id',
+                'kb.budget_activity_descr as activity_descr',
+                'a.activity_descr as act_descr',
+                'kb.budget_perpost as perpost',
+                DB::raw('COALESCE(b.totalbudget, 0) as totalbudget'),
+                DB::raw('COALESCE(b.totalbudget_add, 0) as totalbudget_add'),
+                DB::raw('COALESCE(b.total_reserve, 0) as total_reserve'),
+                DB::raw('COALESCE(b.total_used, 0) as total_used'),
+                DB::raw('(COALESCE(b.totalbudget, 0) + COALESCE(b.totalbudget_add, 0)) as availablebudget'),
+                DB::raw('(COALESCE(b.total_reserve, 0) + COALESCE(b.total_used, 0)) as usedbudget'),
+                DB::raw('((COALESCE(b.totalbudget, 0) + COALESCE(b.totalbudget_add, 0)) - (COALESCE(b.total_reserve, 0) + COALESCE(b.total_used, 0))) as remaining'),
+            ]);
+
+        return response()->json([
+            'data' => $rows,
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $perPage,
+        ]);
     }
 
     private function attachKontrakBudgetRemaining($kontrakBudgets): void

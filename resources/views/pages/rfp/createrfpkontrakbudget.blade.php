@@ -319,9 +319,7 @@
                         </button>
                     </div>
                     <div class="ml-auto flex flex-wrap items-center gap-3 text-gray-600 dark:text-gray-300">
-                        <span>Company: <b id="kontrakBudgetCpnyBadge"></b></span>
-                        <span>Dept: <b id="kontrakBudgetDeptBadge"></b></span>
-                        <span>Perpost: <b id="kontrakBudgetPerpostBadge"></b></span>
+                        <span>Contract ID: <b id="kontrakBudgetContractBadge"></b></span>
                     </div>
                 </div>
 
@@ -374,6 +372,7 @@
             deptid: @json($rfp->department_id),
             perpost: @json($budgetPerpost),
             business_unit_id: @json($firstBudget?->budget_business_unit_id),
+            kontrakid: @json($rfp->kontrak_id),
             rfp_cpny_id: @json($rfp->cpny_id),
             rfp_base_amount: @json($rfp->rfp_base_amount),
         };
@@ -478,9 +477,7 @@
                 state.search = '';
                 state.page = 1;
                 $('#kontrakBudgetSearch').val('');
-                $('#kontrakBudgetCpnyBadge').text(kontrakBudgetContext.cpnyid || '-');
-                $('#kontrakBudgetDeptBadge').text(kontrakBudgetContext.deptid || '-');
-                $('#kontrakBudgetPerpostBadge').text(kontrakBudgetContext.perpost || '-');
+                $('#kontrakBudgetContractBadge').text(kontrakBudgetContext.kontrakid || '-');
                 $modal.removeClass('hidden').addClass('flex');
                 loadBudget();
             }
@@ -492,14 +489,11 @@
             function loadBudget() {
                 $tbody.html('<tr><td colspan="6" class="p-3 text-center">Loading...</td></tr>');
 
-                $.getJSON(@json(route('coa.byDeptWo')), {
+                $.getJSON(@json(route('rfp.kontrak-budget.options', ['hash' => $hash])), {
                     search: state.search,
                     page: state.page,
                     per_page: state.per_page,
-                    cpnyid: kontrakBudgetContext.cpnyid,
-                    deptid: kontrakBudgetContext.deptid,
-                    perpost: kontrakBudgetContext.perpost,
-                    business_unit_id: kontrakBudgetContext.business_unit_id,
+                    kontrakid: kontrakBudgetContext.kontrakid,
                 })
                 .done(function (res) {
                     const rows = (res.data || []).map(item => {
@@ -532,6 +526,8 @@
                                         data-account-descr="${escapeHtml(accDescr)}"
                                         data-activity-id="${escapeHtml(actId)}"
                                         data-activity-label="${escapeHtml(actDescrLabel)}"
+                                        data-cpny-id="${escapeHtml(item.cpny_id ?? '')}"
+                                        data-perpost="${escapeHtml(item.perpost ?? '')}"
                                         data-business-unit-id="${escapeHtml(buId)}"
                                         data-department-fin-id="${escapeHtml(deptFinId)}"
                                         data-activity-descr="${escapeHtml(actDescr)}"
@@ -606,12 +602,12 @@
                     <tr class="kontrak-budget-row hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td class="budget-row-no p-3"></td>
                         <td class="p-3">
-                            ${escapeHtml(kontrakBudgetContext.perpost || '-')}
-                            <input type="hidden" name="budget_perpost[]" value="${escapeHtml(kontrakBudgetContext.perpost || '')}">
+                            ${escapeHtml($btn.data('perpost') || '-')}
+                            <input type="hidden" name="budget_perpost[]" value="${escapeHtml($btn.data('perpost') || '')}">
                         </td>
                         <td class="p-3">
-                            ${escapeHtml(kontrakBudgetContext.cpnyid || '-')}
-                            <input type="hidden" name="budget_cpny_id[]" value="${escapeHtml(kontrakBudgetContext.cpnyid || '')}">
+                            ${escapeHtml($btn.data('cpny-id') || '-')}
+                            <input type="hidden" name="budget_cpny_id[]" value="${escapeHtml($btn.data('cpny-id') || '')}">
                         </td>
                         <td class="p-3">
                             ${escapeHtml($btn.data('business-unit-id') || '-')}
