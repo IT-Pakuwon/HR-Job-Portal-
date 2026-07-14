@@ -1389,6 +1389,7 @@ class SpbController extends Controller
                 'note',
                 'location_id',
                 'sub_location_id',
+                'budget_cpny_id',
                 'budget_department_fin_id',
                 'budget_account_id',
                 'budget_activity_descr',

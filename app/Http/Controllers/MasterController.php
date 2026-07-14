@@ -1129,10 +1129,11 @@ class MasterController extends Controller
             ->values()
             ->all();
 
-        $cpnyid    = $request->get('cpnyid');
-        $deptFinId = $request->get('deptid');   // department_fin_id
-        $perpost   = $request->get('perpost');
-        $search    = trim($request->get('search', ''));
+        $cpnyid         = $request->get('cpnyid');
+        $deptFinId      = $request->get('deptid');   // department_fin_id
+        $perpost        = $request->get('perpost');
+        $businessUnitId = trim((string) $request->get('business_unit_id', ''));
+        $search         = trim($request->get('search', ''));
         $page      = max((int) $request->get('page', 1), 1);
         $perPage   = max((int) $request->get('per_page', 10), 1);
 
@@ -1151,7 +1152,10 @@ class MasterController extends Controller
             ->where('status', 'C')
             ->where('cpny_id', $cpnyid)
             ->where('department_fin_id', $deptFinId)
-            ->when(!empty($businessUnitIds), fn ($q) =>
+            ->when($businessUnitId !== '', fn ($q) =>
+                $q->where('business_unit_id', $businessUnitId)
+            )
+            ->when($businessUnitId === '' && !empty($businessUnitIds), fn ($q) =>
                 $q->whereIn('business_unit_id', $businessUnitIds)
             )
             ->when($perpost, fn ($q) => $q->where('perpost', $perpost))
@@ -1186,7 +1190,10 @@ class MasterController extends Controller
             ->where('b.status', 'C')
             ->where('b.cpny_id', $cpnyid)
             ->where('b.department_fin_id', $deptFinId)
-            ->when(!empty($businessUnitIds), fn ($qq) =>
+            ->when($businessUnitId !== '', fn ($qq) =>
+                $qq->where('b.business_unit_id', $businessUnitId)
+            )
+            ->when($businessUnitId === '' && !empty($businessUnitIds), fn ($qq) =>
                 $qq->whereIn('b.business_unit_id', $businessUnitIds)
             )
             ->when($perpost, fn ($qq) => $qq->where('b.perpost', $perpost));

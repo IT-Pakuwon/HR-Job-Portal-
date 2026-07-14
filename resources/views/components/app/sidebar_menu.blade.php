@@ -304,24 +304,29 @@
                     @if (auth()->user()->user_role === 'admin')
                         @php
                             $settingsSegments = [
+                                'access_control_studio',
                                 'users',
                                 'roles',
                                 'access_rights',
                                 'role_menus',
-                                'access_control_studio',
+                                'group-acc-specific',
                                 'applications',
                                 'screens',
                                 'menus',
                                 'companies',
                                 'department',
+                                'business-units',
                                 'tenants',
                                 'locations',
                                 'categories',
-                                'groupbiayanonpurch',
                                 'vendors',
                                 'inventories',
                                 'autonbrs',
                                 'tops',
+                                'sys-calendar',
+                                'attachments-master',
+                                'kendaraan',
+                                'groupbiayanonpurch',
                                 'approvals',
                                 'approvalsgroupbiaya',
                                 'budgetmonitor',
@@ -361,7 +366,7 @@
                                 <!-- ================================================= -->
                                 <!-- USER & ACCESS -->
                                 <!-- ================================================= -->
-                                @php $ua = ['users','roles','access_rights','role_menus']; @endphp
+                                @php $ua = ['users','roles','access_rights','role_menus','group-acc-specific']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $ua) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -380,6 +385,10 @@
                                     <ul x-show="open" x-collapse class="space-y-1 pl-4">
                                         <li><a href="{{ route('users') }}"
                                                 class="{{ Request::segment(1) === 'users' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Users</a>
+                                        </li>
+                                        <li><a href="{{ route('group_acc_specific') }}"
+                                                class="{{ Request::segment(1) === 'group-acc-specific' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Group
+                                                Access Specific</a>
                                         </li>
                                         {{-- <li><a href="{{ route('roles') }}"
                                                 class="{{ Request::segment(1) === 'roles' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Roles</a>
@@ -596,24 +605,11 @@
                             </button>
 
                             <ul x-show="open" x-collapse class="mt-1 space-y-1 pl-2">
-                                <li x-data="{ open: true }">
-                                    <button @click="open = !open"
-                                        class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-600 dark:hover:bg-gray-700/40 dark:hover:text-gray-300">
-                                        <span class="flex-1 whitespace-normal wrap-break-word text-left leading-snug">Master Data</span>
-                                        <svg class="h-4 w-4 transition-transform" :class="open ? 'rotate-180' : ''"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M6 9l6 6 6-6" />
-                                        </svg>
-                                    </button>
-                                    <ul x-show="open" x-collapse class="space-y-1 pl-4">
-                                        <li>
-                                            <a href="{{ route('groupbiayanonpurch') }}"
-                                                class="{{ Request::segment(1) === 'groupbiayanonpurch' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
-                                                Group Biaya Non Purch
-                                            </a>
-                                        </li>
-                                    </ul>
+                                <li>
+                                    <a href="{{ route('groupbiayanonpurch') }}"
+                                        class="{{ Request::segment(1) === 'groupbiayanonpurch' ? 'text-indigo-600' : '' }} sidebar-link text-sm">
+                                        Group Biaya Non Purch
+                                    </a>
                                 </li>
                             </ul>
                         </li>

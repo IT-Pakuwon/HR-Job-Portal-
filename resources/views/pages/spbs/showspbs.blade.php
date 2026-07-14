@@ -1662,6 +1662,9 @@
 
                 $picker.removeClass('hidden').addClass('flex');
 
+                // init select2 untuk Department Fin (sekali saja)
+                initDeptFinSelect2();
+
                 // isi dropdown dari akses user
                 fillAccessDropdowns();
 
@@ -1678,7 +1681,7 @@
 
                 // ✅ optional: prefill DeptFin juga biar makin cepat
                 if (rowDeptFi) {
-                    $('#fDeptFin').val(rowDeptFi);
+                    $('#fDeptFin').val(rowDeptFi).trigger('change');
                 }
 
                 // reset table/info
@@ -1695,6 +1698,18 @@
             function closePicker() {
                 $picker.addClass('hidden').removeClass('flex');
                 pickerState.rowId = null;
+            }
+
+            function initDeptFinSelect2() {
+                const $df = $('#fDeptFin');
+                if ($df.hasClass('select2-hidden-accessible')) return;
+
+                $df.select2({
+                    width: '100%',
+                    placeholder: '-- pilih --',
+                    allowClear: true,
+                    dropdownParent: $('#coaPickerModal')
+                });
             }
 
             function fillAccessDropdowns() {
@@ -1734,6 +1749,7 @@
 
                 const $df = $('#fDeptFin').empty().append('<option value="">-- pilih --</option>');
                 Array.from(uniqDeptFin).sort().forEach(v => $df.append(`<option value="${v}">${v}</option>`));
+                $df.trigger('change'); // refresh select2 display setelah opsi di-rebuild
             }
 
             function renderPickerRows(rows) {
@@ -1840,7 +1856,7 @@
             $(document).on('click', '#btnCoaPickerReset', function() {
                 $('#fCpny').val('');
                 $('#fBu').val('');
-                $('#fDeptFin').val('');
+                $('#fDeptFin').val('').trigger('change');
                 $('#fSearch').val('');
                 $('#coaPickerTbody').html(
                     '<tr><td colspan="7" class="p-4 text-center text-gray-500 italic">Pilih filter lalu Apply</td></tr>'

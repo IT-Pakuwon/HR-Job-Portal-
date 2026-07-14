@@ -25,7 +25,6 @@ class TrTicket extends Model
         'ticket_subcategoryid',
         'user_peminta',
         'location_id',
-        'sub_location_id',
         'issue_summary',
         'issue_descr',
         'status',
@@ -84,12 +83,7 @@ class TrTicket extends Model
 
     public function location()
     {
-        return $this->belongsTo(MsLocation::class, 'location_id', 'location_id');
-    }
-
-    public function subLocation()
-    {
-        return $this->belongsTo(MsSubLocation::class, 'sub_location_id', 'sub_location_id');
+        return $this->belongsTo(MsSite::class, 'location_id', 'siteid');
     }
 
     public function serviceOrders()

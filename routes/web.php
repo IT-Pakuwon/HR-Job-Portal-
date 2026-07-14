@@ -84,6 +84,8 @@ use App\Http\Controllers\MeetingRoomSetupController;
 use App\Http\Controllers\MsApprovalController;
 use App\Http\Controllers\MsApprovalGroupBiayaController;
 use App\Http\Controllers\MsCategoryController;
+use App\Http\Controllers\MsSiteController;
+use App\Http\Controllers\GroupAccspecificController;
 use App\Http\Controllers\MsGroupbiayaNonPurchController;
 use App\Http\Controllers\MultiDashboardController;
 use App\Http\Controllers\NewsController;
@@ -1569,7 +1571,6 @@ Route::middleware(['auth'])->group(function () {
                     Route::get('/issue-summary-search', 'issueSummarySearch')->name('oprteknik-ticket.issueSummarySearch');
                     Route::get('/priority-search', 'prioritySearch')->name('oprteknik-ticket.prioritySearch');
                     Route::get('/location-search', 'locationSearch')->name('oprteknik-ticket.locationSearch');
-                    Route::get('/sub-location-search', 'subLocationSearch')->name('oprteknik-ticket.subLocationSearch');
                     Route::get('/pic-search', 'picSearch')->name('oprteknik-ticket.picSearch');
                     Route::get('/counts', 'counts')->name('oprteknik-ticket.counts');
                     Route::get('/companies-search', 'companiesSearch')->name('oprteknik-ticket.companiesSearch');
@@ -2192,6 +2193,12 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/companies/{id}', [CompanyController::class, 'update'])->name('companies.update');
         Route::put('/companies/{id}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle-status');
 
+        Route::get('/companies/sites/json', [MsSiteController::class, 'json'])->name('companies.sites.json');
+        Route::post('/companies/sites', [MsSiteController::class, 'store'])->name('companies.sites.store');
+        Route::get('/companies/sites/{id}/edit', [MsSiteController::class, 'edit'])->name('companies.sites.edit');
+        Route::put('/companies/sites/{id}', [MsSiteController::class, 'update'])->name('companies.sites.update');
+        Route::put('/companies/sites/{id}/toggle-status', [MsSiteController::class, 'toggleStatus'])->name('companies.sites.toggle-status');
+
         Route::get('/department', [DepartmentsController::class, 'index'])->name('department');
         Route::get('/department/json', [DepartmentsController::class, 'json'])->name('department.json');
         Route::post('/department', [DepartmentsController::class, 'store'])->name('department.store');
@@ -2229,6 +2236,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/categories/{id}/edit', [MsCategoryController::class, 'edit']);
         Route::put('/categories/{id}', [MsCategoryController::class, 'update']);
         Route::put('/categories/{id}/toggle-status', [MsCategoryController::class, 'toggleStatus']);
+
+        Route::get('/group-acc-specific', [GroupAccspecificController::class, 'index'])->name('group_acc_specific');
+        Route::get('/group-acc-specific/json', [GroupAccspecificController::class, 'json'])->name('group_acc_specific.json');
+        Route::post('/group-acc-specific', [GroupAccspecificController::class, 'store'])->name('group_acc_specific.store');
+        Route::get('/group-acc-specific/{id}/edit', [GroupAccspecificController::class, 'edit'])->name('group_acc_specific.edit');
+        Route::put('/group-acc-specific/{id}', [GroupAccspecificController::class, 'update'])->name('group_acc_specific.update');
+        Route::put('/group-acc-specific/{id}/toggle-status', [GroupAccspecificController::class, 'toggleStatus'])->name('group_acc_specific.toggle-status');
 
         Route::get('/autonbrs', [AutonbrController::class, 'index'])->name('autonbrs');
         Route::get('/autonbrs/json', [AutonbrController::class, 'json'])->name('autonbrs.json');

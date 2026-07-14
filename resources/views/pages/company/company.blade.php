@@ -4,35 +4,84 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">🏢 Company List</h1>
-                <button id="addCompanyBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                    + Add Company
+
+        {{-- ── TABS ────────────────────────────────────────────────────────────── --}}
+        <div>
+            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700 mb-0">
+                <button type="button" id="tab-company"
+                    class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400"
+                    onclick="switchCpnyTab('company')">
+                    🏢 Company
+                </button>
+                <button type="button" id="tab-site"
+                    class="cpnyTabBtn px-5 py-2.5 text-sm font-semibold rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    onclick="switchCpnyTab('site')">
+                    📍 Site
                 </button>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="companiesTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Company ID</th>
-                            <th class="px-4 py-3 text-left">Company Name</th>
-                            <th class="px-4 py-3 text-left">City</th>
-                            <th class="px-4 py-3 text-left">Province</th>
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            {{-- ── TAB 1: Company ──────────────────────────────────────────────── --}}
+            <div id="panel-company" class="rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
+                <div class="mb-3 flex items-center justify-between">
+                    <h1 class="text-base font-bold text-gray-800 dark:text-white">🏢 Company List</h1>
+                    <button id="addCompanyBtn"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        + Add Company
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table id="companiesTable" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            <tr>
+                                <th></th>
+                                <th class="w-32 px-4 py-3 text-center">Actions</th>
+                                <th class="px-4 py-3 text-left">Company ID</th>
+                                <th class="px-4 py-3 text-left">Company Name</th>
+                                <th class="px-4 py-3 text-left">City</th>
+                                <th class="px-4 py-3 text-left">Province</th>
+                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- ── TAB 2: Site ─────────────────────────────────────────────────── --}}
+            <div id="panel-site" class="hidden rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
+                <div class="mb-3 flex items-center justify-between">
+                    <h1 class="text-base font-bold text-gray-800 dark:text-white">📍 Site List</h1>
+                    <button id="addSiteBtn"
+                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        + Add Site
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table id="siteTable" class="text-body w-full text-left text-sm rtl:text-right">
+                        <thead
+                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                            <tr>
+                                <th class="w-8 px-2 py-3 text-center"></th>
+                                <th class="w-32 px-4 py-3 text-center">Actions</th>
+                                <th class="px-4 py-3 text-left">Company ID</th>
+                                <th class="px-4 py-3 text-left">Site ID</th>
+                                <th class="px-4 py-3 text-left">Site Name</th>
+                                <th class="px-4 py-3 text-left">City</th>
+                                <th class="w-24 px-4 py-3 text-center">Default</th>
+                                <th class="w-24 px-4 py-3 text-center">Parking</th>
+                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Modal -->
+        <!-- Modal: Company -->
         <div id="companyModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
             <div class="relative w-full max-w-xl rounded-lg bg-white p-4 dark:bg-gray-700">
                 <h2 id="modalTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Company</h2>
@@ -116,6 +165,99 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal: Site -->
+        <div id="siteModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/50">
+            <div class="relative w-full max-w-2xl rounded-lg bg-white p-4 dark:bg-gray-700">
+                <h2 id="modalSiteTitle" class="mb-4 text-base font-bold text-gray-800 dark:text-white">Add Site</h2>
+                <form id="siteForm">
+                    @csrf
+                    <input type="hidden" id="site_id" name="id">
+
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Company</label>
+                            <select id="site_cpny_id" name="cpny_id"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                                <option value="">-- Select Company --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Site ID</label>
+                            <input type="text" id="site_siteid" name="siteid"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                        </div>
+
+                        <div class="mb-3 md:col-span-2">
+                            <label class="block text-gray-700 dark:text-white">Site Name</label>
+                            <input type="text" id="site_site_name" name="site_name"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700" required>
+                        </div>
+
+                        <div class="mb-3 md:col-span-2">
+                            <label class="block text-gray-700 dark:text-white">Address Line 1</label>
+                            <input type="text" id="site_addr1" name="site_addr1"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+                        <div class="mb-3 md:col-span-2">
+                            <label class="block text-gray-700 dark:text-white">Address Line 2</label>
+                            <input type="text" id="site_addr2" name="site_addr2"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">City</label>
+                            <input type="text" id="site_city" name="site_city"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Province</label>
+                            <input type="text" id="site_province" name="site_province"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Postal Code</label>
+                            <input type="text" id="site_postalcode" name="site_postalcode"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">PIC</label>
+                            <input type="text" id="site_pic" name="site_pic"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Phone</label>
+                            <input type="text" id="site_phone" name="site_phone"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-700 dark:text-white">Fax</label>
+                            <input type="text" id="site_fax" name="site_fax"
+                                class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
+                        </div>
+
+                        <div class="mb-3 flex items-center gap-2">
+                            <input type="checkbox" id="site_default" name="site_default" value="1"
+                                class="h-4 w-4 rounded border-gray-300">
+                            <label for="site_default" class="text-gray-700 dark:text-white">Default Site</label>
+                        </div>
+                        <div class="mb-3 flex items-center gap-2">
+                            <input type="checkbox" id="site_parking" name="site_parking" value="1"
+                                class="h-4 w-4 rounded border-gray-300">
+                            <label for="site_parking" class="text-gray-700 dark:text-white">Parking Site</label>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button type="button" id="closeSiteModal"
+                            class="rounded-lg bg-red-500 px-4 py-2 text-white">Cancel</button>
+                        <button type="submit" class="rounded-lg bg-blue-500 px-4 py-2 text-white">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <div id="loadingOverlay"
         class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
@@ -138,100 +280,134 @@
         function hideLoading() {
             $('#loadingOverlay').addClass('hidden');
         }
-        $(document).ready(function() {
-            let table = $('#companiesTable').DataTable({
-                ajax: "{{ route('companies.json') }}",
-                processing: true,
-                serverSide: false,
-                lengthMenu: [
-                    [10, 25, 50, 100, 250, -1],
-                    [10, 25, 50, 100, 250, 'All']
-                ],
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0 // 👈 this is REQUIRED
-                    }
-                },
 
-                columnDefs: [{
-                    targets: 0,
-                    width: '28px',
-                    className: 'dtr-control',
-                    orderable: false
-                }],
-                dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
-                buttons: [{
-                        extend: 'excelHtml5',
-                        text: '↓ Excel',
-                        title: 'User',
-                        className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
-                        exportOptions: {
-                            columns: ':visible',
-                            modifier: {
-                                page: 'current'
-                            }
-                        }
-                    },
-                    {
-                        extend: 'csvHtml5',
-                        text: '↓ CSV',
-                        title: 'User',
-                        className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
-                        exportOptions: {
-                            columns: ':visible',
-                            modifier: {
-                                page: 'current'
-                            }
-                        }
-                    }
-                ],
-                columns: [{
-                        data: null,
-                        defaultContent: ''
-                    }, {
-                        data: 'id',
-                        render: function(data, type, row) {
-                            return `
-                                        <div class="flex justify-center space-x-2">
-                                            <label class="switch">
-                                                <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
-                                                <span class="slider round"></span>
-                                            </label>
-                                            <button class="editCompanyBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                        </div>
-                                    `;
-                        }
-                    },
-                    {
-                        data: 'cpny_id',
-                        className: 'no-pointer'
-                    },
-                    {
-                        data: 'cpny_name',
-                        className: 'no-pointer'
-                    },
-                    {
-                        data: 'city',
-                        className: 'no-pointer'
-                    },
-                    {
-                        data: 'province',
-                        className: 'no-pointer'
-                    },
-                    {
-                        data: 'status',
-                        className: 'no-pointer',
-                        render: function(data) {
-                            return data === 'A' ?
-                                '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
-                                '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
-                        }
-                    }
-                ]
+        const initedCpnyTabs = { company: false, site: false };
+        const cpnyActiveClasses = 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400';
+        const cpnyInactiveClasses = 'bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400';
+
+        function switchCpnyTab(tab) {
+            const panels = { company: '#panel-company', site: '#panel-site' };
+            const btns   = { company: '#tab-company',   site: '#tab-site' };
+
+            Object.keys(panels).forEach(function(key) {
+                const isActive = key === tab;
+                $(panels[key]).toggleClass('hidden', !isActive);
+                $(btns[key])
+                    .toggleClass(cpnyActiveClasses, isActive)
+                    .toggleClass(cpnyInactiveClasses, !isActive);
             });
+
+            if (!initedCpnyTabs[tab]) {
+                initedCpnyTabs[tab] = true;
+                if (tab === 'company') initCompanyTable();
+                if (tab === 'site') initSiteTable();
+            } else if (tab === 'company' && window.companiesTable) {
+                window.companiesTable.columns.adjust().responsive.recalc();
+            } else if (tab === 'site' && window.siteTable) {
+                window.siteTable.columns.adjust().responsive.recalc();
+            }
+        }
+
+        $(document).ready(function() {
+
+            // =========================================================
+            // Company
+            // =========================================================
+            window.initCompanyTable = function() {
+                window.companiesTable = $('#companiesTable').DataTable({
+                    ajax: "{{ route('companies.json') }}",
+                    processing: true,
+                    serverSide: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'Company',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'Company',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        }, {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                            <div class="flex justify-center space-x-2">
+                                                <label class="switch">
+                                                    <input type="checkbox" class="toggleCompanyStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                                <button class="editCompanyBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        `;
+                            }
+                        },
+                        {
+                            data: 'cpny_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'cpny_name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'city',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'province',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            };
 
             // Add
             $('#addCompanyBtn').click(function() {
@@ -278,8 +454,8 @@
                 });
             });
 
-            // Toggle status
-            $(document).on('change', '.toggleStatus', function() {
+            // Toggle status (company)
+            $(document).on('change', '.toggleCompanyStatus', function() {
                 let id = $(this).data('id');
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
@@ -293,12 +469,12 @@
                         status: newStatus
                     },
                     success: function() {
-                        table.ajax.reload(null, false);
+                        window.companiesTable.ajax.reload(null, false);
                     }
                 });
             });
 
-            // Submit form (create / update)
+            // Submit form (create / update company)
             $('#companyForm').submit(function(e) {
                 e.preventDefault();
 
@@ -328,7 +504,7 @@
                         $('#companyForm button[type="submit"]').prop('disabled', false);
 
                         $('#companyModal').addClass('hidden');
-                        table.ajax.reload();
+                        window.companiesTable.ajax.reload();
 
                         Swal.fire({
                             icon: 'success',
@@ -358,6 +534,273 @@
                 $('#id').val('');
                 $('#companyModal').addClass('hidden');
             });
+
+            // =========================================================
+            // Site
+            // =========================================================
+            window.initSiteTable = function() {
+                // populate company dropdown for the site form
+                $.getJSON("{{ route('companies.json') }}", function(resp) {
+                    let $select = $('#site_cpny_id');
+                    (resp.data || []).forEach(function(c) {
+                        $select.append(`<option value="${c.cpny_id}">${c.cpny_id} — ${c.cpny_name}</option>`);
+                    });
+                });
+
+                window.siteTable = $('#siteTable').DataTable({
+                    ajax: {
+                        url: "{{ route('companies.sites.json') }}",
+                        type: "GET",
+                        dataSrc: 'data'
+                    },
+                    processing: true,
+                    serverSide: false,
+                    autoWidth: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
+                    buttons: [{
+                            extend: 'excelHtml5',
+                            text: '↓ Excel',
+                            title: 'Site',
+                            className: 'bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        },
+                        {
+                            extend: 'csvHtml5',
+                            text: '↓ CSV',
+                            title: 'Site',
+                            className: 'bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700',
+                            exportOptions: {
+                                columns: ':visible',
+                                modifier: {
+                                    page: 'current'
+                                }
+                            }
+                        }
+                    ],
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        }, {
+                            data: 'id',
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                return `
+                                            <div class="flex justify-center space-x-2">
+                                                <label class="switch">
+                                                    <input type="checkbox" class="toggleSiteStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                                <button class="editSiteBtn bg-blue-500 text-white px-2 py-1 rounded" data-id="${data}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        `;
+                            }
+                        },
+                        {
+                            data: 'cpny_id'
+                        },
+                        {
+                            data: 'siteid'
+                        },
+                        {
+                            data: 'site_name'
+                        },
+                        {
+                            data: 'site_city'
+                        },
+                        {
+                            data: 'site_default',
+                            className: 'text-center',
+                            render: function(data) {
+                                return data ? '✅' : '';
+                            }
+                        },
+                        {
+                            data: 'site_parking',
+                            className: 'text-center',
+                            render: function(data) {
+                                return data ? '✅' : '';
+                            }
+                        },
+                        {
+                            data: 'status',
+                            className: 'text-center',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="bg-green-300/30 text-green-600 font-semibold px-4 py-1 rounded">Active</span>' :
+                                    '<span class="bg-red-300/30 text-red-600 font-semibold px-4 py-1 rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            };
+
+            // Add
+            $('#addSiteBtn').click(function() {
+                $('#modalSiteTitle').text("Add Site");
+                $('#siteForm')[0].reset();
+                $('#site_id').val('');
+                $('#siteModal').removeClass('hidden');
+            });
+
+            // Edit
+            $(document).on('click', '.editSiteBtn', function() {
+                let id = $(this).data('id');
+
+                $('#modalSiteTitle').text("Loading...");
+                $('#siteForm')[0].reset();
+                $('#site_id').val(id);
+                $('#siteModal').removeClass('hidden');
+                showLoading();
+
+                $.get(`/companies/sites/${id}/edit`, function(data) {
+                    $('#modalSiteTitle').text("Edit Site");
+
+                    $('#site_cpny_id').val(data.cpny_id);
+                    $('#site_siteid').val(data.siteid);
+                    $('#site_site_name').val(data.site_name);
+                    $('#site_addr1').val(data.site_addr1);
+                    $('#site_addr2').val(data.site_addr2);
+                    $('#site_city').val(data.site_city);
+                    $('#site_province').val(data.site_province);
+                    $('#site_postalcode').val(data.site_postalcode);
+                    $('#site_pic').val(data.site_pic);
+                    $('#site_phone').val(data.site_phone);
+                    $('#site_fax').val(data.site_fax);
+                    $('#site_default').prop('checked', !!data.site_default);
+                    $('#site_parking').prop('checked', !!data.site_parking);
+
+                    hideLoading();
+                }).fail(function(xhr) {
+                    hideLoading();
+                    $('#siteModal').addClass('hidden');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Gagal mengambil data site'
+                    });
+
+                    console.error(xhr.responseText);
+                });
+            });
+
+            // Toggle status (site)
+            $(document).on('change', '.toggleSiteStatus', function() {
+                let id = $(this).data('id');
+                let newStatus = $(this).is(':checked') ? 'A' : 'X';
+
+                $.ajax({
+                    url: `/companies/sites/${id}/toggle-status`,
+                    type: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: {
+                        status: newStatus
+                    },
+                    success: function() {
+                        window.siteTable.ajax.reload(null, false);
+                    }
+                });
+            });
+
+            // Submit (create / update site)
+            $('#siteForm').submit(function(e) {
+                e.preventDefault();
+
+                let id = $('#site_id').val();
+                let url = id ? `/companies/sites/${id}` : "{{ route('companies.sites.store') }}";
+                let method = 'POST';
+                let formData = new FormData(document.getElementById('siteForm'));
+
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
+
+                showLoading();
+                $('#siteForm button[type="submit"]').prop('disabled', true);
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function() {
+                        hideLoading();
+                        $('#siteForm button[type="submit"]').prop('disabled', false);
+
+                        $('#siteModal').addClass('hidden');
+                        $('#siteForm')[0].reset();
+                        $('#site_id').val('');
+                        window.siteTable.ajax.reload();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Site saved successfully',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        hideLoading();
+                        $('#siteForm button[type="submit"]').prop('disabled', false);
+
+                        let msg = 'Gagal menyimpan data site';
+
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            msg = Object.values(xhr.responseJSON.errors)
+                                .map(arr => arr.join(', '))
+                                .join('\n');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: msg
+                        });
+
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            $('#closeSiteModal').click(function() {
+                $('#siteForm')[0].reset();
+                $('#site_id').val('');
+                $('#siteModal').addClass('hidden');
+            });
+
+            // init first (visible) tab
+            initCompanyTable();
+            initedCpnyTabs.company = true;
         });
     </script>
 </x-app-layout>
