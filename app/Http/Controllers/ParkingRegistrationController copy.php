@@ -649,11 +649,6 @@ class ParkingRegistrationController extends Controller
         $parkingType  = strtoupper(trim((string) $request->query('parking_type', '')));
         $workerType   = strtoupper(trim((string) $request->query('worker_type', '')));
         $search       = trim((string) $request->query('q', ''));
-        $splitCsv = function ($value) {
-            return array_values(array_filter(array_map('trim', explode(',', (string) $value))));
-        };
-        $cpnyIds = $splitCsv($cpnyId);
-        $departmentIds = $splitCsv($departmentId);
 
         /*
         |--------------------------------------------------------------------------
@@ -824,29 +819,25 @@ class ParkingRegistrationController extends Controller
             $q = User::query()
                 ->where('status', 'A');
 
-            if (!empty($cpnyIds)) {
-                $placeholders = implode(',', array_fill(0, count($cpnyIds), '?'));
-
+            if ($cpnyId !== '') {
                 $q->whereRaw(
                     "EXISTS (
                         SELECT 1
                         FROM unnest(string_to_array(COALESCE(cpny_id, ''), ',')) AS x(val)
-                        WHERE trim(x.val) IN ({$placeholders})
+                        WHERE trim(x.val) = ?
                     )",
-                    $cpnyIds
+                    [$cpnyId]
                 );
             }
 
-            if (!empty($departmentIds)) {
-                $placeholders = implode(',', array_fill(0, count($departmentIds), '?'));
-
+            if ($departmentId !== '') {
                 $q->whereRaw(
                     "EXISTS (
                         SELECT 1
                         FROM unnest(string_to_array(COALESCE(department_id, ''), ',')) AS x(val)
-                        WHERE trim(x.val) IN ({$placeholders})
+                        WHERE trim(x.val) = ?
                     )",
-                    $departmentIds
+                    [$departmentId]
                 );
             }
 
@@ -941,29 +932,25 @@ class ParkingRegistrationController extends Controller
             ->where('status', 'A')
             ->whereIn(DB::raw('UPPER(TRIM(jabatan))'), array_keys($limitByJabatan));
 
-        if (!empty($cpnyIds)) {
-            $placeholders = implode(',', array_fill(0, count($cpnyIds), '?'));
-
+        if ($cpnyId !== '') {
             $q->whereRaw(
                 "EXISTS (
                     SELECT 1
                     FROM unnest(string_to_array(COALESCE(cpny_id, ''), ',')) AS x(val)
-                    WHERE trim(x.val) IN ({$placeholders})
+                    WHERE trim(x.val) = ?
                 )",
-                $cpnyIds
+                [$cpnyId]
             );
         }
 
-        if (!empty($departmentIds)) {
-            $placeholders = implode(',', array_fill(0, count($departmentIds), '?'));
-
+        if ($departmentId !== '') {
             $q->whereRaw(
                 "EXISTS (
                     SELECT 1
                     FROM unnest(string_to_array(COALESCE(department_id, ''), ',')) AS x(val)
-                    WHERE trim(x.val) IN ({$placeholders})
+                    WHERE trim(x.val) = ?
                 )",
-                $departmentIds
+                [$departmentId]
             );
         }
 

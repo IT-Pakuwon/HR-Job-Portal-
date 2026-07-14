@@ -2065,6 +2065,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/rfpnonpurch/{id}/reject', [RfpNonPurchController::class, 'rejectRfpNonPurch']);
     Route::post('/rfpnonpurch/{id}/revise', [RfpNonPurchController::class, 'reviseRfpNonPurch']);
     Route::get('/createrfpnonpurch', [RfpNonPurchController::class, 'createRfpNonPurch']);
+    Route::get('/rfpnonpurch/groupbiaya-options', [RfpNonPurchController::class, 'groupBiayaOptions'])->name('rfpnonpurch.groupbiaya-options');
     Route::post('/rfpnonpurch', [RfpNonPurchController::class, 'storeRfpNonPurch'])->name('rfpnonpurch.store');
     Route::get('/editrfpnonpurch/{hash}', [RfpNonPurchController::class, 'editRfpNonPurch']);
     Route::put('/updaterfpnonpurch/{hash}', [RfpNonPurchController::class, 'updateRfpNonPurch'])->name('rfpnonpurch.update');

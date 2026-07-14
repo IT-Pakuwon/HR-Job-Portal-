@@ -763,49 +763,12 @@
             const $cpny = $('#cpnyid');
             const $bu = $('#business_unit_id');
             const selectedBuId = @json($rfpnonpurch->business_unit_id);
-            const selectedGroupBiayaId = @json($rfpnonpurch->groupbiaya_id);
 
             $('#groupbiaya_id').select2({
                 placeholder: 'Search Group Biaya...',
                 allowClear: true,
                 width: '100%'
             });
-
-            function renderGroupBiayaOptions(list, selected = null) {
-                let html = '<option value="">Select Group</option>';
-
-                (list || []).forEach(item => {
-                    const id = item.id ?? '';
-                    const text = item.text ?? id;
-                    const isDeposit = item.is_deposit ?? '0';
-                    const sel = selected && String(selected) === String(id) ? 'selected' : '';
-
-                    html += `<option value="${escapeHtml(id)}" data-is-deposit="${escapeHtml(isDeposit)}" ${sel}>${escapeHtml(text)}</option>`;
-                });
-
-                return html;
-            }
-
-            function loadGroupBiayaOptions(selected = null) {
-                const $group = $('#groupbiaya_id');
-                const selectedValue = selected ?? $group.val();
-
-                $group.html('<option value="">Loading...</option>').trigger('change.select2');
-
-                return $.getJSON("{{ route('rfpnonpurch.groupbiaya-options') }}", {
-                    cpnyid: $('#cpnyid').val() || '',
-                    departementid: $('#departementid').val() || '',
-                    selected_groupbiaya_id: selectedValue || ''
-                }).done(function (res) {
-                    const rows = res.data || [];
-                    const hasSelected = rows.some(item => String(item.id) === String(selectedValue));
-
-                    $group.html(renderGroupBiayaOptions(rows, hasSelected ? selectedValue : null));
-                    $group.val(hasSelected ? selectedValue : '').trigger('change');
-                }).fail(function () {
-                    $group.html('<option value="">Failed to load Group Biaya</option>').trigger('change');
-                });
-            }
 
             // function toggleDepositFields() {
 
@@ -957,23 +920,17 @@
             }
 
             loadBusinessUnitsByCpny($cpny.val(), selectedBuId).done(function () {
-                loadGroupBiayaOptions(selectedGroupBiayaId).always(function () {
-                    toggleBudgetMode();
-                });
+                toggleBudgetMode();
             });
 
             $cpny.on('change', function () {
                 loadBusinessUnitsByCpny($(this).val()).done(function () {
-                    loadGroupBiayaOptions(null).always(function () {
-                        toggleBudgetMode();
-                    });
+                    toggleBudgetMode();
                 });
             });
 
             $('#departementid').on('change', function () {
-                loadGroupBiayaOptions(null).always(function () {
-                    toggleBudgetMode();
-                });
+                toggleBudgetMode();
             });
 
             $bu.on('change', function () {

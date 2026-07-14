@@ -804,42 +804,6 @@
                 width: '100%'
             });
 
-            function renderGroupBiayaOptions(list, selected = null) {
-                let html = '<option value="">Select Group</option>';
-
-                (list || []).forEach(item => {
-                    const id = item.id ?? '';
-                    const text = item.text ?? id;
-                    const isDeposit = item.is_deposit ?? '0';
-                    const sel = selected && String(selected) === String(id) ? 'selected' : '';
-
-                    html += `<option value="${escapeHtml(id)}" data-is-deposit="${escapeHtml(isDeposit)}" ${sel}>${escapeHtml(text)}</option>`;
-                });
-
-                return html;
-            }
-
-            function loadGroupBiayaOptions(selected = null) {
-                const $group = $('#groupbiaya_id');
-                const selectedValue = selected ?? $group.val();
-
-                $group.html('<option value="">Loading...</option>').trigger('change.select2');
-
-                return $.getJSON("{{ route('rfpnonpurch.groupbiaya-options') }}", {
-                    cpnyid: $('#cpnyid').val() || '',
-                    departementid: $('#departementid').val() || '',
-                    selected_groupbiaya_id: selectedValue || ''
-                }).done(function (res) {
-                    const rows = res.data || [];
-                    const hasSelected = rows.some(item => String(item.id) === String(selectedValue));
-
-                    $group.html(renderGroupBiayaOptions(rows, hasSelected ? selectedValue : null));
-                    $group.val(hasSelected ? selectedValue : '').trigger('change');
-                }).fail(function () {
-                    $group.html('<option value="">Failed to load Group Biaya</option>').trigger('change');
-                });
-            }
-
             $('.user-select2').select2({
                 placeholder: 'Search user...',
                 allowClear: true,
@@ -1072,7 +1036,6 @@
             loadBusinessUnitsByCpny($cpny.val()).done(function () {
                 prevCpny = $cpny.val();
                 prevBu = $bu.val();
-                loadGroupBiayaOptions();
                 window.applyBudgetColumnVisibility();
             });
 
@@ -1086,7 +1049,6 @@
 
                     loadBusinessUnitsByCpny(newCpny).done(function () {
                         prevBu = $bu.val();
-                        loadGroupBiayaOptions(null);
                         window.applyBudgetColumnVisibility();
                     });
 
@@ -1106,7 +1068,6 @@
 
                 loadBusinessUnitsByCpny(newCpny).done(function () {
                     prevBu = $bu.val();
-                    loadGroupBiayaOptions(null);
                     window.applyBudgetColumnVisibility();
                 });
 
@@ -1119,7 +1080,6 @@
             });
 
             $('#departementid').on('change', function () {
-                loadGroupBiayaOptions(null);
                 window.applyBudgetColumnVisibility();
             });
 

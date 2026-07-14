@@ -486,7 +486,20 @@ class BastController extends Controller
         $docUrl = url('/showbast/' . $eid);
         $fullname = data_get($bast, 'creator.name') ?: $bast->created_by;
 
-        return \DB::transaction(function () use ($user, $doctype, $bast, $ratingScores, $docUrl, $fullname) {
+        $pendingApprovalQuery = TrApproval::query()
+            ->where('refnbr', $bast->bastid)
+            ->where('aprv_doctype', $doctype)
+            ->where('status', 'P')
+            ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
+            ->orderBy('id', 'asc');
+
+        $currentApproval = (clone $pendingApprovalQuery)
+            ->whereNotNull('aprv_datebefore')
+            ->first() ?: $pendingApprovalQuery->first();
+
+        $isLevelOneApproval = number_format((float) ($currentApproval->aprv_leveling ?? 0), 2, '.', '') === '1.00';
+
+        return \DB::transaction(function () use ($user, $doctype, $bast, $ratingScores, $docUrl, $fullname, $isLevelOneApproval) {
 
             $result = app(ApprovalController::class)->approveStep(
                 $bast->bastid,
@@ -495,9 +508,10 @@ class BastController extends Controller
                 $user->name,
 
                 // FINAL APPROVER
-                function (string $refnbr, Carbon $now) use ($bast, $fullname, $docUrl) {
-                    // JANGAN jalankan applyBastApprovalSideEffects di final
-                    // karena requirement: hanya untuk approval level 1.00 saja
+                function (string $refnbr, Carbon $now) use ($bast, $fullname, $docUrl, $ratingScores, $isLevelOneApproval) {
+                    if ($isLevelOneApproval) {
+                        $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
+                    }
 
                     $bast->status = 'C';
                     $bast->completed_by = auth()->user()->username;
@@ -522,16 +536,8 @@ class BastController extends Controller
                 },
 
                 // NEXT APPROVER
-                function ($next, Carbon $now) use ($bast, $docUrl, $ratingScores) {
-
-                    /*
-                    * Jika setelah approve current step, next approver adalah level 2.00,
-                    * berarti current approver yang baru saja approve adalah level 1.00.
-                    *
-                    * Jadi applyBastApprovalSideEffects hanya jalan sekali,
-                    * yaitu setelah approval level 1.00.
-                    */
-                    if ((float) ($next['aprv_leveling'] ?? 0) > 1.00) {
+                function ($next, Carbon $now) use ($bast, $docUrl, $ratingScores, $isLevelOneApproval) {
+                    if ($isLevelOneApproval) {
                         $this->applyBastApprovalSideEffects($bast, $now, $ratingScores);
                     }
 
