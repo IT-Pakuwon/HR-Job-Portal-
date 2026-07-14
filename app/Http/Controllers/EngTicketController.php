@@ -6,8 +6,7 @@ use App\Exports\EngTicketExport;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsCategory;
 use App\Models\MsCompany;
-use App\Models\MsLocation;
-use App\Models\MsSubLocation;
+use App\Models\MsSite;
 use App\Models\MsTicketCategory;
 use App\Models\MsTicketCategoryDept;
 use App\Models\MsTicketPriority;
@@ -364,7 +363,6 @@ class EngTicketController extends Controller
             'subcategory',
             'priority',
             'location',
-            'subLocation',
             'responseActivity',
         ])
             ->whereNull('deleted_at')
@@ -489,13 +487,7 @@ class EngTicketController extends Controller
             ->addColumn('location_name', function ($row) {
                 return optional(
                     $row->location
-                )->location_name;
-            })
-
-            ->addColumn('sub_location_name', function ($row) {
-                return optional(
-                    $row->subLocation
-                )->sub_location_name;
+                )->site_name;
             })
 
             ->addColumn('response_working_start', function ($row) {
@@ -563,13 +555,19 @@ class EngTicketController extends Controller
 
     public function calendarJson(Request $request)
     {
-        abort_unless($this->isMgrOprTeknik(), 403);
+        $user = auth()->user();
+
+        $broadTypes = $this->broadAccessTicketTypes();
+
+        $engTypes = $this->engTicketTypes();
 
         $tickets = TrTicket::with('responseActivity')
-            ->whereIn('ticket_type', [
-                self::ENG_TICKET_TYPE,
-                self::BSFO_TICKET_TYPE,
-            ])
+            ->whereIn('ticket_type', $engTypes)
+            ->where(function ($q) use ($broadTypes, $user) {
+                $q->whereIn('ticket_type', $broadTypes)
+                    ->orWhere('created_by', $user->username)
+                    ->orWhere('pic_ticket', $user->username);
+            })
             ->get();
 
         $scheduledActivities = TrTicketActivity::query()
@@ -733,7 +731,6 @@ class EngTicketController extends Controller
             'ticket_categoryid' => 'required',
             'ticket_subcategoryid' => 'required',
             'location_id' => 'required',
-            'sub_location_id' => 'required',
             'issue_summary' => 'required|max:255',
             'issue_descr' => 'required',
 
@@ -800,7 +797,6 @@ class EngTicketController extends Controller
                 'user_peminta' => $username,
 
                 'location_id' => $request->location_id,
-                'sub_location_id' => $request->sub_location_id,
 
                 'issue_summary' => $request->issue_summary,
                 'issue_descr' => $request->issue_descr,
@@ -916,7 +912,6 @@ class EngTicketController extends Controller
             'ticket_categoryid' => 'required',
             'ticket_subcategoryid' => 'required',
             'location_id' => 'required',
-            'sub_location_id' => 'required',
             'issue_summary' => 'required|max:255',
             'issue_descr' => 'required',
         ]);
@@ -935,7 +930,6 @@ class EngTicketController extends Controller
                 'ticket_categoryid' => $request->ticket_categoryid,
                 'ticket_subcategoryid' => $request->ticket_subcategoryid,
                 'location_id' => $request->location_id,
-                'sub_location_id' => $request->sub_location_id,
                 'issue_summary' => $request->issue_summary,
                 'issue_descr' => $request->issue_descr,
                 'updated_by' => auth()->user()->username,
@@ -1095,7 +1089,6 @@ class EngTicketController extends Controller
             'subcategory',
             'priority',
             'location',
-            'subLocation',
         ])->findOrFail($id);
 
         /*
@@ -1217,13 +1210,7 @@ class EngTicketController extends Controller
 
                     'location_name' => optional(
                         $ticket->location
-                    )->location_name,
-
-                    'sub_location_id' => $ticket->sub_location_id,
-
-                    'sub_location_name' => optional(
-                        $ticket->subLocation
-                    )->sub_location_name,
+                    )->site_name,
 
                     'ticket_priority' => $ticket->ticket_priority,
 
@@ -2707,13 +2694,18 @@ class EngTicketController extends Controller
             })
             ->values();
 
-        $locations = MsLocation::query()
+        $locations = MsSite::query()
             ->where('status', 'A')
-            ->orderBy('location_name')
+            ->orderBy('site_name')
             ->get([
-                'location_id',
-                'location_name',
+                'siteid',
+                'site_name',
                 'cpny_id',
+            ])
+            ->map(fn ($site) => [
+                'location_id' => $site->siteid,
+                'location_name' => $site->site_name,
+                'cpny_id' => $site->cpny_id,
             ]);
 
         $types = MsTicketType::query()
@@ -2858,7 +2850,7 @@ class EngTicketController extends Controller
             ->values()
             ->toArray();
 
-        $query = MsLocation::query()
+        $query = MsSite::query()
             ->where('status', 'A')
             ->where(function ($q) use ($userCompanies) {
                 $q->whereIn(
@@ -2873,39 +2865,13 @@ class EngTicketController extends Controller
 
         return response()->json([
             'results' => $query
-                ->orderBy('location_name')
+                ->orderBy('site_name')
                 ->get()
                 ->map(function ($row) {
                     return [
-                        'id' => $row->location_id,
+                        'id' => $row->siteid,
 
-                        'text' => $row->location_name,
-                    ];
-                }),
-        ]);
-    }
-
-    public function subLocationSearch(Request $request)
-    {
-        $query = MsSubLocation::query()
-            ->where('status', 'A');
-
-        if ($request->filled('location_id')) {
-            $query->where(
-                'location_id',
-                $request->location_id
-            );
-        }
-
-        return response()->json([
-            'results' => $query
-                ->orderBy('sub_location_name')
-                ->get()
-                ->map(function ($row) {
-                    return [
-                        'id' => $row->sub_location_id,
-
-                        'text' => $row->sub_location_name,
+                        'text' => $row->site_name,
                     ];
                 }),
         ]);
@@ -3203,7 +3169,6 @@ class EngTicketController extends Controller
             'subcategory',
             'priority',
             'location',
-            'subLocation',
         ])->findOrFail($id);
 
         $attachmentController = app(TrAttachmentController::class);

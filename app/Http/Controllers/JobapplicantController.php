@@ -79,9 +79,20 @@ class JobapplicantController extends Controller
     //   groupMatchedBy:    group key => human label, e.g. "KTP + DOB", "DOB + Phone"
     private function buildApplicantDuplicateClusters(): array
     {
+        // Only cluster applicants who actually submitted a job application.
+        // hr_ms_applicant also holds abandoned/incomplete registrations (no
+        // row in hr_trx_job_apply) — including those pollutes the clusters
+        // and flags people as "duplicate" even though they only ever have
+        // one real application in the Applicant List.
         $applicants = DB::connection('mysql3')
-            ->table('hr_ms_applicant')
-            ->select('applicant_id', 'ktp_id', 'date_of_birth', 'mobile_phone', 'email_address')
+            ->table('hr_ms_applicant as a')
+            ->whereExists(function ($q) {
+                $q->select(DB::raw(1))
+                    ->from('hr_trx_job_apply as ja')
+                    ->whereColumn('ja.applicant_id', 'a.applicant_id')
+                    ->where('ja.status', '!=', 'X');
+            })
+            ->select('a.applicant_id', 'a.ktp_id', 'a.date_of_birth', 'a.mobile_phone', 'a.email_address')
             ->get();
 
         $parent = [];

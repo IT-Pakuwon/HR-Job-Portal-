@@ -66,8 +66,6 @@ function resetResponseTicketForm() {
 
     $("#response_ticket_location").text("-");
 
-    $("#response_ticket_sublocation").text("-");
-
     $("#response_use_schedule").prop("checked", false);
 
     $("#response_schedule_container").addClass("hidden");
@@ -105,8 +103,6 @@ function populateResponseTicket(ticket) {
     $("#response_ticket_subcategory").text(ticket.ticket_subcategory || "-");
 
     $("#response_ticket_location").text(ticket.location_name || "-");
-
-    $("#response_ticket_sublocation").text(ticket.sub_location_name || "-");
 
     if (ticket.ticket_priority && ticket.priority_name) {
         const priorityOption = new Option(

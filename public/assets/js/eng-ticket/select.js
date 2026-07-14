@@ -14,7 +14,7 @@ function initTicketSelect() {
 
     initLocationSelect();
 
-    initSubLocationSelect();
+    initIssueSummarySelect();
 
     bindTicketSelectEvents();
 
@@ -387,9 +387,9 @@ function initLocationSelect() {
 
 }
 
-function initSubLocationSelect() {
+function initIssueSummarySelect() {
 
-    $('#sub_location_id').select2({
+    $('#issue_summary').select2({
 
         width:
             '100%',
@@ -398,7 +398,7 @@ function initSubLocationSelect() {
             $(Ticket.modal.create),
 
         placeholder:
-            'Select Sub Location',
+            'Select Issue Summary',
 
         allowClear:
             true,
@@ -406,7 +406,7 @@ function initSubLocationSelect() {
         ajax: {
 
             url:
-                Ticket.routes.subLocationSearch,
+                Ticket.routes.issueSummarySearch,
 
             dataType:
                 'json',
@@ -414,15 +414,12 @@ function initSubLocationSelect() {
             delay:
                 250,
 
-            data: function () {
+            data: function (params) {
 
                 return {
 
-                    location_id:
-                        $('#location_id').val(),
-
-                    cpny_id:
-                        $('#cpny_id').val(),
+                    search:
+                        params.term,
 
                 };
 
@@ -432,7 +429,14 @@ function initSubLocationSelect() {
 
                 return {
                     results:
-                        data.results || [],
+                        (data.results || []).map(function (row) {
+
+                            return {
+                                id: row.text,
+                                text: row.text,
+                            };
+
+                        }),
                 };
 
             },
@@ -499,25 +503,6 @@ function bindTicketSelectEvents() {
             populateLocationSelect(filtered);
 
             $('#location_id')
-                .val(null)
-                .trigger('change');
-
-            $('#sub_location_id')
-                .val(null)
-                .trigger('change');
-
-        }
-    );
-
-    $('#location_id').on(
-        'change',
-        function () {
-
-            if (Ticket.state.isEditLoading) {
-                return;
-            }
-
-            $('#sub_location_id')
                 .val(null)
                 .trigger('change');
 

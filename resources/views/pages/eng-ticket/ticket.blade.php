@@ -5,7 +5,7 @@
 
         {{-- Status Filter --}}
         <div id="ticketStatusFilterRow"
-            class="{{ $isEng ? '2xl:grid-cols-11' : '2xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 @if ($isMgrOprTeknik) hidden @endif">
+            class="{{ $isEng ? '2xl:grid-cols-11' : '2xl:grid-cols-6' }} hidden grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
 
             {{-- All --}}
             <button type="button" class="text-left">
@@ -347,7 +347,7 @@
         {{-- Filter Toolbar --}}
         @if ($isEng)
             <div id="ticketFilterToolbar"
-                class="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900 @if ($isMgrOprTeknik) hidden @endif">
+                class="mt-4 hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
 
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
 
@@ -535,7 +535,6 @@
 
             </div>
         @endif
-        @if ($isMgrOprTeknik)
             <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start">
                 <div class="min-w-0 flex-1">
             {{-- Calendar Wrapper --}}
@@ -587,10 +586,9 @@
                 </div>
 
             </div>
-        @endif
             {{-- Table Wrapper --}}
             <div id="ticketTableWrapper"
-                class="{{ $isMgrOprTeknik ? 'mt-4 hidden' : 'mt-4' }} rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                class="mt-4 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
                 class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">
@@ -605,12 +603,10 @@
 
                 <div class="flex items-center gap-3">
 
-                    @if ($isMgrOprTeknik)
-                        <button type="button"
-                            class="js-toggle-ticket-view inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-                            📅 Calendar View
-                        </button>
-                    @endif
+                    <button type="button"
+                        class="js-toggle-ticket-view inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+                        📅 Calendar View
+                    </button>
 
                     <button type="button" id="btn_create_ticket"
                         class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
@@ -710,11 +706,11 @@
             </div>
 
         </div>
-        @if ($isMgrOprTeknik)
-                </div>
+            </div>
+            @if ($isMgrOprTeknik)
                 {{-- Pending Approval Panel --}}
                 <div id="ticketApprovalPanel"
-                    class="flex w-full shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-80">
+                    class="hidden w-full shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a] lg:w-80 flex">
 
                     <div class="shrink-0 border-b border-gray-100 p-4 dark:border-white/[0.06]">
                         <div class="flex items-center justify-between">
@@ -732,8 +728,8 @@
                         style="max-height: 720px;"></div>
 
                 </div>
+            @endif
             </div>
-        @endif
         {{-- CREATE TICKET MODAL --}}
         <div id="createTicketModal" data-form-modal="true"
             class="ticket-modal fixed inset-0 z-[50] hidden items-center justify-center p-4">
@@ -944,7 +940,7 @@
 
                             </div>
 
-                            <div class="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
+                            <div class="grid grid-cols-1 gap-4 p-5">
 
                                 <div>
 
@@ -959,25 +955,6 @@
 
                                         <option value="">
                                             Select Location
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <div>
-
-                                    <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-
-                                        Sub Location
-
-                                    </label>
-
-                                    <select id="sub_location_id" name="sub_location_id"
-                                        class="ticket-select h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
-
-                                        <option value="">
-                                            Select Sub Location
                                         </option>
 
                                     </select>
@@ -1011,10 +988,14 @@
                                         Issue Summary <span class="text-red-500">*</span>
                                     </label>
 
-                                    <input type="text" id="issue_summary" name="issue_summary" maxlength="255"
-                                        required
-                                        placeholder="Enter issue summary"
-                                        class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-0 dark:border-white/10 dark:bg-[#0b1220] dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500">
+                                    <select id="issue_summary" name="issue_summary"
+                                        class="ticket-select h-11 w-full rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0b1220]">
+
+                                        <option value="">
+                                            Select Issue Summary
+                                        </option>
+
+                                    </select>
 
                                 </div>
 
@@ -1726,8 +1707,6 @@
             prioritySearch: "{{ route('oprteknik-ticket.prioritySearch') }}",
 
             locationSearch: "{{ route('oprteknik-ticket.locationSearch') }}",
-
-            subLocationSearch: "{{ route('oprteknik-ticket.subLocationSearch') }}",
 
             picSearch: "{{ route('oprteknik-ticket.picSearch') }}",
 

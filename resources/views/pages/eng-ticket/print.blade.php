@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ $ticket->ticketid }} — IT Support Ticket</title>
+    <title>{{ $ticket->ticketid }} — {{ $ticket->ticket_type === 'BSFOSUPPORTTICKET' ? 'BS&FO Support Ticket' : 'Engineering Support Ticket' }}</title>
 
     <style>
         body {
@@ -250,6 +250,8 @@
 
         $pName  = optional($ticket->priority)->ticket_priority_name ?? $ticket->ticket_priority ?? '-';
         $pLower = strtolower($pName);
+
+        $moduleLabel = $ticket->ticket_type === 'BSFOSUPPORTTICKET' ? 'BS&FO SUPPORT TICKET' : 'ENGINEERING SUPPORT TICKET';
     @endphp
 
     <div class="page">
@@ -258,7 +260,7 @@
         <table class="header">
             <tr>
                 <td>
-                    <div class="title">IT SUPPORT TICKET</div>
+                    <div class="title">{{ $moduleLabel }}</div>
                     <div class="company">{{ $ticket->cpny_id ?? '-' }} &nbsp;·&nbsp; {{ $ticket->department_id ?? '-' }}</div>
                 </td>
                 <td style="text-align:right;">
@@ -303,9 +305,7 @@
                         </tr>
                         <tr>
                             <td class="meta-label">Location</td>
-                            <td class="meta-value">{{ optional($ticket->location)->location_name ?? '-' }}</td>
-                            <td class="meta-label">Sub Location</td>
-                            <td class="meta-value">{{ optional($ticket->subLocation)->sub_location_name ?? '-' }}</td>
+                            <td class="meta-value" colspan="3">{{ optional($ticket->location)->site_name ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td class="meta-label">SLA Due Date</td>
@@ -354,7 +354,7 @@
                         <tr>
                             <td class="meta-label">Completed At</td>
                             <td class="meta-value">{{ optional($ticket->completed_at)->format('d M Y, H:i') ?? '-' }}</td>
-                            <td class="meta-label">IT PIC</td>
+                            <td class="meta-label">PIC</td>
                             <td class="meta-value">{{ $ticket->pic_ticket ?? '-' }}</td>
                         </tr>
                     </tbody>
@@ -435,7 +435,7 @@
                         <thead>
                             <tr>
                                 <th>Requester</th>
-                                <th>IT Technician / PIC</th>
+                                <th>Technician / PIC</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -446,7 +446,7 @@
                                 </td>
                                 <td>
                                     <div class="approval-name">{{ strtoupper($ticket->completed_by ?? $ticket->pic_ticket ?? '-') }}</div>
-                                    <div class="approval-role">IT Support / PIC</div>
+                                    <div class="approval-role">Engineering Support / PIC</div>
                                 </td>
                             </tr>
                         </tbody>

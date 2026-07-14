@@ -42,6 +42,8 @@ const EngTicketApprovalPanel = {
 
         $('#ticketApprovalCount').text(tickets.length);
 
+        EngTicketApprovalPanel.updateVisibility();
+
         if (!tickets.length) {
             $body.html(`
                 <div class="flex flex-col items-center justify-center gap-2 py-10 text-gray-400">
@@ -52,6 +54,18 @@ const EngTicketApprovalPanel = {
         }
 
         $body.html(tickets.map(EngTicketApprovalPanel.renderItem).join(''));
+    },
+
+    // Panel only shows in Calendar view, and only when there's something to approve.
+    // No pending approvals -> panel hides and the calendar takes the full width.
+    updateVisibility() {
+        const $panel = $('#ticketApprovalPanel');
+        if (!$panel.length) return;
+
+        const calendarViewActive = !$('#ticketCalendarWrapper').hasClass('hidden');
+        const hasPendingApprovals = EngTicketApprovalPanel.state.tickets.length > 0;
+
+        $panel.toggleClass('hidden', !(calendarViewActive && hasPendingApprovals));
     },
 
     renderError() {

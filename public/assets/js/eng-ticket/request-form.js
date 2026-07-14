@@ -86,7 +86,6 @@ function resetCreateTicketForm() {
     $('#ticket_categoryid').val(null).trigger('change');
     $('#ticket_subcategoryid').val(null).trigger('change');
     $('#location_id').val(null).trigger('change');
-    $('#sub_location_id').val(null).trigger('change');
 
     const firstCompany =
         window.ticketCompanies?.[0];
@@ -118,7 +117,7 @@ function resetCreateTicketForm() {
 
     }
 
-    $('#issue_summary').val('');
+    $('#issue_summary').val(null).trigger('change');
     $('#issue_descr').val('');
 
     if (window.issueDescrQuill) {
@@ -162,7 +161,7 @@ function submitCreateTicket() {
         );
     }
 
-    const summary = $('#issue_summary').val().trim();
+    const summary = ($('#issue_summary').val() || '').trim();
     const descrText = window.issueDescrQuill
         ? window.issueDescrQuill.getText().trim()
         : $('#issue_descr').val().trim();

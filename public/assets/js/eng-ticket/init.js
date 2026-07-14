@@ -43,6 +43,13 @@ function initTicketViewToggle() {
         $("#ticketTableWrapper").toggleClass("hidden");
         $("#ticketFilterToolbar").toggleClass("hidden");
         $("#ticketStatusFilterRow").toggleClass("hidden");
-        $("#ticketApprovalPanel").toggleClass("hidden");
+
+        if (typeof EngTicketApprovalPanel !== 'undefined') {
+            EngTicketApprovalPanel.updateVisibility();
+        }
+
+        if (!$("#ticketCalendarWrapper").hasClass("hidden")) {
+            EngTicketCalendar.state.calendar?.updateSize();
+        }
     });
 }

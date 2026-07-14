@@ -137,28 +137,21 @@ function loadEditTicket(eid) {
                 .val(ticket.location_id)
                 .trigger('change');
 
-            setTimeout(function () {
+            if (ticket.issue_summary) {
 
-                if (ticket.sub_location_id) {
+                const issueSummaryOption =
+                    new Option(
+                        ticket.issue_summary,
+                        ticket.issue_summary,
+                        true,
+                        true
+                    );
 
-                    const subLocationOption =
-                        new Option(
-                            ticket.sub_location_name,
-                            ticket.sub_location_id,
-                            true,
-                            true
-                        );
+                $('#issue_summary')
+                    .append(issueSummaryOption)
+                    .trigger('change');
 
-                    $('#sub_location_id')
-                        .append(subLocationOption)
-                        .trigger('change');
-
-                }
-
-            }, 300);
-
-            $('#issue_summary')
-                .val(ticket.issue_summary);
+            }
 
             $('#issue_descr')
                 .val(ticket.issue_descr);
