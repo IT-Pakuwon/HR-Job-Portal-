@@ -2,7 +2,29 @@
     @php
         $currentPage = Route::currentRouteName() == 'jobpostings' ? 'HR' : '';
     @endphp
+    <style>
+        tr.group-alt {
+            background-color: rgba(250, 204, 21, 0.06);
+        }
+    </style>
     <div class="max-w-9xl mx-auto p-2">
+        {{-- Tab nav --}}
+        <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700">
+            <button type="button" id="tabBtnList"
+                class="applicant-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
+                📄 Applicant List
+            </button>
+            @if(auth()->user()->hasRole('RECACCALLDEPT'))
+            <button type="button" id="tabBtnDuplicates"
+                class="applicant-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                🧬 Duplicate Users
+                <span id="dupCountBadge"
+                    class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+            </button>
+            @endif
+        </div>
+
+        <div id="tabPanelList" class="flex flex-col gap-4">
         <div class="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
 
             {{-- All Status --}}
@@ -110,12 +132,14 @@
 
             <div id="applicantsFilters" class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-6 lg:grid-cols-12">
 
+                @if($canFilterJobTL)
                 <!-- ROW 1 : Job Title - Job Level -->
                 <div class="col-span-1 sm:col-span-6 lg:col-span-12">
                     <select id="filterJobTL"
                         class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     </select>
                 </div>
+                @endif
 
                 <!-- ROW 2 : Reset -->
                 <div class="col-span-1 sm:col-span-2 lg:col-span-2">
@@ -175,6 +199,71 @@
                 </table>
             </div>
         </div>
+
+        <div id="rowDupPanel" class="mt-2 hidden flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">🧬 Matched Applications</h1>
+                    <p id="rowDupPanelTitle" class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
+                </div>
+                <button type="button" id="rowDupPanelClose"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
+            </div>
+
+            <div class="rounded-base relative overflow-x-auto">
+                <table class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th class="w-24 px-4 py-3 font-medium">Action</th>
+                            <th class="px-4 py-3 text-left font-medium">Matched By</th>
+                            <th class="px-4 py-3 text-left font-medium">DocID</th>
+                            <th class="px-4 py-3 text-left font-medium">Job Title — Level</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Apply Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
+                            <th class="px-4 py-3 text-left font-medium">Step</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rowDupPanelBody" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+
+        @if(auth()->user()->hasRole('RECACCALLDEPT'))
+        <div id="tabPanelDuplicates" class="hidden flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+            <div>
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">🧬 Duplicate Users</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Applicants sharing the same KTP ID and Date of Birth — likely the same person who applied
+                    more than once. Review which jobs they applied to and each application's current status.
+                </p>
+            </div>
+
+            <div class="rounded-base relative overflow-x-auto">
+                <table id="dupApplicantsTable" class="text-body w-full text-left text-sm rtl:text-right">
+                    <thead
+                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        <tr>
+                            <th></th>
+                            <th class="w-28 px-4 py-3 font-medium">Action</th>
+                            <th class="px-4 py-3 text-left font-medium">Matched By</th>
+                            <th class="px-4 py-3 text-left font-medium">Full Name</th>
+                            <th class="px-4 py-3 text-left font-medium">KTP ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Date of Birth</th>
+                            <th class="px-4 py-3 text-left font-medium">DocID</th>
+                            <th class="px-4 py-3 text-left font-medium">Job Title — Level</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Apply Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        @endif
 
     </div>
 
@@ -764,29 +853,31 @@
             $('#applicantsTable thead tr:eq(0) th').eq(6).addClass('small-col');
             $('#applicantsTable thead tr:eq(0) th').eq(8).addClass('small-col');
 
-            $('#filterJobTL').select2({
-                placeholder: 'Filter by Job Title — Job Level',
-                allowClear: true,
-                width: 'resolve',
-                ajax: {
-                    url: "{{ route('jobfilters.tl') }}", // endpoint gabungan
-                    dataType: 'json',
-                    delay: 200,
-                    data: params => ({
-                        q: params.term || ''
-                    }), // pencarian server (opsional)
-                    processResults: data => ({
-                        // server sudah kirim {id:'Title|||Level', text:'Title — Level'}
-                        results: data
-                    }),
-                    cache: true
-                }
-            });
+            if ($('#filterJobTL').length) {
+                $('#filterJobTL').select2({
+                    placeholder: 'Filter by Job Title — Job Level',
+                    allowClear: true,
+                    width: 'resolve',
+                    ajax: {
+                        url: "{{ route('jobfilters.tl') }}", // endpoint gabungan
+                        dataType: 'json',
+                        delay: 200,
+                        data: params => ({
+                            q: params.term || ''
+                        }), // pencarian server (opsional)
+                        processResults: data => ({
+                            // server sudah kirim {id:'Title|||Level', text:'Title — Level'}
+                            results: data
+                        }),
+                        cache: true
+                    }
+                });
 
-            // reload tabel saat filter berubah
-            $('#filterJobTL').on('change', function() {
-                applicantTable.ajax.reload();
-            });
+                // reload tabel saat filter berubah
+                $('#filterJobTL').on('change', function() {
+                    applicantTable.ajax.reload();
+                });
+            }
 
             // // reset
             // $('#btnResetFilters').on('click', function() {
@@ -890,6 +981,221 @@
                         Swal.fire('Error', xhr.responseJSON?.error || 'Remap failed.', 'error');
                     });
                 });
+            });
+
+            // ── DUPLICATE USERS TAB ──────────────────────────────────
+            let dupApplicantTable = null;
+            let dupApplicantTableLoaded = false;
+
+            const statusBadgeClass = {
+                'Unchecked': 'bg-blue-300/30 text-blue-600',
+                'Checked': 'bg-gray-300/30 text-gray-600',
+                'Reject': 'bg-red-300/30 text-red-600',
+                'Approved': 'bg-green-300/30 text-green-600',
+                'Transfer': 'bg-violet-300/30 text-violet-600'
+            };
+
+            function updateDupCountBadge(count) {
+                if (count > 0) {
+                    $('#dupCountBadge').removeClass('hidden').text(count);
+                } else {
+                    $('#dupCountBadge').addClass('hidden');
+                }
+            }
+
+            // ── ROW CLICK → SHOW KTP+DOB MATCHED JOBS PANEL (BELOW TABLE) ─
+            // Klik baris (bukan link/tombol di dalamnya) → kalau applicant ini
+            // (matched by KTP+DOB) punya lebih dari 1 job apply, tampilkan
+            // panel terpisah di bawah tabel. Kalau tidak ada duplikat, tidak
+            // terjadi apa-apa.
+            $('#applicantsTable tbody').on('click', 'tr', function(e) {
+                if ($(e.target).closest('a, button, .dtr-control').length) return;
+
+                const $tr = $(this);
+                const rowData = applicantTable.row($tr).data();
+                if (!rowData || !rowData.docid) return;
+
+                // toggle kalau baris yang sama diklik lagi
+                if ($tr.hasClass('row-dup-active')) {
+                    $tr.removeClass('row-dup-active');
+                    $('#rowDupPanel').addClass('hidden');
+                    return;
+                }
+
+                $.getJSON("{{ route('jobapplicant.rowduplicates') }}", { docid: rowData.docid })
+                    .done(function(json) {
+                        const rows = json.data || [];
+                        if (!rows.length) return;
+
+                        $('#applicantsTable tbody tr').removeClass('row-dup-active');
+                        $tr.addClass('row-dup-active');
+
+                        $('#rowDupPanelTitle').text(
+                            `${rowData.fullname || 'This applicant'} applied to ${rows.length} jobs — matched by KTP + DOB`
+                        );
+
+                        const bodyRows = rows.map(function(r) {
+                            const jobTL = [r.job_title, r.job_level].filter(Boolean).join(' — ') || '—';
+                            const isThisRow = r.docid === rowData.docid;
+                            const cls = statusBadgeClass[r.status_label] || 'bg-gray-300/30 text-gray-600';
+                            const matchedByBadge = `<span class="inline-block rounded bg-amber-200/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${r.matched_by || 'KTP + DOB'}</span>`;
+
+                            return `<tr class="${isThisRow ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}">
+                                <td class="px-4 py-3">
+                                    <a href="/showcareers/${r.eid}" target="_blank" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>
+                                </td>
+                                <td class="px-4 py-3">${matchedByBadge}</td>
+                                <td class="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">${r.docid}${isThisRow ? ' <span class="ml-1 text-[10px] font-bold text-indigo-500">(this)</span>' : ''}</td>
+                                <td class="px-4 py-3">${jobTL}</td>
+                                <td class="px-4 py-3">${r.company_name || '—'}</td>
+                                <td class="px-4 py-3">${r.apply_date || '—'}</td>
+                                <td class="px-4 py-3"><span class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-semibold text-center rounded ${cls}">${r.status_label}</span></td>
+                                <td class="px-4 py-3">${r.step_label}</td>
+                            </tr>`;
+                        }).join('');
+
+                        $('#rowDupPanelBody').html(bodyRows);
+                        $('#rowDupPanel').removeClass('hidden');
+                        $('#rowDupPanel')[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    });
+            });
+
+            $('#rowDupPanelClose').on('click', function() {
+                $('#applicantsTable tbody tr').removeClass('row-dup-active');
+                $('#rowDupPanel').addClass('hidden');
+            });
+
+            @if(auth()->user()->hasRole('RECACCALLDEPT'))
+            function initDupApplicantTable() {
+                if (dupApplicantTableLoaded) return;
+                dupApplicantTableLoaded = true;
+
+                let lastGroupKey = null;
+                let groupToggle = false;
+
+                dupApplicantTable = $('#dupApplicantsTable').DataTable({
+                    ajax: {
+                        url: "{{ route('jobapplicant.duplicates.json') }}",
+                        dataSrc: function(json) {
+                            updateDupCountBadge(json.data ? json.data.length : 0);
+                            return json.data;
+                        }
+                    },
+                    processing: true,
+                    serverSide: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    order: [],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                    createdRow: function(row, data) {
+                        if (data.group_key !== lastGroupKey) {
+                            groupToggle = !groupToggle;
+                            lastGroupKey = data.group_key;
+                        }
+                        if (groupToggle) {
+                            $(row).addClass('group-alt');
+                        }
+                    },
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        },
+                        {
+                            data: 'eid',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data) {
+                                return `<a href="/showcareers/${data}" target="_blank" class="inline-flex justify-center items-center px-3 py-1.5 text-xs font-semibold text-white rounded bg-gray-600 hover:bg-gray-700">View</a>`;
+                            }
+                        },
+                        {
+                            data: 'matched_by',
+                            orderable: false,
+                            searchable: false,
+                            render: function(data) {
+                                return `<span class="mr-1 inline-block rounded bg-amber-200/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-300 dark:text-amber-900">${data || 'KTP + DOB'}</span>`;
+                            }
+                        },
+                        {
+                            data: 'full_name'
+                        },
+                        {
+                            data: 'ktp_id'
+                        },
+                        {
+                            data: 'date_of_birth'
+                        },
+                        {
+                            data: 'docid'
+                        },
+                        {
+                            data: null,
+                            render: function(data, type, row) {
+                                return [row.job_title, row.job_level].filter(Boolean).join(' — ');
+                            }
+                        },
+                        {
+                            data: 'company_name'
+                        },
+                        {
+                            data: 'apply_date'
+                        },
+                        {
+                            data: 'status_label',
+                            render: function(data) {
+                                const cls = statusBadgeClass[data] || 'bg-gray-300/30 text-gray-600';
+                                return `<span class="inline-flex justify-center items-center px-3 py-1.5 text-sm font-semibold text-center rounded ${cls}">${data}</span>`;
+                            }
+                        }
+                    ]
+                });
+            }
+
+            // Preload the duplicate count badge even before the tab is opened
+            $.getJSON("{{ route('jobapplicant.duplicates.json') }}", function(json) {
+                updateDupCountBadge(json.data ? json.data.length : 0);
+            });
+            @endif
+
+            function activateApplicantTab(tab) {
+                const isList = tab === 'list';
+                $('#tabPanelList').toggleClass('hidden', !isList);
+                $('#tabPanelDuplicates').toggleClass('hidden', isList).toggleClass('flex', !isList);
+
+                $('#tabBtnList')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isList);
+                $('#tabBtnDuplicates')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', !isList)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', isList);
+
+                if (isList) {
+                    applicantTable.columns.adjust().draw(false);
+                } else {
+                    initDupApplicantTable();
+                    if (dupApplicantTable) dupApplicantTable.columns.adjust().draw(false);
+                }
+            }
+
+            $('#tabBtnList').on('click', function() {
+                activateApplicantTab('list');
+            });
+            $('#tabBtnDuplicates').on('click', function() {
+                activateApplicantTab('duplicates');
             });
         });
         // Make each row of .status-filter independent

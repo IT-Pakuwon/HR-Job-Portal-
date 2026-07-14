@@ -515,12 +515,23 @@ class MsGroupbiayaNonPurchController extends Controller
         $skipped  = 0;
 
         foreach ($request->groupbiaya_ids as $gbId) {
-            $exists = MsGroupbiayaNonPurchBudget::where('budget_cpny_id', $cpnyId)
+            $existing = MsGroupbiayaNonPurchBudget::where('budget_cpny_id', $cpnyId)
                 ->where('budget_department_fin_id', $request->department_fin_id)
                 ->where('groupbiaya_id', $gbId)
-                ->exists();
+                ->first();
 
-            if ($exists) { $skipped++; continue; }
+            if ($existing) {
+                if ($existing->status === 'A') { $skipped++; continue; }
+
+                // Previously unassigned — reactivate instead of skipping/duplicating
+                $existing->update([
+                    'status'     => 'A',
+                    'updated_by' => $username,
+                    'updated_at' => $now,
+                ]);
+                $inserted++;
+                continue;
+            }
 
             MsGroupbiayaNonPurchBudget::create([
                 'budget_cpny_id'           => $cpnyId,
@@ -570,21 +581,33 @@ class MsGroupbiayaNonPurchController extends Controller
         $baseUsed = false;
 
         foreach ($request->account_ids as $accountId) {
-            // Skip if this exact combo already exists
-            $exists = MsGroupbiayaNonPurchBudget::where('budget_cpny_id', $cpnyId)
+            // Check if this exact combo already exists (active or previously unassigned)
+            $existingCombo = MsGroupbiayaNonPurchBudget::where('budget_cpny_id', $cpnyId)
                 ->where('budget_department_fin_id', $request->department_fin_id)
                 ->where('groupbiaya_id', $request->groupbiaya_id)
                 ->where('budget_business_unit_id', $request->business_unit_id)
                 ->where('budget_account_id', $accountId)
-                ->exists();
+                ->first();
 
-            if ($exists) { $skipped++; continue; }
+            if ($existingCombo) {
+                if ($existingCombo->status === 'A') { $skipped++; continue; }
+
+                // Previously unassigned — reactivate instead of skipping/duplicating
+                $existingCombo->update([
+                    'status'     => 'A',
+                    'updated_by' => $username,
+                    'updated_at' => $now,
+                ]);
+                $updated++;
+                continue;
+            }
 
             // First account → update the base record if available
             if ($baseRecord && !$baseUsed) {
                 $baseRecord->update([
                     'budget_business_unit_id' => $request->business_unit_id,
                     'budget_account_id'       => $accountId,
+                    'status'                  => 'A',
                     'updated_by'              => $username,
                     'updated_at'              => $now,
                 ]);
@@ -617,6 +640,73 @@ class MsGroupbiayaNonPurchController extends Controller
             'updated'  => $updated,
             'inserted' => $inserted,
             'skipped'  => $skipped,
+        ]);
+    }
+
+    public function ccUnassignGroupbiaya(Request $request)
+    {
+        $request->validate([
+            'cpny_id'           => ['required', 'string'],
+            'department_fin_id' => ['required', 'string'],
+            'groupbiaya_ids'    => ['required', 'array', 'min:1'],
+            'groupbiaya_ids.*'  => ['string'],
+        ]);
+
+        $unassigned = 0;
+        $blocked    = [];
+
+        foreach ($request->groupbiaya_ids as $gbId) {
+            $hasActiveCoa = MsGroupbiayaNonPurchBudget::where('budget_cpny_id', $request->cpny_id)
+                ->where('budget_department_fin_id', $request->department_fin_id)
+                ->where('groupbiaya_id', $gbId)
+                ->whereNotNull('budget_account_id')
+                ->where('status', 'A')
+                ->exists();
+
+            if ($hasActiveCoa) {
+                $blocked[] = $gbId;
+                continue;
+            }
+
+            MsGroupbiayaNonPurchBudget::where('budget_cpny_id', $request->cpny_id)
+                ->where('budget_department_fin_id', $request->department_fin_id)
+                ->where('groupbiaya_id', $gbId)
+                ->where('status', 'A')
+                ->delete();
+
+            $unassigned++;
+        }
+
+        if ($unassigned === 0 && !empty($blocked)) {
+            $message = 'Group Biaya ' . implode(', ', $blocked) . ' tidak bisa di-unassign karena masih ada COA yang aktif. Unassign dulu COA-nya, baru bisa unassign Group Biaya ini.';
+        } elseif (!empty($blocked)) {
+            $message = "{$unassigned} Group Biaya berhasil di-unassign. Group Biaya " . implode(', ', $blocked) . ' tidak bisa di-unassign karena masih ada COA yang aktif.';
+        } else {
+            $message = "{$unassigned} Group Biaya berhasil di-unassign.";
+        }
+
+        return response()->json([
+            'success'    => true,
+            'message'    => $message,
+            'unassigned' => $unassigned,
+            'blocked'    => $blocked,
+        ]);
+    }
+
+    public function ccUnassignCoa(Request $request)
+    {
+        $request->validate([
+            'ids'   => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+        ]);
+
+        $count = MsGroupbiayaNonPurchBudget::whereIn('id', $request->ids)
+            ->where('status', 'A')
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} COA berhasil di-unassign.",
         ]);
     }
 }

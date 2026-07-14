@@ -19,11 +19,164 @@ use App\Models\JobpostingResponsiblities;
 use App\Models\JobpostingQualification;
 use App\Models\AutonbrJobportal;
 use App\Models\ViewCareer;
+use App\Models\SysUserRole;
 use Mail;
 use Vinkla\Hashids\Facades\Hashids;
 
 class JobapplicantController extends Controller
 {
+
+    private function splitCsv(?string $value): array
+    {
+        if (!$value) {
+            return [];
+        }
+
+        return collect(explode(',', $value))
+            ->map(fn ($x) => trim((string) $x))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function userDivisionIds($user): array
+    {
+        return $this->splitCsv($user->division_id);
+    }
+
+    private function hasRole($user, string $roleId): bool
+    {
+        return SysUserRole::query()
+            ->where('username', $user->username)
+            ->where('role_id', $roleId)
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhere('status', 'A');
+            })
+            ->exists();
+    }
+
+    // RECACCALLDEPT & RECDIRACCESS => bisa lihat semua applicant + pakai filter Job Title-Level
+    // RECACCESS saja => hanya applicant di division user, filter disembunyikan
+    private function hasFullApplicantAccess($user): bool
+    {
+        return $this->hasRole($user, 'RECACCALLDEPT') || $this->hasRole($user, 'RECDIRACCESS');
+    }
+
+    // Clusters hr_ms_applicant records that are likely the same real person, so
+    // the "Duplicate Users" tab and the Applicant List row-click panel always
+    // agree on who's grouped together and why.
+    //
+    // A pair of applicant_id records is linked if EITHER:
+    //   - ktp_id + date_of_birth both match (strongest signal), OR
+    //   - date_of_birth + mobile_phone both match (fallback when KTP is blank), OR
+    //   - date_of_birth + email_address both match (fallback when KTP is blank)
+    // Each signal requires BOTH fields non-empty — DOB alone is never enough
+    // (too many unrelated people share a birthday).
+    //
+    // Returns [applicantToGroup, groupMatchedBy]:
+    //   applicantToGroup: applicant_id => group key (only present if in a duplicate cluster)
+    //   groupMatchedBy:    group key => human label, e.g. "KTP + DOB", "DOB + Phone"
+    private function buildApplicantDuplicateClusters(): array
+    {
+        $applicants = DB::connection('mysql3')
+            ->table('hr_ms_applicant')
+            ->select('applicant_id', 'ktp_id', 'date_of_birth', 'mobile_phone', 'email_address')
+            ->get();
+
+        $parent = [];
+        $find = function ($x) use (&$parent, &$find) {
+            if (!isset($parent[$x])) {
+                $parent[$x] = $x;
+            }
+            while ($parent[$x] !== $x) {
+                $parent[$x] = $parent[$parent[$x]];
+                $x = $parent[$x];
+            }
+            return $x;
+        };
+        $union = function ($a, $b) use (&$parent, $find) {
+            $ra = $find($a);
+            $rb = $find($b);
+            if ($ra !== $rb) {
+                $parent[$ra] = $rb;
+            }
+        };
+
+        foreach ($applicants as $a) {
+            $find($a->applicant_id);
+        }
+
+        $signalHasDup = ['ktp_dob' => [], 'dob_phone' => [], 'dob_email' => []];
+
+        $groupAndUnion = function (string $signal, \Closure $keyFn) use ($applicants, $union, &$signalHasDup) {
+            $groups = [];
+            foreach ($applicants as $a) {
+                $key = $keyFn($a);
+                if ($key !== null) {
+                    $groups[$key][] = $a->applicant_id;
+                }
+            }
+            foreach ($groups as $ids) {
+                if (count($ids) > 1) {
+                    foreach ($ids as $id) {
+                        $union($ids[0], $id);
+                        $signalHasDup[$signal][$id] = true;
+                    }
+                }
+            }
+        };
+
+        $groupAndUnion('ktp_dob', fn ($a) => (!empty($a->ktp_id) && !empty($a->date_of_birth))
+            ? $a->ktp_id . '|' . $a->date_of_birth
+            : null);
+        $groupAndUnion('dob_phone', fn ($a) => (!empty($a->date_of_birth) && !empty($a->mobile_phone))
+            ? $a->date_of_birth . '|' . $a->mobile_phone
+            : null);
+        $groupAndUnion('dob_email', fn ($a) => (!empty($a->date_of_birth) && !empty($a->email_address))
+            ? $a->date_of_birth . '|' . strtolower($a->email_address)
+            : null);
+
+        $clusters = [];
+        foreach ($applicants as $a) {
+            $clusters[$find($a->applicant_id)][] = $a->applicant_id;
+        }
+
+        $applicantToGroup = [];
+        $groupMatchedBy = [];
+        $i = 0;
+
+        foreach ($clusters as $ids) {
+            $ids = array_values(array_unique($ids));
+            if (count($ids) <= 1) {
+                continue;
+            }
+
+            $i++;
+            $groupKey = 'grp' . $i;
+
+            $labels = [];
+            $hasSignal = fn ($signal) => collect($ids)->contains(fn ($id) => !empty($signalHasDup[$signal][$id] ?? false));
+
+            if ($hasSignal('ktp_dob')) {
+                $labels[] = 'KTP + DOB';
+            }
+            if ($hasSignal('dob_phone')) {
+                $labels[] = 'DOB + Phone';
+            }
+            if ($hasSignal('dob_email')) {
+                $labels[] = 'DOB + Email';
+            }
+
+            $groupMatchedBy[$groupKey] = !empty($labels) ? implode(' / ', $labels) : 'KTP + DOB';
+
+            foreach ($ids as $id) {
+                $applicantToGroup[$id] = $groupKey;
+            }
+        }
+
+        return [$applicantToGroup, $groupMatchedBy];
+    }
 
     public function index(Request $request)
     {
@@ -42,10 +195,32 @@ class JobapplicantController extends Controller
             ->values()
             ->toArray();
 
+        $canFilterJobTL = $this->hasFullApplicantAccess($user);
+
+        // RECACCESS (tanpa RECACCALLDEPT/RECDIRACCESS) hanya boleh lihat applicant
+        // pada job posting yang division-nya sama dengan division user tsb.
+        $allowedJobIds = null;
+        if (!$canFilterJobTL) {
+            $divisionIds = $this->userDivisionIds($user);
+
+            $allowedJobIds = DB::connection('mysql3')
+                ->table('hr_trx_jobposting as jp')
+                ->leftJoin('hr_ms_department as dept', 'dept.department_id', '=', 'jp.departementid')
+                ->when(!empty($divisionIds), function ($q) use ($divisionIds) {
+                    $q->whereIn('dept.division_id', $divisionIds);
+                }, function ($q) {
+                    $q->whereRaw('1=0');
+                })
+                ->pluck('jp.docid');
+        }
+
         $base = ViewCareer::query()
             ->where('status', '!=', 'X')
             ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                 $q->whereIn('cpnyid', $userCpnyIds);
+            })
+            ->when(!$canFilterJobTL, function ($q) use ($allowedJobIds) {
+                $q->whereIn('docidposting', $allowedJobIds);
             });
 
         $activeBase = (clone $base)->where('status', '!=', 'T');
@@ -79,7 +254,8 @@ class JobapplicantController extends Controller
             'checked',
             'reject',
             'approved',
-            'transferred'
+            'transferred',
+            'canFilterJobTL'
         ));
     }
 
@@ -101,7 +277,8 @@ class JobapplicantController extends Controller
                 ->values()
                 ->toArray();
 
-            $jobTLExact = trim((string) $request->input('job_tl_exact', ''));
+            $canFilterJobTL = $this->hasFullApplicantAccess($user);
+            $jobTLExact = $canFilterJobTL ? trim((string) $request->input('job_tl_exact', '')) : '';
             $status     = $request->query('status');
             $start      = (int) $request->input('start', 0);
             $length     = (int) $request->input('length', 10);
@@ -131,6 +308,14 @@ class JobapplicantController extends Controller
                 ->where('vc.status', '!=', 'X')
                 ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
                     $q->whereIn('vc.cpnyid', $userCpnyIds);
+                })
+                ->when(!$canFilterJobTL, function ($q) use ($user) {
+                    $divisionIds = $this->userDivisionIds($user);
+                    if (empty($divisionIds)) {
+                        $q->whereRaw('1=0');
+                    } else {
+                        $q->whereIn('div.division_id', $divisionIds);
+                    }
                 });
 
             if (!empty($status)) {
@@ -396,6 +581,251 @@ class JobapplicantController extends Controller
             ], 500);
         }
     }
+    public function duplicatesJson(Request $request)
+    {
+        try {
+            $user = auth()->user();
+
+            if (!$user) {
+                return response()->json(['message' => 'Your session has expired. Please sign in again.'], 401);
+            }
+
+            if (!$this->hasRole($user, 'RECACCALLDEPT')) {
+                return response()->json(['message' => 'Forbidden'], 403);
+            }
+
+            [$applicantToGroup, $groupMatchedBy] = $this->buildApplicantDuplicateClusters();
+
+            if (empty($applicantToGroup)) {
+                return response()->json(['data' => []]);
+            }
+
+            $userCpnyIds = Usercpny::where('username', $user->username)
+                ->pluck('cpny_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $rows = DB::connection('mysql3')
+                ->table('hr_ms_applicant as a')
+                ->join('viewtrxcareer as vc', 'vc.applicant_id', '=', 'a.applicant_id')
+                ->where('vc.status', '!=', 'X')
+                ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
+                    $q->whereIn('vc.cpnyid', $userCpnyIds);
+                })
+                ->whereIn('a.applicant_id', array_keys($applicantToGroup))
+                ->select([
+                    DB::raw('vc.id as _id'),
+                    'a.applicant_id',
+                    'a.ktp_id',
+                    'a.date_of_birth',
+                    'a.full_name',
+                    'vc.docid',
+                    'vc.docidposting',
+                    'vc.job_title',
+                    'vc.job_level',
+                    'vc.company_name',
+                    'vc.apply_date',
+                    'vc.apply_step',
+                    'vc.status',
+                    'vc.is_read',
+                ])
+                ->orderByDesc('vc.apply_date')
+                ->get();
+
+            $data = $rows->map(function ($r) use ($applicantToGroup, $groupMatchedBy) {
+                if ($r->status === 'T') {
+                    $statusLabel = 'Transfer';
+                } elseif ($r->status === 'R') {
+                    $statusLabel = 'Reject';
+                } elseif ($r->status === 'C') {
+                    $statusLabel = 'Approved';
+                } elseif ($r->is_read === 'N') {
+                    $statusLabel = 'Unchecked';
+                } elseif ($r->is_read === 'Y' && in_array($r->status, ['H', 'P'], true)) {
+                    $statusLabel = 'Checked';
+                } else {
+                    $statusLabel = $r->status;
+                }
+
+                $groupKey = $applicantToGroup[$r->applicant_id] ?? null;
+
+                return [
+                    'eid'           => Hashids::encode($r->_id),
+                    'ktp_id'        => $r->ktp_id,
+                    'date_of_birth' => $r->date_of_birth,
+                    'full_name'     => $r->full_name,
+                    'docid'         => $r->docid,
+                    'docidposting'  => $r->docidposting,
+                    'job_title'     => $r->job_title,
+                    'job_level'     => $r->job_level,
+                    'company_name'  => $r->company_name,
+                    'apply_date'    => $r->apply_date,
+                    'status_label'  => $statusLabel,
+                    'matched_by'    => $groupKey ? ($groupMatchedBy[$groupKey] ?? 'KTP + DOB') : 'KTP + DOB',
+                    'group_key'     => $groupKey,
+                ];
+            });
+
+            $data = $data->sort(function ($a, $b) {
+                $cmp = strcmp((string) $a['group_key'], (string) $b['group_key']);
+                return $cmp !== 0 ? $cmp : strcmp((string) $b['apply_date'], (string) $a['apply_date']);
+            })->values();
+
+            return response()->json(['data' => $data]);
+        } catch (\Throwable $e) {
+            \Log::error('jobapplicant.duplicatesJson error', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'data'    => [],
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Baris di Applicant List di-klik → kalau applicant ini (matched by KTP+DOB)
+    // punya lebih dari 1 job apply, kembalikan daftarnya buat expand panel.
+    // Kalau cuma 1 (tidak ada duplikat), balikin data kosong supaya FE tidak buka panel.
+    public function rowDuplicates(Request $request)
+    {
+        try {
+            $user = auth()->user();
+
+            if (!$user) {
+                return response()->json(['message' => 'Your session has expired. Please sign in again.'], 401);
+            }
+
+            $docid = trim((string) $request->query('docid', ''));
+            if ($docid === '') {
+                return response()->json(['data' => []]);
+            }
+
+            $applicant = DB::connection('mysql3')
+                ->table('hr_trx_job_apply as ja')
+                ->where('ja.docid', $docid)
+                ->select('ja.applicant_id')
+                ->first();
+
+            if (!$applicant) {
+                return response()->json(['data' => []]);
+            }
+
+            [$applicantToGroup, $groupMatchedBy] = $this->buildApplicantDuplicateClusters();
+
+            $groupKey = $applicantToGroup[$applicant->applicant_id] ?? null;
+            $matchedBy = $groupKey ? ($groupMatchedBy[$groupKey] ?? 'KTP + DOB') : 'KTP + DOB';
+
+            $matchedApplicantIds = $groupKey
+                ? collect($applicantToGroup)->filter(fn ($g) => $g === $groupKey)->keys()->values()
+                : collect([$applicant->applicant_id]);
+
+            $userCpnyIds = Usercpny::where('username', $user->username)
+                ->pluck('cpny_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $canFilterJobTL = $this->hasFullApplicantAccess($user);
+
+            $rows = DB::connection('mysql3')
+                ->table('viewtrxcareer as vc')
+                ->leftJoin('hr_trx_jobposting as jp', 'jp.docid', '=', 'vc.docidposting')
+                ->leftJoin('hr_ms_department as dept', 'dept.department_id', '=', 'jp.departementid')
+                ->leftJoin('hr_ms_division as div', 'div.division_id', '=', 'dept.division_id')
+                ->whereIn('vc.applicant_id', $matchedApplicantIds)
+                ->where('vc.status', '!=', 'X')
+                ->when(!empty($userCpnyIds), function ($q) use ($userCpnyIds) {
+                    $q->whereIn('vc.cpnyid', $userCpnyIds);
+                })
+                ->when(!$canFilterJobTL, function ($q) use ($user) {
+                    $divisionIds = $this->userDivisionIds($user);
+                    if (empty($divisionIds)) {
+                        $q->whereRaw('1=0');
+                    } else {
+                        $q->whereIn('div.division_id', $divisionIds);
+                    }
+                })
+                ->orderByDesc('vc.apply_date')
+                ->select([
+                    DB::raw('vc.id as _id'),
+                    'vc.applicant_id',
+                    'vc.docid',
+                    'vc.job_title',
+                    'vc.job_level',
+                    'vc.company_name',
+                    'vc.apply_date',
+                    'vc.apply_step',
+                    'vc.status',
+                    'vc.is_read',
+                ])
+                ->get();
+
+            if ($rows->count() <= 1) {
+                return response()->json(['data' => []]);
+            }
+
+            $stepLabels = [
+                'JOAPHC' => 'Job Apply HC',
+                'JOAPUS' => 'Job Apply User',
+                'WIHC'   => 'Create Schedule Interview HC',
+                'IHC'    => 'Interview HC',
+                'WIU'    => 'Create Schedule Interview User',
+                'IU'     => 'Interview User',
+                'WPT'    => 'Waiting Psycho Test',
+                'PT'     => 'Psycho Test',
+                'OFF'    => 'Offering',
+                'JOIN'   => 'Join',
+            ];
+
+            $data = $rows->map(function ($r) use ($stepLabels, $matchedBy) {
+                if ($r->status === 'T') {
+                    $statusLabel = 'Transfer';
+                } elseif ($r->status === 'R') {
+                    $statusLabel = 'Reject';
+                } elseif ($r->status === 'C') {
+                    $statusLabel = 'Approved';
+                } elseif ($r->is_read === 'N') {
+                    $statusLabel = 'Unchecked';
+                } elseif ($r->is_read === 'Y' && in_array($r->status, ['H', 'P'], true)) {
+                    $statusLabel = 'Checked';
+                } else {
+                    $statusLabel = $r->status;
+                }
+
+                return [
+                    'eid'          => Hashids::encode($r->_id),
+                    'docid'        => $r->docid,
+                    'job_title'    => $r->job_title,
+                    'job_level'    => $r->job_level,
+                    'company_name' => $r->company_name,
+                    'apply_date'   => $r->apply_date,
+                    'status_label' => $statusLabel,
+                    'step_label'   => $stepLabels[$r->apply_step] ?? $r->apply_step,
+                    'matched_by'   => $matchedBy,
+                ];
+            });
+
+            return response()->json(['data' => $data->values()]);
+        } catch (\Throwable $e) {
+            \Log::error('jobapplicant.rowDuplicates error', [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'data'    => [],
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function jobTitleLevels(Request $request)
     {
         $q = trim((string) $request->query('q', ''));

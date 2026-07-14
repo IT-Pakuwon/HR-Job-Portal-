@@ -408,6 +408,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('access:APPPORTAL,VIEW')->group(function () {
         Route::get('/jobapplicant', [JobapplicantController::class, 'index'])->name('jobapplicant');
         Route::get('/jobapplicant/json', [JobapplicantController::class, 'json'])->name('jobapplicant.json');
+        Route::get('/jobapplicant/duplicates/json', [JobapplicantController::class, 'duplicatesJson'])->name('jobapplicant.duplicates.json');
+        Route::get('/jobapplicant/row-duplicates', [JobapplicantController::class, 'rowDuplicates'])->name('jobapplicant.rowduplicates');
         Route::get('/jobapplicant/applicants/{jobId}', [JobapplicantController::class, 'JobApplicants'])->name('jobapplicant.applicants');
         // Route::get('/jobapplicant/counts', [JobapplicantController::class, 'getCounts'])->name('jobapplicant.counts');
         Route::get('/job-filters/tl', [JobapplicantController::class, 'jobTitleLevels'])->name('jobfilters.tl');
@@ -2326,6 +2328,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/groupbiaya-nonpurch/cc/{deptFinId}/{groupbiayaId}/coa', [MsGroupbiayaNonPurchController::class, 'ccCoaJson'])->name('groupbiayanonpurch.cc.coa');
     Route::post('/groupbiaya-nonpurch/cc/assign-groupbiaya', [MsGroupbiayaNonPurchController::class, 'ccAssignGroupbiaya'])->name('groupbiayanonpurch.cc.assign-groupbiaya');
     Route::post('/groupbiaya-nonpurch/cc/assign-coa', [MsGroupbiayaNonPurchController::class, 'ccAssignCoa'])->name('groupbiayanonpurch.cc.assign-coa');
+    Route::post('/groupbiaya-nonpurch/cc/unassign-groupbiaya', [MsGroupbiayaNonPurchController::class, 'ccUnassignGroupbiaya'])->name('groupbiayanonpurch.cc.unassign-groupbiaya');
+    Route::post('/groupbiaya-nonpurch/cc/unassign-coa', [MsGroupbiayaNonPurchController::class, 'ccUnassignCoa'])->name('groupbiayanonpurch.cc.unassign-coa');
 
     Route::get('/kendaraan', [KendaraanController::class, 'index'])->name('kendaraan');
     Route::get('/kendaraan/json', [KendaraanController::class, 'json'])->name('kendaraan.json');

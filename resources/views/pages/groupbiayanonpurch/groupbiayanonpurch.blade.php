@@ -88,10 +88,16 @@
                                     <p class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Group Biaya</p>
                                     <p id="ccDeptLabel" class="mt-0.5 text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate">— select a department —</p>
                                 </div>
-                                <button id="ccAssignGbBtn"
-                                    class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
-                                    + Assign
-                                </button>
+                                <div class="flex shrink-0 items-center gap-2">
+                                    <button id="ccGbUnassignBtn"
+                                        class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700">
+                                        Unassign Selected
+                                    </button>
+                                    <button id="ccAssignGbBtn"
+                                        class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700">
+                                        + Assign
+                                    </button>
+                                </div>
                             </div>
                             <input id="gbSearch" type="text" placeholder="Search…"
                                 class="mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-indigo-400 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder-gray-400">
@@ -103,8 +109,11 @@
                             <table class="w-full text-xs">
                                 <thead class="sticky top-0 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/80">
                                     <tr>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-500 dark:text-gray-300 w-20">GB ID</th>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Description</th>
+                                        <th class="px-3 py-2 text-center w-8">
+                                            <input type="checkbox" id="ccGbSelectAll" class="h-3.5 w-3.5 accent-red-600">
+                                        </th>
+                                        <th class="px-2 py-2 text-left font-semibold text-gray-500 dark:text-gray-300 w-20">GB ID</th>
+                                        <th class="px-2 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Description</th>
                                     </tr>
                                 </thead>
                                 <tbody id="ccGbTbody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
@@ -120,10 +129,16 @@
                                     <p class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">COA (Account)</p>
                                     <p id="ccGbLabel" class="mt-0.5 text-xs text-indigo-600 dark:text-indigo-400 font-medium truncate">— select a group biaya —</p>
                                 </div>
-                                <button id="ccAssignCoaBtn"
-                                    class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
-                                    + Assign
-                                </button>
+                                <div class="flex shrink-0 items-center gap-2">
+                                    <button id="ccCoaUnassignBtn"
+                                        class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700">
+                                        Unassign Selected
+                                    </button>
+                                    <button id="ccAssignCoaBtn"
+                                        class="hidden shrink-0 inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                                        + Assign
+                                    </button>
+                                </div>
                             </div>
                             <input id="coaSearch" type="text" placeholder="Search…"
                                 class="mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-emerald-400 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:placeholder-gray-400">
@@ -135,9 +150,12 @@
                             <table class="w-full text-xs">
                                 <thead class="sticky top-0 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/80">
                                     <tr>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-500 dark:text-gray-300 w-28">Business Unit</th>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-500 dark:text-gray-300 w-28">Account ID</th>
-                                        <th class="px-4 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Description</th>
+                                        <th class="px-3 py-2 text-center w-8">
+                                            <input type="checkbox" id="ccCoaSelectAll" class="h-3.5 w-3.5 accent-red-600">
+                                        </th>
+                                        <th class="px-2 py-2 text-left font-semibold text-gray-500 dark:text-gray-300 w-28">Business Unit</th>
+                                        <th class="px-2 py-2 text-left font-semibold text-gray-500 dark:text-gray-300 w-28">Account ID</th>
+                                        <th class="px-2 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">Description</th>
                                     </tr>
                                 </thead>
                                 <tbody id="ccCoaTableBody" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
@@ -485,6 +503,9 @@
 
         function showLoading() { $('#loadingOverlay').removeClass('hidden').addClass('flex'); }
         function hideLoading() { $('#loadingOverlay').removeClass('flex').addClass('hidden'); }
+
+        function resetGbUnassignBtn() { $('#ccGbUnassignBtn').addClass('hidden').text('Unassign Selected'); }
+        function resetCoaUnassignBtn() { $('#ccCoaUnassignBtn').addClass('hidden').text('Unassign Selected'); }
 
         function ynBadge(value) {
             const v = String(value ?? '').toLowerCase();
@@ -928,6 +949,8 @@
             let ccAllGbCache        = null;
             let ccBuCache           = null;
             let ccCurrentCoaCache   = null;
+            let ccAssignedGbIds     = [];
+            let ccAssignedCoaByBu   = {};
 
             // Load companies for this user on page load
             $.getJSON("{{ route('groupbiayanonpurch.cc.companies') }}", function (res) {
@@ -963,6 +986,8 @@
                 ccSelectedGbId     = null;
                 ccAllGbCache       = null;
                 ccBuCache          = null;
+                ccAssignedGbIds    = [];
+                ccAssignedCoaByBu  = {};
 
                 $('.cc-cpny-pill')
                     .removeClass('bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-700 dark:border-indigo-500')
@@ -974,11 +999,15 @@
                 // Reset center & right panels
                 $('#ccDeptLabel').text('— select a department —');
                 $('#ccAssignGbBtn').addClass('hidden');
+                resetGbUnassignBtn();
+                $('#ccGbSelectAll').prop('checked', false);
                 $('#ccGbEmpty').removeClass('hidden');
                 $('#ccGbContent').addClass('hidden');
                 $('#ccGbTbody').html('');
                 $('#ccGbLabel').text('— select a group biaya —');
                 $('#ccAssignCoaBtn').addClass('hidden');
+                resetCoaUnassignBtn();
+                $('#ccCoaSelectAll').prop('checked', false);
                 $('#ccCoaEmpty').removeClass('hidden');
                 $('#ccCoaContent').addClass('hidden');
 
@@ -1051,6 +1080,8 @@
                 // Reset right panel
                 $('#ccGbLabel').text('— select a group biaya —');
                 $('#ccAssignCoaBtn').addClass('hidden');
+                resetCoaUnassignBtn();
+                $('#ccCoaSelectAll').prop('checked', false);
                 $('#ccCoaEmpty').removeClass('hidden');
                 $('#ccCoaContent').addClass('hidden');
 
@@ -1061,25 +1092,36 @@
                 $('#gbSearch').val('');
                 $('#ccGbEmpty').addClass('hidden');
                 $('#ccGbContent').removeClass('hidden');
-                $('#ccGbTbody').html('<tr><td colspan="2" class="px-4 py-6 text-center text-gray-400">Loading…</td></tr>');
+                $('#ccGbTbody').html('<tr><td colspan="3" class="px-4 py-6 text-center text-gray-400">Loading…</td></tr>');
                 let params = ccSelectedCpnyId ? { cpny_id: ccSelectedCpnyId } : {};
                 $.getJSON(`/groupbiaya-nonpurch/cc/${deptId}/groupbiaya`, params, function (res) {
                     let rows = res.data || [];
+                    ccAssignedGbIds = rows.map(r => r.groupbiaya_id);
+                    $('#ccGbSelectAll').prop('checked', false);
+                    resetGbUnassignBtn();
                     if (!rows.length) {
-                        $('#ccGbTbody').html('<tr><td colspan="2" class="px-4 py-6 text-center text-gray-400">No group biaya assigned yet</td></tr>');
+                        $('#ccGbTbody').html('<tr><td colspan="3" class="px-4 py-6 text-center text-gray-400">No group biaya assigned yet</td></tr>');
                         return;
                     }
                     $('#ccGbTbody').html(rows.map(r => `
                         <tr class="cc-gb-item cursor-pointer hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors"
                             data-id="${r.groupbiaya_id}" data-descr="${r.groupbiayadescr}">
-                            <td class="px-4 py-2 font-mono text-indigo-500 dark:text-indigo-400">${r.groupbiaya_id}</td>
-                            <td class="px-4 py-2 text-gray-700 dark:text-gray-200">${r.groupbiayadescr}</td>
+                            <td class="px-3 py-2 text-center">
+                                <input type="checkbox" class="ccGbSelect h-3.5 w-3.5 accent-red-600" value="${r.groupbiaya_id}">
+                            </td>
+                            <td class="px-2 py-2 font-mono text-indigo-500 dark:text-indigo-400">${r.groupbiaya_id}</td>
+                            <td class="px-2 py-2 text-gray-700 dark:text-gray-200">${r.groupbiayadescr}</td>
                         </tr>`).join(''));
                 });
             }
 
             // Click group biaya → load right panel (COA)
             $(document).on('click', '.cc-gb-item', function () {
+                // Resync bulk-unassign button with actual checkbox state (defensive)
+                let ccGbCheckedCount = $('.ccGbSelect:checked').length;
+                $('#ccGbUnassignBtn').toggleClass('hidden', ccGbCheckedCount === 0)
+                    .text(ccGbCheckedCount > 0 ? `Unassign Selected (${ccGbCheckedCount})` : 'Unassign Selected');
+
                 ccSelectedGbId    = $(this).data('id');
                 ccSelectedGbDescr = $(this).data('descr');
 
@@ -1092,24 +1134,146 @@
                 loadCcCoa(ccSelectedDeptId, ccSelectedGbId);
             });
 
+            // ── BULK UNASSIGN: Group Biaya ───────────────────────────────────────
+            $(document).on('click', '.ccGbSelect', function (e) { e.stopPropagation(); });
+
+            $(document).on('change', '.ccGbSelect', function () {
+                let n = $('.ccGbSelect:checked').length;
+                $('#ccGbUnassignBtn').toggleClass('hidden', n === 0).text(n > 0 ? `Unassign Selected (${n})` : 'Unassign Selected');
+                $('#ccGbSelectAll').prop('checked', n > 0 && n === $('.ccGbSelect').length);
+            });
+
+            $(document).on('change', '#ccGbSelectAll', function () {
+                let on = $(this).is(':checked');
+                $('.ccGbSelect').prop('checked', on).trigger('change');
+            });
+
+            $('#ccGbUnassignBtn').click(function () {
+                let ids = $('.ccGbSelect:checked').map(function () { return $(this).val(); }).get();
+                if (!ids.length) return;
+                Swal.fire({
+                    icon: 'warning',
+                    title: `Unassign ${ids.length} Group Biaya?`,
+                    text: 'You can re-assign them again later. Any with COA still assigned will be skipped.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Unassign',
+                    confirmButtonColor: '#dc2626',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+                    showLoading();
+                    $.ajax({
+                        url: "{{ route('groupbiayanonpurch.cc.unassign-groupbiaya') }}",
+                        type: 'POST',
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        contentType: 'application/json',
+                        data: JSON.stringify({ cpny_id: ccSelectedCpnyId, department_fin_id: ccSelectedDeptId, groupbiaya_ids: ids }),
+                        success: function (res) {
+                            hideLoading();
+                            if (!res.success) { Swal.fire({ icon: 'error', title: 'Error', text: res.message || 'Failed' }); return; }
+
+                            let blocked = res.blocked || [];
+                            if (ccSelectedGbId && ids.includes(ccSelectedGbId) && !blocked.includes(ccSelectedGbId)) {
+                                ccSelectedGbId    = null;
+                                ccSelectedGbDescr = null;
+                                $('#ccGbLabel').text('— select a group biaya —');
+                                $('#ccAssignCoaBtn').addClass('hidden');
+                                $('#ccCoaEmpty').removeClass('hidden');
+                                $('#ccCoaContent').addClass('hidden');
+                            }
+                            loadCcGroupbiaya(ccSelectedDeptId);
+
+                            if (res.unassigned === 0 && blocked.length > 0) {
+                                Swal.fire({ icon: 'error', title: 'Cannot Unassign', text: res.message });
+                            } else if (blocked.length > 0) {
+                                Swal.fire({ icon: 'warning', title: 'Partially Done', text: res.message });
+                            } else {
+                                Swal.fire({ icon: 'success', title: 'Done', text: res.message, timer: 2500, showConfirmButton: false });
+                            }
+                        },
+                        error: function (xhr) {
+                            hideLoading();
+                            Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Failed to unassign' });
+                        }
+                    });
+                });
+            });
+
+            // ── BULK UNASSIGN: COA ───────────────────────────────────────────────
+            $(document).on('change', '.ccCoaSelect', function () {
+                let n = $('.ccCoaSelect:checked').length;
+                $('#ccCoaUnassignBtn').toggleClass('hidden', n === 0).text(n > 0 ? `Unassign Selected (${n})` : 'Unassign Selected');
+                $('#ccCoaSelectAll').prop('checked', n > 0 && n === $('.ccCoaSelect').length);
+            });
+
+            $(document).on('change', '#ccCoaSelectAll', function () {
+                let on = $(this).is(':checked');
+                $('.ccCoaSelect').prop('checked', on).trigger('change');
+            });
+
+            $('#ccCoaUnassignBtn').click(function () {
+                let ids = $('.ccCoaSelect:checked').map(function () { return $(this).val(); }).get();
+                if (!ids.length) return;
+                Swal.fire({
+                    icon: 'warning',
+                    title: `Unassign ${ids.length} COA account(s)?`,
+                    text: 'You can re-assign them again later.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Unassign',
+                    confirmButtonColor: '#dc2626',
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+                    showLoading();
+                    $.ajax({
+                        url: "{{ route('groupbiayanonpurch.cc.unassign-coa') }}",
+                        type: 'POST',
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        contentType: 'application/json',
+                        data: JSON.stringify({ ids: ids }),
+                        success: function (res) {
+                            hideLoading();
+                            if (!res.success) { Swal.fire({ icon: 'error', title: 'Error', text: res.message || 'Failed' }); return; }
+                            loadCcCoa(ccSelectedDeptId, ccSelectedGbId);
+                            Swal.fire({ icon: 'success', title: 'Done', text: res.message, timer: 2000, showConfirmButton: false });
+                        },
+                        error: function (xhr) {
+                            hideLoading();
+                            Swal.fire({ icon: 'error', title: 'Error', text: xhr.responseJSON?.message || 'Failed to unassign' });
+                        }
+                    });
+                });
+            });
+
             function loadCcCoa(deptId, gbId) {
                 $('#coaSearch').val('');
                 $('#ccCoaEmpty').addClass('hidden');
                 $('#ccCoaContent').removeClass('hidden');
-                $('#ccCoaTableBody').html('<tr><td colspan="3" class="px-4 py-4 text-xs text-center text-gray-400">Loading…</td></tr>');
+                $('#ccCoaTableBody').html('<tr><td colspan="4" class="px-4 py-4 text-xs text-center text-gray-400">Loading…</td></tr>');
 
                 let params = ccSelectedCpnyId ? { cpny_id: ccSelectedCpnyId } : {};
                 $.getJSON(`/groupbiaya-nonpurch/cc/${deptId}/${gbId}/coa`, params, function (res) {
                     let rows = res.data || [];
+
+                    ccAssignedCoaByBu = {};
+                    rows.forEach(r => {
+                        let bu = r.budget_business_unit_id ?? '';
+                        if (!ccAssignedCoaByBu[bu]) ccAssignedCoaByBu[bu] = [];
+                        ccAssignedCoaByBu[bu].push(String(r.budget_account_id));
+                    });
+
+                    $('#ccCoaSelectAll').prop('checked', false);
+                    resetCoaUnassignBtn();
                     if (!rows.length) {
-                        $('#ccCoaTableBody').html('<tr><td colspan="3" class="px-4 py-6 text-xs text-center text-gray-400">No COA assigned yet</td></tr>');
+                        $('#ccCoaTableBody').html('<tr><td colspan="4" class="px-4 py-6 text-xs text-center text-gray-400">No COA assigned yet</td></tr>');
                         return;
                     }
                     $('#ccCoaTableBody').html(rows.map(r => `
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                            <td class="px-4 py-2 font-mono text-xs text-gray-500 dark:text-gray-400">${r.budget_business_unit_id ?? '—'}</td>
-                            <td class="px-4 py-2 font-mono text-xs text-indigo-600 dark:text-indigo-400">${r.budget_account_id}</td>
-                            <td class="px-4 py-2 text-xs text-gray-700 dark:text-gray-200">${r.account_descr ?? ''}</td>
+                            <td class="px-3 py-2 text-center">
+                                <input type="checkbox" class="ccCoaSelect h-3.5 w-3.5 accent-red-600" value="${r.id}">
+                            </td>
+                            <td class="px-2 py-2 font-mono text-xs text-gray-500 dark:text-gray-400">${r.budget_business_unit_id ?? '—'}</td>
+                            <td class="px-2 py-2 font-mono text-xs text-indigo-600 dark:text-indigo-400">${r.budget_account_id}</td>
+                            <td class="px-2 py-2 text-xs text-gray-700 dark:text-gray-200">${r.account_descr ?? ''}</td>
                         </tr>`).join(''));
                 });
             }
@@ -1122,7 +1286,7 @@
                 $('#ccGbPickCount').text('');
 
                 if (ccAllGbCache) {
-                    renderGbPickList(ccAllGbCache);
+                    renderGbPickList(ccAllGbCache.filter(g => !ccAssignedGbIds.includes(g.groupbiaya_id)));
                     $('#ccAssignGbModal').removeClass('hidden');
                     return;
                 }
@@ -1130,12 +1294,17 @@
                 $.getJSON("{{ route('groupbiayanonpurch.cc.all-groupbiaya') }}", function (res) {
                     hideLoading();
                     ccAllGbCache = res.data || [];
-                    renderGbPickList(ccAllGbCache);
+                    renderGbPickList(ccAllGbCache.filter(g => !ccAssignedGbIds.includes(g.groupbiaya_id)));
                     $('#ccAssignGbModal').removeClass('hidden');
                 }).fail(() => { hideLoading(); Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load group biaya' }); });
             });
 
             function renderGbPickList(items) {
+                if (!items.length) {
+                    $('#ccGbPickList').html('<p class="px-3 py-4 text-xs text-center text-gray-400">All group biaya are already assigned to this department</p>');
+                    $('#ccGbPickCount').text('');
+                    return;
+                }
                 $('#ccGbPickList').html(items.map(g => `
                     <label class="cc-gb-pick-item flex cursor-pointer items-center gap-2.5 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-600 border-b border-gray-100 dark:border-gray-600 last:border-0">
                         <input type="checkbox" class="ccGbCheck h-4 w-4 accent-indigo-600" value="${g.groupbiaya_id}">
@@ -1231,15 +1400,17 @@
                 let coaParams = { department_fin_id: ccSelectedDeptId, business_unit_id: buId };
                 if (ccSelectedCpnyId) coaParams.cpny_id = ccSelectedCpnyId;
                 $.getJSON("{{ route('groupbiayanonpurch.cc.budget-coa') }}", coaParams, function (res) {
-                    ccCurrentCoaCache = res.data || [];
+                    let assigned = ccAssignedCoaByBu[buId] || [];
+                    ccCurrentCoaCache = (res.data || []).filter(a => !assigned.includes(String(a.account_id)));
                     renderCoaPickList(ccCurrentCoaCache);
-                    $('#ccSaveCoaBtn').removeClass('hidden');
+                    $('#ccSaveCoaBtn').toggleClass('hidden', ccCurrentCoaCache.length === 0);
                 }).fail(() => Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load COA' }));
             });
 
             function renderCoaPickList(items) {
                 if (!items.length) {
-                    $('#ccCoaPickList').html('<p class="px-3 py-4 text-xs text-center text-gray-400">No accounts found for this selection</p>');
+                    $('#ccCoaPickList').html('<p class="px-3 py-4 text-xs text-center text-gray-400">All accounts for this business unit are already assigned</p>');
+                    $('#ccCoaPickCount').text('');
                     return;
                 }
                 $('#ccCoaPickList').html(items.map(a => `
