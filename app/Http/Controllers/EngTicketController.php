@@ -362,7 +362,7 @@ class EngTicketController extends Controller
             'category',
             'subcategory',
             'priority',
-            'location',
+            'site',
             'responseActivity',
         ])
             ->whereNull('deleted_at')
@@ -486,7 +486,7 @@ class EngTicketController extends Controller
 
             ->addColumn('location_name', function ($row) {
                 return optional(
-                    $row->location
+                    $row->site
                 )->site_name;
             })
 
@@ -649,24 +649,26 @@ class EngTicketController extends Controller
             return 'COMPLETED';
         }
 
-        if (!$hasSchedule) {
-            return 'UNSCHEDULED';
-        }
-
-        $isLate = $ticket->ticket_duedate
-            && now()->greaterThan($ticket->ticket_duedate);
+        // Late is decided once, at the moment of Response — did the response
+        // itself land after the due date? Not a live now()-vs-duedate check,
+        // so it's independent of whether a working schedule was ever filled.
+        $isLate = $response?->response_date
+            && $ticket->ticket_duedate
+            && Carbon::parse($response->response_date)->greaterThan($ticket->ticket_duedate);
 
         if ($isLate) {
             return 'LATE';
         }
 
-        if (
-            $ticket->status_pekerjaan === 'PROCESS'
-            && $response?->working_start_date
-            && !$latestScheduled->working_start_date->isSameDay(
-                $response->working_start_date
-            )
-        ) {
+        if (!$hasSchedule) {
+            return 'UNSCHEDULED';
+        }
+
+        // "Reschedule" reflects the activity that actually supplied the dates
+        // currently shown on the calendar — not just the ticket's current
+        // status — since Process/Pending/Reopen can happen without touching
+        // the schedule (in which case the prior dates keep standing).
+        if (in_array($latestScheduled->status_pekerjaan, ['PROCESS', 'PENDING', 'REOPEN'], true)) {
             return 'RESCHEDULE';
         }
 
@@ -1088,7 +1090,7 @@ class EngTicketController extends Controller
             'category',
             'subcategory',
             'priority',
-            'location',
+            'site',
         ])->findOrFail($id);
 
         /*
@@ -1209,7 +1211,7 @@ class EngTicketController extends Controller
                     'location_id' => $ticket->location_id,
 
                     'location_name' => optional(
-                        $ticket->location
+                        $ticket->site
                     )->site_name,
 
                     'ticket_priority' => $ticket->ticket_priority,
@@ -1360,12 +1362,6 @@ class EngTicketController extends Controller
                 $request->ticket_priority
             )->first();
 
-            $workingStart = $request->working_start_date
-                ? Carbon::parse($request->working_start_date)
-                : now();
-
-            $workingEnd = $request->working_end_date ?? null;
-
             $ticket->update([
                 'pic_ticket' => $request->pic_ticket,
 
@@ -1395,9 +1391,9 @@ class EngTicketController extends Controller
 
                 'response_descr' => $request->response_descr,
 
-                'working_start_date' => $workingStart,
+                'working_start_date' => $request->working_start_date,
 
-                'working_end_date' => $workingEnd,
+                'working_end_date' => $request->working_end_date,
 
                 'status_pekerjaan' => 'RESPONSE',
 
@@ -1665,16 +1661,6 @@ class EngTicketController extends Controller
         try {
             /*
         |--------------------------------------------------------------------------
-        | Working Schedule
-        |--------------------------------------------------------------------------
-        */
-
-            $workingStart = $request->working_start_date ?? now();
-
-            $workingEnd = $request->working_end_date ?? $ticket->ticket_duedate ?? now()->addDay();
-
-            /*
-        |--------------------------------------------------------------------------
         | Update Ticket
         |--------------------------------------------------------------------------
         */
@@ -1716,9 +1702,9 @@ class EngTicketController extends Controller
 
                 'response_descr' => $request->response_descr,
 
-                'working_start_date' => $workingStart,
+                'working_start_date' => $request->working_start_date,
 
-                'working_end_date' => $workingEnd,
+                'working_end_date' => $request->working_end_date,
 
                 'status_pekerjaan' => 'PROCESS',
 
@@ -1839,16 +1825,6 @@ class EngTicketController extends Controller
         try {
             /*
         |--------------------------------------------------------------------------
-        | Working Schedule
-        |--------------------------------------------------------------------------
-        */
-
-            $workingStart = $request->working_start_date ?? now();
-
-            $workingEnd = $request->working_end_date ?? $ticket->ticket_duedate ?? now()->addDay();
-
-            /*
-        |--------------------------------------------------------------------------
         | Update Ticket
         |--------------------------------------------------------------------------
         */
@@ -1882,9 +1858,9 @@ class EngTicketController extends Controller
 
                 'response_descr' => $request->response_descr,
 
-                'working_start_date' => $workingStart,
+                'working_start_date' => $request->working_start_date,
 
-                'working_end_date' => $workingEnd,
+                'working_end_date' => $request->working_end_date,
 
                 'status_pekerjaan' => 'PENDING',
 
@@ -2338,16 +2314,6 @@ class EngTicketController extends Controller
         try {
             /*
         |--------------------------------------------------------------------------
-        | Working Schedule
-        |--------------------------------------------------------------------------
-        */
-
-            $workingStart = $request->working_start_date ?? now();
-
-            $workingEnd = $request->working_end_date ?? $ticket->ticket_duedate ?? now()->addDay();
-
-            /*
-        |--------------------------------------------------------------------------
         | Update Ticket
         |--------------------------------------------------------------------------
         */
@@ -2385,9 +2351,9 @@ class EngTicketController extends Controller
 
                 'response_descr' => $request->response_descr,
 
-                'working_start_date' => $workingStart,
+                'working_start_date' => $request->working_start_date,
 
-                'working_end_date' => $workingEnd,
+                'working_end_date' => $request->working_end_date,
 
                 'status_pekerjaan' => 'REOPEN',
 
@@ -3168,7 +3134,7 @@ class EngTicketController extends Controller
             'category',
             'subcategory',
             'priority',
-            'location',
+            'site',
         ])->findOrFail($id);
 
         $attachmentController = app(TrAttachmentController::class);

@@ -571,6 +571,35 @@ class DocumentNotificationService
             Log::warning('DocumentNotificationService: Comment activity fetch failed', ['err' => $e->getMessage()]);
         }
 
+        // ── 9. RCA Non Purchase: Treasury Payment done 14+ days ago, no CALR yet —
+        //      remind the creator to create the CALR ──
+        try {
+            $rcaCalrDue = TrRfpNonPurch::where('rfpnonpurchase_type', 'RCA')
+                ->where('statuspayment', 'C')
+                ->whereNotNull('paymentdate')
+                ->where('paymentdate', '<=', now()->subDays(14))
+                ->where(fn($q) => $q->whereNull('calrid')->orWhere('calrid', ''))
+                ->whereRaw("lower(trim(coalesce(created_by,''))) = ?", [$username])
+                ->select('id', 'rfpnonpurchaseid', 'cpny_id', 'paymentdate')
+                ->get();
+
+            $data = $data->concat($rcaCalrDue->map(fn($r) => [
+                'key'        => strtoupper(trim($r->rfpnonpurchaseid)) . '_RCA_CALR_DUE',
+                'hid'        => Hashids::encode($r->id),
+                'docid'      => $r->rfpnonpurchaseid,
+                'status'     => 'RCA_CALR_DUE',
+                'label'      => 'Create CALR',
+                'message'    => 'Treasury Payment has been completed since ' . optional($r->paymentdate)->format('d M Y') . '. Please create the CALR for this document.',
+                'cpnyid'     => $r->cpny_id,
+                'href'       => '/calrnonpurch/create?rfpnonpurchase=' . Hashids::encode($r->id),
+                'url'        => '/calrnonpurch/create',
+                'by'         => null,
+                'updated_at' => $r->paymentdate,
+            ]));
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: RCA CALR due fetch failed', ['err' => $e->getMessage()]);
+        }
+
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();
     }
 

@@ -305,7 +305,7 @@
                         </tr>
                         <tr>
                             <td class="meta-label">Location</td>
-                            <td class="meta-value" colspan="3">{{ optional($ticket->location)->site_name ?? '-' }}</td>
+                            <td class="meta-value" colspan="3">{{ optional($ticket->site)->site_name ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td class="meta-label">SLA Due Date</td>

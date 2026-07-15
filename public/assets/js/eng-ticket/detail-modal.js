@@ -745,14 +745,24 @@ function renderTicketTimeline(timelines = []) {
             item.status_pekerjaan ||
             'CREATED';
 
+        const descriptionWorkflows = [
+            'ENVISION CHECKED / SOLVED',
+            'CANCEL',
+            'RESPONSE',
+            'PROCESS',
+            'PENDING',
+            'TRANSFER',
+            'REOPEN',
+        ];
+
+        const rawDescription = item.description || item.response_descr || '';
+
         const description =
-            workflow === 'ENVISION CHECKED / SOLVED' || workflow === 'CANCEL'
-                ? (
-                    item.description ||
-                    item.response_descr ||
-                    ''
-                )
+            descriptionWorkflows.includes(workflow) && rawDescription !== '-'
+                ? rawDescription
                 : '';
+
+        const descId = `timeline_desc_${index}`;
 
         // container.append(`
 
@@ -1190,7 +1200,9 @@ container.append(`
                         ${
                                 description
                                     ? `
-                                        <div class="
+                                        <div id="${descId}" class="
+                                            ticket-expandable
+
                                             mt-3
 
                                             rounded-lg
@@ -1210,6 +1222,14 @@ container.append(`
                                             ${nl2br(description)}
 
                                         </div>
+
+                                        <button type="button"
+                                            class="ticket-expand-btn mt-1.5 hidden text-[11px] font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                            data-target="#${descId}">
+
+                                            Show more
+
+                                        </button>
                                     `
                                     : ''
                             }
@@ -1219,6 +1239,10 @@ container.append(`
     </div>
 
 `);
+
+        if (description) {
+            checkExpandableContent(`#${descId}`);
+        }
     });
 }
 

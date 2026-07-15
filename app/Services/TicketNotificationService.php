@@ -631,7 +631,7 @@ ORDER/MONTHLY : Monthly
         }
 
         $ticket->loadMissing([
-            'location',
+            'site',
             'subLocation',
         ]);
 
@@ -647,13 +647,19 @@ ORDER/MONTHLY : Monthly
             'UTF-8'
         );
 
+        $ticketTypeLabel = match ($ticket->ticket_type) {
+            'BSFOSUPPORTTICKET' => 'Ticket BS-FO Support',
+            'ENGSUPPORTTICKET' => 'Ticket Engineering Support',
+            default => 'TICKET OPR TEKNIK',
+        };
+
         $message = "
 PAKUWON SYSTEM
-TICKET OPR TEKNIK
+{$ticketTypeLabel}
 =================
 STATUS : {$eventLabel}
 PROJECT : {$ticket->department_id}
-LOCATION : {$ticket->location?->location_name}
+LOCATION : {$ticket->site?->site_name}
 SUB LOCATION : {$ticket->subLocation?->sub_location_name}
 
 TICKET DATE : {$requestDate}

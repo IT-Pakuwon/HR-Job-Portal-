@@ -535,6 +535,85 @@
 
             </div>
         @endif
+
+        {{-- Calendar Status Filter --}}
+        <div id="ticketCalendarStatusFilterRow"
+            class="mt-4 grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+
+            <button type="button" class="calendar-status-filter text-left" data-state="UNSCHEDULED">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-gray-500 bg-gray-200/20 p-3 text-gray-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-md active:scale-95 dark:text-gray-400">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        <span class="h-3 w-3 rounded-full bg-gray-400"></span>
+                    </div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="whitespace-normal break-words text-sm font-medium">Unscheduled</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold" data-count="UNSCHEDULED">0</p>
+                </div>
+            </button>
+
+            <button type="button" class="calendar-status-filter text-left" data-state="SCHEDULED">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-blue-700 bg-blue-200/20 p-3 text-blue-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-blue-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        <span class="h-3 w-3 rounded-full bg-blue-500"></span>
+                    </div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="whitespace-normal break-words text-sm font-medium">Scheduled</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold" data-count="SCHEDULED">0</p>
+                </div>
+            </button>
+
+            <button type="button" class="calendar-status-filter text-left" data-state="RESCHEDULE">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-orange-700 bg-orange-200/20 p-3 text-orange-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-orange-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        <span class="h-3 w-3 rounded-full bg-orange-500"></span>
+                    </div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="whitespace-normal break-words text-sm font-medium">Reschedule</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold" data-count="RESCHEDULE">0</p>
+                </div>
+            </button>
+
+            <button type="button" class="calendar-status-filter text-left" data-state="LATE">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-red-700 bg-red-200/20 p-3 text-red-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-red-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        <span class="h-3 w-3 rounded-full bg-red-500"></span>
+                    </div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="whitespace-normal break-words text-sm font-medium">Late</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold" data-count="LATE">0</p>
+                </div>
+            </button>
+
+            <button type="button" class="calendar-status-filter text-left" data-state="COMPLETED">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-green-700 bg-green-200/20 p-3 text-green-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-green-100 hover:shadow-md active:scale-95">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        <span class="h-3 w-3 rounded-full bg-green-500"></span>
+                    </div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="whitespace-normal break-words text-sm font-medium">Completed</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold" data-count="COMPLETED">0</p>
+                </div>
+            </button>
+
+            <button type="button" class="calendar-status-filter text-left" data-state="CANCELLED">
+                <div class="calendar-status-card flex h-full items-center gap-3 rounded-lg border border-slate-700 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:text-slate-400">
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center">
+                        <span class="h-3 w-3 rounded-full bg-slate-600"></span>
+                    </div>
+                    <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                        <p class="whitespace-normal break-words text-sm font-medium">Cancelled</p>
+                    </div>
+                    <p class="shrink-0 text-base font-bold" data-count="CANCELLED">0</p>
+                </div>
+            </button>
+
+        </div>
+
             <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start">
                 <div class="min-w-0 flex-1">
             {{-- Calendar Wrapper --}}
@@ -549,28 +628,6 @@
                     </h2>
 
                     <div class="flex flex-wrap items-center gap-4">
-
-                        {{-- Calendar Legend --}}
-                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
-                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="h-2.5 w-2.5 rounded-full bg-gray-400"></span> Unscheduled
-                            </span>
-                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> Scheduled
-                            </span>
-                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="h-2.5 w-2.5 rounded-full bg-orange-500"></span> Reschedule
-                            </span>
-                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span> Late
-                            </span>
-                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span> Completed
-                            </span>
-                            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <span class="h-2.5 w-2.5 rounded-full bg-slate-600"></span> Cancelled
-                            </span>
-                        </div>
 
                         <button type="button"
                             class="js-toggle-ticket-view inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">

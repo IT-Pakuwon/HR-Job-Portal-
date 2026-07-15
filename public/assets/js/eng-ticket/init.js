@@ -43,6 +43,7 @@ function initTicketViewToggle() {
         $("#ticketTableWrapper").toggleClass("hidden");
         $("#ticketFilterToolbar").toggleClass("hidden");
         $("#ticketStatusFilterRow").toggleClass("hidden");
+        $("#ticketCalendarStatusFilterRow").toggleClass("hidden");
 
         if (typeof EngTicketApprovalPanel !== 'undefined') {
             EngTicketApprovalPanel.updateVisibility();

@@ -237,6 +237,11 @@ function submitCompleteTicket() {
 
     if (window.completeDescr) { $('#complete_solution_descr').val(window.completeDescr.root.innerHTML); }
 
+    if (!window.completeDescr || !window.completeDescr.getText().trim()) {
+        showError('Solution is required.');
+        return;
+    }
+
     const formData =
         new FormData(form);
 

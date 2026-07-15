@@ -11,10 +11,12 @@ const EngTicketCalendar = {
     // STATE
     // --------------------------------------------------------
     state: {
-        calendar:    null,
-        events:      [],
-        isLoading:   false,
-        initialized: false,
+        calendar:      null,
+        events:        [],
+        isLoading:     false,
+        initialized:   false,
+        // Empty set = no filter active = show everything.
+        activeStates:  new Set(),
     },
 
     // --------------------------------------------------------
@@ -28,7 +30,48 @@ const EngTicketCalendar = {
         EngTicketCalendar.state.initialized = true;
 
         EngTicketCalendar.initCalendar();
+        EngTicketCalendar.bindStatusFilter();
         EngTicketCalendar.loadEvents();
+    },
+
+    // --------------------------------------------------------
+    // STATUS FILTER (legend doubles as a multi-select toggle)
+    // --------------------------------------------------------
+    bindStatusFilter() {
+        $(document).on('click', '.calendar-status-filter', function () {
+            const state = $(this).data('state');
+            const activeStates = EngTicketCalendar.state.activeStates;
+
+            if (activeStates.has(state)) {
+                activeStates.delete(state);
+            } else {
+                activeStates.add(state);
+            }
+
+            $(this)
+                .find('.calendar-status-card')
+                .toggleClass('ring-2 ring-offset-1 ring-current shadow-md', activeStates.has(state));
+
+            EngTicketCalendar.state.calendar?.refetchEvents();
+        });
+    },
+
+    // --------------------------------------------------------
+    // UPDATE STATUS FILTER COUNTS (from currently loaded events,
+    // unaffected by the active filter selection itself)
+    // --------------------------------------------------------
+    updateStatusFilterCounts() {
+        const counts = {};
+
+        EngTicketCalendar.state.events.forEach((event) => {
+            const state = event.extendedProps.calendar_state;
+            counts[state] = (counts[state] || 0) + 1;
+        });
+
+        $('#ticketCalendarStatusFilterRow [data-count]').each(function () {
+            const state = $(this).data('count');
+            $(this).text(counts[state] || 0);
+        });
     },
 
     // --------------------------------------------------------
@@ -50,6 +93,7 @@ const EngTicketCalendar = {
             editable:        false,
             selectable:      false,
             eventDisplay:    'block',
+            dayMaxEvents:    3,
             eventTimeFormat: {
                 hour:     '2-digit',
                 minute:   '2-digit',
@@ -87,6 +131,7 @@ const EngTicketCalendar = {
             const items = Array.isArray(response.data) ? response.data : [];
 
             EngTicketCalendar.state.events = EngTicketCalendar.convertToEvents(items);
+            EngTicketCalendar.updateStatusFilterCounts();
             EngTicketCalendar.state.calendar.refetchEvents();
         } catch (err) {
             console.error('[EngTicketCalendar] loadEvents error:', err);
@@ -100,7 +145,15 @@ const EngTicketCalendar = {
     // --------------------------------------------------------
     loadEventsCallback(successCallback, failureCallback) {
         try {
-            successCallback(EngTicketCalendar.state.events);
+            const activeStates = EngTicketCalendar.state.activeStates;
+
+            const events = activeStates.size
+                ? EngTicketCalendar.state.events.filter((event) =>
+                    activeStates.has(event.extendedProps.calendar_state)
+                )
+                : EngTicketCalendar.state.events;
+
+            successCallback(events);
         } catch (err) {
             console.error('[EngTicketCalendar] loadEventsCallback error:', err);
             failureCallback(err);
