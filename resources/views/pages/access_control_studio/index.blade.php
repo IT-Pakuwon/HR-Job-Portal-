@@ -629,6 +629,14 @@
         }
         .dark .ar-folder-label::before { border-color: #374151; }
 
+        /* ---- matrix orphan sub-headers (screens with no menu leaf pointing
+           at them yet — same idea as a folder header, but flagged amber so
+           it reads as "needs setup" rather than plain organization) ---- */
+        .ar-orphan-header td { background-color: #fffbeb; border-top: 1px solid #fde68a; }
+        .dark .ar-orphan-header td { background-color: rgba(217,119,6,.08); border-top-color: rgba(217,119,6,.25); }
+        .ar-orphan-label { font-size: 0.7rem; font-weight: 700; letter-spacing: .02em; color: #b45309; }
+        .dark .ar-orphan-label { color: #fbbf24; }
+
         /* ---- matrix child rows (screens under an application group) ---- */
         .ar-screen-name { position: relative; display: inline-flex; align-items: center; padding-left: 1rem; }
         .ar-screen-name::before {
@@ -937,6 +945,9 @@
             function refreshScreenSelects() {
                 studioReloadSelectOptions($('#mnu_screen_id'), "{{ route('screens.json') }}",
                     r => `<option value="${r.screen_id}" data-app="${r.application_id}">${r.screen_id} - ${r.screen_name}</option>`);
+                $.get("{{ route('screens.json') }}", function(res) {
+                    arAllScreens = (res.data || []).filter(r => r.status === 'A');
+                });
             }
 
             function refreshRoleSelects() {
@@ -1474,6 +1485,14 @@
             // arAppNames is reassigned by refreshApplicationSelects() after an
             // Application is saved/toggled, so keep it mutable.
             let arAppNames = @json($applications->pluck('application_name', 'application_id'));
+            // Every Screen should have a Menu leaf pointing at it, but nothing
+            // enforces that — screens created in Step 2 and never wired into a
+            // Step 3 menu would otherwise silently vanish from this matrix (the
+            // tree walk below only knows about menus). Keep a raw screen list
+            // around so those "orphan" screens can still be shown and granted
+            // rights. Reassigned by refreshScreenSelects() after a Screen is
+            // saved/toggled, so keep it mutable.
+            let arAllScreens = @json($screens);
 
             // Menus are a real parent/child tree (parent_menu_id), and only the
             // leaf nodes carry a screen_id — those are the actual "screens" that
@@ -1486,6 +1505,50 @@
             // looking like flat siblings of the screens they contain.
             function getMatrixTree() {
                 return mnuTreeData.filter(m => m.status === 'A' && m.application_id);
+            }
+
+            // Screens that have no active menu leaf pointing at them (see the
+            // comment on arAllScreens above) — grouped by application so they
+            // still surface in their app's section instead of disappearing.
+            function getOrphanScreensByApp() {
+                const wiredScreenIds = new Set(
+                    mnuTreeData.filter(m => m.status === 'A' && m.screen_id).map(m => m.screen_id)
+                );
+                const byApp = {};
+                arAllScreens
+                    .filter(s => s.status === 'A' && !wiredScreenIds.has(s.screen_id))
+                    .forEach(s => {
+                        const key = s.application_id || '(no application)';
+                        (byApp[key] = byApp[key] || []).push(s);
+                    });
+                return byApp;
+            }
+
+            function arBuildOrphanRows(appId, screens, rights, accessColumns) {
+                if (!screens.length) return '';
+                const header = `<tr class="ar-orphan-header" data-app="${appId}">
+                    <td colspan="${accessColumns.length + 1}" class="py-1 pr-3" style="padding-left:0.75rem">
+                        <span class="ar-orphan-label">Not in any menu yet — add one in Step 3 to also show these in the sidebar</span>
+                    </td>
+                </tr>`;
+                const rows = screens
+                    .slice()
+                    .sort((a, b) => (a.screen_name || '').localeCompare(b.screen_name || ''))
+                    .map((s, i) => {
+                        const key = s.screen_id + '|' + appId;
+                        const checkedNames = new Set(rights[key] || []);
+                        const cells = accessColumns.map(name => `
+                            <td class="px-3 py-1.5 text-center">
+                                <input type="checkbox" class="ar-chk h-4 w-4 accent-indigo-600" data-screen="${s.screen_id}" data-app="${appId}" data-name="${name}" ${checkedNames.has(name) ? 'checked' : ''}>
+                            </td>`).join('');
+                        return `<tr class="ar-row ar-orphan-row${i % 2 === 1 ? ' ar-row-alt' : ''} border-b dark:border-gray-700" data-search="${(s.screen_name + ' ' + s.screen_id).toLowerCase()}" data-app-group="${appId}" data-ancestors="">
+                            <td class="whitespace-nowrap py-1.5 pr-3" style="padding-left:0.75rem">
+                                <span class="ar-screen-name">${s.screen_name} <span class="text-gray-400">(${s.screen_id})</span></span>
+                            </td>
+                            ${cells}
+                        </tr>`;
+                    }).join('');
+                return header + rows;
             }
 
             function arBuildAppRows(appId, appMenus, rights, accessColumns) {
@@ -1549,8 +1612,10 @@
                     (groups[key] = groups[key] || []).push(m);
                 });
 
-                const appIds = Object.keys(groups).sort((a, b) =>
-                    (arAppNames[a] || a).localeCompare(arAppNames[b] || b));
+                const orphansByApp = getOrphanScreensByApp();
+
+                const appIds = Array.from(new Set([...Object.keys(groups), ...Object.keys(orphansByApp)]))
+                    .sort((a, b) => (arAppNames[a] || a).localeCompare(arAppNames[b] || b));
 
                 const arGroupIconSvg = '<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>';
 
@@ -1571,9 +1636,10 @@
                             </td>
                         </tr>`;
 
-                    const screenRows = arBuildAppRows(appId, groups[appId], rights, accessColumns);
+                    const screenRows = groups[appId] ? arBuildAppRows(appId, groups[appId], rights, accessColumns) : '';
+                    const orphanRows = arBuildOrphanRows(appId, orphansByApp[appId] || [], rights, accessColumns);
 
-                    return headerRow + screenRows;
+                    return headerRow + screenRows + orphanRows;
                 }).join('');
 
                 $('#ar_tableBody').html(html);
@@ -1615,6 +1681,10 @@
                         return ($(this).data('ancestors') || '').toString().split(',').includes(folder);
                     }).length > 0;
                     $(this).toggle(anyVisible);
+                });
+                $('.ar-orphan-header').each(function() {
+                    const app = $(this).data('app');
+                    $(this).toggle($(`.ar-orphan-row[data-app-group="${app}"]:visible`).length > 0);
                 });
                 $('.ar-group-header').each(function() {
                     const app = $(this).data('app');

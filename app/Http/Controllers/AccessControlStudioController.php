@@ -33,7 +33,7 @@ class AccessControlStudioController extends Controller
         $screens = SysScreen::on('pgsql2')
             ->where('status', 'A')
             ->orderBy('screen_id')
-            ->get(['screen_id', 'screen_name', 'application_id']);
+            ->get(['screen_id', 'screen_name', 'application_id', 'status']);
 
         $menus = SysMenu::on('pgsql2')
             ->where('status', 'A')

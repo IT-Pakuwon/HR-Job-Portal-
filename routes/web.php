@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccessControlStudioController;
 use App\Http\Controllers\AccessRequestController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\ApplicantController;
@@ -36,6 +37,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataFeedController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\DocumentNotificationController;
+use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\FinanceDashboardController;
 use App\Http\Controllers\GADashboardController;
@@ -43,6 +45,7 @@ use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GmReportController;
 use App\Http\Controllers\GoogleCalendarApiController;
 use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\GroupAccspecificController;
 use App\Http\Controllers\HrDashboardController;
 use App\Http\Controllers\IMBudgetController;
 use App\Http\Controllers\IMBudgetNonPurchController;
@@ -84,9 +87,8 @@ use App\Http\Controllers\MeetingRoomSetupController;
 use App\Http\Controllers\MsApprovalController;
 use App\Http\Controllers\MsApprovalGroupBiayaController;
 use App\Http\Controllers\MsCategoryController;
-use App\Http\Controllers\MsSiteController;
-use App\Http\Controllers\GroupAccspecificController;
 use App\Http\Controllers\MsGroupbiayaNonPurchController;
+use App\Http\Controllers\MsSiteController;
 use App\Http\Controllers\MultiDashboardController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NonstockJobsController;
@@ -121,21 +123,19 @@ use App\Http\Controllers\SppjController;
 use App\Http\Controllers\SppkController;
 use App\Http\Controllers\SpptController;
 use App\Http\Controllers\StockJobsController;
+// INTEGRATION
 use App\Http\Controllers\StrukturOrgController;
 use App\Http\Controllers\SysAccessRightController;
-// INTEGRATION
 use App\Http\Controllers\SysApplicationController;
 use App\Http\Controllers\SysCalendarController;
 use App\Http\Controllers\SysMenuController;
 use App\Http\Controllers\SysMenuFavouriteController;
 use App\Http\Controllers\SysRoleController;
-use App\Http\Controllers\AccessControlStudioController;
 use App\Http\Controllers\SysRoleMenuController;
 use App\Http\Controllers\SysScreenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TestEmailController;
-use App\Http\Controllers\EngTicketController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketSetupController;
 use App\Http\Controllers\TopController;
@@ -420,8 +420,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('access:APPPORTAL,EDIT')->group(function () {
         Route::post('/jobapplicant/remap', [JobapplicantController::class, 'storeRemap'])->name('jobapplicant.remap');
     });
-
-
 
     Route::get('/applicants', [ApplicantController::class, 'index'])->name('applicants');
     Route::get('/applicants/json', [ApplicantController::class, 'json'])->name('applicants.json');
@@ -2364,6 +2362,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/groupbiaya-nonpurch/budget/{id}', [MsGroupbiayaNonPurchController::class, 'budgetUpdate'])->name('groupbiayanonpurch.budget.update');
     Route::put('/groupbiaya-nonpurch/budget/{id}/toggle-status', [MsGroupbiayaNonPurchController::class, 'budgetToggleStatus'])->name('groupbiayanonpurch.budget.toggle-status');
     Route::get('/groupbiaya-nonpurch/{groupbiayaId}/budget', [MsGroupbiayaNonPurchController::class, 'budgetJson'])->name('groupbiayanonpurch.budget.json');
+
     // Cost Controller Access (Tab 2)
     Route::get('/groupbiaya-nonpurch/cc/companies', [MsGroupbiayaNonPurchController::class, 'ccCompaniesJson'])->name('groupbiayanonpurch.cc.companies');
     Route::get('/groupbiaya-nonpurch/cc/departments-fin', [MsGroupbiayaNonPurchController::class, 'ccDepartmentFinJson'])->name('groupbiayanonpurch.cc.departments-fin');
