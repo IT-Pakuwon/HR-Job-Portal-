@@ -2969,6 +2969,7 @@ class SpptController extends Controller
         return TrApproval::query()
             ->where('refnbr', $refnbr)
             ->where('status', '<>', 'X')
+            ->orderBy('created_at', 'asc')
             ->orderByRaw('CAST(aprv_leveling AS numeric) ASC')
             ->orderBy('id', 'asc')
             ->get()

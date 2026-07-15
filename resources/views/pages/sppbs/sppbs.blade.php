@@ -626,6 +626,10 @@
                 badge = 'REJECTED';
                 color = 'text-red-700';
                 dot = 'bg-red-500';
+            } else if (st === 'D') {
+                badge = 'REVISE';
+                color = 'text-blue-700';
+                dot = 'bg-blue-500';
             } else {
                 badge = 'WAITING';
                 color = 'text-gray-500';
