@@ -372,6 +372,10 @@ class UsersController extends Controller
                 'updated_by' => $loginUser->username,
             ];
 
+            if (config('app.name') === 'Pakuwon System') {
+                $updateData['notification_email'] = $request->email;
+            }
+
             if ($newUsername !== $oldUsername) {
                 $updateData['username'] = $newUsername;
                 // Cascade username ke tabel terkait sebelum delete/insert

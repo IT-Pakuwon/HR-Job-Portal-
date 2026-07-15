@@ -196,6 +196,20 @@
                                 ],
                             ];
 
+                            if (!empty($bastid)) {
+                                array_splice($fields, 4, 0, [[
+                                    'icon' => 'clipboard-document-check',
+                                    'label' => 'BAST ID',
+                                    'value' => !empty($bastUrl)
+                                        ? '<a href="' .
+                                            e($bastUrl) .
+                                            '" target="_blank" class="text-indigo-600 hover:underline dark:text-indigo-400">' .
+                                            e($bastid) .
+                                            '</a>'
+                                        : e($bastid),
+                                ]]);
+                            }
+
                             $hasPrevRfca = !empty(optional($rfca)->prev_rfcaid);
                             $prevRfcaFields = [
                                 [
@@ -351,10 +365,10 @@
                                                                 Upload Attachments
                                                             </label>
                                                             <div class="flex items-center gap-3">
-                                                                <input type="hidden" name="cpnyid"
+                                                                {{-- <input type="hidden" name="cpnyid"
                                                                     value="{{ $calr->cpny_id }}">
                                                                 <input type="hidden" name="departementid"
-                                                                    value="{{ $calr->department_id }}">
+                                                                    value="{{ $calr->department_id }}"> --}}
                                                                 <input type="file" id="rcpAttachFiles"
                                                                     name="attachments[]" multiple
                                                                     class="block w-full cursor-pointer rounded-md border border-gray-300 bg-white px-2 py-[7px] text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100" />

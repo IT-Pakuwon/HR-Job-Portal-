@@ -27,6 +27,7 @@ use App\Models\TrPO;
 use App\Models\TrPOdetail;
 use App\Models\TrRfca;
 use App\Models\TrRfcaStep;
+use App\Models\TrBast;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\MsPurchSetting;
 use Illuminate\Support\Facades\Schema;
@@ -197,6 +198,24 @@ class CalrController extends Controller
             $rfca->updated_at      = $datestamp;
             $rfca->save();
 
+            TrPOterm::query()
+                ->where('ponbr', $rfca->ponbr)
+                ->where('cpny_id', $rfca->cpny_id)
+                ->when($rfca->order_term !== null && $rfca->order_term !== '', function ($q) use ($rfca) {
+                    $q->where('order_term', $rfca->order_term);
+                })
+                ->when($rfca->terms_id !== null && $rfca->terms_id !== '', function ($q) use ($rfca) {
+                    $q->where('terms_id', $rfca->terms_id);
+                })
+                ->when($rfca->topid !== null && $rfca->topid !== '', function ($q) use ($rfca) {
+                    $q->where('topid', $rfca->topid);
+                })
+                ->update([
+                    'calrid'     => $calrid,
+                    'updated_by' => $username,
+                    'updated_at' => $datestamp,
+                ]);
+
 
             $ctx = [
                 'ignore_nominal' => true,
@@ -263,200 +282,7 @@ class CalrController extends Controller
             ], 500);
         }
     }
-
-    public function storeCalr_xxx(Request $request)
-    {
-        $request->validate([
-            'rfca_eid'         => 'required|string',
-            'calr_amount'      => 'required|numeric|min:0',
-            'attachments.*'    => 'file|max:10240',     // 10MB/file
-            'attachments_ba.*' => 'file|max:10240',     // 10MB/file
-        ]);
-
-        // decode RFCA
-        $decoded = Hashids::decode($request->input('rfca_eid'));
-        if (empty($decoded)) {
-            return response()->json(['message' => 'RFCA hash tidak valid.'], 422);
-        }
-        $rfcaPkId = (int) $decoded[0];
-
-        /** @var \App\Models\TrRfca|null $rfca */
-        $rfca = TrRfca::find($rfcaPkId);
-        if (!$rfca) {
-            return response()->json(['message' => 'Data RFCA tidak ditemukan.'], 404);
-        }
-
-        // nilai RFCA & CALR
-        $rfcaAmount  = (float) ($rfca->rfca_amount ?? 0);
-        $calrAmount  = (float) $request->input('calr_amount', 0); // hidden input dari view
-        $balance     = $rfcaAmount - $calrAmount;                  // boleh minus
-
-        $doctype  = 'CA'; // kode dokumen CALR
-        $user     = $request->user();
-        $username = $user->username ?? 'system';
-
-        $dt        = Carbon::now('Asia/Jakarta');
-        $year      = (int) $dt->year;
-        $month     = str_pad((string) $dt->month, 2, '0', STR_PAD_LEFT);
-        $datestamp = $dt->toDateTimeString();
-
-        /** @var \App\Http\Controllers\ApprovalController $approvalCtl */
-        $approvalCtl = app(ApprovalController::class);
-
-        // Pastikan line approval ada (pakai company & dept dari RFCA)
-        $approvalCtl->loadLines($doctype, $rfca->cpny_id, $rfca->department_id);
-
-        DB::beginTransaction();
-        try {      
-
-            $auto = $this->nextAutonbr(
-                $doctype,
-                $year,
-                $month,
-                $username,
-                'CALR'
-            );
-            $urutan = (int) $auto['next'];
-
-            $tglbln = substr((string)$year, 2) . $month;   // YYMM
-            $calrid  = $doctype . $tglbln . sprintf("%04d", $urutan);    
-
-            // === create header TrCalr (pakai model baru) ===
-            /** @var \App\Models\TrCalr $header */
-            $header = TrCalr::create([
-                'calrid'        => $calrid,
-                'calrdate'      => $dt->toDateString(),
-
-                'rfcaid'        => $rfca->rfcaid,
-                'rfca_type'     => $rfca->rfca_type ?? null,
-                'ponbr'         => $rfca->ponbr,
-                'cpny_id'       => $rfca->cpny_id,
-                'csid'          => $rfca->csid,
-                'sppbjktid'     => $rfca->sppbjktid ?? null,
-                'department_id' => $rfca->department_id,
-                'user_peminta'  => $rfca->user_peminta ?? null,
-                'keperluan'     => $rfca->keperluan,
-                'vendorid'      => $rfca->vendorid ?? null,
-                'vendorname'    => $rfca->vendorname,
-
-                'rfca_amount'   => $rfcaAmount,
-                'calr_amount'   => $calrAmount,
-                'balance_amount'=> $balance,
-
-                'status'        => 'P', // Pending / On Progress
-                'created_by'    => $username,
-                'updated_by'    => $username,
-            ]);
-
-            // === update TrRfca & TrRfcaStep terkait ===
-            // $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
-            //         ->where('ponbr', $rfca->ponbr)
-            //         ->where('rfca_step_id', 'PS')
-            //         ->first();
-            if ($header->rfca_type == 'RFCA') {  
-                $rfcastep = TrRfcaStep::where('rfcaid', $rfca->rfcaid)
-                    ->where('ponbr', $rfca->ponbr)
-                    ->where('rfca_step_id', 'PC')
-                    ->first();
-
-                if (!$rfcastep) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Gagal membuat CALR',
-                        'error'   => 'Step RFCA dengan rfca_step_id = PC tidak ditemukan.'
-                    ], 422);
-                }
-
-                $rfcastep->rfca_step_user   = $username;      
-                $rfcastep->rfca_step_date   = $datestamp; 
-                $rfcastep->status_rfca      = 'C'; 
-                $rfcastep->updated_by = $username;
-                $rfcastep->save();
-
-            }
-
-            $rfca->calrid     = $calrid;
-            $rfca->rfca_step_order = $rfcastep->rfca_step_order; 
-            $rfca->rfca_step_id    = $rfcastep->rfca_step_id;
-            $rfca->updated_by = $username;
-            $rfca->updated_at = $datestamp;
-            $rfca->save(); 
-
-            // === generate TrApproval ===
-            $ctx = [
-                'ignore_nominal' => true,
-            ];
-
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $rfca->cpny_id,
-                $rfca->department_id,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            // (tidak set completed_by di TrCalr karena field-nya tidak ada di model baru)
-
-            // === upload attachments (doctype CA) jika ada ===
-            if ($request->hasFile('attachments')) {
-                $meta = [
-                    'refnbr'        => $docid,
-                    'doctype'       => $doctype,
-                    'cpnyid'        => $rfca->cpny_id,
-                    'departementid' => $rfca->department_id,
-                    'base_folder'   => 'att-purchasing-app/' . strtolower($doctype),
-                    'created_by'    => $username,
-                ];
-
-                $files = (array) $request->file('attachments');
-
-                try {
-                    /** @var \App\Http\Controllers\TrAttachmentController $uploader */
-                    $uploader = app(TrAttachmentController::class);
-                    $uploader->uploadInternal($meta, $files);
-                } catch (\Throwable $e) {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => 'Gagal membuat CALR',
-                        'error'   => 'Gagal upload attachment: ' . $e->getMessage(),
-                    ], 500);
-                }
-            }
-
-            
-            $eid = Hashids::encode((string) $header->id);
-
-            // === notifikasi approver pertama ===
-            $approvalCtl->notifyFirstApprover(
-                $docid,
-                $doctype,
-                $header->status, // 'P'
-                'CALR',
-                url('/showcalr/' . $eid),
-                [
-                    'info'      => $header->keperluan,
-                    'createdby' => $header->created_by,
-                    'date'      => $dt->toDateTimeString(),
-                ]
-            );
-
-            DB::commit();
-
-            return response()->json([
-                'ok'      => true,
-                'message' => 'Calr created successfully.',
-                'calrid'  => $header->calrid,
-                'eid'     => $eid,
-            ]);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            report($e);
-            return response()->json(['message' => 'Gagal membuat CALR.'], 500);
-        }
-    }
-
+    
 
     public function showCalr($hash)
     {
@@ -479,6 +305,32 @@ class CalrController extends Controller
             if ($poId) {
                 $poHash = Hashids::encode($poId);
                 $poUrl  = url("/showpo/{$poHash}");
+            }
+        }
+
+        // ===== Link ke BAST dari PO Term (opsional)
+        $bastid = null;
+        $bastUrl = null;
+        if (!empty($calr->ponbr) && !empty($calr->cpny_id)) {
+            $bastid = TrPOterm::query()
+                ->where('ponbr', $calr->ponbr)
+                ->where('cpny_id', $calr->cpny_id)
+                ->where('flag_bast', true)
+                ->whereRaw("TRIM(COALESCE(bastid, '')) <> ''")
+                ->orderBy('id')
+                ->value('bastid');
+
+            if (!empty($bastid)) {
+                $bastPkId = TrBast::query()
+                    ->whereRaw('TRIM(bastid) = ?', [trim((string) $bastid)])
+                    ->value('id');
+
+                if ($bastPkId) {
+                    $bastHash = Hashids::encode($bastPkId);
+                    $bastUrl  = url("/showbast/{$bastHash}");
+                } else {
+                    $bastid = null;
+                }
             }
         }
 
@@ -574,6 +426,8 @@ class CalrController extends Controller
             'hash'        => $hash,
             'eid_calrid'  => $eid_calrid,
             'poUrl'       => $poUrl,
+            'bastid'      => $bastid,
+            'bastUrl'     => $bastUrl,
             'rfcaUrl'     => $rfcaUrl,
             'rfca'        => $rfca,
             'prevRfcaUrl' => $prevRfcaUrl,
