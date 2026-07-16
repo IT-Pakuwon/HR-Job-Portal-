@@ -148,13 +148,24 @@
                                     class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
                                 </span>
                             </div>
-                            <p x-text="item.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
+                            <template x-if="!item.comment">
+                                <p x-text="item.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
+                            </template>
+                            <template x-if="item.comment">
+                                <p x-text="'“' + item.comment + '”'" class="mt-1 whitespace-pre-wrap wrap-break-word rounded-md bg-gray-50 px-2 py-1 text-[11px] italic text-gray-500 dark:bg-gray-700/40 dark:text-gray-400"></p>
+                            </template>
                             <div class="mt-1 flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-gray-500">
                                 <span x-text="item.cpnyid"></span>
                                 <template x-if="item.by">
                                     <span>
                                         <span class="mx-1">·</span>
                                         by <span x-text="item.by" class="font-medium"></span>
+                                    </span>
+                                </template>
+                                <template x-if="item.updated_at">
+                                    <span>
+                                        <span class="mx-1">·</span>
+                                        <span x-text="timeAgo(item.updated_at)"></span>
                                     </span>
                                 </template>
                             </div>
@@ -266,7 +277,12 @@
                         </button>
                     </div>
                     <p x-text="toast.item?.docid" class="mt-0.5 text-sm font-semibold text-gray-800 dark:text-gray-100"></p>
-                    <p x-text="toast.item?.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
+                    <template x-if="!toast.item?.comment">
+                        <p x-text="toast.item?.message" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed"></p>
+                    </template>
+                    <template x-if="toast.item?.comment">
+                        <p x-text="'“' + toast.item.comment + '”'" class="mt-1 line-clamp-2 rounded-md bg-gray-50 px-2 py-1 text-[11px] italic text-gray-500 dark:bg-gray-700/40 dark:text-gray-400"></p>
+                    </template>
                     <a :href="toast.item ? (toast.item.href || `${toast.item.url}/${toast.item.hid}`) : '#'"
                         @click="markRead(toast.item); toast.show = false"
                         :class="statusCfg(toast.item?.status).iconText"
@@ -336,6 +352,22 @@ function docNotifications() {
             return map[status] || { iconBg: 'bg-gray-100 dark:bg-gray-700', iconText: 'text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400', bar: 'bg-gray-500', cat: 'default' };
         },
 
+        // Relative "when created" label (e.g. "5m ago", "3h ago", "2d ago").
+        timeAgo(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return '';
+            const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+            if (diffSec < 60) return 'just now';
+            const diffMin = Math.floor(diffSec / 60);
+            if (diffMin < 60) return `${diffMin}m ago`;
+            const diffHour = Math.floor(diffMin / 60);
+            if (diffHour < 24) return `${diffHour}h ago`;
+            const diffDay = Math.floor(diffHour / 24);
+            if (diffDay < 7) return `${diffDay}d ago`;
+            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        },
+
         init() {
             this.load();
             this._timer = setInterval(() => {
@@ -347,11 +379,6 @@ function docNotifications() {
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission();
             }
-            // Comment/mention items the user has actually seen in the open dropdown
-            // count as read even if they never click through to the document.
-            this.$watch('open', (value) => {
-                if (!value) this.markVisibleCommentsRead();
-            });
         },
 
         // ── Seen tracking (expires after 7 days → triggers re-alert) ──
@@ -572,19 +599,6 @@ function docNotifications() {
             this.items = this.items.filter(i => i.key !== item.key);
             this.count = this.items.length;
             this._sendMarkRead([item.key]);
-        },
-
-        // Comment/mention items the user saw rendered in the open dropdown are
-        // "read" even without clicking through — dismiss them once the panel closes.
-        markVisibleCommentsRead() {
-            const keys = this.items
-                .filter(i => i.status === 'MENTION' || i.status === 'COMMENT')
-                .map(i => i.key);
-            if (keys.length === 0) return;
-
-            this.items = this.items.filter(i => i.status !== 'MENTION' && i.status !== 'COMMENT');
-            this.count = this.items.length;
-            this._sendMarkRead(keys);
         },
     };
 }

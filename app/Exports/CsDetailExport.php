@@ -52,7 +52,6 @@ class CsDetailExport implements FromArray, ShouldAutoSize, WithEvents, WithTitle
         }
 
         $this->lastDataRow = count($rows);
-        $rows[] = [];
 
         $this->summaryStartRow = count($rows) + 1;
         foreach (['Total', 'PPN', 'Grand', 'Selected'] as $label) {

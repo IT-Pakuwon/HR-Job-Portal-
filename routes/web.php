@@ -1818,6 +1818,13 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/accessories/store', 'storeAccessories')->name('accessories.store');
             Route::post('/accessories/update/{id}', 'updateAccessories')->name('accessories.update');
             Route::post('/accessories/status/{id}', 'updateAccessoriesStatus')->name('accessories.status');
+
+            Route::get('/dateblock/json', 'jsonDateBlock')->name('dateblock.json');
+            Route::get('/dateblock/find/{id}', 'findDateBlock')->name('dateblock.find');
+
+            Route::post('/dateblock/store', 'storeDateBlock')->name('dateblock.store');
+            Route::post('/dateblock/update/{id}', 'updateDateBlock')->name('dateblock.update');
+            Route::post('/dateblock/status/{id}', 'updateDateBlockStatus')->name('dateblock.status');
         });
 
         Route::prefix('it-recommendation')->controller(ItRecommendationController::class)->group(function () {

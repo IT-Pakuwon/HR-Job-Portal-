@@ -121,7 +121,7 @@ class MeetingController extends Controller
 
         if ($date_block && !empty($date_block->setting_value_string)) {
             $maxBookingDate = now()
-                ->addDays((int) $date_block->setting_value_string)
+                ->modify($date_block->setting_value_string)
                 ->endOfDay();
         }
 
@@ -408,9 +408,9 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-            // example: "+15 days"
+            // supports relative formats like "+15 days" or "+2 month"
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -826,9 +826,9 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-            // example: "+15 days"
+            // supports relative formats like "+15 days" or "+2 month"
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -1817,9 +1817,9 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-            // example: "+15 days"
+            // supports relative formats like "+15 days" or "+2 month"
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -2246,9 +2246,9 @@ class MeetingController extends Controller
         $maxBookingDate = now()->addDays(15)->endOfDay();
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
-            // example: "+15 days"
+            // supports relative formats like "+15 days" or "+2 month"
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 
@@ -2508,7 +2508,7 @@ class MeetingController extends Controller
 
         if ($bookingSetting && !empty($bookingSetting->setting_value_string)) {
             $maxBookingDate = now()
-                ->addDays((int) $bookingSetting->setting_value_string)
+                ->modify($bookingSetting->setting_value_string)
                 ->endOfDay();
         }
 

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Models\MsTicketCategoryDept;
 use App\Models\Personnel;
+use App\Models\SysCalendar;
 use App\Models\SysUserRole;
 use App\Models\TrAccess;
 use App\Models\TrApproval;
@@ -498,13 +499,17 @@ class DocumentNotificationService
                 ];
             }
 
-            $readKeys = collect(Cache::get('doc_notif_read_' . $username, []));
+            $readKeys        = collect(Cache::get('doc_notif_read_' . $username, []));
+            // Widest possible calendar-day span a 5-business-day window could cover (long
+            // holiday clusters e.g. Lebaran) — exact cutoff is enforced per-row below.
+            $commentHolidays = self::commentExpiryHolidays();
 
             foreach ($commentDocTypes as $commentDoctype => $cfg) {
                 $rows = TrMessage::where('doctype', $commentDoctype)
-                    ->where('message_date', '>=', now()->subDays(7))
+                    ->where('message_date', '>=', now()->subDays(21))
                     ->whereRaw("lower(trim(coalesce(username,''))) != ?", [$username])
-                    ->get();
+                    ->get()
+                    ->filter(fn($row) => !self::isCommentExpired($row->message_date, $commentHolidays));
 
                 foreach ($rows as $row) {
                     $key = 'CMT_' . $commentDoctype . '_' . $row->id;
@@ -540,6 +545,7 @@ class DocumentNotificationService
                             'status'     => 'MENTION',
                             'label'      => 'Mentioned',
                             'message'    => 'You are mentioned in this document, please check.',
+                            'comment'    => \Illuminate\Support\Str::limit((string) $row->message, 500),
                             'cpnyid'     => $row->cpny_id,
                             'url'        => $cfg['url'],
                             'by'         => $row->name,
@@ -560,6 +566,7 @@ class DocumentNotificationService
                         'status'     => 'COMMENT',
                         'label'      => 'New Comment',
                         'message'    => 'There is a new comment in this document, please check.',
+                        'comment'    => \Illuminate\Support\Str::limit((string) $row->message, 500),
                         'cpnyid'     => $row->cpny_id,
                         'url'        => $cfg['url'],
                         'by'         => $row->name,
@@ -612,6 +619,34 @@ class DocumentNotificationService
         return $raw->flatMap(fn ($u) => preg_split('/[;,]/', (string) $u) ?: [])
             ->map(fn ($u) => trim($u))
             ->filter();
+    }
+
+    // National holidays + collective leave ("cuti bersama") dates, used to expire comment/
+    // mention notifications on business days rather than plain calendar days.
+    private static function commentExpiryHolidays(): \Illuminate\Support\Collection
+    {
+        return SysCalendar::whereNull('deleted_at')
+            ->where('status', 'A')
+            ->whereIn('date_calendar_type', ['CUTI_BERSAMA', 'LIBUR_NASIONAL'])
+            ->where('date_calendar', '>=', now()->subDays(30))
+            ->pluck('date_calendar')
+            ->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())
+            ->unique();
+    }
+
+    // A comment/mention notification expires 5 business days after it was posted —
+    // Saturday, Sunday, and national holidays / cuti bersama don't count toward the 5.
+    private static function isCommentExpired($messageDate, \Illuminate\Support\Collection $holidays, int $businessDays = 5): bool
+    {
+        $expiry = \Carbon\Carbon::parse($messageDate);
+        for ($added = 0; $added < $businessDays; ) {
+            $expiry->addDay();
+            if ($expiry->isWeekend() || $holidays->contains($expiry->toDateString())) {
+                continue;
+            }
+            $added++;
+        }
+        return now()->greaterThanOrEqualTo($expiry);
     }
 
     // Creator + approval-line-equivalent audience for a plain (non-mention) comment.
