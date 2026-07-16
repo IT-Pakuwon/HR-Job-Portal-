@@ -148,6 +148,7 @@ class RfpController extends Controller
         $scope  = (string) $request->query('scope', '');
         $financeCpny = trim((string) $request->query('finance_cpny', ''));
         $financeStatus = trim((string) $request->query('finance_status', ''));
+        $typePo = strtoupper(trim((string) $request->query('type_po', '')));
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
 
         if (in_array($scope, ['rfp_all', 'rfp_finance'], true) && !$hasRfpAllAccess) {
@@ -164,11 +165,12 @@ class RfpController extends Controller
             4  => 'rfp.department_id',
             5  => 'rfp.sppbjkt_id', // untuk kolom gabungan sppbjkt/cs
             6  => 'rfp.ponbr',      // untuk kolom gabungan ponbr/kontrak
-            7  => 'rfp.ir_id',
-            8  => 'rfp.vendor_name',
-            9  => 'rfp.keperluan',
-            10 => 'rfp.rfp_amount',
-            12 => 'rfp.status',
+            7  => 'rfp.type_po',
+            8  => 'rfp.ir_id',
+            9  => 'rfp.vendor_name',
+            10 => 'rfp.keperluan',
+            11 => 'rfp.rfp_amount',
+            13 => 'rfp.status',
         ];
 
         $orderIdx = (int) $request->input('order.0.column', 1);
@@ -227,6 +229,10 @@ class RfpController extends Controller
             $base->where('rfp.status', $status);
         }
 
+        if ($typePo !== '') {
+            $base->whereRaw("UPPER(TRIM(COALESCE(rfp.type_po, ''))) = ?", [$typePo]);
+        }
+
         $recordsTotal = (clone $base)->count();
 
         if ($search !== '') {
@@ -238,6 +244,7 @@ class RfpController extends Controller
                     ->orWhere('rfp.cs_id', 'ilike', "%{$search}%")
                     ->orWhere('rfp.ponbr', 'ilike', "%{$search}%")
                     ->orWhere('rfp.kontrak_id', 'ilike', "%{$search}%")
+                    ->orWhere('rfp.type_po', 'ilike', "%{$search}%")
                     ->orWhere('rfp.ir_id', 'ilike', "%{$search}%")
                     ->orWhere('rfp.vendor_name', 'ilike', "%{$search}%")
                     ->orWhere('rfp.keperluan', 'ilike', "%{$search}%")

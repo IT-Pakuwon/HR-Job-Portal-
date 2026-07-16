@@ -177,7 +177,7 @@
             <th colspan="2">
                 <span class="field-label">Nama</span>
                 <span class="field-colon">:</span>
-                <span class="field-value">{{ $created_by_name ?? $created_by_username }}</span>
+                <span class="field-value">{{ $approval_level1_name ?? ($created_by_name ?? $created_by_username) }}</span>
             </th>
         </tr>
         <tr>

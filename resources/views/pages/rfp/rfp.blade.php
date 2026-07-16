@@ -91,6 +91,19 @@
                 <div class="flex flex-wrap items-center gap-4">
                     <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request For Payment</h1>
 
+                    <div class="flex items-center gap-2">
+                        <label for="rfpTypePoFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                            Type PO
+                        </label>
+                        <select id="rfpTypePoFilter"
+                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Type PO</option>
+                            <option value="PO">PO</option>
+                            <option value="SPK">SPK</option>
+                            <option value="KONTRAK">KONTRAK</option>
+                        </select>
+                    </div>
+
                     <div id="rfpAllStatusFilterWrapper" class="hidden items-center gap-2">
                         <label for="rfpAllStatusFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
                             Status
@@ -144,6 +157,7 @@
                             <th>Department</th>
                             <th>SPPBJKT - CS</th>
                             <th>PO / Kontrak</th>
+                            <th>Type PO</th>
                             <th>IR ID</th>
                             <th>Vendor</th>
                             <th>Keperluan</th>
@@ -203,6 +217,7 @@
         let scopeFilter = '';
         let financeCpnyFilter = '';
         let financeStatusFilter = '';
+        let typePoFilter = '';
         var currentUser = "{{ auth()->user()->username }}";
         const hasApFinAccess = @json($hasApFinAccess ?? false);
         const hasApTreAccess = @json($hasApTreAccess ?? false);
@@ -322,6 +337,7 @@
                         d.scope = scopeFilter ?? '';
                         d.finance_cpny = financeCpnyFilter ?? '';
                         d.finance_status = financeStatusFilter ?? '';
+                        d.type_po = typePoFilter ?? '';
                     }
                 },
                 order: [[1, 'desc']],
@@ -381,6 +397,7 @@
                     { data: 'department_id', className: 'text-center' },
                     { data: 'sppbjkt_cs', defaultContent: '-' },
                     { data: 'po_kontrak', defaultContent: '-' },
+                    { data: 'type_po', defaultContent: '-', className: 'text-center' },
                     { data: 'ir_id', defaultContent: '-' },
                     { data: 'vendor_name', defaultContent: '-' },
                     { data: 'keperluan', defaultContent: '-' },
@@ -599,7 +616,7 @@
             });
 
             table.column(0).visible(statusFilter === 'H');
-            table.column(11).visible(false);
+            table.column(12).visible(false);
 
             $(document).on('click', '.btn-rfp-hold-add', function(e) {
                 e.preventDefault();
@@ -631,7 +648,7 @@
                     $('#rfpFinanceCpnyFilter, #rfpFinanceStatusFilter').val('');
                     $('#createBtn').hide();
                     table.column(0).visible(false);
-                    table.column(11).visible(false);
+                    table.column(12).visible(false);
                 } else if (scope === 'rfp_finance') {
                     scopeFilter = scope;
                     statusFilter = '';
@@ -644,7 +661,7 @@
                     $('#createBtn').hide();
                     table.column(0).visible(false);
                     // tampilkan kolom Action hanya saat RFP Finance
-                    table.column(11).visible(true);
+                    table.column(12).visible(true);
                 } else {
                     statusFilter = status ?? '';
                     scopeFilter = '';
@@ -658,7 +675,7 @@
                     $('#createBtn').show();
                     table.column(0).visible(statusFilter === 'H');
                     // hide kolom Action untuk All, On Progress, Reject, Draft, Completed
-                    table.column(11).visible(false);
+                    table.column(12).visible(false);
                 }
 
                 table.ajax.reload(null, true);
@@ -680,6 +697,11 @@
 
                 financeCpnyFilter = $('#rfpFinanceCpnyFilter').val() || '';
                 financeStatusFilter = $('#rfpFinanceStatusFilter').val() || '';
+                table.ajax.reload(null, true);
+            });
+
+            $('#rfpTypePoFilter').on('change', function() {
+                typePoFilter = $(this).val() || '';
                 table.ajax.reload(null, true);
             });
 
