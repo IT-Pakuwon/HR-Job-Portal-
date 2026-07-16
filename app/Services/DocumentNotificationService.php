@@ -607,6 +607,67 @@ class DocumentNotificationService
             Log::warning('DocumentNotificationService: RCA CALR due fetch failed', ['err' => $e->getMessage()]);
         }
 
+        // ── 10. TrRfp: RFP Purchase on Hold — notify the creator of the linked SPPBJKT
+        //       doc (tr_rfp.created_by is frequently "SYSTEM" for auto-generated RFPs, so
+        //       the actionable owner is whoever created the SPPB/SPPJ/SPPK/SPPT it points to).
+        try {
+            $heldRfps = TrRfp::where('status', 'H')
+                ->select('id', 'rfp_id', 'cpny_id', 'sppbjkt_id', 'updated_at', 'created_at')
+                ->get()
+                ->map(function ($r) {
+                    $r->sppbjkt_trim = strtoupper(trim((string) $r->sppbjkt_id));
+                    $r->doc_prefix   = substr($r->sppbjkt_trim, 0, 2);
+                    return $r;
+                });
+
+            if ($heldRfps->isNotEmpty()) {
+                // Same prefix → model/id-column mapping as RfpController's SPPBJKT link resolver.
+                $sppbjktModels = [
+                    'PB' => ['model' => TrSPPB::class, 'idCol' => 'sppbid'],
+                    'PJ' => ['model' => TrSPPJ::class, 'idCol' => 'sppjid'],
+                    'PK' => ['model' => TrSPPK::class, 'idCol' => 'sppkid'],
+                    'PT' => ['model' => TrSPPT::class, 'idCol' => 'spptid'],
+                ];
+
+                $creatorsByPrefix = [];
+                foreach ($sppbjktModels as $prefix => $cfg) {
+                    $ids = $heldRfps->where('doc_prefix', $prefix)->pluck('sppbjkt_trim')->unique()->values();
+                    if ($ids->isEmpty()) {
+                        continue;
+                    }
+
+                    $rows = $cfg['model']::query()
+                        ->whereIn(DB::raw('UPPER(TRIM(' . $cfg['idCol'] . '))'), $ids->all())
+                        ->select($cfg['idCol'] . ' as doc_key', 'created_by')
+                        ->get();
+
+                    $creatorsByPrefix[$prefix] = $rows->mapWithKeys(
+                        fn($row) => [strtoupper(trim($row->doc_key)) => $row->created_by]
+                    );
+                }
+
+                $data = $data->concat(
+                    $heldRfps->filter(function ($r) use ($username, $creatorsByPrefix) {
+                        $creator = $creatorsByPrefix[$r->doc_prefix][$r->sppbjkt_trim] ?? null;
+                        return $creator && strtolower(trim($creator)) === $username;
+                    })->map(fn($r) => [
+                        'key'        => strtoupper(trim($r->rfp_id)) . '_RFP_H',
+                        'hid'        => Hashids::encode($r->id),
+                        'docid'      => $r->rfp_id,
+                        'status'     => 'RFP_H',
+                        'label'      => 'On Hold',
+                        'message'    => 'RFP Purchase for your document ' . $r->sppbjkt_id . ' is on hold and needs your attention.',
+                        'cpnyid'     => $r->cpny_id,
+                        'url'        => '/showrfp',
+                        'by'         => null,
+                        'updated_at' => $r->updated_at ?? $r->created_at,
+                    ])->values()
+                );
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: TrRfp Hold fetch failed', ['err' => $e->getMessage()]);
+        }
+
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();
     }
 
