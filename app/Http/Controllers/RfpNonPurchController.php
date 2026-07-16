@@ -65,11 +65,18 @@ class RfpNonPurchController extends Controller
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds);
 
-        $all        = (clone $baseQuery)->count();
-        $onProgress = (clone $baseQuery)->where('status', 'P')->count();
-        $reject     = (clone $baseQuery)->where('status', 'R')->count();
-        $revise     = (clone $baseQuery)->where('status', 'D')->count();
-        $completed  = (clone $baseQuery)->where('status', 'C')->count();
+        $normalBaseQuery = (clone $baseQuery)
+            ->where(function ($q) use ($user) {
+                $q->where('groupbiaya_id', '<>', 'GB010')
+                    ->orWhereNull('groupbiaya_id')
+                    ->orWhere('created_by', $user->username);
+            });
+
+        $all        = (clone $normalBaseQuery)->count();
+        $onProgress = (clone $normalBaseQuery)->where('status', 'P')->count();
+        $reject     = (clone $normalBaseQuery)->where('status', 'R')->count();
+        $revise     = (clone $normalBaseQuery)->where('status', 'D')->count();
+        $completed  = (clone $normalBaseQuery)->where('status', 'C')->count();
 
         $hasRfpAllAccess = $user->hasRole('FINACCESS');
         $hasApFinAccess  = $user->hasRole('APFINACCESS');
@@ -168,6 +175,13 @@ class RfpNonPurchController extends Controller
                 !in_array($scope, ['rfp_all', 'rfp_finance'], true),
                 fn ($q) => $q->whereIn('r.department_id', $deptIds)
             )
+            ->when($scope === '', function ($q) use ($user) {
+                $q->where(function ($q2) use ($user) {
+                    $q2->where('r.groupbiaya_id', '<>', 'GB010')
+                        ->orWhereNull('r.groupbiaya_id')
+                        ->orWhere('r.created_by', $user->username);
+                });
+            })
             ->when($scope === 'rfp_finance', function ($q) {
                 $q->where('r.status', 'C');
             })
