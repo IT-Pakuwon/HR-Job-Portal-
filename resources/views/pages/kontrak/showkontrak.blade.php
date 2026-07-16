@@ -138,7 +138,7 @@
         </div>
 
         {{-- FULL WIDTH: Kontrak Info --}}
-        <div class="flex w-full flex-col gap-6">
+        <div class="flex w-full flex-col gap-4">
             <div class="flex w-full">
                 <div class="flex w-full flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header
@@ -265,9 +265,9 @@
                         </h2>
                     </header>
 
-                    <div class="overflow-auto p-3">
+                    <div class="max-h-150 overflow-auto p-3">
                     <table class="w-full min-w-[760px] table-fixed text-xs">
-                        <thead class="text-gray-600 dark:text-gray-300">
+                        <thead class="sticky top-0 z-10 bg-white text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                             <tr class="border-b border-gray-200 dark:border-gray-700">
                                 <th class="w-14 p-2 text-left font-semibold">BQ No</th>
                                 <th class="w-12 p-2 text-left font-semibold">Line</th>
@@ -305,7 +305,7 @@
                                     <td class="px-2 py-2 whitespace-nowrap">{{ $d->bq_no ?? '-' }}</td>
                                     <td class="px-2 py-2 whitespace-nowrap">{{ $d->bq_line_no ?? '-' }}</td>
                                     <td class="px-2 py-2">
-                                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ $d->bq_descr ?? '-' }}</div>                                       
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ $d->bq_descr ?? '-' }}</div>
                                     </td>
                                     <td class="px-2 py-2 text-right whitespace-nowrap">{{ $fmtNum($d->qty ?? $d->bq_qty) }}</td>
                                     <td class="px-2 py-2 whitespace-nowrap">{{ $d->uom ?? '-' }}</td>
@@ -318,7 +318,7 @@
                                         @else
                                             <div class="space-y-2">
                                                 @foreach($vendorSlots as $v)
-                                                    <div class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800">                                                 
+                                                    <div class="w-full rounded-md border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800">
 
                                                         <div class="mt-1 grid grid-cols-2 gap-x-6 gap-y-2 text-xs text-gray-700 dark:text-gray-200">
                                                             @if(!empty($v['product']))

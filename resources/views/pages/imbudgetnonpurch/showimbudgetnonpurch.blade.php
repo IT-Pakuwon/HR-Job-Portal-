@@ -48,7 +48,7 @@
             </div>
         </div>
 
-        <div class="flex w-full flex-col gap-6">
+        <div class="flex w-full flex-col gap-4">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- LEFT CARD --}}
@@ -132,7 +132,7 @@
                                     </span>
                                 </div>
                             </div>
-                           
+
                             {{-- Budget Info --}}
                             @php
                                 $type = $header->imnonpurchasetype;
@@ -485,7 +485,7 @@
                                 </tr>
                             @endforeach
 
-                           
+
                         </tbody>
                     </table>
                 </div>

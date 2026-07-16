@@ -154,17 +154,21 @@
                             <template x-if="item.comment">
                                 <p x-text="'“' + item.comment + '”'" class="mt-1 whitespace-pre-wrap wrap-break-word rounded-md bg-gray-50 px-2 py-1 text-[11px] italic text-gray-500 dark:bg-gray-700/40 dark:text-gray-400"></p>
                             </template>
-                            <div class="mt-1 flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-gray-500">
-                                <span x-text="item.cpnyid"></span>
+                            <div class="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-gray-400 dark:text-gray-500">
+                                <template x-if="item.cpnyid">
+                                    <span x-text="item.cpnyid"
+                                        class="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 font-semibold tracking-wide text-gray-500 dark:bg-gray-700/60 dark:text-gray-400">
+                                    </span>
+                                </template>
                                 <template x-if="item.by">
-                                    <span>
-                                        <span class="mx-1">·</span>
-                                        by <span x-text="item.by" class="font-medium"></span>
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span x-show="item.cpnyid" class="text-gray-300 dark:text-gray-600">·</span>
+                                        <span>by <span x-text="item.by" class="font-medium text-gray-500 dark:text-gray-400"></span></span>
                                     </span>
                                 </template>
                                 <template x-if="item.updated_at">
-                                    <span>
-                                        <span class="mx-1">·</span>
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span x-show="item.cpnyid || item.by" class="text-gray-300 dark:text-gray-600">·</span>
                                         <span x-text="timeAgo(item.updated_at)"></span>
                                     </span>
                                 </template>

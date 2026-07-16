@@ -27,7 +27,7 @@
             :edit-url="url('/editissues/' . $hash)"
         />
 
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+        <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (Issue Info) --}}
                 <div class="flex h-[400px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">

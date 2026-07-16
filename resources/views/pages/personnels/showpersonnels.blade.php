@@ -6,7 +6,7 @@
             :can-edit="$canEdit"
             :edit-url="url('/editpersonnels/' . $hash)"
         />
-        <div class="flex w-full flex-col gap-6 xl:flex-row">
+        <div class="flex w-full flex-col gap-4 xl:flex-row">
             <div class="flex w-full flex-1 items-stretch gap-6 xl:flex-row">
                 <div class="gap flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
                     <header

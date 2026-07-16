@@ -6,7 +6,7 @@
             :is-approver="$isApprover"
             :edit-url="url('/editwos/' . $hash)"
         />
-        <div class="flex w-full flex-col gap-6 xl:flex-col">
+        <div class="flex w-full flex-col gap-4 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (WO Info) --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">

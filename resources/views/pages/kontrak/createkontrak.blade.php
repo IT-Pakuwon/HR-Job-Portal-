@@ -145,7 +145,7 @@
             </div>
         </div>
 
-         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- Left card (Kontrak Info) --}}
@@ -446,9 +446,9 @@
                 </h2>
             </header>
 
-            <div class="p-4 overflow-auto">
+            <div class="max-h-150 overflow-auto p-4">
                 <table class="min-w-full text-sm">
-                    <thead class="text-gray-600 dark:text-gray-300">
+                    <thead class="sticky top-0 z-10 bg-white text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                         <tr class="border-b border-gray-200 dark:border-gray-700">
                             <th class="p-3 text-left font-semibold">BQ No</th>
                             <th class="p-3 text-left font-semibold">Line</th>

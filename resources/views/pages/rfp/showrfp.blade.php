@@ -22,7 +22,7 @@
             };
         @endphp
 
-         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 {{-- LEFT CARD --}}
@@ -492,7 +492,7 @@
                                 <div class="relative">
                                     <button type="button" id="btnProgressAction"
                                         class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
-                                        Action <span>v</span>
+                                        Action
                                     </button>
 
                                     <div id="progressActionDropdown"

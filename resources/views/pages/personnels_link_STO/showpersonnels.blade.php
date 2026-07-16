@@ -33,7 +33,7 @@
                 </button>
             </div>
         </div>
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
+        <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-row">
             <div class="flex flex-col gap-6 sm:w-1/2 md:w-full">
                 <div class="rounded-xl bg-white duration-300 dark:bg-gray-800">
                     <header
@@ -559,7 +559,7 @@
 
                                 commentList.append(`
                                     <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg mb-2 border border-gray-300 dark:border-gray-700">
-                                        <p class=" text-sm  font-semibold">${comment.username} 
+                                        <p class=" text-sm  font-semibold">${comment.username}
                                             <span class=" text-sm  text-gray-500">(${timeAgo})</span>
                                         </p>
                                         <p class="text-gray-800 dark:text-gray-200">${comment.message}</p>
@@ -630,7 +630,7 @@
     </script>
     <script>
         $(document).on("click", "#approveBtn", function() {
-            let docid = "{{ $personnel->docid }}"; // Ambil Task ID dari modal        
+            let docid = "{{ $personnel->docid }}"; // Ambil Task ID dari modal
             approvePersonnel(docid);
         });
 
@@ -707,7 +707,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -774,7 +774,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 

@@ -28,7 +28,7 @@
 
 
     <div class="max-w-9xl mx-auto p-2">
-        <div class="mb-4 flex items-center justify-end">          
+        <div class="mb-4 flex items-center justify-end">
 
             {{-- @if (!empty($canSubmit) && $canSubmit)
                 <div class="flex gap-3">
@@ -74,7 +74,7 @@
 
         </div>
 
-         <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+         <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
              <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (Rfca Info) --}}
                 <div class="flex flex-1 flex-col rounded-xl bg-white dark:bg-gray-800">
@@ -242,13 +242,13 @@
                                     'icon' => 'tag',
                                     'label' => 'RFCA Type',
                                     'value' => $rfca->rfca_type !== null ? e($rfca->rfca_type) : '-',
-                                ],                               
+                                ],
                                 [
                                     'icon' => 'user-circle',
                                     'label' => 'Purchaser',
                                     'value' => e($rfca->created_by),
                                 ],
-                               
+
                             ];
 
                             $hasPrevRfca = !empty($rfca->prev_rfcaid);
@@ -698,7 +698,7 @@
                                             <th class="px-3 py-2 text-left">Department</th>
                                             <th class="px-3 py-2 text-left">Vendor</th>
                                             <th class="px-3 py-2 text-right">PO Amount</th>
-                                            <th class="px-3 py-2 text-right">RFCA Amount</th>                                           
+                                            <th class="px-3 py-2 text-right">RFCA Amount</th>
                                         </tr>
                                     </thead>
 
@@ -1235,7 +1235,7 @@
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.po_amount)}</td>
                                     <td class="whitespace-nowrap px-3 py-2 text-right">${formatNumber(row.rfca_amount)}</td>
-                                    
+
                                 </tr>
                             `;
                         });

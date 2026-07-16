@@ -6,14 +6,14 @@
             :is-approver="$isApprover"
             :edit-url="url('/editsppts/' . $hash)"
         />
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+        <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (SPPT Info) --}}
                 <div class="flex h-[400px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-2 dark:border-gray-700 dark:bg-gray-700">
                         <h1 class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
-                         
+
                             @if ($sppt->is_urgent === 't' || $sppt->is_urgent === true)
                                 <span
                                     class="inline-flex animate-pulse items-center rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">

@@ -26,6 +26,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // Retry Microsoft Teams link creation for bookings that failed to get one
+        $schedule->command('meeting:retry-teams-links')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/retry-teams-links.log'));
+
         // Sync ENVISION tickets → ENVISION CHECKED/SOLVED every 5 minutes
         $schedule->command('ticket:sync-envision-solved')
             ->everyFiveMinutes()

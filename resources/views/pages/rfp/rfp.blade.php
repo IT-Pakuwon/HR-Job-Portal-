@@ -87,10 +87,10 @@
         </div>
 
         <div class="mt-3 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <div class="flex flex-wrap items-center gap-4">
-                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request For Payment</h1>
+            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request For Payment</h1>
 
+                <div class="flex flex-wrap items-center justify-end gap-4">
                     <div class="flex items-center gap-2">
                         <label for="rfpTypePoFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
                             Type PO
@@ -120,28 +120,32 @@
                         </select>
                     </div>
 
-                    <div id="rfpFinanceFilterWrapper" class="hidden flex-wrap items-center gap-2">
-                        <label for="rfpFinanceCpnyFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                            Company
-                        </label>
-                        <select id="rfpFinanceCpnyFilter"
-                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                            <option value="">All Company</option>
-                            @foreach ($cpnyIds as $cpnyId)
-                                <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
-                            @endforeach
-                        </select>
+                    <div id="rfpFinanceFilterWrapper" class="hidden flex-wrap items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <label for="rfpFinanceCpnyFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                Company
+                            </label>
+                            <select id="rfpFinanceCpnyFilter"
+                                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Company</option>
+                                @foreach ($cpnyIds as $cpnyId)
+                                    <option value="{{ $cpnyId }}">{{ $cpnyId }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                        <label for="rfpFinanceStatusFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                            Finance Status
-                        </label>
-                        <select id="rfpFinanceStatusFilter"
-                            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                            <option value="">All Status</option>
-                            <option value="waiting_user">Waiting User</option>
-                            <option value="finance_received">Finance Received</option>
-                            <option value="treasury_received">Treasury Received</option>
-                        </select>
+                        <div class="flex items-center gap-2">
+                            <label for="rfpFinanceStatusFilter" class="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                Finance Status
+                            </label>
+                            <select id="rfpFinanceStatusFilter"
+                                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Status</option>
+                                <option value="waiting_user">Waiting User</option>
+                                <option value="finance_received">Finance Received</option>
+                                <option value="treasury_received">Treasury Received</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>

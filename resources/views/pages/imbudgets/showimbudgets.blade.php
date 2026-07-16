@@ -6,13 +6,13 @@
             :is-approver="$isApprover"
             :edit-url="url('/editimbudgets/' . $hash)"
         />
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+        <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (IMBudget Info) --}}
                 <div class="flex h-[400px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
                     <header
                         class="sticky top-0 z-10 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-gray-50 px-6 py-[8px] dark:border-gray-700 dark:bg-gray-700">
-               
+
 
                         @php
                             $imDoctype = strtoupper(trim((string) ($imbudget->doctype ?? '')));
@@ -92,7 +92,7 @@
                             </a>
                         </div>
                     </header>
-                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">                        
+                    <div class="flex flex-1 flex-col overflow-y-auto px-4 py-[8px]">
                         @php
                             $row = 'flex flex-col gap-1 p-2 sm:flex-row sm:items-center sm:gap-3';
                             $label = 'flex items-center gap-2 text-gray-500 sm:min-w-40';

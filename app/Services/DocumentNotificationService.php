@@ -578,16 +578,15 @@ class DocumentNotificationService
             Log::warning('DocumentNotificationService: Comment activity fetch failed', ['err' => $e->getMessage()]);
         }
 
-        // ── 9. RCA Non Purchase: Treasury Payment done 14+ days ago, no CALR yet —
-        //      remind the creator to create the CALR ──
+        // ── 9. RCA Non Purchase: 14+ days past Tanggal Realisasi (datepenyelesaian), no CALR
+        //      yet — remind the creator to create the CALR ──
         try {
             $rcaCalrDue = TrRfpNonPurch::where('rfpnonpurchase_type', 'RCA')
-                ->where('statuspayment', 'C')
-                ->whereNotNull('paymentdate')
-                ->where('paymentdate', '<=', now()->subDays(14))
+                ->whereNotNull('datepenyelesaian')
+                ->where('datepenyelesaian', '<=', now()->subDays(14))
                 ->where(fn($q) => $q->whereNull('calrid')->orWhere('calrid', ''))
                 ->whereRaw("lower(trim(coalesce(created_by,''))) = ?", [$username])
-                ->select('id', 'rfpnonpurchaseid', 'cpny_id', 'paymentdate')
+                ->select('id', 'rfpnonpurchaseid', 'cpny_id', 'datepenyelesaian')
                 ->get();
 
             $data = $data->concat($rcaCalrDue->map(fn($r) => [
@@ -596,12 +595,12 @@ class DocumentNotificationService
                 'docid'      => $r->rfpnonpurchaseid,
                 'status'     => 'RCA_CALR_DUE',
                 'label'      => 'Create CALR',
-                'message'    => 'Treasury Payment has been completed since ' . optional($r->paymentdate)->format('d M Y') . '. Please create the CALR for this document.',
+                'message'    => 'Tanggal Realisasi has passed since ' . optional($r->datepenyelesaian)->format('d M Y') . '. Please create the CALR for this document.',
                 'cpnyid'     => $r->cpny_id,
                 'href'       => '/calrnonpurch/create?rfpnonpurchase=' . Hashids::encode($r->id),
                 'url'        => '/calrnonpurch/create',
                 'by'         => null,
-                'updated_at' => $r->paymentdate,
+                'updated_at' => $r->datepenyelesaian,
             ]));
         } catch (\Throwable $e) {
             Log::warning('DocumentNotificationService: RCA CALR due fetch failed', ['err' => $e->getMessage()]);

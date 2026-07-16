@@ -30,7 +30,7 @@
             :is-approver="$isApprover"
             :edit-url="url('/editbasts/' . $hash)"
         />
-        <div class="flex w-full flex-col gap-6 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
+        <div class="flex w-full flex-col gap-4 overflow-hidden sm:col-span-1 lg:row-span-1 xl:row-span-1 xl:flex-col">
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 {{-- Left card (Bast Info) --}}
                 <div class="flex h-[500px] flex-col overflow-y-auto rounded-xl bg-white dark:bg-gray-800">
@@ -47,7 +47,7 @@
                                 class="{{ $statusClasses }} inline-flex items-center rounded-full px-4 py-1 text-sm font-semibold transition-colors duration-200">
                                 {{ $statusText }}
                             </span>
-              
+
                             {{-- Dropdown Print --}}
                             <div class="relative">
                                 <button id="printMenuBtn"
@@ -927,7 +927,7 @@
                 const resp = await $.getJSON(
                     `/approval/${encodeURIComponent(bastid)}/check/approve?doctype=${encodeURIComponent(doctype)}`
                 );
-                
+
 
                 if (!resp || !resp.canPerformAction) {
                     toastr.error("You are not authorized to approve this BAST.");
@@ -1017,7 +1017,7 @@
                     return;
                 }
 
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 
@@ -1085,7 +1085,7 @@
                     toastr.error("Please provide a reason for revise.");
                     return;
                 }
-                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner        
+                let $spinner = $("#loadingSpinnerContainer"); // Ambil elemen spinner
                 // Tampilkan spinner di kanan bawah
                 $spinner.fadeIn();
 

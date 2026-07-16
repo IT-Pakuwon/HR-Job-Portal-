@@ -73,8 +73,8 @@ class SendCommentController extends Controller
             'refnbr'        => $request->doc_no ?? $request->docid ?? (string)$id,          // menyesuaikan dengan nama field baru
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),
-            'cpny_id'        => $user->cpnyid ?? null,     // jika user memiliki cpnyid
-            'department_id' => $user->departementid ?? null, // jika user memiliki departementid
+            'cpny_id'        => $user->cpny_id ?? null,
+            'department_id' => $user->department_id ?? null,
             'username'      => $user->username,
             'name'          => $user->name,
             'message'       => $request->reason,
@@ -120,8 +120,8 @@ class SendCommentController extends Controller
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),
             'message_type'  => 'Public',
-            'cpny_id'        => $user->cpnyid ?? null,
-            'department_id' => $user->departementid ?? null,
+            'cpny_id'        => $user->cpny_id ?? null,
+            'department_id' => $user->department_id ?? null,
             'username'      => $user->username ?? ($user->email ?? 'system'),
             'name'          => $user->name ?? $user->username ?? 'System',
             'message'       => $request->comment,
@@ -221,8 +221,8 @@ class SendCommentController extends Controller
             'doctype'       => $doctype,
             'message_date'  => Carbon::now(),
             'message_type'  => 'Private',
-            'cpny_id'        => $user->cpnyid ?? null,
-            'department_id' => $user->departementid ?? null,
+            'cpny_id'        => $user->cpny_id ?? null,
+            'department_id' => $user->department_id ?? null,
             'username'      => $username,
             'name'          => $user->name ?? $username,
             'message'       => $request->note,

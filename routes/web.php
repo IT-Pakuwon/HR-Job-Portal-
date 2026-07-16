@@ -775,7 +775,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
         Route::get('/editcs/{eid}', [CanvassController::class, 'editCS'])->name('csjobs.edit');
         Route::put('/csjobs/{csid}', [CanvassController::class, 'updateCS'])->name('csjobs.update');
-        Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
         Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
         Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
 
@@ -804,6 +803,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/cs/lastprice/history.entry', [CanvassController::class, 'getLastPriceHistoryEntry'])->name('cs.lastprice.history.entry');
         // Route::get('/pdf_bqcs/{hash}', [BQCSController::class, 'printBQCS']);
         Route::get('/pdf_bqcs/{hash}/{idx}', [BQCSController::class, 'printBQCSVend'])->whereNumber('idx')->name('bqcs.print.vendor');
+    });
+
+    Route::middleware('access:CSLIST,EDIT')->group(function () {
+        Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
     });
 
     Route::middleware('access:LASTORDER,VIEW')->group(function () {
