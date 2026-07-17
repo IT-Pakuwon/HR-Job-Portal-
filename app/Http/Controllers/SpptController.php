@@ -164,10 +164,10 @@ class SpptController extends Controller
         // ==============================
         $base = TrSPPT::from($baseTable.' as sppt')
             ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid');
+                $join->on('rt.requesttypeid', '=', 'sppt.requesttypeid')
+                     ->where('rt.doctype', 'SPPT');
             })
-            ->whereIn('sppt.cpny_id', $cpnyIds)
-            ->where('rt.doctype', 'SPPT');
+            ->whereIn('sppt.cpny_id', $cpnyIds);
 
         // ==============================
         // MODE LOGIC

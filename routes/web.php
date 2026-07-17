@@ -933,6 +933,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/spb/{id}/approve', [SpbController::class, 'approveSpb']);
         Route::post('/spb/{id}/reject', [SpbController::class, 'rejectSpb']);
         Route::post('/spb/{id}/revise', [SpbController::class, 'reviseSpb']);
+        Route::put('/spbs/{hash}/cancel', [SpbController::class, 'cancelSpb'])->name('spbs.cancel');
     });
 
     Route::middleware('access:SPBJOBS,VIEW')->group(function () {

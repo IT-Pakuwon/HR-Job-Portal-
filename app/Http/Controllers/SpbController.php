@@ -1357,6 +1357,39 @@ class SpbController extends Controller
         }
     }
 
+    public function cancelSpb(Request $request, string $hash)
+    {
+        $decoded = Hashids::decode($hash);
+        abort_if(empty($decoded), 404, 'Invalid document');
+
+        $id = $decoded[0];
+
+        $spb = TrSPB::query()->where('id', $id)->firstOrFail();
+
+        DB::beginTransaction();
+        try {
+            $spb->status = 'X';
+            $spb->updated_by = Auth::user()->username ?? Auth::id();
+            $spb->updated_at = now();
+            $spb->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Document canceled (status X).',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to cancel document.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function showSpb($hash)
     {
         $user = Auth::user();

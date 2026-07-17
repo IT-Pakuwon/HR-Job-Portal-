@@ -174,12 +174,12 @@ class SppbController extends Controller
         // ==============================
         $base = TrSPPB::from($baseTable.' as sppb')
             ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid');
+                $join->on('rt.requesttypeid', '=', 'sppb.requesttypeid')
+                     ->where('rt.doctype', 'SPPB');
             })
             ->leftJoin('tr_wo as wo', function ($join) {
                 $join->on('wo.woid', '=', 'sppb.woid');
             })
-            ->where('rt.doctype', 'SPPB')
             ->whereIn('sppb.cpny_id', $cpnyIds);
 
         // ==============================

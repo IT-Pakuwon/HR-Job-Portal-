@@ -1305,14 +1305,59 @@
             });
 
             // ===== Cancel Button =====
-            $('#cancelBtn').click(function() {
-                const confirmed = confirm("Are you sure you want to cancel? Unsaved changes will be lost.");
-                if (confirmed) {
+            $('#cancelBtn').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                Swal.fire({
+                    title: 'Cancel Document?',
+                    text: 'Document akan di-cancel.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Cancel',
+                    cancelButtonText: 'No',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
                     $('#cancelBtn').prop('disabled', true);
                     $('#cancelText').text('Cancelling...');
                     $('#cancelSpinner').removeClass('hidden');
-                    window.location.href = "{{ route('spbs') }}";
-                }
+                    showOverlay('Cancelling Document');
+
+                    $.ajax({
+                        url: "{{ route('spbs.cancel', $hash) }}",
+                        type: "POST",
+                        data: {
+                            _method: "PUT",
+                            _token: "{{ csrf_token() }}"
+                        },
+                        success: function(res) {
+                            if (res?.success) {
+                                Swal.fire({
+                                    title: 'Canceled',
+                                    text: res.message || 'Document canceled.',
+                                    icon: 'success'
+                                }).then(() => {
+                                    window.location.href = "{{ route('spbs') }}";
+                                });
+                            } else {
+                                Swal.fire('Failed', res?.message ||
+                                    'Failed to cancel document.', 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error', xhr.responseJSON?.message ||
+                                'Failed to cancel document.', 'error');
+                        },
+                        complete: function() {
+                            hideOverlay();
+                            $('#cancelBtn').prop('disabled', false);
+                            $('#cancelText').text('Cancel');
+                            $('#cancelSpinner').addClass('hidden');
+                        }
+                    });
+                });
             });
         });
     </script>

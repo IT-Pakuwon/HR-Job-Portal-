@@ -500,7 +500,7 @@
                         },
                         'H': {
                             text: 'Draft',
-                            cls: 'bg-purple-100 text-purple-700'
+                            cls: 'bg-pink-100 text-pink-700'
                         }
                     };
 
@@ -1320,7 +1320,7 @@
                                 },
                                 'H': {
                                     t: 'Draft',
-                                    c: 'bg-purple-200/60 text-purple-800 border border-purple-600/40'
+                                    c: 'bg-pink-200/60 text-pink-800 border border-pink-600/40'
                                 },
                             };
                             const it = map[data] || {

@@ -167,9 +167,9 @@ class SppjController extends Controller
         // ==============================
         $base = TrSPPJ::from($baseTable.' as sppj')
             ->leftJoin('ms_request_type as rt', function ($join) {
-                $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid');
+                $join->on('rt.requesttypeid', '=', 'sppj.requesttypeid')
+                     ->where('rt.doctype', 'SPPJ');
             })
-            ->where('rt.doctype', 'SPPJ')
             ->whereIn('sppj.cpny_id', $cpnyIds);
 
         // ==============================
