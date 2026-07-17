@@ -394,6 +394,7 @@ class RfpNonPurchController extends Controller
             return response()->json([
                 'data' => $this->formatGroupBiayaOptions($baseGroupQuery()->get()),
                 'mode' => 'all',
+                'has_company_budget_setting' => false,
             ]);
         }
 
@@ -411,6 +412,7 @@ class RfpNonPurchController extends Controller
             return response()->json([
                 'data' => $this->formatGroupBiayaOptions($baseGroupQuery()->get()),
                 'mode' => 'all',
+                'has_company_budget_setting' => $hasCompanyBudgetSetting,
             ]);
         }
 
@@ -444,6 +446,7 @@ class RfpNonPurchController extends Controller
             'data' => $this->formatGroupBiayaOptions($rows),
             'mode' => 'budget',
             'department_fin_id' => $departmentFinId,
+            'has_company_budget_setting' => true,
         ]);
     }
 

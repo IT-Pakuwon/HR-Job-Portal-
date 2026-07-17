@@ -81,11 +81,11 @@ class Kernel extends ConsoleKernel
         //     ->withoutOverlapping()
         //     ->appendOutputTo(storage_path('logs/staging.log'));
 
-        // $schedule->command('staging:vms-rfp')
-        //     ->dailyAt('11:00')
-        //     ->withoutOverlapping()
-        //     ->runInBackground()
-        //     ->appendOutputTo(storage_path('logs/staging_vms_rfp.log'));
+        $schedule->command('staging:vms-rfp')
+            ->dailyAt('11:00')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/staging_vms_rfp.log'));
     }
 
     /**

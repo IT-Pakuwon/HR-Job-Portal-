@@ -508,6 +508,7 @@
     <script>
         const groupBiayaBudgetSettings = @json($groupbiayaBudgetSettings ?? []);
         const departmentFinMap = @json($departmentFinMap ?? []);
+        let hasCompanyBudgetSetting = true;
 
         function selectedDepartmentFinId() {
             const dept = String($('#departementid').val() || '').trim();
@@ -524,10 +525,29 @@
         }
 
         window.isBudgetSelected = function () {
+            if (!hasCompanyBudgetSetting) {
+                return false;
+            }
+
             const val = groupBiayaBudgetSettings[budgetSettingKey()];
 
             return val === 1 || val === true || val === '1' || val === 't' || val === 'true';
         };
+
+        function applyBusinessUnitRequirement() {
+            if (hasCompanyBudgetSetting) {
+                $('#businessUnitBox').removeClass('hidden');
+                $('#business_unit_id')
+                    .prop('disabled', false)
+                    .prop('required', true);
+            } else {
+                $('#businessUnitBox').addClass('hidden');
+                $('#business_unit_id')
+                    .val('')
+                    .prop('required', false)
+                    .prop('disabled', true);
+            }
+        }
 
         window.applyBudgetColumnVisibility = function () {
             const isBudget = window.isBudgetSelected();
@@ -539,8 +559,7 @@
                 .prop('disabled', false);
 
             if (isBudget) {
-                $('#businessUnitBox').removeClass('hidden');
-                $('#business_unit_id').prop('required', true);
+                applyBusinessUnitRequirement();
 
                 $('.budget-col').removeClass('hidden');
                 $('#descCol').removeClass('w-[75%]').addClass('w-[65%]');
@@ -548,8 +567,7 @@
                 $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                     .prop('disabled', false);
             } else {
-                $('#businessUnitBox').removeClass('hidden');
-                $('#business_unit_id').prop('required', true);
+                applyBusinessUnitRequirement();
 
                 $('.budget-col').addClass('hidden');
                 $('#descCol').removeClass('w-[65%]').addClass('w-[75%]');
@@ -830,6 +848,12 @@
                     departementid: $('#departementid').val() || '',
                     selected_groupbiaya_id: selectedValue || ''
                 }).done(function (res) {
+                    hasCompanyBudgetSetting = res.has_company_budget_setting !== false;
+
+                    if (!hasCompanyBudgetSetting) {
+                        $('#business_unit_id').val('');
+                    }
+
                     const rows = res.data || [];
                     const hasSelected = rows.some(item => String(item.id) === String(selectedValue));
 
@@ -1592,8 +1616,7 @@
                     .prop('disabled', false);
 
                 if (isBudget) {
-                    $('#businessUnitBox').removeClass('hidden');
-                    $('#business_unit_id').prop('required', true);
+                    applyBusinessUnitRequirement();
 
                     $('.budget-col').removeClass('hidden');
 
@@ -1604,10 +1627,7 @@
                     $('.coaIdField, .coaNameField, .activityIdField, .businessUnitIdField, .departmentFinIdField, .actDescrField')
                         .prop('disabled', false);
                 } else {
-                    $('#businessUnitBox').removeClass('hidden');
-
-                    $('#business_unit_id')
-                        .prop('required', true);
+                    applyBusinessUnitRequirement();
 
                     $('.budget-col').addClass('hidden');
 
