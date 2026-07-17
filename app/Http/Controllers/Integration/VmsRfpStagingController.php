@@ -18,6 +18,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Vinkla\Hashids\Facades\Hashids;
@@ -26,27 +27,58 @@ class VmsRfpStagingController extends Controller
 {
     use HasAutonbr;
 
+    public const MANUAL_STEPS = [
+        'transfer' => 'Tarik data VMS ke staging',
+        'enrich'   => 'Lengkapi data dari PO',
+        'post'     => 'Posting staging ke RFP',
+        'approval' => 'Generate approval RFP',
+    ];
+
+    private const LOCK_NAME = 'vms_rfp_staging_lock';
+
     /**
      * Jalankan semua proses staging VMS RFP
      */
     public function run(): JsonResponse
     {
+        $result = $this->runSelected(array_keys(self::MANUAL_STEPS), true, 'SCHEDULER');
+
+        return response()->json($result, $result['success'] ? 200 : ($result['status'] ?? 500));
+    }
+
+    /**
+     * Runner bersama untuk scheduler dan UI. Manual tidak menggeser window schedule.
+     */
+    public function runSelected(array $steps, bool $advanceWindow = false, string $runBy = 'SYSTEM'): array
+    {
+        $steps = array_values(array_intersect(array_keys(self::MANUAL_STEPS), $steps));
+        if (empty($steps)) {
+            return ['success' => false, 'message' => 'Pilih minimal 1 proses VMS RFP.', 'status' => 422];
+        }
+
+        $lock = Cache::lock(self::LOCK_NAME, 7200);
+        if (!$lock->get()) {
+            return ['success' => false, 'message' => 'Proses VMS RFP sedang dijalankan oleh scheduler atau user lain.', 'status' => 409];
+        }
+
         try {
             $setting = SysStagingSetting::where('id_application', 'VMSRFP')
                 ->where('status', 'A')
                 ->first();
 
             if (!$setting) {
-                return response()->json([
+                return [
                     'success' => false,
-                    'message' => 'Setting VMSRFP tidak ditemukan / tidak aktif.'
-                ], 404);
+                    'message' => 'Setting VMSRFP tidak ditemukan / tidak aktif.',
+                    'status' => 404,
+                ];
             }
 
-            $resultTransfer = $this->transferFromVmsToStaging($setting);
-            $resultEnrich   = $this->enrichStagingFromPo();
-            $resultPost     = $this->postStagingToTrRfp();
-            $resultApproval = $this->generateApprovals();
+            $data = [];
+            if (in_array('transfer', $steps, true)) $data['transfer_to_staging'] = $this->transferFromVmsToStaging($setting);
+            if (in_array('enrich', $steps, true)) $data['enrich_from_po'] = $this->enrichStagingFromPo();
+            if (in_array('post', $steps, true)) $data['post_to_tr_rfp'] = $this->postStagingToTrRfp();
+            if (in_array('approval', $steps, true)) $data['generate_approval'] = $this->generateApprovals();
 
             // Update window staging: hanya tanggal yang maju 1 hari, jam tetap
             $lastUpdate = $setting->last_update
@@ -57,26 +89,26 @@ class VmsRfpStagingController extends Controller
                 ? Carbon::parse($setting->next_update)
                 : now()->setTime(23, 59, 0);
 
-            $setting->last_update = $lastUpdate->copy()->addDay();
-            $setting->next_update = $nextUpdate->copy()->addDay();
-            $setting->lastupdate_user = 'SYSTEM';
-            $setting->lastupdate_datetime = now();
-            $setting->save();
+            if ($advanceWindow) {
+                $setting->last_update = $lastUpdate->copy()->addDay();
+                $setting->next_update = $nextUpdate->copy()->addDay();
+                $setting->lastupdate_user = $runBy;
+                $setting->lastupdate_datetime = now();
+                $setting->save();
+            }
 
-            return response()->json([
+            $data['selected_steps'] = $steps;
+            $data['window_updated'] = $advanceWindow;
+            $data['setting_window'] = [
+                'last_update' => $setting->last_update,
+                'next_update' => $setting->next_update,
+            ];
+
+            return [
                 'success' => true,
                 'message' => 'Proses staging VMS RFP berhasil dijalankan.',
-                'data' => [
-                    'transfer_to_staging' => $resultTransfer,
-                    'enrich_from_po'      => $resultEnrich,
-                    'post_to_tr_rfp'      => $resultPost,
-                    'generate_approval'   => $resultApproval,
-                    'setting_window'      => [
-                        'last_update' => $setting->last_update,
-                        'next_update' => $setting->next_update,
-                    ],
-                ]
-            ]);
+                'data' => $data,
+            ];
         } catch (\Throwable $e) {
             Log::error('VMS RFP staging run error', [
                 'message' => $e->getMessage(),
@@ -84,12 +116,23 @@ class VmsRfpStagingController extends Controller
                 'file'    => $e->getFile(),
             ]);
 
-            return response()->json([
+            return [
                 'success' => false,
                 'message' => 'Gagal menjalankan proses staging VMS RFP.',
                 'error'   => $e->getMessage(),
-            ], 500);
+                'status'  => 500,
+            ];
+        } finally {
+            $lock->release();
         }
+    }
+
+    public function isRunning(): bool
+    {
+        $lock = Cache::lock(self::LOCK_NAME, 1);
+        if (!$lock->get()) return true;
+        $lock->release();
+        return false;
     }
     /**
      * Step 1:

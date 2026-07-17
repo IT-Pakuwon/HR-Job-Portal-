@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Integration;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\SysStagingSetting;
 use App\Models\ViewStagingRFP;
 use App\Models\ViewStagingRFPAttach;
@@ -10,15 +11,21 @@ use App\Models\TrRfpStaging;
 use App\Models\TrRfpStagingAttachment;
 use App\Models\TrRfp;
 use App\Models\TrPO;
+use App\Models\TrKontrak;
 use App\Models\MsApproval;
 use App\Models\TrApproval;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Vinkla\Hashids\Facades\Hashids;
 
 class VmsRfpStagingController extends Controller
 {
+    use HasAutonbr;
+
     /**
      * Jalankan semua proses staging VMS RFP
      */
@@ -217,13 +224,20 @@ class VmsRfpStagingController extends Controller
 
     /**
      * Step 2:
-     * Update tr_rfp_staging status=0 dengan data dari tr_po berdasarkan cpny_id + ponbr
+     * Update tr_rfp_staging status=0.
+     * - typepo KONTRAK di-enrich dari tr_kontrak berdasarkan kontrakid
+     * - selain KONTRAK di-enrich dari tr_po berdasarkan cpny_id + ponbr
      * lalu ubah status menjadi 1
      */
     protected function enrichStagingFromPo(): array
     {
         $updated = 0;
         $notFound = 0;
+        $updatedFromPo = 0;
+        $updatedFromKontrak = 0;
+        $notFoundPo = 0;
+        $notFoundKontrak = 0;
+        $notFoundItems = [];
 
         DB::connection('pgsql')->beginTransaction();
 
@@ -232,9 +246,53 @@ class VmsRfpStagingController extends Controller
                 ->where('status', 0)
                 ->orderBy('cpny_id')
                 ->orderBy('ponbr')
+                ->orderBy('kontrakid')
                 ->get();
 
             foreach ($rows as $row) {
+                $isKontrak = strtoupper(trim((string) $row->typepo)) === 'KONTRAK';
+
+                if ($isKontrak) {
+                    $kontrak = TrKontrak::query()
+                        ->where('kontrakid', $row->kontrakid)
+                        ->first();
+
+                    if (!$kontrak) {
+                        $notFound++;
+                        $notFoundKontrak++;
+                        $notFoundItems[] = [
+                            'source'    => 'tr_kontrak',
+                            'irid'      => $row->irid,
+                            'cpny_id'   => $row->cpny_id,
+                            'kontrakid' => $row->kontrakid,
+                            'typepo'    => $row->typepo,
+                        ];
+
+                        Log::warning('VMS RFP enrich skipped: kontrak not found', [
+                            'irid'      => $row->irid,
+                            'cpny_id'   => $row->cpny_id,
+                            'kontrakid' => $row->kontrakid,
+                            'typepo'    => $row->typepo,
+                        ]);
+
+                        continue;
+                    }
+
+                    $row->csid          = $kontrak->csid;
+                    $row->sppbjktid     = $kontrak->sppbjktid;
+                    $row->departementid = $kontrak->department_id;
+                    $row->keperluan     = $kontrak->keperluan;
+                    $row->status        = 1;
+                    $row->created_user  = $kontrak->user_peminta;
+                    $row->updated_user  = $kontrak->user_peminta;
+                    $row->updated_at    = now();
+                    $row->save();
+
+                    $updated++;
+                    $updatedFromKontrak++;
+                    continue;
+                }
+
                 $po = TrPO::query()
                     ->where('cpny_id', $row->cpny_id)
                     ->where('ponbr', $row->ponbr)
@@ -242,6 +300,22 @@ class VmsRfpStagingController extends Controller
 
                 if (!$po) {
                     $notFound++;
+                    $notFoundPo++;
+                    $notFoundItems[] = [
+                        'source'  => 'tr_po',
+                        'irid'    => $row->irid,
+                        'cpny_id' => $row->cpny_id,
+                        'ponbr'   => $row->ponbr,
+                        'typepo'  => $row->typepo,
+                    ];
+
+                    Log::warning('VMS RFP enrich skipped: po not found', [
+                        'irid'    => $row->irid,
+                        'cpny_id' => $row->cpny_id,
+                        'ponbr'   => $row->ponbr,
+                        'typepo'  => $row->typepo,
+                    ]);
+
                     continue;
                 }
 
@@ -259,13 +333,19 @@ class VmsRfpStagingController extends Controller
                 $row->save();
 
                 $updated++;
+                $updatedFromPo++;
             }
 
             DB::connection('pgsql')->commit();
 
             return [
-                'updated'   => $updated,
-                'not_found' => $notFound,
+                'updated'              => $updated,
+                'updated_from_po'      => $updatedFromPo,
+                'updated_from_kontrak' => $updatedFromKontrak,
+                'not_found'            => $notFound,
+                'not_found_po'         => $notFoundPo,
+                'not_found_kontrak'    => $notFoundKontrak,
+                'not_found_items'      => $notFoundItems,
             ];
         } catch (\Throwable $e) {
             DB::connection('pgsql')->rollBack();
@@ -278,10 +358,19 @@ class VmsRfpStagingController extends Controller
      * Insert dari tr_rfp_staging status=1 ke tr_rfp
      * Setelah sukses, status staging diubah jadi 2
      */
+    public function runPostStagingToTrRfp(): array
+    {
+        return $this->postStagingToTrRfp();
+    }
+
     protected function postStagingToTrRfp(): array
     {
-        $inserted = 0;
-        $skipped  = 0;
+        $inserted     = 0;
+        $insertedHold = 0;
+        $skipped      = 0;
+        $holdRfps     = [];
+        $skippedItems = [];
+        $insertedItems = [];
 
         DB::connection('pgsql')->beginTransaction();
 
@@ -294,11 +383,40 @@ class VmsRfpStagingController extends Controller
 
             foreach ($rows as $row) {
                 $exists = TrRfp::query()
-                    ->where('rfp_id', $row->rfpid)
+                    ->where(function ($q) use ($row) {
+                        $q->where('ir_id', $row->irid);
+
+                        if (trim((string) $row->rfpid) !== '') {
+                            $q->orWhere('rfp_id', $row->rfpid);
+                        }
+                    })
                     ->first();
 
                 if ($exists) {
                     $skipped++;
+                    $skippedItems[] = [
+                        'staging_rfp_id'  => $row->rfpid,
+                        'irid'            => $row->irid,
+                        'cpny_id'         => $row->cpny_id,
+                        'ponbr'           => $row->ponbr,
+                        'kontrakid'       => $row->kontrakid,
+                        'typepo'          => $row->typepo,
+                        'existing_id'     => $exists->id,
+                        'existing_rfp_id' => $exists->rfp_id,
+                        'existing_status' => $exists->status,
+                    ];
+
+                    Log::info('VMS RFP post staging skipped: rfp already exists', [
+                        'staging_rfp_id'  => $row->rfpid,
+                        'irid'            => $row->irid,
+                        'cpny_id'         => $row->cpny_id,
+                        'ponbr'           => $row->ponbr,
+                        'kontrakid'       => $row->kontrakid,
+                        'typepo'          => $row->typepo,
+                        'existing_id'     => $exists->id,
+                        'existing_rfp_id' => $exists->rfp_id,
+                        'existing_status' => $exists->status,
+                    ]);
 
                     // Tetap tandai staging sudah dipost jika data final sudah ada
                     $row->status       = 2;
@@ -309,8 +427,12 @@ class VmsRfpStagingController extends Controller
                     continue;
                 }
 
-                TrRfp::create([
-                    'rfp_id'               => $row->rfpid,
+                $isKontrak = strtoupper(trim((string) $row->typepo)) === 'KONTRAK';
+                $sourceRfpId = trim((string) $row->rfpid);
+                $rfpId = $this->generateRfpId($row->created_user ?: 'SYSTEM');
+
+                $rfp = TrRfp::create([
+                    'rfp_id'               => $rfpId,
                     'rfp_date'             => $row->irdate ? Carbon::parse($row->irdate)->toDateString() : null,
                     'ir_id'                => $row->irid,
                     'ir_date'              => $row->irdate ? Carbon::parse($row->irdate)->toDateString() : null,
@@ -324,6 +446,7 @@ class VmsRfpStagingController extends Controller
                     'sppbjkt_id'           => $row->sppbjktid,
                     'bastid'               => $row->bastid,
                     'department_id'        => $row->departementid,
+                    'user_peminta'         => $row->created_user ?: 'SYSTEM',
                     'keperluan'            => $row->keperluan,
                     'type_po'              => $row->typepo,
                     'type_payment_invreg'  => $row->typepaymentinvreg,
@@ -332,26 +455,59 @@ class VmsRfpStagingController extends Controller
                     'rfp_tax_amount'       => $row->rfptaxamount,
                     'rfp_amount'           => $row->rfpamount,
                     'ir_note'              => $row->irnote,
-                    'status'               => 'P',
-                    'created_by'           => $row->created_user ?: 'SYSTEM',
+                    'status'               => $isKontrak ? 'H' : 'P',
+                    'created_by'           => 'SYSTEM',
                     'created_at'           => now(),
-                    'updated_by'           => $row->created_user ?: 'SYSTEM',
+                    'updated_by'           => 'SYSTEM',
                     'updated_at'           => now(),
                 ]);
 
                 $row->status       = 2;
-                $row->updated_user = $row->created_user ?: 'SYSTEM';
+                $row->rfpid        = $rfpId;
+                $row->updated_user = 'SYSTEM';
                 $row->updated_at   = now();
                 $row->save();
 
+                Log::info('VMS RFP post staging inserted with autonumber', [
+                    'rfp_id'        => $rfpId,
+                    'source_rfp_id' => $sourceRfpId,
+                    'irid'          => $row->irid,
+                    'cpny_id'       => $row->cpny_id,
+                    'ponbr'         => $row->ponbr,
+                    'kontrakid'     => $row->kontrakid,
+                    'typepo'        => $row->typepo,
+                ]);
+
+                $insertedItems[] = [
+                    'rfp_id'        => $rfpId,
+                    'source_rfp_id' => $sourceRfpId,
+                    'irid'          => $row->irid,
+                    'cpny_id'       => $row->cpny_id,
+                    'ponbr'         => $row->ponbr,
+                    'kontrakid'     => $row->kontrakid,
+                    'typepo'        => $row->typepo,
+                    'status'        => $rfp->status,
+                ];
+
                 $inserted++;
+                if ($isKontrak) {
+                    $insertedHold++;
+                    $holdRfps[] = [$row, $rfp];
+                }
             }
 
             DB::connection('pgsql')->commit();
 
+            foreach ($holdRfps as [$staging, $rfp]) {
+                $this->sendKontrakHoldEmail($staging, $rfp);
+            }
+
             return [
-                'inserted' => $inserted,
-                'skipped'  => $skipped,
+                'inserted'      => $inserted,
+                'inserted_hold' => $insertedHold,
+                'inserted_items' => $insertedItems,
+                'skipped'       => $skipped,
+                'skipped_items' => $skippedItems,
             ];
         } catch (\Throwable $e) {
             DB::connection('pgsql')->rollBack();
@@ -369,6 +525,8 @@ class VmsRfpStagingController extends Controller
         $created = 0;
         $skipped = 0;
         $updatedStaging = 0;
+        $updatedHold = 0;
+        $holdItems = [];
 
         DB::connection('pgsql2')->beginTransaction();
 
@@ -383,6 +541,11 @@ class VmsRfpStagingController extends Controller
                 ->all();
 
             $rfpQuery = TrRfp::query()
+                ->where('status', 'P')
+                ->where(function ($q) {
+                    $q->whereNull('type_po')
+                        ->orWhereRaw("UPPER(TRIM(type_po)) <> 'KONTRAK'");
+                })
                 ->orderBy('cpny_id')
                 ->orderBy('rfp_id');
 
@@ -412,10 +575,44 @@ class VmsRfpStagingController extends Controller
 
                 if ($approvalMasters->isEmpty()) {
                     $skipped++;
+
+                    $rfp->status = 'H';
+                    $rfp->updated_by = 'SYSTEM';
+                    $rfp->updated_at = now();
+                    $rfp->save();
+
+                    TrRfpStaging::where('rfpid', $rfp->rfp_id)
+                        ->update([
+                            'status'       => 3,
+                            'updated_user' => 'SYSTEM',
+                            'updated_at'   => now(),
+                        ]);
+
+                    $updatedHold++;
+                    $updatedStaging++;
+                    $holdItems[] = [
+                        'rfp_id'        => $rfp->rfp_id,
+                        'ir_id'         => $rfp->ir_id,
+                        'cpny_id'       => $rfp->cpny_id,
+                        'department_id' => $rfp->department_id,
+                        'type_po'       => $rfp->type_po,
+                        'status'        => 'H',
+                        'reason'        => 'Approval master RP not found',
+                    ];
+
+                    Log::info('VMS RFP generate approval hold: approval master not found', [
+                        'rfp_id'        => $rfp->rfp_id,
+                        'ir_id'         => $rfp->ir_id,
+                        'cpny_id'       => $rfp->cpny_id,
+                        'department_id' => $rfp->department_id,
+                        'type_po'       => $rfp->type_po,
+                    ]);
+
                     continue;
                 }
 
                 $hasInsert = false;
+                $firstLevel = $approvalMasters->min('aprv_leveling');
 
                 foreach ($approvalMasters as $master) {
                     $exists = TrApproval::query()
@@ -437,7 +634,7 @@ class VmsRfpStagingController extends Controller
                         'aprv_departementid'   => $master->aprv_departementid ?: $rfp->department_id,
                         'aprv_username'        => $master->aprv_username,
                         'aprv_name'            => $master->aprv_name,
-                        'aprv_datebefore'      => now(),
+                        'aprv_datebefore'      => ((string) $master->aprv_leveling === (string) $firstLevel) ? now() : null,
                         'aprv_dateafter'       => null,
                         'aprv_type'            => $master->aprv_type,
                         'aprv_condition'       => $master->aprv_condition,
@@ -477,11 +674,117 @@ class VmsRfpStagingController extends Controller
                 'created'          => $created,
                 'skipped'          => $skipped,
                 'updated_staging'  => $updatedStaging,
+                'updated_hold'     => $updatedHold,
+                'hold_items'       => $holdItems,
             ];
 
         } catch (\Throwable $e) {
             DB::connection('pgsql2')->rollBack();
             throw $e;
+        }
+    }
+
+    protected function generateRfpId(string $username = 'SYSTEM'): string
+    {
+        $doctype = 'RP';
+        $dt = Carbon::now('Asia/Jakarta');
+        $year = (int) $dt->year;
+        $month = str_pad((string) $dt->month, 2, '0', STR_PAD_LEFT);
+
+        $auto = $this->nextAutonbr(
+            $doctype,
+            $year,
+            $month,
+            $username,
+            'RFP'
+        );
+
+        $urutan = (int) $auto['next'];
+        $tglbln = substr((string) $year, 2) . $month;
+
+        return $doctype . $tglbln . sprintf('%04d', $urutan);
+    }
+
+    /**
+     * Kirim notifikasi hold ke user_peminta kontrak untuk RFP dari VMS tipe KONTRAK.
+     */
+    protected function sendKontrakHoldEmail(TrRfpStaging $staging, TrRfp $rfp): void
+    {
+        try {
+            $kontrak = TrKontrak::query()
+                ->where('kontrakid', $staging->kontrakid)
+                ->first();
+
+            if (!$kontrak) {
+                Log::warning('VMS RFP kontrak hold email skipped: kontrak not found', [
+                    'rfp_id'    => $rfp->rfp_id,
+                    'kontrakid' => $staging->kontrakid,
+                ]);
+                return;
+            }
+
+            $recipientUsernames = array_values(array_filter(array_map(
+                fn ($x) => trim((string) $x),
+                explode(',', (string) $kontrak->user_peminta)
+            )));
+
+            if (empty($recipientUsernames)) {
+                Log::warning('VMS RFP kontrak hold email skipped: user_peminta empty', [
+                    'rfp_id'    => $rfp->rfp_id,
+                    'kontrakid' => $kontrak->kontrakid,
+                ]);
+                return;
+            }
+
+            $emails = User::query()
+                ->whereIn('username', $recipientUsernames)
+                ->where('status', 'A')
+                ->pluck('notification_email')
+                ->filter(fn ($email) => trim((string) $email) !== '')
+                ->unique()
+                ->values();
+
+            if ($emails->isEmpty()) {
+                Log::warning('VMS RFP kontrak hold email skipped: active notification email not found', [
+                    'rfp_id'     => $rfp->rfp_id,
+                    'kontrakid'  => $kontrak->kontrakid,
+                    'recipients' => $recipientUsernames,
+                ]);
+                return;
+            }
+
+            $data = [
+                'docid'     => $rfp->rfp_id,
+                'cpnyid'    => $rfp->cpny_id ?: $kontrak->cpny_id,
+                'deptname'  => $rfp->department_id ?: $kontrak->department_id,
+                'date'      => $rfp->rfp_date ?: $rfp->ir_submit_date,
+                'name'      => (string) $kontrak->user_peminta,
+                'createdby' => $rfp->created_by,
+                'info'      => 'Request RFP Kontrak Department ' . ($rfp->department_id ?: $kontrak->department_id),
+                'status'    => 'H',
+                'docname'   => 'RFP',
+                'url'       => url('/showrfp/' . Hashids::encode($rfp->id)),
+            ];
+
+            $subjectMap = [
+                'H' => 'Hold',
+            ];
+
+            foreach ($emails as $email) {
+                Mail::send('emails.mailapprovehold', $data, function ($message) use ($email, $data, $subjectMap) {
+                    $message->to($email)
+                        ->subject($data['docid'] . ' - ' . ($subjectMap[$data['status']] ?? 'Notification') . ' RFP')
+                        ->from('digitalserver@pakuwon.com', 'Pakuwon System');
+                });
+            }
+        } catch (\Throwable $e) {
+            Log::error('VMS RFP kontrak hold email error', [
+                'rfp_id'    => $rfp->rfp_id,
+                'kontrakid' => $staging->kontrakid,
+                'message'   => $e->getMessage(),
+                'line'      => $e->getLine(),
+                'file'      => $e->getFile(),
+            ]);
         }
     }
 }

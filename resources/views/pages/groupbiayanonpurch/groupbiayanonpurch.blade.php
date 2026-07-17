@@ -210,7 +210,7 @@
                             </select>
                         </div>
 
-                        <div class="hidden">
+                        <div>
                             <label class="mb-1 block text-sm font-medium text-gray-600 dark:text-gray-300">Is Deposit</label>
                             <select id="is_deposit" name="is_deposit"
                                 class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700 dark:text-white">

@@ -41,17 +41,12 @@ class AcumVmsStagingController extends Controller
 
         // status lock (running?)
         $running = $this->isRunning();
-        $vmsRunner = app(VmsRfpStagingController::class);
 
         return view('pages.integration.acumvms', [
             'appId'          => $appId,
             'setting'        => $setting,
             'running'        => $running,
             'stagingModules' => self::STAGING_MODULES,
-            'activeTab'      => $request->query('tab', 'acum'),
-            'vmsSetting'     => SysStagingSetting::where('id_application', 'VMSRFP')->first(),
-            'vmsSteps'       => VmsRfpStagingController::MANUAL_STEPS,
-            'vmsRunning'     => $vmsRunner->isRunning(),
         ]);
     }
 
@@ -141,33 +136,6 @@ class AcumVmsStagingController extends Controller
         return response()->json([
             'running' => $this->isRunning(),
         ]);
-    }
-
-    public function runVmsRfpNow(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user) return redirect()->route('login');
-
-        $steps = $request->input('steps', []);
-        if (!is_array($steps) || empty(array_intersect(array_keys(VmsRfpStagingController::MANUAL_STEPS), $steps))) {
-            return back()->withInput()->with('error', 'Pilih minimal 1 proses VMS RFP untuk dijalankan.');
-        }
-
-        $result = app(VmsRfpStagingController::class)
-            ->runSelected($steps, false, $user->username ?? 'SYSTEM');
-
-        if ($result['success']) {
-            return redirect()->route('integration.acumvms.index', ['tab' => 'vms-rfp'])
-                ->with('success', $result['message'])->with('vms_result', $result['data']);
-        }
-
-        return redirect()->route('integration.acumvms.index', ['tab' => 'vms-rfp'])
-            ->withInput()->with('error', $result['message'] ?? 'Proses VMS RFP gagal.');
-    }
-
-    public function vmsRfpStatus()
-    {
-        return response()->json(['running' => app(VmsRfpStagingController::class)->isRunning()]);
     }
 
     /**
@@ -416,7 +384,7 @@ class AcumVmsStagingController extends Controller
                     });
             }
 
-
+            
             // =========================
             // 5) STAGING RECEIPT
             // =========================

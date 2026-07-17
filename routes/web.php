@@ -2420,6 +2420,10 @@ Route::middleware(['auth'])->group(function () {
         // status lock (polling)
         Route::get('/integration/acumvms-staging/status', [AcumVmsStagingController::class, 'status'])
             ->name('integration.acumvms.status');
+        Route::post('/integration/acumvms-staging/vms-rfp/run', [AcumVmsStagingController::class, 'runVmsRfpNow'])
+            ->name('integration.acumvms.vms-rfp.run');
+        Route::get('/integration/acumvms-staging/vms-rfp/status', [AcumVmsStagingController::class, 'vmsRfpStatus'])
+            ->name('integration.acumvms.vms-rfp.status');
     });
 
     Route::middleware('admin')->group(function () {

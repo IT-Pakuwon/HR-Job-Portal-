@@ -6966,20 +6966,44 @@ class CanvassController extends Controller
             return strtoupper(trim((string) ($refNo ?? ''))).'|'.$makePlainKey($inventoryid, $uom, $descr);
         };
 
-        // fallback group by plain key
+        $getSourceRefNo = function ($row) {
+            return $row->sppb_no
+                ?? $row->sppj_no
+                ?? $row->sppk_no
+                ?? $row->sppt_no
+                ?? $row->sppbjkt_no
+                ?? null;
+        };
+
+        // fallback group by ref/plain key
+        $srcGroupedByRef = [];
         $srcGroupedByPlain = [];
         foreach ($srcDetails as $sd) {
+            $refNo = $getSourceRefNo($sd);
             $plainKey = $makePlainKey(
                 $sd->inventoryid ?? null,
                 $sd->uom ?? null,
                 $sd->inventory_descr ?? null
             );
+            $refKey = $makeRefKey(
+                $refNo,
+                $sd->inventoryid ?? null,
+                $sd->uom ?? null,
+                $sd->inventory_descr ?? null
+            );
+
+            if (trim((string) ($refNo ?? '')) !== '') {
+                $srcGroupedByRef[$refKey][] = $sd;
+            }
+
             $srcGroupedByPlain[$plainKey][] = $sd;
         }
 
+        $refUseCount = [];
         $plainUseCount = [];
         $addedTotalOrdered = 0.0;
         $updatedLineCount = 0;
+        $unmatchedLines = [];
 
         foreach ($details as $d) {
             $hasPick = false;
@@ -7004,6 +7028,7 @@ class CanvassController extends Controller
                 $d['sppj_no'] ??
                 $d['sppk_no'] ??
                 $d['sppt_no'] ??
+                $d['sppbjkt_no'] ??
                 null;
 
             $inventoryid = $d['inventoryid'] ?? null;
@@ -7013,10 +7038,34 @@ class CanvassController extends Controller
             $refKey = $makeRefKey($requestRefNo, $inventoryid, $uom, $descr);
             $plainKey = $makePlainKey($inventoryid, $uom, $descr);
 
-            // 1) exact match by ref key
+            // 1) exact match by ref key.
             $srcDet = $srcIndex[$refKey] ?? null;
 
-            // 2) fallback by plain key + occurrence order
+            // 2) fallback by ref key + occurrence order from source details.
+            if (!$srcDet && isset($srcGroupedByRef[$refKey])) {
+                $idx = $refUseCount[$refKey] ?? 0;
+                $srcDet = $srcGroupedByRef[$refKey][$idx] ?? null;
+                $refUseCount[$refKey] = $idx + 1;
+            }
+
+            // 3) fallback by row index from payload, useful if duplicate item/uom/descr rows exist.
+            if (!$srcDet && isset($d['row_index']) && is_numeric($d['row_index'])) {
+                $rowIndex = (int) $d['row_index'];
+                $candidate = $srcDetails->get($rowIndex);
+                if ($candidate) {
+                    $candidatePlainKey = $makePlainKey(
+                        $candidate->inventoryid ?? null,
+                        $candidate->uom ?? null,
+                        $candidate->inventory_descr ?? null
+                    );
+
+                    if ($candidatePlainKey === $plainKey) {
+                        $srcDet = $candidate;
+                    }
+                }
+            }
+
+            // 4) fallback by plain key + occurrence order.
             if (!$srcDet && isset($srcGroupedByPlain[$plainKey])) {
                 $idx = $plainUseCount[$plainKey] ?? 0;
                 $srcDet = $srcGroupedByPlain[$plainKey][$idx] ?? null;
@@ -7024,6 +7073,13 @@ class CanvassController extends Controller
             }
 
             if (!$srcDet) {
+                $unmatchedLines[] = [
+                    'row_index' => $d['row_index'] ?? null,
+                    'ref_no' => $requestRefNo,
+                    'inventoryid' => $inventoryid,
+                    'uom' => $uom,
+                    'inventory_descr' => $descr,
+                ];
                 continue;
             }
 
@@ -7049,6 +7105,16 @@ class CanvassController extends Controller
 
             $addedTotalOrdered += $orderedQty;
             ++$updatedLineCount;
+        }
+
+        if (!empty($unmatchedLines)) {
+            Log::warning('[updateOrderedOnSource] Source detail rows were not matched', [
+                'source' => $srcHeader->getTable(),
+                'source_id' => $srcHeader->getKey(),
+                'unmatched_lines' => $unmatchedLines,
+            ]);
+
+            throw new \Exception('Ada detail CS terpilih yang tidak match ke detail sumber, ordered/openordered tidak diupdate. Row: '.collect($unmatchedLines)->pluck('row_index')->implode(', '));
         }
 
         // kalau tidak ada satupun line yang ter-update, kasih error supaya ketahuan

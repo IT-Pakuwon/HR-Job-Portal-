@@ -18,6 +18,11 @@ class RunVmsRfpStaging extends Command
 
             $data = method_exists($response, 'getData') ? $response->getData(true) : null;
 
+            if (!($data['success'] ?? false)) {
+                $this->error($data['message'] ?? 'VMS RFP staging failed.');
+                return self::FAILURE;
+            }
+
             $this->info('VMS RFP staging executed successfully.');
 
             if ($data) {
