@@ -262,11 +262,13 @@
         <tr>
             <td class="label">Dibayarkan kpd/Please Pay to</td>
             <td class="colon">:</td>
-            <td>{{ $rfpnonpurch->pleasepayto ?: '-' }}</td>
+            <td colspan="4">{{ $rfpnonpurch->pleasepayto ?: '-' }}</td>
+        </tr>
 
+        <tr>
             <td class="label">Jumlah/Amount</td>
             <td class="colon">:</td>
-            <td class="nowrap">Rp. {{ number_format($amount, 0, ',', '.') }}</td>
+            <td colspan="4" class="nowrap">Rp. {{ number_format($amount, 0, ',', '.') }}</td>
         </tr>
 
         <tr>
@@ -279,6 +281,12 @@
             <td class="label">Keperluan/Purpose</td>
             <td class="colon">:</td>
             <td colspan="4">{{ $rfpnonpurch->keperluan ?: '-' }}</td>
+        </tr>
+
+        <tr>
+            <td class="label">Group Biaya</td>
+            <td class="colon">:</td>
+            <td colspan="4">{{ $rfpnonpurch->groupbiaya->groupbiayadescr ?? '-' }}</td>
         </tr>
 
         <tr>

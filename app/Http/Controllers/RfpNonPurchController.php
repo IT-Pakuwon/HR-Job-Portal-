@@ -2579,7 +2579,7 @@ class RfpNonPurchController extends Controller
             return redirect()->route('login');
         }
 
-        $rfpnonpurch = TrRfpNonPurch::with(['creator:username,name'])->findOrFail($id);
+        $rfpnonpurch = TrRfpNonPurch::with(['creator:username,name', 'groupbiaya:groupbiaya_id,groupbiayadescr'])->findOrFail($id);
 
         $pdf = $this->buildRfpNonPurchPdf($rfpnonpurch);
 
