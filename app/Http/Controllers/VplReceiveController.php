@@ -210,6 +210,10 @@ class VplReceiveController extends Controller
     // -------------------------------------------------------
     public function store(Request $request)
     {
+        if (trim($request->receive_remark ?? '') === '') {
+            return response()->json(['error' => 'Remark is required.'], 422);
+        }
+
         $user = Auth::user();
         $dt = Carbon::now();
 
@@ -236,7 +240,7 @@ class VplReceiveController extends Controller
             self::DOCTYPE_DSC
         );
         $tglbln = substr((string) $dt->year, 2).$autonbr['month'];
-        $docid = self::DOCTYPE.$tglbln.sprintf('%03d', $autonbr['next']);
+        $docid = self::DOCTYPE.$tglbln.sprintf('%04d', $autonbr['next']);
 
         try {
             DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $docid, $vpTypeName, $category, &$receive) {
@@ -313,91 +317,99 @@ class VplReceiveController extends Controller
     // -------------------------------------------------------
     public function update(Request $request, int $id)
     {
+        if (trim($request->receive_remark ?? '') === '') {
+            return response()->json(['error' => 'Remark is required.'], 422);
+        }
+
         $user = Auth::user();
         $dt = Carbon::now();
         $receive = TrxVplReceive::find($id);
 
         try {
-            if ($request->has('addmore')) {
-                foreach ($request->addmore as $detail) {
-                    if (empty($detail['product_name']) || empty($detail['qty']) || empty($detail['whs_id'])) {
-                        continue;
-                    }
-                    $exp = !empty($detail['expired_date']) ? $detail['expired_date'] : '1900-01-01';
-                    $row = TrxVplReceiveDetail::where('receive_id', $receive->receive_id)
-                        ->where('product_id', $detail['product_name'])
-                        ->where('expired_date', $exp)
-                        ->where('whs_id', $detail['whs_id'])->first();
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $receive) {
+                if ($request->has('addmore')) {
+                    foreach ($request->addmore as $detail) {
+                        if (empty($detail['product_name']) || empty($detail['qty']) || empty($detail['whs_id'])) {
+                            continue;
+                        }
+                        $exp = !empty($detail['expired_date']) ? $detail['expired_date'] : '1900-01-01';
+                        $row = TrxVplReceiveDetail::where('receive_id', $receive->receive_id)
+                            ->where('product_id', $detail['product_name'])
+                            ->where('expired_date', $exp)
+                            ->where('whs_id', $detail['whs_id'])->first();
 
-                    if ($row) {
-                        $row->qty_receive += $detail['qty'];
-                        $row->updated_at = $dt->toDateTimeString();
-                        $row->save();
-                    } else {
-                        TrxVplReceiveDetail::create([
-                            'receive_id' => $receive->receive_id,
-                            'linenbr' => 0,
-                            'product_id' => $detail['product_name'],
-                            'qty_receive' => $detail['qty'],
-                            'expired_date' => $exp,
-                            'whs_id' => $detail['whs_id'],
-                            'status' => 'P',
-                            'created_user' => $user->username,
-                            'created_at' => $dt->toDateTimeString(),
-                        ]);
+                        if ($row) {
+                            $row->qty_receive += $detail['qty'];
+                            $row->updated_at = $dt->toDateTimeString();
+                            $row->save();
+                        } else {
+                            TrxVplReceiveDetail::create([
+                                'receive_id' => $receive->receive_id,
+                                'linenbr' => 0,
+                                'product_id' => $detail['product_name'],
+                                'qty_receive' => $detail['qty'],
+                                'expired_date' => $exp,
+                                'whs_id' => $detail['whs_id'],
+                                'status' => 'P',
+                                'created_user' => $user->username,
+                                'created_at' => $dt->toDateTimeString(),
+                            ]);
+                        }
+                    }
+                    $line = 1;
+                    foreach (TrxVplReceiveDetail::where('receive_id', $receive->receive_id)->orderBy('created_at')->get() as $d) {
+                        $d->linenbr = $line++;
+                        $d->save();
                     }
                 }
-                $line = 1;
-                foreach (TrxVplReceiveDetail::where('receive_id', $receive->receive_id)->orderBy('created_at')->get() as $d) {
-                    $d->linenbr = $line++;
-                    $d->save();
-                }
-            }
 
-            $this->saveAttachments($request, $receive->receive_id, $dt->year, $user);
+                $this->saveAttachments($request, $receive->receive_id, $dt->year, $user);
 
-            // Read category condition — vp_type already stored as 'voucher'/'product'
-            $vpTypeName = $receive->vp_type;
-            $category = MsCategory::where('doctype', self::DOCTYPE)
-                ->where('categoryid', 'condition')
-                ->where('category_name', ucfirst(strtolower($vpTypeName)))
-                ->where('status', 'A')
-                ->first();
+                // Read category condition — vp_type already stored as 'voucher'/'product'
+                $vpTypeName = $receive->vp_type;
+                $category = MsCategory::where('doctype', self::DOCTYPE)
+                    ->where('categoryid', 'condition')
+                    ->where('category_name', ucfirst(strtolower($vpTypeName)))
+                    ->where('status', 'A')
+                    ->first();
 
-            $approvalCondition = trim($category->groups ?? '') ?: $vpTypeName;
-            $ctx = ['approval_conditions' => [$approvalCondition]];
+                $approvalCondition = trim($category->groups ?? '') ?: $vpTypeName;
+                $ctx = ['approval_conditions' => [$approvalCondition]];
 
-            $approvalCtl = app(ApprovalController::class);
-            $approvalCtl->generateForDocument(
-                $receive->receive_id,
-                self::DOCTYPE,
-                $receive->cpnyid,
-                $receive->department,
-                $user->username,
-                $ctx,
-                $dt
-            );
+                // Throws if no approval rule matches, rolling back the detail/attachment changes
+                // so the document isn't left without an approval chain.
+                app(ApprovalController::class)->generateForDocument(
+                    $receive->receive_id,
+                    self::DOCTYPE,
+                    $receive->cpnyid,
+                    $receive->department,
+                    $user->username,
+                    $ctx,
+                    $dt
+                );
 
-            $receive->receive_type = $request->receive_type;
-            $receive->receive_tenant = strtoupper($request->product_source_tenant ?? '');
-            $receive->source_receive_dept = $request->source_receive_dept;
-            $receive->receive_remark = $request->receive_remark;
-            $receive->status = 'P';
-            $receive->updated_user = $user->name;
-            $receive->updated_at = $dt->toDateTimeString();
-            $receive->save();
-
-            $approvalCtl->notifyFirstApprover(
-                $receive->receive_id,
-                self::DOCTYPE,
-                'P',
-                self::DOCTYPE_DSC,
-                url('/vpl/showreceivevp/'.$id),
-                ['info' => $request->receive_remark ?? '', 'createdby' => $user->name]
-            );
+                $receive->receive_type = $request->receive_type;
+                $receive->receive_tenant = strtoupper($request->product_source_tenant ?? '');
+                $receive->source_receive_dept = $request->source_receive_dept;
+                $receive->receive_remark = $request->receive_remark;
+                $receive->status = 'P';
+                $receive->updated_user = $user->name;
+                $receive->updated_at = $dt->toDateTimeString();
+                $receive->save();
+            });
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
+
+        // Send notification after the transaction commits so a mail failure doesn't roll back the document
+        app(ApprovalController::class)->notifyFirstApprover(
+            $receive->receive_id,
+            self::DOCTYPE,
+            'P',
+            self::DOCTYPE_DSC,
+            url('/vpl/showreceivevp/'.$id),
+            ['info' => $request->receive_remark ?? '', 'createdby' => $user->name]
+        );
 
         return response()->json(['success' => 'Receive updated successfully.']);
     }

@@ -352,6 +352,8 @@ function docNotifications() {
                 // Comment mentions
                 'MENTION':    { iconBg: 'bg-violet-100 dark:bg-violet-900/30', iconText: 'text-violet-600 dark:text-violet-400', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400', bar: 'bg-violet-500', cat: 'mention' },
                 'COMMENT':    { iconBg: 'bg-sky-100 dark:bg-sky-900/30',       iconText: 'text-sky-600 dark:text-sky-400',       badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',             bar: 'bg-sky-500',    cat: 'comment' },
+                // VPL stock expiry reminders (Voucher/Product batches nearing expired_date)
+                'VPL_EXPIRING': { iconBg: 'bg-amber-100 dark:bg-amber-900/30', iconText: 'text-amber-600 dark:text-amber-400', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', bar: 'bg-amber-500', cat: 'warn' },
             };
             return map[status] || { iconBg: 'bg-gray-100 dark:bg-gray-700', iconText: 'text-gray-500 dark:text-gray-400', badge: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400', bar: 'bg-gray-500', cat: 'default' };
         },

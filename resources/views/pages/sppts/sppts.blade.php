@@ -4,10 +4,10 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FINACCESS');
         @endphp
         <div
-            class="{{ $hasAllList ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            class="{{ $hasAllList ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
             {{-- All Status --}}
             <button type="button" class="text-left">
@@ -43,6 +43,23 @@
                 </a>
             </button>
 
+            {{-- Draft Status --}}
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="H">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-3 text-pink-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Draft</p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
+                    </div>
+                </a>
+            </button>
+
             {{-- Reject Status --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="R">
@@ -60,7 +77,7 @@
                 </a>
             </button>
 
-            {{-- Revise / Draft Status --}}
+            {{-- Revise Status --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="D">
                     <div
@@ -69,7 +86,7 @@
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise / Draft</p>
+                            <p class="break-words text-sm font-medium">Revise</p>
                         </div>
 
                         <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
@@ -94,7 +111,7 @@
                 </a>
             </button>
 
-            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FINACCESS'))
                 {{-- SPPT All List --}}
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
@@ -495,7 +512,7 @@
             if (st === 'D')
                 return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Revise</span>`;
             if (st === 'H')
-                return `<span class="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">Hold</span>`;
+                return `<span class="inline-block rounded bg-pink-100 px-2 py-0.5 text-xs font-semibold text-pink-700">Draft</span>`;
             return `<span class="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-700">${esc(st || '-')}</span>`;
         }
 
@@ -510,6 +527,8 @@
                     return 'Rejected';
                 case 'D':
                     return 'Revise';
+                case 'H':
+                    return 'Draft';
                 default:
                     return st || '-';
             }
@@ -1086,8 +1105,8 @@ const approvals = header.approval_list || [];
 
                             const text = data || row.id;
 
-                            const isDraftOwner = (row.status === 'D' && row.created_by ===
-                                currentUser);
+                            const isDraftOwner = ((row.status === 'D' || row.status === 'H') &&
+                                row.created_by === currentUser);
 
                             // icon view (mata)
                             const viewBtn = `
@@ -1170,6 +1189,10 @@ const approvals = header.approval_list || [];
                                 'R': {
                                     t: 'Rejected',
                                     c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                },
+                                'H': {
+                                    t: 'Draft',
+                                    c: 'bg-pink-200/60 text-pink-800 border border-pink-600/40'
                                 },
                             };
                             const it = map[data] || {

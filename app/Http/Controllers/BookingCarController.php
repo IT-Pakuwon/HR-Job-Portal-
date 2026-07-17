@@ -517,7 +517,7 @@ class BookingCarController extends Controller
 
             $docid = $doctype.
                 $tglbln.
-                sprintf('%03d', $urutan);
+                sprintf('%04d', $urutan);
 
             $booking = TrBookingCar::create([
                 'docid' => $docid,

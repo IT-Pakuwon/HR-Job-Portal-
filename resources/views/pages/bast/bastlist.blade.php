@@ -215,6 +215,7 @@
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">PO Nbr</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                         `;
@@ -305,6 +306,10 @@
                     },
                     {
                         data: 'cpny_id',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'vendorname',
                         className: 'text-left'
                     },
                     {

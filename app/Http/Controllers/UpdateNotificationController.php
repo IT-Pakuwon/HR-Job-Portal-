@@ -64,7 +64,7 @@ class UpdateNotificationController extends Controller
             'Update Notification'
         );
 
-        $newsId = 'NEWS'.substr((string) $year, 2).$month.sprintf('%03d', $auto['next']);
+        $newsId = 'NEWS'.substr((string) $year, 2).$month.sprintf('%04d', $auto['next']);
 
         $notification = MsNews::create([
             'news_id' => $newsId,

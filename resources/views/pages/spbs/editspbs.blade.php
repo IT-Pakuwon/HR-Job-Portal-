@@ -10,6 +10,7 @@
                     action="{{ route('spbs.update', $hash) }}" method="POST">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
                     <div class="flex w-full flex-col gap-4 rounded-xl bg-white p-4 shadow-md dark:bg-gray-800">
                         <div class="border-b border-gray-200 pb-4 dark:border-gray-700">
                             <h2 class="text-base font-extrabold text-gray-800 dark:text-white">
@@ -898,6 +899,10 @@
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                                     </svg>
                                 </button>
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
+                                </button>
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
@@ -1113,25 +1118,124 @@
                 }
             }
 
-            $('#spbForm').on('submit', function(e) {
-                e.preventDefault();
+            function submitSpbForm(isDraft) {
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                const wt = ($('#worktypeid').val() || '').toUpperCase();
-                const woid = ($('#woid').val() || '').trim();
+                if (!isDraft) {
+                    const wt = ($('#worktypeid').val() || '').toUpperCase();
+                    const woid = ($('#woid').val() || '').trim();
 
-                if (wt !== 'ATK' && !woid) {
-                    $('#woid').addClass('is-invalid');
-                    if ($('#woid').next('.error-feedback').length === 0) {
-                        $('#woid').after(
-                            '<small class="error-feedback">WO wajib dipilih untuk jenis pekerjaan ini.</small>'
-                        );
+                    if (wt !== 'ATK' && !woid) {
+                        $('#woid').addClass('is-invalid');
+                        if ($('#woid').next('.error-feedback').length === 0) {
+                            $('#woid').after(
+                                '<small class="error-feedback">WO wajib dipilih untuk jenis pekerjaan ini.</small>'
+                            );
+                        }
+
+                        toastr.error('WO wajib dipilih (kecuali ATK).');
+                        $('html,body').animate({
+                            scrollTop: $('#woSection').offset().top - 120
+                        }, 300);
+                        return;
                     }
 
-                    toastr.error('WO wajib dipilih (kecuali ATK).');
-                    $('html,body').animate({
-                        scrollTop: $('#woSection').offset().top - 120
-                    }, 300);
-                    return;
+                    // validasi minimal 1 detail valid (punya product & qty>0)
+                    const hasValid = $('#spbTable tr.spb-row').toArray().some(tr => {
+                        const $tr = $(tr);
+                        const invId = ($tr.find('.inventoryIdField').val() || '').trim();
+                        const qty = parseFloat(($tr.find('input[name="qty[]"]').val() || '0')
+                            .replace(',', '.'));
+                        return invId !== '' && qty > 0;
+                    });
+                    if (!hasValid) {
+                        toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).');
+                        return;
+                    }
+
+                    // ===== VALIDASI SETIAP BARIS (wajib: Product, Qty, UoM, Location, Sub Location, COA) =====
+                    clearDetailErrors();
+                    let anyInvalid = false;
+
+                    $('#spbTable tr.spb-row').each(function() {
+                        const $tr = $(this);
+
+                        const $prodHidden = $tr.find('.inventoryIdField');
+                        const $prodVis = $tr.find('.productNameField');
+
+                        const $qty = $tr.find('input[name="qty[]"]');
+
+                        const $uomVis = $tr.find('.stock_unitField'); // yang terlihat
+                        const $uomTo = $tr.find('.uomToField'); // hidden (hasil pilih UoM)
+
+                        const $locHidden = $tr.find('.locationIdField');
+                        // const $locVis = $tr.find('.locationNameField');
+
+                        const $subHidden = $tr.find('.subLocationIdField');
+                        // const $subVis = $tr.find('.subLocationNameField');
+
+                        const $coaHidden = $tr.find('.coaIdField');
+                        const $coaVis = $tr.find('.coaNameField');
+
+                        // Anggap baris "aktif" kalau ada salah satu kolom terisi
+                        const active = [
+                            $prodHidden.val(), $qty.val(),
+                            $locHidden.val(), $subHidden.val(), $coaHidden.val()
+                        ].some(v => (v || '').toString().trim() !== '');
+
+                        if (!active) return; // baris kosong → lewati
+
+                        // Product
+                        if (($prodHidden.val() || '').trim() === '') {
+                            addDetailError($prodVis, 'Product wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Qty
+                        const qNum = parseFloat(($qty.val() || '').replace(',', '.'));
+                        if (!(qNum > 0)) {
+                            addDetailError($qty, 'Qty harus > 0.');
+                            anyInvalid = true;
+                        }
+
+                        // UoM (cek visible & hidden)
+                        const uomText = ($uomVis.val() || '').trim();
+                        if ((uomText === '' || uomText === '-') && (($uomTo.val() || '').trim() ===
+                                '')) {
+                            addDetailError($uomVis, 'UoM wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Location
+                        if (($locHidden.val() || '').trim() === '') {
+                            addDetailError($locVis, 'Location wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // Sub Location
+                        if (($subHidden.val() || '').trim() === '') {
+                            addDetailError($subVis, 'Sub Location wajib dipilih.');
+                            anyInvalid = true;
+                        }
+
+                        // COA
+                        if (($coaHidden.val() || '').trim() === '') {
+                            addDetailError($coaVis, 'Budget wajib dipilih.');
+                            anyInvalid = true;
+                        }
+                    });
+
+                    if (anyInvalid) {
+                        const $first = $('#spbTable .is-invalid').first();
+                        if ($first.length) {
+                            $('html,body').animate({
+                                scrollTop: $first.offset().top - 120
+                            }, 300);
+                            $first.trigger('focus');
+                        }
+                        toastr.error('Mohon lengkapi field wajib di SPB Detail (bertanda *).');
+                        return;
+                    }
                 }
 
                 // normalisasi qty (koma -> titik)
@@ -1139,108 +1243,15 @@
                     if (this.value.includes(',')) this.value = this.value.replace(',', '.');
                 });
 
-                // validasi minimal 1 detail valid (punya product & qty>0)
-                const hasValid = $('#spbTable tr.spb-row').toArray().some(tr => {
-                    const $tr = $(tr);
-                    const invId = ($tr.find('.inventoryIdField').val() || '').trim();
-                    const qty = parseFloat(($tr.find('input[name="qty[]"]').val() || '0').replace(
-                        ',', '.'));
-                    return invId !== '' && qty > 0;
-                });
-                if (!hasValid) {
-                    toastr.error('Minimal 1 item detail harus dipilih (Product Name & Qty > 0).');
-                    return;
-                }
-
-                // ===== VALIDASI SETIAP BARIS (wajib: Product, Qty, UoM, Location, Sub Location, COA) =====
-                clearDetailErrors();
-                let anyInvalid = false;
-
-                $('#spbTable tr.spb-row').each(function() {
-                    const $tr = $(this);
-
-                    const $prodHidden = $tr.find('.inventoryIdField');
-                    const $prodVis = $tr.find('.productNameField');
-
-                    const $qty = $tr.find('input[name="qty[]"]');
-
-                    const $uomVis = $tr.find('.stock_unitField'); // yang terlihat
-                    const $uomTo = $tr.find('.uomToField'); // hidden (hasil pilih UoM)
-
-                    const $locHidden = $tr.find('.locationIdField');
-                    // const $locVis = $tr.find('.locationNameField');
-
-                    const $subHidden = $tr.find('.subLocationIdField');
-                    // const $subVis = $tr.find('.subLocationNameField');
-
-                    const $coaHidden = $tr.find('.coaIdField');
-                    const $coaVis = $tr.find('.coaNameField');
-
-                    // Anggap baris "aktif" kalau ada salah satu kolom terisi
-                    const active = [
-                        $prodHidden.val(), $qty.val(),
-                        $locHidden.val(), $subHidden.val(), $coaHidden.val()
-                    ].some(v => (v || '').toString().trim() !== '');
-
-                    if (!active) return; // baris kosong → lewati
-
-                    // Product
-                    if (($prodHidden.val() || '').trim() === '') {
-                        addDetailError($prodVis, 'Product wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Qty
-                    const qNum = parseFloat(($qty.val() || '').replace(',', '.'));
-                    if (!(qNum > 0)) {
-                        addDetailError($qty, 'Qty harus > 0.');
-                        anyInvalid = true;
-                    }
-
-                    // UoM (cek visible & hidden)
-                    const uomText = ($uomVis.val() || '').trim();
-                    if ((uomText === '' || uomText === '-') && (($uomTo.val() || '').trim() ===
-                            '')) {
-                        addDetailError($uomVis, 'UoM wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Location
-                    if (($locHidden.val() || '').trim() === '') {
-                        addDetailError($locVis, 'Location wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // Sub Location
-                    if (($subHidden.val() || '').trim() === '') {
-                        addDetailError($subVis, 'Sub Location wajib dipilih.');
-                        anyInvalid = true;
-                    }
-
-                    // COA
-                    if (($coaHidden.val() || '').trim() === '') {
-                        addDetailError($coaVis, 'Budget wajib dipilih.');
-                        anyInvalid = true;
-                    }
-                });
-
-                if (anyInvalid) {
-                    const $first = $('#spbTable .is-invalid').first();
-                    if ($first.length) {
-                        $('html,body').animate({
-                            scrollTop: $first.offset().top - 120
-                        }, 300);
-                        $first.trigger('focus');
-                    }
-                    toastr.error('Mohon lengkapi field wajib di SPB Detail (bertanda *).');
-                    return;
-                }
-
                 // ============== lock UI ==============
-                $('#submitBtn, #cancelBtn').prop('disabled', true);
-                $('#btnText').text('Processing...');
+                $('#submitBtn, #saveDraftBtn, #cancelBtn').prop('disabled', true);
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
                 // $('#loadingSpinner').removeClass('hidden');
-                showOverlay('Submitting');
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 // Kirim ke route update (pakai action form sendiri)
                 const form = document.getElementById('spbForm');
@@ -1254,7 +1265,9 @@
                     processData: false,
                     contentType: false,
                     success: function(res) {
-                        toastr.success(res.message || "SPB updated successfully!");
+                        toastr.success(res.message || (isDraft ?
+                            "SPB saved as draft!" :
+                            "SPB updated successfully!"));
                         window.location.href = "/spbs";
                     },
                     error: function(xhr) {
@@ -1272,12 +1285,23 @@
                         }
                     },
                     complete: function() {
-                        $('#submitBtn, #cancelBtn').prop('disabled', false);
+                        $('#submitBtn, #saveDraftBtn, #cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
+                        $('#draftBtnText').text('Save as Draft');
                         // $('#loadingSpinner').addClass('hidden');
                         hideOverlay();
                     }
                 });
+            }
+
+            $('#spbForm').on('submit', function(e) {
+                e.preventDefault();
+                submitSpbForm(false);
+            });
+
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                submitSpbForm(true);
             });
 
             // ===== Cancel Button =====

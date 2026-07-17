@@ -564,29 +564,29 @@ D - DRAFT
 
 
     /* =====================================================
-H / HOLD
+H - DRAFT
 ===================================================== */
 
     .status-filter[data-status="H"] .status-card,
     .status-filter[data-status="H,D"] .status-card {
 
-        background: rgba(253, 224, 71, .18);
-        border-color: rgba(202, 138, 4, .35);
-        color: #a16207;
+        background: rgba(219, 39, 119, .18);
+        border-color: rgba(190, 24, 93, .35);
+        color: #be185d;
 
     }
 
     .status-filter[data-status="H"]:hover .status-card,
     .status-filter[data-status="H,D"]:hover .status-card {
 
-        background: rgba(253, 224, 71, .28);
+        background: rgba(219, 39, 119, .28);
 
     }
 
     .status-filter[data-status="H"].active .status-card,
     .status-filter[data-status="H,D"].active .status-card {
 
-        background: #fde68a;
+        background: #fbcfe8;
 
     }
 
@@ -753,9 +753,9 @@ DARK MODE STATUS COLORS
 
     .dark .status-filter[data-status="H"] .status-card,
     .dark .status-filter[data-status="H,D"] .status-card {
-        background: rgba(253, 224, 71, .10);
-        border-color: rgba(253, 224, 71, .35);
-        color: #fde68a;
+        background: rgba(219, 39, 119, .10);
+        border-color: rgba(219, 39, 119, .35);
+        color: #f9a8d4;
     }
 
     .dark .status-filter[data-status="C"] .status-card {

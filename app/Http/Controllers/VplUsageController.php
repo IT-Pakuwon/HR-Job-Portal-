@@ -101,8 +101,14 @@ class VplUsageController extends Controller
 
         $initialId = $eid ? (Hashids::decode($eid)[0] ?? null) : null;
 
+        $purposes = MsCategory::where('doctype', self::DOCTYPE)
+            ->where('categoryid', 'type')
+            ->where('groups', 'PURPOSE')
+            ->where('status', 'A')
+            ->pluck('category_name');
+
         return view('pages.voucher_product.usage', compact(
-            'user', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'counts', 'initialId'
+            'user', 'usercpny', 'usercpny2', 'userdept', 'userdept2', 'counts', 'initialId', 'purposes'
         ));
     }
 
@@ -226,14 +232,18 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Reference Usage Doc is required for Return.'], 422);
         }
 
-        // CUSTOMERSERVICE Usage docs may be backdated up to H-14 (e.g. logging usage
+        if (!$request->filled('usage_remark')) {
+            return response()->json(['error' => 'Remark is required.'], 422);
+        }
+
+        // CUSTOMERSERVICE Usage docs may be backdated up to H-3 (e.g. logging usage
         // recorded late); every other department/type is always dated "today".
         $usageDate = $dt->copy();
         if ($request->department === 'CUSTOMERSERVICE' && $usagetype === 'Usage' && $request->filled('usage_date')) {
             $usageDate = Carbon::parse($request->usage_date)->startOfDay();
             $today = $dt->copy()->startOfDay();
-            if ($usageDate->lt($today->copy()->subDays(14)) || $usageDate->gt($today)) {
-                return response()->json(['error' => 'Usage Date must be within H-14 to today.'], 422);
+            if ($usageDate->lt($today->copy()->subDays(3)) || $usageDate->gt($today)) {
+                return response()->json(['error' => 'Usage Date must be within H-3 to today.'], 422);
             }
         }
 
@@ -268,10 +278,6 @@ class VplUsageController extends Controller
             }
         }
 
-        // CUSTOMERSERVICE Usage docs skip the normal ms_approval chain entirely —
-        // there is only ever one "approver": the creator, auto-approved on submit.
-        $isAutoApprove = $request->department === 'CUSTOMERSERVICE' && $usagetype === 'Usage';
-
         $autonbr = $this->nextAutonbr(
             self::DOCTYPE,
             $dt->year,
@@ -280,10 +286,10 @@ class VplUsageController extends Controller
             self::DOCTYPE_DSC
         );
         $tglbln = substr((string) $dt->year, 2).sprintf('%02d', (int) $autonbr['month']);
-        $docid = self::DOCTYPE.$tglbln.sprintf('%03d', $autonbr['next']);
+        $docid = self::DOCTYPE.$tglbln.sprintf('%04d', $autonbr['next']);
 
         try {
-            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $usageDate, $docid, $vp_type, $usagetype, $isAutoApprove, &$usage) {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $usageDate, $docid, $vp_type, $usagetype, &$usage) {
                 $usage = TrxVplUsage::create([
                     'usage_id' => $docid,
                     'usage_date' => $usageDate->format('Y-m-d'),
@@ -327,17 +333,9 @@ class VplUsageController extends Controller
 
                 // Hold stock: Usage reserves, Return releases the hold
                 $this->adjustReservation($docid, +1);
-
-                if ($isAutoApprove) {
-                    $this->autoApproveCustomerService($usage, $user, $dt);
-                }
             });
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 422);
-        }
-
-        if ($isAutoApprove) {
-            return response()->json(['success' => 'Usage document saved and auto-approved.']);
         }
 
         // Generate approvals after the detail/reservation transaction commits
@@ -375,6 +373,10 @@ class VplUsageController extends Controller
         $user = Auth::user();
         $dt = Carbon::now();
         $usage = TrxVplUsage::find($id);
+
+        if (!$request->filled('usage_remark')) {
+            return response()->json(['error' => 'Remark is required.'], 422);
+        }
 
         if ($request->has('addmore')) {
             $line = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->max('linenbr') ?? 0;
@@ -672,6 +674,11 @@ class VplUsageController extends Controller
         return response()->json($whs);
     }
 
+    /**
+     * Aggregated per-product stock list for the "Select Product" picker.
+     * Batches are summed across expiry — the user picks a product + total
+     * qty, and pickFefoStock() works out which batches to draw from.
+     */
     public function getUsageProducts(Request $request)
     {
         $vp_type = strtoupper($request->vp_type);
@@ -681,20 +688,83 @@ class VplUsageController extends Controller
             ->select(
                 'ms_vpl_product.product_id',
                 DB::raw("CONCAT(ms_vpl_product.product_name,' / ',ms_vpl_product.product_value,' / ',ms_vpl_product.product_uom) AS product_name"),
-                'ms_vpl_product_detail.expired_date',
-                'ms_vpl_product_detail.qty_available',
-                DB::raw('COALESCE(ms_vpl_product_detail.qty_reserved, 0) AS qty_reserved'),
-                DB::raw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_pickable'),
-                'ms_vpl_product_detail.whs_id'
+                DB::raw('SUM(ms_vpl_product_detail.qty_available) AS qty_available'),
+                DB::raw('SUM(COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_reserved'),
+                DB::raw('SUM(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_pickable'),
+                DB::raw('MIN(ms_vpl_product_detail.expired_date) AS nearest_expired_date')
             )
             ->where('ms_vpl_product.cpnyid', $request->cpnyid)
             ->where('ms_vpl_product.product_type', $vp_type)
             ->where('ms_vpl_product_detail.whs_id', $whsId)
-            ->whereRaw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) > 0')
-            ->orderBy('ms_vpl_product_detail.expired_date')
+            ->groupBy('ms_vpl_product.product_id', 'ms_vpl_product.product_name', 'ms_vpl_product.product_value', 'ms_vpl_product.product_uom')
+            ->havingRaw('SUM(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) > 0')
+            ->orderBy('ms_vpl_product.product_id')
             ->get();
 
         return response()->json($products);
+    }
+
+    /**
+     * FEFO auto-split: given a product + desired total qty, draws from the
+     * nearest-expiry batch first, only moving to the next batch once the
+     * current one is exhausted. Returns the per-batch breakdown (no DB
+     * writes — Usage builds its detail lines client-side until submit).
+     */
+    public function pickFefoStock(Request $request)
+    {
+        $vp_type = strtoupper($request->vp_type);
+        $whsId = $request->whs_id;
+        $productId = $request->product_id;
+        $qtyNeeded = (float) $request->qty;
+
+        if ($qtyNeeded <= 0) {
+            return response()->json(['error' => 'Qty must be greater than 0.'], 422);
+        }
+
+        $product = MsVplProduct::where('product_id', $productId)
+            ->where('cpnyid', $request->cpnyid)
+            ->where('product_type', $vp_type)
+            ->first();
+
+        if (!$product) {
+            return response()->json(['error' => 'Product not found.'], 404);
+        }
+
+        $productName = trim($product->product_name.' / '.$product->product_value.' / '.$product->product_uom);
+
+        $batches = MsVplProductDetail::where('product_id', $productId)
+            ->where('whs_id', $whsId)
+            ->orderBy('expired_date', 'ASC')
+            ->get();
+
+        $remaining = $qtyNeeded;
+        $breakdown = [];
+
+        foreach ($batches as $batch) {
+            if ($remaining <= 0) {
+                break;
+            }
+            $pickable = $batch->qty_available - ($batch->qty_reserved ?? 0);
+            if ($pickable <= 0) {
+                continue;
+            }
+            $take = min($pickable, $remaining);
+            $breakdown[] = [
+                'product_id' => $productId,
+                'product_name' => $productName,
+                'expired_date' => $batch->expired_date,
+                'whs_id' => $batch->whs_id,
+                'qty' => $take,
+                'qty_available' => $pickable,
+            ];
+            $remaining -= $take;
+        }
+
+        if ($remaining > 0) {
+            return response()->json(['error' => 'Insufficient stock for '.$productName.'. Short by '.$remaining.'.'], 422);
+        }
+
+        return response()->json($breakdown);
     }
 
     public function getReturnRefOptions(Request $request)
@@ -791,49 +861,6 @@ class VplUsageController extends Controller
             'message' => $message,
             'created_by' => $user->name,
         ]);
-    }
-
-    /**
-     * CUSTOMERSERVICE Usage docs have no ms_approval chain — the creator is the
-     * sole, automatic approver. Records a single approved TrApproval row (for
-     * audit/history parity with the normal flow), completes the document, and
-     * finalizes stock immediately. Throws (rolling back the transaction) if
-     * stock is insufficient, mirroring the check normally done in approve().
-     */
-    private function autoApproveCustomerService(TrxVplUsage $usage, $user, Carbon $dt): void
-    {
-        foreach (TrxVplUsageDetail::where('usage_id', $usage->usage_id)->get() as $detail) {
-            $stock = MsVplProductDetail::where('product_id', $detail->product_id)
-                ->where('expired_date', $detail->expired_date)
-                ->where('whs_id', $detail->whs_id)
-                ->first();
-            if (!$stock || $stock->qty_available < $detail->qty_usage) {
-                $productName = MsVplProduct::where('product_id', $detail->product_id)->value('product_name') ?? $detail->product_id;
-                throw new \RuntimeException('Insufficient stock for '.$productName.' (Expired: '.$detail->expired_date.').');
-            }
-        }
-
-        TrApproval::create([
-            'refnbr' => $usage->usage_id,
-            'aprv_leveling' => '1',
-            'aprv_doctype' => self::DOCTYPE,
-            'aprv_cpnyid' => $usage->cpnyid,
-            'aprv_departementid' => $usage->department,
-            'aprv_username' => $user->username,
-            'aprv_name' => $user->name,
-            'aprv_type' => 'Normal',
-            'aprv_datebefore' => $dt,
-            'aprv_dateafter' => $dt,
-            'status' => 'A',
-            'created_by' => $user->name,
-        ]);
-
-        $usage->status = 'C';
-        $usage->completed_user = $user->username;
-        $usage->completed_at = $dt->toDateTimeString();
-        $usage->save();
-
-        $this->finalizeStock($usage->id);
     }
 
     /**

@@ -75,6 +75,11 @@ class SpbController extends Controller
                     ->whereIn('department_id', $deptIds)
                     ->count();
 
+        $draft = TrSPB::where('status', 'H')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
         $completed = TrSPB::where('status', 'C')
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -87,14 +92,14 @@ class SpbController extends Controller
 
         $tracking = TrSPB::whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds)
-            ->whereNotIn('status', ['R', 'D']) // ✅ align with table
+            ->whereNotIn('status', ['R', 'D', 'H']) // ✅ align with table
             ->count();
 
         $allListCount = TrSPB::whereIn('cpny_id', $cpnyIds)
             ->whereIn('status', ['P', 'C'])
             ->count();
 
-        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'tracking', 'allListCount'));
+        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'draft', 'completed', 'tracking', 'allListCount'));
     }
 
     public function json(Request $request)
@@ -305,7 +310,7 @@ class SpbController extends Controller
             ->leftJoin('tr_wo as wo', 'wo.woid', '=', 'spb.woid') // ✅ ADD THIS
             ->whereIn('spb.cpny_id', $cpnyIds)
             ->whereIn('spb.department_id', $deptIds)
-            ->whereNotIn('spb.status', ['R', 'D']);
+            ->whereNotIn('spb.status', ['R', 'D', 'H']);
 
         if ($search !== '') {
             $base->where(function ($q) use ($search) {
@@ -498,6 +503,7 @@ class SpbController extends Controller
         $doctype = 'RB';
         $user = $request->user();
         $username = $user->username ?? 'system';
+        $isDraft = $request->boolean('is_draft');
         $dt = Carbon::now();
         $year = (int) $dt->year;
         $month = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
@@ -564,7 +570,10 @@ class SpbController extends Controller
 
         // ===== generate TrApproval dari MsApproval (cek garis approval dulu) =====
         $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+
+        if (!$isDraft) {
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         DB::beginTransaction();
         try {
@@ -613,15 +622,17 @@ class SpbController extends Controller
                 $hasValid = true;
             }
 
-            if (!$hasValid) {
-                DB::rollBack();
+            if (!$isDraft) {
+                if (!$hasValid) {
+                    DB::rollBack();
 
-                return response()->json(['message' => 'Minimal 1 baris detail dengan Product & Qty > 0.'], 422);
-            }
-            if ($errors) {
-                DB::rollBack();
+                    return response()->json(['message' => 'Minimal 1 baris detail dengan Product & Qty > 0.'], 422);
+                }
+                if ($errors) {
+                    DB::rollBack();
 
-                return response()->json(['message' => implode(' ', $errors)], 422);
+                    return response()->json(['message' => implode(' ', $errors)], 422);
+                }
             }
 
             // === Header (TrSPB) ===
@@ -645,7 +656,7 @@ class SpbController extends Controller
             $header->totalcompleteqty = 0;
 
             // status header
-            $header->status = 'P';       // Pending / Process
+            $header->status = $isDraft ? 'H' : 'P';       // Pending / Process / Draft
             $header->status_issue = 'Open';    // sesuai rule: issueQty=0
             $header->status_sppb = 'Open';    // sesuai rule: sppbqty=0
 
@@ -752,7 +763,7 @@ class SpbController extends Controller
                 $grandTotalCost += $lineTotalCost;
             }
 
-            if ($totalQty <= 0) {
+            if (!$isDraft && $totalQty <= 0) {
                 DB::rollBack();
 
                 return response()->json(['message' => 'Tidak ada detail valid untuk disimpan.'], 422);
@@ -772,20 +783,22 @@ class SpbController extends Controller
             $header->save();
 
             // === Approval generate ===
-            $worktypeid = strtoupper(trim((string) ($request->input('worktypeid') ?? '')));
-            $ctx = ['ignore_nominal' => true];
+            if (!$isDraft) {
+                $worktypeid = strtoupper(trim((string) ($request->input('worktypeid') ?? '')));
+                $ctx = ['ignore_nominal' => true];
 
-            if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
-                $ctx['approval_conditions'] = [$worktypeid];
-            }
+                if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
+                    $ctx['approval_conditions'] = [$worktypeid];
+                }
 
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid, $doctype, $request->cpnyid, $request->departementid, $username, $ctx, $dt
-            );
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $docid, $doctype, $request->cpnyid, $request->departementid, $username, $ctx, $dt
+                );
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
+                }
             }
 
             // === Attachments (opsional) ===
@@ -805,22 +818,27 @@ class SpbController extends Controller
 
             // === Notif approver pertama ===
             $eid = Hashids::encode($header->id);
-            $approvalCtl->notifyFirstApprover(
-                $docid, $doctype, $header->status, 'SPB',
-                url('/showspbs/'.$eid),
-                [
-                    'info' => $request->input('keperluan'),
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $docid, $doctype, $header->status, 'SPB',
+                    url('/showspbs/'.$eid),
+                    [
+                        'info' => $request->input('keperluan'),
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'SPB created successfully',
+                'message' => $isDraft ? 'SPB saved as draft' : 'SPB created successfully',
                 'spbid' => $docid,
                 'totalqty' => $totalQty,
+                'eid' => $eid,
+                'is_draft' => $isDraft,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -1058,12 +1076,15 @@ class SpbController extends Controller
         $datestamp = $dt->toDateTimeString();
         $doctype = 'RB';
         $username = $user->username ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         // helper normalisasi angka lokal
         $toFloat = function ($v): ?float {
@@ -1130,7 +1151,7 @@ class SpbController extends Controller
                 'keperluan' => $request->keperluan,
                 'budget_perpost' => $request->perpost,
                 'woid' => $request->woid,
-                'status' => 'P',
+                'status' => $isDraft ? 'H' : 'P',
                 'updated_by' => $username,
             ])->save();
 
@@ -1240,33 +1261,36 @@ class SpbController extends Controller
                 'totalspbqty' => $totalQty,  // sama dengan qty saat baru/diupdate
                 'totalissueqty' => 0,
                 'totalcompleteqty' => 0,
+                'status' => $isDraft ? 'H' : 'P',
                 'updated_by' => $username,
             ])->save();
 
             // === Approval generate ===
-            $worktypeid = strtoupper(trim((string) ($request->worktypeid ?? '')));
-            $ctx = ['ignore_nominal' => true];
+            if (!$isDraft) {
+                $worktypeid = strtoupper(trim((string) ($request->worktypeid ?? '')));
+                $ctx = ['ignore_nominal' => true];
 
-            if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
-                $ctx['approval_conditions'] = [$worktypeid];
-            }
+                if (!isset($ctx['approval_conditions']) && $worktypeid !== '') {
+                    $ctx['approval_conditions'] = [$worktypeid];
+                }
 
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $header->spbid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $header->spbid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
+                }
             }
 
             // === Upload attachments (tetap seperti store) ===
@@ -1297,26 +1321,30 @@ class SpbController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $header->spbid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPB',
-                url('/showspbs/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $header->spbid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPB',
+                    url('/showspbs/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'SPB updated successfully',
+                'message' => $isDraft ? 'SPB saved as draft' : 'SPB updated successfully',
                 'spbid' => $header->spbid,
                 'totalspbqty' => $header->totalspbqty,
                 'attachments' => $uploadResult,
+                'eid' => $eid,
+                'is_draft' => $isDraft,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();

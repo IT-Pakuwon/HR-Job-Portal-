@@ -141,13 +141,16 @@
             </button>
         </div>
         <div class="p-4">
+            <p class="mb-2 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first; if one batch can't cover the qty, the rest is split from the next batch automatically.</p>
             <table id="productSearchTable" class="min-w-full text-sm" style="width:100%">
                 <thead>
                     <tr class="bg-slate-50 dark:bg-white/[0.03]">
                         <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Product ID</th>
                         <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Product Name</th>
-                        <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Expired Date</th>
+                        <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Nearest Expiry</th>
+                        <th class="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">Reserved</th>
                         <th class="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">Qty Available</th>
+                        <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Qty</th>
                         <th class="px-3 py-2"></th>
                     </tr>
                 </thead>
@@ -228,7 +231,7 @@
                         <div id="c_usage_date_wrapper" class="hidden">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Usage Date <span class="text-red-500">*</span></label>
                             <input type="date" name="usage_date" id="c_usage_date" class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white">
-                            <p class="mt-1 text-xs text-slate-400">CUSTOMERSERVICE can backdate up to H-14.</p>
+                            <p class="mt-1 text-xs text-slate-400">CUSTOMERSERVICE can backdate up to H-3.</p>
                         </div>
                         <div id="c_whs_wrapper" class="md:col-span-4">
                             <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Warehouse <span class="text-red-500">*</span></label>
@@ -238,8 +241,8 @@
                             <p class="mt-1 text-xs text-slate-400">Your department may have more than one usage warehouse assigned — pick the one to draw stock from.</p>
                         </div>
                         <div class="md:col-span-4">
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark</label>
-                            <textarea name="usage_remark" id="c_remark" rows="2" placeholder="Enter remarks..."
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
+                            <textarea name="usage_remark" id="c_remark" rows="2" placeholder="Enter remarks..." required
                                 class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
                         </div>
                     </div>
@@ -583,8 +586,8 @@
                             <input type="text" id="e_ref_display" readonly class="h-11 w-full rounded-lg border border-slate-200 bg-slate-100 px-4 text-sm dark:border-white/10 dark:bg-white/[0.04]">
                         </div>
                         <div class="md:col-span-3">
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark</label>
-                            <textarea name="usage_remark" id="e_remark" rows="2"
+                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
+                            <textarea name="usage_remark" id="e_remark" rows="2" required
                                 class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
                         </div>
                     </div>
@@ -756,6 +759,7 @@
         store:      '{{ route("usagevp.store") }}',
         warehouse:  '{{ route("usagevp.warehouse") }}',
         products:   '{{ route("usagevp.products") }}',
+        fefoPick:   '{{ route("usagevp.fefo-pick") }}',
         refOpts:    '{{ route("usagevp.ref-options") }}',
         refDetails: '{{ route("usagevp.ref-details") }}',
         delDetail:  '{{ route("usagevp.detail.delete") }}',
@@ -769,6 +773,7 @@
         message: (id) => `{{ url("usagevp") }}/${id}/message`,
         show: (eid) => `{{ url("showusagevp") }}/${eid}`,
         initialId: {{ $initialId ?? 'null' }},
+        purposes: @json($purposes),
     };
 </script>
 

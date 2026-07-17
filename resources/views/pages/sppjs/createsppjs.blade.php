@@ -4,6 +4,7 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="sppjForm" class="flex flex-col gap-4" enctype="multipart/form-data" novalidate>
                     @csrf
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
 
                         <!-- Header -->
@@ -876,7 +877,12 @@
                                 <span>Back</span>
                             </button>
 
-                            <div class="flex justify-start md:justify-end">
+                            <div class="flex justify-start gap-3 md:justify-end">
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
+                                </button>
+
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
@@ -1049,167 +1055,143 @@
 
             
 
-            $('#sppjForm').on('submit', function(e) {
-                e.preventDefault();
-
+            function submitSppjForm(isDraft) {
                 clearAllErrors('#sppjForm');
-                
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                // =========================
-                // Header validation
-                // =========================
-                let headerOk = true;
+                if (!isDraft) {
+                    // =========================
+                    // Header validation
+                    // =========================
+                    let headerOk = true;
 
-                const $cpny = $('select[name="cpnyid"]');
-                const $dept = $('select[name="departementid"]');
-                const $perpost = $('#perpost');
-                const $bqtype = $('#bqtype');
-                const $desc = $('#keperluan');
+                    const $cpny = $('select[name="cpnyid"]');
+                    const $dept = $('select[name="departementid"]');
+                    const $perpost = $('#perpost');
+                    const $bqtype = $('#bqtype');
+                    const $desc = $('#keperluan');
 
-                const $rtHidden = $('#requesttypeid'); // hidden input
-                const $rtDisplay = $('#requesttype_name_display'); // readonly display
+                    const $rtHidden = $('#requesttypeid'); // hidden input
+                    const $rtDisplay = $('#requesttype_name_display'); // readonly display
 
-                if (!$cpny.val()) {
-                    addError($cpny, 'Company wajib dipilih.');
-                    headerOk = false;
-                }
-
-                if (!$dept.val()) {
-                    addError($dept, 'Department wajib dipilih.');
-                    headerOk = false;
-                }
-
-                if (!$perpost.val()) {
-                    addError($perpost, 'Perpost wajib dipilih.');
-                    headerOk = false;
-                }
-
-                // Request Type (hidden)
-                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
-                    addError($rtDisplay, 'Request Type wajib dipilih.');
-                    headerOk = false;
-                }
-
-                // BQ Type wajib pilih
-                if (!$bqtype.val() || !$bqtype.val().trim()) {
-                    addError($bqtype, 'BQ Type wajib dipilih.');
-                    headerOk = false;
-                }
-
-                // Description wajib
-                if (!$desc.val() || !$desc.val().trim()) {
-                    addError($desc, 'Description wajib diisi.');
-                    headerOk = false;
-                }
-
-                if (!headerOk) {
-                    const $first = $('#sppjForm .is-invalid').first();
-                    if ($first.length) {
-                        $('html,body').animate({
-                            scrollTop: $first.offset().top - 120
-                        }, 300);
-                        $first.trigger('focus');
+                    if (!$cpny.val()) {
+                        addError($cpny, 'Company wajib dipilih.');
+                        headerOk = false;
                     }
-                    toastr.error('Mohon lengkapi field wajib di bagian header.');
-                    return;
-                }
-                // =========================
-                // Attachment validation
-                // =========================
-                // let attachmentOk = false;
 
-                // $('#attachmentsContainer input[type="file"]').each(function() {
-                //     if (this.files && this.files.length > 0) {
-                //         attachmentOk = true;
-                //         return false; // stop loop
-                //     }
-                // });
+                    if (!$dept.val()) {
+                        addError($dept, 'Department wajib dipilih.');
+                        headerOk = false;
+                    }
 
-                // if (!attachmentOk) {
-                //     toastr.error('Minimal 1 attachment wajib diupload.');
+                    if (!$perpost.val()) {
+                        addError($perpost, 'Perpost wajib dipilih.');
+                        headerOk = false;
+                    }
 
-                //     const $firstFile = $('#attachmentsContainer input[type="file"]').first();
-                //     $firstFile.addClass('is-invalid');
+                    // Request Type (hidden)
+                    if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                        addError($rtDisplay, 'Request Type wajib dipilih.');
+                        headerOk = false;
+                    }
 
-                //     $('html,body').animate({
-                //         scrollTop: $firstFile.offset().top - 120
-                //     }, 300);
+                    // BQ Type wajib pilih
+                    if (!$bqtype.val() || !$bqtype.val().trim()) {
+                        addError($bqtype, 'BQ Type wajib dipilih.');
+                        headerOk = false;
+                    }
 
-                //     return;
-                // }
+                    // Description wajib
+                    if (!$desc.val() || !$desc.val().trim()) {
+                        addError($desc, 'Description wajib diisi.');
+                        headerOk = false;
+                    }
 
-                // =========================
-                // Attachment validation (by BQ Type)
-                // =========================
-                const bqTypeVal = ($('#bqtype').val() || '').trim();
-
-                if (bqTypeVal === 'Kontrak') {
-                    let kontrakOk = true;
-                    let $firstInvalid = null;
-
-                    // cek semua doc mandatory
-                    $('#attachmentModeKontrak .kontrak-doc-row').each(function() {
-                        const $row = $(this);
-                        const required = String($row.data('required')) === '1';
-                        if (!required) return;
-
-                        const $file = $row.find('input[type="file"].kontrakFileInput');
-                        const hasFile = ($file[0] && $file[0].files && $file[0].files.length > 0);
-
-                        if (!hasFile) {
-                            kontrakOk = false;
-
-                            $file.addClass('is-invalid').attr('aria-invalid', 'true');
-                            if ($file.next('.error-feedback').length === 0) {
-                                $file.after(
-                                    '<small class="error-feedback">Dokumen ini wajib diupload.</small>'
-                                );
-                            }
-
-                            if (!$firstInvalid) $firstInvalid = $file;
-                        }
-                    });
-
-                    if (!kontrakOk) {
-                        toastr.error('Mohon upload semua dokumen kontrak yang mandatory.');
-                        if ($firstInvalid && $firstInvalid.length) {
+                    if (!headerOk) {
+                        const $first = $('#sppjForm .is-invalid').first();
+                        if ($first.length) {
                             $('html,body').animate({
-                                scrollTop: $firstInvalid.offset().top - 120
+                                scrollTop: $first.offset().top - 120
                             }, 300);
-                            $firstInvalid.trigger('focus');
+                            $first.trigger('focus');
                         }
+                        toastr.error('Mohon lengkapi field wajib di bagian header.');
                         return;
                     }
 
-                } else {
-                    // default: Jasa => minimal 1 file
-                    let jasaOk = false;
+                    // =========================
+                    // Attachment validation (by BQ Type)
+                    // =========================
+                    const bqTypeVal = ($('#bqtype').val() || '').trim();
 
-                    $('#attachmentsContainer input[type="file"]').each(function() {
-                        if (this.files && this.files.length > 0) {
-                            jasaOk = true;
-                            return false;
+                    if (bqTypeVal === 'Kontrak') {
+                        let kontrakOk = true;
+                        let $firstInvalid = null;
+
+                        // cek semua doc mandatory
+                        $('#attachmentModeKontrak .kontrak-doc-row').each(function() {
+                            const $row = $(this);
+                            const required = String($row.data('required')) === '1';
+                            if (!required) return;
+
+                            const $file = $row.find('input[type="file"].kontrakFileInput');
+                            const hasFile = ($file[0] && $file[0].files && $file[0].files.length > 0);
+
+                            if (!hasFile) {
+                                kontrakOk = false;
+
+                                $file.addClass('is-invalid').attr('aria-invalid', 'true');
+                                if ($file.next('.error-feedback').length === 0) {
+                                    $file.after(
+                                        '<small class="error-feedback">Dokumen ini wajib diupload.</small>'
+                                    );
+                                }
+
+                                if (!$firstInvalid) $firstInvalid = $file;
+                            }
+                        });
+
+                        if (!kontrakOk) {
+                            toastr.error('Mohon upload semua dokumen kontrak yang mandatory.');
+                            if ($firstInvalid && $firstInvalid.length) {
+                                $('html,body').animate({
+                                    scrollTop: $firstInvalid.offset().top - 120
+                                }, 300);
+                                $firstInvalid.trigger('focus');
+                            }
+                            return;
                         }
-                    });
 
-                    if (!jasaOk) {
-                        toastr.error('Minimal 1 attachment wajib diupload.');
+                    } else {
+                        // default: Jasa => minimal 1 file
+                        let jasaOk = false;
 
-                        const $firstFile = $('#attachmentsContainer input[type="file"]').first();
-                        $firstFile.addClass('is-invalid');
+                        $('#attachmentsContainer input[type="file"]').each(function() {
+                            if (this.files && this.files.length > 0) {
+                                jasaOk = true;
+                                return false;
+                            }
+                        });
 
-                        $('html,body').animate({
-                            scrollTop: $firstFile.offset().top - 120
-                        }, 300);
+                        if (!jasaOk) {
+                            toastr.error('Minimal 1 attachment wajib diupload.');
 
-                        return;
+                            const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                            $firstFile.addClass('is-invalid');
+
+                            $('html,body').animate({
+                                scrollTop: $firstFile.offset().top - 120
+                            }, 300);
+
+                            return;
+                        }
                     }
+
+                    // =========================
+                    // Detail validation
+                    // =========================
+                    if (!validateDetails()) return;
                 }
-
-                // =========================
-                // Detail validation
-                // =========================
-                if (!validateDetails()) return;
 
                 // konversi qty: koma → titik setelah lolos validasi
                 $('.qtyField').each(function() {
@@ -1218,9 +1200,14 @@
 
                 // --- Lock UI
                 $('#submitBtn').prop('disabled', true);
+                $('#saveDraftBtn').prop('disabled', true);
                 // $('#cancelBtn').prop('disabled', true);
-                $('#btnText').text('Processing...');
-                showOverlay('Submitting');
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 const formData = new FormData(document.getElementById('sppjForm'));
 
@@ -1232,7 +1219,9 @@
                         contentType: false
                     })
                     .done(function(res) {
-                        toastr.success(res.message || "Sppj Requisition Submit Successfully!");
+                        toastr.success(res.message || (isDraft ?
+                            "Sppj Requisition Saved as Draft!" :
+                            "Sppj Requisition Submit Successfully!"));
                         window.location.href = "/sppjs";
                     })
                     .fail(function(xhr) {
@@ -1250,10 +1239,22 @@
                     })
                     .always(function() {
                         $('#submitBtn').prop('disabled', false);
+                        $('#saveDraftBtn').prop('disabled', false);
                         // $('#cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
+                        $('#draftBtnText').text('Save as Draft');
                         hideOverlay();
                     });
+            }
+
+            $('#sppjForm').on('submit', function(e) {
+                e.preventDefault();
+                submitSppjForm(false);
+            });
+
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                submitSppjForm(true);
             });
 
             $(document).on('change', '#attachmentsContainer input[type="file"]', function() {

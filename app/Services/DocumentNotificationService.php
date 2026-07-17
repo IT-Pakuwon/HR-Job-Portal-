@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Vinkla\Hashids\Facades\Hashids;
 use App\Models\MsTicketCategoryDept;
+use App\Models\MsVplProduct;
+use App\Models\MsVplProductDetail;
 use App\Models\Personnel;
 use App\Models\SysCalendar;
 use App\Models\SysUserRole;
@@ -665,6 +667,73 @@ class DocumentNotificationService
             }
         } catch (\Throwable $e) {
             Log::warning('DocumentNotificationService: TrRfp Hold fetch failed', ['err' => $e->getMessage()]);
+        }
+
+        // ── 11. VPL Stock Expiry Reminders — Voucher batches (product_type=V) go to
+        //       VPCOLLACCESS holders, Product batches (product_type=P) go to VPPRMTNACCESS
+        //       holders. Fires only on the exact day a still-in-stock batch is H-90/60/30/
+        //       14/7/3 from its expired_date (re-derived live on every buildForUser() call,
+        //       so it naturally stops appearing once the day no longer matches).
+        try {
+            $expiryRoleMap    = ['V' => 'VPCOLLACCESS', 'P' => 'VPPRMTNACCESS'];
+            $expiryThresholds = [90, 60, 30, 14, 7, 3];
+
+            $userRoleIds = SysUserRole::whereRaw('lower(trim(username)) = ?', [$username])
+                ->whereIn('role_id', array_values($expiryRoleMap))
+                ->where('status', 'A')
+                ->pluck('role_id')
+                ->all();
+
+            $userExpiryTypes = array_keys(array_filter(
+                $expiryRoleMap,
+                fn($roleId) => in_array($roleId, $userRoleIds, true)
+            ));
+
+            if (!empty($userExpiryTypes)) {
+                $placeholders = implode(',', array_fill(0, count($expiryThresholds), '?'));
+
+                $expiringBatches = MsVplProductDetail::query()
+                    ->join('ms_vpl_product', 'ms_vpl_product.product_id', '=', 'ms_vpl_product_detail.product_id')
+                    ->whereIn('ms_vpl_product.product_type', $userExpiryTypes)
+                    ->whereNotNull('ms_vpl_product_detail.expired_date')
+                    ->whereRaw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) > 0')
+                    ->whereRaw(
+                        "(ms_vpl_product_detail.expired_date::date - CURRENT_DATE) IN ({$placeholders})",
+                        $expiryThresholds
+                    )
+                    ->select(
+                        'ms_vpl_product_detail.id',
+                        'ms_vpl_product_detail.product_id',
+                        'ms_vpl_product_detail.expired_date',
+                        'ms_vpl_product_detail.cpnyid',
+                        'ms_vpl_product_detail.whs_id',
+                        DB::raw('(ms_vpl_product_detail.qty_available - COALESCE(ms_vpl_product_detail.qty_reserved, 0)) AS qty_pickable'),
+                        DB::raw('(ms_vpl_product_detail.expired_date::date - CURRENT_DATE) AS days_left'),
+                        'ms_vpl_product.product_name',
+                        'ms_vpl_product.product_type'
+                    )
+                    ->get();
+
+                $data = $data->concat($expiringBatches->map(function ($r) {
+                    $daysLeft  = (int) $r->days_left;
+                    $typeLabel = $r->product_type === 'V' ? 'Voucher' : 'Product';
+
+                    return [
+                        'key'        => 'VPLEXP_' . $r->product_id . '_' . $r->whs_id . '_' . optional($r->expired_date)->format('Ymd') . '_H' . $daysLeft,
+                        'hid'        => Hashids::encode($r->id),
+                        'docid'      => $r->product_id,
+                        'status'     => 'VPL_EXPIRING',
+                        'label'      => "Expiring in {$daysLeft}d",
+                        'message'    => "{$typeLabel} {$r->product_name} ({$r->whs_id}) — " . number_format($r->qty_pickable) . ' pcs still in stock, expiring on ' . optional($r->expired_date)->format('d M Y') . '.',
+                        'cpnyid'     => $r->cpnyid,
+                        'url'        => '/msproduct',
+                        'by'         => null,
+                        'updated_at' => $r->expired_date,
+                    ];
+                }));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('DocumentNotificationService: VPL expiry reminder fetch failed', ['err' => $e->getMessage()]);
         }
 
         return $data->sortByDesc(fn($r) => $r['updated_at'])->values()->all();

@@ -156,7 +156,7 @@
 
         {{-- ── Table ───────────────────────────────────────────────────────── --}}
         <div id="mainTableWrapper"
-            class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div
                 class="flex flex-col gap-3 border-b border-gray-100 px-5 py-3 lg:flex-row lg:items-center lg:justify-between dark:border-white/[0.06]">

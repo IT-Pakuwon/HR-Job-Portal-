@@ -40,21 +40,33 @@ const VplUsageForm = {
             columns: [
                 { data: 'product_id',   title: 'Product ID' },
                 { data: 'product_name', title: 'Product Name' },
-                { data: 'expired_date', title: 'Expired Date', render: (v) => v ? v.substring(0, 10) : '—' },
+                {
+                    data: 'nearest_expired_date', title: 'Nearest Expiry',
+                    render: (v) => v ? v.substring(0, 10) : '—',
+                },
+                {
+                    data: 'qty_reserved', title: 'Reserved',
+                    className: 'text-right text-amber-600',
+                    render: (v) => Number(v ?? 0).toLocaleString(),
+                },
                 {
                     data: 'qty_pickable', title: 'Available',
                     className: 'text-right font-semibold text-green-600',
                     render: (v) => Number(v ?? 0).toLocaleString(),
                 },
                 {
+                    data: null, title: 'Qty', orderable: false, searchable: false,
+                    render: (_, __, row) =>
+                        `<input type="number" class="fefo-qty-input w-24 rounded-lg border border-slate-200 px-2 py-1.5 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white"
+                            min="1" max="${row.qty_pickable ?? 0}" placeholder="Qty">`,
+                },
+                {
                     data: null, title: '', orderable: false, searchable: false,
                     render: (_, __, row) =>
-                        `<button type="button" class="btn-pick-product rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
+                        `<button type="button" class="btn-add-fefo rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
                             data-product-id="${row.product_id}"
                             data-product-name="${(row.product_name ?? '').replace(/"/g, '&quot;')}"
-                            data-qty-available="${row.qty_pickable ?? 0}"
-                            data-expired-date="${row.expired_date ?? ''}"
-                            data-whs-id="${row.whs_id ?? ''}">Select</button>`,
+                            data-available="${row.qty_pickable ?? 0}">Add</button>`,
                 },
             ],
             pageLength: 10,
@@ -114,10 +126,10 @@ const VplUsageForm = {
     },
 
     // ------------------------------------------------------------------
-    // USAGE DATE (CUSTOMERSERVICE backdate, H-14)
+    // USAGE DATE (CUSTOMERSERVICE backdate, H-3)
     // ------------------------------------------------------------------
 
-    USAGE_DATE_BACKDATE_DAYS: 14,
+    USAGE_DATE_BACKDATE_DAYS: 3,
 
     toggleUsageDateSection() {
         const dept      = document.getElementById('c_department')?.value ?? '';
@@ -127,6 +139,11 @@ const VplUsageForm = {
         const wrapper = document.getElementById('c_usage_date_wrapper');
         const input   = document.getElementById('c_usage_date');
         wrapper?.classList.toggle('hidden', !show);
+
+        // Share the row with Usage Date (1 col) instead of spanning full width.
+        const whsWrapper = document.getElementById('c_whs_wrapper');
+        whsWrapper?.classList.toggle('md:col-span-4', !show);
+        whsWrapper?.classList.toggle('md:col-span-3', show);
 
         if (show && input) {
             const today = new Date();
@@ -175,6 +192,38 @@ const VplUsageForm = {
     },
 
     // ------------------------------------------------------------------
+    // PURPOSE DROPDOWN (select2; CUSTOMERSERVICE Usage defaults to "Redeem PG Card")
+    // ------------------------------------------------------------------
+
+    DEFAULT_PURPOSE_DEPT:  'CUSTOMERSERVICE',
+    DEFAULT_PURPOSE_VALUE: 'Redeem PG Card',
+
+    /** Turns any not-yet-enhanced Purpose <select> in the given detail body into select2. */
+    initPurposeSelects(prefix) {
+        const modalId = prefix === 'c' ? 'createModal' : 'editModal';
+        $(`#${prefix}_detailBody select[name*="[purpose_id]"]`).each(function () {
+            const $el = $(this);
+            if (!$el.hasClass('select2-hidden-accessible')) {
+                $el.select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $(`#${modalId}`) });
+            }
+        });
+    },
+
+    /** CUSTOMERSERVICE Usage docs (create only): default every empty Purpose to "Redeem PG Card". */
+    applyDefaultPurpose() {
+        const dept      = document.getElementById('c_department')?.value ?? '';
+        const usageType = document.getElementById('c_usagetype')?.value ?? '';
+        if (dept !== VplUsageForm.DEFAULT_PURPOSE_DEPT || usageType !== 'Usage') return;
+
+        document.querySelectorAll('#c_detailBody select[name*="[purpose_id]"]').forEach((sel) => {
+            if (!sel.value) {
+                sel.value = VplUsageForm.DEFAULT_PURPOSE_VALUE;
+                $(sel).trigger('change');
+            }
+        });
+    },
+
+    // ------------------------------------------------------------------
     // REFERENCE USAGE DOC (Return mode)
     // ------------------------------------------------------------------
 
@@ -220,6 +269,7 @@ const VplUsageForm = {
                     body.insertAdjacentHTML('beforeend', VplUsageHelper.buildDetailRow(prefix, i, '', line));
                 });
                 VplUsage.state[mode === 'create' ? 'cRowIdx' : 'eRowIdx'] = lines.length - 1;
+                VplUsageForm.initPurposeSelects(prefix);
             })
             .fail(() => VplUsage.toast('error', 'Could not load reference detail lines.'));
     },
@@ -237,6 +287,8 @@ const VplUsageForm = {
         const html = VplUsageHelper.buildDetailRow(prefix, idx, whsId);
 
         document.getElementById(`${prefix}_detailBody`).insertAdjacentHTML('beforeend', html);
+        VplUsageForm.initPurposeSelects(prefix);
+        if (mode === 'create') VplUsageForm.applyDefaultPurpose();
     },
 
     // ------------------------------------------------------------------
@@ -269,6 +321,8 @@ const VplUsageForm = {
             VplUsage.state[mode === 'create' ? 'cRowIdx' : 'eRowIdx'] = 0;
             body.insertAdjacentHTML('beforeend', VplUsageHelper.buildDetailRow(prefix, 0));
             VplUsageForm.loadWarehouseOptions(mode);
+            VplUsageForm.initPurposeSelects(prefix);
+            if (prefix === 'c') VplUsageForm.applyDefaultPurpose();
         }
     },
 
@@ -279,11 +333,13 @@ const VplUsageForm = {
     initCreateModal() {
         document.getElementById('c_detailBody').insertAdjacentHTML('beforeend',
             VplUsageHelper.buildDetailRow('c', 0));
+        VplUsageForm.initPurposeSelects('c');
 
         document.getElementById('openCreateBtn').addEventListener('click', () => {
             VplUsageForm.showModal('createModal');
             setTimeout(() => VplUsageForm.loadWarehouseOptions('create'), 50);
             VplUsageForm.toggleUsageDateSection();
+            VplUsageForm.applyDefaultPurpose();
         });
 
         ['closeCreateModal', 'closeCreateModalFooter'].forEach((id) => {
@@ -310,7 +366,10 @@ const VplUsageForm = {
         });
 
         $('#c_cpnyid, #c_department, #c_vp_type').on('change', () => VplUsageForm.loadWarehouseOptions('create'));
-        $('#c_department').on('change', () => VplUsageForm.toggleUsageDateSection());
+        $('#c_department').on('change', () => {
+            VplUsageForm.toggleUsageDateSection();
+            VplUsageForm.applyDefaultPurpose();
+        });
         $('#c_whs_id').on('change', () => VplUsageForm.applyWarehouseToRows('create', $('#c_whs_id').val() ?? ''));
         $('#c_usagetype').on('change', () => VplUsageForm.onUsageTypeChange('create'));
         $('#c_ref_usage_id').on('change', () => VplUsageForm.loadReturnLines('create'));
@@ -327,6 +386,11 @@ const VplUsageForm = {
 
         if (usageType === 'Return' && !refUsage) {
             VplUsage.toast('error', 'Please select a Reference Usage Doc for Return.');
+            return;
+        }
+
+        if (!document.getElementById('c_remark')?.value.trim()) {
+            VplUsage.toast('error', 'Remark is required.');
             return;
         }
 
@@ -358,6 +422,7 @@ const VplUsageForm = {
         body.innerHTML = '';
         VplUsage.state.cRowIdx = 0;
         body.insertAdjacentHTML('beforeend', VplUsageHelper.buildDetailRow('c', 0));
+        VplUsageForm.initPurposeSelects('c');
         VplUsageForm.loadWarehouseOptions('create');
         document.getElementById('c_attachBody').innerHTML = `
             <tr id="c_attach_0">
@@ -371,6 +436,7 @@ const VplUsageForm = {
         document.getElementById('c_whs_wrapper').classList.remove('hidden');
         document.getElementById('c_addRow').classList.remove('hidden');
         VplUsageForm.toggleUsageDateSection();
+        VplUsageForm.applyDefaultPurpose();
         VplUsageForm.showFormView('create');
     },
 
@@ -457,6 +523,7 @@ const VplUsageForm = {
 
         if (!isReturn) {
             newDetailBody.insertAdjacentHTML('beforeend', VplUsageHelper.buildDetailRow('e', 0));
+            VplUsageForm.initPurposeSelects('e');
             VplUsageForm.loadWarehouseOptions('edit');
         }
 
@@ -668,27 +735,78 @@ const VplUsageForm = {
         document.getElementById('productSearchModal')?.querySelector('.modal-backdrop')
             ?.addEventListener('click', () => VplUsageForm.hideModal('productSearchModal'));
 
-        $('#productSearchTable').on('click', '.btn-pick-product', function () {
-            const productId   = this.dataset.productId;
-            const productName = this.dataset.productName;
-            const qtyAvail    = this.dataset.qtyAvailable;
-            const expDate     = this.dataset.expiredDate;
+        $('#productSearchTable').on('click', '.btn-add-fefo', function () {
+            const productId = this.dataset.productId;
+            const available = parseFloat(this.dataset.available ?? '0');
+            const qtyInput  = $(this).closest('tr').find('.fefo-qty-input')[0];
+            const qty       = parseFloat(qtyInput?.value ?? '0');
+
+            if (!qty || qty <= 0) {
+                VplUsage.toast('error', 'Please enter a quantity.');
+                return;
+            }
+            if (qty > available) {
+                VplUsage.toast('error', 'Qty exceeds available stock.');
+                return;
+            }
 
             const mode   = VplUsage.state.pendingProductMode;
-            const rowIdx = VplUsage.state.pendingProductRowIdx;
             const prefix = mode === 'create' ? 'c' : 'e';
-            const row    = document.getElementById(`${prefix}_row_${rowIdx}`);
-            if (!row) return;
+            const cpnyid = document.getElementById(`${prefix}_cpnyid`)?.value ?? '';
+            const vpType = document.getElementById(`${prefix}_vp_type`)?.value
+                        ?? document.getElementById('c_vp_type')?.value ?? '';
+            const whsId  = document.getElementById(`${prefix}_whs_id`)?.value ?? '';
 
-            row.querySelector(`.${prefix}-product-id-input`).value        = productId;
-            row.querySelector(`.${prefix}-product-display`).textContent   = productName;
-            row.querySelector(`.${prefix}-product-display`).title         = productName;
-            row.querySelector(`.${prefix}-qty-avail-input`).value         = qtyAvail;
-            row.querySelector(`.${prefix}-qty-avail-display`).textContent = Number(qtyAvail).toLocaleString();
-            row.querySelector(`.${prefix}-exp-input`).value               = expDate;
-            row.querySelector(`.${prefix}-exp-display`).textContent       = expDate ? expDate.substring(0, 10) : '—';
+            $.post(VplUsage.routes.fefoPick, {
+                _token: VplUsage.csrf(), cpnyid, vp_type: vpType, whs_id: whsId, product_id: productId, qty,
+            })
+            .done((breakdown) => {
+                VplUsageForm.applyFefoBreakdown(breakdown);
+                VplUsageForm.hideModal('productSearchModal');
+            })
+            .fail((x) => {
+                VplUsage.toast('error', x.responseJSON?.error ?? 'Could not allocate stock.');
+            });
+        });
+    },
 
-            VplUsageForm.hideModal('productSearchModal');
+    /** Fills one detail row's product/expiry/qty fields (used by FEFO auto-add). */
+    fillProductRow(prefix, rowIdx, item) {
+        const row = document.getElementById(`${prefix}_row_${rowIdx}`);
+        if (!row) return;
+
+        row.querySelector(`.${prefix}-product-id-input`).value        = item.product_id;
+        row.querySelector(`.${prefix}-product-display`).textContent   = item.product_name;
+        row.querySelector(`.${prefix}-product-display`).title         = item.product_name;
+        row.querySelector(`.${prefix}-qty-avail-input`).value         = item.qty_available;
+        row.querySelector(`.${prefix}-qty-avail-display`).textContent = Number(item.qty_available).toLocaleString();
+        row.querySelector(`.${prefix}-exp-input`).value               = item.expired_date ?? '';
+        row.querySelector(`.${prefix}-exp-display`).textContent       = item.expired_date ? item.expired_date.substring(0, 10) : '—';
+
+        const qtyInput = row.querySelector(`[name="addmore[${rowIdx}][qty]"]`);
+        if (qtyInput) {
+            qtyInput.value = item.qty;
+            qtyInput.max   = item.qty_available;
+        }
+    },
+
+    /**
+     * Applies a FEFO breakdown (one or more batches) returned by pickFefoStock.
+     * The first batch fills the row the user opened the search modal from;
+     * any further batches (the split spilled into the next expiry) get new rows.
+     */
+    applyFefoBreakdown(breakdown) {
+        const mode   = VplUsage.state.pendingProductMode;
+        const prefix = mode === 'create' ? 'c' : 'e';
+        const key    = mode === 'create' ? 'cRowIdx' : 'eRowIdx';
+        let rowIdx   = VplUsage.state.pendingProductRowIdx;
+
+        breakdown.forEach((item, i) => {
+            if (i > 0) {
+                VplUsageForm.addRow(mode);
+                rowIdx = VplUsage.state[key];
+            }
+            VplUsageForm.fillProductRow(prefix, rowIdx, item);
         });
     },
 

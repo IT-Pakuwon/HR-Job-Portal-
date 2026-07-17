@@ -4,6 +4,7 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="sppbForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
 
                         <!-- Header -->
@@ -747,8 +748,13 @@
                                 <span>Back</span>
                             </button>
 
-                            <!-- Cancel + Submit -->
+                            <!-- Cancel + Draft + Submit -->
                             <div class="flex flex-col gap-3 md:flex-row md:items-center">
+
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center justify-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
+                                </button>
 
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
@@ -961,50 +967,52 @@
                 return true;
             }
 
-            $('#sppbForm').on('submit', function(e) {
-                e.preventDefault();
+            function submitSppbForm(isDraft) {
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                const $rtHidden = $('#requesttypeid'); // hidden input
-                const $rtDisplay = $('#requesttype_name_display'); // readonly display
+                if (!isDraft) {
+                    const $rtHidden = $('#requesttypeid'); // hidden input
+                    const $rtDisplay = $('#requesttype_name_display'); // readonly display
 
-                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
-                    addError($rtDisplay, 'Request Type wajib dipilih.');
-                    toastr.error('Request Type wajib dipilih.');
-                    $('html,body').animate({
-                        scrollTop: $rtDisplay.offset().top - 120
-                    }, 300);
-                    return;
-                }
-
-                // Validasi ITR ID khusus item category Komputer
-                if (!validateItrForComputerItem()) return;
-
-                // =========================
-                // Attachment validation
-                // =========================
-                let attachmentOk = false;
-
-                $('#attachmentsContainer input[type="file"]').each(function() {
-                    if (this.files && this.files.length > 0) {
-                        attachmentOk = true;
-                        return false; // stop loop
+                    if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                        addError($rtDisplay, 'Request Type wajib dipilih.');
+                        toastr.error('Request Type wajib dipilih.');
+                        $('html,body').animate({
+                            scrollTop: $rtDisplay.offset().top - 120
+                        }, 300);
+                        return;
                     }
-                });
 
-                if (!attachmentOk) {
-                    toastr.error('Minimal 1 attachment wajib diupload.');
+                    // Validasi ITR ID khusus item category Komputer
+                    if (!validateItrForComputerItem()) return;
 
-                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
-                    $firstFile.addClass('is-invalid');
+                    // =========================
+                    // Attachment validation
+                    // =========================
+                    let attachmentOk = false;
 
-                    $('html,body').animate({
-                        scrollTop: $firstFile.offset().top - 120
-                    }, 300);
+                    $('#attachmentsContainer input[type="file"]').each(function() {
+                        if (this.files && this.files.length > 0) {
+                            attachmentOk = true;
+                            return false; // stop loop
+                        }
+                    });
 
-                    return;
+                    if (!attachmentOk) {
+                        toastr.error('Minimal 1 attachment wajib diupload.');
+
+                        const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                        $firstFile.addClass('is-invalid');
+
+                        $('html,body').animate({
+                            scrollTop: $firstFile.offset().top - 120
+                        }, 300);
+
+                        return;
+                    }
+                    // Validasi detail dulu
+                    if (!validateDetails()) return;
                 }
-                // Validasi detail dulu
-                if (!validateDetails()) return;
 
                 // konversi qty: koma → titik setelah lolos validasi
                 $('.qtyField').each(function() {
@@ -1013,10 +1021,14 @@
 
                 // --- Lock UI
                 $('#submitBtn').prop('disabled', true);
+                $('#saveDraftBtn').prop('disabled', true);
                 $('#cancelBtn').prop('disabled', true);
-                $('#btnText').text('Processing...');
-                // $('#loadingSpinner').removeClass('hidden');
-                showOverlay('Submitting');
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 const formData = new FormData(document.getElementById('sppbForm'));
 
@@ -1028,7 +1040,9 @@
                         contentType: false
                     })
                     .done(function(res) {
-                        toastr.success(res.message || "Sppb Requisition Submit Successfully!");
+                        toastr.success(res.message || (isDraft ?
+                            "Sppb Requisition Saved as Draft!" :
+                            "Sppb Requisition Submit Successfully!"));
                         window.location.href = "/sppbs";
                     })
                     .fail(function(xhr) {
@@ -1048,11 +1062,22 @@
                     .always(function() {
                         // --- Unlock UI
                         $('#submitBtn').prop('disabled', false);
+                        $('#saveDraftBtn').prop('disabled', false);
                         $('#cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
-                        // $('#loadingSpinner').addClass('hidden');
+                        $('#draftBtnText').text('Save as Draft');
                         hideOverlay();
                     });
+            }
+
+            $('#sppbForm').on('submit', function(e) {
+                e.preventDefault();
+                submitSppbForm(false);
+            });
+
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                submitSppbForm(true);
             });
             $(document).on('change', '#attachmentsContainer input[type="file"]', function() {
                 if (this.files.length > 0) {

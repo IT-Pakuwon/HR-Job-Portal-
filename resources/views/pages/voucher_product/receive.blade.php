@@ -27,7 +27,7 @@
 
     {{-- All --}}
     <button type="button" class="text-left">
-        <a href="#" class="status-filter active-card group block h-full" data-status="ALL">
+        <a href="#" class="status-filter group block h-full" data-status="ALL">
             <div class="status-card flex h-full items-center gap-3 rounded-lg border border-slate-400 bg-slate-200/20 p-3 text-slate-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-slate-100 hover:shadow-md active:scale-95 dark:border-slate-500 dark:text-slate-300 dark:hover:bg-slate-700/30">
                 <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📦</div>
                 <div class="flex min-w-0 flex-grow flex-col leading-tight">
@@ -40,7 +40,7 @@
 
     {{-- On Progress --}}
     <button type="button" class="text-left">
-        <a href="#" class="status-filter group block h-full" data-status="P">
+        <a href="#" class="status-filter active-card group block h-full" data-status="P">
             <div class="status-card flex h-full items-center gap-3 rounded-lg border border-yellow-500 bg-yellow-100/30 p-3 text-yellow-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-yellow-100 hover:shadow-md active:scale-95 dark:border-yellow-500 dark:text-yellow-400 dark:hover:bg-yellow-500/20">
                 <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">⏳</div>
                 <div class="flex min-w-0 flex-grow flex-col leading-tight">
@@ -229,8 +229,8 @@
                         </div>
                     </div>
                     <div class="px-6 pb-6">
-                        <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark</label>
-                        <textarea name="receive_remark" rows="2" placeholder="Enter remarks..."
+                        <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
+                        <textarea name="receive_remark" id="c_remark" rows="2" placeholder="Enter remarks..." required
                             class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
                     </div>
                 </div>
@@ -582,8 +582,8 @@
                         </div>
                     </div>
                     <div class="px-6 pb-6">
-                        <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark</label>
-                        <textarea name="receive_remark" id="e_remark" rows="2"
+                        <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Remark <span class="text-red-500">*</span></label>
+                        <textarea name="receive_remark" id="e_remark" rows="2" required
                             class="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm dark:border-white/10 dark:bg-white/[0.03] dark:text-white"></textarea>
                     </div>
                 </div>

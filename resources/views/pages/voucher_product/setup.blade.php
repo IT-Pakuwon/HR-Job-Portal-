@@ -99,6 +99,45 @@
                     </button>
                 </div>
 
+                <div class="grid grid-cols-1 gap-3 border-b border-gray-100 px-5 py-4 dark:border-white/10 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Warehouse ID</label>
+                        <select id="filter_dept_whs_id" class="dept-filter-select2" style="width:100%">
+                            <option value="">All Warehouse IDs</option>
+                            @foreach ($warehouseIds as $whsId)
+                                <option value="{{ $whsId }}">{{ $whsId }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Activity Type</label>
+                        <select id="filter_dept_activity_type" class="dept-filter-select2" style="width:100%">
+                            <option value="">All Activity Types</option>
+                            <option value="RECEIVE">Receive</option>
+                            <option value="TRANSFER">Transfer</option>
+                            <option value="TRANSFER_RECEIVE">Transfer Receive</option>
+                            <option value="USAGE">Usage</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Department</label>
+                        <select id="filter_dept_department_id" class="dept-filter-select2" style="width:100%">
+                            <option value="">All Departments</option>
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept->department_id }}">{{ $dept->department_id }} - {{ $dept->department_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">VP Type</label>
+                        <select id="filter_dept_vp_type" class="dept-filter-select2" style="width:100%">
+                            <option value="">All VP Types</option>
+                            <option value="V">Voucher</option>
+                            <option value="P">Product</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="overflow-x-auto p-5">
                     <table id="tableDept" class="display w-full border-collapse text-sm">
                         <thead>
@@ -465,6 +504,12 @@ const tabs = {
             initSelect2('#createDeptModal', '.dept-select2');
             initSelect2('#editDeptModal',   '.dept-select2');
 
+            // Warehouse Dept filter bar
+            $('.dept-filter-select2').select2({ width: '100%', allowClear: true, placeholder: 'All' });
+            $('.dept-filter-select2').on('change', function () {
+                tableDept.ajax.reload(null, false);
+            });
+
             // Reload warehouse options when company changes (create dept)
             $('#createDeptModal').on('change', 'select[name="cpnyid"]', function () {
                 loadWarehouseOptions('#create_dept_whs_id', $(this).val());
@@ -510,7 +555,15 @@ const tabs = {
 
             // Warehouse Dept DataTable
             tableDept = $('#tableDept').DataTable(baseTableConfig({
-                ajax: routes.dept.json,
+                ajax: {
+                    url: routes.dept.json,
+                    data: d => {
+                        d.filter_whs_id        = $('#filter_dept_whs_id').val()        || '';
+                        d.filter_activity_type = $('#filter_dept_activity_type').val() || '';
+                        d.filter_department_id = $('#filter_dept_department_id').val() || '';
+                        d.filter_vp_type       = $('#filter_dept_vp_type').val()       || '';
+                    },
+                },
                 columns: [
                     { data: 'DT_RowIndex',   orderable: false, searchable: false, width: '5%' },
                     { data: 'cpnyid',         name: 'cpnyid' },

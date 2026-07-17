@@ -70,6 +70,16 @@ const VplUsageHelper = {
      * origin  = when set (Return mode), the row is seeded from a referenced Usage
      *           line and the product/whs/expiry cells become read-only.
      */
+    /** Purpose dropdown options, sourced from ms_category (doctype=VPU, categoryid=type, groups=PURPOSE). */
+    purposeOptionsHTML(selected = '') {
+        const purposes = window.VplUsageConfig?.purposes ?? [];
+        const opts = purposes.map((p) => {
+            const safe = String(p).replace(/"/g, '&quot;');
+            return `<option value="${safe}" ${p === selected ? 'selected' : ''}>${safe}</option>`;
+        }).join('');
+        return `<option value="">Select...</option>${opts}`;
+    },
+
     buildDetailRow(prefix, idx, whsId = '', origin = null) {
         const mode = prefix === 'c' ? 'create' : 'edit';
 
@@ -99,8 +109,10 @@ const VplUsageHelper = {
                             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
                     </td>
                     <td class="px-3 py-2">
-                        <input type="text" name="addmore[${idx}][purpose_id]" value="${(origin.purpose_id ?? '').replace(/"/g, '&quot;')}" placeholder="Purpose"
+                        <select name="addmore[${idx}][purpose_id]"
                             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                            ${VplUsageHelper.purposeOptionsHTML(origin.purpose_id ?? '')}
+                        </select>
                     </td>
                     <td class="px-3 py-2">
                         <input type="text" name="addmore[${idx}][purpose_remark]" value="${(origin.purpose_remark ?? '').replace(/"/g, '&quot;')}" placeholder="Remark"
@@ -143,8 +155,10 @@ const VplUsageHelper = {
                         class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
                 </td>
                 <td class="px-3 py-2">
-                    <input type="text" name="addmore[${idx}][purpose_id]" placeholder="Purpose"
+                    <select name="addmore[${idx}][purpose_id]"
                         class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                        ${VplUsageHelper.purposeOptionsHTML()}
+                    </select>
                 </td>
                 <td class="px-3 py-2">
                     <input type="text" name="addmore[${idx}][purpose_remark]" placeholder="Remark"

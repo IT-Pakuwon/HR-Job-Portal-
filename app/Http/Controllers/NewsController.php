@@ -128,7 +128,7 @@ class NewsController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $docid = $doctype . $tglbln . sprintf("%04d", $urutan);
                        
             $news = News::create([
                 'docid' => $docid,

@@ -156,10 +156,12 @@ const VplTransferDetailModal = {
             $.post(VplTransfer.routes.approve(id), { _token: VplTransfer.csrf() })
                 .done((r) => {
                     VplTransfer.toast('success', r.success ?? 'Approved.');
-                    VplTransferDetailModal.open(id);
                     VplTransferDatalist.refresh();
                 })
-                .fail((x) => VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Approve failed.'));
+                .fail((x) => {
+                    VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Approve failed.');
+                })
+                .always(() => VplTransferDetailModal.open(id));
         };
 
         document.getElementById('v_reviseBtn').onclick = async () => {
@@ -169,10 +171,12 @@ const VplTransferDetailModal = {
             $.post(VplTransfer.routes.revise(id), { _token: VplTransfer.csrf(), message: res.value })
                 .done((r) => {
                     VplTransfer.toast('success', r.success ?? 'Sent for revision.');
-                    VplTransferDetailModal.open(id);
                     VplTransferDatalist.refresh();
                 })
-                .fail((x) => VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Revise failed.'));
+                .fail((x) => {
+                    VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Revise failed.');
+                })
+                .always(() => VplTransferDetailModal.open(id));
         };
 
         document.getElementById('v_rejectBtn').onclick = async () => {
@@ -182,10 +186,12 @@ const VplTransferDetailModal = {
             $.post(VplTransfer.routes.reject(id), { _token: VplTransfer.csrf(), message: res.value })
                 .done((r) => {
                     VplTransfer.toast('success', r.success ?? 'Rejected.');
-                    VplTransferDetailModal.open(id);
                     VplTransferDatalist.refresh();
                 })
-                .fail((x) => VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Reject failed.'));
+                .fail((x) => {
+                    VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Reject failed.');
+                })
+                .always(() => VplTransferDetailModal.open(id));
         };
     },
 

@@ -128,8 +128,13 @@ const VplMasterForm = {
     // --------------------------------------------------------
     // DEACTIVATE — blocked if product still has stock
     // --------------------------------------------------------
-    deactivate(id) {
-        if (!confirm('Deactivate this product? This action cannot be undone while stock exists.')) return;
+    async deactivate(id) {
+        const res = await VplMaster.confirm({
+            title:       'Deactivate this product?',
+            text:        'This action cannot be undone while stock exists.',
+            confirmText: 'Deactivate',
+        });
+        if (!res.isConfirmed) return;
 
         $.ajax({
             url:     VplMaster.routes.deactivate(id),
@@ -149,8 +154,12 @@ const VplMasterForm = {
     // --------------------------------------------------------
     // ACTIVATE
     // --------------------------------------------------------
-    activate(id) {
-        if (!confirm('Activate this product?')) return;
+    async activate(id) {
+        const res = await VplMaster.confirm({
+            title:       'Activate this product?',
+            confirmText: 'Activate',
+        });
+        if (!res.isConfirmed) return;
 
         $.ajax({
             url:     VplMaster.routes.activate(id),

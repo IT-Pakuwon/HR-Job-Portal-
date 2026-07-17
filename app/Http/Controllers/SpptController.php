@@ -89,6 +89,11 @@ class SpptController extends Controller
                     ->whereIn('department_id', $deptIds)
                     ->count();
 
+        $draft = TrSPPT::where('status', 'H')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
         $completed = TrSPPT::where('status', 'C')
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -97,7 +102,7 @@ class SpptController extends Controller
             ->whereIn('status', ['P', 'C'])
             ->count();
 
-        return view('pages.sppts.sppts', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount'));
+        return view('pages.sppts.sppts', compact('all', 'onProgress', 'reject', 'revise', 'draft', 'completed', 'allListCount'));
     }
 
     public function json(Request $request)
@@ -323,6 +328,7 @@ class SpptController extends Controller
         $user = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         $dt = Carbon::now();
         $year = (int) $dt->year;
@@ -383,8 +389,10 @@ class SpptController extends Controller
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
-        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         DB::beginTransaction();
         try {
@@ -453,7 +461,7 @@ class SpptController extends Controller
             $header->assignpurchasing = null;
             $header->csjobs = null;
             $header->cs = null;
-            $header->status = 'P';
+            $header->status = $isDraft ? 'H' : 'P';
             $header->created_by = $username;
             $header->save();
 
@@ -629,91 +637,60 @@ class SpptController extends Controller
             //     $header->save();
             // }
 
-            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
-            $isUrgent = (bool) $request->input('is_urgent', false);
+            if (!$isDraft) {
+                // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
+                $isUrgent = (bool) $request->input('is_urgent', false);
 
-            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
-            $firstCategory = null;
-            if (!empty($inventoryCategories)) {
-                foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) {
-                        $firstCategory = $c;
+                // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
+                $firstCategory = null;
+                if (!empty($inventoryCategories)) {
+                    foreach ($inventoryCategories as $c) {
+                        if (!empty($c)) {
+                            $firstCategory = $c;
+                            break;
+                        }
+                    }
+                }
+
+                // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
+                $hasFixedAssetSubtype = false;
+                foreach ((array) $inventorySubTypes as $sub) {
+                    $s = mb_strtolower((string) $sub);
+                    if ($s === 'fixed asset' || $s === 'fa') {
+                        $hasFixedAssetSubtype = true;
                         break;
                     }
                 }
-            }
 
-            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
-            $hasFixedAssetSubtype = false;
-            foreach ((array) $inventorySubTypes as $sub) {
-                $s = mb_strtolower((string) $sub);
-                if ($s === 'fixed asset' || $s === 'fa') {
-                    $hasFixedAssetSubtype = true;
-                    break;
+                // 4) Build context untuk ApprovalController
+                $ctx = [
+                    'is_urgent' => $isUrgent,
+                    'first_inventory_category' => $firstCategory,
+                    'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                    'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
+                    // 'grand_total'           => ...     // tidak dipakai di SPPT
+                ];
+
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $docid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
+
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
                 }
             }
 
-            // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPT
-            ];
-
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
-            }
-
             // === 5) attachments (opsional) ===
-            // if ($request->hasfile('attachments')) {
-            //     foreach ($request->file('attachments') as $file) {
-            //         $randomNumber = random_int(10000000, 99999999);
-            //         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-
-            //         $originalName = str_replace('%', '', $file->getClientOriginalName());
-            //         $ext        = $file->getClientOriginalExtension();
-            //         $attachfile = md5($randomNumber) . '.' . $ext;
-
-            //         //attach to folder
-            //         $folder_attach = public_path() . '/attachments/'.$year;
-            //         $config['upload_path'] = $folder_attach;
-            //         if(!is_dir($folder_attach))
-            //         {
-            //             mkdir($folder_attach, 0777);
-            //         }
-
-            //         $folder_upload = $folder_attach;
-            //         // $folder_upload = public_path() . '/attachments';
-            //         $file->move($folder_upload, $attachfile);
-
-            //         //insert to table attachments
-            //         $attach = new Attachment();
-            //         $attach->docid = $docid;
-            //         $attach->name = $filename;
-            //         $attach->attachfile = $attachfile;
-            //         $attach->status = 'A';
-            //         $attach->extention = $file->getClientOriginalExtension();
-            //         $attach->created_user = $user->username;
-            //         $attach->save();
-            //     }
-            // }
-
             if ($request->hasFile('attachments')) {
                 $meta = [
                     'refnbr' => $docid,
@@ -792,27 +769,31 @@ class SpptController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $docid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPT',
-                url('/showsppts/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $docid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPT',
+                    url('/showsppts/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'SPPT created successfully',
+                'message' => $isDraft ? 'SPPT saved as draft' : 'SPPT created successfully',
                 'spptid' => $docid,
                 'sppt_no' => $spptNo,
                 'totalqty' => $totalQty,
                 'attachments' => $uploadResult,
+                'eid' => $eid,
+                'is_draft' => $isDraft,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -973,12 +954,15 @@ class SpptController extends Controller
         $doctype = 'PT';
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
         $toFloat = function ($v): ?float {
@@ -1025,7 +1009,7 @@ class SpptController extends Controller
         $header->budget_perpost = $request->perpost;
         $header->woid = $request->woid;
         $header->is_urgent = $request->is_urgent;
-        $header->status = 'P';
+        $header->status = $isDraft ? 'H' : 'P';
         $header->updated_by = $username;
         $header->save();
 
@@ -1252,30 +1236,32 @@ class SpptController extends Controller
             }
 
             // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPT
-            ];
+            if (!$isDraft) {
+                $ctx = [
+                    'is_urgent' => $isUrgent,
+                    'first_inventory_category' => $firstCategory,
+                    'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                    'ignore_nominal' => true,   // SPPT diminta tidak cek nominal
+                    // 'grand_total'           => ...     // tidak dipakai di SPPT
+                ];
 
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $header->spptid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $header->spptid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
+                }
             }
 
             // attachments (tetap)
@@ -1386,22 +1372,28 @@ class SpptController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $header->spptid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPT',
-                url('/showsppts/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $header->spptid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPT',
+                    url('/showsppts/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
-            return response()->json(['message' => 'SPPT updated successfully']);
+            return response()->json([
+                'message' => $isDraft ? 'SPPT saved as draft' : 'SPPT updated successfully',
+                'eid' => $eid,
+                'is_draft' => $isDraft,
+            ]);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);

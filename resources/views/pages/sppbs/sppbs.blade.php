@@ -4,10 +4,10 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FAACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('FAACCESS') || auth()->user()->hasRole('FINACCESS');
             $hasWoAccess = auth()->user()->hasRole('WHSACCESS');
 
-            $xlCols = 5; // base cards
+            $xlCols = 6; // base cards
 
             if ($hasAllList) {
                 $xlCols++;
@@ -54,6 +54,23 @@
                 </a>
             </button>
 
+            {{-- Draft Status --}}
+            <button type="button" class="text-left">
+                <a href="#" class="status-filter group block h-full" data-status="H">
+                    <div
+                        class="status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-3 text-pink-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-md active:scale-95">
+
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
+
+                        <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                            <p class="break-words text-sm font-medium">Draft</p>
+                        </div>
+
+                        <p class="shrink-0 text-base font-bold">{{ $draft }}</p>
+                    </div>
+                </a>
+            </button>
+
             {{-- Reject Status --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="R">
@@ -71,7 +88,7 @@
                 </a>
             </button>
 
-            {{-- Revise / Draft Status --}}
+            {{-- Revise Status --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter group block h-full" data-status="D">
                     <div
@@ -80,7 +97,7 @@
                         <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                         <div class="flex min-w-0 flex-grow flex-col leading-tight">
-                            <p class="break-words text-sm font-medium">Revise / Draft</p>
+                            <p class="break-words text-sm font-medium">Revise</p>
                         </div>
 
                         <p class="shrink-0 text-base font-bold">{{ $revise }}</p>
@@ -122,7 +139,7 @@
                     </div>
                 </a>
             </button> --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('WHSACCESS') || auth()->user()->hasRole('FAACCESS'))
+            @if (auth()->user()->hasRole('COSTCTRLACCESS') || auth()->user()->hasRole('WHSACCESS') || auth()->user()->hasRole('FAACCESS') || auth()->user()->hasRole('FINACCESS'))
                 {{-- SPPB All List --}}
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
@@ -164,7 +181,7 @@
             @endif
         </div>
 
-        <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+        <div class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -480,6 +497,10 @@
                         'D': {
                             text: 'Revise',
                             cls: 'bg-blue-100 text-blue-700'
+                        },
+                        'H': {
+                            text: 'Draft',
+                            cls: 'bg-purple-100 text-purple-700'
                         }
                     };
 
@@ -506,6 +527,8 @@
                             return 'Rejected';
                         case 'D':
                             return 'Revise';
+                        case 'H':
+                            return 'Draft';
                         default:
                             return st || '-';
                     }
@@ -1104,6 +1127,9 @@
                     width: '28px',
                     className: 'dtr-control',
                     orderable: false
+                }, {
+                    targets: woColumnIndex,
+                    visible: false
                 }],
 
                 ajax: {
@@ -1169,8 +1195,8 @@
 
                             const text = data || row.id;
 
-                            // ===== DRAFT & OWNER =====
-                            if (row.status === 'D' && row.created_by === currentUser) {
+                            // ===== DRAFT/REVISE & OWNER =====
+                            if ((row.status === 'D' || row.status === 'H') && row.created_by === currentUser) {
                                 return `
                                     <div class="flex items-center gap-2 whitespace-nowrap">
                                         <!-- EDIT -->
@@ -1291,6 +1317,10 @@
                                 'R': {
                                     t: 'Rejected',
                                     c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                },
+                                'H': {
+                                    t: 'Draft',
+                                    c: 'bg-purple-200/60 text-purple-800 border border-purple-600/40'
                                 },
                             };
                             const it = map[data] || {

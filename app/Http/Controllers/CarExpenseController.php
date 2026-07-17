@@ -224,7 +224,7 @@ class CarExpenseController extends Controller
         $auto = $this->nextAutonbr($doctype, $year, $month, $user->username, 'Car Expense');
         $urutan = (int) $auto['next'];
         $tglbln = substr((string) $year, 2).$month;
-        $refnbr = $doctype.$tglbln.sprintf('%03d', $urutan);
+        $refnbr = $doctype.$tglbln.sprintf('%04d', $urutan);
 
         DB::connection('pgsql')->beginTransaction();
 

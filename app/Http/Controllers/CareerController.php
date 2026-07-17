@@ -1156,7 +1156,7 @@ class CareerController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $docid = $doctype . $tglbln . sprintf("%04d", $urutan);
 
             $career = Career::where('docid', $id)
                 ->first();

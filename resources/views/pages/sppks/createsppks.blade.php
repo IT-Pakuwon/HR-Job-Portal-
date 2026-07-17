@@ -4,6 +4,7 @@
             <div class="flex flex-col gap-8 lg:col-span-2 lg:row-span-1">
                 <form id="sppkForm" class="flex flex-col gap-4" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="is_draft" id="isDraftField" value="0">
                     <div class="flex w-full flex-col gap-2 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
 
                         <!-- Header -->
@@ -734,7 +735,12 @@
                                 <span>Back</span>
                             </button>
 
-                            <div class="flex justify-start md:justify-end">
+                            <div class="flex justify-start gap-3 md:justify-end">
+                                <button type="button" id="saveDraftBtn"
+                                    class="flex items-center gap-2 rounded-md bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                                    <span id="draftBtnText">Save as Draft</span>
+                                </button>
+
                                 <button type="submit" id="submitBtn"
                                     class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                                     <span id="btnText">Submit Approval</span>
@@ -895,60 +901,62 @@
                 return true;
             }
 
-            $('#sppkForm').on('submit', function(e) {
-                e.preventDefault();
+            function submitSppkForm(isDraft) {
+                $('#isDraftField').val(isDraft ? '1' : '0');
 
-                const $rtHidden = $('#requesttypeid'); // hidden input
-                const $rtDisplay = $('#requesttype_name_display'); // readonly display
+                if (!isDraft) {
+                    const $rtHidden = $('#requesttypeid'); // hidden input
+                    const $rtDisplay = $('#requesttype_name_display'); // readonly display
 
-                if (!$rtHidden.val() || !$rtHidden.val().trim()) {
-                    addError($rtDisplay, 'Request Type wajib dipilih.');
-                    toastr.error('Request Type wajib dipilih.');
-                    $('html,body').animate({
-                        scrollTop: $rtDisplay.offset().top - 120
-                    }, 300);
-                    return;
-                }
-
-                const $nopolHidden = $('#nopol'); // hidden value
-                const $nopolDisplay = $('#nopol_display'); // input display
-
-                if (!$nopolHidden.val() || !$nopolHidden.val().trim()) {
-                    addError($nopolDisplay, 'No. Polisi wajib dipilih.');
-                    toastr.error('No. Polisi wajib dipilih.');
-                    $('html,body').animate({
-                        scrollTop: $nopolDisplay.offset().top - 120
-                    }, 300);
-                    return;
-                }
-
-                // =========================
-                // Attachment validation
-                // =========================
-                let attachmentOk = false;
-
-                $('#attachmentsContainer input[type="file"]').each(function() {
-                    if (this.files && this.files.length > 0) {
-                        attachmentOk = true;
-                        return false; // stop loop
+                    if (!$rtHidden.val() || !$rtHidden.val().trim()) {
+                        addError($rtDisplay, 'Request Type wajib dipilih.');
+                        toastr.error('Request Type wajib dipilih.');
+                        $('html,body').animate({
+                            scrollTop: $rtDisplay.offset().top - 120
+                        }, 300);
+                        return;
                     }
-                });
 
-                if (!attachmentOk) {
-                    toastr.error('Minimal 1 attachment wajib diupload.');
+                    const $nopolHidden = $('#nopol'); // hidden value
+                    const $nopolDisplay = $('#nopol_display'); // input display
 
-                    const $firstFile = $('#attachmentsContainer input[type="file"]').first();
-                    $firstFile.addClass('is-invalid');
+                    if (!$nopolHidden.val() || !$nopolHidden.val().trim()) {
+                        addError($nopolDisplay, 'No. Polisi wajib dipilih.');
+                        toastr.error('No. Polisi wajib dipilih.');
+                        $('html,body').animate({
+                            scrollTop: $nopolDisplay.offset().top - 120
+                        }, 300);
+                        return;
+                    }
 
-                    $('html,body').animate({
-                        scrollTop: $firstFile.offset().top - 120
-                    }, 300);
+                    // =========================
+                    // Attachment validation
+                    // =========================
+                    let attachmentOk = false;
 
-                    return;
+                    $('#attachmentsContainer input[type="file"]').each(function() {
+                        if (this.files && this.files.length > 0) {
+                            attachmentOk = true;
+                            return false; // stop loop
+                        }
+                    });
+
+                    if (!attachmentOk) {
+                        toastr.error('Minimal 1 attachment wajib diupload.');
+
+                        const $firstFile = $('#attachmentsContainer input[type="file"]').first();
+                        $firstFile.addClass('is-invalid');
+
+                        $('html,body').animate({
+                            scrollTop: $firstFile.offset().top - 120
+                        }, 300);
+
+                        return;
+                    }
+
+                    // Validasi detail dulu
+                    if (!validateDetails()) return;
                 }
-
-                // Validasi detail dulu
-                if (!validateDetails()) return;
 
                 // konversi qty: koma → titik setelah lolos validasi
                 $('.qtyField').each(function() {
@@ -957,10 +965,14 @@
 
                 // --- Lock UI
                 $('#submitBtn').prop('disabled', true);
+                $('#saveDraftBtn').prop('disabled', true);
                 $('#cancelBtn').prop('disabled', true);
-                $('#btnText').text('Processing...');
-                // $('#loadingSpinner').removeClass('hidden');
-                showOverlay('Submitting');
+                if (isDraft) {
+                    $('#draftBtnText').text('Saving...');
+                } else {
+                    $('#btnText').text('Processing...');
+                }
+                showOverlay(isDraft ? 'Saving Draft' : 'Submitting');
 
                 const formData = new FormData(document.getElementById('sppkForm'));
 
@@ -972,7 +984,9 @@
                         contentType: false
                     })
                     .done(function(res) {
-                        toastr.success(res.message || "Sppk Requisition Submit Successfully!");
+                        toastr.success(res.message || (isDraft ?
+                            "Sppk Requisition Saved as Draft!" :
+                            "Sppk Requisition Submit Successfully!"));
                         window.location.href = "/sppks";
                     })
                     .fail(function(xhr) {
@@ -992,11 +1006,22 @@
                     .always(function() {
                         // --- Unlock UI
                         $('#submitBtn').prop('disabled', false);
+                        $('#saveDraftBtn').prop('disabled', false);
                         $('#cancelBtn').prop('disabled', false);
                         $('#btnText').text('Submit Approval');
-                        // $('#loadingSpinner').addClass('hidden');
+                        $('#draftBtnText').text('Save as Draft');
                         hideOverlay();
                     });
+            }
+
+            $('#sppkForm').on('submit', function(e) {
+                e.preventDefault();
+                submitSppkForm(false);
+            });
+
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                submitSppkForm(true);
             });
 
             $(document).on('change', '#attachmentsContainer input[type="file"]', function() {

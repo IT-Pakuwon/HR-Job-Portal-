@@ -194,33 +194,61 @@ const VplReceiveForm = {
         if (cpnyid && dept && vpType) VplReceiveForm.loadWhsForAllRows('create');
     },
 
-    submitCreate() {
-        // Collect detail rows for confirmation
+    // ============================================================
+    // SUBMIT CONFIRMATION — shared between create & edit
+    // ============================================================
+
+    _escape(str) {
+        return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[c]));
+    },
+
+    // Pending (not-yet-saved) rows from the detail table for the given prefix ('c' or 'e')
+    collectRows(prefix) {
         const rows = [];
-        $('#c_detailBody tr').each(function () {
+        $(`#${prefix}_detailBody tr`).each(function () {
             const $row    = $(this);
-            const product = $row.find('.c-product-sel option:selected').text().trim();
+            const product = $row.find(`.${prefix}-product-sel option:selected`).text().trim();
             const qty     = $row.find('input[name*="[qty]"]').val();
-            const uom     = $row.find('.c-uom-display').text().trim();
+            const uom     = $row.find(`.${prefix}-uom-display`).text().trim();
             const exp     = $row.find('input[type="date"]').val() || '—';
-            const whs     = $row.find('.c-whs-sel').val() || '—';
+            const whs     = $row.find(`.${prefix}-whs-sel`).val() || '—';
             if (product && product !== 'Select Product' && qty) {
                 rows.push({ product, qty, uom, exp, whs });
             }
         });
+        return rows;
+    },
 
-        if (rows.length === 0) {
-            Swal.fire({ icon: 'warning', title: 'No Items', text: 'Please add at least one product before submitting.' });
-            return;
-        }
+    // Already-saved detail lines shown in the Edit modal's "Existing Details" table
+    collectExistingRows() {
+        const rows = [];
+        $('#e_existDetailBody tr').each(function () {
+            const cells = $(this).find('td');
+            if (cells.length < 6) return; // skip "No details." placeholder row
+            rows.push({
+                product: $(cells[0]).text().trim(),
+                qty:     $(cells[3]).text().trim(),
+                uom:     $(cells[4]).text().trim(),
+                exp:     $(cells[2]).text().trim(),
+                whs:     $(cells[5]).text().trim(),
+            });
+        });
+        return rows;
+    },
 
+    // Shows a review dialog listing every product/voucher line before it's saved.
+    // Returns the Swal promise so callers can act on `result.isConfirmed`.
+    confirmRows(rows, title) {
+        const esc = VplReceiveForm._escape;
         const tableRows = rows.map(r => `
             <tr style="border-bottom:1px solid #e2e8f0">
-                <td style="padding:6px 10px;text-align:left;font-size:12px">${r.product}</td>
-                <td style="padding:6px 10px;text-align:center;font-size:12px">${r.qty}</td>
-                <td style="padding:6px 10px;text-align:center;font-size:12px">${r.uom}</td>
-                <td style="padding:6px 10px;text-align:center;font-size:12px">${r.exp}</td>
-                <td style="padding:6px 10px;text-align:center;font-size:12px;font-weight:600">${r.whs}</td>
+                <td style="padding:6px 10px;text-align:left;font-size:12px">${esc(r.product)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.qty)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.uom)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.exp)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px;font-weight:600">${esc(r.whs)}</td>
             </tr>`).join('');
 
         const html = `
@@ -240,8 +268,8 @@ const VplReceiveForm = {
                 </table>
             </div>`;
 
-        Swal.fire({
-            title:             'Confirm Submission',
+        return Swal.fire({
+            title,
             html,
             icon:              'question',
             showCancelButton:  true,
@@ -250,7 +278,23 @@ const VplReceiveForm = {
             confirmButtonText: '<i class="fa-solid fa-paper-plane mr-1"></i> Yes, Submit',
             cancelButtonText:  'Review Again',
             width:             700,
-        }).then(result => {
+        });
+    },
+
+    submitCreate() {
+        if (!$('#c_remark').val()?.trim()) {
+            Swal.fire({ icon: 'warning', title: 'Remark Required', text: 'Please enter a remark before submitting.' });
+            return;
+        }
+
+        const rows = VplReceiveForm.collectRows('c');
+
+        if (rows.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'No Items', text: 'Please add at least one product before submitting.' });
+            return;
+        }
+
+        VplReceiveForm.confirmRows(rows, 'Confirm Submission').then(result => {
             if (!result.isConfirmed) return;
 
             const $btn = $('#submitCreateBtn')
@@ -413,29 +457,46 @@ const VplReceiveForm = {
     },
 
     submitEdit() {
-        const id   = VplReceive.state.currentViewId;
-        const $btn = $('#submitEditBtn')
-            .prop('disabled', true)
-            .html('<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...');
+        if (!$('#e_remark').val()?.trim()) {
+            Swal.fire({ icon: 'warning', title: 'Remark Required', text: 'Please enter a remark before submitting.' });
+            return;
+        }
 
-        $.ajax({
-            type:        'POST',
-            url:         VplReceive.routes.update(id),
-            data:        new FormData($('#editForm')[0]),
-            contentType: false,
-            processData: false,
-            headers:     { 'X-CSRF-TOKEN': VplReceive.csrf() },
-            success() {
-                VplReceiveModal.close('editModal');
-                VplReceive.toast('success', 'Receive updated and resubmitted!');
-                setTimeout(() => location.reload(), 1200);
-            },
-            error(xhr) {
-                VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error updating receive.');
-            },
-            complete() {
-                $btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane text-xs"></i> Resubmit Approval');
-            },
+        const doSubmit = () => {
+            const id   = VplReceive.state.currentViewId;
+            const $btn = $('#submitEditBtn')
+                .prop('disabled', true)
+                .html('<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...');
+
+            $.ajax({
+                type:        'POST',
+                url:         VplReceive.routes.update(id),
+                data:        new FormData($('#editForm')[0]),
+                contentType: false,
+                processData: false,
+                headers:     { 'X-CSRF-TOKEN': VplReceive.csrf() },
+                success() {
+                    VplReceiveModal.close('editModal');
+                    VplReceive.toast('success', 'Receive updated and resubmitted!');
+                    setTimeout(() => location.reload(), 1200);
+                },
+                error(xhr) {
+                    VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error updating receive.');
+                },
+                complete() {
+                    $btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane text-xs"></i> Resubmit Approval');
+                },
+            });
+        };
+
+        const rows = VplReceiveForm.collectExistingRows().concat(VplReceiveForm.collectRows('e'));
+        if (rows.length === 0) {
+            doSubmit();
+            return;
+        }
+
+        VplReceiveForm.confirmRows(rows, 'Confirm Resubmission').then(result => {
+            if (result.isConfirmed) doSubmit();
         });
     },
 };

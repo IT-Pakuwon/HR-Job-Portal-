@@ -240,7 +240,10 @@ const VplReceiveDetailModal = {
                 VplReceive.toast('success', 'Document approved!');
                 setTimeout(() => location.reload(), 1200);
             })
-            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error approving.'));
+            .fail(xhr => {
+                VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error approving.');
+                VplReceiveDetailModal.open(id);
+            });
     },
 
     _submitReject(id, reason) {
@@ -250,7 +253,10 @@ const VplReceiveDetailModal = {
                 VplReceive.toast('success', 'Document rejected.');
                 setTimeout(() => location.reload(), 1200);
             })
-            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error rejecting.'));
+            .fail(xhr => {
+                VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error rejecting.');
+                VplReceiveDetailModal.open(id);
+            });
     },
 
     _submitRevise(id, reason) {
@@ -260,7 +266,10 @@ const VplReceiveDetailModal = {
                 VplReceive.toast('success', 'Document sent for revision.');
                 setTimeout(() => location.reload(), 1200);
             })
-            .fail(xhr => VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error.'));
+            .fail(xhr => {
+                VplReceive.toast('error', xhr.responseJSON?.error ?? xhr.responseJSON?.message ?? 'Error.');
+                VplReceiveDetailModal.open(id);
+            });
     },
 
     _submitCancel(id) {

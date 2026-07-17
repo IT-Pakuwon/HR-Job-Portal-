@@ -77,6 +77,7 @@ use App\Http\Controllers\KontrakController;
 use App\Http\Controllers\LastOrderController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
+use App\Http\Controllers\ManageApprovalController;
 use App\Http\Controllers\ManpowerController;
 use App\Http\Controllers\MappingIssueERPController;
 use App\Http\Controllers\MappingPoERPController;
@@ -775,8 +776,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cssave', [CanvassController::class, 'saveCS'])->name('cs.save');
         Route::get('/editcs/{eid}', [CanvassController::class, 'editCS'])->name('csjobs.edit');
         Route::put('/csjobs/{csid}', [CanvassController::class, 'updateCS'])->name('csjobs.update');
-        Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
-        Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
 
         Route::get('/bqcs/create-from-cs/{hash}', [BQCSController::class, 'createFromCS'])->name('bqcs.createFromCS');
         Route::post('/bqcs', [BQCSController::class, 'storeBQCS'])->name('bqcs.store');
@@ -807,6 +806,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware('access:CSLIST,EDIT')->group(function () {
         Route::post('/cs/{id}/approve', [CanvassController::class, 'approveCS']);
+        Route::post('/cs/{id}/reject', [CanvassController::class, 'rejectCS']);
+        Route::post('/cs/{id}/revise', [CanvassController::class, 'reviseCS']);
     });
 
     Route::middleware('access:LASTORDER,VIEW')->group(function () {
@@ -2222,6 +2223,13 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/approvals-groupbiaya/{id}/toggle-status', [MsApprovalGroupBiayaController::class, 'toggleStatus'])->name('approvalsgroupbiaya.toggle');
         Route::get('/approvals-groupbiaya/departments/list', [MsApprovalGroupBiayaController::class, 'departments'])->name('approvalsgroupbiaya.departments');
 
+        Route::get('/manage-approvals', [ManageApprovalController::class, 'index'])->name('manage-approvals');
+        Route::get('/manage-approvals/json', [ManageApprovalController::class, 'search'])->name('manage-approvals.json');
+        Route::post('/manage-approvals/{id}/set-status', [ManageApprovalController::class, 'setStatus'])->name('manage-approvals.set-status');
+        Route::put('/manage-approvals/{id}/update-line', [ManageApprovalController::class, 'updateLine'])->name('manage-approvals.update-line');
+        Route::post('/manage-approvals/transfer/preview', [ManageApprovalController::class, 'transferPreview'])->name('manage-approvals.transfer.preview');
+        Route::post('/manage-approvals/transfer/confirm', [ManageApprovalController::class, 'transferConfirm'])->name('manage-approvals.transfer.confirm');
+
         Route::get('/companies', [CompanyController::class, 'index'])->name('companies');
         Route::get('/companies/json', [CompanyController::class, 'json'])->name('companies.json');
         Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
@@ -2295,12 +2303,12 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/vendors/{id}/toggle-status', [VendorController::class, 'toggleStatus'])->name('vendors.toggle-status');
         Route::post('/vendors/sync', [VendorController::class, 'syncVendor'])->name('vendors.sync');
 
-        Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories');
-        Route::get('/inventories/json', [InventoryController::class, 'json'])->name('inventories.json');
-        Route::post('/inventories', [InventoryController::class, 'store'])->name('inventories.store');
-        Route::get('/inventories/{id}/edit', [InventoryController::class, 'edit'])->name('inventories.edit');
-        Route::put('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
-        Route::put('/inventories/{id}/toggle-status', [InventoryController::class, 'toggleStatus'])->name('inventories.toggle-status');
+        // Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories');
+        // Route::get('/inventories/json', [InventoryController::class, 'json'])->name('inventories.json');
+        // Route::post('/inventories', [InventoryController::class, 'store'])->name('inventories.store');
+        // Route::get('/inventories/{id}/edit', [InventoryController::class, 'edit'])->name('inventories.edit');
+        // Route::put('/inventories/{id}', [InventoryController::class, 'update'])->name('inventories.update');
+        // Route::put('/inventories/{id}/toggle-status', [InventoryController::class, 'toggleStatus'])->name('inventories.toggle-status');
 
         Route::get('/locations', [LocationController::class, 'index'])->name('locations');
 
@@ -2889,6 +2897,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/showusagevp/{eid}', [VplUsageController::class, 'index'])->name('showusagevp');
         Route::post('/usagevp/ajax/warehouse', [VplUsageController::class, 'getUsageWarehouse'])->name('usagevp.warehouse');
         Route::post('/usagevp/ajax/products', [VplUsageController::class, 'getUsageProducts'])->name('usagevp.products');
+        Route::post('/usagevp/ajax/fefo-pick', [VplUsageController::class, 'pickFefoStock'])->name('usagevp.fefo-pick');
         Route::post('/usagevp/ajax/ref-options', [VplUsageController::class, 'getReturnRefOptions'])->name('usagevp.ref-options');
         Route::post('/usagevp/ajax/ref-details', [VplUsageController::class, 'getReturnRefDetails'])->name('usagevp.ref-details');
         Route::post('/usagevp/{id}/approve', [VplUsageController::class, 'approve'])->name('usagevp.approve');

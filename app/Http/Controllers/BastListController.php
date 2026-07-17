@@ -203,13 +203,15 @@ class BastListController extends Controller
                 ]);
 
             $orderColumns = [
-                0 => 'bastid',
-                1 => 'bastdate',
-                2 => 'ponbr',
-                3 => 'sppbjktid',
-                4 => 'cpny_id',
-                5 => 'created_by',
-                6 => 'status',
+                0 => 'bastid',       // dtr-control (unorderable)
+                1 => 'bastid',
+                2 => 'bastdate',
+                3 => 'ponbr',
+                4 => 'sppbjktid',
+                5 => 'cpny_id',
+                6 => 'vendorname',
+                7 => 'created_by',
+                8 => 'status',
             ];
 
             if ($search !== '') {

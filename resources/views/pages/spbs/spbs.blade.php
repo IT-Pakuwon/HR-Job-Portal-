@@ -7,7 +7,7 @@
             $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
         @endphp
         <div
-            class="{{ $hasAllList ? 'xl:grid-cols-7' : 'xl:grid-cols-6' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            class="{{ $hasAllList ? 'xl:grid-cols-8' : 'xl:grid-cols-7' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
             {{-- All --}}
             <button type="button" class="status-filter group block h-full" data-status="">
@@ -42,6 +42,21 @@
                 </div>
             </button>
 
+            {{-- Draft --}}
+            <button type="button" class="status-filter group block h-full" data-status="H">
+                <div
+                    class="status-card flex h-full items-center gap-3 rounded-lg border border-pink-700 bg-pink-200/20 p-2 text-pink-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-pink-100 hover:shadow-lg active:scale-95">
+
+                    <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📝</div>
+
+                    <div class="flex min-w-0 flex-grow flex-col">
+                        <p class="break-words text-sm font-medium leading-tight">Draft</p>
+                    </div>
+
+                    <p class="shrink-0 text-sm font-bold">{{ $draft }}</p>
+                </div>
+            </button>
+
             {{-- Reject --}}
             <button type="button" class="status-filter group block h-full" data-status="R">
                 <div
@@ -57,7 +72,7 @@
                 </div>
             </button>
 
-            {{-- Revise / Draft --}}
+            {{-- Revise --}}
             <button type="button" class="status-filter group block h-full" data-status="D">
                 <div
                     class="status-card flex h-full items-center gap-3 rounded-lg border border-gray-700 bg-gray-200/20 p-2 text-gray-700 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-gray-100 hover:shadow-lg active:scale-95 dark:border-white dark:text-white dark:hover:bg-gray-700">
@@ -65,7 +80,7 @@
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">✏️</div>
 
                     <div class="flex min-w-0 flex-grow flex-col">
-                        <p class="break-words text-sm font-medium leading-tight">Revise / Draft</p>
+                        <p class="break-words text-sm font-medium leading-tight">Revise</p>
                     </div>
 
                     <p class="shrink-0 text-sm font-bold">{{ $revise }}</p>
@@ -675,8 +690,8 @@ error: function(err) {
 
                                 const text = data || row.id;
 
-                                const isDraftOwner = (row.status === 'D' && row.created_by ===
-                                    currentUser);
+                                const isDraftOwner = ((row.status === 'D' || row.status === 'H') &&
+                                    row.created_by === currentUser);
 
                                 // icon view (mata)
                                 const viewBtn = `
@@ -756,6 +771,10 @@ error: function(err) {
                                     'R': {
                                         t: 'Rejected',
                                         c: 'bg-red-200/60 text-red-800 border border-red-600/40'
+                                    },
+                                    'H': {
+                                        t: 'Draft',
+                                        c: 'bg-pink-200/60 text-pink-800 border border-pink-600/40'
                                     },
                                 };
                                 const it = map[data] || {
@@ -1146,6 +1165,10 @@ error: function(err) {
                     'D': {
                         text: 'Revise',
                         cls: 'bg-blue-100 text-blue-700'
+                    },
+                    'H': {
+                        text: 'Draft',
+                        cls: 'bg-pink-100 text-pink-700'
                     }
                 };
 
@@ -1172,6 +1195,8 @@ error: function(err) {
                         return 'Rejected';
                     case 'D':
                         return 'Revise';
+                    case 'H':
+                        return 'Draft';
                     default:
                         return st || '-';
                 }

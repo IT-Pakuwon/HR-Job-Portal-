@@ -473,7 +473,7 @@ class VoucherTaxiController extends Controller
 
             $tglbln = substr((string) $year, 2) . $month;
 
-            $docid = $doctype . $tglbln . sprintf('%03d', $urutan);
+            $docid = $doctype . $tglbln . sprintf('%04d', $urutan);
 
             $voucher = TrVoucherTaxi::create([
                 'docid' => $docid,

@@ -46,4 +46,21 @@ const VplMaster = {
             console[type === 'error' ? 'error' : 'log'](`[VplMaster] ${msg}`);
         }
     },
+
+    // --------------------------------------------------------
+    // SWAL CONFIRM  (mirrors VoucherTaxi.confirm / VplReceive.confirm)
+    // --------------------------------------------------------
+    confirm(opts = {}) {
+        return Swal.fire({
+            title:              opts.title        ?? 'Are you sure?',
+            text:               opts.text         ?? '',
+            icon:               opts.icon         ?? 'question',
+            showCancelButton:   true,
+            confirmButtonText:  opts.confirmText  ?? 'Yes',
+            cancelButtonText:   opts.cancelText   ?? 'Cancel',
+            confirmButtonColor: opts.confirmColor ?? '#0f172a',
+            cancelButtonColor:  opts.cancelColor  ?? '#94a3b8',
+            reverseButtons:     true,
+        });
+    },
 };

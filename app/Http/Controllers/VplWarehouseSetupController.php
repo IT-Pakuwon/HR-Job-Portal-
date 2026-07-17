@@ -21,9 +21,10 @@ class VplWarehouseSetupController extends Controller
         $user        = Auth::user();
         $usercpny    = Usercpny::where('username', $user->username)->where('status', 'A')->get();
         $usercpny2   = Usercpny::where('username', $user->username)->where('status', 'A')->first();
-        $departments = MsDepartment::where('status', 'A')->orderBy('department_name')->get();
+        $departments  = MsDepartment::where('status', 'A')->orderBy('department_name')->get();
+        $warehouseIds = MsVplWarehouseDept::select('whs_id')->distinct()->orderBy('whs_id')->pluck('whs_id');
 
-        return view('pages.voucher_product.setup', compact('usercpny', 'usercpny2', 'departments'));
+        return view('pages.voucher_product.setup', compact('usercpny', 'usercpny2', 'departments', 'warehouseIds'));
     }
 
     // -------------------------------------------------------
@@ -110,7 +111,23 @@ class VplWarehouseSetupController extends Controller
     public function warehouseDeptJson(Request $request)
     {
         abort_unless($request->ajax(), 404);
-        return DataTables::of(MsVplWarehouseDept::orderBy('cpnyid')->orderBy('whs_id')->get())
+
+        $query = MsVplWarehouseDept::orderBy('cpnyid')->orderBy('whs_id');
+
+        if ($request->filled('filter_whs_id')) {
+            $query->where('whs_id', $request->filter_whs_id);
+        }
+        if ($request->filled('filter_activity_type')) {
+            $query->where('activity_type', $request->filter_activity_type);
+        }
+        if ($request->filled('filter_department_id')) {
+            $query->where('department_id', $request->filter_department_id);
+        }
+        if ($request->filled('filter_vp_type')) {
+            $query->where('vp_type', $request->filter_vp_type);
+        }
+
+        return DataTables::of($query->get())
             ->addIndexColumn()
             ->addColumn('status_badge', fn ($row) => $row->status === 'A'
                 ? '<span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Active</span>'

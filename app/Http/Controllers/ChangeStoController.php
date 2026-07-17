@@ -160,7 +160,7 @@ class ChangestoController extends Controller
             }
 
             $tglbln = substr($year, 2) . $month;
-            $docid = $doctype . $tglbln . sprintf("%03d", $urutan);
+            $docid = $doctype . $tglbln . sprintf("%04d", $urutan);
             // dd($docid);
             // Simpan ke changesto
             $changesto = Changesto::create([

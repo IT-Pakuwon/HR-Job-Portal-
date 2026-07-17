@@ -185,20 +185,32 @@ const VplTransferForm = {
 
         if (!cpnyid || !vpType || !transType) return;
 
-        const $sel = $(`#${prefix}_row_${rowIdx} .${prefix}-to-whs-sel`);
+        const row   = document.getElementById(`${prefix}_row_${rowIdx}`);
+        const $sel  = $(row).find(`.${prefix}-to-whs-sel`);
+        const input = row?.querySelector(`.${prefix}-to-whs-input`);
 
         $.post(VplTransfer.routes.toWhs, {
             _token: VplTransfer.csrf(),
             cpnyid, department: dept, vp_type: vpType, transfertype: transType, from_whs_id: fromWhs,
         }).done((list) => {
+            if (!$sel.data('select2')) {
+                $sel.select2({ placeholder: 'Select WHS', allowClear: true, width: '100%' });
+            }
+
             $sel.empty().append('<option value="">Select WHS</option>');
             list.forEach((w) => {
                 $sel.append(new Option(`${w.whs_id}${w.department_id ? ' (' + w.department_id + ')' : ''}`, w.whs_id));
             });
-            if (!$sel.data('select2')) {
-                $sel.select2({ placeholder: 'Select WHS', allowClear: true, width: '100%' });
+
+            // Exactly one candidate — auto-fill, lock the picker; otherwise let the user pick via select2.
+            // The select carries no `name` itself (a disabled <select> is dropped from FormData), so the
+            // hidden input is what actually gets submitted — keep it mirrored to the select's value.
+            if (list.length === 1) {
+                if (input) input.value = list[0].whs_id;
+                $sel.prop('disabled', true).val(list[0].whs_id).trigger('change.select2');
             } else {
-                $sel.trigger('change');
+                if (input) input.value = '';
+                $sel.prop('disabled', false).val('').trigger('change.select2');
             }
         }).fail(() => VplTransfer.toast('warning', 'Could not load TO warehouse.'));
     },
@@ -337,6 +349,12 @@ const VplTransferForm = {
             VplTransferForm.onFromWhsChange('create', this);
         });
 
+        // TO WHS dropdown change (multi-candidate case) — mirror the pick into the hidden submit field
+        $('#c_detailBody').on('change', '.c-to-whs-sel', function () {
+            const row = this.closest('tr');
+            row.querySelector('.c-to-whs-input').value = this.value;
+        });
+
         // Submit
         document.getElementById('submitCreateBtn').addEventListener('click', () => VplTransferForm.submitCreate());
     },
@@ -351,23 +369,137 @@ const VplTransferForm = {
             return;
         }
 
-        const fd = new FormData(form);
+        if (!document.getElementById('c_remark')?.value.trim()) {
+            VplTransfer.toast('error', 'Please enter a remark before submitting.');
+            return;
+        }
 
-        $.ajax({
-            url:         VplTransfer.routes.store,
-            type:        'POST',
-            data:        fd,
-            processData: false,
-            contentType: false,
-        })
-        .done((r) => {
-            VplTransfer.toast('success', r.success ?? 'Saved!');
-            VplTransferForm.hideModal('createModal');
-            VplTransferDatalist.refresh();
-            VplTransferForm.resetCreateModal();
-        })
-        .fail((x) => {
-            VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
+        const rows = VplTransferForm.collectRows('c');
+        if (rows.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'No Items', text: 'Please add at least one product before submitting.' });
+            return;
+        }
+
+        const typeLabel = transType === 'ReturnTf' ? 'Return Transfer' : 'Transfer';
+
+        VplTransferForm.confirmRows(rows, typeLabel).then((result) => {
+            if (!result.isConfirmed) return;
+
+            const fd = new FormData(form);
+
+            $.ajax({
+                url:         VplTransfer.routes.store,
+                type:        'POST',
+                data:        fd,
+                processData: false,
+                contentType: false,
+            })
+            .done((r) => {
+                VplTransfer.toast('success', r.success ?? 'Saved!');
+                VplTransferForm.hideModal('createModal');
+                VplTransferDatalist.refresh();
+                VplTransferForm.resetCreateModal();
+            })
+            .fail((x) => {
+                VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
+            });
+        });
+    },
+
+    // ------------------------------------------------------------------
+    // SUBMIT CONFIRMATION — shared between create & edit
+    // ------------------------------------------------------------------
+
+    _escape(str) {
+        return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[c]));
+    },
+
+    // Pending (not-yet-saved) rows from the detail table for the given prefix ('c' or 'e')
+    collectRows(prefix) {
+        const rows = [];
+        document.querySelectorAll(`#${prefix}_detailBody tr[id^="${prefix}_row_"]`).forEach((row) => {
+            const productEl = row.querySelector(`.${prefix}-product-display`);
+            const product   = productEl?.title?.trim() || productEl?.textContent.trim() || '';
+            const qty       = row.querySelector(`.${prefix}-qty-transfer-input`)?.value;
+
+            if (!product || product === '— Select —' || !qty) return;
+
+            rows.push({
+                product,
+                fromWhs: row.querySelector(`.${prefix}-from-whs-input`)?.value || '—',
+                toWhs:   row.querySelector(`.${prefix}-to-whs-input`)?.value || '—',
+                exp:     row.querySelector(`.${prefix}-exp-display`)?.textContent.trim() || '—',
+                avail:   row.querySelector(`.${prefix}-qty-avail-input`)?.value || '0',
+                qty,
+            });
+        });
+        return rows;
+    },
+
+    // Already-saved detail lines shown in the Edit modal's "Existing Details" table
+    collectExistingRows() {
+        const rows = [];
+        document.querySelectorAll('#e_existDetailBody tr[data-detail-id]').forEach((row) => {
+            const cells = row.querySelectorAll(':scope > td');
+            const nameDivs = cells[0]?.querySelectorAll('div') ?? [];
+            const product   = nameDivs[1]?.textContent.trim() || nameDivs[0]?.textContent.trim() || '';
+
+            rows.push({
+                product,
+                fromWhs: cells[1]?.textContent.trim() || '—',
+                toWhs:   cells[2]?.textContent.trim() || '—',
+                exp:     cells[3]?.textContent.trim() || '—',
+                avail:   cells[4]?.textContent.trim() || '0',
+                qty:     cells[5]?.textContent.trim() || '0',
+            });
+        });
+        return rows;
+    },
+
+    // Shows a review dialog listing every product/voucher line before it's transferred.
+    // Returns the Swal promise so callers can act on `result.isConfirmed`.
+    confirmRows(rows, typeLabel) {
+        const esc = VplTransferForm._escape;
+        const tableRows = rows.map(r => `
+            <tr style="border-bottom:1px solid #e2e8f0">
+                <td style="padding:6px 10px;text-align:left;font-size:12px">${esc(r.product)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.fromWhs)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.toWhs)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.exp)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px">${esc(r.avail)}</td>
+                <td style="padding:6px 10px;text-align:center;font-size:12px;font-weight:600">${esc(r.qty)}</td>
+            </tr>`).join('');
+
+        const html = `
+            <p style="margin-bottom:12px;font-size:13px;color:#475569">Please review the ${typeLabel.toLowerCase()} items below before submitting for approval:</p>
+            <div style="overflow-x:auto;border-radius:8px;border:1px solid #e2e8f0">
+                <table style="width:100%;border-collapse:collapse">
+                    <thead>
+                        <tr style="background:#f8fafc">
+                            <th style="padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;color:#64748b">Product</th>
+                            <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">From WHS</th>
+                            <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">To WHS</th>
+                            <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">Expired Date</th>
+                            <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">Avail. Qty</th>
+                            <th style="padding:8px 10px;text-align:center;font-size:11px;text-transform:uppercase;color:#64748b">Transfer Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows}</tbody>
+                </table>
+            </div>`;
+
+        return Swal.fire({
+            title:              `Confirm ${typeLabel}`,
+            html,
+            icon:               'question',
+            showCancelButton:   true,
+            confirmButtonColor: '#0f172a',
+            cancelButtonColor:  '#94a3b8',
+            confirmButtonText:  '<i class="fa-solid fa-paper-plane mr-1"></i> Yes, Submit',
+            cancelButtonText:   'Review Again',
+            width:              750,
         });
     },
 
@@ -545,30 +677,56 @@ const VplTransferForm = {
             VplTransferForm.onFromWhsChange('edit', this);
         });
 
+        // TO WHS dropdown change (multi-candidate case) — mirror the pick into the hidden submit field
+        $('#e_detailBody').on('change', '.e-to-whs-sel', function () {
+            const row = this.closest('tr');
+            row.querySelector('.e-to-whs-input').value = this.value;
+        });
+
         // Submit
         document.getElementById('submitEditBtn').addEventListener('click', () => VplTransferForm.submitEdit());
     },
 
     submitEdit() {
-        const id   = VplTransfer.state.currentViewId;
-        const form = document.getElementById('editForm');
-        const fd   = new FormData(form);
-        fd.append('_method', 'POST');
+        if (!document.getElementById('e_remark')?.value.trim()) {
+            VplTransfer.toast('error', 'Please enter a remark before submitting.');
+            return;
+        }
 
-        $.ajax({
-            url:         VplTransfer.routes.update(id),
-            type:        'POST',
-            data:        fd,
-            processData: false,
-            contentType: false,
-        })
-        .done((r) => {
-            VplTransfer.toast('success', r.success ?? 'Resubmitted!');
-            VplTransferForm.hideModal('editModal');
-            VplTransferDatalist.refresh();
-        })
-        .fail((x) => {
-            VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
+        const transType = document.getElementById('e_transfertype')?.value ?? '';
+        const typeLabel = transType === 'ReturnTf' ? 'Return Transfer' : 'Transfer';
+        const rows      = VplTransferForm.collectExistingRows().concat(VplTransferForm.collectRows('e'));
+
+        const doSubmit = () => {
+            const id   = VplTransfer.state.currentViewId;
+            const form = document.getElementById('editForm');
+            const fd   = new FormData(form);
+            fd.append('_method', 'POST');
+
+            $.ajax({
+                url:         VplTransfer.routes.update(id),
+                type:        'POST',
+                data:        fd,
+                processData: false,
+                contentType: false,
+            })
+            .done((r) => {
+                VplTransfer.toast('success', r.success ?? 'Resubmitted!');
+                VplTransferForm.hideModal('editModal');
+                VplTransferDatalist.refresh();
+            })
+            .fail((x) => {
+                VplTransfer.toast('error', x.responseJSON?.error ?? x.responseJSON?.message ?? 'Submit failed.');
+            });
+        };
+
+        if (rows.length === 0) {
+            doSubmit();
+            return;
+        }
+
+        VplTransferForm.confirmRows(rows, typeLabel).then((result) => {
+            if (result.isConfirmed) doSubmit();
         });
     },
 

@@ -90,6 +90,11 @@ class SppbController extends Controller
                     ->whereIn('department_id', $deptIds)
                     ->count();
 
+        $draft = TrSPPB::where('status', 'H')
+                    ->whereIn('cpny_id', $cpnyIds)
+                    ->whereIn('department_id', $deptIds)
+                    ->count();
+
         $completed = TrSPPB::where('status', 'C')
                     ->whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
@@ -106,7 +111,7 @@ class SppbController extends Controller
             ->where('woid', '!=', '')
             ->count();
 
-        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'allListCount', 'woSppbCount'));
+        return view('pages.sppbs.sppbs', compact('all', 'onProgress', 'reject', 'revise', 'draft', 'completed', 'allListCount', 'woSppbCount'));
     }
 
     public function json(Request $request)
@@ -370,6 +375,7 @@ class SppbController extends Controller
         $user = $request->user();
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         $dt = Carbon::now();
         // $month     = str_pad($dt->month, 2, '0', STR_PAD_LEFT);
@@ -431,8 +437,10 @@ class SppbController extends Controller
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
-        // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         DB::beginTransaction();
         try {
@@ -499,7 +507,7 @@ class SppbController extends Controller
             $header->assignpurchasing = null;
             $header->csjobs = null;
             $header->cs = null;
-            $header->status = 'P';
+            $header->status = $isDraft ? 'H' : 'P';
             $header->created_by = $username;
             $header->save();
 
@@ -610,55 +618,57 @@ class SppbController extends Controller
             $header->totalopenordered = $totalQty;
             $header->save();
 
-            // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
-            $isUrgent = (bool) $request->input('is_urgent', false);
+            if (!$isDraft) {
+                // 1) Urgent → dari header field is_urgent (boolean atau "1"/"true")
+                $isUrgent = (bool) $request->input('is_urgent', false);
 
-            // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
-            $firstCategory = null;
-            if (!empty($inventoryCategories)) {
-                foreach ($inventoryCategories as $c) {
-                    if (!empty($c)) {
-                        $firstCategory = $c;
+                // 2) Komputer → hanya kategori pada BARIS PERTAMA yang non-empty
+                $firstCategory = null;
+                if (!empty($inventoryCategories)) {
+                    foreach ($inventoryCategories as $c) {
+                        if (!empty($c)) {
+                            $firstCategory = $c;
+                            break;
+                        }
+                    }
+                }
+
+                // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
+                $hasFixedAssetSubtype = false;
+                foreach ((array) $inventorySubTypes as $sub) {
+                    $s = mb_strtolower((string) $sub);
+                    if ($s === 'fixed asset' || $s === 'fa') {
+                        $hasFixedAssetSubtype = true;
                         break;
                     }
                 }
-            }
 
-            // 3) Fixed Asset → minimal ada SATU detail dengan inventory_sub_type = Fixed Asset / FA
-            $hasFixedAssetSubtype = false;
-            foreach ((array) $inventorySubTypes as $sub) {
-                $s = mb_strtolower((string) $sub);
-                if ($s === 'fixed asset' || $s === 'fa') {
-                    $hasFixedAssetSubtype = true;
-                    break;
+                // 4) Build context untuk ApprovalController
+                $ctx = [
+                    'is_urgent' => $isUrgent,
+                    'first_inventory_category' => $firstCategory,
+                    'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                    'ignore_nominal' => true,   // SPPB diminta tidak cek nominal
+                    // 'grand_total'           => ...     // tidak dipakai di SPPB
+                ];
+
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $docid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
+
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
                 }
-            }
-
-            // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPB diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPB
-            ];
-
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $docid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
-
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
             }
 
             if ($request->hasFile('attachments')) {
@@ -727,27 +737,31 @@ class SppbController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $docid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPB',
-                url('/showsppbs/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $docid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPB',
+                    url('/showsppbs/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'SPPB created successfully',
+                'message' => $isDraft ? 'SPPB saved as draft' : 'SPPB created successfully',
                 'sppbid' => $docid,
                 'sppb_no' => $sppbNo,
                 'totalqty' => $totalQty,
                 'attachments' => $uploadResult,
+                'eid' => $eid,
+                'is_draft' => $isDraft,
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -893,12 +907,15 @@ class SppbController extends Controller
         $doctype = 'PB';
         $username = $user->username ?? 'system';
         $fullname = $user->name ?? 'system';
+        $isDraft = $request->boolean('is_draft');
 
         // ===== generate TrApproval dari MsApproval sesuai context =====
         $approvalCtl = app(ApprovalController::class);
 
         // Pastikan line approval ada (kalau mau validasi awal sebelum simpan detail, panggil loadLines)
-        $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        if (!$isDraft) {
+            $approvalCtl->loadLines($doctype, $request->cpnyid, $request->departementid);
+        }
 
         // helper: normalisasi angka (tahan "12.000", "1.234,56", "12,5")
         $toFloat = function ($v): ?float {
@@ -949,7 +966,7 @@ class SppbController extends Controller
         $header->ticketid = $request->ticketid ?: null;
 
         $header->is_urgent = $request->is_urgent ? 1 : 0;
-        $header->status = 'P';
+        $header->status = $isDraft ? 'H' : 'P';
         $header->updated_by = $username;
         $header->save();
 
@@ -1109,30 +1126,32 @@ class SppbController extends Controller
             }
 
             // 4) Build context untuk ApprovalController
-            $ctx = [
-                'is_urgent' => $isUrgent,
-                'first_inventory_category' => $firstCategory,
-                'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
-                'ignore_nominal' => true,   // SPPB diminta tidak cek nominal
-                // 'grand_total'           => ...     // tidak dipakai di SPPB
-            ];
+            if (!$isDraft) {
+                $ctx = [
+                    'is_urgent' => $isUrgent,
+                    'first_inventory_category' => $firstCategory,
+                    'has_fixed_asset_subtype' => $hasFixedAssetSubtype,
+                    'ignore_nominal' => true,   // SPPB diminta tidak cek nominal
+                    // 'grand_total'           => ...     // tidak dipakai di SPPB
+                ];
 
-            // Generate TrApproval
-            [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
-                $header->sppbid,
-                $doctype,
-                $request->cpnyid,
-                $request->departementid,
-                $username,
-                $ctx,
-                $dt
-            );
+                // Generate TrApproval
+                [$firstApprovalUsernames, $linesCount] = $approvalCtl->generateForDocument(
+                    $header->sppbid,
+                    $doctype,
+                    $request->cpnyid,
+                    $request->departementid,
+                    $username,
+                    $ctx,
+                    $dt
+                );
 
-            // (opsional) simpan hint approver pertama di header seperti sebelumnya
-            if ($firstApprovalUsernames) {
-                $header->completed_by = $firstApprovalUsernames;
-                $header->completed_at = $dt;
-                $header->save();
+                // (opsional) simpan hint approver pertama di header seperti sebelumnya
+                if ($firstApprovalUsernames) {
+                    $header->completed_by = $firstApprovalUsernames;
+                    $header->completed_at = $dt;
+                    $header->save();
+                }
             }
 
             $uploadResult = null;
@@ -1221,22 +1240,28 @@ class SppbController extends Controller
 
             $eid = Hashids::encode($header->id);
 
-            $approvalCtl->notifyFirstApprover(
-                $header->sppbid,
-                $doctype,
-                $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
-                'SPPB',
-                url('/showsppbs/'.$eid),
-                [
-                    'info' => $request->keperluan,
-                    'createdby' => $header->created_by,
-                    'date' => $dt->toDateTimeString(),
-                ]
-            );
+            if (!$isDraft) {
+                $approvalCtl->notifyFirstApprover(
+                    $header->sppbid,
+                    $doctype,
+                    $header->status,                 // 'P' | 'R' | 'D' | 'A' | 'C'
+                    'SPPB',
+                    url('/showsppbs/'.$eid),
+                    [
+                        'info' => $request->keperluan,
+                        'createdby' => $header->created_by,
+                        'date' => $dt->toDateTimeString(),
+                    ]
+                );
+            }
 
             DB::commit();
 
-            return response()->json(['message' => 'SPPB updated successfully']);
+            return response()->json([
+                'message' => $isDraft ? 'SPPB saved as draft' : 'SPPB updated successfully',
+                'eid' => $eid,
+                'is_draft' => $isDraft,
+            ]);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);

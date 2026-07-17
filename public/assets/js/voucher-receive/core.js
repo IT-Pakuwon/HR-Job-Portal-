@@ -9,7 +9,7 @@ const VplReceive = {
     // STATE
     // --------------------------------------------------------
     state: {
-        currentStatus:   'ALL',
+        currentStatus:   'P',
         currentViewId:   null,
         currentViewData: null,
         cRowIdx:         0,

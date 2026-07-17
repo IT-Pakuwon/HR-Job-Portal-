@@ -437,7 +437,7 @@ class PersonnelController extends Controller
             $urutan = (int) $auto['next'];
 
             $tglbln = substr((string) $year, 2).$month;   // YYMM
-            $docid = $doctype.$tglbln.sprintf('%03d', $urutan);
+            $docid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             $title = StoDepartement::where('departement_id', $request->job_title)
                 ->where('status', 'A')
@@ -2168,7 +2168,7 @@ class PersonnelController extends Controller
             }
 
             $tglbln = substr($year, 2).$month;
-            $docid = $doctype.$tglbln.sprintf('%03d', $urutan);
+            $docid = $doctype.$tglbln.sprintf('%04d', $urutan);
 
             // $personnel = Personnel::where('docid', $id)
             //     ->first();

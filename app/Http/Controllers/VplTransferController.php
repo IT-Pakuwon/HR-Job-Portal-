@@ -245,6 +245,10 @@ class VplTransferController extends Controller
             return response()->json(['error' => 'Reference Transfer ID is required for Return Transfer.'], 422);
         }
 
+        if (trim($request->transfer_remark ?? '') === '') {
+            return response()->json(['error' => 'Remark is required.'], 422);
+        }
+
         // Autonbr — self-healing: auto-creates the year/month row if it doesn't exist yet
         $autonbr = $this->nextAutonbr(
             self::DOCTYPE,
@@ -254,67 +258,82 @@ class VplTransferController extends Controller
             self::DOCTYPE_DSC
         );
         $tglbln = substr((string) $dt->year, 2) . sprintf('%02d', (int) $autonbr['month']);
-        $docid  = self::DOCTYPE . $tglbln . sprintf('%03d', $autonbr['next']);
+        $docid  = self::DOCTYPE . $tglbln . sprintf('%04d', $autonbr['next']);
 
-        $transfer = TrxVplTransfer::create([
-            'transfer_id'     => $docid,
-            'cpnyid'          => $request->cpnyid,
-            'department'      => $request->department,
-            'vp_type'         => $vp_type,
-            'transfer_date'   => $dt->format('Y-m-d'),
-            'transfertype'    => $transfertype,
-            'transfer_remark' => $request->transfer_remark,
-            'ref_transfer_id' => $request->ref_transfer_id ?? null,
-            'user_transfer'   => $user->username,
-            'status'          => 'P',
-            'created_user'    => $user->name,
-        ]);
+        $transfer = null;
 
-        // Details
-        if ($request->has('addmore')) {
-            $line = 1;
-            foreach ($request->addmore as $detail) {
-                if (empty($detail['product_id']) || empty($detail['qty_transfer']) || empty($detail['to_whs_id'])) {
-                    continue;
-                }
-                TrxVplTransferDetail::create([
-                    'transfer_id'    => $docid,
-                    'linenbr'        => $line++,
-                    'product_id'     => $detail['product_id'],
-                    'qty_available'  => $detail['qty_available'] ?? 0,
-                    'qty_transfer'   => $detail['qty_transfer'],
-                    'expired_date'   => $detail['expired_date'] ?: '1900-01-01',
-                    'from_whs_id'    => $detail['from_whs_id'],
-                    'to_whs_id'      => $detail['to_whs_id'],
-                    'ref_transfer_id'=> $request->ref_transfer_id ?? null,
-                    'status'         => 'P',
-                    'created_user'   => $user->username,
-                    'created_at'     => $dt->toDateTimeString(),
+        try {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $docid, $vp_type, $transfertype, &$transfer) {
+                $transfer = TrxVplTransfer::create([
+                    'transfer_id'     => $docid,
+                    'cpnyid'          => $request->cpnyid,
+                    'department'      => $request->department,
+                    'vp_type'         => $vp_type,
+                    'transfer_date'   => $dt->format('Y-m-d'),
+                    'transfertype'    => $transfertype,
+                    'transfer_remark' => $request->transfer_remark,
+                    'ref_transfer_id' => $request->ref_transfer_id ?? null,
+                    'user_transfer'   => $user->username,
+                    'status'          => 'P',
+                    'created_user'    => $user->name,
                 ]);
-            }
+
+                // Details
+                $lineCount = 0;
+                if ($request->has('addmore')) {
+                    $line = 1;
+                    foreach ($request->addmore as $detail) {
+                        if (empty($detail['product_id']) || empty($detail['qty_transfer']) || empty($detail['to_whs_id'])) {
+                            continue;
+                        }
+                        TrxVplTransferDetail::create([
+                            'transfer_id'    => $docid,
+                            'linenbr'        => $line++,
+                            'product_id'     => $detail['product_id'],
+                            'qty_available'  => $detail['qty_available'] ?? 0,
+                            'qty_transfer'   => $detail['qty_transfer'],
+                            'expired_date'   => $detail['expired_date'] ?: '1900-01-01',
+                            'from_whs_id'    => $detail['from_whs_id'],
+                            'to_whs_id'      => $detail['to_whs_id'],
+                            'ref_transfer_id'=> $request->ref_transfer_id ?? null,
+                            'status'         => 'P',
+                            'created_user'   => $user->username,
+                            'created_at'     => $dt->toDateTimeString(),
+                        ]);
+                        $lineCount++;
+                    }
+                }
+
+                if ($lineCount === 0) {
+                    throw new \RuntimeException('Please add at least one valid product line before submitting.');
+                }
+
+                $this->saveAttachments($request, $docid, $dt->year, $user);
+
+                // Reserve stock in source warehouse for each detail line
+                $this->adjustReserved($docid, +1);
+
+                // Generate approval records via ApprovalController — throws if no approval rule matches,
+                // rolling back the whole transfer so a document is never left without an approval chain.
+                $conditionName = $this->resolveConditionName($vp_type, $transfertype);
+                $ctx           = ['approval_conditions' => [$conditionName]];
+
+                app(ApprovalController::class)->generateForDocument(
+                    $docid,
+                    self::DOCTYPE,
+                    $request->cpnyid,
+                    $request->department,
+                    $user->username,
+                    $ctx,
+                    $dt
+                );
+            });
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
 
-        $this->saveAttachments($request, $docid, $dt->year, $user);
-
-        // Reserve stock in source warehouse for each detail line
-        $this->adjustReserved($docid, +1);
-
-        // Generate approval records via ApprovalController
-        $conditionName = $this->resolveConditionName($vp_type, $transfertype);
-        $ctx           = ['approval_conditions' => [$conditionName]];
-
-        $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->generateForDocument(
-            $docid,
-            self::DOCTYPE,
-            $request->cpnyid,
-            $request->department,
-            $user->username,
-            $ctx,
-            $dt
-        );
-
-        $approvalCtl->notifyFirstApprover(
+        // Send notification after the transaction commits so a mail failure doesn't roll back the document
+        app(ApprovalController::class)->notifyFirstApprover(
             $docid,
             self::DOCTYPE,
             'P',
@@ -331,74 +350,84 @@ class VplTransferController extends Controller
     // -------------------------------------------------------
     public function update(Request $request, int $id)
     {
+        if (trim($request->transfer_remark ?? '') === '') {
+            return response()->json(['error' => 'Remark is required.'], 422);
+        }
+
         $user     = Auth::user();
         $dt       = Carbon::now();
         $transfer = TrxVplTransfer::find($id);
 
-        // New detail lines
-        if ($request->has('addmore')) {
-            $line = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->max('linenbr') ?? 0;
-            foreach ($request->addmore as $detail) {
-                if (empty($detail['product_id']) || empty($detail['qty_transfer']) || empty($detail['to_whs_id'])) {
-                    continue;
-                }
-                $exp = $detail['expired_date'] ?: '1900-01-01';
+        try {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $transfer) {
+                // New detail lines
+                if ($request->has('addmore')) {
+                    $line = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->max('linenbr') ?? 0;
+                    foreach ($request->addmore as $detail) {
+                        if (empty($detail['product_id']) || empty($detail['qty_transfer']) || empty($detail['to_whs_id'])) {
+                            continue;
+                        }
+                        $exp = $detail['expired_date'] ?: '1900-01-01';
 
-                $existing = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)
-                    ->where('product_id', $detail['product_id'])
-                    ->where('expired_date', $exp)
-                    ->where('to_whs_id', $detail['to_whs_id'])
-                    ->first();
+                        $existing = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)
+                            ->where('product_id', $detail['product_id'])
+                            ->where('expired_date', $exp)
+                            ->where('to_whs_id', $detail['to_whs_id'])
+                            ->first();
 
-                if ($existing) {
-                    $existing->qty_transfer += $detail['qty_transfer'];
-                    $existing->updated_user  = $user->username;
-                    $existing->save();
-                    $this->reserveDetail($existing, +1);
-                } else {
-                    $newDetail = TrxVplTransferDetail::create([
-                        'transfer_id'    => $transfer->transfer_id,
-                        'linenbr'        => ++$line,
-                        'product_id'     => $detail['product_id'],
-                        'qty_available'  => $detail['qty_available'] ?? 0,
-                        'qty_transfer'   => $detail['qty_transfer'],
-                        'expired_date'   => $exp,
-                        'from_whs_id'    => $detail['from_whs_id'],
-                        'to_whs_id'      => $detail['to_whs_id'],
-                        'ref_transfer_id'=> $request->ref_transfer_id ?? null,
-                        'status'         => 'P',
-                        'created_user'   => $user->username,
-                        'created_at'     => $dt->toDateTimeString(),
-                    ]);
-                    $this->reserveDetail($newDetail, +1);
+                        if ($existing) {
+                            $existing->qty_transfer += $detail['qty_transfer'];
+                            $existing->updated_user  = $user->username;
+                            $existing->save();
+                            $this->reserveDetail($existing, +1);
+                        } else {
+                            $newDetail = TrxVplTransferDetail::create([
+                                'transfer_id'    => $transfer->transfer_id,
+                                'linenbr'        => ++$line,
+                                'product_id'     => $detail['product_id'],
+                                'qty_available'  => $detail['qty_available'] ?? 0,
+                                'qty_transfer'   => $detail['qty_transfer'],
+                                'expired_date'   => $exp,
+                                'from_whs_id'    => $detail['from_whs_id'],
+                                'to_whs_id'      => $detail['to_whs_id'],
+                                'ref_transfer_id'=> $request->ref_transfer_id ?? null,
+                                'status'         => 'P',
+                                'created_user'   => $user->username,
+                                'created_at'     => $dt->toDateTimeString(),
+                            ]);
+                            $this->reserveDetail($newDetail, +1);
+                        }
+                    }
                 }
-            }
+
+                $this->saveAttachments($request, $transfer->transfer_id, $dt->year, $user);
+
+                // Re-generate approval records — throws if no approval rule matches, rolling back
+                // the detail/attachment changes so the document isn't left without an approval chain.
+                $conditionName = $this->resolveConditionName($transfer->vp_type, $transfer->transfertype);
+                $ctx           = ['approval_conditions' => [$conditionName]];
+
+                app(ApprovalController::class)->generateForDocument(
+                    $transfer->transfer_id,
+                    self::DOCTYPE,
+                    $request->cpnyid ?? $transfer->cpnyid,
+                    $request->department ?? $transfer->department,
+                    $user->username,
+                    $ctx,
+                    $dt
+                );
+
+                $transfer->transfer_remark = $request->transfer_remark;
+                $transfer->status          = 'P';
+                $transfer->updated_user    = $user->name;
+                $transfer->updated_at      = $dt->toDateTimeString();
+                $transfer->save();
+            });
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
 
-        $this->saveAttachments($request, $transfer->transfer_id, $dt->year, $user);
-
-        // Re-generate approval records
-        $conditionName = $this->resolveConditionName($transfer->vp_type, $transfer->transfertype);
-        $ctx           = ['approval_conditions' => [$conditionName]];
-
-        $approvalCtl = app(ApprovalController::class);
-        $approvalCtl->generateForDocument(
-            $transfer->transfer_id,
-            self::DOCTYPE,
-            $request->cpnyid ?? $transfer->cpnyid,
-            $request->department ?? $transfer->department,
-            $user->username,
-            $ctx,
-            $dt
-        );
-
-        $transfer->transfer_remark = $request->transfer_remark ?? $transfer->transfer_remark;
-        $transfer->status          = 'P';
-        $transfer->updated_user    = $user->name;
-        $transfer->updated_at      = $dt->toDateTimeString();
-        $transfer->save();
-
-        $approvalCtl->notifyFirstApprover(
+        app(ApprovalController::class)->notifyFirstApprover(
             $transfer->transfer_id,
             self::DOCTYPE,
             'P',
@@ -663,7 +692,7 @@ class VplTransferController extends Controller
 
     /**
      * Returns TO warehouse options.
-     * Transfer   → department transfer-receiving warehouses (activity_type = 'TRANSFER_RECEIVE', excluding FROM)
+     * Transfer   → the selected department's transfer-receiving warehouse (activity_type = 'TRANSFER_RECEIVE')
      * ReturnTf   → central transfer warehouse
      */
     public function getToWhs(Request $request)
@@ -675,8 +704,9 @@ class VplTransferController extends Controller
         $fromWhsId    = $request->from_whs_id;
 
         if ($transfertype === 'Transfer') {
-            // All TRANSFER_RECEIVE warehouses across all depts (open destination), excluding the FROM whs
+            // Only the receiving warehouse belonging to the department chosen in the header
             $list = MsVplWarehouseDept::where('cpnyid', $cpnyid)
+                ->where('department_id', $department)
                 ->where('vp_type', $vp_type)
                 ->where('activity_type', 'TRANSFER_RECEIVE')
                 ->where('status', 'A')

@@ -25,12 +25,12 @@ class ApprovalController extends Controller
         'C' => 'Completed',
     ];
 
-    protected function orderByLevel($query)
+    public function orderByLevel($query)
     {
         return $query->orderByRaw("CAST(aprv_leveling AS numeric) ASC");
     }
 
-    protected function normalizeApproverList(?string $raw): array
+    public function normalizeApproverList(?string $raw): array
     {
         if (!$raw) return [];
         $arr = preg_split('/[;,]/', $raw) ?: [];

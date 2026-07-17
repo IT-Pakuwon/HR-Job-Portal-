@@ -17,6 +17,7 @@ const VplUsage = {
         store:      '',
         warehouse:  '',
         products:   '',
+        fefoPick:   '',
         refOpts:    '',
         refDetails: '',
         delDetail:  '',

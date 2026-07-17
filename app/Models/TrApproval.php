@@ -32,3 +32,4 @@ class TrApproval extends Model
         'updated_by',
     ];
 }
+

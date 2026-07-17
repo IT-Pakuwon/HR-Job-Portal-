@@ -320,7 +320,6 @@
                                 'locations',
                                 'categories',
                                 'vendors',
-                                'inventories',
                                 'autonbrs',
                                 'tops',
                                 'sys-calendar',
@@ -328,6 +327,7 @@
                                 'kendaraan',
                                 'groupbiayanonpurch',
                                 'approvals',
+                                'manage-approvals',
                                 'approvalsgroupbiaya',
                                 'budgetmonitor',
                                 'ifcaintegration',
@@ -477,7 +477,7 @@
                                 <!-- ================================================= -->
                                 <!-- MASTER DATA -->
                                 <!-- ================================================= -->
-                                @php $md = ['categories','vendors','inventories','autonbrs','tops']; @endphp
+                                @php $md = ['categories','vendors','autonbrs','tops']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $md) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -500,9 +500,9 @@
                                         <li><a href="{{ route('vendors') }}"
                                                 class="{{ Request::segment(1) === 'vendors' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Vendors</a>
                                         </li>
-                                        <li><a href="{{ route('inventories') }}"
+                                        {{-- <li><a href="{{ route('inventories') }}"
                                                 class="{{ Request::segment(1) === 'inventories' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Inventories</a>
-                                        </li>
+                                        </li> --}}
                                         <li><a href="{{ route('autonbrs') }}"
                                                 class="{{ Request::segment(1) === 'autonbrs' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Autonbrs</a>
                                         </li>
@@ -512,10 +512,6 @@
                                         <li><a href="{{ route('sys-calendar') }}"
                                                 class="{{ Request::segment(1) === 'sys-calendar' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Calendar
                                                 Exception</a>
-                                        </li>
-                                        <li><a href="{{ route('attachments-master') }}"
-                                                class="{{ Request::segment(1) === 'attachments-master' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Attachments
-                                                Master</a>
                                         </li>
                                         <li><a href="{{ route('kendaraan') }}"
                                                 class="{{ Request::segment(1) === 'kendaraan' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Kendaraan</a>
@@ -529,7 +525,7 @@
                                 <!-- ================================================= -->
                                 <!-- WORKFLOW -->
                                 <!-- ================================================= -->
-                                @php $workflowSegments = ['approvals','ifcaintegration']; @endphp
+                                @php $workflowSegments = ['approvals','manage-approvals','attachments-master','ifcaintegration']; @endphp
                                 <li x-data="{ open: {{ in_array(Request::segment(1), $workflowSegments) ? 'true' : 'false' }} }">
 
                                     <button @click="open = !open"
@@ -549,9 +545,17 @@
                                         <li><a href="{{ route('approvals') }}"
                                                 class="{{ Request::segment(1) === 'approvals' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Approvals</a>
                                         </li>
+                                        <li><a href="{{ route('manage-approvals') }}"
+                                                class="{{ Request::segment(1) === 'manage-approvals' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Manage
+                                                Approval</a>
+                                        </li>
                                         <li><a href="{{ route('approvalsgroupbiaya') }}"
                                                 class="{{ Request::segment(1) === 'approvalsgroupbiaya' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Approvals
                                                 Group Biaya</a>
+                                        </li>
+                                        <li><a href="{{ route('attachments-master') }}"
+                                                class="{{ Request::segment(1) === 'attachments-master' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Attachments
+                                                Master</a>
                                         </li>
                                         <li>
                                             <a href="{{ route('integration.ifcaintegration') }}"

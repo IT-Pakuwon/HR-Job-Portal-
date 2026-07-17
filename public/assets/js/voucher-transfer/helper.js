@@ -124,7 +124,8 @@ const VplTransferHelper = {
                         class="${prefix}-qty-transfer-input w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
                 </td>
                 <td class="px-3 py-2">
-                    <select name="addmore[${idx}][to_whs_id]" class="${prefix}-to-whs-sel w-full" style="min-width:140px">
+                    <input type="hidden" name="addmore[${idx}][to_whs_id]" class="${prefix}-to-whs-input" value="">
+                    <select class="${prefix}-to-whs-sel w-full" style="min-width:140px">
                         <option value="">Select WHS</option>
                     </select>
                 </td>
@@ -149,12 +150,5 @@ const VplTransferHelper = {
                 </td>
             </tr>
         `;
-    },
-
-    initToWHSSelect2(prefix, idx) {
-        const $sel = $(`select[name="addmore[${idx}][to_whs_id]"]`);
-        if ($sel.length) {
-            $sel.select2({ placeholder: 'Select WHS', allowClear: true, width: '100%' });
-        }
     },
 };

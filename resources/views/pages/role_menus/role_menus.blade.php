@@ -6,7 +6,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
         <div>
             {{-- Tab nav --}}
-            <div class="mt-4 flex gap-1 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700">
                 <button type="button" id="tabBtnList"
                     class="role-menu-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-600 dark:border-gray-700 dark:bg-gray-800 dark:text-indigo-400">
                     📋 Role Menu List
