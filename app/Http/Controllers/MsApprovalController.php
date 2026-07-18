@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\DepartmentHR;
+use Yajra\DataTables\Facades\DataTables;
 
 class MsApprovalController extends Controller
 {
@@ -63,9 +64,10 @@ class MsApprovalController extends Controller
         ]);
     }
 
-    public function json()
+    public function json(Request $request)
     {
-        $rows = MsApproval::select([
+        $query = MsApproval::query()
+            ->select([
                 'id',
                 'aprv_leveling',
                 'aprv_doctype',
@@ -78,13 +80,15 @@ class MsApprovalController extends Controller
                 'aprv_start_nominal',
                 'aprv_end_nominal',
                 'status',
-            ])
-            ->orderBy('aprv_doctype')
-            ->orderBy('aprv_departementid')
-            ->orderBy('aprv_leveling')
-            ->get();
+            ]);
 
-        return response()->json(['data' => $rows]);
+        if (!$request->has('order')) {
+            $query->orderBy('aprv_doctype')
+                ->orderBy('aprv_departementid')
+                ->orderBy('aprv_leveling');
+        }
+
+        return DataTables::of($query)->make(true);
     }
 
     /**

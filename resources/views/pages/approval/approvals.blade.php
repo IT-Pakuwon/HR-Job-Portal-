@@ -545,7 +545,7 @@
                     dataSrc: 'data'
                 },
                 processing: true,
-                serverSide: false,
+                serverSide: true,
                 lengthMenu: [
                     [10, 25, 50, 100, 250, -1],
                     [10, 25, 50, 100, 250, 'All']
@@ -561,7 +561,8 @@
                     targets: 0,
                     width: '28px',
                     className: 'dtr-control',
-                    orderable: false
+                    orderable: false,
+                    searchable: false
                 }],
                 dom: '<"dt-toolbar flex items-center justify-start gap-4"lBf>rtip',
                 buttons: [{

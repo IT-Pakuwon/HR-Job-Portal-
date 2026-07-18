@@ -82,7 +82,6 @@ use App\Http\Controllers\ManpowerController;
 use App\Http\Controllers\MappingIssueERPController;
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\MasterController;
-use App\Http\Controllers\MasterTrainingController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MeetingRoomSetupController;
 use App\Http\Controllers\MsApprovalController;
@@ -140,7 +139,6 @@ use App\Http\Controllers\TestEmailController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketSetupController;
 use App\Http\Controllers\TopController;
-use App\Http\Controllers\TrainingRegistrationController;
 use App\Http\Controllers\TrAttachmentController;
 use App\Http\Controllers\TreasuryDashboardController;
 use App\Http\Controllers\UpdateNotificationController;
@@ -2456,58 +2454,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/tasks/{id}/move', [TaskController::class, 'move']);
         Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
     });
-
-    Route::prefix('mastertraining')->group(function () {
-        // 👀 VIEW MASTERTRAINING
-        Route::middleware('access:MASTERTRAINING,VIEW')->group(function () {
-            Route::get('/mastertraining', [MasterTrainingController::class, 'index'])
-                ->name('mastertraining');
-        });
-
-        // ✍️ CREATE MASTERTRAINING
-        Route::middleware('access:MASTERTRAINING,CREATE')->group(function () {
-            Route::get('/create', [MasterTrainingController::class, 'create'])
-                ->name('mastertraining.create');
-
-            Route::post('/store', [MasterTrainingController::class, 'store'])
-                ->name('mastertraining.store');
-        });
-
-        // 👀 VIEW MASTERTRAINING (show)
-        Route::middleware('access:MASTERTRAINING,VIEW')->group(function () {
-            Route::get('/{id}', [MasterTrainingController::class, 'show'])
-                ->name('mastertraining.show');
-        });
-
-        // ✏️ EDIT MASTERTRAINING
-        Route::middleware('access:MASTERTRAINING,EDIT')->group(function () {
-            Route::get('/mastertraining/{id}/edit', [MasterTrainingController::class, 'edit'])->name('mastertraining.edit');
-
-            Route::put('/mastertraining/{id}', [MasterTrainingController::class, 'update'])
-                ->name('mastertraining.update');
-        });
-
-        // 🗑️ DELETE MASTERTRAINING
-        Route::middleware('access:MASTERTRAINING,DELETE')->group(function () {
-            Route::delete('/mastertraining/{id}', [MasterTrainingController::class, 'destroy'])
-                ->name('mastertraining.destroy');
-        });
-    });
-
-    Route::get('/training-events', [TrainingRegistrationController::class, 'index'])
-        ->name('training');
-
-    Route::get(
-        '/training/{id}/register',
-        [TrainingRegistrationController::class, 'showRegisterForm']
-    )->name('training.register.form');
-
-    Route::post(
-        '/training/{id}/register',
-        [TrainingRegistrationController::class, 'register']
-    )->name('training.register');
-    Route::get('/training', [TrainingRegistrationController::class, 'index'])
-        ->name('training.list');
 
     Route::get('/manual/{root?}/{parent?}/{child?}', function ($root = null, $parent = null, $child = null) {
         $user = Auth::user();
