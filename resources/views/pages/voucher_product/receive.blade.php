@@ -7,7 +7,7 @@
 .modal-panel { backface-visibility: hidden; }
 .modal-scroll { scrollbar-width: thin; }
 .select2-container .select2-selection--single { height: 42px !important; border-radius: 8px !important; border-color: #e2e8f0 !important; display: flex; align-items: center; }
-.select2-container .select2-selection--single .select2-selection__rendered { line-height: 42px !important; padding: 0 12px !important; }
+.select2-container .select2-selection--single .select2-selection__rendered { line-height: 42px !important; padding: 0 50px 0 12px !important; }
 .select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
 .apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
 .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }

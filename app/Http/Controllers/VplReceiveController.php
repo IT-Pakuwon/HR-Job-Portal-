@@ -220,6 +220,10 @@ class VplReceiveController extends Controller
         // vp_type is sent as 'voucher' or 'product' from the form
         $vpTypeName = $request->vp_type; // 'voucher' | 'product'
 
+        if (!$this->hasDepartmentAccess($user, $request->cpnyid, $request->department)) {
+            return response()->json(['error' => 'You do not have access to create a Receive document for this company/department.'], 403);
+        }
+
         // Read ms_category to get approval condition
         $category = MsCategory::where('doctype', self::DOCTYPE)
             ->where('categoryid', 'condition')
@@ -261,9 +265,14 @@ class VplReceiveController extends Controller
                     'created_user' => $user->name,
                 ]);
 
+                $lineCount = 0;
                 if ($request->has('addmore')) {
                     $line = 1;
                     foreach ($request->addmore as $detail) {
+                        if (empty($detail['product_name']) || empty($detail['whs_id'])
+                            || !is_numeric($detail['qty'] ?? null) || (float) $detail['qty'] <= 0) {
+                            continue;
+                        }
                         $exp = !empty($detail['expired_date']) ? $detail['expired_date'] : '1900-01-01';
                         TrxVplReceiveDetail::create([
                             'receive_id' => $docid,
@@ -276,7 +285,12 @@ class VplReceiveController extends Controller
                             'created_user' => $user->username,
                             'created_at' => $dt->toDateTimeString(),
                         ]);
+                        $lineCount++;
                     }
+                }
+
+                if ($lineCount === 0) {
+                    throw new \RuntimeException('Please add at least one valid product line before submitting.');
                 }
 
                 $this->saveAttachments($request, $docid, $dt->year, $user);
@@ -325,11 +339,22 @@ class VplReceiveController extends Controller
         $dt = Carbon::now();
         $receive = TrxVplReceive::find($id);
 
+        if (!$receive) {
+            return response()->json(['error' => 'Not found.'], 404);
+        }
+        if ($receive->created_user !== $user->name) {
+            return response()->json(['error' => 'You are not allowed to edit this document.'], 403);
+        }
+        if ($receive->status !== 'D') {
+            return response()->json(['error' => 'This document cannot be edited in its current status.'], 422);
+        }
+
         try {
             DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $receive) {
                 if ($request->has('addmore')) {
                     foreach ($request->addmore as $detail) {
-                        if (empty($detail['product_name']) || empty($detail['qty']) || empty($detail['whs_id'])) {
+                        if (empty($detail['product_name']) || empty($detail['whs_id'])
+                            || !is_numeric($detail['qty'] ?? null) || (float) $detail['qty'] <= 0) {
                             continue;
                         }
                         $exp = !empty($detail['expired_date']) ? $detail['expired_date'] : '1900-01-01';
@@ -430,12 +455,16 @@ class VplReceiveController extends Controller
             $user->username,
             $user->name,
             function ($refnbr, $now) use ($receive, $user) {
-                // All approvals done → complete document
-                $receive->status = 'C';
-                $receive->completed_user = $user->username;
-                $receive->completed_at = $now;
-                $receive->save();
-                $this->insertMsProductDetail($receive->id);
+                // All approvals done → complete document. Wrapped in its own transaction
+                // so a mid-loop failure in insertMsProductDetail() can't leave the header
+                // marked Completed while only some lines were credited to stock.
+                DB::connection('pgsql5')->transaction(function () use ($receive, $user, $now) {
+                    $receive->status = 'C';
+                    $receive->completed_user = $user->username;
+                    $receive->completed_at = $now;
+                    $receive->save();
+                    $this->insertMsProductDetail($receive->id);
+                });
             },
             function ($next, $now) use ($receive, $id) {
                 // Notify next approver
@@ -549,6 +578,14 @@ class VplReceiveController extends Controller
         $user = Auth::user();
         $receive = TrxVplReceive::find($id);
 
+        if (!$receive) {
+            return response()->json(['error' => 'Not found.'], 404);
+        }
+
+        if (!$this->canCancel($receive, $user)) {
+            return response()->json(['error' => 'You are not allowed to cancel this document.'], 403);
+        }
+
         $receive->status = 'X';
         $receive->updated_user = $user->name;
         $receive->save();
@@ -590,6 +627,13 @@ class VplReceiveController extends Controller
         if (!$detail) {
             return response()->json(['error' => 'Not found.'], 404);
         }
+
+        $user = Auth::user();
+        $receive = TrxVplReceive::where('receive_id', $detail->receive_id)->first();
+        if (!$receive || $receive->created_user !== $user->name || $receive->status !== 'D') {
+            return response()->json(['error' => 'You are not allowed to modify this document.'], 403);
+        }
+
         $detail->delete();
 
         return response()->json(['success' => 'Detail deleted.']);
@@ -601,6 +645,13 @@ class VplReceiveController extends Controller
         if (!$attach) {
             return response()->json(['error' => 'Not found.'], 404);
         }
+
+        $user = Auth::user();
+        $receive = TrxVplReceive::where('receive_id', $attach->docid)->first();
+        if (!$receive || $receive->created_user !== $user->name || $receive->status !== 'D') {
+            return response()->json(['error' => 'You are not allowed to modify this document.'], 403);
+        }
+
         $attach->delete();
 
         return response()->json(['success' => 'Attachment deleted.']);
@@ -708,6 +759,34 @@ class VplReceiveController extends Controller
     // -------------------------------------------------------
     // PRIVATE HELPERS
     // -------------------------------------------------------
+    private function hasDepartmentAccess($user, ?string $cpnyid, ?string $department): bool
+    {
+        if ($user->role === 'admin' || $user->hasRole('VPACCESS')) {
+            return true;
+        }
+
+        $hasCpny = Usercpny::where('username', $user->username)->where('status', 'A')->where('cpny_id', $cpnyid)->exists();
+        $hasDept = Userdept::where('username', $user->username)->where('department_id', $department)->exists();
+
+        return $hasCpny && $hasDept;
+    }
+
+    /**
+     * Cancel: creator only, and only while still Hold (D) or On Progress with
+     * nothing yet approved (P and no 'A' rows) — mirrors the can_cancel flag
+     * showData() sends the UI, re-checked here since the client can't be trusted.
+     */
+    private function canCancel(TrxVplReceive $receive, $user): bool
+    {
+        $anyApproved = TrApproval::where('refnbr', $receive->receive_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', 'A')
+            ->exists();
+
+        return $receive->created_user === $user->name
+            && ($receive->status === 'D' || ($receive->status === 'P' && !$anyApproved));
+    }
+
     private function statusBadge(string $status): string
     {
         // Matches the badge style used in budgets.blade.php for visual consistency across modules

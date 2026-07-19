@@ -8,8 +8,6 @@ const VplUsage = {
         eRowIdx: 0,
         cAttachIdx: 1,
         eAttachIdx: 1,
-        pendingProductRowIdx: null,
-        pendingProductMode:   null,
     },
 
     routes: {

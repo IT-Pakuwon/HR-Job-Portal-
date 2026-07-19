@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Traits\HasAutonbr;
 use App\Models\TrxVplTransfer;
 use App\Models\TrxVplTransferDetail;
+use App\Models\MsCategory;
 use App\Models\MsVplProduct;
 use App\Models\MsVplProductDetail;
 use App\Models\MsVplWarehouseDept;
@@ -249,6 +250,22 @@ class VplTransferController extends Controller
             return response()->json(['error' => 'Remark is required.'], 422);
         }
 
+        if (!$this->hasDepartmentAccess($user, $request->cpnyid, $request->department)) {
+            return response()->json(['error' => 'You do not have access to create a Transfer document for this company/department.'], 403);
+        }
+
+        // Read ms_category to validate the approval condition exists
+        $conditionName = $this->resolveConditionName($vp_type, $transfertype);
+        $category = MsCategory::where('doctype', self::DOCTYPE)
+            ->where('categoryid', 'condition')
+            ->where('category_name', $conditionName)
+            ->where('status', 'A')
+            ->first();
+
+        if (!$category) {
+            return response()->json(['error' => 'Category condition "'.$conditionName.'" not found. Please contact IT!'], 422);
+        }
+
         // Autonbr — self-healing: auto-creates the year/month row if it doesn't exist yet
         $autonbr = $this->nextAutonbr(
             self::DOCTYPE,
@@ -263,7 +280,7 @@ class VplTransferController extends Controller
         $transfer = null;
 
         try {
-            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $docid, $vp_type, $transfertype, &$transfer) {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $docid, $vp_type, $transfertype, $category, $conditionName, &$transfer) {
                 $transfer = TrxVplTransfer::create([
                     'transfer_id'     => $docid,
                     'cpnyid'          => $request->cpnyid,
@@ -283,7 +300,8 @@ class VplTransferController extends Controller
                 if ($request->has('addmore')) {
                     $line = 1;
                     foreach ($request->addmore as $detail) {
-                        if (empty($detail['product_id']) || empty($detail['qty_transfer']) || empty($detail['to_whs_id'])) {
+                        if (empty($detail['product_id']) || empty($detail['to_whs_id'])
+                            || !is_numeric($detail['qty_transfer'] ?? null) || (float) $detail['qty_transfer'] <= 0) {
                             continue;
                         }
                         TrxVplTransferDetail::create([
@@ -315,8 +333,8 @@ class VplTransferController extends Controller
 
                 // Generate approval records via ApprovalController — throws if no approval rule matches,
                 // rolling back the whole transfer so a document is never left without an approval chain.
-                $conditionName = $this->resolveConditionName($vp_type, $transfertype);
-                $ctx           = ['approval_conditions' => [$conditionName]];
+                $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
+                $ctx               = ['approval_conditions' => [$approvalCondition]];
 
                 app(ApprovalController::class)->generateForDocument(
                     $docid,
@@ -358,16 +376,40 @@ class VplTransferController extends Controller
         $dt       = Carbon::now();
         $transfer = TrxVplTransfer::find($id);
 
+        if (!$transfer) {
+            return response()->json(['error' => 'Not found.'], 404);
+        }
+        if ($transfer->created_user !== $user->name) {
+            return response()->json(['error' => 'You are not allowed to edit this document.'], 403);
+        }
+        if ($transfer->status !== 'D') {
+            return response()->json(['error' => 'This document cannot be edited in its current status.'], 422);
+        }
+
+        // Read ms_category to validate the approval condition exists
+        $conditionName = $this->resolveConditionName($transfer->vp_type, $transfer->transfertype);
+        $category = MsCategory::where('doctype', self::DOCTYPE)
+            ->where('categoryid', 'condition')
+            ->where('category_name', $conditionName)
+            ->where('status', 'A')
+            ->first();
+
+        if (!$category) {
+            return response()->json(['error' => 'Category condition "'.$conditionName.'" not found. Please contact IT!'], 422);
+        }
+
         try {
-            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $transfer) {
+            DB::connection('pgsql5')->transaction(function () use ($request, $user, $dt, $transfer, $category, $conditionName) {
                 // New detail lines
                 if ($request->has('addmore')) {
                     $line = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->max('linenbr') ?? 0;
                     foreach ($request->addmore as $detail) {
-                        if (empty($detail['product_id']) || empty($detail['qty_transfer']) || empty($detail['to_whs_id'])) {
+                        if (empty($detail['product_id']) || empty($detail['to_whs_id'])
+                            || !is_numeric($detail['qty_transfer'] ?? null) || (float) $detail['qty_transfer'] <= 0) {
                             continue;
                         }
                         $exp = $detail['expired_date'] ?: '1900-01-01';
+                        $newQty = (float) $detail['qty_transfer'];
 
                         $existing = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)
                             ->where('product_id', $detail['product_id'])
@@ -376,10 +418,13 @@ class VplTransferController extends Controller
                             ->first();
 
                         if ($existing) {
-                            $existing->qty_transfer += $detail['qty_transfer'];
+                            $existing->qty_transfer += $newQty;
                             $existing->updated_user  = $user->username;
                             $existing->save();
-                            $this->reserveDetail($existing, +1);
+                            // Reserve only the newly-added delta — $existing->qty_transfer is
+                            // already the new cumulative total, so passing it straight into
+                            // reserveDetail() would double-count the portion already reserved.
+                            $this->reserveDetail($existing, +1, $newQty);
                         } else {
                             $newDetail = TrxVplTransferDetail::create([
                                 'transfer_id'    => $transfer->transfer_id,
@@ -404,8 +449,8 @@ class VplTransferController extends Controller
 
                 // Re-generate approval records — throws if no approval rule matches, rolling back
                 // the detail/attachment changes so the document isn't left without an approval chain.
-                $conditionName = $this->resolveConditionName($transfer->vp_type, $transfer->transfertype);
-                $ctx           = ['approval_conditions' => [$conditionName]];
+                $approvalCondition = trim($category->groups ?? '') ?: $conditionName;
+                $ctx               = ['approval_conditions' => [$approvalCondition]];
 
                 app(ApprovalController::class)->generateForDocument(
                     $transfer->transfer_id,
@@ -471,12 +516,16 @@ class VplTransferController extends Controller
             $user->username,
             $user->name,
             function ($refnbr, $now) use ($transfer, $user, $id) {
-                // All steps done → complete document
-                $transfer->status         = 'C';
-                $transfer->completed_user = $user->username;
-                $transfer->completed_at   = $now;
-                $transfer->save();
-                $this->processTransferStock($id);
+                // All steps done → complete document. Wrapped in its own transaction so a
+                // mid-loop stock failure inside processTransferStock() can't leave the header
+                // marked Completed while only some lines actually moved.
+                DB::connection('pgsql5')->transaction(function () use ($transfer, $user, $now, $id) {
+                    $transfer->status         = 'C';
+                    $transfer->completed_user = $user->username;
+                    $transfer->completed_at   = $now;
+                    $transfer->save();
+                    $this->processTransferStock($id);
+                });
             },
             function ($next, $now) use ($transfer, $id) {
                 // Notify next approver
@@ -566,6 +615,10 @@ class VplTransferController extends Controller
                 $transfer->updated_user = $user->name;
                 $transfer->updated_at   = $now;
                 $transfer->save();
+                // Unlike Reject/Cancel, this was previously missing — the source-warehouse
+                // reservation leaked while the doc sat on Hold, then update() reserved the
+                // new/bumped lines on top of the still-held original reservation.
+                $this->adjustReserved($transfer->transfer_id, -1);
                 $this->saveMessage($transfer, $request->message, $user);
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $transfer->transfer_id,
@@ -592,6 +645,14 @@ class VplTransferController extends Controller
     {
         $user     = Auth::user();
         $transfer = TrxVplTransfer::find($id);
+
+        if (!$transfer) {
+            return response()->json(['error' => 'Not found.'], 404);
+        }
+
+        if (!$this->canCancel($transfer, $user)) {
+            return response()->json(['error' => 'You are not allowed to cancel this document.'], 403);
+        }
 
         $this->adjustReserved($transfer->transfer_id, -1);
 
@@ -636,6 +697,13 @@ class VplTransferController extends Controller
         if (!$detail) {
             return response()->json(['error' => 'Not found.'], 404);
         }
+
+        $user = Auth::user();
+        $transfer = TrxVplTransfer::where('transfer_id', $detail->transfer_id)->first();
+        if (!$transfer || $transfer->created_user !== $user->name || $transfer->status !== 'D') {
+            return response()->json(['error' => 'You are not allowed to modify this document.'], 403);
+        }
+
         $this->reserveDetail($detail, -1);
         $detail->delete();
         return response()->json(['success' => 'Detail deleted.']);
@@ -647,6 +715,13 @@ class VplTransferController extends Controller
         if (!$attach) {
             return response()->json(['error' => 'Not found.'], 404);
         }
+
+        $user = Auth::user();
+        $transfer = TrxVplTransfer::where('transfer_id', $attach->docid)->first();
+        if (!$transfer || $transfer->created_user !== $user->name || $transfer->status !== 'D') {
+            return response()->json(['error' => 'You are not allowed to modify this document.'], 403);
+        }
+
         $attach->delete();
         return response()->json(['success' => 'Attachment deleted.']);
     }
@@ -815,14 +890,21 @@ class VplTransferController extends Controller
         return $typeLabel . ' ' . $vpLabel;
     }
 
-    private function reserveDetail(TrxVplTransferDetail $detail, int $delta): void
+    /**
+     * $qtyOverride lets a caller reserve/release a specific amount instead of
+     * the detail row's full current qty_transfer — needed when bumping an
+     * existing line's qty, where qty_transfer is already the new cumulative
+     * total and only the added delta should be (un)reserved.
+     */
+    private function reserveDetail(TrxVplTransferDetail $detail, int $delta, ?float $qtyOverride = null): void
     {
+        $qty = $qtyOverride ?? $detail->qty_transfer;
         $stock = MsVplProductDetail::where('product_id', $detail->product_id)
             ->where('expired_date', $detail->expired_date)
             ->where('whs_id', $detail->from_whs_id)
             ->first();
         if ($stock) {
-            $stock->qty_reserved = max(0, ($stock->qty_reserved ?? 0) + ($delta * $detail->qty_transfer));
+            $stock->qty_reserved = max(0, ($stock->qty_reserved ?? 0) + ($delta * $qty));
             $stock->save();
         }
     }
@@ -832,6 +914,34 @@ class VplTransferController extends Controller
         TrxVplTransferDetail::where('transfer_id', $transferId)->each(
             fn ($detail) => $this->reserveDetail($detail, $delta)
         );
+    }
+
+    private function hasDepartmentAccess($user, ?string $cpnyid, ?string $department): bool
+    {
+        if ($user->role === 'admin' || $user->hasRole('VPACCESS')) {
+            return true;
+        }
+
+        $hasCpny = Usercpny::where('username', $user->username)->where('status', 'A')->where('cpny_id', $cpnyid)->exists();
+        $hasDept = Userdept::where('username', $user->username)->where('department_id', $department)->exists();
+
+        return $hasCpny && $hasDept;
+    }
+
+    /**
+     * Cancel: creator only, and only while still Hold (D) or On Progress with
+     * nothing yet approved (P and no 'A' rows) — mirrors the can_cancel flag
+     * showData() sends the UI, re-checked here since the client can't be trusted.
+     */
+    private function canCancel(TrxVplTransfer $transfer, $user): bool
+    {
+        $anyApproved = TrApproval::where('refnbr', $transfer->transfer_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', 'A')
+            ->exists();
+
+        return $transfer->created_user === $user->name
+            && ($transfer->status === 'D' || ($transfer->status === 'P' && !$anyApproved));
     }
 
     private function statusBadge(string $status): string
@@ -897,24 +1007,33 @@ class VplTransferController extends Controller
         $details   = TrxVplTransferDetail::where('transfer_id', $transfer->transfer_id)->get();
 
         foreach ($details as $detail) {
-            // Deduct from source
+            // Deduct from source. Locked + re-validated here (this method always runs
+            // inside a transaction — see approve()) to close the race window between
+            // the pre-approval availability check and this actual deduction: two
+            // concurrent approvals could otherwise both pass that check and both
+            // deduct, taking stock negative.
             $from = MsVplProductDetail::where('product_id', $detail->product_id)
                 ->where('expired_date', $detail->expired_date)
                 ->where('whs_id', $detail->from_whs_id)
+                ->lockForUpdate()
                 ->first();
 
-            if ($from) {
-                $from->qty_available -= $detail->qty_transfer;
-                $from->qty_reserved   = max(0, ($from->qty_reserved ?? 0) - $detail->qty_transfer);
-                $from->updated_user   = $user->username;
-                $from->updated_at     = $datestamp;
-                $from->save();
+            if (!$from || $from->qty_available < $detail->qty_transfer) {
+                $productName = MsVplProduct::where('product_id', $detail->product_id)->value('product_name') ?? $detail->product_id;
+                throw new \RuntimeException('Insufficient stock for '.$productName.' (Expired: '.$detail->expired_date.').');
             }
+
+            $from->qty_available -= $detail->qty_transfer;
+            $from->qty_reserved   = max(0, ($from->qty_reserved ?? 0) - $detail->qty_transfer);
+            $from->updated_user   = $user->username;
+            $from->updated_at     = $datestamp;
+            $from->save();
 
             // Add to destination
             $to = MsVplProductDetail::where('product_id', $detail->product_id)
                 ->where('expired_date', $detail->expired_date)
                 ->where('whs_id', $detail->to_whs_id)
+                ->lockForUpdate()
                 ->first();
 
             if ($to) {

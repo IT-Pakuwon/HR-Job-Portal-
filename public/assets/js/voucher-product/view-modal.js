@@ -137,6 +137,12 @@ const VplMasterViewModal = {
         VplMasterViewModal._setText('viewModal_tenant',    p.product_source_tenant);
 
         // Item Info
+        const $photo = $('#viewModal_photo');
+        if (res.photo_url) {
+            $photo.attr('src', res.photo_url).removeClass('hidden');
+        } else {
+            $photo.addClass('hidden').attr('src', '');
+        }
         VplMasterViewModal._setText('viewModal_productName', p.product_name);
         const typeLabel = p.product_type === 'V' ? 'Voucher'
                         : p.product_type === 'P' ? 'Product' : (p.product_type ?? '-');

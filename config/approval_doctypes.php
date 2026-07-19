@@ -55,6 +55,7 @@ return [
     'VPR' => ['model' => \App\Models\TrxVplReceive::class,       'refnbr_col' => 'receive_id',        'label' => 'VPL Receive'],
     'VPT' => ['model' => \App\Models\TrxVplTransfer::class,      'refnbr_col' => 'transfer_id',       'label' => 'VPL Transfer'],
     'VPU' => ['model' => \App\Models\TrxVplUsage::class,         'refnbr_col' => 'usage_id',          'label' => 'VPL Usage'],
+    'VPS' => ['model' => \App\Models\TrxVplSettlement::class,    'refnbr_col' => 'settlement_id',     'label' => 'VPL Settlement'],
     'WO'  => ['model' => \App\Models\TrWO::class,                'refnbr_col' => 'woid',              'label' => 'Work Order'],
     'ACR' => ['model' => \App\Models\TrAccess::class,            'refnbr_col' => 'docid',             'label' => 'Access Request'],
     'BCR' => ['model' => \App\Models\TrBookingCar::class,        'refnbr_col' => 'docid',             'label' => 'Booking Car'],

@@ -328,7 +328,6 @@
                                 'groupbiayanonpurch',
                                 'approvals',
                                 'manage-approvals',
-                                'approvalsgroupbiaya',
                                 'budgetmonitor',
                                 'ifcaintegration',
                             ];
@@ -548,10 +547,6 @@
                                         <li><a href="{{ route('manage-approvals') }}"
                                                 class="{{ Request::segment(1) === 'manage-approvals' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Manage
                                                 Approval</a>
-                                        </li>
-                                        <li><a href="{{ route('approvalsgroupbiaya') }}"
-                                                class="{{ Request::segment(1) === 'approvalsgroupbiaya' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Approvals
-                                                Group Biaya</a>
                                         </li>
                                         <li><a href="{{ route('attachments-master') }}"
                                                 class="{{ Request::segment(1) === 'attachments-master' ? 'text-indigo-600' : '' }} sidebar-link text-sm">Attachments

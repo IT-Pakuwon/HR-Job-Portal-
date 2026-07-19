@@ -10,6 +10,7 @@ use App\Models\MsVplProductDetail;
 use App\Models\MsVplWarehouseDept;
 use App\Models\TrApproval;
 use App\Models\TrMessage;
+use App\Models\TrxVplSettlement;
 use App\Models\TrxVplUsage;
 use App\Models\TrxVplUsageDetail;
 use App\Models\User;
@@ -232,6 +233,13 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Reference Usage Doc is required for Return.'], 422);
         }
 
+        // Once a Usage doc has been settled, it's closed off — no further Returns
+        // against it (settlement and return both write to qty_settlement/qty_remain
+        // on tr_vpl_usage_detail, so letting both touch the same line would corrupt it).
+        if ($usagetype === 'Return' && TrxVplSettlement::where('usage_id', $request->ref_usage_id)->whereIn('status', ['P', 'D', 'C'])->exists()) {
+            return response()->json(['error' => 'Cannot return: the referenced Usage document has already been settled.'], 422);
+        }
+
         if (!$request->filled('usage_remark')) {
             return response()->json(['error' => 'Remark is required.'], 422);
         }
@@ -378,6 +386,10 @@ class VplUsageController extends Controller
             return response()->json(['error' => 'Remark is required.'], 422);
         }
 
+        if ($usage->usagetype === 'Return' && TrxVplSettlement::where('usage_id', $usage->ref_usage_id)->whereIn('status', ['P', 'D', 'C'])->exists()) {
+            return response()->json(['error' => 'Cannot return: the referenced Usage document has already been settled.'], 422);
+        }
+
         if ($request->has('addmore')) {
             $line = TrxVplUsageDetail::where('usage_id', $usage->usage_id)->max('linenbr') ?? 0;
             foreach ($request->addmore as $detail) {
@@ -474,11 +486,15 @@ class VplUsageController extends Controller
             $user->username,
             $user->name,
             function ($refnbr, $now) use ($usage, $user, $id) {
-                $usage->status = 'C';
-                $usage->completed_user = $user->username;
-                $usage->completed_at = $now;
-                $usage->save();
-                $this->finalizeStock($id);
+                // Wrapped so a mid-loop failure in finalizeStock() can't leave the header
+                // marked Completed while only some lines' stock actually moved.
+                DB::connection('pgsql5')->transaction(function () use ($usage, $user, $now, $id) {
+                    $usage->status = 'C';
+                    $usage->completed_user = $user->username;
+                    $usage->completed_at = $now;
+                    $usage->save();
+                    $this->finalizeStock($id);
+                });
             },
             function ($next, $now) use ($usage, $id) {
                 app(ApprovalController::class)->notifyFirstApprover(
@@ -519,9 +535,11 @@ class VplUsageController extends Controller
             $user->username,
             $user->name,
             function ($refnbr, $now) use ($usage, $request, $user, $id) {
-                $usage->status = 'R';
-                $usage->save();
-                $this->adjustReservation($usage->usage_id, -1);
+                DB::connection('pgsql5')->transaction(function () use ($usage, $now) {
+                    $usage->status = 'R';
+                    $usage->save();
+                    $this->adjustReservation($usage->usage_id, -1);
+                });
                 $this->saveMessage($usage, $request->message, $user);
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $usage->usage_id,
@@ -561,13 +579,15 @@ class VplUsageController extends Controller
             $user->username,
             $user->name,
             function ($refnbr, $now) use ($usage, $request, $user, $id) {
-                $usage->status = 'D';
-                $usage->updated_user = $user->name;
-                $usage->updated_at = $now;
-                $usage->save();
-                // Unlike Transfer, Usage also releases the pending hold on revise —
-                // the creator may substantially change lines before resubmitting.
-                $this->adjustReservation($usage->usage_id, -1);
+                DB::connection('pgsql5')->transaction(function () use ($usage, $user, $now) {
+                    $usage->status = 'D';
+                    $usage->updated_user = $user->name;
+                    $usage->updated_at = $now;
+                    $usage->save();
+                    // Unlike Transfer, Usage also releases the pending hold on revise —
+                    // the creator may substantially change lines before resubmitting.
+                    $this->adjustReservation($usage->usage_id, -1);
+                });
                 $this->saveMessage($usage, $request->message, $user);
                 app(ApprovalController::class)->notifyRequesterOnStatus(
                     $usage->usage_id,
@@ -595,11 +615,21 @@ class VplUsageController extends Controller
         $user = Auth::user();
         $usage = TrxVplUsage::find($id);
 
-        $this->adjustReservation($usage->usage_id, -1);
+        if (!$usage) {
+            return response()->json(['error' => 'Not found.'], 404);
+        }
 
-        $usage->status = 'X';
-        $usage->updated_user = $user->name;
-        $usage->save();
+        if (!$this->canCancel($usage, $user)) {
+            return response()->json(['error' => 'You are not allowed to cancel this document.'], 403);
+        }
+
+        DB::connection('pgsql5')->transaction(function () use ($usage, $user) {
+            $this->adjustReservation($usage->usage_id, -1);
+
+            $usage->status = 'X';
+            $usage->updated_user = $user->name;
+            $usage->save();
+        });
 
         TrApproval::where('refnbr', $usage->usage_id)
             ->where('aprv_doctype', self::DOCTYPE)
@@ -755,6 +785,7 @@ class VplUsageController extends Controller
                 'expired_date' => $batch->expired_date,
                 'whs_id' => $batch->whs_id,
                 'qty' => $take,
+                'qty_stock' => $batch->qty_available,
                 'qty_available' => $pickable,
             ];
             $remaining -= $take;
@@ -798,6 +829,22 @@ class VplUsageController extends Controller
     // -------------------------------------------------------
     // PRIVATE HELPERS
     // -------------------------------------------------------
+    /**
+     * Cancel: creator only, and only while still Hold (D) or On Progress with
+     * nothing yet approved (P and no 'A' rows) — mirrors the can_cancel flag
+     * showData() sends the UI, re-checked here since the client can't be trusted.
+     */
+    private function canCancel(TrxVplUsage $usage, $user): bool
+    {
+        $anyApproved = TrApproval::where('refnbr', $usage->usage_id)
+            ->where('aprv_doctype', self::DOCTYPE)
+            ->where('status', 'A')
+            ->exists();
+
+        return $usage->created_user === $user->name
+            && ($usage->status === 'D' || ($usage->status === 'P' && !$anyApproved));
+    }
+
     private function statusBadge(string $status): string
     {
         // Matches the badge style used in budgets.blade.php for visual consistency across modules
