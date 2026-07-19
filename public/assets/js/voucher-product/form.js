@@ -30,16 +30,6 @@ const VplMasterForm = {
                 return false;
             }
         }
-
-        if ($('#product_typex').val() === 'P') {
-            const hasFile     = document.getElementById('product_photo')?.files?.length > 0;
-            const hasExisting = !$('#photoPreview').hasClass('hidden') && $('#photoPreview').attr('src');
-            if (!hasFile && !hasExisting) {
-                VplMasterForm.showError('Product photo is required for Product type.');
-                return false;
-            }
-        }
-
         return true;
     },
 
@@ -116,11 +106,6 @@ const VplMasterForm = {
             VplMasterModal.loadCategories(p.product_category);
             $('#product_value').val(VplMasterHelper.formatDisplay(p.product_value));
             $('#product_remark').val(p.product_remark);
-
-            // existing photo preview (Product type only)
-            if (p.product_type === 'P' && res.photo_url) {
-                $('#photoPreview').attr('src', res.photo_url).removeClass('hidden');
-            }
 
             // Lock product name if stock exists
             const $name = $('#product_name');

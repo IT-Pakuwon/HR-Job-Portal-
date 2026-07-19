@@ -16,10 +16,8 @@ const VplUsageInit = {
         ['#c_cpnyid', '#c_department', '#c_vp_type', '#c_usagetype', '#c_ref_usage_id', '#c_whs_id'].forEach((sel) => {
             $(sel).select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#createModal') });
         });
-        $('#e_whs_id').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#editModal') });
 
-        $('#c_picker_product').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#c_addProductModal') });
-        $('#e_picker_product').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#e_addProductModal') });
+        $('#e_whs_id').select2({ placeholder: 'Select...', allowClear: true, width: '100%', dropdownParent: $('#editModal') });
 
         VplUsageDatalist.init();
         VplUsageDatalist.initFilterButtons();
@@ -29,6 +27,7 @@ const VplUsageInit = {
 
         VplUsageForm.initCreateModal();
         VplUsageForm.initEditModal();
+        VplUsageForm.initProductSearchModal();
 
         // Deep-link: open view modal if page was loaded via /showusagevp/{eid}
         if (window.VplUsageConfig?.initialId) {

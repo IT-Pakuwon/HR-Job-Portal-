@@ -613,11 +613,7 @@ class ApprovalController extends Controller
         [$ok, $current, $msg] = $this->assertUserCanAct($refnbr, $doctype, 'approve', $actorUsername);
         if (!$ok) return ['ok' => false, 'message' => $msg];
 
-        // TrApproval lives on pgsql2 — the transaction must be opened on that
-        // same connection, otherwise DB::beginTransaction() protects an unrelated
-        // (default) connection and this rollback never actually undoes anything.
-        $conn = $current->getConnectionName();
-        DB::connection($conn)->beginTransaction();
+        DB::beginTransaction();
         try {
             $current->status         = 'A';
             $current->aprv_dateafter = $now;
@@ -633,7 +629,7 @@ class ApprovalController extends Controller
 
             if ($pendingCount === 0) {
                 $onComplete($refnbr, $now);
-                DB::connection($conn)->commit();
+                DB::commit();
                 return ['ok' => true, 'completed' => true];
             }
 
@@ -650,7 +646,7 @@ class ApprovalController extends Controller
                 $next->save();
             }
 
-            DB::connection($conn)->commit();
+            DB::commit();
 
             if ($onNotifyNext) {
                 $onNotifyNext($next, $now);
@@ -659,7 +655,7 @@ class ApprovalController extends Controller
             return ['ok' => true, 'completed' => false];
 
         } catch (\Throwable $e) {
-            DB::connection($conn)->rollBack();
+            DB::rollBack();
             report($e);
             return ['ok' => false, 'message' => 'Approve failed'];
         }
@@ -678,10 +674,7 @@ class ApprovalController extends Controller
         [$ok, $current, $msg] = $this->assertUserCanAct($refnbr, $doctype, 'reject', $actorUsername);
         if (!$ok) return ['ok' => false, 'message' => $msg];
 
-        // See approveStep(): the transaction must open on TrApproval's own
-        // connection (pgsql2), not the unqualified default one.
-        $conn = $current->getConnectionName();
-        DB::connection($conn)->beginTransaction();
+        DB::beginTransaction();
         try {
             // Run pre-commit hook inside transaction window so a failure here
             // still rolls back the approval changes (e.g. release reserved stock)
@@ -701,14 +694,14 @@ class ApprovalController extends Controller
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
-            DB::connection($conn)->commit();
+            DB::commit();
 
             $onAfter($refnbr, $now);
 
             return ['ok' => true];
 
         } catch (\Throwable $e) {
-            DB::connection($conn)->rollBack();
+            DB::rollBack();
             report($e);
             return ['ok' => false, 'message' => 'Reject failed'];
         }
@@ -726,10 +719,7 @@ class ApprovalController extends Controller
         [$ok, $current, $msg] = $this->assertUserCanAct($refnbr, $doctype, 'revise', $actorUsername);
         if (!$ok) return ['ok' => false, 'message' => $msg];
 
-        // See approveStep(): the transaction must open on TrApproval's own
-        // connection (pgsql2), not the unqualified default one.
-        $conn = $current->getConnectionName();
-        DB::connection($conn)->beginTransaction();
+        DB::beginTransaction();
         try {
             $current->status         = 'D';
             $current->aprv_dateafter = $now;
@@ -743,14 +733,14 @@ class ApprovalController extends Controller
                 ->where('status', 'P')
                 ->update(['status' => 'X']);
 
-            DB::connection($conn)->commit();
+            DB::commit();
 
             $onAfter($refnbr, $now);
 
             return ['ok' => true];
 
         } catch (\Throwable $e) {
-            DB::connection($conn)->rollBack();
+            DB::rollBack();
             report($e);
             $msg = config('app.debug') ? $e->getMessage() : 'Revise failed';
             return ['ok' => false, 'message' => $msg];

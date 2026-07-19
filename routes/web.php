@@ -79,10 +79,6 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\LuckydrawSetupController;
 use App\Http\Controllers\ManageApprovalController;
 use App\Http\Controllers\ManpowerController;
-use App\Http\Controllers\MasterTrainingController;
-use App\Http\Controllers\TrainingSessionController;
-use App\Http\Controllers\TrainingRegistrationController;
-use App\Http\Controllers\TrainingAttendanceController;
 use App\Http\Controllers\MappingIssueERPController;
 use App\Http\Controllers\MappingPoERPController;
 use App\Http\Controllers\MasterController;
@@ -155,7 +151,6 @@ use App\Http\Controllers\VoucherTaxiSetupController;
 use App\Http\Controllers\VplMsProductController;
 use App\Http\Controllers\VplReceiveController;
 use App\Http\Controllers\VplTransferController;
-use App\Http\Controllers\VplSettlementController;
 use App\Http\Controllers\VplUsageController;
 use App\Http\Controllers\VplWarehouseSetupController;
 use App\Http\Controllers\WarehouseDashboardController;
@@ -313,91 +308,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/manpowers/{id}', [ManpowerController::class, 'updateManpower'])->name('manpowers.update');
     Route::put('/manpowers/remove-attachment/{id}', [ManpowerController::class, 'removeAttachment']);
     Route::get('/manpower/{id}/check-approval/{action}', [ManpowerController::class, 'checkApproval']);
-
-    Route::prefix('mastertraining')->group(function () {
-        Route::middleware('access:MASTERTRAINING,VIEW')->group(function () {
-            Route::get('/', [MasterTrainingController::class, 'index'])->name('mastertraining');
-            Route::get('/json', [MasterTrainingController::class, 'json'])->name('mastertraining.json');
-            Route::get('/category-search', [MasterTrainingController::class, 'categorySearch'])->name('mastertraining.category-search');
-            Route::get('/{hash}', [MasterTrainingController::class, 'index'])->name('mastertraining.view')->where('hash', '[A-Za-z0-9]+');
-        });
-
-        Route::middleware('access:MASTERTRAINING,CREATE')->group(function () {
-            Route::post('/', [MasterTrainingController::class, 'store'])->name('mastertraining.store');
-        });
-
-        Route::middleware('access:MASTERTRAINING,EDIT')->group(function () {
-            Route::get('/{id}/edit', [MasterTrainingController::class, 'edit'])->name('mastertraining.edit');
-            Route::put('/{id}', [MasterTrainingController::class, 'update'])->name('mastertraining.update');
-        });
-
-        Route::middleware('access:MASTERTRAINING,DELETE')->group(function () {
-            Route::put('/{id}/toggle-status', [MasterTrainingController::class, 'toggleStatus'])->name('mastertraining.toggle-status');
-        });
-
-        Route::middleware('access:MASTERTRAINING,VIEW')->group(function () {
-            Route::get('/{hash}/show', [TrainingSessionController::class, 'show'])->name('mastertraining.show');
-            Route::get('/{hash}/sessions', [TrainingSessionController::class, 'manage'])->name('mastertraining.sessions');
-            Route::get('/{hash}/sessions/schedules', [TrainingSessionController::class, 'schedules'])->name('mastertraining.sessions.schedules');
-            Route::get('/sessions/grade-search', [TrainingSessionController::class, 'gradeSearch'])->name('mastertraining.sessions.grade-search');
-            Route::get('/sessions/speaker-search', [TrainingSessionController::class, 'speakerSearch'])->name('mastertraining.sessions.speaker-search');
-            Route::get('/sessions/company-search', [TrainingSessionController::class, 'companySearch'])->name('mastertraining.sessions.company-search');
-        });
-
-        Route::middleware('access:MASTERTRAINING,CREATE')->group(function () {
-            Route::post('/{hash}/sessions/schedules', [TrainingSessionController::class, 'storeSchedule'])->name('mastertraining.sessions.schedules.store');
-        });
-
-        Route::middleware('access:MASTERTRAINING,EDIT')->group(function () {
-            Route::put('/sessions/schedules/{id}', [TrainingSessionController::class, 'updateSchedule'])->name('mastertraining.sessions.schedules.update');
-            Route::put('/sessions/schedules/{id}/status', [TrainingSessionController::class, 'scheduleStatus'])->name('mastertraining.sessions.schedules.status');
-        });
-    });
-
-    Route::prefix('training-list')->group(function () {
-        Route::middleware('access:TRAININGLIST,VIEW')->group(function () {
-            Route::get('/', [TrainingRegistrationController::class, 'index'])->name('training-list');
-            Route::get('/my/{eid}', [TrainingRegistrationController::class, 'index'])->name('training-list.my.show')->where('eid', '[A-Za-z0-9]+');
-            Route::get('/json', [TrainingRegistrationController::class, 'json'])->name('training-list.json');
-            Route::get('/my', [TrainingRegistrationController::class, 'myRegistrations'])->name('training-list.my');
-            Route::get('/my/{id}/barcode-status', [TrainingRegistrationController::class, 'barcodeStatus'])->name('training-list.barcode.status')->where('id', '[0-9]+');
-            Route::get('/my/{id}/barcode-image', [TrainingRegistrationController::class, 'barcodeImage'])->name('training-list.barcode.image')->where('id', '[0-9]+');
-            Route::get('/waitlist', [TrainingRegistrationController::class, 'waitlistForOffer'])->name('training-list.waitlist');
-            Route::get('/{eid}', [TrainingRegistrationController::class, 'show'])->name('training-list.show')->where('eid', '[A-Za-z0-9]+');
-        });
-
-        Route::middleware('access:TRAININGLIST,CREATE')->group(function () {
-            Route::post('/{id}/register', [TrainingRegistrationController::class, 'register'])->name('training-list.register');
-            Route::post('/{id}/cancel', [TrainingRegistrationController::class, 'cancel'])->name('training-list.cancel');
-            Route::post('/{id}/offer/accept', [TrainingRegistrationController::class, 'acceptOffer'])->name('training-list.offer.accept');
-            Route::post('/{id}/offer/decline', [TrainingRegistrationController::class, 'declineOffer'])->name('training-list.offer.decline');
-            Route::post('/{id}/manual-offer', [TrainingRegistrationController::class, 'manualOffer'])->name('training-list.manual-offer');
-        });
-
-        // Approve/reject are gated by the approval-line check inside ApprovalController
-        // itself (assertUserCanAct), same convention as ManpowerController/AgendaController etc.
-        Route::post('/{id}/approve', [TrainingRegistrationController::class, 'approve'])->name('training-list.approve');
-        Route::post('/{id}/reject', [TrainingRegistrationController::class, 'reject'])->name('training-list.reject');
-    });
-
-    Route::prefix('training-attendance')->group(function () {
-        Route::middleware('access:TRAININGATTENDANCE,VIEW')->group(function () {
-            Route::get('/', [TrainingAttendanceController::class, 'index'])->name('training-attendance');
-            Route::get('/events', [TrainingAttendanceController::class, 'events'])->name('training-attendance.events');
-            Route::get('/{scheduleDetailId}/roster', [TrainingAttendanceController::class, 'roster'])->name('training-attendance.roster');
-            Route::get('/{scheduleDetailId}/after-event', [TrainingAttendanceController::class, 'afterEvent'])->name('training-attendance.after-event');
-            Route::get('/{scheduleDetailId}/export/excel', [TrainingAttendanceController::class, 'exportExcel'])->name('training-attendance.export.excel');
-            Route::get('/{scheduleDetailId}/export/csv', [TrainingAttendanceController::class, 'exportCsv'])->name('training-attendance.export.csv');
-            Route::get('/{scheduleDetailId}/export/pdf', [TrainingAttendanceController::class, 'exportPdf'])->name('training-attendance.export.pdf');
-        });
-
-        Route::middleware('access:TRAININGATTENDANCE,CREATE')->group(function () {
-            Route::post('/scan', [TrainingAttendanceController::class, 'scan'])->name('training-attendance.scan');
-            Route::post('/{registrationId}/attend', [TrainingAttendanceController::class, 'markAttend'])->name('training-attendance.attend');
-            Route::post('/{scheduleDetailId}/lock', [TrainingAttendanceController::class, 'lock'])->name('training-attendance.lock');
-            Route::post('/{registrationId}/certificates', [TrainingAttendanceController::class, 'uploadCertificate'])->name('training-attendance.certificates.upload');
-        });
-    });
 
     Route::get('/agendas', [AgendaController::class, 'index'])->name('agendas');
     Route::get('/agendas/json', [AgendaController::class, 'json'])->name('agendas.json');
@@ -2961,39 +2871,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('access:USAGEVP,DELETE')->group(function () {
         Route::post('/usagevp/detail/delete', [VplUsageController::class, 'deleteDetail'])->name('usagevp.detail.delete');
         Route::post('/usagevp/attachment/delete', [VplUsageController::class, 'deleteAttachment'])->name('usagevp.attachment.delete');
-    });
-
-    // ── Settlement Product / Voucher (settlementvp) ───────────────────────
-    Route::middleware('access:SETTLEMENTVP,VIEW')->group(function () {
-        Route::get('/settlementvp', [VplSettlementController::class, 'index'])->name('settlementvp');
-        Route::get('/settlementvp/waiting', [VplSettlementController::class, 'waiting'])->name('settlementvp.waiting');
-        Route::get('/settlementvp/completed', [VplSettlementController::class, 'completed'])->name('settlementvp.completed');
-        Route::get('/settlementvp/rejected', [VplSettlementController::class, 'rejected'])->name('settlementvp.rejected');
-        Route::get('/settlementvp/all', [VplSettlementController::class, 'all'])->name('settlementvp.all');
-        Route::get('/settlementvp/{id}', [VplSettlementController::class, 'show'])->where('id', '[0-9]+')->name('settlementvp.show');
-        Route::get('/settlementvp/{id}/data', [VplSettlementController::class, 'showData'])->where('id', '[0-9]+')->name('settlementvp.data');
-        Route::get('/showsettlementvp/{eid}', [VplSettlementController::class, 'index'])->name('showsettlementvp');
-        Route::post('/settlementvp/ajax/usage-options', [VplSettlementController::class, 'getSettleableUsageOptions'])->name('settlementvp.usage-options');
-        Route::post('/settlementvp/ajax/usage-lines', [VplSettlementController::class, 'getUsageLinesForSettlement'])->name('settlementvp.usage-lines');
-        Route::post('/settlementvp/{id}/approve', [VplSettlementController::class, 'approve'])->name('settlementvp.approve');
-        Route::post('/settlementvp/{id}/reject', [VplSettlementController::class, 'reject'])->name('settlementvp.reject');
-        Route::post('/settlementvp/{id}/revise', [VplSettlementController::class, 'revise'])->name('settlementvp.revise');
-        Route::post('/settlementvp/{id}/message', [VplSettlementController::class, 'sendMessage'])->name('settlementvp.message');
-    });
-
-    Route::middleware('access:SETTLEMENTVP,CREATE')->group(function () {
-        Route::get('/settlementvp/add', [VplSettlementController::class, 'add'])->name('settlementvp.add');
-        Route::post('/settlementvp', [VplSettlementController::class, 'store'])->name('settlementvp.store');
-    });
-
-    Route::middleware('access:SETTLEMENTVP,EDIT')->group(function () {
-        Route::get('/settlementvp/{id}/edit', [VplSettlementController::class, 'edit'])->name('settlementvp.edit');
-        Route::post('/settlementvp/{id}/update', [VplSettlementController::class, 'update'])->name('settlementvp.update');
-        Route::post('/settlementvp/{id}/cancel', [VplSettlementController::class, 'cancel'])->name('settlementvp.cancel');
-    });
-
-    Route::middleware('access:SETTLEMENTVP,DELETE')->group(function () {
-        Route::post('/settlementvp/attachment/delete', [VplSettlementController::class, 'deleteAttachment'])->name('settlementvp.attachment.delete');
     });
 
     // ── Transfer Product / Voucher (transfervp) ───────────────────────────

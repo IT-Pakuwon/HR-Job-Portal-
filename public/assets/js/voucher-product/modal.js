@@ -48,26 +48,6 @@ const VplMasterModal = {
 
         // clear category
         VplMasterModal.clearCategories();
-
-        // clear photo field/preview
-        $('#photoPreview').addClass('hidden').attr('src', '');
-        VplMasterModal.togglePhotoField();
-    },
-
-    // --------------------------------------------------------
-    // PHOTO: show field only for Product type
-    // --------------------------------------------------------
-    togglePhotoField() {
-        const isProduct = $('#product_typex').val() === 'P';
-        const $wrap      = $('#photoFieldWrap');
-
-        if (isProduct) {
-            $wrap.removeClass('hidden');
-        } else {
-            $wrap.addClass('hidden');
-            document.getElementById('product_photo').value = '';
-            $('#photoPreview').addClass('hidden').attr('src', '');
-        }
     },
 
     // --------------------------------------------------------
@@ -120,38 +100,14 @@ const VplMasterModal = {
         document.getElementById('btnCloseModal')?.addEventListener('click', VplMasterModal.hide);
         document.getElementById('btnCancelModal')?.addEventListener('click', VplMasterModal.hide);
 
-        // product type change → reload category + toggle photo field
+        // product type change → reload category
         $('#product_typex').on('change', function () {
             VplMasterModal.loadCategories(null);
-            VplMasterModal.togglePhotoField();
         });
 
         // value input formatting
         document.getElementById('product_value')?.addEventListener('input', function () {
             VplMasterHelper.formatNumerator(this);
-        });
-
-        // photo: client-side validation + preview
-        document.getElementById('product_photo')?.addEventListener('change', function () {
-            const file = this.files[0];
-            if (!file) return;
-
-            const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
-            if (!allowed.includes(file.type)) {
-                VplMasterForm.showError('Only JPG, JPEG, PNG files are allowed.');
-                this.value = '';
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                VplMasterForm.showError('Photo must not exceed 5MB.');
-                this.value = '';
-                return;
-            }
-
-            VplMasterForm.clearError();
-            const reader = new FileReader();
-            reader.onload = (e) => $('#photoPreview').attr('src', e.target.result).removeClass('hidden');
-            reader.readAsDataURL(file);
         });
     },
 };

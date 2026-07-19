@@ -53,56 +53,6 @@ class VplMsProductController extends Controller
         return Auth::user()->hasRole('VPACCESS');
     }
 
-    // Uploads a product photo to GCS under att-vpl/product-photo/ and
-    // returns the object path (stored in ms_vpl_product.product_photo).
-    private function uploadProductPhoto($file, string $product_id): string
-    {
-        $config  = config('filesystems.disks.gcs');
-        $storage = new StorageClient([
-            'projectId'   => $config['project_id'],
-            'keyFilePath' => $config['key_file'],
-        ]);
-        $bucket = $storage->bucket($config['bucket']);
-
-        $ext      = $file->getClientOriginalExtension();
-        $filename = $product_id . '_' . time() . '.' . $ext;
-        $gcsPath  = "att-vpl/product-photo/{$filename}";
-
-        $bucket->upload(
-            fopen($file->getPathname(), 'r'),
-            [
-                'name'          => $gcsPath,
-                'predefinedAcl' => 'private',
-                'metadata'      => ['contentType' => $file->getMimeType()],
-            ]
-        );
-
-        return $gcsPath;
-    }
-
-    private function photoSignedUrl(?string $path): ?string
-    {
-        if (empty($path)) {
-            return null;
-        }
-
-        try {
-            $config  = config('filesystems.disks.gcs');
-            $storage = new StorageClient([
-                'projectId'   => $config['project_id'],
-                'keyFilePath' => $config['key_file'],
-            ]);
-
-            return $storage->bucket($config['bucket'])->object($path)->signedUrl(
-                new \DateTimeImmutable('+10 minutes'),
-                ['version' => 'v4']
-            );
-        } catch (\Throwable $e) {
-            \Log::warning('VPL Product photo signed URL failed', ['path' => $path, 'error' => $e->getMessage()]);
-            return null;
-        }
-    }
-
     // -------------------------------------------------------
     // INDEX
     // -------------------------------------------------------
@@ -290,37 +240,24 @@ class VplMsProductController extends Controller
             ->where('qty_available', '>', 0)
             ->exists();
 
-        return response()->json([
-            'msproduct' => $msproduct,
-            'has_stock' => $hasStock,
-            'photo_url' => $this->photoSignedUrl($msproduct->product_photo),
-        ]);
+        return response()->json(['msproduct' => $msproduct, 'has_stock' => $hasStock]);
     }
 
     public function save_product(Request $request)
     {
         $request->validate([
-            'cpnyid'        => 'required|string',
-            'product_name'  => 'required|string',
-            'product_type'  => 'required|in:V,P',
-            'product_photo' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
+            'cpnyid'       => 'required|string',
+            'product_name' => 'required|string',
+            'product_type' => 'required|in:V,P',
         ]);
 
         $user     = Auth::user();
         $username = $user->username ?? 'system';
         $key_id   = $request->key_id;
 
-        $msproduct     = $key_id ? MsVplProduct::findOrFail($key_id) : null;
-        $existingPhoto = $msproduct->product_photo ?? null;
-
-        if ($request->product_type === 'P' && !$request->hasFile('product_photo') && empty($existingPhoto)) {
-            return response()->json([
-                'message' => 'Product photo is required for Product type.',
-            ], 422);
-        }
-
         try {
-            if ($msproduct) {
+            if ($key_id) {
+                $msproduct = MsVplProduct::findOrFail($key_id);
                 $msproduct->cpnyid                 = $request->cpnyid;
                 $msproduct->product_name           = $request->product_name;
                 $msproduct->product_type           = $request->product_type;
@@ -334,11 +271,6 @@ class VplMsProductController extends Controller
                 $msproduct->product_check_exp      = $request->product_check_exp;
                 $msproduct->status                 = $request->status;
                 $msproduct->updated_user           = $username;
-
-                if ($request->hasFile('product_photo')) {
-                    $msproduct->product_photo = $this->uploadProductPhoto($request->file('product_photo'), $msproduct->product_id);
-                }
-
                 $msproduct->save();
             } else {
                 // Counter per (type + company), never resets
@@ -346,10 +278,6 @@ class VplMsProductController extends Controller
                 $cpnyPrefix = self::COMPANY_PREFIX[$request->cpnyid] ?? '0';
                 $auto       = $this->nextAutonbr($request->product_type, 0, $request->cpnyid, $username, 'VPL Product');
                 $product_id = $request->product_type . $cpnyPrefix . sprintf('%05d', $auto['next']);
-
-                $photoPath = $request->hasFile('product_photo')
-                    ? $this->uploadProductPhoto($request->file('product_photo'), $product_id)
-                    : null;
 
                 $msproduct = MsVplProduct::create([
                     'product_id'            => $product_id,
@@ -364,7 +292,6 @@ class VplMsProductController extends Controller
                     'product_value'         => $request->product_value,
                     'product_uom'           => strtoupper($request->product_uom ?? ''),
                     'product_check_exp'     => $request->product_check_exp,
-                    'product_photo'         => $photoPath,
                     'status'                => 'A',
                     'created_user'          => $username,
                 ]);
@@ -448,7 +375,6 @@ class VplMsProductController extends Controller
             'product'     => $msproduct,
             'stock'       => $stock,
             'attachments' => $attachments,
-            'photo_url'   => $this->photoSignedUrl($msproduct->product_photo),
         ]);
     }
 
