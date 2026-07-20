@@ -4,12 +4,15 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">📎 Attachment List</h1>
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📎 Attachment
+                    List</h2>
             </div>
 
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-5">
+            <div class="grid grid-cols-1 gap-3 px-5 pt-4 md:grid-cols-5">
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-white">Company</label>
                     <select id="filterCompany" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
@@ -49,23 +52,24 @@
                 </div>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="attachmentTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-24 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Ref Nbr</th>
-                            <th class="px-4 py-3 text-left">Doc Type</th>
-                            <th class="px-4 py-3 text-left">Date</th>
-                            <th class="px-4 py-3 text-left">Company</th>
-                            <th class="px-4 py-3 text-left">Department</th>
-                            <th class="px-4 py-3 text-left">Attachment Name</th>
-                            <th class="px-4 py-3 text-left">Folder</th>
-                            <th class="px-4 py-3 text-left">Filename</th>
-                            <th class="px-4 py-3 text-left">Filesize</th>
-                            <th class="px-4 py-3 text-left">Extension</th>
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
+            <div class="relative mt-4 overflow-hidden">
+                <table id="attachmentTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-24 px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Ref Nbr</th>
+                            <th class="px-4 py-3 text-left font-medium">Doc Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Department</th>
+                            <th class="px-4 py-3 text-left font-medium">Attachment Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Folder</th>
+                            <th class="px-4 py-3 text-left font-medium">Filename</th>
+                            <th class="px-4 py-3 text-left font-medium">Filesize</th>
+                            <th class="px-4 py-3 text-left font-medium">Extension</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

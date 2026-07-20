@@ -1,29 +1,32 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">🎓 Master Training List</h1>
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🎓 Master
+                    Training List</h2>
                 <button id="addTrainingBtn"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700 focus:outline-none active:scale-95 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
+                    class="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     + Add Training
                 </button>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="trainingTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="col-actions px-4 py-3">Actions</th>
-                            <th class="px-4 py-3 text-left">Training ID</th>
-                            <th class="px-4 py-3 text-left">Training Name</th>
-                            <th class="px-4 py-3 text-left">Category</th>
-                            <th class="px-4 py-3 text-left">Mandatory</th>
-                            <th class="px-4 py-3 text-left">Type</th>
-                            <th class="px-4 py-3 text-left">Speaker (External)</th>
-                            <th class="px-4 py-3 text-left">Schedules</th>
-                            <th class="col-status px-4 py-3">Status</th>
+            <div class="relative overflow-hidden">
+                <table id="trainingTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="col-actions px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Training ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Training Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Category</th>
+                            <th class="px-4 py-3 text-left font-medium">Mandatory</th>
+                            <th class="px-4 py-3 text-left font-medium">Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Speaker (External)</th>
+                            <th class="px-4 py-3 text-left font-medium">Schedules</th>
+                            <th class="col-status px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

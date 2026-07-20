@@ -108,13 +108,16 @@
 
         </div>
 
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center dark:border-gray-700">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Self Register Applicant</h1>
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Self Register
+                    Applicant</h2>
             </div>
 
             {{-- Division / Department Filter --}}
-            <div class="flex gap-3">
+            <div class="flex gap-3 px-5 pt-4">
                 <select id="filterDivision" class="w-full" style="width:100%">
                     <option value="">Filter by Division</option>
                     @foreach($divisions as $div)
@@ -127,60 +130,60 @@
             </div>
 
             {{-- Column Search Filters --}}
-            <div id="applicantsFilters" class="mb-2 grid grid-cols-1 gap-3 sm:grid-cols-5 lg:grid-cols-9">
+            <div id="applicantsFilters" class="grid grid-cols-1 gap-3 px-5 pt-4 sm:grid-cols-5 lg:grid-cols-9">
                 <button id="btnResetFilters" class="rounded-md border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50">
                     Reset
                 </button>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="applicantsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+            <div class="relative mt-4 overflow-hidden">
+                <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 DocID
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Date
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Name
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Divisi
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Department
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Education
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Religion
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Height
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Weight
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Last Working
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Tagged
                             </th>
-                            <th scope="col" class="w-40 px-4 py-3 text-center">
+                            <th scope="col" class="w-40 px-4 py-3 text-left font-medium">
                                 Job Mapping
                             </th>
-                            <th scope="col" class="w-28 px-4 py-3 text-center">
+                            <th scope="col" class="w-28 px-4 py-3 text-left font-medium">
                                 Action
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]">
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
                     </tbody>
                 </table>

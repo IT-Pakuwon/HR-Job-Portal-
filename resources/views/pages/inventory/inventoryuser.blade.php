@@ -34,13 +34,15 @@
     </style>
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row flex-wrap items-center justify-between gap-4">
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row flex-wrap items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
 
                 <!-- LEFT: TITLE -->
-                <h1 class="whitespace-nowrap text-base font-bold text-gray-800 dark:text-white">
+                <h2 class="whitespace-nowrap text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     📦 Inventory List
-                </h1>
+                </h2>
 
                 <!-- RIGHT: ALL CONTROLS -->
                 <div class="flex flex-wrap items-center gap-3">
@@ -85,20 +87,20 @@
 
                 </div>
             </div>
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="inventoriesTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th class="px-4 py-3 text-left">Inventory ID</th>
-                            <th class="px-4 py-3 text-left">Description</th>
-                            <th class="px-4 py-3 text-left">UOM</th>
-                            <th class="px-4 py-3 text-left">Stock</th>
+            <div class="relative mt-4 overflow-hidden">
+                <table id="inventoriesTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="px-4 py-3 text-left font-medium">Inventory ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Description</th>
+                            <th class="px-4 py-3 text-left font-medium">UOM</th>
+                            <th class="px-4 py-3 text-left font-medium">Stock</th>
                             {{-- <th class="px-4 py-3 text-left">Item Type</th> --}}
-                            <th class="px-4 py-3 text-left">Item Class</th>
+                            <th class="px-4 py-3 text-left font-medium">Item Class</th>
                             {{-- kolom stock tetap ada di DOM, nanti disembunyikan via JS saat NONSTOCK --}}
 
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
