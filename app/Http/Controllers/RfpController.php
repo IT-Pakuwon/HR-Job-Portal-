@@ -569,6 +569,9 @@ class RfpController extends Controller
         $baseUrl = 'https://vendorportal-attachment.s3.ap-southeast-1.amazonaws.com/';
 
         $stagingAttachments = TrRfpStagingAttachment::where('irid', $rfp->ir_id)
+            ->where('cpny_id', $rfp->cpny_id)
+            ->whereNotNull('filename')
+            ->whereRaw("TRIM(COALESCE(filename, '')) <> ''")
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($r) use ($baseUrl) {

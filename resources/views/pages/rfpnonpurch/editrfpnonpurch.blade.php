@@ -657,8 +657,8 @@
                     rowErr = true;
                 }
 
-                if (!price || price <= 0) {
-                    addError($price, 'Price harus > 0.');
+                if (!price) {
+                    addError($price, 'Price tidak boleh 0.');
                     rowErr = true;
                 }
 
@@ -922,7 +922,15 @@
             });
 
             $(document).on('input', '.priceField, #amountrequestpayment', function () {
-                this.value = this.value.replace(/\./g, ',').replace(/[^0-9,]/g, '');
+                if ($(this).hasClass('priceField')) {
+                    let value = this.value.replace(/\./g, ',').replace(/[^0-9,-]/g, '');
+                    const isNegative = value.startsWith('-');
+                    value = value.replace(/-/g, '');
+                    this.value = (isNegative ? '-' : '') + value;
+                } else {
+                    this.value = this.value.replace(/\./g, ',').replace(/[^0-9,]/g, '');
+                }
+
                 const parts = this.value.split(',');
                 if (parts.length > 2) this.value = parts[0] + ',' + parts.slice(1).join('');
                 calculateGrandTotal();

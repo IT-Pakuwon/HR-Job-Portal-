@@ -616,7 +616,7 @@ class RfpNonPurchController extends Controller
                 $desc = trim((string) ($descs[$i] ?? ''));
                 $amount = $toFloat($prices[$i] ?? 0);
 
-                if ($amount <= 0) {
+                if ($amount == 0) {
                     continue;
                 }
 
@@ -735,7 +735,15 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
-                        // ->where('aprv_username', $rule->aprv_username)
+                        ->where(function ($q) use ($rule) {
+                            $ruleUsername = trim((string) $rule->aprv_username);
+
+                            $q->where('aprv_username', $ruleUsername)
+                                ->orWhereRaw(
+                                    "? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))",
+                                    [$ruleUsername]
+                                );
+                        })
                         ->where('status', 'P')
                         ->delete();
                 }
@@ -747,7 +755,16 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
-                        // ->where('aprv_username', $rule->aprv_username)
+                        ->where(function ($q) use ($rule) {
+                            $ruleUsername = trim((string) $rule->aprv_username);
+
+                            $q->where('aprv_username', $ruleUsername)
+                                ->orWhereRaw(
+                                    "? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))",
+                                    [$ruleUsername]
+                                );
+                        })
+                        ->where('status', 'P')
                         ->exists();
 
                     if (!$exists) {
@@ -759,13 +776,35 @@ class RfpNonPurchController extends Controller
                             'aprv_departementid'  => $request->departementid,
                             'aprv_username'       => $rule->aprv_username,
                             'aprv_name'           => $rule->aprv_name,
-                            'aprv_datebefore'     => $dt,
+                            'aprv_datebefore'     => null,
                             'aprv_type'           => 'Normal',
                             'status'              => 'P',
                             'created_by'          => $username,
                         ]);
                     }
                 }
+            }
+
+            $firstPendingLevelAfterGroup = TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->orderByRaw('CAST(aprv_leveling AS DECIMAL(10,2)) ASC')
+                ->value('aprv_leveling');
+
+            TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->update(['aprv_datebefore' => null]);
+
+            if ($firstPendingLevelAfterGroup !== null) {
+                TrApproval::query()
+                    ->where('refnbr', $docid)
+                    ->where('aprv_doctype', $doctype)
+                    ->where('status', 'P')
+                    ->where('aprv_leveling', $firstPendingLevelAfterGroup)
+                    ->update(['aprv_datebefore' => $dt]);
             }
 
             // Ambil ulang first approval setelah ADD / DEL
@@ -2256,7 +2295,7 @@ class RfpNonPurchController extends Controller
                 $desc = trim((string) ($descs[$i] ?? ''));
                 $amount = $toFloat($prices[$i] ?? 0);
 
-                if ($amount <= 0) {
+                if ($amount == 0) {
                     continue;
                 }
 
@@ -2376,6 +2415,15 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
+                        ->where(function ($q) use ($rule) {
+                            $ruleUsername = trim((string) $rule->aprv_username);
+
+                            $q->where('aprv_username', $ruleUsername)
+                                ->orWhereRaw(
+                                    "? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))",
+                                    [$ruleUsername]
+                                );
+                        })
                         ->where('status', 'P')
                         ->delete();
                 }
@@ -2387,6 +2435,15 @@ class RfpNonPurchController extends Controller
                         ->where('aprv_cpnyid', $request->cpnyid)
                         ->where('aprv_departementid', $request->departementid)
                         ->where('aprv_leveling', $rule->aprv_leveling)
+                        ->where(function ($q) use ($rule) {
+                            $ruleUsername = trim((string) $rule->aprv_username);
+
+                            $q->where('aprv_username', $ruleUsername)
+                                ->orWhereRaw(
+                                    "? = ANY(string_to_array(REPLACE(aprv_username, ';', ','), ','))",
+                                    [$ruleUsername]
+                                );
+                        })
                         ->where('status', 'P')
                         ->exists();
 
@@ -2399,13 +2456,35 @@ class RfpNonPurchController extends Controller
                             'aprv_departementid' => $request->departementid,
                             'aprv_username' => $rule->aprv_username,
                             'aprv_name' => $rule->aprv_name,
-                            'aprv_datebefore' => $dt,
+                            'aprv_datebefore' => null,
                             'aprv_type' => 'Normal',
                             'status' => 'P',
                             'created_by' => $username,
                         ]);
                     }
                 }
+            }
+
+            $firstPendingLevelAfterGroup = TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->orderByRaw('CAST(aprv_leveling AS DECIMAL(10,2)) ASC')
+                ->value('aprv_leveling');
+
+            TrApproval::query()
+                ->where('refnbr', $docid)
+                ->where('aprv_doctype', $doctype)
+                ->where('status', 'P')
+                ->update(['aprv_datebefore' => null]);
+
+            if ($firstPendingLevelAfterGroup !== null) {
+                TrApproval::query()
+                    ->where('refnbr', $docid)
+                    ->where('aprv_doctype', $doctype)
+                    ->where('status', 'P')
+                    ->where('aprv_leveling', $firstPendingLevelAfterGroup)
+                    ->update(['aprv_datebefore' => $dt]);
             }
 
             // =========================

@@ -750,8 +750,8 @@
                     rowErr = true;
                 }
 
-                if (!price || price <= 0) {
-                    addError($price, 'Price harus > 0.');
+                if (!price) {
+                    addError($price, 'Price tidak boleh 0.');
                     rowErr = true;
                 }
 
@@ -907,7 +907,10 @@
             });
 
             $(document).on('input', '.priceField', function () {
-                this.value = this.value.replace(/\./g, ',').replace(/[^0-9,]/g, '');
+                let value = this.value.replace(/\./g, ',').replace(/[^0-9,-]/g, '');
+                const isNegative = value.startsWith('-');
+                value = value.replace(/-/g, '');
+                this.value = (isNegative ? '-' : '') + value;
 
                 const parts = this.value.split(',');
                 if (parts.length > 2) {
@@ -929,7 +932,11 @@
 
                 if ($.inArray(charCode, [8, 9, 37, 38, 39, 40, 46]) !== -1) return;
 
-                if (!/^[0-9,]$/.test(charStr)) {
+                if (!/^[0-9,-]$/.test(charStr)) {
+                    e.preventDefault();
+                }
+
+                if (charStr === '-' && ($(this).val().includes('-') || this.selectionStart !== 0)) {
                     e.preventDefault();
                 }
 
