@@ -177,21 +177,34 @@
                     Issue
                 </h1>
 
-                <div class="flex items-center gap-2 whitespace-nowrap">
+                <div class="flex flex-wrap items-center gap-2">
 
-                    <input type="date" id="dateFrom"
-                        class="h-9 rounded border px-2 text-sm dark:bg-gray-700 dark:text-white">
+                    {{-- Date range group --}}
+                    <div class="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 shadow-sm dark:border-gray-600 dark:bg-gray-700">
+                        <svg class="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <input type="date" id="dateFrom"
+                            class="w-32 border-0 bg-transparent text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
+                        <span class="text-xs text-gray-400">–</span>
+                        <input type="date" id="dateTo"
+                            class="w-32 border-0 bg-transparent text-sm text-gray-700 focus:outline-none focus:ring-0 dark:text-white" />
+                    </div>
 
-                    <span class="text-sm text-gray-500">to</span>
-
-                    <input type="date" id="dateTo"
-                        class="h-9 rounded border px-2 text-sm dark:bg-gray-700 dark:text-white">
-
-                    <button id="filterDate" class="h-9 rounded bg-blue-600 px-3 text-sm text-white hover:bg-blue-700">
+                    <button id="filterDate" type="button"
+                        class="flex items-center gap-1.5 rounded-lg border border-indigo-600 bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V19l-4 2v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
                         Filter
                     </button>
 
-                    <button id="resetDate" class="h-9 rounded bg-gray-500 px-3 text-sm text-white hover:bg-gray-600">
+                    {{-- Reset --}}
+                    <button id="resetDate" type="button"
+                        class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-100 hover:text-gray-800 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
                         Reset
                     </button>
 

@@ -18,20 +18,22 @@ class IssueListController extends Controller
         if (!$user) return redirect()->route('login');
 
         $u       = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+        // user->cpny_id bisa "AW" atau "AW,GPS,..."
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
         // Count untuk header/kartu ringkasan
         $onProgress = TrIssue::where('created_by', $u)->where('status', 'P')->count();
         $completed  = TrIssue::where('created_by', $u)->where('status', 'C')->count();
-        $all        = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))->count();
+        $all        = TrIssue::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))->count();
         $rejected   = TrIssue::where('created_by', $u)->where('status','R')->count();
         $revise     = TrIssue::where('created_by', $u)->where('status','D')->count();
-        $issueAll   = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+        $issueAll   = TrIssue::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', '!=', 'X')
             ->count();
 
         // Return Jobs: status C + issuetype 'RI'
-        $returnjobs = TrIssue::when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+        $returnjobs = TrIssue::when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', 'C')
             ->where('issuetype', 'IS')
             ->count();
@@ -53,7 +55,8 @@ class IssueListController extends Controller
         $scope   = strtolower((string) $req->query('scope', 'all'));
         $user    = Auth::user();
         $u       = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+        $cpnyRaw  = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
 
         $draw   = (int) $req->input('draw', 1);
         $start  = (int) $req->input('start', 0);
@@ -68,7 +71,7 @@ class IssueListController extends Controller
 
         // === TrIssue untuk semua scope (onprogress/completed/rejected/revise/returnjobs/all) ===
         $base = TrIssue::query()
-            ->when($cpny_id, fn($q) => $q->where('cpny_id', $cpny_id))
+            ->when(!empty($cpnyList), fn($q) => $q->whereIn('cpny_id', $cpnyList))
             ->when($scope === 'onprogress', fn($q) => $q->where('created_by', $u)->where('status', 'P'))
             ->when($scope === 'completed',  fn($q) => $q->where('created_by', $u)->where('status', 'C'))
             ->when($scope === 'rejected',   fn($q) => $q->where('created_by', $u)->where('status', 'R'))

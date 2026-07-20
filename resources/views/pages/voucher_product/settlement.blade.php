@@ -11,10 +11,6 @@
 .select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
 .apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
 .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
-.dataTables_wrapper .dataTables_length,
-.dataTables_wrapper .dataTables_filter { padding: 14px 18px; }
-.dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_paginate { padding: 12px 18px; }
 </style>
 
 <div class="max-w-9xl mx-auto w-full p-2">

@@ -23,18 +23,19 @@
 
                 <!-- Filter -->
                 <div class="flex items-center gap-2">
-                    <label for="docFilter"
-                        class="whitespace-nowrap text-sm font-semibold text-gray-600 dark:text-gray-300">
-                        Doc Type:
-                    </label>
-                    <select id="docFilter"
-                        class="min-w-[140px] rounded-lg border border-gray-300 px-3 py-2 text-sm dark:bg-gray-700 dark:text-white">
-                        <option value="">All</option>
-                        <option value="SPPB">SPPB</option>
-                        <option value="SPPJ">SPPJ</option>
-                        <option value="SPPK">SPPK</option>
-                        <option value="SPPT">SPPT</option>
-                    </select>
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-file-alt text-xs"></i>
+                        </span>
+                        <select id="docFilter"
+                            class="min-w-[140px] rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Doc Type</option>
+                            <option value="SPPB">SPPB</option>
+                            <option value="SPPJ">SPPJ</option>
+                            <option value="SPPK">SPPK</option>
+                            <option value="SPPT">SPPT</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 

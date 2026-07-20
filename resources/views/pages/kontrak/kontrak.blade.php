@@ -32,14 +32,16 @@
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white" id="kontrakTitle">Kontrak</h1>
 
                 {{-- ===== Filters ===== --}}
-                <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <div class="flex flex-wrap items-center gap-3">
 
                     {{-- Company --}}
-                    <div class="flex items-center gap-2">
-                        <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Company</label>
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-building text-xs"></i>
+                        </span>
                         <select id="filterCompany"
-                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            <option value="">All</option>
+                            class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Company</option>
                             @foreach ($companies as $c)
                                 <option value="{{ $c }}">{{ $c }}</option>
                             @endforeach
@@ -47,29 +49,33 @@
                     </div>
 
                     {{-- Status (HANYA My) --}}
-                    <div class="flex items-center gap-2" id="wrapStatus" style="display:none;">
-                        <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Status</label>
+                    <div class="relative" id="wrapStatus" style="display:none;">
+                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-check-circle text-xs"></i>
+                        </span>
                         <select id="filterStatus"
-                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-                            <option value="">All</option>
+                            class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                            <option value="">All Status</option>
                             <option value="H">Unsend</option>
                             <option value="P">On Progress</option>
                             <option value="C">Completed</option>
                         </select>
                     </div>
 
-                    <div class="flex items-center gap-2" id="wrapBudgetStatus" style="display:none;">
-                        <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Budget</label>
+                    <div class="relative" id="wrapBudgetStatus" style="display:none;">
+                        <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-wallet text-xs"></i>
+                        </span>
                         <select id="filterBudgetStatus"
-                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
+                            class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
                             <option value="need">Need Budget</option>
                             <option value="done">Done Budget</option>
                         </select>
                     </div>
 
                     <button type="button" id="btnReset"
-                        class="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
-                        Reset
+                        class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                        <i class="fas fa-rotate-right pr-1.5 text-xs"></i>Reset
                     </button>
                 </div>
             </div>

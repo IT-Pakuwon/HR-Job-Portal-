@@ -84,15 +84,12 @@ SEARCH / FILTER / LENGTH CONTROLS (GLOBAL)
 
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter {
-        padding-bottom: 10px;
+        padding: 16px 18px;
     }
 
-    .dataTables_wrapper .dataTables_info {
-        padding-top: 10px;
-    }
-
+    .dataTables_wrapper .dataTables_info,
     .dataTables_wrapper .dataTables_paginate {
-        padding-top: 10px;
+        padding: 14px 18px;
     }
 
     /* LENGTH (Show entries) */
@@ -135,6 +132,20 @@ TABLE CELLS & ROWS (GLOBAL)
         font-size: 12px;
         align-items: center;
         justify-items: center;
+    }
+
+    /* Header row banner (Access Request style, applied globally) */
+    table.dataTable thead th {
+        background-color: rgba(249, 250, 251, .7);
+        border-bottom: 1px solid #f3f4f6;
+        color: #6b7280;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        text-align: left;
+        padding: 12px 16px;
+        white-space: nowrap;
     }
 
     table.dataTable tbody tr td {
@@ -736,6 +747,13 @@ DARK MODE SUPPORT
         /* gray-50 */
         border-color: #4b5563;
         /* gray-600 */
+    }
+
+    /* Header row banner - dark mode (Access Request style) */
+    .dark table.dataTable thead th {
+        background-color: rgba(255, 255, 255, .02);
+        color: #9ca3af;
+        border-color: rgba(255, 255, 255, .06);
     }
 
     .dark table.dataTable td {

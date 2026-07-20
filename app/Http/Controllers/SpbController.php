@@ -56,6 +56,8 @@ class SpbController extends Controller
             $deptIds = (array) $user->department_id;
         }
 
+        $isAdmin = $user->user_role === 'admin';
+
         $all = TrSPB::whereIn('cpny_id', $cpnyIds)
                     ->whereIn('department_id', $deptIds)
                     ->count();
@@ -95,11 +97,12 @@ class SpbController extends Controller
             ->whereNotIn('status', ['R', 'D', 'H']) // ✅ align with table
             ->count();
 
-        $allListCount = TrSPB::whereIn('cpny_id', $cpnyIds)
+        // ✅ Admin sees the all-list across every company; others stay scoped to their own
+        $allListCount = TrSPB::when(!$isAdmin, fn ($q) => $q->whereIn('cpny_id', $cpnyIds))
             ->whereIn('status', ['P', 'C'])
             ->count();
 
-        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'draft', 'completed', 'tracking', 'allListCount'));
+        return view('pages.spbs.spbs', compact('all', 'onProgress', 'reject', 'revise', 'draft', 'completed', 'tracking', 'allListCount', 'isAdmin'));
     }
 
     public function json(Request $request)
@@ -136,6 +139,10 @@ class SpbController extends Controller
         $mode = (string) $request->input('mode', 'normal');
         $deptExtra = (string) $request->input('department_extra', '');
 
+        $isAdmin = $user->user_role === 'admin';
+        // ✅ Admin viewing the all-list sees every company; everyone else stays scoped to their own
+        $bypassCpnyFilter = $isAdmin && $mode === 'all';
+
         $columns = [
             0 => 'spb.spbid',
             1 => 'spb.spbdate',
@@ -160,7 +167,7 @@ class SpbController extends Controller
                 $join->on('swt.subworktypeid', '=', 'spb.subworktypeid')
                      ->where('swt.doctype', '=', 'SPB');
             })
-            ->whereIn('spb.cpny_id', $cpnyIds);
+            ->when(!$bypassCpnyFilter, fn ($q) => $q->whereIn('spb.cpny_id', $cpnyIds));
 
         // ==============================
         // MODE LOGIC
@@ -245,7 +252,7 @@ class SpbController extends Controller
 
         if ($mode === 'all') {
             $deptQuery = TrSPB::from('tr_spb as spb')
-                ->whereIn('spb.cpny_id', $cpnyIds)
+                ->when(!$bypassCpnyFilter, fn ($q) => $q->whereIn('spb.cpny_id', $cpnyIds))
                 ->whereIn('spb.status', ['P', 'C']);
 
             if (!empty($deptExtra)) {

@@ -157,16 +157,11 @@
             white-space: nowrap;
         }
 
-        /* DataTables wrapper padding — same as IT Recommendation style partial */
+        /* Font size only — padding now comes from the global DataTables stylesheet */
         .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter {
-            padding: 16px 18px;
-            font-size: 13px;
-        }
-
+        .dataTables_wrapper .dataTables_filter,
         .dataTables_wrapper .dataTables_info,
         .dataTables_wrapper .dataTables_paginate {
-            padding: 14px 18px;
             font-size: 13px;
         }
 

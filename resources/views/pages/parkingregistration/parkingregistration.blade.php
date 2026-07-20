@@ -133,26 +133,27 @@
         </div>
 
         {{-- TABLE --}}
-        <div class="mt-2 flex flex-col rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="mb-4 flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 id="parkingTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
+        <div class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] lg:flex-row lg:items-center lg:justify-between">
+                <h2 id="parkingTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     Parking Registration
-                </h1>
-                <div class="flex items-center gap-2">
+                </h2>
+                <div class="flex items-center gap-3">
                     @if (auth()->check() && auth()->user()->hasRole('GAACCESS'))
                         <a href="{{ route('kendaraan') }}"
-                            class="inline-flex items-center rounded-md border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 transition-colors duration-200 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-500/10">
-                            <i class="fas fa-car pr-2"></i>Master Kendaraan
+                            class="inline-flex h-10 items-center justify-center rounded-lg border border-indigo-600 px-4 text-sm font-medium text-indigo-600 transition hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-500/10">
+                            <i class="fas fa-car mr-2 text-xs"></i>Master Kendaraan
                         </a>
                     @endif
                     <a id="createParkingBtn" href="{{ url('/createparkingregistration') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
-                        <i class="fas fa-plus pr-2"></i>Create
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
+                        <i class="fas fa-plus mr-2 text-xs"></i>Create
                     </a>
                 </div>
             </div>
 
-            <div id="masterFilterBox" class="mb-4 hidden rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">
+            <div id="masterFilterBox" class="mx-5 mt-4 hidden rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700">
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
 
                     <div>
@@ -308,22 +309,22 @@
             </div>
 
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="parkingRegistrationTable" class="text-body w-full text-left text-sm rtl:text-right">
+            <div class="relative mt-4 overflow-x-auto">
+                <table id="parkingRegistrationTable" class="w-full min-w-full border-separate border-spacing-0 text-left text-sm">
                     <thead id="parkingRegistrationThead"
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr>
-                            <th class="w-8"></th>
-                            <th class="w-36 px-6 py-2 font-medium">Doc ID</th>
-                            <th class="w-36 px-6 py-2 font-medium">Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">Company</th>
-                            <th class="w-40 px-6 py-2 font-medium">Department</th>
-                            <th class="w-40 px-6 py-2 font-medium">Site Parking</th>
-                            <th class="w-36 px-6 py-2 font-medium">Parking Type</th>
-                            <th class="w-36 px-6 py-2 font-medium">Worker Type</th>
-                            <th class="w-32 px-6 py-2 font-medium">Perpost</th>
-                            <th class="w-56 px-6 py-2 font-medium">Info</th>
-                            <th class="w-32 px-6 py-2 font-medium">Status</th>
+                            <th class="w-8 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">Doc ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Department</th>
+                            <th class="px-4 py-3 text-left font-medium">Site Parking</th>
+                            <th class="px-4 py-3 text-left font-medium">Parking Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Worker Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Perpost</th>
+                            <th class="px-4 py-3 text-left font-medium">Info</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -354,40 +355,40 @@
                 if (scope === 'master') {
                     $('#parkingRegistrationThead').html(`
                         <tr>
-                            <th class="w-8"></th>
-                            <th class="w-44 px-6 py-2 font-medium">Action</th>
-                            <th class="w-40 px-6 py-2 font-medium">Site Parking</th>
-                            <th class="w-56 px-6 py-2 font-medium">Name</th>
-                            <th class="w-36 px-6 py-2 font-medium">No Polisi</th>
-                            <th class="w-36 px-6 py-2 font-medium">Jenis Kendaraan</th>
-                            <th class="w-40 px-6 py-2 font-medium">Parking Type</th>
-                            <th class="w-40 px-6 py-2 font-medium">Worker Type</th>
-                            <th class="w-32 px-6 py-2 font-medium">Company</th>
-                            <th class="w-40 px-6 py-2 font-medium">Department</th>
-                            <th class="w-28 px-6 py-2 font-medium">Perpost</th>
-                            <th class="w-36 px-6 py-2 font-medium">Start Date</th>
-                            <th class="w-36 px-6 py-2 font-medium">End Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">No Kartu</th>
-                            <th class="w-32 px-6 py-2 font-medium">STNK</th>
-                            <th class="w-32 px-6 py-2 font-medium">ID Card</th>
-                            <th class="w-36 px-6 py-2 font-medium">Bukti Bayar</th>
-                            <th class="w-32 px-6 py-2 font-medium">Status</th>
+                            <th class="w-8 px-4 py-3"></th>
+                            <th class="w-44 px-4 py-3 text-left font-medium">Action</th>
+                            <th class="px-4 py-3 text-left font-medium">Site Parking</th>
+                            <th class="px-4 py-3 text-left font-medium">Name</th>
+                            <th class="px-4 py-3 text-left font-medium">No Polisi</th>
+                            <th class="px-4 py-3 text-left font-medium">Jenis Kendaraan</th>
+                            <th class="px-4 py-3 text-left font-medium">Parking Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Worker Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Department</th>
+                            <th class="px-4 py-3 text-left font-medium">Perpost</th>
+                            <th class="px-4 py-3 text-left font-medium">Start Date</th>
+                            <th class="px-4 py-3 text-left font-medium">End Date</th>
+                            <th class="px-4 py-3 text-left font-medium">No Kartu</th>
+                            <th class="px-4 py-3 text-left font-medium">STNK</th>
+                            <th class="px-4 py-3 text-left font-medium">ID Card</th>
+                            <th class="px-4 py-3 text-left font-medium">Bukti Bayar</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     `);
                 } else {
                     $('#parkingRegistrationThead').html(`
                         <tr>
-                            <th class="w-8"></th>
-                            <th class="w-36 px-6 py-2 font-medium">Doc ID</th>
-                            <th class="w-36 px-6 py-2 font-medium">Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">Company</th>
-                            <th class="w-40 px-6 py-2 font-medium">Department</th>
-                            <th class="w-40 px-6 py-2 font-medium">Site Parking</th>
-                            <th class="w-36 px-6 py-2 font-medium">Parking Type</th>
-                            <th class="w-36 px-6 py-2 font-medium">Worker Type</th>
-                            <th class="w-32 px-6 py-2 font-medium">Perpost</th>
-                            <th class="w-56 px-6 py-2 font-medium">Info</th>
-                            <th class="w-32 px-6 py-2 font-medium">Status</th>
+                            <th class="w-8 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">Doc ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Department</th>
+                            <th class="px-4 py-3 text-left font-medium">Site Parking</th>
+                            <th class="px-4 py-3 text-left font-medium">Parking Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Worker Type</th>
+                            <th class="px-4 py-3 text-left font-medium">Perpost</th>
+                            <th class="px-4 py-3 text-left font-medium">Info</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     `);
                 }
