@@ -44,24 +44,28 @@
         <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
 
             {{-- MASTER BUDGET --}}
-            <div class="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                <div class="flex items-center justify-between">
-                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Master Budget</h1>
+            <div
+                class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Master
+                        Budget</h2>
                 </div>
 
-                <div class="relative overflow-x-auto">
-                    <table id="tblMaster" class="w-full text-left text-xs rtl:text-right">
-                        <thead class="border-b bg-gray-50 text-sm dark:bg-gray-900">
-                            <tr>
-                                <th></th>
-                                <th class="w-32 px-6 py-2 font-medium">COA</th>
-                                <th class="w-32 px-6 py-2 font-medium">Activity</th>
-                                <th class="px-6 py-3 font-medium">Description</th>
-                                <th class="w-32 px-6 py-2 font-medium">Budget</th>
-                                <th class="w-32 px-6 py-2 font-medium">Additional</th>
-                                <th class="w-32 px-6 py-2 font-medium">Reserved</th>
-                                <th class="w-32 px-6 py-2 font-medium">Used</th>
-                                <th class="w-32 px-6 py-2 font-medium">Remaining</th>
+                <div class="relative overflow-hidden">
+                    <table id="tblMaster" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">COA</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Activity</th>
+                                <th class="px-4 py-3 text-left font-medium">Description</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Budget</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Additional</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Reserved</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Used</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Remaining</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -103,24 +107,27 @@
             </div>
 
             {{-- TRX BUDGET --}}
-            <div class="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm dark:bg-gray-800">
-                <div class="flex items-center justify-between">
-                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Trx Budget</h1>
+            <div
+                class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Trx Budget</h2>
                 </div>
 
-                <div class="relative overflow-x-auto">
-                    <table id="tblTrx" class="w-full text-left text-xs rtl:text-right">
-                        <thead class="border-b bg-gray-50 text-sm dark:bg-gray-900">
-                            <tr>
-                                <th></th>
-                                <th class="px-6 py-3 font-medium">Ref No</th>
-                                <th class="px-6 py-3 font-medium">Date</th>
-                                <th class="px-6 py-3 font-medium">Account</th>
-                                <th class="px-6 py-3 font-medium">Activity</th>
-                                <th class="px-6 py-3 font-medium">Description</th>
-                                <th class="px-6 py-3 font-medium">Flow</th>
-                                <th class="px-6 py-3 font-medium">Source</th>
-                                <th class="px-6 py-3 font-medium">Amount</th>
+                <div class="relative overflow-hidden">
+                    <table id="tblTrx" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="px-4 py-3 text-left font-medium">Ref No</th>
+                                <th class="px-4 py-3 text-left font-medium">Date</th>
+                                <th class="px-4 py-3 text-left font-medium">Account</th>
+                                <th class="px-4 py-3 text-left font-medium">Activity</th>
+                                <th class="px-4 py-3 text-left font-medium">Description</th>
+                                <th class="px-4 py-3 text-left font-medium">Flow</th>
+                                <th class="px-4 py-3 text-left font-medium">Source</th>
+                                <th class="px-4 py-3 text-left font-medium">Amount</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

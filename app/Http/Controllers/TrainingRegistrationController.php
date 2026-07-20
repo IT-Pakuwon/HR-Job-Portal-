@@ -655,6 +655,22 @@ class TrainingRegistrationController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
+            $quota = TrTrainingScheduleQuota::where('schedule_detail_id', $registration->schedule_detail_id)
+                ->where('cpny_id', $registration->cpny_id)
+                ->lockForUpdate()
+                ->first();
+
+            $reserved = TrTrainingRegistration::where('schedule_detail_id', $registration->schedule_detail_id)
+                ->where('cpny_id', $registration->cpny_id)
+                ->whereIn('status', [TrTrainingRegistration::STATUS_PENDING, TrTrainingRegistration::STATUS_APPROVED, TrTrainingRegistration::STATUS_OFFERED])
+                ->count();
+
+            if (!$quota || $reserved >= $quota->quota_pax) {
+                DB::connection('pgsql5')->rollBack();
+
+                return response()->json(['success' => false, 'message' => 'Kuota sudah penuh, tidak ada slot yang tersedia untuk ditawarkan'], 422);
+            }
+
             TrainingRegistrationService::offerSlot($registration);
 
             DB::connection('pgsql5')->commit();

@@ -5,31 +5,32 @@
 
     <div class="max-w-9xl mx-auto w-full p-2">
         <!-- TOP: LOCATION -->
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <div>
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">📍 Location</h1>
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📍 Location</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-300">
                         Klik 1 location untuk filter sub location.
                     </p>
                 </div>
                 <button id="addLocationBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     + Add Location
                 </button>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="locationsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-
-                            <th class="w-28 px-3 py-3 text-center">Actions</th>
-                            <th class="px-3 py-3 text-left">Cpny</th>
-                            <th class="px-3 py-3 text-left">Location ID</th>
-                            <th class="px-3 py-3 text-left">Location Name</th>
-                            <th class="w-28 px-3 py-3 text-center">Status</th>
+            <div class="relative overflow-hidden">
+                <table id="locationsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-28 px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Cpny</th>
+                            <th class="px-4 py-3 text-left font-medium">Location ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Location Name</th>
+                            <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -38,31 +39,33 @@
         </div>
 
         <!-- BOTTOM: SUB LOCATION -->
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <div>
-                    <h2 class="text-base font-bold text-gray-800 dark:text-white">🧩 Sub Location</h2>
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🧩 Sub
+                        Location</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-300">
                         Selected Location: <span id="selectedLocationText" class="font-semibold">-</span>
                     </p>
                 </div>
                 <button id="addSubLocationBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     + Add Sub Location
                 </button>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="subLocationsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-
-                            <th class="w-28 px-3 py-3 text-center">Actions</th>
-                            <th class="px-3 py-3 text-left">Sub ID</th>
-                            <th class="px-3 py-3 text-left">Sub Name</th>
-                            <th class="px-3 py-3 text-left">Location ID</th>
-                            <th class="w-28 px-3 py-3 text-center">Status</th>
+            <div class="relative overflow-hidden">
+                <table id="subLocationsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-28 px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Sub ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Sub Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Location ID</th>
+                            <th class="w-28 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

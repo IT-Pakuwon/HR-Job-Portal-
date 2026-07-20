@@ -193,22 +193,24 @@
         margin-right: 0 !important;
     }
 </style>
-<div class="mt-6 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
-    <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <h1 class="align-middle text-lg font-bold dark:text-white">Work Order</h1>
+<div
+    class="mt-6 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+    <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Work Order</h2>
     </div>
-    <div class="rounded-lg bg-white dark:bg-gray-800">
-        <table id="tasksTable" class="mt-5 min-w-full rounded">
-            <thead class="bg-white-200 dark:text-white">
-                <tr>
-                    <th class="w-32 px-4 py-3 text-left">DocID</th>
-                    <th class="px-4 py-3 text-center">Date</th>
-                    <th class="px-4 py-3 text-center">Type</th>
-                    <th class="px-4 py-3 text-center">Summary</th>
-                    <th class="px-4 py-3 text-center">StartDate</th>
-                    <th class="px-4 py-3 text-center">DueDate</th>
-                    <th class="px-4 py-3 text-center">Priority</th>
-                    <th class="w-32 px-4 py-3 text-center">Action</th>
+    <div class="relative overflow-hidden">
+        <table id="tasksTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+            <thead>
+                <tr
+                    class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                    <th class="w-32 px-4 py-3 text-left font-medium">DocID</th>
+                    <th class="px-4 py-3 text-left font-medium">Date</th>
+                    <th class="px-4 py-3 text-left font-medium">Type</th>
+                    <th class="px-4 py-3 text-left font-medium">Summary</th>
+                    <th class="px-4 py-3 text-left font-medium">StartDate</th>
+                    <th class="px-4 py-3 text-left font-medium">DueDate</th>
+                    <th class="px-4 py-3 text-left font-medium">Priority</th>
+                    <th class="w-32 px-4 py-3 text-left font-medium">Action</th>
                 </tr>
             </thead>
             <tbody></tbody>

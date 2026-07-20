@@ -95,39 +95,39 @@
             @endif
         </div>
 
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Item Request</h1>
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Item Request</h2>
 
                 {{-- sesuaikan URL/route create --}}
                 <a href="{{ url('/createitemreq') }}"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     <i class="fas fa-plus pr-2"></i>Create
                 </a>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="itemReqTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-6 py-2 font-medium">
+            <div class="relative overflow-hidden">
+                <table id="itemReqTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 IRID</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Company</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Department</th>
-                            <th class="w-32 px-6 py-2 font-medium">Inventory Type</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="w-32 px-4 py-3 text-left font-medium">Inventory Type</th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 Description</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 PIC</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Status</th>
                         </tr>
                     </thead>

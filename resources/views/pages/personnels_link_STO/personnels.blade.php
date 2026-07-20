@@ -247,95 +247,51 @@
                 #personnelsTable tr.group-row td:first-child {
                     border-left: none;
                 }
-
-                /* ✅ Custom Switch Button (Global, if used elsewhere) */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
             </style>
-            <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    {{-- Changed text-lg to text-base --}}
-                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Personnel Requisition Form</h1>
+            <div
+                class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Personnel
+                        Requisition Form</h2>
                     <a href="{{ url('/createpersonnels') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                         <i class="fas fa-plus pr-2"></i>Create
                     </a>
                 </div>
 
-                <div class="rounded-base relative overflow-x-auto"> {{-- Padding applied here instead of outer container --}}
-                    <table id="personnelsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
-                                <th scope="col" class="w-32 px-6 py-2 font-medium">
+                <div class="relative overflow-hidden">
+                    <table id="personnelsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     DocID
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     Date
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     Company
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     Department
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     Title
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     Level
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     User
                                 </th>
-                                <th scope="col" class="w-32 px-6 py-2 font-medium">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     Status
                                 </th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]">
                             {{-- Table rows will be populated here by JavaScript/DataTables --}}
                         </tbody>
                     </table>

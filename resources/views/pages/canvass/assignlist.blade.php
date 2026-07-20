@@ -10,16 +10,17 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- Header + Filters --}}
-        <div class="rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             <!-- TOP HEADER -->
             <div
-                class="flex flex-col gap-4 border-b border-gray-200 px-6 py-2 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
+                class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 sm:flex-row sm:items-center sm:justify-between dark:border-white/[0.06]">
 
                 <!-- Title -->
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     Purchasing Assignment
-                </h1>
+                </h2>
 
                 <!-- Filter -->
                 <div class="flex items-center gap-2">
@@ -72,28 +73,25 @@
 
 
             {{-- TAB: Assign List --}}
-            <div id="tab-assign" class="rounded-base relative overflow-x-auto p-4">
-                <table id="canvassTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+            <div id="tab-assign" class="relative overflow-hidden">
+                <table id="canvassTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 DocID</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Assign Purchasing</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Company</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Created By</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Department</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Description</th>
                         </tr>
                     </thead>
@@ -104,31 +102,27 @@
             </div>
 
             {{-- TAB: Transfer Jobs --}}
-            <div id="tab-transfer"class="rounded-base relative overflow-x-auto p-4">
-                <table id="transferTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+            <div id="tab-transfer" class="relative overflow-hidden">
+                <table id="transferTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">
                                 DocID</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Assign Purchasing</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Assign Purchasing New</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Company</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Created By</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Department</th>
-                            <th
-                                class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                            <th class="px-4 py-3 text-left font-medium">
                                 Description</th>
                         </tr>
                     </thead>

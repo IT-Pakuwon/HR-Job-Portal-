@@ -132,52 +132,6 @@
                 }
             </style>
             <style>
-                /* ✅ Custom Switch Button */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
                 /* ✅ Memperkecil Lebar Kolom Actions */
                 #agendasxTable th:nth-child(1),
                 #agendasxTable td:nth-child(1) {
@@ -191,16 +145,17 @@
                     text-align: center;
                 }
             </style>
-            <div class="rounded-lg bg-white dark:bg-gray-800">
-                <table id="agendasxTable" class="mt-5 min-w-full rounded">
-                    <thead class="bg-white-200 dark:text-white">
-                        <tr>
-                            <th class="w-32 px-4 py-3 text-left">DocID</th>
-                            <th class="px-4 py-3 text-center">Date</th>
-                            <th class="px-4 py-3 text-center">Company</th>
-                            <th class="px-4 py-3 text-center">Departement</th>
-                            <th class="px-4 py-3 text-center">Info</th>
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
+            <div class="relative overflow-hidden">
+                <table id="agendasxTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-32 px-4 py-3 text-left font-medium">DocID</th>
+                            <th class="px-4 py-3 text-left font-medium">Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Departement</th>
+                            <th class="px-4 py-3 text-left font-medium">Info</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

@@ -17,26 +17,30 @@
             </div>
 
             {{-- ── TAB 1: Master Group Biaya ──────────────────────────────────── --}}
-            <div id="panel-master" class="rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">💰 Master Group Biaya</h1>
+            <div id="panel-master"
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">💰 Master
+                        Group Biaya</h2>
                     @if($isAdmin)
                     <button id="addGroupBiayaBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add
                     </button>
                     @endif
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table id="groupBiayaTable" class="text-body w-full text-left text-sm">
-                        <thead class="border-b text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                            <tr>
+                <div class="relative overflow-hidden">
+                    <table id="groupBiayaTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 @if($isAdmin)
-                                <th class="w-14 py-2 text-center">Act</th>
+                                <th class="w-14 px-4 py-3 text-left font-medium">Act</th>
                                 @endif
-                                <th class="py-2 px-2 w-20">ID</th>
-                                <th class="py-2 px-2">Description</th>
+                                <th class="w-20 px-4 py-3 text-left font-medium">ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Description</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

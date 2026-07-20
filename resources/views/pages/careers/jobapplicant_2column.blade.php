@@ -322,52 +322,6 @@
                 }
             </style>
             <style>
-                /* ✅ Custom Switch Button */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
                 /* ✅ Memperkecil Lebar Kolom Actions */
                 #jobpostingsTable th:nth-child(1),
                 #jobpostingsTable td:nth-child(1) {
@@ -391,9 +345,12 @@
             </style>
             <div id="container" class="mt-2 grid grid-cols-1 gap-4 xl:grid-cols-1">
                 <!-- TABEL KIRI: Job Posting -->
-                <div id="jobpostingTableWrapper" class="overflow-x-auto rounded-xl bg-white p-4">
-                    <div class="mb-4 flex items-center justify-end">
-                        {{-- <label for="cpnyidFilter" class="mr-2 font-semibold text-gray-700"></label> --}}
+                <div id="jobpostingTableWrapper"
+                    class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                    <div
+                        class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
+                        <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">List Job
+                            Posting</h2>
                         <select id="cpnyidFilter" class="rounded border px-3 py-1">
                             <option value="">All</option>
                             <option value="AW">AW</option>
@@ -402,28 +359,33 @@
                             <option value="GPS">GPS</option>
                         </select>
                     </div>
-                    <h1 class="text-lg font-bold">List Job Posting</h1>
-                    <table id="jobpostingsTable" class="min-w-full rounded">
-                        <thead>
-                            <tr>
-                                <th>DocID</th>
-                                <th>Date</th>
-                                <th>Company</th>
-                                <th>Departement</th>
-                                <th>Title</th>
-                                <th>Level</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <div class="relative overflow-hidden">
+                        <table id="jobpostingsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                            <thead>
+                                <tr
+                                    class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                    <th class="px-4 py-3 text-left font-medium">DocID</th>
+                                    <th class="px-4 py-3 text-left font-medium">Date</th>
+                                    <th class="px-4 py-3 text-left font-medium">Company</th>
+                                    <th class="px-4 py-3 text-left font-medium">Departement</th>
+                                    <th class="px-4 py-3 text-left font-medium">Title</th>
+                                    <th class="px-4 py-3 text-left font-medium">Level</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
 
 
                 <!-- TABEL KANAN: Applicant -->
-                <div id="applicantsContainer" class="overflow-x-auto rounded-xl bg-white p-4" style="display:none;">
+                <div id="applicantsContainer"
+                    class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]"
+                    style="display:none;">
 
-                    <div class="flex items-center justify-between">
-                        <h1 class="text-lg font-bold">Applicants</h1>
+                    <div
+                        class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                        <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Applicants</h2>
                         <div class="flex flex-row-reverse items-center justify-end gap-4 text-base">
                             <button id="detailApplicantsBtn" class="font-semibold text-blue-500 hover:text-blue-700">See
                                 Detail</button>
@@ -433,20 +395,21 @@
                         </div>
 
                     </div>
-                    <div id="applicantsTableWrapper" class="overflow-x-auto rounded-xl bg-white">
-                        <table id="applicantsTable" class="min-w-full rounded">
+                    <div id="applicantsTableWrapper" class="relative overflow-hidden">
+                        <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                             <thead>
-                                <tr>
-                                    <th>Docid</th>
-                                    <th>Date</th>
-                                    <th>Name</th>
-                                    <th>Education</th>
-                                    <th>Religion</th>
-                                    <th>Height</th>
-                                    <th>Weight</th>
-                                    <th>Last Working</th>
-                                    <th>Score</th>
-                                    <th>Step</th>
+                                <tr
+                                    class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                    <th class="px-4 py-3 text-left font-medium">Docid</th>
+                                    <th class="px-4 py-3 text-left font-medium">Date</th>
+                                    <th class="px-4 py-3 text-left font-medium">Name</th>
+                                    <th class="px-4 py-3 text-left font-medium">Education</th>
+                                    <th class="px-4 py-3 text-left font-medium">Religion</th>
+                                    <th class="px-4 py-3 text-left font-medium">Height</th>
+                                    <th class="px-4 py-3 text-left font-medium">Weight</th>
+                                    <th class="px-4 py-3 text-left font-medium">Last Working</th>
+                                    <th class="px-4 py-3 text-left font-medium">Score</th>
+                                    <th class="px-4 py-3 text-left font-medium">Step</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

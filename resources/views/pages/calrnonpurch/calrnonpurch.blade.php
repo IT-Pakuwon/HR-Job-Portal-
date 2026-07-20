@@ -114,15 +114,17 @@
             @endif
         </div>
 
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">CALR Non Purchase</h1>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="calrTable" class="text-body w-full text-left text-sm rtl:text-right">
+            <div class="relative overflow-hidden">
+                <table id="calrTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>

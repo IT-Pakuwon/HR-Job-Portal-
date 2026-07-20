@@ -4,16 +4,19 @@
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">🏢 Business Unit List</h1>
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 Business Unit
+                    List</h2>
                 <button id="addBusinessUnitBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     + Add Business Unit
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <div class="grid grid-cols-1 gap-3 px-5 pt-4 md:grid-cols-4">
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-white">Company</label>
                     <select id="filterCompany" class="w-full rounded-lg border px-3 py-2 dark:bg-gray-700">
@@ -39,20 +42,21 @@
                 </div>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="businessUnitTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Business Unit ID</th>
-                            <th class="px-4 py-3 text-left">Company</th>
-                            <th class="px-4 py-3 text-left">Business Unit Name</th>
-                            <th class="px-4 py-3 text-left">IFCA Entity</th>
-                            <th class="px-4 py-3 text-left">Solomon Company</th>
-                            <th class="px-4 py-3 text-left">Solomon Allocation</th>
-                            <th class="px-4 py-3 text-left">Integration Type</th>
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
+            <div class="relative mt-4 overflow-hidden">
+                <table id="businessUnitTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Business Unit ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Business Unit Name</th>
+                            <th class="px-4 py-3 text-left font-medium">IFCA Entity</th>
+                            <th class="px-4 py-3 text-left font-medium">Solomon Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Solomon Allocation</th>
+                            <th class="px-4 py-3 text-left font-medium">Integration Type</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

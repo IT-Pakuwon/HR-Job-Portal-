@@ -200,52 +200,6 @@
                 }
             </style>
             <style>
-                /* ✅ Custom Switch Button */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
                 /* ✅ Memperkecil Lebar Kolom Actions */
                 #agendasTable th:nth-child(1),
                 #agendasTable td:nth-child(1) {
@@ -259,15 +213,17 @@
                     text-align: center;
                 }
             </style>
-            <div class="mt-2 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
-                <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                    <h1 class="align-middle text-lg font-bold dark:text-white">Agenda</h1>
+            <div
+                class="mt-2 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Agenda</h2>
                     <a href="{{ url('/createagendas') }}"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                         <i class="fas fa-plus pr-2"></i>Create Agenda</a>
                 </div>
-                <div x-data="{ tab: 'table' }" class="mt-4">
-                    <div class="mb-4 flex space-x-4">
+                <div x-data="{ tab: 'table' }">
+                    <div class="flex gap-4 px-5 py-3">
                         <button @click="tab = 'table'"
                             :class="tab === 'table' ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
                             class="rounded px-4 py-2 font-semibold">
@@ -279,27 +235,26 @@
                             📅 Schedule Calendar
                         </button>
                     </div>
-                    <div class="grid" x-show="tab === 'table'">
-                        <div class="rounded-lg bg-white dark:bg-gray-800">
-                            <table id="agendasTable" class="mt-5 min-w-full rounded">
-                                <thead class="bg-white-200 dark:text-white">
-                                    <tr>
-                                        <th class="w-32 px-4 py-3 text-left">DocID</th>
-                                        <th class="px-4 py-3 text-center">Title</th>
-                                        <th class="px-4 py-3 text-center">Description</th>
-                                        <th class="px-4 py-3 text-center">StartDate</th>
-                                        <th class="px-4 py-3 text-center">EndDate</th>
-                                        <th class="px-4 py-3 text-center">Participant</th>
-                                        <th class="w-32 px-4 py-3 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
+                    <div class="relative overflow-hidden" x-show="tab === 'table'">
+                        <table id="agendasTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                            <thead>
+                                <tr
+                                    class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                    <th class="w-32 px-4 py-3 text-left font-medium">DocID</th>
+                                    <th class="px-4 py-3 text-left font-medium">Title</th>
+                                    <th class="px-4 py-3 text-left font-medium">Description</th>
+                                    <th class="px-4 py-3 text-left font-medium">StartDate</th>
+                                    <th class="px-4 py-3 text-left font-medium">EndDate</th>
+                                    <th class="px-4 py-3 text-left font-medium">Participant</th>
+                                    <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
 
                     <!-- Tab 2: Calendar -->
-                    <div x-show="tab === 'calendar'">
+                    <div class="p-5" x-show="tab === 'calendar'">
                         @include('pages.agendas.calendar')
                     </div>
                 </div>

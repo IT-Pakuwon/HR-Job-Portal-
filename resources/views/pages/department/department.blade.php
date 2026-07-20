@@ -36,25 +36,29 @@
             </div>
 
             {{-- ── TAB 1: Master Department ───────────────────────────────────── --}}
-            <div id="panel-master" class="rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">🏢 Master Department</h1>
+            <div id="panel-master"
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 Master
+                        Department</h2>
                     <button id="addDepartmentBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Department
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table id="departmentTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
+                <div class="relative overflow-hidden">
+                    <table id="departmentTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-8 px-2 py-3 text-center"></th> {{-- responsive control --}}
-                                <th class="w-32 px-4 py-3 text-center">Actions</th>
-                                <th class="px-4 py-3 text-left">Department ID</th>
-                                <th class="px-4 py-3 text-left">Department Name</th>
-                                <th class="px-4 py-3 text-left">Department Finance</th>
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Department ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Department Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Department Finance</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -63,24 +67,28 @@
             </div>
 
             {{-- ── TAB: Maintain Department Fin ───────────────────────────────── --}}
-            <div id="panel-finmaster" class="hidden rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">🏦 Maintain Department Fin</h1>
+            <div id="panel-finmaster"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏦 Maintain
+                        Department Fin</h2>
                     <button id="addFinMasterBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Department Fin
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table id="finMasterTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
+                <div class="relative overflow-hidden">
+                    <table id="finMasterTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-8 px-2 py-3 text-center"></th> {{-- responsive control --}}
-                                <th class="w-32 px-4 py-3 text-center">Actions</th>
-                                <th class="px-4 py-3 text-left">Department Fin ID</th>
-                                <th class="px-4 py-3 text-left">Department Name</th>
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Department Fin ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Department Name</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -89,27 +97,31 @@
             </div>
 
             {{-- ── TAB 2: Assign Department Fin to Department ─────────────────── --}}
-            <div id="panel-fin" class="hidden rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">🔗 Assign Department Fin to Department</h1>
+            <div id="panel-fin"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🔗 Assign
+                        Department Fin to Department</h2>
                     <button id="addDepartmentFinBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Assign Department Fin
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table id="departmentFinTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
+                <div class="relative overflow-hidden">
+                    <table id="departmentFinTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-8 px-2 py-3 text-center"></th> {{-- responsive control --}}
-                                <th class="w-32 px-4 py-3 text-center">Actions</th>
-                                <th class="px-4 py-3 text-left">Department Fin ID</th>
-                                <th class="px-4 py-3 text-left">Department</th>
-                                <th class="px-4 py-3 text-left">Company ID</th>
-                                <th class="px-4 py-3 text-left">IFCA Dept Code</th>
-                                <th class="px-4 py-3 text-left">Solomon Subaccount Dept</th>
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Department Fin ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Department</th>
+                                <th class="px-4 py-3 text-left font-medium">Company ID</th>
+                                <th class="px-4 py-3 text-left font-medium">IFCA Dept Code</th>
+                                <th class="px-4 py-3 text-left font-medium">Solomon Subaccount Dept</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -118,25 +130,29 @@
             </div>
 
             {{-- ── TAB 3: Department & Division HR ────────────────────────────── --}}
-            <div id="panel-hr" class="hidden rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">👥 Department & Division HR</h1>
+            <div id="panel-hr"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">👥 Department
+                        & Division HR</h2>
                     <button id="addDepartmentHrBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Department HR
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table id="departmentHrTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
+                <div class="relative overflow-hidden">
+                    <table id="departmentHrTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-8 px-2 py-3 text-center"></th> {{-- responsive control --}}
-                                <th class="w-32 px-4 py-3 text-center">Actions</th>
-                                <th class="px-4 py-3 text-left">Department ID</th>
-                                <th class="px-4 py-3 text-left">Department Name</th>
-                                <th class="px-4 py-3 text-left">Division</th>
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Department ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Department Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Division</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -145,24 +161,28 @@
             </div>
 
             {{-- ── TAB 4: Maintain Division ───────────────────────────────────── --}}
-            <div id="panel-division" class="hidden rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">🗂️ Maintain Division</h1>
+            <div id="panel-division"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🗂️ Maintain
+                        Division</h2>
                     <button id="addDivisionBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Division
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table id="divisionTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
+                <div class="relative overflow-hidden">
+                    <table id="divisionTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-8 px-2 py-3 text-center"></th> {{-- responsive control --}}
-                                <th class="w-32 px-4 py-3 text-center">Actions</th>
-                                <th class="px-4 py-3 text-left">Division ID</th>
-                                <th class="px-4 py-3 text-left">Division Name</th>
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Division ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Division Name</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

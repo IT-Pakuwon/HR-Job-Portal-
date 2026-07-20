@@ -121,12 +121,14 @@
                 </button>
             @endif
         </div>
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
                 <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Bast</h1>
             </div>
 
-            <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-5">
+            <div class="grid grid-cols-1 gap-3 px-5 pt-4 md:grid-cols-5">
 
                 <select id="filter_vendor" class="w-full rounded border px-3 py-2 text-sm">
                     <option value="">All Vendor</option>
@@ -146,10 +148,10 @@
                     Reset
                 </button>
             </div>
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="bastTable" class="text-body w-full text-left text-sm rtl:text-right">
+            <div class="relative mt-4 overflow-hidden">
+                <table id="bastTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
                     <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr id="thead-row"></tr>
                     </thead>
                     <tbody>

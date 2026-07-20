@@ -86,9 +86,12 @@
             @endif
         </div>
 
-        <div class="mt-3 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Request For Payment</h1>
+        <div
+            class="mt-3 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Request For
+                    Payment</h2>
 
                 <div class="flex flex-wrap items-center justify-end gap-4">
                     <div class="flex items-center gap-2">
@@ -150,27 +153,28 @@
                 </div>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="rfpTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th>RFP ID</th>
-                            <th>Date</th>
-                            <th>Company</th>
-                            <th>Department</th>
-                            <th>SPPBJKT - CS</th>
-                            <th>PO / Kontrak</th>
-                            <th>Type PO</th>
-                            <th>IR ID</th>
-                            <th>Vendor</th>
-                            <th>Keperluan</th>
-                            <th>Total Amount</th>
-                            <th>Action</th>
-                            <th>Status</th>
+            <div class="relative overflow-hidden">
+                <table id="rfpTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="px-4 py-3 text-left font-medium">RFP ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Department</th>
+                            <th class="px-4 py-3 text-left font-medium">SPPBJKT - CS</th>
+                            <th class="px-4 py-3 text-left font-medium">PO / Kontrak</th>
+                            <th class="px-4 py-3 text-left font-medium">Type PO</th>
+                            <th class="px-4 py-3 text-left font-medium">IR ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Vendor</th>
+                            <th class="px-4 py-3 text-left font-medium">Keperluan</th>
+                            <th class="px-4 py-3 text-left font-medium">Total Amount</th>
+                            <th class="px-4 py-3 text-left font-medium">Action</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]"></tbody>
                 </table>
 
                 <div id="rfpActionModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">

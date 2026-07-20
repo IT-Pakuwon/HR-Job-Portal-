@@ -84,12 +84,12 @@ SEARCH / FILTER / LENGTH CONTROLS (GLOBAL)
 
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter {
-        padding: 16px 18px;
+        padding: 8px 18px;
     }
 
     .dataTables_wrapper .dataTables_info,
     .dataTables_wrapper .dataTables_paginate {
-        padding: 14px 18px;
+        padding: 8px 18px;
     }
 
     /* LENGTH (Show entries) */
@@ -257,8 +257,8 @@ CUSTOM COMPONENTS (UNCHANGED)
     .switch {
         position: relative;
         display: inline-block;
-        width: 40px;
-        height: 22px;
+        width: 46px;
+        height: 24px;
     }
 
     .switch input {
@@ -271,29 +271,35 @@ CUSTOM COMPONENTS (UNCHANGED)
         position: absolute;
         cursor: pointer;
         inset: 0;
-        background: #ccc;
-        transition: .4s;
-        border-radius: 34px;
+        background-color: #ef4444;
+        transition: .25s;
+        border-radius: 9999px;
     }
 
     .slider:before {
-        content: "";
         position: absolute;
-        height: 16px;
-        width: 16px;
+        content: "";
+        height: 18px;
+        width: 18px;
         left: 3px;
         bottom: 3px;
-        background: #fff;
-        transition: .4s;
-        border-radius: 50%;
+        background-color: white;
+        transition: .25s;
+        border-radius: 9999px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
     }
 
-    input:checked+.slider {
-        background: #4CAF50;
+    .switch input:checked + .slider {
+        background-color: #16a34a;
     }
 
-    input:checked+.slider:before {
-        transform: translateX(18px);
+    .switch input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+
+    .switch input:disabled + .slider {
+        opacity: .45;
+        cursor: not-allowed;
     }
 
     /* ---- MENU TREE ---- */

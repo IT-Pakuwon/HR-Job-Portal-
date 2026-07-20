@@ -62,34 +62,37 @@
         </div>
 
         {{-- TABLES --}}
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
             {{-- JOBS WRAP --}}
-            <div id="jobsWrap" class="flex flex-col gap-6 rounded-xl bg-white dark:bg-gray-800">
-                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h1 id="jobsTitle" class="text-base font-extrabold text-gray-700 dark:text-white">Nonstock Jobs</h1>
+            <div id="jobsWrap">
+                <div
+                    class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                    <h2 id="jobsTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
+                        Nonstock Jobs</h2>
                 </div>
-                <div class="rounded-base relative overflow-x-auto">
-                    <table id="nonstockJobsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
-                                <th></th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                <div class="relative overflow-hidden">
+                    <table id="nonstockJobsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     IRID</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Date</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Company</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Department</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Description</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Inventory ID</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Created By</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Job Status</th>
                             </tr>
                         </thead>
@@ -101,37 +104,39 @@
             </div>
 
             {{-- INVENTORY WRAP --}}
-            <div id="invWrap" class="hidden rounded-xl bg-white dark:bg-gray-800">
-                <div class="mb-4 flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">📦 Inventory List</h1>
+            <div id="invWrap" class="hidden">
+                <div
+                    class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📦 Inventory
+                        List</h2>
 
                     <button id="addInventoryBtn"
-                        class="rounded-xl bg-indigo-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-600">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Inventory
                     </button>
                 </div>
 
-                <div class="rounded-base relative overflow-x-auto">
-                    <table id="inventoryTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
-                                <th></th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                <div class="relative overflow-hidden">
+                    <table id="inventoryTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Actions</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Inventory ID</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Inventory Description</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Sub Type</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Class</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Sub Class</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Stock Unit</th>
-                                <th class="w-32 px-6 py-2 font-medium">
+                                <th class="w-32 px-4 py-3 text-left font-medium">
                                     Status</th>
                             </tr>
                         </thead>

@@ -100,13 +100,15 @@
             </button>
             @endif
         </div>
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-col gap-3 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
 
                 <!-- LEFT -->
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     WO Jobs List
-                </h1>
+                </h2>
 
                 <!-- RIGHT: prettier filters -->
                 <div class="flex flex-wrap items-center gap-2">
@@ -141,34 +143,34 @@
                 </div>
 
             </div>
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="wosTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-6 py-2 font-medium">
+            <div class="relative overflow-hidden">
+                <table id="wosTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 DocID</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Date</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Company</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Department</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Business Unit
                             </th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 PIC</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Location</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Work Type</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 WO Request</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Description</th>
-                            <th class="w-32 px-6 py-2 font-medium">
+                            <th class="w-32 px-4 py-3 text-left font-medium">
                                 Status Pekerjaan</th>
                         </tr>
                     </thead>
