@@ -259,7 +259,7 @@
                                     </select>
                                 </div>
 
-                                <div>
+                                <div id="create_kilometer_wrapper">
                                     <label
                                         class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                         Kilometer
@@ -575,7 +575,7 @@
                                     </select>
                                 </div>
 
-                                <div>
+                                <div id="edit_kilometer_wrapper">
                                     <label
                                         class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                                         Kilometer
@@ -893,6 +893,16 @@
         });
 
         const CostTypes = @json($costTypes->keyBy('id'));
+
+        function toggleKilometerField(prefix) {
+            const costTypeId = $('#' + prefix + '_cost_type').val();
+            const isBBM = CostTypes[costTypeId]?.category_name?.trim().toUpperCase() === 'BBM';
+            $('#' + prefix + '_kilometer_wrapper').toggleClass('hidden', !isBBM);
+            if (!isBBM) $('#' + prefix + '_kilometer').val('');
+        }
+
+        $('#create_cost_type').on('change', () => toggleKilometerField('create'));
+        $('#edit_cost_type').on('change', () => toggleKilometerField('edit'));
 
         let currentEid = null;
 
