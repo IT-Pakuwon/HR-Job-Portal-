@@ -86,6 +86,18 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground()
             ->appendOutputTo(storage_path('logs/staging_vms_rfp.log'));
+
+        // Expire training waitlist offers past their 24h window, cascade to next
+        $schedule->command('training:expire-waitlist-offers')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/training-expire-waitlist-offers.log'));
+
+        // Auto-close training registrations past their H-3 deadline
+        $schedule->command('training:close-registrations')
+            ->dailyAt('01:00')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/training-close-registrations.log'));
     }
 
     /**

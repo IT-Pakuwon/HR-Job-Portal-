@@ -7,7 +7,7 @@
 .modal-panel { backface-visibility: hidden; }
 .modal-scroll { scrollbar-width: thin; }
 .select2-container .select2-selection--single { height: 42px !important; border-radius: 8px !important; border-color: #e2e8f0 !important; display: flex; align-items: center; }
-.select2-container .select2-selection--single .select2-selection__rendered { line-height: 42px !important; padding: 0 12px !important; }
+.select2-container .select2-selection--single .select2-selection__rendered { line-height: 42px !important; padding: 0 50px 0 12px !important; }
 .select2-container .select2-selection--single .select2-selection__arrow { height: 40px !important; }
 .apv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
 .status-filter.active-card .status-card { box-shadow: 0 0 0 2px #6366f1; }
@@ -125,33 +125,139 @@
 
 
 {{-- ======================================================== --}}
-{{-- PRODUCT SEARCH MODAL --}}
+{{-- ADD PRODUCT MODAL — Create --}}
 {{-- ======================================================== --}}
-<div id="productSearchModal" class="fixed inset-0 z-[90] hidden items-center justify-center p-4">
+<div id="c_addProductModal" class="fixed inset-0 z-[90] hidden items-center justify-center p-4">
     <div class="modal-backdrop absolute inset-0 bg-slate-900/70 opacity-0 transition-opacity duration-200"></div>
-    <div class="modal-panel modal-scroll relative z-10 flex max-h-[80vh] w-full max-w-3xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
-        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-white/10">
-            <h3 class="text-sm font-bold text-slate-800 dark:text-white">Select Product</h3>
-            <button type="button" id="closeProductSearchModal">
-                <i class="fa-solid fa-xmark text-slate-400 hover:text-slate-700 dark:hover:text-white"></i>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[90vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-white/10">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white">Add Product</h3>
+                <p class="mt-1 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first; adjust Received per batch if needed.</p>
+            </div>
+            <button type="button" id="c_closeAddProductModal" class="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
-        <div class="p-4">
-            <p class="mb-2 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first; if one batch can't cover the qty, the rest is split from the next batch automatically.</p>
-            <table id="productSearchTable" class="min-w-full text-sm" style="width:100%">
-                <thead>
-                    <tr class="bg-slate-50 dark:bg-white/[0.03]">
-                        <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Product ID</th>
-                        <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Product Name</th>
-                        <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Nearest Expiry</th>
-                        <th class="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">Reserved</th>
-                        <th class="px-3 py-2 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">Qty Available</th>
-                        <th class="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Qty</th>
-                        <th class="px-3 py-2"></th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <div class="space-y-4 p-5">
+            <div class="flex items-end gap-3">
+                <div class="flex-1">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500">Product</label>
+                    <select id="c_picker_product" class="w-full select2-create" disabled>
+                        <option value="">Select warehouse first...</option>
+                    </select>
+                </div>
+                <div class="w-28">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500">Qty</label>
+                    <input type="number" id="c_picker_qty" min="1" placeholder="0"
+                        class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                </div>
+            </div>
+
+            <div id="c_picker_preview_wrap" class="hidden">
+                <div class="mb-1.5 text-xs font-medium text-slate-500">Batch Breakdown</div>
+                <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
+                    <table class="min-w-full text-xs">
+                        <thead class="bg-slate-50 dark:bg-white/[0.04]">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">Name</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Qty</th>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">Expired</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Availability</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Received</th>
+                            </tr>
+                        </thead>
+                        <tbody id="c_picker_preview_body"></tbody>
+                    </table>
+                </div>
+                <p id="c_picker_preview_error" class="mt-1.5 hidden text-xs text-red-500"></p>
+            </div>
+
+            <div id="c_picker_added" class="hidden max-h-32 space-y-1.5 overflow-y-auto rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                <div class="mb-1 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                    <i class="fa-solid fa-circle-check"></i> Added to this document
+                </div>
+                <div id="c_picker_added_list" class="space-y-1 text-emerald-800 dark:text-emerald-200"></div>
+            </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4 dark:border-white/10">
+            <button type="button" id="c_closeAddProductModalFooter"
+                class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                Close
+            </button>
+            <button type="button" id="c_pickerAddBtn"
+                class="inline-flex h-10 items-center justify-center gap-1 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-500">
+                <i class="fa-solid fa-plus text-xs"></i> Add
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- ======================================================== --}}
+{{-- ADD PRODUCT MODAL — Edit --}}
+{{-- ======================================================== --}}
+<div id="e_addProductModal" class="fixed inset-0 z-[90] hidden items-center justify-center p-4">
+    <div class="modal-backdrop absolute inset-0 bg-slate-900/70 opacity-0 transition-opacity duration-200"></div>
+    <div class="modal-panel modal-scroll relative z-10 flex max-h-[90vh] w-full max-w-2xl translate-y-4 scale-[0.98] flex-col overflow-y-auto rounded-lg border border-slate-200 bg-white opacity-0 shadow-2xl transition-all duration-200 dark:border-white/10 dark:bg-[#0f172a]">
+        <div class="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-white/10">
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white">Add Product</h3>
+                <p class="mt-1 text-xs text-slate-400">Stock is drawn from the nearest-expiry batch first; adjust Received per batch if needed.</p>
+            </div>
+            <button type="button" id="e_closeAddProductModal" class="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="space-y-4 p-5">
+            <div class="flex items-end gap-3">
+                <div class="flex-1">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500">Product</label>
+                    <select id="e_picker_product" class="w-full select2-create" disabled>
+                        <option value="">Select warehouse first...</option>
+                    </select>
+                </div>
+                <div class="w-28">
+                    <label class="mb-1.5 block text-xs font-medium text-slate-500">Qty</label>
+                    <input type="number" id="e_picker_qty" min="1" placeholder="0"
+                        class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-[#0b1220] dark:text-white">
+                </div>
+            </div>
+
+            <div id="e_picker_preview_wrap" class="hidden">
+                <div class="mb-1.5 text-xs font-medium text-slate-500">Batch Breakdown</div>
+                <div class="overflow-hidden rounded-lg border border-slate-200 dark:border-white/10">
+                    <table class="min-w-full text-xs">
+                        <thead class="bg-slate-50 dark:bg-white/[0.04]">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">Name</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Qty</th>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-600 dark:text-slate-300">Expired</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Availability</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-600 dark:text-slate-300">Received</th>
+                            </tr>
+                        </thead>
+                        <tbody id="e_picker_preview_body"></tbody>
+                    </table>
+                </div>
+                <p id="e_picker_preview_error" class="mt-1.5 hidden text-xs text-red-500"></p>
+            </div>
+
+            <div id="e_picker_added" class="hidden max-h-32 space-y-1.5 overflow-y-auto rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                <div class="mb-1 flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                    <i class="fa-solid fa-circle-check"></i> Added to this document
+                </div>
+                <div id="e_picker_added_list" class="space-y-1 text-emerald-800 dark:text-emerald-200"></div>
+            </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 border-t border-slate-200 px-5 py-4 dark:border-white/10">
+            <button type="button" id="e_closeAddProductModalFooter"
+                class="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
+                Close
+            </button>
+            <button type="button" id="e_pickerAddBtn"
+                class="inline-flex h-10 items-center justify-center gap-1 rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-500">
+                <i class="fa-solid fa-plus text-xs"></i> Add
+            </button>
         </div>
     </div>
 </div>
@@ -253,9 +359,9 @@
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="flex items-center justify-between border-b border-slate-200 px-6 py-3 dark:border-white/10">
                         <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Usage Details</h3>
-                        <button type="button" id="c_addRow"
+                        <button type="button" id="c_openAddProductBtn"
                             class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
-                            <i class="fa-solid fa-plus text-[10px]"></i> Add Row
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add Product
                         </button>
                     </div>
                     <div class="overflow-x-auto">
@@ -313,7 +419,7 @@
                     <div class="border-b border-indigo-100 px-6 py-3 dark:border-indigo-500/20">
                         <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Please confirm before submitting</h3>
                     </div>
-                    <div id="c_previewHeader" class="grid grid-cols-2 gap-4 p-6 md:grid-cols-4 text-sm"></div>
+                    <div id="c_previewHeader" class="grid grid-cols-2 gap-4 p-6 md:grid-cols-5 text-sm"></div>
                 </div>
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
@@ -615,9 +721,9 @@
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="flex items-center justify-between border-b border-slate-200 px-6 py-3 dark:border-white/10">
                         <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">Add New Lines</h3>
-                        <button type="button" id="e_addRow"
+                        <button type="button" id="e_openAddProductBtn"
                             class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
-                            <i class="fa-solid fa-plus text-[10px]"></i> Add Row
+                            <i class="fa-solid fa-plus text-[10px]"></i> Add Product
                         </button>
                     </div>
                     <div id="e_whs_wrapper" class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
@@ -689,7 +795,7 @@
                     <div class="border-b border-indigo-100 px-6 py-3 dark:border-indigo-500/20">
                         <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">Please confirm before resubmitting</h3>
                     </div>
-                    <div id="e_previewHeader" class="grid grid-cols-2 gap-4 p-6 md:grid-cols-4 text-sm"></div>
+                    <div id="e_previewHeader" class="grid grid-cols-2 gap-4 p-6 md:grid-cols-5 text-sm"></div>
                 </div>
                 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a]">
                     <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">

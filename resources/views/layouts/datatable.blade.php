@@ -370,23 +370,31 @@ TABLE-SPECIFIC OVERRIDES (KEEP)
 
     /* Approval column widths */
     #approvalTable th.col-actions,
-    #approvalTable td.col-actions {
+    #approvalTable td.col-actions,
+    #gbApprovalTable th.col-actions,
+    #gbApprovalTable td.col-actions {
         width: 70px;
     }
 
     #approvalTable th.col-level,
-    #approvalTable td.col-level {
+    #approvalTable td.col-level,
+    #gbApprovalTable th.col-level,
+    #gbApprovalTable td.col-level {
         width: 60px;
         text-align: center;
     }
 
     #approvalTable th.col-doctype,
-    #approvalTable td.col-doctype {
+    #approvalTable td.col-doctype,
+    #gbApprovalTable th.col-doctype,
+    #gbApprovalTable td.col-doctype {
         width: 60px;
     }
 
     #approvalTable th.col-status,
-    #approvalTable td.col-status {
+    #approvalTable td.col-status,
+    #gbApprovalTable th.col-status,
+    #gbApprovalTable td.col-status {
         width: 80px;
         text-align: center;
     }
@@ -399,7 +407,9 @@ TABLE-SPECIFIC OVERRIDES (KEEP)
     }
 
     #approvalTable th.col-name,
-    #approvalTable td.col-name {
+    #approvalTable td.col-name,
+    #gbApprovalTable th.col-name,
+    #gbApprovalTable td.col-name {
         width: 320px;
     }
 

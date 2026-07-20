@@ -19,6 +19,7 @@ class TrxVplUsageDetail extends Model
         'qty_usage',
         'qty_return_usage',
         'qty_settlement',
+        'qty_remain',
         'purpose_id',
         'purpose_remark',
         'ref_usage_id',

@@ -23,6 +23,7 @@ class MsVplProduct extends Model
         'product_value',
         'product_uom',
         'product_check_exp',
+        'product_photo',
         'status',
         'created_user',
         'updated_user',

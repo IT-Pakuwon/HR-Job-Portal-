@@ -8,6 +8,7 @@ use App\Models\MsDepartment;
 use App\Models\MsCompany;
 use App\Models\User;
 use App\Models\MsCategory;
+use App\Models\MsGroupbiayaNonPurch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,11 @@ class MsApprovalController extends Controller
             ->orderBy('category_name')
             ->get();
 
+        $groupbiaya = MsGroupbiayaNonPurch::query()
+            ->select('groupbiaya_id', 'groupbiayadescr')
+            ->where('status', 'A')
+            ->orderBy('groupbiayadescr')
+            ->get();
 
         return view('pages.approval.approvals', [
             'doctypes'      => $doctypes,
@@ -61,6 +67,7 @@ class MsApprovalController extends Controller
             'companies' => $companies,
             'type' => $type,
             'condition' => $condition,
+            'groupbiaya' => $groupbiaya,
         ]);
     }
 

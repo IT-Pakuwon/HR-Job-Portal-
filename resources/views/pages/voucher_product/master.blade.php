@@ -477,6 +477,19 @@
                             </select>
                         </div>
 
+                        <div id="photoFieldWrap" class="hidden md:col-span-2">
+                            <label
+                                class="req mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Product
+                                Photo</label>
+                            <div class="flex items-center gap-4">
+                                <img id="photoPreview" src="" alt="Preview"
+                                    class="hidden h-20 w-20 shrink-0 rounded-lg border border-slate-200 object-cover dark:border-white/10">
+                                <input type="file" id="product_photo" name="product_photo"
+                                    accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="vpl-input h-auto py-2.5">
+                            </div>
+                            <p class="mt-1 text-xs text-slate-400">JPG, JPEG or PNG. Max 5MB.</p>
+                        </div>
+
                     </div>
                 </div>
 
@@ -644,6 +657,10 @@
                                 <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">Item Information</h3>
                             </div>
                             <div class="grid grid-cols-2 gap-x-6 gap-y-4 p-5">
+                                <div class="col-span-2">
+                                    <img id="viewModal_photo" src="" alt="Product Photo"
+                                        class="hidden h-28 w-28 rounded-lg border border-slate-200 object-cover dark:border-white/10">
+                                </div>
                                 <div class="col-span-2">
                                     <div class="text-xs text-slate-500">Product Name</div>
                                     <div id="viewModal_productName" class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">-</div>
