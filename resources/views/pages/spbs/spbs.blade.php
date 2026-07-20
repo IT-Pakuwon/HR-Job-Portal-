@@ -4,7 +4,7 @@
     @endphp
     <div class="max-w-9xl mx-auto w-full p-2">
         @php
-            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS');
+            $hasAllList = auth()->user()->hasRole('COSTCTRLACCESS') || ($isAdmin ?? false);
         @endphp
         <div
             class="{{ $hasAllList ? 'xl:grid-cols-8' : 'xl:grid-cols-7' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -115,7 +115,7 @@
             </button>
 
             {{-- SPB All List --}}
-            @if (auth()->user()->hasRole('COSTCTRLACCESS'))
+            @if ($hasAllList)
                 <button type="button" class="text-left">
                     <a href="#" class="status-filter group block h-full" data-mode="all">
                         <div
@@ -147,21 +147,31 @@
 
                 <div class="flex items-center gap-4">
                     {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
-                    <div id="allFilters" class="flex hidden items-center gap-2">
+                    <div id="allFilters" class="flex hidden items-center gap-3">
 
                         {{-- Status Filter --}}
-                        <select id="filterStatus"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">All Status</option>
-                            <option value="P">On Progress</option>
-                            <option value="C">Completed</option>
-                        </select>
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-check-circle text-xs"></i>
+                            </span>
+                            <select id="filterStatus"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Status</option>
+                                <option value="P">On Progress</option>
+                                <option value="C">Completed</option>
+                            </select>
+                        </div>
 
                         {{-- Department Filter --}}
-                        <select id="filterDepartment"
-                            class="rounded-md border px-3 py-1 text-sm dark:border-gray-700 dark:bg-gray-800">
-                            <option value="">All Department</option>
-                        </select>
+                        <div class="relative">
+                            <span class="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-gray-400 dark:text-gray-500">
+                                <i class="fas fa-sitemap text-xs"></i>
+                            </span>
+                            <select id="filterDepartment"
+                                class="rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-6 text-sm font-medium text-gray-700 shadow-sm transition-colors focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                <option value="">All Department</option>
+                            </select>
+                        </div>
 
                     </div>
                     <a id="createBtn" href="{{ url('/createspbs') }}"

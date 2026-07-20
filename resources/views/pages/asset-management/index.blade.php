@@ -37,16 +37,6 @@
             background: rgba(148, 163, 184, .35);
             border-radius: 999px;
         }
-
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter{
-            padding:16px 18px;
-        }
-
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_paginate{
-            padding:14px 18px;
-        }
     </style>
 
     <div class="max-w-9xl mx-auto w-full p-2">

@@ -6,7 +6,8 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+        <div
+            class="{{ ($isAdmin ?? false) ? 'xl:grid-cols-6' : 'xl:grid-cols-5' }} grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {{-- All --}}
             <button type="button" class="text-left">
                 <a href="#" class="status-filter active group block h-full" data-status="">
@@ -76,6 +77,22 @@
                     </div>
                 </a>
             </button>
+
+            {{-- Item Request All List (admin only) --}}
+            @if ($isAdmin ?? false)
+                <button type="button" class="text-left">
+                    <a href="#" class="status-filter group block h-full" data-status="" data-mode="all">
+                        <div
+                            class="status-card flex h-full items-center gap-3 rounded-lg border border-purple-700 bg-purple-200/20 p-3 text-purple-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-purple-100 hover:shadow-md active:scale-95">
+                            <div class="flex h-6 w-6 shrink-0 items-center justify-center text-sm">📊</div>
+                            <div class="flex min-w-0 flex-grow flex-col leading-tight">
+                                <p class="break-words text-sm font-medium">Item Request All List</p>
+                            </div>
+                            <p class="shrink-0 text-base font-bold">{{ $allListCount }}</p>
+                        </div>
+                    </a>
+                </button>
+            @endif
         </div>
 
         <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
@@ -127,6 +144,7 @@
         $(document).ready(function() {
             // default status filter: '' (All)
             let statusFilter = '';
+            let modeFilter = 'normal';
 
             const table = $('#itemReqTable').DataTable({
                 processing: true,
@@ -186,6 +204,7 @@
                     type: "GET",
                     data: function(d) {
                         d.status = statusFilter ?? '';
+                        d.mode = modeFilter;
                     }
                 },
 
@@ -299,6 +318,7 @@
             $('.status-filter').on('click', function(e) {
                 e.preventDefault();
                 statusFilter = $(this).data('status') || '';
+                modeFilter = $(this).data('mode') === 'all' ? 'all' : 'normal';
                 table.ajax.reload(null, true);
             });
 

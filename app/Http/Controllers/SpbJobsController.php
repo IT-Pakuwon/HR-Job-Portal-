@@ -32,7 +32,10 @@ class SpbJobsController extends Controller
         }
 
         $u = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+        // user->cpny_id bisa "AW" atau "AW,GPS,..."
+        $cpnyRaw = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $isAdmin = $user->user_role === 'admin';
 
         // status label yang mau ditampilkan di card
         $status_issue_new = 'Open';
@@ -42,46 +45,49 @@ class SpbJobsController extends Controller
         $status_sppb_progress = 'P';
 
         // 1. Issue New Jobs (SPB) : status='C', status_issue='Open'
-        $issuejobsnew = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+        $issuejobsnew = TrSPB::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', 'C')
             ->where('status_issue', $status_issue_new)
             ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
             ->count();
 
         // 2. Issue Jobs (SPB) : status='C', status_issue='Partial'
-        $issuejobs = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+        $issuejobs = TrSPB::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', 'C')
             ->where('status_issue', $status_issue_job)
             ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
             ->count();
 
         // 3. SPPB Jobs (SPB) : status='C', status_sppb != 'Full'  (Open/Partial)
-        $sppbjobs = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+        $sppbjobs = TrSPB::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', 'C')
             ->whereIn('status_sppb', ['Open', 'Partial'])   // ✅ pakai status_sppb
             ->whereRaw('(COALESCE(totalspbqty,0) - COALESCE(totalissueqty,0) - COALESCE(totalsppbqty,0)) > 0')
             ->count();
 
         // 4. Issue On Progress (Issue) : status='P'
-        $issueprogress = TrIssue::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+        $issueprogress = TrIssue::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('created_by', $u)
             ->where('status', $status_issue_progress)
             ->count();
 
         // 5. SPPB On Progress (SPPB) : status='P'
-        $sppbprogress = TrSPPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+        $sppbprogress = TrSPPB::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', $status_sppb_progress)
             ->where('spbid', '!=', null)
             ->count();
 
         // 6. SPB On Progress (SPB header masih draft/progress)
-        $spbprogress = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+        $spbprogress = TrSPB::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
             ->where('status', 'P')
             ->count();
 
-        $spball = TrSPB::whereIn('status_issue', ['On Progress', 'Completed'])->count();
+        // ✅ Admin sees every company's transactions; regular users stay scoped to their own company
+        $spball = TrSPB::when(!$isAdmin && !empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
+            ->whereIn('status_issue', ['On Progress', 'Completed'])
+            ->count();
 
-        $woflow = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+        $woflow = TrSPB::when(!$isAdmin && !empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
         ->whereNotNull('woid')   // 🔥 WAJIB punya WO
         ->where(function ($q) {
             $q->whereIn('status', ['P', 'C'])          // SPB On Progress / Completed
@@ -89,7 +95,7 @@ class SpbJobsController extends Controller
         })
         ->count();
 
-        $spbflow = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+        $spbflow = TrSPB::when(!$isAdmin && !empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
             ->whereNotNull('sppbid')
             ->count();
 
@@ -103,6 +109,7 @@ class SpbJobsController extends Controller
             'spball',
             'woflow',
             'spbflow',
+            'isAdmin',
 
             // ✅ status label untuk view
             'status_issue_new',
@@ -119,7 +126,9 @@ class SpbJobsController extends Controller
         $scope = strtolower((string) $req->query('scope', 'issuejobsnew'));
         $user = Auth::user();
         $u = $user->username ?? '';
-        $cpny_id = $user->cpny_id ?? '';
+        $cpnyRaw = $user->cpny_id ?? '';
+        $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
+        $isAdmin = $user->user_role === 'admin';
 
         $draw = (int) $req->input('draw', 1);
         $start = (int) $req->input('start', 0);
@@ -150,7 +159,7 @@ class SpbJobsController extends Controller
                 $mode = 'spb';
 
                 $base = TrSPB::with(['department', 'wo'])
-                    ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                    ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                     ->select([
                         'id', 'spbid', 'spbdate', 'cpny_id', 'department_id',
                         'keperluan', 'created_by',
@@ -197,7 +206,7 @@ class SpbJobsController extends Controller
                 $mode = 'issue';
 
                 $base = TrIssue::query()
-                    ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                    ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                     ->where('created_by', $u)
                     ->where('status', 'P')
                     ->select([
@@ -228,7 +237,7 @@ class SpbJobsController extends Controller
                 $mode = 'sppb';
 
                 $base = TrSPPB::with('requestType')
-                    ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                    ->when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                     ->whereNotNull('spbid')
                     ->where('status', 'P');
 
@@ -255,7 +264,7 @@ class SpbJobsController extends Controller
             case 'spbprogress':
                 $mode = 'spb';
 
-                $base = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                $base = TrSPB::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                     ->where('status', 'P')
                     ->select([
                         'id', 'spbid', 'spbdate', 'cpny_id',
@@ -276,7 +285,7 @@ class SpbJobsController extends Controller
                 $mode = 'spb';
 
                 $base = TrSPB::with('department')
-                    ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                    ->when(!$isAdmin && !empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                     ->whereIn('status', ['C', 'P']);
 
                 break;
@@ -291,7 +300,7 @@ class SpbJobsController extends Controller
                 $mode = 'spb';
 
                 $base = TrSPB::with(['department', 'wo'])
-                    ->when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                    ->when(!$isAdmin && !empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                     ->whereNotNull('woid');
 
                 break;
@@ -307,7 +316,7 @@ class SpbJobsController extends Controller
 
                 $base = TrSPB::with('department')
                     ->join('tr_sppb as sppb', 'sppb.spbid', '=', 'tr_spb.spbid')
-                    ->when($cpny_id, fn ($q) => $q->where('tr_spb.cpny_id', $cpny_id))
+                    ->when(!$isAdmin && !empty($cpnyList), fn ($q) => $q->whereIn('tr_spb.cpny_id', $cpnyList))
 
                     ->select([
                         'tr_spb.id',
@@ -351,7 +360,7 @@ class SpbJobsController extends Controller
             default:
                 $mode = 'spb';
 
-                $base = TrSPB::when($cpny_id, fn ($q) => $q->where('cpny_id', $cpny_id))
+                $base = TrSPB::when(!empty($cpnyList), fn ($q) => $q->whereIn('cpny_id', $cpnyList))
                     ->where('status', 'C')
                     ->where('status_sppb', 'Open');
         }

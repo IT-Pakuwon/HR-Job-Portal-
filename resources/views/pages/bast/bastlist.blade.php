@@ -216,6 +216,7 @@
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">SPPB/J/K/T</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Company</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Vendor</th>
+                            <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Terms</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Created By</th>
                             <th class="px-6 py-3 text-left  text-sm  font-semibold uppercase tracking-wider">Status</th>
                         `;
@@ -310,6 +311,11 @@
                     },
                     {
                         data: 'vendorname',
+                        className: 'text-left'
+                    },
+                    {
+                        data: 'terms_name',
+                        defaultContent: '-',
                         className: 'text-left'
                     },
                     {
@@ -452,10 +458,25 @@
                         vendors.forEach(v => {
                             $vendor.append(`<option value="${v}">${v}</option>`);
                         });
+                        initSelect2($vendor, 'All Vendor');
                     }
                 });
 
             }
+
+            function initSelect2($el, placeholder) {
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.select2({
+                    placeholder: placeholder,
+                    allowClear: true,
+                    width: '100%'
+                });
+            }
+
+            initSelect2($('#filter_vendor'), 'All Vendor');
+            initSelect2($('#filter_terms'), 'All Terms');
 
             $('#filter_vendor, #filter_terms, #filter_start, #filter_end')
                 .on('change keyup', function() {
@@ -469,7 +490,7 @@
 
                 json.data.forEach(row => {
                     if (!selectedVendor || row.vendorname === selectedVendor) {
-                        if (row.terms_name) {
+                        if (row.terms_name && row.terms_name !== '-') {
                             termsSet.add(row.terms_name);
                         }
                     }
@@ -482,6 +503,8 @@
                     $terms.append(`<option value="${t}">${t}</option>`);
                 });
 
+                initSelect2($terms, 'All Terms');
+
                 table.ajax.reload();
             });
 
@@ -492,8 +515,8 @@
 
 
             function resetFilters() {
-                $('#filter_vendor').val('');
-                $('#filter_terms').val('');
+                $('#filter_vendor').val('').trigger('change');
+                $('#filter_terms').val('').trigger('change');
                 $('#filter_start').val('');
                 $('#filter_end').val('');
 

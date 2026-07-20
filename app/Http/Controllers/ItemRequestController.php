@@ -50,6 +50,8 @@ class ItemRequestController extends Controller
             ? array_map('trim', explode(',', $user->department_id))
             : (array) $user->department_id;
 
+        $isAdmin = $user->user_role === 'admin';
+
         $q = TrItemRequest::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds);
@@ -60,7 +62,10 @@ class ItemRequestController extends Controller
         $revise     = (clone $q)->where('status', 'D')->count();
         $completed  = (clone $q)->where('status', 'C')->count();
 
-        return view('pages.itemrequest.itemreq', compact('all', 'onProgress', 'reject', 'revise', 'completed'));
+        // ✅ Admin-only: total across every company/department
+        $allListCount = $isAdmin ? TrItemRequest::count() : 0;
+
+        return view('pages.itemrequest.itemreq', compact('all', 'onProgress', 'reject', 'revise', 'completed', 'isAdmin', 'allListCount'));
     }
 
     public function json(Request $request)
@@ -83,6 +88,11 @@ class ItemRequestController extends Controller
         $length = (int) $request->input('length', 25);
         $search = trim((string) $request->input('search.value', ''));
         $status = (string) $request->query('status', '');
+        $mode   = (string) $request->query('mode', 'normal');
+
+        $isAdmin = $user->user_role === 'admin';
+        // ✅ Admin viewing the all-list sees every company/department; everyone else stays scoped to their own
+        $bypassScope = $isAdmin && $mode === 'all';
 
         // Kolom untuk ordering DataTables (sesuaikan dengan kolom tabel tr_item_req)
         $columns = [
@@ -104,8 +114,8 @@ class ItemRequestController extends Controller
         $baseTable = (new TrItemRequest)->getTable();
 
         $base = TrItemRequest::from($baseTable . ' as ir')
-            ->whereIn('ir.cpny_id', $cpnyIds)
-            ->whereIn('ir.department_id', $deptIds);
+            ->when(!$bypassScope, fn ($q) => $q->whereIn('ir.cpny_id', $cpnyIds))
+            ->when(!$bypassScope, fn ($q) => $q->whereIn('ir.department_id', $deptIds));
 
         if ($status !== '') {
             $base->where('ir.status', $status);

@@ -55,6 +55,21 @@
             overflow: auto !important;
         }
 
+        /* 🔥 wrap event text in Month view instead of clipping it */
+        .fc-daygrid-event {
+            white-space: normal !important;
+        }
+
+        .fc-daygrid-event .fc-event-title,
+        .fc-daygrid-event .fc-event-room,
+        .fc-daygrid-event .fc-event-meta {
+            display: block !important;
+            overflow: visible !important;
+            max-width: 100% !important;
+            white-space: normal !important;
+            word-break: break-word;
+        }
+
     </style>
     <div class="max-w-9xl mx-auto flex h-screen min-h-0 w-full flex-col overflow-hidden p-2">
         {{-- HEADER --}}
