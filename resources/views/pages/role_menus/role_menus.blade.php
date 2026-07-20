@@ -19,17 +19,19 @@
 
             {{-- Tab: Role Menu List --}}
             <div id="tabPanelList"
-                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">📋 Role Menu List</h1>
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📋 Role Menu
+                        List</h2>
                     <button id="addRoleMenuBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Role Menu
                     </button>
                 </div>
 
                 {{-- Filter Company & Department --}}
-                <div class="mb-3 flex flex-wrap items-end gap-3">
+                <div class="flex flex-wrap items-end gap-3 px-5 pt-4">
                     <div class="min-w-[200px] flex-1">
                         <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                             Filter Role
@@ -63,17 +65,17 @@
                         </button>
                     </div>
                 </div>
-                <div class="rounded-base relative overflow-x-auto">
-                    <table id="roleMenusTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
-                                <th></th>
-                                <th class="w-32 px-4 py-3 text-center">Actions</th>
-                                <th class="px-4 py-3 text-left">Role ID</th>
-                                <th class="px-4 py-3 text-left">Menu ID</th>
+                <div class="relative mt-4 overflow-hidden">
+                    <table id="roleMenusTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Role ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Menu ID</th>
                                 {{-- <th class="px-4 py-3 text-left">Parent Menu</th> --}}
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

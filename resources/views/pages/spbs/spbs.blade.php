@@ -139,11 +139,13 @@
 
         </div>
 
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 id="pageTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     Request SPB
-                </h1>
+                </h2>
 
                 <div class="flex items-center gap-4">
                     {{-- FILTER SECTION (ONLY FOR ALL MODE) --}}
@@ -183,10 +185,10 @@
 
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
+            <div class="relative overflow-hidden">
 
-                <table id="spbsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead id="spbsHead" class="bg-gray-50 dark:bg-gray-700"></thead>
+                <table id="spbsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead id="spbsHead" class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400"></thead>
                     <tbody>
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
                     </tbody>

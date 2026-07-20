@@ -170,12 +170,13 @@
                 </a>
             </button>
         </div>
-        <div class="mt-2 rounded-xl bg-white dark:bg-gray-800">
-            <div class="flex items-center justify-between gap-4 border-b border-gray-200 p-4 dark:border-gray-700">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="flex items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
 
-                <h1 class="whitespace-nowrap text-base font-extrabold text-gray-700 dark:text-white">
+                <h2 class="whitespace-nowrap text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     Issue
-                </h1>
+                </h2>
 
                 <div class="flex flex-wrap items-center gap-2">
 
@@ -211,12 +212,13 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto p-4">
-                <table id="issueTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
+            <div class="relative overflow-hidden">
+                <table id="issueTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead
+                        class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                         <tr id="thead-row"></tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]"></tbody>
                 </table>
             </div>
         </div>

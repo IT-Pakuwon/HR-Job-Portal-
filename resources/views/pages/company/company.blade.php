@@ -21,27 +21,30 @@
             </div>
 
             {{-- ── TAB 1: Company ──────────────────────────────────────────────── --}}
-            <div id="panel-company" class="rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">🏢 Company List</h1>
+            <div id="panel-company"
+                class="rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 Company
+                        List</h2>
                     <button id="addCompanyBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Company
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table id="companiesTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
-                                <th></th>
-                                <th class="w-32 px-4 py-3 text-center">Actions</th>
-                                <th class="px-4 py-3 text-left">Company ID</th>
-                                <th class="px-4 py-3 text-left">Company Name</th>
-                                <th class="px-4 py-3 text-left">City</th>
-                                <th class="px-4 py-3 text-left">Province</th>
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                <div class="relative overflow-hidden">
+                    <table id="companiesTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Company ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Name</th>
+                                <th class="px-4 py-3 text-left font-medium">City</th>
+                                <th class="px-4 py-3 text-left font-medium">Province</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -50,29 +53,32 @@
             </div>
 
             {{-- ── TAB 2: Site ─────────────────────────────────────────────────── --}}
-            <div id="panel-site" class="hidden rounded-b-xl rounded-tr-xl bg-white p-4 dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700">
-                <div class="mb-3 flex items-center justify-between">
-                    <h1 class="text-base font-bold text-gray-800 dark:text-white">📍 Site List</h1>
+            <div id="panel-site"
+                class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex items-center justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📍 Site
+                        List</h2>
                     <button id="addSiteBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700">
+                        class="inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Site
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table id="siteTable" class="text-body w-full text-left text-sm rtl:text-right">
-                        <thead
-                            class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                            <tr>
+                <div class="relative overflow-hidden">
+                    <table id="siteTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
                                 <th class="w-8 px-2 py-3 text-center"></th>
-                                <th class="w-32 px-4 py-3 text-center">Actions</th>
-                                <th class="px-4 py-3 text-left">Company ID</th>
-                                <th class="px-4 py-3 text-left">Site ID</th>
-                                <th class="px-4 py-3 text-left">Site Name</th>
-                                <th class="px-4 py-3 text-left">City</th>
-                                <th class="w-24 px-4 py-3 text-center">Default</th>
-                                <th class="w-24 px-4 py-3 text-center">Parking</th>
-                                <th class="w-32 px-4 py-3 text-center">Status</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Company ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Site ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Site Name</th>
+                                <th class="px-4 py-3 text-left font-medium">City</th>
+                                <th class="w-24 px-4 py-3 text-left font-medium">Default</th>
+                                <th class="w-24 px-4 py-3 text-left font-medium">Parking</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

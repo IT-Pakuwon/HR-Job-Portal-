@@ -118,19 +118,14 @@
             </a>
 
         </div>
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div
-                class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center dark:border-gray-700">
-                {{-- Changed text-lg to text-base --}}
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Applicant List</h1>
-                {{-- <a"
-                        class="inline-flex items-center rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                        List Job Posting
-                        </a> --}}
+                class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Applicant List</h2>
             </div>
-            {{-- Padding applied here instead of outer container --}}
 
-            <div id="applicantsFilters" class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-6 lg:grid-cols-12">
+            <div id="applicantsFilters" class="grid grid-cols-1 gap-3 px-5 pt-4 sm:grid-cols-6 lg:grid-cols-12">
 
                 @if($canFilterJobTL)
                 <!-- ROW 1 : Job Title - Job Level -->
@@ -152,70 +147,72 @@
             </div>
 
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="applicantsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+            <div class="relative mt-4 overflow-hidden">
+                <table id="applicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
                                 DocID
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Date
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Name
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Education
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-left">
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                 Religion
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
                                 Height
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
                                 Weight
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
                                 Last Working
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
                                 Score
                             </th>
-                            <th scope="col" class="w-32 px-4 py-3 text-center">
+                            <th scope="col" class="w-32 px-4 py-3 text-center font-medium">
                                 Step
                             </th>
-                            <th scope="col" class="w-28 px-4 py-3 text-center">
+                            <th scope="col" class="w-28 px-4 py-3 text-center font-medium">
                                 Action
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]">
                         {{-- Table rows will be populated here by JavaScript/DataTables --}}
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <div id="rowDupPanel" class="mt-2 hidden flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex items-start justify-between">
+        <div id="rowDupPanel"
+            class="mt-2 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="flex items-start justify-between border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
                 <div>
-                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">🧬 Matched Applications</h1>
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🧬 Matched
+                        Applications</h2>
                     <p id="rowDupPanelTitle" class="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
                 </div>
                 <button type="button" id="rowDupPanelClose"
                     class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">✕</button>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th class="w-24 px-4 py-3 font-medium">Action</th>
+            <div class="relative overflow-hidden">
+                <table class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-24 px-4 py-3 text-left font-medium">Action</th>
                             <th class="px-4 py-3 text-left font-medium">Matched By</th>
                             <th class="px-4 py-3 text-left font-medium">DocID</th>
                             <th class="px-4 py-3 text-left font-medium">Job Title — Level</th>
@@ -232,22 +229,23 @@
         </div>
 
         @if(auth()->user()->hasRole('RECACCALLDEPT'))
-        <div id="tabPanelDuplicates" class="hidden flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div>
-                <h1 class="text-base font-extrabold text-gray-700 dark:text-white">🧬 Duplicate Users</h1>
+        <div id="tabPanelDuplicates"
+            class="mt-2 hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🧬 Duplicate Users</h2>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Applicants sharing the same KTP ID and Date of Birth — likely the same person who applied
                     more than once. Review which jobs they applied to and each application's current status.
                 </p>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="dupApplicantsTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-28 px-4 py-3 font-medium">Action</th>
+            <div class="relative overflow-hidden">
+                <table id="dupApplicantsTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-28 px-4 py-3 text-left font-medium">Action</th>
                             <th class="px-4 py-3 text-left font-medium">Matched By</th>
                             <th class="px-4 py-3 text-left font-medium">Full Name</th>
                             <th class="px-4 py-3 text-left font-medium">KTP ID</th>

@@ -220,52 +220,6 @@
                 }
             </style>
             <style>
-                /* ✅ Custom Switch Button */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
                 /* ✅ Memperkecil Lebar Kolom Actions */
                 #careersTable th:nth-child(1),
                 #careersTable td:nth-child(1) {
@@ -279,19 +233,21 @@
                     text-align: center;
                 }
             </style>
-            <div class="mt-6 overflow-y-auto rounded-xl bg-white p-4 dark:bg-gray-800">
-                <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                    <h1 class="align-middle text-lg font-bold dark:text-white">List Job Applicant</h1>
+            <div
+                class="mt-6 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div class="flex flex-col gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">List Job Applicant</h2>
                 </div>
-                <div class="rounded-lg bg-white dark:bg-gray-800">
-                    <table id="careersTable" class="mt-5 min-w-full rounded">
-                        <thead class="bg-white-200 dark:text-white">
-                            <tr>
-                                <th class="w-32 px-4 py-3 text-left">DocID</th>
-                                <th class="px-4 py-3 text-center">Name</th>
-                                <th class="px-4 py-3 text-center">Date</th>
-                                <th class="px-4 py-3 text-center">Job Title</th>
-                                <th class="px-4 py-3 text-center">Step</th>
+                <div class="relative overflow-hidden">
+                    <table id="careersTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-32 px-4 py-3 text-left font-medium">DocID</th>
+                                <th class="px-4 py-3 text-left font-medium">Name</th>
+                                <th class="px-4 py-3 text-left font-medium">Date</th>
+                                <th class="px-4 py-3 text-left font-medium">Job Title</th>
+                                <th class="px-4 py-3 text-left font-medium">Step</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

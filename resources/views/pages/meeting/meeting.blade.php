@@ -968,7 +968,7 @@
 
                     teamsText.innerHTML = `
                         <span class="flex items-center gap-2 text-sm text-gray-700 font-medium">
-                            🎧 ${props.accessories.join(', ')}
+                            🎧 ${props.accessories.map(a => a.name).join(', ')}
                         </span>
                     `;
 

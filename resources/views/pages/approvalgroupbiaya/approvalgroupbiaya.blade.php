@@ -1,15 +1,18 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             {{-- header + tombol add --}}
-            <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">✅ Ms Approval Group Biaya List</h1>
+            <div
+                class="flex flex-col gap-3 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] md:flex-row md:items-center md:justify-between">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">✅ Ms Approval
+                    Group Biaya List</h2>
                 <button id="addApprovalBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     + Add Approval Group Biaya
                 </button>
             </div>
-            <div class="mb-3 flex flex-wrap items-end gap-3">
+            <div class="flex flex-wrap items-end gap-3 px-5 pt-4">
                 <div class="min-w-[200px] flex-1">
                     <label class="mb-1 block text-sm font-semibold text-gray-700 dark:text-gray-200">
                         Filter Doc Type
@@ -72,21 +75,21 @@
                 </div>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="approvalTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="col-actions w-24 px-2 py-3 text-center">Actions</th>
-                            <th class="col-level w-16 px-2 py-3 text-center">Level</th>
-                            <th class="col-doctype px-2 py-3 text-left">Doc Type</th>
-                            <th class="px-2 py-3 text-left">Company</th>
-                            <th class="px-2 py-3 text-left">Department</th>
-                            <th class="px-2 py-3 text-left">Group Biaya</th>
-                            <th class="col-name px-2 py-3 text-left">Name</th>
-                            <th class="px-2 py-3 text-left">Type Condition</th>
-                            <th class="col-status w-24 px-2 py-3 text-center">Status</th>
+            <div class="relative mt-4 overflow-hidden">
+                <table id="approvalTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="col-actions w-24 px-2 py-3 text-left font-medium">Actions</th>
+                            <th class="col-level w-16 px-2 py-3 text-left font-medium">Level</th>
+                            <th class="col-doctype px-2 py-3 text-left font-medium">Doc Type</th>
+                            <th class="px-2 py-3 text-left font-medium">Company</th>
+                            <th class="px-2 py-3 text-left font-medium">Department</th>
+                            <th class="px-2 py-3 text-left font-medium">Group Biaya</th>
+                            <th class="col-name px-2 py-3 text-left font-medium">Name</th>
+                            <th class="px-2 py-3 text-left font-medium">Type Condition</th>
+                            <th class="col-status w-24 px-2 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

@@ -1,11 +1,12 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full px-2 py-2 sm:px-6 lg:px-2">
-        <div class="mt-2 rounded-xl bg-white p-4 dark:bg-gray-800">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
 
-            <div x-data="{ tab: 'waitingapp' }" class="mt-4">
+            <div x-data="{ tab: 'waitingapp' }">
 
                 <!-- TABS -->
-                <div class="mb-4 flex space-x-4">
+                <div class="flex gap-4 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
                     <button @click="tab = 'waitingapp'"
                         :class="tab === 'waitingapp'
                             ?
@@ -26,23 +27,22 @@
                 </div>
 
                 <!-- TAB 1 -->
-                <div x-show="tab === 'waitingapp'" x-transition>
-                    <div class="overflow-x-auto">
-                        <table id="agendasTable" class="w-full text-left text-sm">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>DocID</th>
-                                    <th>Date</th>
-                                    <th>Company</th>
-                                    <th>Department</th>
-                                    <th>Info</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                <div class="relative overflow-hidden" x-show="tab === 'waitingapp'" x-transition>
+                    <table id="agendasTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="px-4 py-3 text-left font-medium">DocID</th>
+                                <th class="px-4 py-3 text-left font-medium">Date</th>
+                                <th class="px-4 py-3 text-left font-medium">Company</th>
+                                <th class="px-4 py-3 text-left font-medium">Department</th>
+                                <th class="px-4 py-3 text-left font-medium">Info</th>
+                                <th class="px-4 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
 
                 <!-- TAB 2 -->

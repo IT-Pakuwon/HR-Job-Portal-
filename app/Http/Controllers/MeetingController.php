@@ -896,35 +896,10 @@ class MeetingController extends Controller
         DB::connection('pgsql5')->beginTransaction();
 
         try {
-            // Serialize concurrent booking requests for the same room so the
-            // conflict check below can't race with another request's insert.
-            DB::connection('pgsql5')->statement(
-                'SELECT pg_advisory_xact_lock(hashtext(?))',
-                [$request->room_id]
-            );
-
-            $conflict = TrMeeting::on('pgsql5')
-                ->where('room_id', $request->room_id)
-                ->where('status', '!=', 'X')
-                ->where(function ($q) use ($startMeeting, $endMeeting) {
-                    $q->where('start_meeting_time', '<', $endMeeting)
-                    ->where('end_meeting_time', '>', $startMeeting);
-                })
-                ->exists();
-
-            if ($conflict) {
-                DB::connection('pgsql5')->rollBack();
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Selected time is unavailable. Room is already booked on '
-                        .$startMeeting->format('d M Y')
-                        .' at '
-                        .$startMeeting->format('H:i')
-                        .' - '
-                        .$endMeeting->format('H:i'),
-                ], 422);
-            }
+            // ✅ Teams/Zoom bookings intentionally allow overlapping requests
+            // on the same room — no conflict check here (see banner on
+            // meetingteams.blade.php). Physical room booking (storeMeeting/
+            // updateMeeting) still blocks conflicts.
 
             // ✅ 1. CREATE MEETING FIRST
             $docid = $this->generateMeetingDocId($year, $month, $username);

@@ -103,11 +103,13 @@
         </div>
 
         {{-- TABLE SECTION --}}
-        <div class="mt-2 flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-center justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 id="pageTitle" class="text-base font-extrabold text-gray-700 dark:text-white">
+        <div
+            class="mt-2 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-center justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 id="pageTitle" class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">
                     IM Budget Non Purchase
-                </h1>
+                </h2>
 
                 <div class="flex items-center gap-4">
 
@@ -137,24 +139,24 @@
                 </div>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="imbudgetNonPurchTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">DocID</th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">Date</th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">Company</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Department</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Requester</th>
-                            <th scope="col" class="w-40 px-6 py-2 font-medium">Type</th>
-                            <th scope="col" class="w-72 px-6 py-2 font-medium">Description</th>
-                            <th scope="col" class="w-80 px-6 py-2 font-medium">Budget</th>
-                            <th scope="col" class="w-32 px-6 py-2 font-medium">Status</th>
+            <div class="relative overflow-hidden">
+                <table id="imbudgetNonPurchTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th scope="col" class="w-40 px-4 py-3 text-left font-medium">DocID</th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">Date</th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">Company</th>
+                            <th scope="col" class="w-40 px-4 py-3 text-left font-medium">Department</th>
+                            <th scope="col" class="w-40 px-4 py-3 text-left font-medium">Requester</th>
+                            <th scope="col" class="w-40 px-4 py-3 text-left font-medium">Type</th>
+                            <th scope="col" class="w-72 px-4 py-3 text-left font-medium">Description</th>
+                            <th scope="col" class="w-80 px-4 py-3 text-left font-medium">Budget</th>
+                            <th scope="col" class="w-32 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"></tbody>
+                    <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-[#0f172a]"></tbody>
                 </table>
             </div>
         </div>

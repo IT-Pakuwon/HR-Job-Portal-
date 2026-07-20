@@ -243,52 +243,6 @@
                     /* color: black; */
                 }
 
-                /* ✅ Custom Switch Button */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
                 /* ✅ Memperkecil Lebar Kolom Actions */
                 #stosTable th:nth-child(1),
                 #stosTable td:nth-child(1) {
@@ -302,49 +256,45 @@
                     text-align: center;
                 }
             </style>
-            <div class="mt-6 rounded-xl bg-white dark:bg-gray-800">
+            <div
+                class="mt-6 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
                 <div
-                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-200 p-4 sm:flex-row sm:items-center dark:border-gray-700">
-                    {{-- Changed text-lg to text-base --}}
-                    <h1 class="text-base font-extrabold text-gray-700 dark:text-white">Organization Structure</h1>
+                    class="flex flex-col items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 sm:flex-row sm:items-center dark:border-white/[0.06]">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">Organization
+                        Structure</h2>
                     <div class="flex gap-2">
                         <a href="{{ url('/createstos') }}"
-                            class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                             <i class="fas fa-plus pr-2"></i>Create
                         </a>
                         <a href="{{ url('/stoall') }}"
-                            class="inline-flex items-center rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">All
+                            class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">All
                             Org Chart
                         </a>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto p-4"> {{-- Padding applied here instead of outer container --}}
-                    <table id="stosTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th scope="col"
-                                    class="w-32 px-6 py-2 text-left text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                <div class="relative overflow-hidden">
+                    <table id="stosTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     DocID
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="px-4 py-3 text-left font-medium">
                                     Date
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="px-4 py-3 text-left font-medium">
                                     Company
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="px-4 py-3 text-left font-medium">
                                     Department
                                 </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="px-4 py-3 text-left font-medium">
                                     User
                                 </th>
-                                <th scope="col"
-                                    class="w-32 px-6 py-2 text-center text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                                <th scope="col" class="w-32 px-4 py-3 text-left font-medium">
                                     Status
                                 </th>
                             </tr>

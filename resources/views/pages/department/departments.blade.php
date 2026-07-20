@@ -107,52 +107,6 @@
                     cursor: pointer;
                 }
 
-                /* switch status */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 40px;
-                    height: 22px;
-                }
-
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: #ccc;
-                    transition: .4s;
-                    border-radius: 34px;
-                }
-
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 16px;
-                    width: 16px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                    border-radius: 50%;
-                }
-
-                input:checked+.slider {
-                    background-color: #4CAF50;
-                }
-
-                input:checked+.slider:before {
-                    transform: translateX(18px);
-                }
-
                 #companiesTable th:nth-child(1),
                 #companiesTable td:nth-child(1) {
                     width: 120px;
@@ -166,30 +120,35 @@
                 }
             </style>
 
-            <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-                <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h2 class="text-base font-bold text-gray-800 dark:text-white">🏢 Company List</h2>
+            <div
+                class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+                <div
+                    class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                    <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🏢 Company
+                        List</h2>
                     <button id="addCompanyBtn"
-                        class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                        class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                         + Add Company
                     </button>
                 </div>
 
-                <table id="companiesTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="w-32 px-4 py-3 text-center">Actions</th>
-                            <th class="px-4 py-3 text-left">Company ID</th>
-                            <th class="px-4 py-3 text-left">Company Name</th>
-                            <th class="px-4 py-3 text-left">City</th>
-                            <th class="px-4 py-3 text-left">Province</th>
-                            <th class="w-32 px-4 py-3 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="relative overflow-hidden">
+                    <table id="companiesTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                        <thead>
+                            <tr
+                                class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                                <th class="w-10 px-4 py-3"></th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Actions</th>
+                                <th class="px-4 py-3 text-left font-medium">Company ID</th>
+                                <th class="px-4 py-3 text-left font-medium">Company Name</th>
+                                <th class="px-4 py-3 text-left font-medium">City</th>
+                                <th class="px-4 py-3 text-left font-medium">Province</th>
+                                <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Modal -->

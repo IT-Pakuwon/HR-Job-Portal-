@@ -1,28 +1,31 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="flex flex-col gap-4 rounded-xl bg-white p-4 dark:bg-gray-800">
-            <div class="flex flex-row items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 class="text-base font-bold text-gray-800 dark:text-white">📂 Ms Category List</h1>
+        <div
+            class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div
+                class="flex flex-row items-start justify-between gap-4 border-b border-gray-100 px-5 py-2 dark:border-white/[0.06] sm:flex-row sm:items-center">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">📂 Ms Category
+                    List</h2>
                 <button id="addCategoryBtn"
-                    class="inline-flex items-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700">
+                    class="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-500">
                     + Add Category
                 </button>
             </div>
 
-            <div class="rounded-base relative overflow-x-auto">
-                <table id="categoryTable" class="text-body w-full text-left text-sm rtl:text-right">
-                    <thead
-                        class="text-body border-default-medium bg-neutral-secondary-soft rounded-base border-default border-b text-sm">
-                        <tr>
-                            <th></th>
-                            <th class="col-actions px-4 py-3">Actions</th>
-                            <th class="px-4 py-3 text-left">Doctype</th>
-                            <th class="px-4 py-3 text-left">Category ID</th>
-                            <th class="px-4 py-3 text-left">Category Name</th>
-                            <th class="px-4 py-3 text-left">Groups</th>
-                            <th class="px-4 py-3 text-left">Username</th>
-                            <th class="px-4 py-3 text-left">Type</th>
-                            <th class="col-status px-4 py-3">Status</th>
+            <div class="relative overflow-hidden">
+                <table id="categoryTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="col-actions px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Doctype</th>
+                            <th class="px-4 py-3 text-left font-medium">Category ID</th>
+                            <th class="px-4 py-3 text-left font-medium">Category Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Groups</th>
+                            <th class="px-4 py-3 text-left font-medium">Username</th>
+                            <th class="px-4 py-3 text-left font-medium">Type</th>
+                            <th class="col-status px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
