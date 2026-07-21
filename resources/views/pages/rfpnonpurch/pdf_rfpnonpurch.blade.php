@@ -284,6 +284,12 @@
         </tr>
 
         <tr>
+            <td class="label">Business Unit</td>
+            <td class="colon">:</td>
+            <td colspan="4">{{ $rfpnonpurch->business_unit_name ?: ($rfpnonpurch->business_unit_id ?: '-') }}</td>
+        </tr>
+
+        <tr>
             <td class="label">Group Biaya</td>
             <td class="colon">:</td>
             <td colspan="4">{{ $rfpnonpurch->groupbiaya->groupbiayadescr ?? '-' }}</td>

@@ -100,6 +100,7 @@
                                 ['label' => 'Created User', 'value' => optional($rfpnonpurch->creator)->name ?: $rfpnonpurch->created_by ?: '-'],
                                 ['label' => 'Request By', 'value' => $rfpnonpurch->user_peminta ?: '-'],
                                 ['label' => 'Type Payment', 'value' => $rfpnonpurch->rfpnonpurchase_type ?: '-'],
+                                ['label' => 'Business Unit', 'value' => $rfpnonpurch->business_unit_name ?: ($rfpnonpurch->business_unit_id ?: '-')],
                                 ['label' => 'Group Biaya', 'value' => $rfpnonpurch->groupbiaya_descr ?: '-'],
                                 ['label' => 'Please Pay To', 'value' => $rfpnonpurch->pleasepayto ?: '-'],
                                 ['label' => 'Amount Request Payment', 'value' => $amountRequest],

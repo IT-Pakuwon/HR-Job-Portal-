@@ -1092,6 +1092,28 @@ class RfpNonPurchController extends Controller
         // }
 
         // =========================
+        // BUSINESS UNIT (ambil dari detail)
+        // =========================
+        $selectedBuId = $details
+            ->pluck('budget_business_unit_id')
+            ->filter(fn($v) => filled($v))
+            ->unique()
+            ->first();
+
+        $selectedBuName = null;
+
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $selectedBuName = $bu->business_unit_name ?? null;
+        }
+
+        $rfpnonpurch->business_unit_id = $selectedBuId;
+        $rfpnonpurch->business_unit_name = $selectedBuName;
+
+        // =========================
         // ATTACHMENTS
         // =========================
         $rows = TrAttachment::where('refnbr', $docid)
@@ -2677,6 +2699,29 @@ class RfpNonPurchController extends Controller
             ->where('status', '<>', 'X')
             ->orderBy('aprv_leveling')
             ->get();
+
+        // =========================
+        // BUSINESS UNIT (ambil dari detail)
+        // =========================
+        $selectedBuId = TrRfpNonPurchDetail::query()
+            ->where('rfpnonpurchaseid', $rfpnonpurch->rfpnonpurchaseid)
+            ->pluck('budget_business_unit_id')
+            ->filter(fn($v) => filled($v))
+            ->unique()
+            ->first();
+
+        $business_unit_name = null;
+
+        if ($selectedBuId) {
+            $bu = BusinessUnit::query()
+                ->where('business_unit_id', $selectedBuId)
+                ->first();
+
+            $business_unit_name = $bu->business_unit_name ?? null;
+        }
+
+        $rfpnonpurch->business_unit_id = $selectedBuId;
+        $rfpnonpurch->business_unit_name = $business_unit_name;
 
         // =========================
         // FORMAT DATE
