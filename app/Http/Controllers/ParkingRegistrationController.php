@@ -63,6 +63,13 @@ class ParkingRegistrationController extends Controller
             ->where('status', 'A')
             ->exists();
 
+        $hasUserAccess = SysUserRole::where('username', $user->username)
+            ->whereIn('role_id', ['USERACCESS', 'USEROFFICEACCESS'])
+            ->where('status', 'A')
+            ->exists();
+
+        $canViewMasterKendaraan = $canParkingAccess || $hasUserAccess;
+
         $q = TrParkingRegistration::query()
             ->whereIn('cpny_id', $cpnyIds)
             ->whereIn('department_id', $deptIds);
@@ -80,11 +87,18 @@ class ParkingRegistrationController extends Controller
             $allParkingCount = TrParkingRegistration::query()
                 ->whereIn('site_id_parking', $cpnyIds)
                 ->count();
+        }
 
-            $masterKendaraanCount = MsParkingKendaraan::query()
+        if ($canViewMasterKendaraan) {
+            $masterKendaraanQuery = MsParkingKendaraan::query()
                 ->whereIn('site_id_parking', $cpnyIds)
-                ->whereNull('deleted_at')
-                ->count();
+                ->whereNull('deleted_at');
+
+            if (!$canParkingAccess) {
+                $masterKendaraanQuery->whereIn('department_id', $deptIds);
+            }
+
+            $masterKendaraanCount = $masterKendaraanQuery->count();
         }
 
         $masterSites = collect();
@@ -94,25 +108,22 @@ class ParkingRegistrationController extends Controller
         $parkingTypes = collect();
         $workerTypes = collect();
 
-        if ($canParkingAccess) {
-            $masterCompanies = MsCompany::whereIn('cpny_id', $cpnyIds)
-                ->where('status', 'A')
-                ->orderBy('cpny_id')
-                ->get(['cpny_id', 'cpny_name']);
-
-            $masterDepartmentOptions = MsDepartment::where('status', 'A')
-                ->orderBy('department_id')
-                ->get(['department_id', 'department_name']);
-
+        if ($canViewMasterKendaraan) {
             $masterSites = MsSite::whereIn('siteid', $cpnyIds)
                 ->where('site_parking', true)
                 ->where('status', 'A')
                 ->orderBy('siteid')
                 ->get(['siteid', 'site_name']);
 
-            $masterDepartments = MsParkingKendaraan::whereIn('site_id_parking', $cpnyIds)
+            $masterDepartmentsQuery = MsParkingKendaraan::whereIn('site_id_parking', $cpnyIds)
                 ->whereNull('deleted_at')
-                ->whereNotNull('department_id')
+                ->whereNotNull('department_id');
+
+            if (!$canParkingAccess) {
+                $masterDepartmentsQuery->whereIn('department_id', $deptIds);
+            }
+
+            $masterDepartments = $masterDepartmentsQuery
                 ->distinct()
                 ->orderBy('department_id')
                 ->pluck('department_id');
@@ -130,6 +141,17 @@ class ParkingRegistrationController extends Controller
                 ->get(['categoryid', 'category_name']);
         }
 
+        if ($canParkingAccess) {
+            $masterCompanies = MsCompany::whereIn('cpny_id', $cpnyIds)
+                ->where('status', 'A')
+                ->orderBy('cpny_id')
+                ->get(['cpny_id', 'cpny_name']);
+
+            $masterDepartmentOptions = MsDepartment::where('status', 'A')
+                ->orderBy('department_id')
+                ->get(['department_id', 'department_name']);
+        }
+
         return view('pages.parkingregistration.parkingregistration', compact(
             'all',
             'onProgress',
@@ -137,6 +159,7 @@ class ParkingRegistrationController extends Controller
             'revise',
             'completed',
             'canParkingAccess',
+            'canViewMasterKendaraan',
             'allParkingCount',
             'masterKendaraanCount',
             'masterSites',
@@ -169,6 +192,13 @@ class ParkingRegistrationController extends Controller
             ->where('status', 'A')
             ->exists();
 
+        $hasUserAccess = SysUserRole::where('username', $user->username)
+            ->whereIn('role_id', ['USERACCESS', 'USEROFFICEACCESS'])
+            ->where('status', 'A')
+            ->exists();
+
+        $canViewMasterKendaraan = $canParkingAccess || $hasUserAccess;
+
         $draw   = (int) $request->input('draw', 1);
         $start  = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 25);
@@ -180,7 +210,16 @@ class ParkingRegistrationController extends Controller
             $scope = 'my';
         }
 
-        if (in_array($scope, ['all', 'master'], true) && !$canParkingAccess) {
+        if ($scope === 'all' && !$canParkingAccess) {
+            return response()->json([
+                'draw'            => $draw,
+                'recordsTotal'    => 0,
+                'recordsFiltered' => 0,
+                'data'            => [],
+            ]);
+        }
+
+        if ($scope === 'master' && !$canViewMasterKendaraan) {
             return response()->json([
                 'draw'            => $draw,
                 'recordsTotal'    => 0,
@@ -190,7 +229,9 @@ class ParkingRegistrationController extends Controller
         }
 
         if ($scope === 'master') {
-            return $this->jsonMasterKendaraan($request, $draw, $start, $length, $search, $status, $cpnyIds);
+            $restrictDeptIds = $canParkingAccess ? [] : $deptIds;
+
+            return $this->jsonMasterKendaraan($request, $draw, $start, $length, $search, $status, $cpnyIds, $restrictDeptIds);
         }
 
         return $this->jsonParkingRegistration($request, $draw, $start, $length, $search, $status, $scope, $cpnyIds, $deptIds);
@@ -299,7 +340,8 @@ class ParkingRegistrationController extends Controller
         int $length,
         string $search,
         string $status,
-        array $cpnyIds
+        array $cpnyIds,
+        array $restrictDeptIds = []
     ) {
         $siteParking     = trim((string) $request->query('site_parking', ''));
         $parkingType     = trim((string) $request->query('parking_type', ''));
@@ -337,6 +379,10 @@ class ParkingRegistrationController extends Controller
         $base = MsParkingKendaraan::from($baseTable . ' as mk')
             ->whereIn('mk.site_id_parking', $cpnyIds)
             ->whereNull('mk.deleted_at');
+
+        if (!empty($restrictDeptIds)) {
+            $base->whereIn('mk.department_id', $restrictDeptIds);
+        }
 
         if ($status !== '') {
             $base->where('mk.status', $status);

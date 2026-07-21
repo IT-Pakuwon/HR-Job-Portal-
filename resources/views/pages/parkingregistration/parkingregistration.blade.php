@@ -2,7 +2,7 @@
     <div class="max-w-9xl mx-auto w-full p-2">
 
         {{-- STATUS CARDS --}}
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $canParkingAccess ? 'xl:grid-cols-7' : 'xl:grid-cols-5' }}">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 {{ $canParkingAccess ? 'xl:grid-cols-7' : ($canViewMasterKendaraan ? 'xl:grid-cols-6' : 'xl:grid-cols-5') }}">
 
             <a href="#" class="status-filter active group block h-full" data-status="">
                 <div
@@ -69,7 +69,9 @@
                         <p class="shrink-0 text-base font-bold">{{ number_format($allParkingCount) }}</p>
                     </div>
                 </a>
+            @endif
 
+            @if ($canViewMasterKendaraan)
                 <a href="#" class="scope-filter group block h-full" data-scope="master">
                     <div
                         class="status-card flex h-full items-center gap-3 rounded-lg border border-teal-700 bg-teal-200/20 p-3 text-teal-600 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-teal-100 hover:shadow-md active:scale-95">
@@ -290,6 +292,7 @@
         <script>
 
             const currentUser = @json(auth()->user()->username ?? '');
+            const canEditMasterKendaraan = @json($canParkingAccess);
             let parkingStatus = '';
             let parkingScope = 'my';
             let parkingTable = null;
@@ -419,6 +422,10 @@
 
                                 if (!id) {
                                     return `<span class="text-xs text-red-500">ID missing</span>`;
+                                }
+
+                                if (!canEditMasterKendaraan) {
+                                    return `<span class="text-xs text-gray-400">-</span>`;
                                 }
 
                                 const status = String(row.status || '').toUpperCase();
