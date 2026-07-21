@@ -1820,32 +1820,25 @@ class RfpController extends Controller
             return;
         }
 
-        $ccEmails = $this->getApFinCcEmails((string) $rfp->cpny_id);
-
         $mailData = [
             'docid'     => $rfp->rfp_id,
             'cpnyid'    => $rfp->cpny_id ?? '',
             'deptname'  => $rfp->department_id ?? '',
             'date'      => $now->toDateTimeString(),
-            'name'      => $rfp->created_by,
+            'name'      => $usernames,
             'status'    => 'P',
             'docname'   => $docName,
             'url'       => $docUrl,
             'info'      => $rfp->keperluan ?? '',
-            'createdby' => $rfp->created_by,
+            'createdby' => $rfp->user_peminta,
         ];
 
         Mail::send('emails.mailapprovenew', $mailData, function ($message) use (
             $toEmails,
-            $ccEmails,
             $rfp,
             $docName
         ) {
             $message->to($toEmails);
-
-            if (!empty($ccEmails)) {
-                $message->cc($ccEmails);
-            }
 
             $message->subject($rfp->rfp_id . ' - WaitingApproval ' . $docName)
                 ->from(config('mail.from.address'), config('app.name'));

@@ -968,7 +968,9 @@ class ParkingRegistrationController extends Controller
         $parkingCountQuery = MsParkingKendaraan::query()
             ->select('username', DB::raw('COUNT(*) as jumlah'))
             ->whereNull('deleted_at')
-            ->whereIn('status', ['A', 'P']);
+            ->whereIn('status', ['A', 'P'])
+            ->whereRaw('UPPER(TRIM(parking_type)) = ?', [$parkingType])
+            ->whereRaw('UPPER(TRIM(worker_type)) = ?', [$workerType]);
 
         if ($siteParking !== '') {
             $parkingCountQuery->where('site_id_parking', $siteParking);
