@@ -1172,7 +1172,7 @@
             function activateApplicantTab(tab) {
                 const isList = tab === 'list';
                 $('#tabPanelList').toggleClass('hidden', !isList);
-                $('#tabPanelDuplicates').toggleClass('hidden', isList).toggleClass('flex', !isList);
+                $('#tabPanelDuplicates').toggleClass('hidden', isList);
 
                 $('#tabBtnList')
                     .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isList)
