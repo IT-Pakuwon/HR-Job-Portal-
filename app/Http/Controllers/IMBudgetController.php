@@ -3702,14 +3702,27 @@ class IMBudgetController extends Controller
 
         DB::beginTransaction();
         try {
+            $username = Auth::user()->username ?? Auth::id();
+            $now = now();
+
             $imbudget->status = 'X';
-            $imbudget->updated_by = Auth::user()->username ?? Auth::id();
-            $imbudget->updated_at = now();
+            $imbudget->updated_by = $username;
+            $imbudget->updated_at = $now;
             $imbudget->save();
 
-            $csid = $imbudget->csid;
-            $statusIm = 'X';
-            $this->updateCSImBudgetStatus($csid, $statusIm);
+            /*
+            |--------------------------------------------------------------------------
+            | Update status IM ke source document
+            |--------------------------------------------------------------------------
+            | CS / SPB / Issue / RFP / RFP Non Purchase / CALR Non Purchase
+            |--------------------------------------------------------------------------
+            */
+            $this->updateSourceIMBudgetStatus(
+                $imbudget,
+                'X',
+                $username,
+                $now
+            );
 
             DB::commit();
 
