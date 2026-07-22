@@ -10,7 +10,7 @@ class MsPerizinanCategory extends Model
     protected $table = 'ms_perizinan_category';
 
     protected $fillable = [
-        'perizinancategory',
+        'perizinan_category',
         'perizinancategory_descr',
         'status',
         'created_by',

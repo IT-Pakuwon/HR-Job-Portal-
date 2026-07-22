@@ -99,6 +99,7 @@ use App\Http\Controllers\NonstockJobsController;
 use App\Http\Controllers\OperationalDashboardController;
 use App\Http\Controllers\OrgChartController;
 use App\Http\Controllers\ParkingRegistrationController;
+use App\Http\Controllers\PerizinanController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
@@ -1197,6 +1198,26 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/stock-classes', [StockJobsController::class, 'StockClasses'])->name('stockjobs.stock-classes');
         Route::get('/stock-sub-classes', [StockJobsController::class, 'StockSubClasses'])->name('stockjobs.stock-sub-classes');
     });
+
+    Route::middleware('access:PERIZINAN,VIEW')->group(function () {
+        Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');
+        Route::get('/perizinan/json', [PerizinanController::class, 'json'])->name('perizinan.json');
+        Route::get('/perizinan/departments', [PerizinanController::class, 'departments'])->name('perizinan.departments');
+        Route::get('/perizinan/sites', [PerizinanController::class, 'sites'])->name('perizinan.sites');
+        Route::get('/perizinan/{perizinanId}', [PerizinanController::class, 'show'])->name('perizinan.show');     
+    });
+
+    Route::middleware('access:PERIZINAN,CREATE')->group(function () {
+        Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');       
+        Route::post('/perizinan/{perizinanId}/activities', [PerizinanController::class, 'storeActivity'])->name('perizinan.activities.store');
+        Route::post('/perizinan', [PerizinanController::class, 'savePerizinan'])->name('perizinan.store');
+    });
+
+    Route::middleware('access:PERIZINAN,EDIT')->group(function () {
+        Route::get('/perizinan/{perizinanId}/edit', [PerizinanController::class, 'edit'])->name('perizinan.edit');
+        Route::put('/perizinan/{perizinanId}', [PerizinanController::class, 'savePerizinan'])->name('perizinan.update');
+    });
+
 
     Route::middleware('access:STOCKJOBS,EDIT')->group(function () {
         Route::post('/invstock', [StockJobsController::class, 'store'])->name('invstock.store');

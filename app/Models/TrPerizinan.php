@@ -9,6 +9,10 @@ class TrPerizinan extends Model
     protected $connection = 'pgsql';
     protected $table = 'tr_perizinan';
 
+    protected $casts = [
+        'expired_date' => 'boolean',
+    ];
+
     protected $fillable = [        
         'perizinan_id',
         'renewal_sequence',
@@ -45,4 +49,36 @@ class TrPerizinan extends Model
         'completed_by',
         'completed_at'
     ];
+
+    public function site()
+    {
+        return $this->belongsTo(MsSite::class, 'site_id', 'siteid');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(MsPerizinanCategory::class, 'perizinan_category', 'perizinan_category');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(DepartmentFin::class, 'department_fin_id', 'department_fin_id');
+    }
+
+    public function details()
+    {
+        return $this->hasMany(TrPerizinanDetail::class, 'perizinan_id', 'perizinan_id');
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(TrPerizinanActivity::class, 'perizinan_id', 'perizinan_id');
+    }
+
+    public function latestActivity()
+    {
+        return $this->hasOne(TrPerizinanActivity::class, 'perizinan_id', 'perizinan_id')
+            ->where('status', 'A')
+            ->latestOfMany('id');
+    }
 }
