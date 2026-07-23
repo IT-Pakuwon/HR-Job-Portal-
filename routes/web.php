@@ -109,6 +109,7 @@ use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptListController;
+use App\Http\Controllers\RecruitmentDashboardController;
 use App\Http\Controllers\ReportBastController;
 use App\Http\Controllers\ReportCanvassSheetController;
 use App\Http\Controllers\ReportFixedAssetController;
@@ -2048,6 +2049,13 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/api/beacon-performance', 'beaconPerformanceJson')->name('pgtrek.beacon-performance');
                 Route::get('/api/report-summary', 'reportSummaryJson')->name('pgtrek.report-summary');
                 Route::get('/export/pdf', 'exportPdf')->name('pgtrek.export.pdf');
+            });
+
+        Route::prefix('recruitment-report')
+            ->controller(RecruitmentDashboardController::class)
+            ->middleware('access:RECRUITDASH,VIEW')
+            ->group(function () {
+                Route::get('/dashboard', 'dashboard')->name('recruitment.dashboard');
             });
 
         Route::prefix('card-chart')
