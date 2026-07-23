@@ -123,9 +123,9 @@ class VoucherTaxiSetupController extends Controller
 
             MsCategory::create([
                 'doctype'       => 'VCR',
-                'categoryid'    => strtoupper($request->categoryid),
-                'category_name' => strtoupper($request->category_name),
-                'groups'        => strtoupper($request->groups),
+                'categoryid'    => $request->categoryid,
+                'category_name' => $request->category_name,
+                'groups'        => $request->groups,
                 'username'      => Auth::user()->username ?? Auth::user()->name,
                 'status'        => 'A',
                 'created_by'    => Auth::user()->username ?? Auth::user()->name,
@@ -166,9 +166,9 @@ class VoucherTaxiSetupController extends Controller
                 ->findOrFail($id);
 
             $category->update([
-                'categoryid'    => strtoupper($request->categoryid),
-                'category_name' => strtoupper($request->category_name),
-                'groups'        => strtoupper($request->groups),
+                'categoryid'    => $request->categoryid,
+                'category_name' => $request->category_name,
+                'groups'        => $request->groups,
                 'updated_by'    => Auth::user()->username ?? Auth::user()->name,
             ]);
 
