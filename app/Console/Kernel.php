@@ -98,6 +98,13 @@ class Kernel extends ConsoleKernel
             ->dailyAt('01:00')
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/training-close-registrations.log'));
+
+        // Refresh Dashboard PGTrek materialized views (point/time, personnel, alert point)
+        $schedule->command('pgtrek:refresh-views')
+            ->everyThirtyMinutes()
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/pgtrek-refresh-views.log'));
     }
 
     /**

@@ -2047,6 +2047,7 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/dashboard', 'dashboard')->name('pgtrek.dashboard');
                 Route::get('/api/beacon-performance', 'beaconPerformanceJson')->name('pgtrek.beacon-performance');
                 Route::get('/api/report-summary', 'reportSummaryJson')->name('pgtrek.report-summary');
+                Route::get('/export/pdf', 'exportPdf')->name('pgtrek.export.pdf');
             });
 
         Route::prefix('card-chart')
