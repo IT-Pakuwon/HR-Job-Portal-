@@ -1212,6 +1212,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('access:PERIZINAN,CREATE')->group(function () {
         Route::get('/perizinan', [PerizinanController::class, 'index'])->name('perizinan');       
         Route::post('/perizinan/{perizinanId}/activities', [PerizinanController::class, 'storeActivity'])->name('perizinan.activities.store');
+        Route::post('/perizinan/{perizinanId}/renew', [PerizinanController::class, 'renew'])->name('perizinan.renew');
         Route::post('/perizinan', [PerizinanController::class, 'savePerizinan'])->name('perizinan.store');
     });
 

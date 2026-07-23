@@ -985,7 +985,6 @@ class RfpNonPurchController extends Controller
         // =========================
         $imbudgetUrl = null;
         $imbudgetHash = null;
-        $imbudget = null;
 
         if (!empty($rfpnonpurch->imbudgetid)) {
             $imbudget = TrIMBudget::query()
@@ -1195,13 +1194,7 @@ class RfpNonPurchController extends Controller
         $userdept = Userdept::where('username', $user->username)->get();
         $userdept2 = Userdept::where('username', $user->username)->first();
 
-        // Cek langsung ke tr_imbudget (live), bukan ke kolom cache status_imbudget di
-        // tr_rfp_nonpurchase, supaya IM Budget yang sudah Completed ('C') atau Cancelled ('X')
-        // tidak lagi dianggap blocking meskipun sync ke kolom cache gagal/telat.
-        $hasBlockingIM = $imbudget
-            && !in_array(strtoupper(trim((string) $imbudget->status)), ['C', 'X'], true);
-        $imBlockingId = $imbudget->imbudgetid ?? null;
-        $imBlockingStatus = $imbudget->status ?? null;
+        $hasBlockingIM = !empty($rfpnonpurch->imbudgetid) && $rfpnonpurch->status_imbudget !== 'C';
 
         // =========================
         // PROGRESS STEPS
@@ -1258,8 +1251,6 @@ class RfpNonPurchController extends Controller
             'hasApFinAccess',
             'hasApTreAccess',
             'hasBlockingIM',
-            'imBlockingId',
-            'imBlockingStatus',
             'userdept',
             'userdept2',
             'rfpnonpurchSteps',

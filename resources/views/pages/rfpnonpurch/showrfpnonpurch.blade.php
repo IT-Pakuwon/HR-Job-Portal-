@@ -4,8 +4,8 @@
             :status="$rfpnonpurch->status"
             :is-approver="$isApprover"
             :has-blocking-im="$hasBlockingIM"
-            :im-blocking-id="$imBlockingId"
-            :im-blocking-status="$imBlockingStatus"
+            :im-blocking-id="$rfpnonpurch->imbudgetid ?? null"
+            :im-blocking-status="$rfpnonpurch->status_imbudget ?? null"
             :edit-url="url('/editrfpnonpurch/' . $hash)"
         />
 

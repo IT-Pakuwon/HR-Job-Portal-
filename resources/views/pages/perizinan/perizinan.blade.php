@@ -26,12 +26,30 @@
         </div>
 
         <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
-            <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-white/[0.06]">
+            <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06] xl:flex-row xl:items-center xl:justify-between">
                 <h1 id="tableTitle" class="text-base font-extrabold text-gray-700 dark:text-white">All Permits</h1>
-                <button type="button" id="btnCreatePerizinan"
-                    class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
-                    + Create
-                </button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="filterExpiryYear" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                        <option value="">All Expiry Years</option>
+                        @foreach ($expiryPeriods->pluck('year')->unique()->values() as $year)
+                            <option value="{{ $year }}">{{ $year }}</option>
+                        @endforeach
+                    </select>
+                    <select id="filterExpiryMonth" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                        <option value="">All Expiry Months</option>
+                    </select>
+                    <select id="filterCategory" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
+                        <option value="">All Categories</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->perizinan_category }}">{{ $category->perizinancategory_descr ?: $category->perizinan_category }}</option>
+                        @endforeach
+                    </select>
+                    <button type="button" id="btnResetFilters" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Reset</button>
+                    <button type="button" id="btnCreatePerizinan"
+                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                        + Create
+                    </button>
+                </div>
             </div>
 
             <div class="relative overflow-hidden">
@@ -41,13 +59,12 @@
                             <th class="dtr-control w-10 px-4 py-3"></th>
                             <th class="px-4 py-3 text-left font-medium">Action</th>
                             <th class="px-4 py-3 text-left font-medium">Permit ID</th>
-                            <th class="px-4 py-3 text-left font-medium">Date</th>
-                            <th class="px-4 py-3 text-left font-medium">Company</th>
                             <th class="px-4 py-3 text-left font-medium">Site</th>
                             <th class="px-4 py-3 text-left font-medium">Category</th>
                             <th class="px-4 py-3 text-left font-medium">Title</th>
-                            <th class="px-4 py-3 text-left font-medium">Start Date</th>
-                            <th class="px-4 py-3 text-left font-medium">End Date</th>
+                            <th class="px-4 py-3 text-left font-medium">Description</th>
+                            <th class="px-4 py-3 text-left font-medium">Start</th>
+                            <th class="px-4 py-3 text-left font-medium">End</th>
                             <th class="px-4 py-3 text-left font-medium">Status</th>
                             <th class="px-4 py-3 text-left font-medium">Information</th>
                         </tr>
@@ -159,10 +176,17 @@
                     </div>
 
                     <div class="mt-4">
+                        <div id="editAttachmentSection" class="mb-4 hidden">
+                            <div class="mb-2 flex items-center justify-between">
+                                <label class="block text-sm font-semibold">Existing Attachments</label>
+                                <span id="editAttachmentCount" class="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-bold text-indigo-700">0</span>
+                            </div>
+                            <div id="editAttachmentList" class="overflow-hidden rounded-lg border dark:border-gray-700"></div>
+                        </div>
                         <label class="mb-1 block text-sm font-semibold">Attachment</label>
                         <input type="file" id="attachments" name="attachments[]" multiple
                             class="w-full rounded-lg border px-3 py-2" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
-                        <p class="mt-1 text-xs text-gray-500">Maximum 10 MB per file. New files will be appended in edit mode.</p>
+                        <p class="mt-1 text-xs text-gray-500">Maximum 5 MB per file. You can select multiple files. New files will be appended in edit mode.</p>
                     </div>
                     <div id="formErrors" class="mt-4 hidden rounded-lg bg-red-50 p-3 text-sm text-red-700"></div>
                 </div>
@@ -171,7 +195,7 @@
                     <button type="button" class="btnCloseModal rounded-lg border px-4 py-2 text-sm font-semibold">Cancel</button>
                     <button type="submit" id="btnSave" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
                         <span id="saveSpinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                        <span id="saveText">Save</span>
+                        <span id="saveText">Submit</span>
                     </button>
                 </div>
             </form>
@@ -197,15 +221,15 @@
             <div class="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-2 lg:overflow-hidden">
                 <div class="overflow-y-auto border-r p-6 dark:border-gray-700">
                     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        <div><p class="text-xs text-gray-400">Permit Date</p><p id="detailDate" class="mt-1 font-medium">-</p></div>
-                        <div><p class="text-xs text-gray-400">Category</p><p id="detailCategory" class="mt-1 font-medium">-</p></div>
-                        <div><p class="text-xs text-gray-400">Company</p><p id="detailCompany" class="mt-1 font-medium">-</p></div>
-                        <div><p class="text-xs text-gray-400">Site</p><p id="detailSite" class="mt-1 font-medium">-</p></div>
-                        <div><p class="text-xs text-gray-400">Department</p><p id="detailDepartment" class="mt-1 font-medium">-</p></div>
-                        <div><p class="text-xs text-gray-400">Requester</p><p id="detailRequester" class="mt-1 font-medium">-</p></div>
-                        <div><p class="text-xs text-gray-400">Start Date</p><p id="detailStartDate" class="mt-1 font-medium">-</p></div>
-                        <div><p class="text-xs text-gray-400">End Date</p><p id="detailEndDate" class="mt-1 font-medium">-</p></div>
-                        <div class="sm:col-span-2"><p class="text-xs text-gray-400">Approvers</p><p id="detailApprovers" class="mt-1 font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Permit Date</p><p id="detailDate" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Category</p><p id="detailCategory" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Company</p><p id="detailCompany" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Site</p><p id="detailSite" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Department</p><p id="detailDepartment" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Requester</p><p id="detailRequester" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">Start Date</p><p id="detailStartDate" class="mt-1 text-sm font-medium">-</p></div>
+                        <div><p class="text-xs text-gray-400">End Date</p><p id="detailEndDate" class="mt-1 text-sm font-medium">-</p></div>
+                        <div class="sm:col-span-2"><p class="text-xs text-gray-400">Approvers</p><p id="detailApprovers" class="mt-1 text-sm font-medium">-</p></div>
                         <div class="sm:col-span-2"><p class="text-xs text-gray-400">Description</p><div id="detailDescription" class="mt-2 rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-700">-</div></div>
                     </div>
 
@@ -262,8 +286,10 @@
                         <label class="mb-1 block text-sm font-semibold">Work Status <span class="text-red-500">*</span></label>
                         <select id="status_pekerjaan" name="status_pekerjaan" class="w-full rounded-lg border px-3 py-2" required>
                             <option value="">Select Status</option>
-                            <option value="PROCESS">Process</option>
                             <option value="WAITING">Waiting</option>
+                            <option value="PROCESS">Process</option>
+                            <option value="REJECTED">Rejected</option>
+                            <option value="CANCELLED">Cancelled</option>
                             <option value="DONE">Done</option>
                         </select>
                     </div>
@@ -285,6 +311,7 @@
     <script>
         $(document).ready(function () {
             let activeFilter = 'all';
+            const expiryPeriods = @json($expiryPeriods);
             const titles = {
                 all: 'All Permits',
                 active: 'Active Permits',
@@ -299,14 +326,34 @@
                 const date = new Date(`${value}T00:00:00`);
                 return Number.isNaN(date.getTime()) ? escapeHtml(value) : date.toLocaleDateString('en-GB');
             };
+            const formatMonthYear = (value) => {
+                if (!value) return '-';
+                const date = new Date(`${String(value).substring(0, 10)}T00:00:00`);
+                return Number.isNaN(date.getTime())
+                    ? escapeHtml(value)
+                    : date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+            };
+            const formatLongDateId = (value) => {
+                if (!value) return '-';
+                const date = new Date(`${String(value).substring(0, 10)}T00:00:00`);
+                return Number.isNaN(date.getTime())
+                    ? escapeHtml(value)
+                    : date.toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+            };
             const statusBadge = (value) => {
                 const status = (value || '-').toString().toUpperCase();
-                const color = status === 'C'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : status === 'X'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-blue-100 text-blue-700';
-                return `<span class="rounded-full px-2 py-1 text-xs font-semibold ${color}">${escapeHtml(status)}</span>`;
+                const statuses = {
+                    P: { label: 'On Progress', color: 'bg-blue-100 text-blue-700' },
+                    C: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700' },
+                    R: { label: 'Rejected', color: 'bg-red-100 text-red-700' },
+                    X: { label: 'Cancelled', color: 'bg-gray-200 text-gray-700' }
+                };
+                const config = statuses[status] || { label: status, color: 'bg-gray-100 text-gray-700' };
+                return `<span class="rounded-full px-2 py-1 text-xs font-semibold ${config.color}">${escapeHtml(config.label)}</span>`;
             };
 
             const table = $('#perizinanTable').DataTable({
@@ -318,29 +365,44 @@
                     url: @json(route('perizinan.json')),
                     data: function (data) {
                         data.filter = activeFilter;
+                        data.expiry_year = $('#filterExpiryYear').val();
+                        data.expiry_month = $('#filterExpiryMonth').val();
+                        data.category = $('#filterCategory').val();
                     }
                 },
-                order: [[9, 'asc']],
+                order: [[8, 'asc']],
                 columns: [
                     { data: null, defaultContent: '', orderable: false, searchable: false, className: 'dtr-control' },
                     {
                         data: 'perizinan_id', orderable: false, searchable: false,
-                        render: (value) => `<div class="flex gap-1">
-                            <button type="button" class="btnEdit rounded bg-amber-500 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-600" data-id="${escapeHtml(value)}">Edit</button>
-                            <button type="button" class="btnActivity rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700" data-id="${escapeHtml(value)}">Action</button>
+                        render: (value) => `<div class="flex items-center gap-1">
+                            <button type="button" class="btnEdit inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white hover:bg-amber-600" data-id="${escapeHtml(value)}" title="Edit permit" aria-label="Edit permit">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
+                            </button>
+                            <button type="button" class="btnActivity inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700" data-id="${escapeHtml(value)}" title="Permit action" aria-label="Permit action">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>
+                            </button>
+                            <button type="button" class="btnRenew inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-700" data-id="${escapeHtml(value)}" title="Renew permit" aria-label="Renew permit">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8.1 8.1 0 00-15.5-2M4 4v5h5"/><path d="M4 13a8.1 8.1 0 0015.5 2M20 20v-5h-5"/></svg>
+                            </button>
                         </div>`
                     },
                     {
                         data: 'perizinan_id',
                         render: (value) => `<button type="button" class="btnShowPermit inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-bold text-indigo-700 transition hover:bg-indigo-100" data-id="${escapeHtml(value)}">${escapeHtml(value || '-')}</button>`
                     },
-                    { data: 'perizinan_date', render: formatDate },
-                    { data: 'cpny_id', defaultContent: '-' },
-                    { data: 'site_name', defaultContent: '-' },
+                    {
+                        data: null,
+                        render: (_value, _type, row) => {
+                            const company = row.cpny_id || '-';
+                            return row.site_name ? `${escapeHtml(company)}-${escapeHtml(row.site_name)}` : escapeHtml(company);
+                        }
+                    },
                     { data: 'category_name', defaultContent: '-' },
                     { data: 'perizinan_title', defaultContent: '-' },
-                    { data: 'startdate', render: formatDate },
-                    { data: 'enddate', render: formatDate },
+                    { data: 'perizinan_descr', defaultContent: '-' },
+                    { data: 'startdate', render: formatMonthYear },
+                    { data: 'enddate', render: formatMonthYear },
                     { data: 'status', render: statusBadge },
                     { data: 'information', defaultContent: '-', orderable: false }
                 ]
@@ -357,12 +419,47 @@
 
             $('.status-filter[data-filter="all"] .status-card').addClass('ring-2 ring-indigo-500');
 
+            function updateExpiryMonths() {
+                const selectedYear = $('#filterExpiryYear').val();
+                const currentMonth = $('#filterExpiryMonth').val();
+                const months = [...new Set(expiryPeriods
+                    .filter(period => !selectedYear || String(period.year) === String(selectedYear))
+                    .map(period => Number(period.month)))]
+                    .filter(month => month >= 1 && month <= 12)
+                    .sort((a, b) => a - b);
+                const $month = $('#filterExpiryMonth').html('<option value="">All Expiry Months</option>');
+
+                months.forEach(month => {
+                    const monthName = new Intl.DateTimeFormat('en', { month: 'long' }).format(new Date(2000, month - 1, 1));
+                    $month.append(new Option(monthName, month));
+                });
+
+                $month.val(months.includes(Number(currentMonth)) ? currentMonth : '');
+            }
+
+            updateExpiryMonths();
+            $('#filterExpiryYear').on('change', function () {
+                updateExpiryMonths();
+                table.ajax.reload();
+            });
+            $('#filterExpiryMonth, #filterCategory').on('change', function () {
+                table.ajax.reload();
+            });
+            $('#btnResetFilters').on('click', function () {
+                $('#filterExpiryYear, #filterCategory').val('');
+                updateExpiryMonths();
+                $('#filterExpiryMonth').val('');
+                table.ajax.reload();
+            });
+
             const $modal = $('#perizinanModal');
             const $detailModal = $('#permitDetailModal');
             const $activityModal = $('#activityModal');
             const baseUrl = @json(url('/perizinan'));
             const departmentUrl = @json(route('perizinan.departments'));
             const siteUrl = @json(route('perizinan.sites'));
+            const removeAttachmentBaseUrl = @json(url('/remove-attachment'));
+            const csrfToken = @json(csrf_token());
             const attachmentListUrlTemplate = @json($attachmentListUrlTemplate);
 
             $('#user_approval').select2({
@@ -380,8 +477,11 @@
 
             function statusClass(status) {
                 return ({
+                    SUBMITTED: 'bg-violet-100 text-violet-700',
                     PROCESS: 'bg-blue-100 text-blue-700',
                     WAITING: 'bg-amber-100 text-amber-700',
+                    REJECTED: 'bg-red-100 text-red-700',
+                    CANCELLED: 'bg-gray-200 text-gray-700',
                     DONE: 'bg-emerald-100 text-emerald-700'
                 })[(status || '').toUpperCase()] || 'bg-gray-100 text-gray-700';
             }
@@ -436,6 +536,48 @@
                     });
             }
 
+            function renderEditAttachments(rows) {
+                const $list = $('#editAttachmentList');
+                $('#editAttachmentCount').text(rows.length);
+
+                if (!rows.length) {
+                    $list.html('<div class="p-4 text-center text-sm text-gray-500">No existing attachments.</div>');
+                    return;
+                }
+
+                $list.html(rows.map(attachment => {
+                    const baseName = attachment.name || attachment.display_name || attachment.filename || 'Attachment';
+                    const extension = attachment.extention ? `.${attachment.extention}` : '';
+                    const fileName = baseName.toLowerCase().endsWith(extension.toLowerCase()) ? baseName : `${baseName}${extension}`;
+                    const nameHtml = attachment.url
+                        ? `<a href="${escapeHtml(attachment.url)}" target="_blank" rel="noopener noreferrer" class="font-semibold text-indigo-600 hover:underline">📎 ${escapeHtml(fileName)}</a>`
+                        : `<span>📎 ${escapeHtml(fileName)}</span>`;
+
+                    return `<div class="attachment-row flex items-center justify-between gap-3 border-b px-4 py-3 last:border-b-0 dark:border-gray-700" data-id="${escapeHtml(attachment.id)}">
+                        <div class="min-w-0">
+                            <div class="truncate">${nameHtml}</div>
+                            <p class="mt-1 text-xs text-gray-400">${escapeHtml(attachment.created_user || attachment.created_by || '-')} · ${formatDateTime(attachment.created_at)} · ${formatFileSize(attachment.size)}</p>
+                        </div>
+                        <button type="button" class="removeAttachment2 inline-flex shrink-0 items-center gap-1 rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100" title="Remove attachment">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14M10 10v6m4-6v6"/>
+                            </svg>
+                        </button>
+                    </div>`;
+                }).join(''));
+            }
+
+            function loadEditAttachments(permitId) {
+                $('#editAttachmentSection').removeClass('hidden');
+                $('#editAttachmentCount').text('0');
+                $('#editAttachmentList').html('<div class="p-4 text-center text-sm text-gray-500">Loading attachments...</div>');
+                const listUrl = attachmentListUrlTemplate.replace('__REFNBR__', encodeURIComponent(permitId));
+
+                $.get(listUrl)
+                    .done(response => renderEditAttachments(response.success ? (response.attachments || []) : []))
+                    .fail(() => $('#editAttachmentList').html('<div class="p-4 text-center text-sm text-red-500">Failed to load attachments.</div>'));
+            }
+
             function closeActivityModal() {
                 if ($('#btnSaveActivity').prop('disabled')) return;
                 $activityModal.addClass('hidden').removeClass('flex');
@@ -453,8 +595,8 @@
                 $('#detailSite').text(permit.site?.site_name || permit.site_id || '-');
                 $('#detailDepartment').text(permit.department?.department_name || permit.department_fin_id || '-');
                 $('#detailRequester').text(permit.user_peminta || '-');
-                $('#detailStartDate').text(formatDate(permit.startdate));
-                $('#detailEndDate').text(permit.expired_date ? formatDate(permit.enddate) : 'No expiration date');
+                $('#detailStartDate').text(formatLongDateId(permit.startdate));
+                $('#detailEndDate').text(permit.expired_date ? formatLongDateId(permit.enddate) : 'No expiration date');
                 $('#detailApprovers').text((permit.user_approval || '').split(',').filter(Boolean).join(', ') || '-');
                 $('#detailDescription').text(permit.perizinan_descr || '-');
                 $('#btnDetailAction').data('id', permit.perizinan_id);
@@ -474,7 +616,7 @@
                         <span class="absolute -left-2.5 top-0 h-5 w-5 rounded-full bg-indigo-500 ring-4 ring-white dark:ring-gray-800"></span>
                         <div class="rounded-lg border p-4 dark:border-gray-700">
                             <div class="flex items-start justify-between gap-3">
-                                <p class="font-semibold">${escapeHtml(activity.response_descr || '-')}</p>
+                                <p class="text-sm font-semibold">${escapeHtml(activity.response_descr || '-')}</p>
                                 <span class="rounded-full px-2.5 py-1 text-xs font-bold ${statusClass(status)}">${escapeHtml(status)}</span>
                             </div>
                             <p class="mt-2 text-xs text-gray-400">${escapeHtml(activity.pic_perizinan || '-')} · ${formatDateTime(activity.response_date)}</p>
@@ -498,7 +640,7 @@
             function setSaving(saving) {
                 $('#btnSave').prop('disabled', saving).toggleClass('opacity-60', saving);
                 $('#saveSpinner').toggleClass('hidden', !saving);
-                $('#saveText').text(saving ? 'Saving...' : 'Save');
+                $('#saveText').text(saving ? 'Submitting...' : 'Submit');
             }
 
             function syncExpiryField() {
@@ -552,6 +694,9 @@
                 syncExpiryField();
                 $('#editPerizinanId').val('');
                 $('#modalTitle').text('Create Permit');
+                $('#editAttachmentSection').addClass('hidden');
+                $('#editAttachmentList').empty();
+                $('#editAttachmentCount').text('0');
                 $('#site_id').prop('disabled', true).html('<option value="">Select Company first</option>');
                 $('#departementid').prop('disabled', true).html('<option value="">Select Company first</option>');
                 $('#detailRows').empty();
@@ -576,6 +721,77 @@
                     return;
                 }
                 $(this).closest('tr').remove();
+            });
+
+            $(document).on('click', '.removeAttachment2', async function () {
+                const $btn = $(this);
+                const $row = $btn.closest('.attachment-row');
+                const attachmentId = $row.data('id');
+
+                if (!attachmentId) {
+                    Swal.fire('Error', 'Attachment ID was not found.', 'error');
+                    return;
+                }
+
+                const confirmation = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Remove attachment?',
+                    text: 'This attachment will be removed from the permit.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, remove it',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#dc2626',
+                    reverseButtons: true
+                });
+
+                if (!confirmation.isConfirmed) return;
+
+                const originalHtml = $btn.html();
+                $btn.prop('disabled', true).html(`
+                    <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    Removing...
+                `);
+
+                $.ajax({
+                    url: `${removeAttachmentBaseUrl}/${attachmentId}`,
+                    type: 'POST',
+                    data: {
+                        _method: 'PUT',
+                        _token: csrfToken
+                    }
+                }).done(function (response) {
+                    if (response && response.success) {
+                        $row.slideUp(180, function () {
+                            $(this).remove();
+                            const remaining = $('#editAttachmentList .attachment-row').length;
+                            $('#editAttachmentCount').text(remaining);
+                            if (!remaining) {
+                                $('#editAttachmentList').html('<div class="p-4 text-center text-sm text-gray-500">No existing attachments.</div>');
+                            }
+                        });
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Removed',
+                            text: 'Attachment removed successfully.',
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire('Error', response?.message || 'Failed to remove attachment.', 'error');
+                        $btn.prop('disabled', false).html(originalHtml);
+                    }
+                }).fail(function (xhr) {
+                    Swal.fire(
+                        'Error',
+                        xhr.responseJSON?.message || xhr.responseJSON?.error || 'Unable to remove attachment.',
+                        'error'
+                    );
+                    console.error(xhr.responseText);
+                    $btn.prop('disabled', false).html(originalHtml);
+                });
             });
 
             $(document).on('click', '.btnShowPermit', async function () {
@@ -629,15 +845,15 @@
                 });
             });
 
-            $(document).on('click', '.btnEdit', async function () {
+            async function openEditPermit(id) {
                 resetForm();
-                const id = $(this).data('id');
                 setSaving(true);
                 try {
                     const response = await $.get(`${baseUrl}/${encodeURIComponent(id)}/edit`);
                     const data = response.data;
                     $('#editPerizinanId').val(data.perizinan_id);
                     $('#modalTitle').text(`Edit Permit - ${data.perizinan_id}`);
+                    loadEditAttachments(data.perizinan_id);
                     $('#cpnyid').val(data.cpny_id);
                     await Promise.all([
                         loadSites(data.cpny_id, data.site_id),
@@ -658,6 +874,57 @@
                     Swal.fire('Error', error.responseJSON?.message || 'Failed to load permit data.', 'error');
                 } finally {
                     setSaving(false);
+                }
+            }
+
+            $(document).on('click', '.btnEdit', function () {
+                openEditPermit($(this).data('id'));
+            });
+
+            $(document).on('click', '.btnRenew', async function () {
+                const $button = $(this);
+                const permitId = $button.data('id');
+                const confirmation = await Swal.fire({
+                    icon: 'question',
+                    title: 'Renew this permit?',
+                    html: `A new Permit ID will be created from <b>${escapeHtml(permitId)}</b>.<br>Start Date and End Date must be completed in the edit form.`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, create renewal',
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#059669',
+                    reverseButtons: true
+                });
+
+                if (!confirmation.isConfirmed) return;
+
+                $button.prop('disabled', true).addClass('opacity-60');
+                Swal.fire({
+                    title: 'Creating renewal...',
+                    text: 'Please wait.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                try {
+                    const response = await $.ajax({
+                        url: `${baseUrl}/${encodeURIComponent(permitId)}/renew`,
+                        method: 'POST',
+                        data: { _token: csrfToken }
+                    });
+
+                    table.ajax.reload(null, false);
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Renewal Created',
+                        html: `New Permit ID: <b>${escapeHtml(response.perizinan_id)}</b>`,
+                        confirmButtonText: 'Continue to Edit'
+                    });
+                    await openEditPermit(response.perizinan_id);
+                } catch (error) {
+                    Swal.fire('Error', error.responseJSON?.error || error.responseJSON?.message || 'Failed to create permit renewal.', 'error');
+                } finally {
+                    $button.prop('disabled', false).removeClass('opacity-60');
                 }
             });
 

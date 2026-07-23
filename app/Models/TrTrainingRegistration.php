@@ -26,7 +26,6 @@ class TrTrainingRegistration extends Model
         'cpny_id',
         'department_id',
         'status',
-        'approved_at',
         'offered_at',
         'offer_expires_at',
         'attendance_code',
@@ -37,7 +36,6 @@ class TrTrainingRegistration extends Model
     ];
 
     protected $casts = [
-        'approved_at' => 'datetime',
         'offered_at' => 'datetime',
         'offer_expires_at' => 'datetime',
         'attended_at' => 'datetime',

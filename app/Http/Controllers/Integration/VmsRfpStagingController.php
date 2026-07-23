@@ -569,6 +569,7 @@ class VmsRfpStagingController extends Controller
         $skipped = 0;
         $updatedStaging = 0;
         $updatedHold = 0;
+        $restoredHold = 0;
         $holdItems = [];
 
         DB::connection('pgsql2')->beginTransaction();
@@ -584,7 +585,18 @@ class VmsRfpStagingController extends Controller
                 ->all();
 
             $rfpQuery = TrRfp::query()
-                ->where('status', 'P')
+                ->where(function ($q) {
+                    $q->where('status', 'P')
+                        ->orWhere(function ($q) {
+                            $q->where('status', 'H')
+                                ->whereExists(function ($q) {
+                                    $q->selectRaw('1')
+                                        ->from('tr_rfp_staging')
+                                        ->whereColumn('tr_rfp_staging.rfpid', 'tr_rfp.rfp_id')
+                                        ->where('tr_rfp_staging.status', 3);
+                                });
+                        });
+                })
                 ->where(function ($q) {
                     $q->whereNull('type_po')
                         ->orWhereRaw("UPPER(TRIM(type_po)) <> 'KONTRAK'");
@@ -699,6 +711,16 @@ class VmsRfpStagingController extends Controller
                  * hanya jika approval berhasil dibuat / sudah ada
                  */
                 if ($hasInsert || !$approvalMasters->isEmpty()) {
+                    // RFP non-kontrak dapat berstatus H karena percobaan sebelumnya
+                    // belum menemukan master approval. Setelah master tersedia dan
+                    // approval berhasil diproses, lepaskan hold tersebut.
+                    if ($rfp->status === 'H') {
+                        $rfp->status = 'P';
+                        $rfp->updated_by = 'SYSTEM';
+                        $rfp->updated_at = now();
+                        $rfp->save();
+                        $restoredHold++;
+                    }
 
                     TrRfpStaging::where('rfpid', $rfp->rfp_id)
                         ->update([
@@ -718,6 +740,7 @@ class VmsRfpStagingController extends Controller
                 'skipped'          => $skipped,
                 'updated_staging'  => $updatedStaging,
                 'updated_hold'     => $updatedHold,
+                'restored_hold'    => $restoredHold,
                 'hold_items'       => $holdItems,
             ];
 
