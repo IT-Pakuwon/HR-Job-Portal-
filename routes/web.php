@@ -101,6 +101,7 @@ use App\Http\Controllers\OrgChartController;
 use App\Http\Controllers\ParkingRegistrationController;
 use App\Http\Controllers\PerizinanController;
 use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\PgTrekDashboardController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
 use App\Http\Controllers\ProfileController;
@@ -2037,6 +2038,15 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/export/pdf', 'exportPdf')->name('gm.export.pdf');
                 Route::get('/export/csv', 'exportCsv')->name('gm.export.csv');
                 Route::get('/export/xlsx', 'exportXlsx')->name('gm.export.xlsx');
+            });
+
+        Route::prefix('pgtrek')
+            ->controller(PgTrekDashboardController::class)
+            ->middleware('access:PGTREK,VIEW')
+            ->group(function () {
+                Route::get('/dashboard', 'dashboard')->name('pgtrek.dashboard');
+                Route::get('/api/beacon-performance', 'beaconPerformanceJson')->name('pgtrek.beacon-performance');
+                Route::get('/api/report-summary', 'reportSummaryJson')->name('pgtrek.report-summary');
             });
 
         Route::prefix('card-chart')
