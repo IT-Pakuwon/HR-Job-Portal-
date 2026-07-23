@@ -384,9 +384,10 @@ class TrainingRegistrationController extends Controller
                 'created_at' => $now,
             ]);
 
-            if ($status === TrTrainingRegistration::STATUS_PENDING) {
-                $this->submitForApproval($registration, $user, $now);
-            }
+            // Approval starts immediately regardless of Pending/Waitlisted — a
+            // waitlisted person is already approved by the time a slot opens,
+            // so accepting an offer just confirms attendance (see acceptOffer()).
+            $this->submitForApproval($registration, $user, $now);
 
             DB::connection('pgsql5')->commit();
 
@@ -463,18 +464,19 @@ class TrainingRegistrationController extends Controller
         try {
             $now = now();
 
-            $registration->status = TrTrainingRegistration::STATUS_PENDING;
+            // Approval already ran while this person was on the waitlist
+            // (see register()/approve()) — accepting the offer just confirms
+            // they're attending, no second approval round needed.
+            $registration->status = TrTrainingRegistration::STATUS_APPROVED;
             $registration->offered_at = null;
             $registration->offer_expires_at = null;
             $registration->updated_by = $user->username;
             $registration->updated_at = $now;
             $registration->save();
 
-            $this->submitForApproval($registration, $user, $now);
-
             DB::connection('pgsql5')->commit();
 
-            return response()->json(['success' => true, 'message' => 'Slot diterima, menunggu approval']);
+            return response()->json(['success' => true, 'message' => 'Slot diterima, Anda terdaftar mengikuti training']);
         } catch (\Throwable $e) {
             DB::connection('pgsql5')->rollBack();
 
@@ -535,9 +537,21 @@ class TrainingRegistrationController extends Controller
             $user->username,
             $user->name,
             function (string $refnbr, Carbon $now) use ($registration, $docUrl) {
-                $registration->status = TrTrainingRegistration::STATUS_APPROVED;
+                // A Waitlisted registrant is approved in place — they stay
+                // Waitlisted (pre-approved, just no slot yet) until offered
+                // one and they accept it (see acceptOffer()). Only a Pending
+                // registrant (one who had a slot from the start) moves
+                // straight to Approved here.
+                $wasWaitlisted = $registration->status === TrTrainingRegistration::STATUS_WAITLISTED;
+
+                $registration->approved_at = $now;
                 $registration->updated_by = Auth::user()->username;
                 $registration->updated_at = $now;
+
+                if (!$wasWaitlisted) {
+                    $registration->status = TrTrainingRegistration::STATUS_APPROVED;
+                }
+
                 $registration->save();
 
                 app(ApprovalController::class)->notifyRequesterOnStatus(
@@ -547,6 +561,10 @@ class TrainingRegistrationController extends Controller
                     $registration->username,
                     $docUrl
                 );
+
+                if ($wasWaitlisted) {
+                    TrainingRegistrationService::offerIfSlotAlreadyFree($registration->fresh());
+                }
             },
             function ($next, Carbon $now) use ($registration, $docUrl) {
                 if (!$next) {
