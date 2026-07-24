@@ -67,12 +67,12 @@ class KendaraanController extends Controller
 
             $row = MsKendaraan::create([
                 'cpny_id'          => $request->cpny_id ? strtoupper(trim($request->cpny_id)) : null,
-                'no_polisi'        => strtoupper(trim($request->no_polisi)),
-                'namakendaraan'    => strtoupper(trim($request->namakendaraan)),
-                'kategori_kendaraan' => $request->kategori_kendaraan ? strtoupper(trim($request->kategori_kendaraan)) : null,
-                'typekendaraan'    => $request->typekendaraan ? strtoupper(trim($request->typekendaraan)) : null,
-                'merk_kendaraan'   => $request->merk_kendaraan ? strtoupper(trim($request->merk_kendaraan)) : null,
-                'pemilikkendaraan' => $request->pemilikkendaraan ? strtoupper(trim($request->pemilikkendaraan)) : null,
+                'no_polisi'        => trim($request->no_polisi),
+                'namakendaraan'    => trim($request->namakendaraan),
+                'kategori_kendaraan' => $request->kategori_kendaraan ? trim($request->kategori_kendaraan) : null,
+                'typekendaraan'    => $request->typekendaraan ? trim($request->typekendaraan) : null,
+                'merk_kendaraan'   => $request->merk_kendaraan ? trim($request->merk_kendaraan) : null,
+                'pemilikkendaraan' => $request->pemilikkendaraan ? trim($request->pemilikkendaraan) : null,
                 'status'           => 'A',
                 'created_by'       => $loginUser->username ?? 'system',
                 'created_at'       => now(),
@@ -131,12 +131,12 @@ class KendaraanController extends Controller
 
             $row->update([
                 'cpny_id'          => $request->cpny_id ? strtoupper(trim($request->cpny_id)) : null,
-                'no_polisi'        => strtoupper(trim($request->no_polisi)),
-                'namakendaraan'    => strtoupper(trim($request->namakendaraan)),
-                'kategori_kendaraan' => $request->kategori_kendaraan ? strtoupper(trim($request->kategori_kendaraan)) : null,
-                'typekendaraan'    => $request->typekendaraan ? strtoupper(trim($request->typekendaraan)) : null,
-                'merk_kendaraan'   => $request->merk_kendaraan ? strtoupper(trim($request->merk_kendaraan)) : null,
-                'pemilikkendaraan' => $request->pemilikkendaraan ? strtoupper(trim($request->pemilikkendaraan)) : null,
+                'no_polisi'        => trim($request->no_polisi),
+                'namakendaraan'    => trim($request->namakendaraan),
+                'kategori_kendaraan' => $request->kategori_kendaraan ? trim($request->kategori_kendaraan) : null,
+                'typekendaraan'    => $request->typekendaraan ? trim($request->typekendaraan) : null,
+                'merk_kendaraan'   => $request->merk_kendaraan ? trim($request->merk_kendaraan) : null,
+                'pemilikkendaraan' => $request->pemilikkendaraan ? trim($request->pemilikkendaraan) : null,
                 'updated_by'       => $loginUser->username ?? 'system',
                 'updated_at'       => now(),
             ]);

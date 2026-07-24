@@ -165,7 +165,7 @@ class BookingCarController extends Controller
         $kendaraan = DB::connection('pgsql')
             ->table('ms_kendaraan')
             ->where('status', 'A')
-            ->where('kategori_kendaraan', 'Operational')
+            ->whereRaw('UPPER(kategori_kendaraan) = ?', ['OPERATIONAL'])
             ->orderBy('no_polisi')
             ->get();
 
