@@ -81,4 +81,9 @@ class TrPerizinan extends Model
             ->where('status', 'A')
             ->latestOfMany('id');
     }
+
+    public function renewals()
+    {
+        return $this->hasMany(self::class, 'prev_perizinan_id', 'perizinan_id');
+    }
 }

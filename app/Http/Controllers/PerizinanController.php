@@ -12,6 +12,7 @@ use App\Models\TrPerizinanDetail;
 use App\Models\User;
 use App\Models\Usercpny;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -29,9 +30,12 @@ class PerizinanController extends Controller
 
         $today = now()->startOfDay();
         $reminderLimit = $today->copy()->addDays(30);
+        $companies = Usercpny::query()->where('username', Auth::user()->username)
+            ->where('status', 'A')->orderBy('cpny_id')->pluck('cpny_id')->unique()->values();
 
-        $allPerizinan = TrPerizinan::query()->count();
+        $allPerizinan = TrPerizinan::query()->whereIn('cpny_id', $companies)->count();
         $activePerizinan = TrPerizinan::query()
+            ->whereIn('cpny_id', $companies)
             ->where(function ($query) use ($today) {
                 $query->where('expired_date', false)
                     ->orWhereNull('expired_date')
@@ -40,24 +44,45 @@ class PerizinanController extends Controller
             ->where(fn ($query) => $query->whereNotIn('status', ['C', 'R', 'X'])->orWhereNull('status'))
             ->count();
         $expiringPerizinan = TrPerizinan::query()
+            ->whereIn('cpny_id', $companies)
             ->where('expired_date', true)
             ->whereBetween('enddate', [$today, $reminderLimit])
             ->where(fn ($query) => $query->whereNotIn('status', ['C', 'R', 'X'])->orWhereNull('status'))
             ->count();
         $expiredPerizinan = TrPerizinan::query()
+            ->whereIn('cpny_id', $companies)
             ->where('expired_date', true)
             ->whereDate('enddate', '<', $today)
             ->where(fn ($query) => $query->whereNotIn('status', ['C', 'R', 'X'])->orWhereNull('status'))
             ->count();
-        $completedPerizinan = TrPerizinan::query()->where('status', 'C')->count();
-
-        $companies = Usercpny::query()->where('username', Auth::user()->username)
-            ->where('status', 'A')->orderBy('cpny_id')->pluck('cpny_id')->unique()->values();
+        $completedPerizinan = TrPerizinan::query()
+            ->whereIn('cpny_id', $companies)
+            ->where('status', 'C')
+            ->count();
+        $expiry30To60 = TrPerizinan::query()
+            ->whereIn('cpny_id', $companies)
+            ->where('expired_date', true)
+            ->whereRaw('(enddate::date - CURRENT_DATE) BETWEEN 30 AND 60')
+            ->whereNotIn('status', ['C', 'R', 'X'])
+            ->count();
+        $expiry60To90 = TrPerizinan::query()
+            ->whereIn('cpny_id', $companies)
+            ->where('expired_date', true)
+            ->whereRaw('(enddate::date - CURRENT_DATE) BETWEEN 60 AND 90')
+            ->whereNotIn('status', ['C', 'R', 'X'])
+            ->count();
+        $expiry90Plus = TrPerizinan::query()
+            ->whereIn('cpny_id', $companies)
+            ->where('expired_date', true)
+            ->whereRaw('(enddate::date - CURRENT_DATE) >= 90')
+            ->whereNotIn('status', ['C', 'R', 'X'])
+            ->count();
         $categories = MsPerizinanCategory::query()->where('status', 'A')
             ->orderBy('perizinancategory_descr')
             ->get(['perizinan_category', 'perizinancategory_descr']);
         $approvers = User::query()->where('status', 'A')->orderBy('name')->get(['username', 'name']);
         $expiryPeriods = TrPerizinan::query()
+            ->whereIn('cpny_id', $companies)
             ->whereNotNull('enddate')
             ->selectRaw('EXTRACT(YEAR FROM enddate)::int AS year, EXTRACT(MONTH FROM enddate)::int AS month')
             ->distinct()
@@ -70,7 +95,8 @@ class PerizinanController extends Controller
             'activePerizinan',
             'expiringPerizinan',
             'expiredPerizinan',
-            'completedPerizinan', 'companies', 'categories', 'approvers', 'expiryPeriods'
+            'completedPerizinan', 'expiry30To60', 'expiry60To90', 'expiry90Plus',
+            'companies', 'categories', 'approvers', 'expiryPeriods'
         ));
     }
 
@@ -89,8 +115,21 @@ class PerizinanController extends Controller
         $expiryMonth = (int) $request->input('expiry_month', 0);
         $category = trim((string) $request->input('category', ''));
         $today = now()->startOfDay();
+        $companyIds = Usercpny::query()->where('username', Auth::user()->username)
+            ->where('status', 'A')->pluck('cpny_id')->unique()->values();
 
-        $query = TrPerizinan::query()->with(['site', 'category', 'latestActivity']);
+        $query = TrPerizinan::query()
+            ->with([
+                'site',
+                'category',
+                'latestActivity',
+                'renewals' => fn ($renewalQuery) => $renewalQuery
+                    ->where(fn ($statusQuery) => $statusQuery
+                        ->whereNotIn('status', ['X', 'R'])
+                        ->orWhereNull('status'))
+                    ->select(['id', 'prev_perizinan_id', 'status']),
+            ])
+            ->whereIn('cpny_id', $companyIds);
 
         if ($filter === 'active') {
             $query->where(function ($subQuery) use ($today) {
@@ -109,6 +148,18 @@ class PerizinanController extends Controller
                 ->where(fn ($subQuery) => $subQuery->whereNotIn('status', ['C', 'R', 'X'])->orWhereNull('status'));
         } elseif ($filter === 'completed') {
             $query->where('status', 'C');
+        } elseif ($filter === 'expiry_30_60') {
+            $query->where('expired_date', true)
+                ->whereRaw('(enddate::date - CURRENT_DATE) BETWEEN 30 AND 60')
+                ->whereNotIn('status', ['C', 'R', 'X']);
+        } elseif ($filter === 'expiry_60_90') {
+            $query->where('expired_date', true)
+                ->whereRaw('(enddate::date - CURRENT_DATE) BETWEEN 60 AND 90')
+                ->whereNotIn('status', ['C', 'R', 'X']);
+        } elseif ($filter === 'expiry_90_plus') {
+            $query->where('expired_date', true)
+                ->whereRaw('(enddate::date - CURRENT_DATE) >= 90')
+                ->whereNotIn('status', ['C', 'R', 'X']);
         }
 
         if ($expiryYear > 0) {
@@ -124,16 +175,34 @@ class PerizinanController extends Controller
         $recordsTotal = (clone $query)->count();
 
         if ($search !== '') {
-            $query->where(function ($subQuery) use ($search) {
+            $statusSearch = collect([
+                'P' => 'on progress',
+                'C' => 'completed',
+                'R' => 'rejected',
+                'X' => 'cancelled',
+            ])->filter(fn ($label) => str_contains($label, strtolower($search)))->keys()->all();
+
+            $query->where(function ($subQuery) use ($search, $statusSearch) {
                 $subQuery->where('perizinan_id', 'ilike', "%{$search}%")
                     ->orWhere('perizinan_title', 'ilike', "%{$search}%")
+                    ->orWhere('perizinan_descr', 'ilike', "%{$search}%")
                     ->orWhere('perizinan_category', 'ilike', "%{$search}%")
                     ->orWhere('cpny_id', 'ilike', "%{$search}%")
                     ->orWhere('site_id', 'ilike', "%{$search}%")
                     ->orWhere('department_fin_id', 'ilike', "%{$search}%")
-                    ->orWhere('issuing_authority', 'ilike', "%{$search}%")
-                    ->orWhere('vendor_name', 'ilike', "%{$search}%")
-                    ->orWhere('status', 'ilike', "%{$search}%");
+                    ->orWhere('status', 'ilike', "%{$search}%")
+                    ->orWhereRaw("TO_CHAR(startdate, 'FMMonth YYYY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("TO_CHAR(enddate, 'FMMonth YYYY') ILIKE ?", ["%{$search}%"])
+                    ->orWhereHas('site', fn ($siteQuery) => $siteQuery
+                        ->where('site_name', 'ilike', "%{$search}%"))
+                    ->orWhereHas('category', fn ($categoryQuery) => $categoryQuery
+                        ->where('perizinancategory_descr', 'ilike', "%{$search}%"))
+                    ->orWhereHas('latestActivity', fn ($activityQuery) => $activityQuery
+                        ->where('response_descr', 'ilike', "%{$search}%"));
+
+                if ($statusSearch) {
+                    $subQuery->orWhereIn('status', $statusSearch);
+                }
             });
         }
 
@@ -166,7 +235,8 @@ class PerizinanController extends Controller
                 $permit->site_name = $permit->site?->site_name;
                 $permit->category_name = $permit->category?->perizinancategory_descr;
                 $permit->information = $permit->latestActivity?->response_descr;
-                unset($permit->site, $permit->category, $permit->latestActivity);
+                $permit->has_blocking_renewal = $permit->renewals->isNotEmpty();
+                unset($permit->site, $permit->category, $permit->latestActivity, $permit->renewals);
                 return $permit;
             });
 
@@ -306,6 +376,20 @@ class PerizinanController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $hasBlockingRenewal = TrPerizinan::query()
+                ->where('prev_perizinan_id', $source->perizinan_id)
+                ->where(fn ($statusQuery) => $statusQuery
+                    ->whereNotIn('status', ['X', 'R'])
+                    ->orWhereNull('status'))
+                ->lockForUpdate()
+                ->first(['id']) !== null;
+
+            if ($hasBlockingRenewal) {
+                throw ValidationException::withMessages([
+                    'renewal' => 'This permit has already been renewed.',
+                ]);
+            }
+
             $now = now();
             $year = (int) $now->year;
             $month = str_pad((string) $now->month, 2, '0', STR_PAD_LEFT);
@@ -349,6 +433,9 @@ class PerizinanController extends Controller
                 'message' => 'Renewal permit created successfully.',
                 'perizinan_id' => $newPermitId,
             ]);
+        } catch (ValidationException $exception) {
+            DB::connection('pgsql')->rollBack();
+            throw $exception;
         } catch (\Throwable $exception) {
             DB::connection('pgsql')->rollBack();
             report($exception);
@@ -378,6 +465,12 @@ class PerizinanController extends Controller
             'startdate' => ['required', 'date'],
             'expired_date' => ['required', 'boolean'],
             'enddate' => ['nullable', 'required_if:expired_date,1', 'date', 'after_or_equal:startdate'],
+            'reminder_days_before_end' => ['required', 'integer', Rule::in([120, 90, 60, 30])],
+            'application_handling_method' => ['nullable', 'string', 'max:255'],
+            'issuing_authority' => ['nullable', 'string', 'max:255'],
+            'submission_channel' => ['nullable', 'string', 'max:255'],
+            'no_kontrak_legal' => ['nullable', 'string', 'max:255'],
+            'issue_date' => ['nullable', 'date'],
             'user_approval' => ['required', 'array', 'min:1'],
             'user_approval.*' => ['required', 'string', Rule::exists('pgsql2.ms_user', 'username')->where('status', 'A')],
             'item_perizinan' => ['required', 'array', 'min:1'],
@@ -429,6 +522,15 @@ class PerizinanController extends Controller
             $header->startdate = $validated['startdate'];
             $header->expired_date = (bool) $validated['expired_date'];
             $header->enddate = $header->expired_date ? $validated['enddate'] : null;
+            $header->reminder_days_before_end = $validated['reminder_days_before_end'];
+            $header->reminder_date = $header->expired_date
+                ? Carbon::parse($validated['enddate'])->subDays((int) $validated['reminder_days_before_end'])->toDateString()
+                : null;
+            $header->application_handling_method = $validated['application_handling_method'] ?? null;
+            $header->issuing_authority = $validated['issuing_authority'] ?? null;
+            $header->submission_channel = $validated['submission_channel'] ?? null;
+            $header->no_kontrak_legal = $validated['no_kontrak_legal'] ?? null;
+            $header->issue_date = $validated['issue_date'] ?? null;
             $header->qty_item_perizinan = array_sum(array_map('floatval', $validated['qty_perizinan']));
             $header->status = 'P';
             if ($isEdit) $header->updated_by = $user->username;

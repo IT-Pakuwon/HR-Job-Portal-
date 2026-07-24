@@ -1201,24 +1201,24 @@ class RfpNonPurchController extends Controller
         // =========================
         $rfpnonpurchSteps = collect();
 
+        // $rfpnonpurchSteps->push([
+        //     'order' => 1,
+        //     'description' => $doctype . ' Created',
+        //     'user' => $rfpnonpurch->created_by ?: '-',
+        //     'date' => $rfpnonpurch->created_at,
+        //     'status' => 'Done',
+        // ]);
+
+        // $rfpnonpurchSteps->push([
+        //     'order' => 2,
+        //     'description' => 'Approval Process',
+        //     'user' => $rfpnonpurch->completed_by ?: '-',
+        //     'date' => $rfpnonpurch->completed_at,
+        //     'status' => $rfpnonpurch->status === 'P' ? 'Pending' : 'Done',
+        // ]);
+
         $rfpnonpurchSteps->push([
             'order' => 1,
-            'description' => $doctype . ' Created',
-            'user' => $rfpnonpurch->created_by ?: '-',
-            'date' => $rfpnonpurch->created_at,
-            'status' => 'Done',
-        ]);
-
-        $rfpnonpurchSteps->push([
-            'order' => 2,
-            'description' => 'Approval Process',
-            'user' => $rfpnonpurch->completed_by ?: '-',
-            'date' => $rfpnonpurch->completed_at,
-            'status' => $rfpnonpurch->status === 'P' ? 'Pending' : 'Done',
-        ]);
-
-        $rfpnonpurchSteps->push([
-            'order' => 3,
             'description' => 'Finance Received',
             'user' => $rfpnonpurch->userreceive ?: '-',
             'date' => $rfpnonpurch->receivedate,
@@ -1226,7 +1226,7 @@ class RfpNonPurchController extends Controller
         ]);
 
         $rfpnonpurchSteps->push([
-            'order' => 4,
+            'order' => 2,
             'description' => 'Treasury Payment',
             'user' => $rfpnonpurch->userpayment ?: '-',
             'date' => $rfpnonpurch->paymentdate,

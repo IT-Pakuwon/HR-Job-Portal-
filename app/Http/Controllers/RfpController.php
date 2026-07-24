@@ -168,7 +168,7 @@ class RfpController extends Controller
             7  => 'rfp.type_po',
             8  => 'rfp.ir_id',
             9  => 'rfp.vendor_name',
-            10 => 'rfp.keperluan',
+            10 => DB::raw("CASE WHEN LENGTH(TRIM(COALESCE(rfp.ir_note, ''))) >= 5 THEN rfp.ir_note ELSE rfp.keperluan END"),
             11 => 'rfp.rfp_amount',
             13 => 'rfp.status',
         ];
@@ -247,6 +247,7 @@ class RfpController extends Controller
                     ->orWhere('rfp.type_po', 'ilike', "%{$search}%")
                     ->orWhere('rfp.ir_id', 'ilike', "%{$search}%")
                     ->orWhere('rfp.vendor_name', 'ilike', "%{$search}%")
+                    ->orWhere('rfp.ir_note', 'ilike', "%{$search}%")
                     ->orWhere('rfp.keperluan', 'ilike', "%{$search}%")
                     ->orWhere('rfp.status', 'ilike', "%{$search}%")
                     ->orWhere('rfp.created_by', 'ilike', "%{$search}%");
@@ -268,6 +269,7 @@ class RfpController extends Controller
             'rfp.ir_id',
             'rfp.type_po',
             'rfp.vendor_name',
+            'rfp.ir_note',
             'rfp.keperluan',
             'rfp.rfp_amount',
             'rfp.status',
@@ -293,6 +295,11 @@ class RfpController extends Controller
             $row->po_kontrak = collect([$row->ponbr, $row->kontrak_id])
                 ->filter(fn ($v) => !empty($v))
                 ->implode(' / ');
+
+            $irNote = trim((string) ($row->ir_note ?? ''));
+            if (strlen($irNote) >= 5) {
+                $row->keperluan = $irNote;
+            }
 
             $statusReceive = strtoupper(trim((string) ($row->status_receive ?? 'P')));
             $statusPayment = strtoupper(trim((string) ($row->status_payment ?? 'P')));
@@ -702,17 +709,17 @@ class RfpController extends Controller
             : ($rfp->created_by ?: '-');
 
         // 1. CREATED
-        $rfpSteps->push([
-            'order' => 1,
-            'description' => 'RFP Created',
-            'user' => $createdStepUser,
-            'date' => $rfp->created_at,
-            'status' => 'Done',
-        ]);
+        // $rfpSteps->push([
+        //     'order' => 1,
+        //     'description' => 'RFP Created',
+        //     'user' => $createdStepUser,
+        //     'date' => $rfp->created_at,
+        //     'status' => 'Done',
+        // ]);
 
         // 2. FINANCE RECEIVED
         $rfpSteps->push([
-            'order' => 2,
+            'order' => 1,
             'description' => 'Finance Received',
             'user' => $rfp->user_receive ?? '-',
             'date' => $rfp->receive_date,
@@ -721,7 +728,7 @@ class RfpController extends Controller
 
         // 3. TREASURY PAYMENT
         $rfpSteps->push([
-            'order' => 3,
+            'order' => 2,
             'description' => 'Treasury Payment',
             'user' => $rfp->user_payment ?? '-',
             'date' => $rfp->payment_date,

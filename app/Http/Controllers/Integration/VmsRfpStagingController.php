@@ -476,7 +476,7 @@ class VmsRfpStagingController extends Controller
 
                 $rfp = TrRfp::create([
                     'rfp_id'               => $rfpId,
-                    'rfp_date'             => $row->irdate ? Carbon::parse($row->irdate)->toDateString() : null,
+                    'rfp_date'             => now(),
                     'ir_id'                => $row->irid,
                     'ir_date'              => $row->irdate ? Carbon::parse($row->irdate)->toDateString() : null,
                     'ir_submit_date'       => $row->irsubmitdate,
@@ -624,6 +624,17 @@ class VmsRfpStagingController extends Controller
                         $q->whereNull('aprv_departementid')
                             ->orWhere('aprv_departementid', '')
                             ->orWhere('aprv_departementid', $rfp->department_id);
+                    })
+                    ->where(function ($q) use ($rfp) {
+                        $q->whereRaw("UPPER(TRIM(aprv_type)) = 'NORMAL'")
+                            ->orWhere(function ($q) use ($rfp) {
+                                $q->whereRaw("UPPER(TRIM(aprv_type)) = 'CONDITION'")
+                                    ->whereRaw("UPPER(TRIM(aprv_condition)) = 'NOMINAL'")
+                                    ->whereNotNull('aprv_start_nominal')
+                                    ->whereNotNull('aprv_end_nominal')
+                                    ->where('aprv_start_nominal', '<=', $rfp->rfp_amount)
+                                    ->where('aprv_end_nominal', '>=', $rfp->rfp_amount);
+                            });
                     })
                     ->orderBy('aprv_leveling')
                     ->get();

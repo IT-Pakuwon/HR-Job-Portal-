@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-9xl mx-auto w-full p-2">
-        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
             @php
                 $attachmentListUrlTemplate = route('attachments.list', [
                     'doctype' => 'MIK',
@@ -10,6 +10,9 @@
                     ['all', 'All Permits', $allPerizinan, 'border-slate-600 bg-slate-100 text-slate-700'],
                     ['active', 'Active', $activePerizinan, 'border-blue-600 bg-blue-50 text-blue-700'],
                     ['expiring', 'Expiring ≤ 30 Days', $expiringPerizinan, 'border-amber-600 bg-amber-50 text-amber-700'],
+                    ['expiry_30_60', '30 - 60 Days', $expiry30To60, 'border-cyan-600 bg-cyan-50 text-cyan-700'],
+                    ['expiry_60_90', '60 - 90 Days', $expiry60To90, 'border-violet-600 bg-violet-50 text-violet-700'],
+                    ['expiry_90_plus', '≥ 90 Days', $expiry90Plus, 'border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700'],
                     ['expired', 'Expired', $expiredPerizinan, 'border-red-600 bg-red-50 text-red-700'],
                     ['completed', 'Completed', $completedPerizinan, 'border-emerald-600 bg-emerald-50 text-emerald-700'],
                 ];
@@ -27,8 +30,8 @@
 
         <div class="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
             <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-3 dark:border-white/[0.06] xl:flex-row xl:items-center xl:justify-between">
-                <h1 id="tableTitle" class="text-base font-extrabold text-gray-700 dark:text-white">All Permits</h1>
                 <div class="flex flex-wrap items-center gap-2">
+                    <h1 id="tableTitle" class="mr-2 text-base font-extrabold text-gray-700 dark:text-white">All Permits</h1>
                     <select id="filterExpiryYear" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700">
                         <option value="">All Expiry Years</option>
                         @foreach ($expiryPeriods->pluck('year')->unique()->values() as $year)
@@ -45,11 +48,11 @@
                         @endforeach
                     </select>
                     <button type="button" id="btnResetFilters" class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Reset</button>
-                    <button type="button" id="btnCreatePerizinan"
-                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
-                        + Create
-                    </button>
                 </div>
+                <button type="button" id="btnCreatePerizinan"
+                    class="self-start rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 xl:self-auto">
+                    + Create
+                </button>
             </div>
 
             <div class="relative overflow-hidden">
@@ -155,6 +158,35 @@
                         <input type="date" id="enddate" name="enddate" class="w-full rounded-lg border px-3 py-2" required>
                         <p id="noExpiryHint" class="mt-1 hidden text-xs text-gray-500">This permit has no expiration date.</p>
                     </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">Reminder Before End Date <span class="text-red-500">*</span></label>
+                        <select id="reminder_days_before_end" name="reminder_days_before_end" class="w-full rounded-lg border px-3 py-2" required>
+                            <option value="120">120 Days</option>
+                            <option value="90" selected>90 Days</option>
+                            <option value="60">60 Days</option>
+                            <option value="30">30 Days</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">Issue Date</label>
+                        <input type="date" id="issue_date" name="issue_date" class="w-full rounded-lg border px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">Application Handling Method</label>
+                        <input type="text" id="application_handling_method" name="application_handling_method" class="w-full rounded-lg border px-3 py-2" maxlength="255">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">Issuing Authority</label>
+                        <input type="text" id="issuing_authority" name="issuing_authority" class="w-full rounded-lg border px-3 py-2" maxlength="255">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">Submission Channel</label>
+                        <input type="text" id="submission_channel" name="submission_channel" class="w-full rounded-lg border px-3 py-2" maxlength="255">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-semibold">Legal Contract Number</label>
+                        <input type="text" id="no_kontrak_legal" name="no_kontrak_legal" class="w-full rounded-lg border px-3 py-2" maxlength="255">
+                    </div>
                 </div>
 
                 <div class="px-5 pb-5">
@@ -233,7 +265,10 @@
                         <div class="sm:col-span-2"><p class="text-xs text-gray-400">Description</p><div id="detailDescription" class="mt-2 rounded-lg bg-gray-50 p-4 text-sm whitespace-pre-wrap dark:bg-gray-700">-</div></div>
                     </div>
 
-                    <h3 class="mb-2 mt-6 font-bold">Permit Items</h3>
+                    <div class="mb-2 mt-6 flex items-center gap-2">
+                        <h3 class="font-bold">Permit Items</h3>
+                        <span id="detailItemTotal" class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">0</span>
+                    </div>
                     <div class="overflow-hidden rounded-lg border dark:border-gray-700">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 dark:bg-gray-700"><tr><th class="px-3 py-2 text-left">Item</th><th class="w-28 px-3 py-2 text-right">Quantity</th></tr></thead>
@@ -241,7 +276,7 @@
                         </table>
                     </div>
 
-                    <div class="mb-2 mt-6 flex items-center justify-between">
+                    <div class="mb-2 mt-6 flex items-center gap-2">
                         <h3 class="font-bold">Attachments</h3>
                         <span id="detailAttachmentCount" class="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-bold text-indigo-700">0</span>
                     </div>
@@ -317,7 +352,10 @@
                 active: 'Active Permits',
                 expiring: 'Permits Expiring ≤ 30 Days',
                 expired: 'Expired Permits',
-                completed: 'Completed Permits'
+                completed: 'Completed Permits',
+                expiry_30_60: 'Permits Expiring in 30 - 60 Days',
+                expiry_60_90: 'Permits Expiring in 60 - 90 Days',
+                expiry_90_plus: 'Permits Expiring in ≥ 90 Days'
             };
 
             const escapeHtml = (value) => $('<div>').text(value ?? '').html();
@@ -344,7 +382,7 @@
                         year: 'numeric'
                     });
             };
-            const statusBadge = (value) => {
+            const permitStatusConfig = (value) => {
                 const status = (value || '-').toString().toUpperCase();
                 const statuses = {
                     P: { label: 'On Progress', color: 'bg-blue-100 text-blue-700' },
@@ -352,7 +390,10 @@
                     R: { label: 'Rejected', color: 'bg-red-100 text-red-700' },
                     X: { label: 'Cancelled', color: 'bg-gray-200 text-gray-700' }
                 };
-                const config = statuses[status] || { label: status, color: 'bg-gray-100 text-gray-700' };
+                return statuses[status] || { label: status, color: 'bg-gray-100 text-gray-700' };
+            };
+            const statusBadge = (value) => {
+                const config = permitStatusConfig(value);
                 return `<span class="rounded-full px-2 py-1 text-xs font-semibold ${config.color}">${escapeHtml(config.label)}</span>`;
             };
 
@@ -375,17 +416,23 @@
                     { data: null, defaultContent: '', orderable: false, searchable: false, className: 'dtr-control' },
                     {
                         data: 'perizinan_id', orderable: false, searchable: false,
-                        render: (value) => `<div class="flex items-center gap-1">
+                        render: (value, _type, row) => {
+                            const editButton = String(row.status || '').toUpperCase() === 'C' ? '' : `
                             <button type="button" class="btnEdit inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white hover:bg-amber-600" data-id="${escapeHtml(value)}" title="Edit permit" aria-label="Edit permit">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>
-                            </button>
+                            </button>`;
+                            const renewButton = row.has_blocking_renewal ? '' : `
+                            <button type="button" class="btnRenew inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-700" data-id="${escapeHtml(value)}" title="Renew permit" aria-label="Renew permit">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8.1 8.1 0 00-15.5-2M4 4v5h5"/><path d="M4 13a8.1 8.1 0 0015.5 2M20 20v-5h-5"/></svg>
+                            </button>`;
+                            return `<div class="flex items-center gap-1">
+                            ${editButton}
                             <button type="button" class="btnActivity inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white hover:bg-indigo-700" data-id="${escapeHtml(value)}" title="Permit action" aria-label="Permit action">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg>
                             </button>
-                            <button type="button" class="btnRenew inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-700" data-id="${escapeHtml(value)}" title="Renew permit" aria-label="Renew permit">
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8.1 8.1 0 00-15.5-2M4 4v5h5"/><path d="M4 13a8.1 8.1 0 0015.5 2M20 20v-5h-5"/></svg>
-                            </button>
-                        </div>`
+                            ${renewButton}
+                        </div>`;
+                        }
                     },
                     {
                         data: 'perizinan_id',
@@ -588,7 +635,10 @@
                 const permit = response.data;
                 $('#detailPermitId').text(permit.perizinan_id || '-');
                 $('#detailTitle').text(permit.perizinan_title || '-');
-                $('#detailStatus').attr('class', `rounded-full px-3 py-1 text-xs font-bold ${statusClass(permit.status)}`).text(permit.status || '-');
+                const permitStatus = permitStatusConfig(permit.status);
+                $('#detailStatus')
+                    .attr('class', `rounded-full px-3 py-1 text-xs font-bold ${permitStatus.color}`)
+                    .text(permitStatus.label);
                 $('#detailDate').text(formatDate(permit.perizinan_date));
                 $('#detailCategory').text(permit.category?.perizinancategory_descr || permit.perizinan_category || '-');
                 $('#detailCompany').text(permit.cpny_id || '-');
@@ -603,6 +653,10 @@
                 loadPermitAttachments(permit.perizinan_id);
 
                 const items = permit.details || [];
+                const totalItemQty = items.reduce((total, item) => total + Number(item.qty_perizinan || 0), 0);
+                $('#detailItemTotal').text(new Intl.NumberFormat('en-US', {
+                    maximumFractionDigits: 2
+                }).format(totalItemQty));
                 $('#detailItems').html(items.length ? items.map(item => `
                     <tr class="border-t dark:border-gray-700">
                         <td class="px-3 py-2">${escapeHtml(item.item_perizinan || '-')}</td>
@@ -691,6 +745,7 @@
                 $('#perizinanForm')[0].reset();
                 $('#user_approval').val(null).trigger('change');
                 $('#expired_date').prop('checked', true);
+                $('#reminder_days_before_end').val('90');
                 syncExpiryField();
                 $('#editPerizinanId').val('');
                 $('#modalTitle').text('Create Permit');
@@ -866,6 +921,12 @@
                     $('#expired_date').prop('checked', Boolean(data.expired_date));
                     syncExpiryField();
                     $('#enddate').val((data.enddate || '').substring(0, 10));
+                    $('#reminder_days_before_end').val(String(data.reminder_days_before_end || 90));
+                    $('#application_handling_method').val(data.application_handling_method || '');
+                    $('#issuing_authority').val(data.issuing_authority || '');
+                    $('#submission_channel').val(data.submission_channel || '');
+                    $('#no_kontrak_legal').val(data.no_kontrak_legal || '');
+                    $('#issue_date').val((data.issue_date || '').substring(0, 10));
                     $('#user_approval').val((data.user_approval || '').split(',').filter(Boolean)).trigger('change');
                     $('#detailRows').empty();
                     (response.details.length ? response.details : [{}]).forEach(addDetailRow);
