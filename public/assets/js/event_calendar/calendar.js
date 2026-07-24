@@ -252,6 +252,15 @@ const EventCalendarApp = {
         $('#eventModal .select2').val('').trigger('change');
     },
 
+    autoSelectCompany() {
+        const select = document.getElementById('cpnyid');
+        const options = Array.from(select.options).filter((o) => o.value !== '');
+
+        if (options.length === 1) {
+            $('#cpnyid').val(options[0].value).trigger('change');
+        }
+    },
+
     openCreateModal(prefill = {}) {
         EventCalendarApp.state.modalMode = 'create';
         EventCalendarApp.resetForm();
@@ -261,6 +270,8 @@ const EventCalendarApp = {
 
         if (prefill.event_start_date) document.getElementById('event_start_date').value = prefill.event_start_date;
         if (prefill.event_end_date) document.getElementById('event_end_date').value = prefill.event_end_date;
+
+        EventCalendarApp.autoSelectCompany();
 
         EventCalendarApp.showModal();
     },

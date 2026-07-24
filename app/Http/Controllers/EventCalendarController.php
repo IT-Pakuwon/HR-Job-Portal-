@@ -23,10 +23,22 @@ class EventCalendarController extends Controller
         'Tentative Event' => 'Tentative Event',
     ];
 
+    private function userCpnyIds(): array
+    {
+        $user = auth()->user();
+
+        return is_string($user->cpny_id)
+            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
+            : (array) $user->cpny_id;
+    }
+
     public function index()
     {
+        $cpnyIds = $this->userCpnyIds();
+
         $companies = MsCompany::query()
             ->where('status', 'A')
+            ->when(!empty($cpnyIds), fn ($query) => $query->whereIn('cpny_id', $cpnyIds))
             ->orderBy('cpny_name')
             ->get(['cpny_id', 'cpny_name']);
 
@@ -51,11 +63,7 @@ class EventCalendarController extends Controller
 
     public function json(Request $request)
     {
-        $user = auth()->user();
-
-        $cpnyIds = is_string($user->cpny_id)
-            ? array_filter(array_map('trim', explode(',', $user->cpny_id)))
-            : (array) $user->cpny_id;
+        $cpnyIds = $this->userCpnyIds();
 
         $query = MsEvent::query()->whereNull('deleted_at');
 
