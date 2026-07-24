@@ -53,10 +53,11 @@
             },
             dataLabels: { enabled: false },
             xaxis: {
+                categories: categories,
                 axisBorder: { show: false }, axisTicks: { show: false },
-                labels: { style: { fontSize: '11px' }, formatter: function(v) { return v.toLocaleString(); } },
+                labels: { style: { fontSize: '11px' }, formatter: function(v) { return (+v).toLocaleString(); } },
             },
-            yaxis: { categories: categories, labels: { style: { fontSize: '11px' } } },
+            yaxis: { labels: { style: { fontSize: '11px' } } },
             grid: { borderColor: dark ? '#1E293B' : '#F1F5F9', strokeDashArray: 4, padding: { left: 4, right: 4 } },
             tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
             legend: {

@@ -30,11 +30,35 @@
 
     function isDark() { return document.documentElement.classList.contains('dark'); }
 
+    /* Stage sizes are shown on a sqrt scale with a visibility floor so a
+       stage that's a tiny fraction of the first one (e.g. 8 vs 1,447)
+       still renders wide enough to read, instead of collapsing to a
+       sliver. Labels/tooltips always show the real value, never the
+       scaled one. */
+    function scaleForDisplay(rawSeries) {
+        var allValues = [];
+        rawSeries.forEach(function (s) {
+            (s.data || []).forEach(function (pt) { allValues.push(Math.max(0, pt.y)); });
+        });
+        var maxSqrt = Math.sqrt(Math.max.apply(null, allValues.concat([0])));
+        var floor = maxSqrt * 0.22;
+
+        return rawSeries.map(function (s) {
+            return Object.assign({}, s, {
+                data: (s.data || []).map(function (pt) {
+                    var sqrtVal = Math.sqrt(Math.max(0, pt.y));
+                    return { x: pt.x, y: sqrtVal > 0 ? Math.max(sqrtVal, floor) : 0, actual: pt.y };
+                }),
+            });
+        });
+    }
+
     function init(el) {
         var cfg = {};
         try { cfg = JSON.parse(el.dataset.config || '{}'); } catch (e) {}
 
-        var series = (cfg.series && cfg.series.length) ? cfg.series : SAMPLE.series;
+        var rawSeries = (cfg.series && cfg.series.length) ? cfg.series : SAMPLE.series;
+        var series = scaleForDisplay(rawSeries);
         var height = cfg.height || 320;
         var color  = cfg.color  || 'orange';
         var dark   = isDark();
@@ -61,10 +85,12 @@
             dataLabels: {
                 enabled: true,
                 formatter: function(val, opt) {
-                    return opt.w.globals.labels[opt.dataPointIndex] + ':  ' + val.toLocaleString();
+                    var actual = opt.w.config.series[opt.seriesIndex].data[opt.dataPointIndex].actual;
+                    return opt.w.globals.labels[opt.dataPointIndex] + ':  ' + actual.toLocaleString();
                 },
-                style: { fontSize: '12px', fontWeight: 600 },
+                style: { fontSize: '12px', fontWeight: 600, colors: [dark ? '#F1F5F9' : '#1E293B'] },
                 dropShadow: { enabled: false },
+                background: { enabled: true, foreColor: dark ? '#0F172A' : '#fff', opacity: 0.85, borderWidth: 0, padding: 6 },
             },
             xaxis: {
                 axisBorder: { show: false }, axisTicks: { show: false },
@@ -72,7 +98,15 @@
             },
             yaxis: { labels: { show: false } },
             grid: { show: false },
-            tooltip: { theme: dark ? 'dark' : 'light', y: { formatter: function(v) { return v.toLocaleString(); } } },
+            tooltip: {
+                theme: dark ? 'dark' : 'light',
+                y: {
+                    formatter: function(v, opt) {
+                        var actual = opt.w.config.series[opt.seriesIndex].data[opt.dataPointIndex].actual;
+                        return actual.toLocaleString();
+                    },
+                },
+            },
             legend: { show: false },
         });
         chart.render();

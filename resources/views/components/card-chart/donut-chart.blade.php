@@ -32,6 +32,6 @@
 
 @once
     @push('scripts')
-        <script src="{{ asset('assets/js/card-chart/donut-chart.js') }}"></script>
+        <script src="{{ asset('assets/js/card-chart/donut-chart.js') }}?v={{ filemtime(public_path('assets/js/card-chart/donut-chart.js')) }}"></script>
     @endpush
 @endonce

@@ -17,7 +17,7 @@
             @if(auth()->user()->hasRole('RECACCALLDEPT'))
             <button type="button" id="tabBtnDuplicates"
                 class="applicant-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
-                🧬 Duplicate Users
+                🧬 Duplicate Applicant
                 <span id="dupCountBadge"
                     class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
             </button>
