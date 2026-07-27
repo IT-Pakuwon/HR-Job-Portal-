@@ -575,7 +575,7 @@ class UsersController extends Controller
     {
         $currentUser = Auth::user();
 
-        if (!$currentUser || $currentUser->user_role !== 'admin') {
+        if (!$currentUser || !in_array('admin', array_map('trim', explode(',', $currentUser->user_role ?? '')), true)) {
             abort(403, 'Unauthorized');
         }
 
@@ -601,7 +601,7 @@ class UsersController extends Controller
         $currentUser = Auth::user();
 
         // Hanya admin yang boleh reset password
-        if (!$currentUser || $currentUser->user_role !== 'admin') {
+        if (!$currentUser || !in_array('admin', array_map('trim', explode(',', $currentUser->user_role ?? '')), true)) {
             abort(403, 'Unauthorized');
         }
 
@@ -623,7 +623,7 @@ class UsersController extends Controller
     {
         $currentUser = Auth::user();
 
-        if (!$currentUser || $currentUser->user_role !== 'admin') {
+        if (!$currentUser || !in_array('admin', array_map('trim', explode(',', $currentUser->user_role ?? '')), true)) {
             abort(403, 'Unauthorized');
         }
 
