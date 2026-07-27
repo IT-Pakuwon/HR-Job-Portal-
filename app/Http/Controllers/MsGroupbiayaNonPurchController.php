@@ -16,6 +16,30 @@ use Illuminate\Support\Facades\DB;
 
 class MsGroupbiayaNonPurchController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $user = Auth::user();
+
+            abort_unless($user && ($this->isPureAdmin($user) || $this->hasCostCtrlRole($user->username ?? '')), 403);
+
+            return $next($request);
+        });
+    }
+
+    // Group Biaya Non Purch is Admin + Cost Control/AP Finance only — deliberately
+    // excludes 'adminsby' (Admin Surabaya), unlike User::isAdmin().
+    private function isPureAdmin($user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $roles = array_map('trim', explode(',', strtolower((string) $user->user_role)));
+
+        return in_array('admin', $roles, true);
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -38,7 +62,7 @@ class MsGroupbiayaNonPurchController extends Controller
 
         $nextGroupbiayaId = 'GB' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
 
-        $isAdmin    = $user->isAdmin();
+        $isAdmin    = $this->isPureAdmin($user);
         $isCostCtrl = $this->hasCostCtrlRole($user->username ?? '');
 
         return view('pages.groupbiayanonpurch.groupbiayanonpurch', compact('nextGroupbiayaId', 'isAdmin', 'isCostCtrl'));
