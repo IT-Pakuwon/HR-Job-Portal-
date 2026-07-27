@@ -1,7 +1,7 @@
 <x-app-layout>
 
     @php
-        $hasIssueAllAccess = auth()->user()->user_role === 'admin';
+        $hasIssueAllAccess = auth()->user()->isAdmin();
 
         $xlCols = 6;
 

@@ -2047,7 +2047,7 @@ class WoController extends Controller
             $deptIds = (array) $user->department_id;
         }
         // dd($deptIds);
-        $isAdmin = $user->user_role === 'admin';
+        $isAdmin = $user->isAdmin();
 
         // Kalau salah satu kosong → tidak ada data
         if (empty($cpnyIds) || empty($deptIds)) {
@@ -2098,7 +2098,7 @@ class WoController extends Controller
             ]);
         }
 
-        $isAdmin  = $user->user_role === 'admin';
+        $isAdmin  = $user->isAdmin();
         $adminAll = $isAdmin && (bool) $request->query('admin_all', false);
 
         // Company multi
@@ -2258,7 +2258,7 @@ class WoController extends Controller
     {
         $user = Auth::user();
 
-        $isAdmin  = $user->user_role === 'admin';
+        $isAdmin  = $user->isAdmin();
         $adminAll = $isAdmin && (bool) $request->query('admin_all', false);
 
         $query = TrWO::from('tr_wo as wo')

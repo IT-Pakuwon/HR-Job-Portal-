@@ -135,7 +135,7 @@
                         Teams / Zoom
                     </a>
 
-                    @if (auth()->check() && auth()->user()->user_role === 'admin')
+                    @if (auth()->check() && auth()->user()->isAdmin())
 
                         <a href="{{ route('meetingroom.setup.index') }}"
                             class="{{ request()->is('meetingroom/setup*')
@@ -365,7 +365,7 @@
 
                         <div id="view_teams"></div>
 
-                        @if (auth()->user()->user_role === 'admin')
+                        @if (auth()->user()->isAdmin())
                             <div id="link_action_area"></div>
                         @endif
 

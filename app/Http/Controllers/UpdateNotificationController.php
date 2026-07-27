@@ -40,7 +40,7 @@ class UpdateNotificationController extends Controller
         $user = $request->user();
         $username = $user->username ?? '';
 
-        abort_unless($user && $user->user_role === 'admin', 403);
+        abort_unless($user && $user->isAdmin(), 403);
 
         $validated = $request->validate([
             'description' => 'required|string',

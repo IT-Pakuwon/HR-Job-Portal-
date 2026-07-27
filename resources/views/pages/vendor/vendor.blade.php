@@ -1,7 +1,7 @@
 <x-app-layout>
     @php
         $currentPage = Route::currentRouteName() == 'vendors' ? 'Vendors' : '';
-        $isAdmin = $isAdmin ?? (isset($user) && strtolower((string) $user->user_role) === 'admin');
+        $isAdmin = $isAdmin ?? (isset($user) && $user->isAdmin());
     @endphp
 
     <div class="max-w-9xl mx-auto w-full p-2">

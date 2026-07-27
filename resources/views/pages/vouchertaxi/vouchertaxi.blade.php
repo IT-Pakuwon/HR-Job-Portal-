@@ -152,7 +152,7 @@
 
                 <div class="mt-4 flex flex-wrap gap-2">
                     <button class="voucher-filter active-filter" data-filter="ALL">All</button>
-                    @if (auth()->check() && auth()->user()->user_role === 'admin')
+                    @if (auth()->check() && auth()->user()->isAdmin())
                         <button class="voucher-filter" data-filter="ALL_TRANSACTIONS">All Transaction</button>
                     @endif
                     <button class="voucher-filter" data-filter="P">Waiting Approval</button>

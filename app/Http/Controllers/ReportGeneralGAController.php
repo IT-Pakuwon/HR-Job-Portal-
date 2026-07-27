@@ -73,7 +73,7 @@ class ReportGeneralGAController extends Controller
             ->get(['categoryid', 'category_name']);
 
         $hasCSACCESS = $user->hasRole('CSACCESS');
-        $hasADMIN    = strtolower($user->user_role) === 'admin';
+        $hasADMIN    = $user->isAdmin();
         $hasGAACCESS = $user->hasRole('GAACCESS');
 
         $tabCount = ($hasCSACCESS ? 1 : 0) + ($hasADMIN ? 1 : 0) + ($hasGAACCESS ? 3 : 0);

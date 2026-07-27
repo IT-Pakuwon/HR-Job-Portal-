@@ -35,7 +35,7 @@ class SpbJobsController extends Controller
         // user->cpny_id bisa "AW" atau "AW,GPS,..."
         $cpnyRaw = $user->cpny_id ?? '';
         $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-        $isAdmin = $user->user_role === 'admin';
+        $isAdmin = $user->isAdmin();
 
         // status label yang mau ditampilkan di card
         $status_issue_new = 'Open';
@@ -128,7 +128,7 @@ class SpbJobsController extends Controller
         $u = $user->username ?? '';
         $cpnyRaw = $user->cpny_id ?? '';
         $cpnyList = $cpnyRaw !== '' ? array_map('trim', explode(',', $cpnyRaw)) : [];
-        $isAdmin = $user->user_role === 'admin';
+        $isAdmin = $user->isAdmin();
 
         $draw = (int) $req->input('draw', 1);
         $start = (int) $req->input('start', 0);

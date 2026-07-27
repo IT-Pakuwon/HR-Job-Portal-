@@ -334,7 +334,7 @@ class VendorController extends Controller
 
     private function isAdmin($user): bool
     {
-        return $user && strtolower((string) $user->user_role) === 'admin';
+        return $user && $user->isAdmin();
     }
 
     private function limitText($value, int $max)
