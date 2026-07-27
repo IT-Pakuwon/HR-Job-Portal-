@@ -10,6 +10,16 @@ import Swal from 'sweetalert2';
 
 window.Swal = Swal;
 
+import Sortable from 'sortablejs';
+import Gantt from 'frappe-gantt';
+// frappe-gantt's package.json "exports" map doesn't expose a ./dist/*.css
+// subpath for bundler resolution, so its CSS is loaded via CDN instead
+// (same hybrid npm-JS/CDN-CSS approach already used for select2/DataTables
+// in layouts/app.blade.php) — see @stack('styles') on the pages that use it.
+
+window.Sortable = Sortable;
+window.FrappeGantt = Gantt;
+
 /* --------------------------------------------------------------------------
 | Alpine
 |--------------------------------------------------------------------------

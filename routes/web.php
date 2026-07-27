@@ -104,6 +104,10 @@ use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\PgTrekDashboardController;
 use App\Http\Controllers\PoController;
 use App\Http\Controllers\PoListController;
+use App\Http\Controllers\PmGroupController;
+use App\Http\Controllers\PmProjectController;
+use App\Http\Controllers\PmTaskController;
+use App\Http\Controllers\PmTaskDetailController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\PurchasingDashboardController;
@@ -1482,6 +1486,49 @@ Route::middleware(['auth'])->group(function () {
                 Route::post('/category/update/{id}', 'updateCategory')->name('category.update');
                 Route::post('/category/status/{id}', 'updateCategoryStatus')->name('category.status');
             });
+
+        Route::controller(PmGroupController::class)->prefix('project-groups')->name('project-groups.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/json', 'json')->name('json');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{groupId}/edit', 'edit')->name('edit');
+            Route::put('/{groupId}', 'update')->name('update');
+            Route::post('/{groupId}/status', 'toggleStatus')->name('status');
+            Route::post('/preview-eligible-users', 'previewEligibleUsers')->name('preview-eligible-users');
+        });
+
+        Route::controller(PmProjectController::class)->prefix('projects')->name('projects.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/kanban', 'kanban')->name('kanban');
+            Route::get('/gantt', 'gantt')->name('gantt');
+            Route::get('/board-data', 'boardData')->name('board-data');
+            Route::post('/', 'store')->name('store');
+            Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::get('/{projectId}', 'show')->name('show');
+            Route::put('/{projectId}', 'update')->name('update');
+            Route::post('/{projectId}/status', 'updateStatus')->name('status');
+            Route::delete('/{projectId}', 'destroy')->name('destroy');
+            Route::post('/{projectId}/link', 'link')->name('link');
+            Route::delete('/{projectId}/link/{linkedProjectId}', 'unlink')->name('unlink');
+            Route::get('/{projectId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
+        });
+
+        Route::controller(PmTaskController::class)->prefix('projects/{projectId}/tasks')->name('projects.tasks.')->group(function () {
+            Route::get('/board-data', 'boardData')->name('board-data');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{taskId}', 'update')->name('update');
+            Route::post('/{taskId}/status', 'updateStatus')->name('status');
+            Route::delete('/{taskId}', 'destroy')->name('destroy');
+            Route::post('/statuses', 'storeStatus')->name('statuses.store');
+            Route::get('/{taskId}/mentionable-users', 'mentionableUsers')->name('mentionable-users');
+        });
+
+        Route::controller(PmTaskDetailController::class)->prefix('projects/{projectId}/tasks/{taskId}/subtasks')->name('projects.subtasks.')->group(function () {
+            Route::post('/', 'store')->name('store');
+            Route::put('/{taskDetailId}', 'update')->name('update');
+            Route::post('/{taskDetailId}/status', 'updateStatus')->name('status');
+            Route::delete('/{taskDetailId}', 'destroy')->name('destroy');
+        });
 
         Route::controller(BookingCarController::class)->group(function () {
             Route::middleware('access:BOOKINGCAR,VIEW')->group(function () {
