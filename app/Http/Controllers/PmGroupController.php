@@ -62,6 +62,7 @@ class PmGroupController extends Controller
                 'group_name' => $group->group_name,
                 'group_description' => $group->group_description,
                 'departments' => $group->details()->pluck('department_opr_id'),
+                'member_count' => $group->members()->count(),
                 'project_count' => $group->projects()->where('status', 'A')->count(),
                 'created_by' => $group->created_by,
                 'created_at' => optional($group->created_at)->toDateTimeString(),
@@ -80,15 +81,25 @@ class PmGroupController extends Controller
             'group_description' => ['nullable', 'string'],
             'department_opr_id' => ['required', 'array', 'min:1'],
             'department_opr_id.*' => ['string', 'exists:pgsql2.ms_department_opr,department_opr_id'],
+            'members' => ['nullable', 'array'],
+            'members.*' => ['string', 'exists:pgsql2.ms_user,username'],
         ]);
 
         $username = Auth::user()->username;
         $now = now();
 
+        // Only usernames actually in the department+role candidate pool can
+        // be added as members — protects against a tampered request adding
+        // someone outside the Group's intended scope.
+        $candidateUsernames = MsGroup::candidateUsersForDepartmentOprIds($request->department_opr_id)
+            ->pluck('username')->map(fn ($u) => strtolower(trim($u)));
+        $members = collect($request->input('members', []))
+            ->filter(fn ($u) => $candidateUsernames->contains(strtolower(trim($u))));
+
         $auto = $this->nextAutonbr('GRP', (int) $now->year, $now->format('m'), $username, 'Project Group');
         $groupId = 'GRP' . substr((string) $now->year, 2) . $now->format('m') . sprintf('%04d', $auto['next']);
 
-        DB::connection('pgsql5')->transaction(function () use ($request, $groupId, $username, $now) {
+        DB::connection('pgsql5')->transaction(function () use ($request, $groupId, $username, $now, $members) {
             MsGroup::create([
                 'group_id' => $groupId,
                 'group_name' => $request->group_name,
@@ -111,6 +122,16 @@ class PmGroupController extends Controller
                     'created_at' => $now,
                 ]);
             }
+
+            foreach ($members as $memberUsername) {
+                \App\Models\TrGroupMember::create([
+                    'group_id' => $groupId,
+                    'username' => $memberUsername,
+                    'added_by' => $username,
+                    'added_at' => $now,
+                    'status' => 'A',
+                ]);
+            }
         });
 
         return response()->json([
@@ -129,6 +150,7 @@ class PmGroupController extends Controller
             'group_name' => $group->group_name,
             'group_description' => $group->group_description,
             'department_opr_id' => $group->details()->pluck('department_opr_id'),
+            'members' => $group->members()->pluck('username'),
         ]);
     }
 
@@ -143,12 +165,19 @@ class PmGroupController extends Controller
             'group_description' => ['nullable', 'string'],
             'department_opr_id' => ['required', 'array', 'min:1'],
             'department_opr_id.*' => ['string', 'exists:pgsql2.ms_department_opr,department_opr_id'],
+            'members' => ['nullable', 'array'],
+            'members.*' => ['string', 'exists:pgsql2.ms_user,username'],
         ]);
 
         $username = Auth::user()->username;
         $now = now();
 
-        DB::connection('pgsql5')->transaction(function () use ($request, $group, $username, $now) {
+        $candidateUsernames = MsGroup::candidateUsersForDepartmentOprIds($request->department_opr_id)
+            ->pluck('username')->map(fn ($u) => strtolower(trim($u)));
+        $members = collect($request->input('members', []))
+            ->filter(fn ($u) => $candidateUsernames->contains(strtolower(trim($u))));
+
+        DB::connection('pgsql5')->transaction(function () use ($request, $group, $username, $now, $members) {
             $group->update([
                 'group_name' => $request->group_name,
                 'group_description' => $request->group_description,
@@ -183,6 +212,26 @@ class PmGroupController extends Controller
                     ]);
                 }
             }
+
+            \App\Models\TrGroupMember::where('group_id', $group->group_id)->update(['status' => 'X']);
+
+            foreach ($members as $memberUsername) {
+                $existing = \App\Models\TrGroupMember::where('group_id', $group->group_id)
+                    ->where('username', $memberUsername)
+                    ->first();
+
+                if ($existing) {
+                    $existing->update(['status' => 'A']);
+                } else {
+                    \App\Models\TrGroupMember::create([
+                        'group_id' => $group->group_id,
+                        'username' => $memberUsername,
+                        'added_by' => $username,
+                        'added_at' => $now,
+                        'status' => 'A',
+                    ]);
+                }
+            }
         });
 
         return response()->json(['success' => true, 'message' => 'Group updated successfully']);
@@ -205,9 +254,9 @@ class PmGroupController extends Controller
         return response()->json(['success' => true, 'message' => 'Status updated successfully']);
     }
 
-    // AJAX preview: which users would be eligible for Projects under the
-    // selected department_opr_id set (used live while building the form,
-    // before the Group is even saved).
+    // AJAX: the candidate pool (department + PROJECTACCESS matched) for the
+    // selected department_opr_id set — populates the Members picker live
+    // while building the form, before the Group is even saved.
     public function previewEligibleUsers(Request $request)
     {
         $request->validate([
@@ -215,17 +264,9 @@ class PmGroupController extends Controller
             'department_opr_id.*' => ['string'],
         ]);
 
-        $departmentIds = \App\Models\MsDepartment::whereIn('department_opr_id', $request->department_opr_id)
-            ->pluck('department_id');
-
-        $projectUsernames = \App\Models\SysUserRole::where('role_id', 'PROJECTACCESS')
-            ->where('status', 'A')
-            ->pluck('username')
-            ->map(fn ($u) => strtolower(trim($u)));
-
-        $users = \App\Models\User::whereIn('department_id', $departmentIds)
-            ->whereIn(DB::raw('lower(username)'), $projectUsernames->all())
-            ->get(['username', 'name', 'department_id']);
+        $users = MsGroup::candidateUsersForDepartmentOprIds($request->department_opr_id)
+            ->map(fn ($u) => $u->only(['username', 'name', 'department_id']))
+            ->values();
 
         return response()->json(['data' => $users]);
     }

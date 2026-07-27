@@ -527,8 +527,11 @@
                     toastr.error('Gagal buka dokumen.');
                 }
             },
-            error: function() {
-                toastr.error('Verifikasi gagal');
+            error: function(xhr) {
+                if (xhr.status === 401) toastr.error('Password salah.');
+                else if (xhr.status === 403) toastr.error('Anda tidak memiliki akses.');
+                else if (xhr.status === 422) toastr.error('Data tidak valid.');
+                else toastr.error('Terjadi kesalahan sistem. Coba lagi.');
             }
         });
     }

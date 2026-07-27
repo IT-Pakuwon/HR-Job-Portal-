@@ -23,7 +23,7 @@
                 </div>
             </div>
 
-            <div id="groupsGrid" class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3"></div>
+            <div id="groupsGrid" class="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
             <p id="groupsEmptyState" class="hidden px-5 pb-6 text-sm text-gray-400">No teams yet.</p>
         </div>
     </div>
@@ -32,13 +32,14 @@
     <div id="groupModal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-slate-900/50"></div>
         <div class="relative flex h-full items-center justify-center p-4">
-            <div class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-slate-800">
+            <div class="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl dark:bg-slate-800">
                 <div class="flex items-start justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
                     <div>
                         <h2 id="groupModalTitle" class="text-xl font-semibold text-slate-900 dark:text-white">New
                             Team</h2>
-                        <p class="mt-1 text-sm text-slate-500">Anyone matching these departments (and holding
-                            Project access) becomes assignable to this Team's Projects.</p>
+                        <p class="mt-1 text-sm text-slate-500">Pick departments to narrow the candidate pool, then
+                            check off specific people on the right to add as Members — only Members become
+                            assignable to this Team's Projects.</p>
                     </div>
                     <button id="closeGroupModal" type="button"
                         class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-700">
@@ -49,50 +50,69 @@
                 <form id="groupForm" class="flex min-h-0 flex-1 flex-col">
                     <input type="hidden" id="group_id" name="group_id">
 
-                    <div class="min-h-0 flex-1 overflow-y-auto p-6 space-y-5">
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Team
-                                Name</label>
-                            <input id="group_name" name="group_name" type="text" required
-                                placeholder="e.g. Marketing Team"
-                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                    <div class="flex min-h-0 flex-1">
+                        {{-- LEFT: Team details --}}
+                        <div class="w-full min-w-0 space-y-5 overflow-y-auto border-r border-slate-100 p-6 md:w-1/2 dark:border-slate-700">
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Team
+                                    Name</label>
+                                <input id="group_name" name="group_name" type="text" required
+                                    placeholder="e.g. Marketing Team"
+                                    class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
+                                <textarea id="group_description" name="group_description" rows="3"
+                                    class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Company</label>
+                                <select id="group_cpny_filter" class="select2 w-full" multiple
+                                    data-placeholder="Filter departments by company">
+                                    @foreach ($companies as $c)
+                                        <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="mt-1 text-xs text-slate-400">Narrows the Departments list below — leave empty to see all companies.</p>
+                            </div>
+
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Departments</label>
+                                <select id="department_opr_id" name="department_opr_id[]" class="select2 w-full" multiple
+                                    data-placeholder="Search and select departments" required>
+                                    @foreach ($departmentOprs as $d)
+                                        <option value="{{ $d->department_opr_id }}" data-cpny="{{ $d->cpny_id }}">
+                                            {{ $d->cpny_id }} - {{ $d->department_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
-                            <textarea id="group_description" name="group_description" rows="3"
-                                class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white"></textarea>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Company</label>
-                            <select id="group_cpny_filter" class="select2 w-full" multiple
-                                data-placeholder="Filter departments by company">
-                                <option></option>
-                                @foreach ($companies as $c)
-                                    <option value="{{ $c->cpny_id }}">{{ $c->cpny_id }} - {{ $c->cpny_name }}</option>
-                                @endforeach
-                            </select>
-                            <p class="mt-1 text-xs text-slate-400">Narrows the Departments list below — leave empty to see all companies.</p>
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Departments</label>
-                            <select id="department_opr_id" name="department_opr_id[]" class="select2 w-full" multiple
-                                data-placeholder="Search and select departments" required>
-                                <option></option>
-                                @foreach ($departmentOprs as $d)
-                                    <option value="{{ $d->department_opr_id }}" data-cpny="{{ $d->cpny_id }}">
-                                        {{ $d->cpny_id }} - {{ $d->department_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div id="eligiblePreviewWrap" class="hidden rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/50">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Eligible members
-                                preview</p>
-                            <div id="eligiblePreviewList" class="mt-2 flex flex-wrap gap-1.5"></div>
+                        {{-- RIGHT: Members panel --}}
+                        <div class="hidden w-1/2 min-w-0 flex-col p-6 md:flex">
+                            <div class="mb-2 flex items-center justify-between">
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Members</label>
+                                <span id="membersSelectedCount" class="text-xs text-slate-400">0 selected</span>
+                            </div>
+                            <input id="memberSearch" type="text" placeholder="Search name or username..."
+                                class="mb-2 h-9 w-full rounded-lg border border-slate-300 px-3 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-700 dark:text-white">
+                            <div class="min-h-0 flex-1 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600">
+                                <table class="w-full text-sm">
+                                    <thead class="sticky top-0 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-700 dark:text-slate-300">
+                                        <tr>
+                                            <th class="w-8 px-3 py-2"><input type="checkbox" id="memberSelectAll"></th>
+                                            <th class="px-2 py-2 text-left font-medium">Name</th>
+                                            <th class="px-2 py-2 text-left font-medium">Username</th>
+                                            <th class="px-2 py-2 text-left font-medium">Dept</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="memberTableBody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                                </table>
+                            </div>
+                            <p id="membersHint" class="mt-1 text-xs text-slate-400">Select at least one department to see candidates.</p>
                         </div>
                     </div>
 
@@ -113,28 +133,33 @@
         const canManageGroups = @json($canManageGroups);
 
         function groupCard(row) {
-            const depts = (row.departments || [])
-                .map(x => `<span class="inline-block rounded bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">${x}</span>`)
+            const maxTags = 3;
+            const deptList = row.departments || [];
+            const depts = deptList.slice(0, maxTags)
+                .map(x => `<span class="inline-block rounded bg-indigo-50 px-1.5 py-0.5 text-[11px] text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">${x}</span>`)
                 .join(' ');
+            const moreDepts = deptList.length > maxTags
+                ? `<span class="text-[11px] text-gray-400">+${deptList.length - maxTags} more</span>`
+                : '';
 
             const editBtn = canManageGroups
-                ? `<button class="edit-group-btn shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-700" data-id="${row.group_id}" title="Edit"><i class="fas fa-pen text-xs"></i></button>`
+                ? `<button class="edit-group-btn shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-indigo-600 dark:hover:bg-gray-700" data-id="${row.group_id}" title="Edit"><i class="fas fa-pen text-xs"></i></button>`
                 : '';
 
             return $(`
-                <div class="flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex flex-col rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <p class="text-xs font-mono text-gray-400">${row.group_id}</p>
-                            <h3 class="truncate font-semibold text-gray-800 dark:text-gray-100">${row.group_name}</h3>
+                            <p class="text-[11px] font-mono text-gray-400">${row.group_id}</p>
+                            <h3 class="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">${row.group_name}</h3>
                         </div>
                         ${editBtn}
                     </div>
-                    <p class="mt-2 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">${row.group_description || '<span class="text-gray-300">No description.</span>'}</p>
-                    <div class="mt-3 flex flex-wrap gap-1">${depts}</div>
-                    <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-xs text-gray-400 dark:border-gray-700">
-                        <span>${row.project_count} project${row.project_count === 1 ? '' : 's'}</span>
-                        <span>by ${row.created_by || '—'}</span>
+                    <p class="mt-1 line-clamp-1 text-xs text-gray-500 dark:text-gray-400">${row.group_description || '<span class="text-gray-300">No description.</span>'}</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-1">${depts}${moreDepts}</div>
+                    <div class="mt-2 flex items-center justify-between border-t border-gray-100 pt-2 text-[11px] text-gray-400 dark:border-gray-700">
+                        <span>${row.member_count} member${row.member_count === 1 ? '' : 's'} · ${row.project_count} project${row.project_count === 1 ? '' : 's'}</span>
+                        <span class="truncate">by ${row.created_by || '—'}</span>
                     </div>
                 </div>
             `);
@@ -207,25 +232,79 @@
                 }
             });
 
+            // Members whose selection should be restored once the candidate
+            // list for the edited Group's departments finishes loading.
+            let pendingMemberSelection = null;
+
+            function updateMembersSelectedCount() {
+                const count = $('#memberTableBody input[type="checkbox"]:checked').length;
+                $('#membersSelectedCount').text(count + ' selected');
+            }
+
+            function renderMemberTable(candidates, checkedUsernames) {
+                const $body = $('#memberTableBody').empty();
+
+                candidates.forEach(u => {
+                    const checked = checkedUsernames.includes(u.username) ? 'checked' : '';
+                    $body.append(`
+                        <tr class="member-row hover:bg-slate-50 dark:hover:bg-slate-700/50" data-search="${(u.name + ' ' + u.username).toLowerCase()}">
+                            <td class="px-3 py-1.5"><input type="checkbox" name="members[]" value="${u.username}" ${checked}></td>
+                            <td class="px-2 py-1.5 text-slate-700 dark:text-slate-200">${u.name}</td>
+                            <td class="px-2 py-1.5 text-slate-500 dark:text-slate-400">${u.username}</td>
+                            <td class="px-2 py-1.5 text-slate-500 dark:text-slate-400">${u.department_id || '—'}</td>
+                        </tr>
+                    `);
+                });
+
+                $('#memberSelectAll').prop('checked', false);
+                updateMembersSelectedCount();
+            }
+
             $('#department_opr_id').on('change', function () {
                 const selected = $(this).val() || [];
+
                 if (selected.length === 0) {
-                    $('#eligiblePreviewWrap').addClass('hidden');
+                    $('#memberTableBody').empty();
+                    $('#membersHint').text('Select at least one department to see candidates.');
+                    pendingMemberSelection = null;
+                    updateMembersSelectedCount();
                     return;
                 }
+
+                $('#membersHint').text('Loading candidates...');
+
                 $.ajax({
                     url: '{{ route('project-groups.preview-eligible-users') }}',
                     method: 'POST',
                     data: { department_opr_id: selected, _token: '{{ csrf_token() }}' },
                     success: function (res) {
-                        $('#eligiblePreviewWrap').removeClass('hidden');
                         const list = res.data || [];
-                        $('#eligiblePreviewList').html(
-                            list.length
-                                ? list.map(u => `<span class="rounded-full bg-white border border-slate-200 px-2.5 py-1 text-xs dark:bg-slate-800 dark:border-slate-600">${u.name} (${u.username})</span>`).join('')
-                                : '<span class="text-xs text-slate-400">No eligible users found for these departments yet.</span>'
-                        );
+                        const keepChecked = pendingMemberSelection
+                            || $('#memberTableBody input[type="checkbox"]:checked').map(function () { return this.value; }).get();
+
+                        renderMemberTable(list, keepChecked);
+                        pendingMemberSelection = null;
+                        $('#memberSearch').val('').trigger('input');
+
+                        $('#membersHint').text(list.length
+                            ? 'Only checked people become assignable to this Team\'s Projects.'
+                            : 'No candidates found for these departments (need PROJECTACCESS + matching department).');
                     }
+                });
+            });
+
+            $('#memberTableBody').on('change', 'input[type="checkbox"]', updateMembersSelectedCount);
+
+            $('#memberSelectAll').on('change', function () {
+                const checked = $(this).is(':checked');
+                $('#memberTableBody tr.member-row:visible input[type="checkbox"]').prop('checked', checked);
+                updateMembersSelectedCount();
+            });
+
+            $('#memberSearch').on('input', function () {
+                const term = $(this).val().trim().toLowerCase();
+                $('#memberTableBody tr.member-row').each(function () {
+                    $(this).toggle(!term || $(this).data('search').includes(term));
                 });
             });
 
@@ -233,8 +312,9 @@
                 $('#groupForm')[0].reset();
                 $('#group_id').val('');
                 $('#group_cpny_filter').val(null).trigger('change');
+                pendingMemberSelection = null;
+                $('#memberSearch').val('');
                 $('#department_opr_id').val(null).trigger('change');
-                $('#eligiblePreviewWrap').addClass('hidden');
                 $('#groupModalTitle').text('New Team');
             }
 
@@ -265,6 +345,7 @@
                     $('#group_cpny_filter').val(companies).trigger('change');
                     suppressDeptReset = false;
 
+                    pendingMemberSelection = data.members || [];
                     $('#department_opr_id').val(data.department_opr_id).trigger('change');
                     $('#groupModalTitle').text('Edit Team — ' + data.group_id);
                     $('#groupModal').removeClass('hidden');

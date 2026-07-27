@@ -39,14 +39,36 @@ class MsGroup extends Model
         return $this->details()->pluck('department_opr_id');
     }
 
-    // Users eligible to be added to Projects under this Group: must hold
-    // PROJECTACCESS (module access) and their ms_department must chain
-    // into one of this Group's assigned ms_department_opr rows.
-    public function eligibleUsers()
+    public function members()
+    {
+        return $this->hasMany(TrGroupMember::class, 'group_id', 'group_id')
+            ->where('status', 'A');
+    }
+
+    // Candidate pool for the "add member" picker: must hold PROJECTACCESS
+    // (module access) and their ms_department must chain into one of this
+    // Group's assigned ms_department_opr rows. Departments narrow who's
+    // *offered* — being in this pool does not itself grant membership.
+    public function candidateUsers()
     {
         $departmentIds = MsDepartment::whereIn('department_opr_id', $this->departmentOprIds())
             ->pluck('department_id');
 
+        return static::candidateUsersForDepartments($departmentIds);
+    }
+
+    // Same candidate-pool query, usable before a Group has been saved yet
+    // (e.g. while building the create form) — see PmGroupController.
+    public static function candidateUsersForDepartmentOprIds($departmentOprIds)
+    {
+        $departmentIds = MsDepartment::whereIn('department_opr_id', $departmentOprIds)
+            ->pluck('department_id');
+
+        return static::candidateUsersForDepartments($departmentIds);
+    }
+
+    private static function candidateUsersForDepartments($departmentIds)
+    {
         $projectUsernames = SysUserRole::where('role_id', 'PROJECTACCESS')
             ->where('status', 'A')
             ->pluck('username')
@@ -55,5 +77,16 @@ class MsGroup extends Model
         return User::whereIn('department_id', $departmentIds)
             ->whereIn(DB::raw('lower(username)'), $projectUsernames->all())
             ->get();
+    }
+
+    // Actual Group members (explicitly added via tr_group_member) — this is
+    // what backs Task/Project assignee pickers, access checks, and
+    // @mention audiences, NOT the raw department-matched candidate pool.
+    public function eligibleUsers()
+    {
+        $usernames = $this->members()->pluck('username')
+            ->map(fn ($u) => strtolower(trim($u)));
+
+        return User::whereIn(DB::raw('lower(username)'), $usernames->all())->get();
     }
 }

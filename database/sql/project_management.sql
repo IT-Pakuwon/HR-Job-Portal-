@@ -54,6 +54,22 @@ CREATE TABLE IF NOT EXISTS tr_group_detail (
 
 CREATE INDEX IF NOT EXISTS idx_tr_group_detail_group ON tr_group_detail(group_id);
 
+-- Explicit Group membership. Departments (tr_group_detail) narrow the
+-- candidate pool an org admin picks from; this table is the actual stored
+-- membership list, and is what backs Task/Project assignee pickers,
+-- @mention audiences, and mentionable-users lookups.
+CREATE TABLE IF NOT EXISTS tr_group_member (
+    id          BIGSERIAL PRIMARY KEY,
+    group_id    VARCHAR(20) NOT NULL REFERENCES ms_group(group_id),
+    username    VARCHAR(50) NOT NULL,
+    added_by    VARCHAR(50),
+    added_at    TIMESTAMP WITHOUT TIME ZONE,
+    status      VARCHAR(5)  DEFAULT 'A',
+    CONSTRAINT uq_tr_group_member_group_username UNIQUE (group_id, username)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tr_group_member_group ON tr_group_member(group_id);
+
 -- ── Project status (global, shared across all Groups/Projects — this is
 --    what the portfolio Kanban groups by, so it must stay comparable) ──
 CREATE TABLE IF NOT EXISTS ms_project_status (
