@@ -1,6 +1,8 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'users' ? 'Users' : '';
+        $currentPage = in_array(Route::currentRouteName(), ['users', 'users-sby']) ? 'Users' : '';
+        $usersSby = Route::is('users-sby') || Route::is('users-sby.*');
+        $usersBase = $usersSby ? '/users-sby' : '/users';
     @endphp
     <style>
         .select2-container--default .select2-selection--multiple {
@@ -471,7 +473,7 @@
 
                 dupTable = $('#dupUsersTable').DataTable({
                     ajax: {
-                        url: "{{ route('users.duplicates.json') }}",
+                        url: "{{ $usersSby ? route('users-sby.duplicates.json') : route('users.duplicates.json') }}",
                         dataSrc: function(json) {
                             updateDupBadge(json.data ? json.data.length : 0);
                             return json.data;
@@ -614,8 +616,129 @@
             }
 
             // Preload the duplicate count badge even before the tab is opened
-            $.getJSON("{{ route('users.duplicates.json') }}", function(json) {
+            $.getJSON("{{ $usersSby ? route('users-sby.duplicates.json') : route('users.duplicates.json') }}", function(json) {
                 updateDupBadge(json.data ? json.data.length : 0);
+            });
+
+            // ===== Inactive Users tab =====
+            let inactiveTable = null;
+            let inactiveTableLoaded = false;
+
+            function initInactiveTable() {
+                if (inactiveTableLoaded) return;
+                inactiveTableLoaded = true;
+
+                inactiveTable = $('#inactiveUsersTable').DataTable({
+                    ajax: {
+                        url: "{{ $usersSby ? route('users-sby.inactive.json') : route('users.inactive.json') }}",
+                        dataSrc: function(json) {
+                            updateInactiveBadge(json.data ? json.data.length : 0);
+                            return json.data;
+                        }
+                    },
+                    processing: true,
+                    serverSide: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        },
+                        {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="flex justify-center space-x-2">
+                                        <label class="switch cursor-pointer">
+                                            <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <button type="button"
+                                                class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Login As">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Reset Password">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        },
+                        {
+                            data: 'name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'username',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'email',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'cpny_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'department_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'business_unit_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'jabatan',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            }
+
+            function updateInactiveBadge(count) {
+                if (count > 0) {
+                    $('#inactiveCountBadge').removeClass('hidden').text(count);
+                } else {
+                    $('#inactiveCountBadge').addClass('hidden');
+                }
+            }
+
+            // Preload the inactive count badge even before the tab is opened
+            $.getJSON("{{ $usersSby ? route('users-sby.inactive.json') : route('users.inactive.json') }}", function(json) {
+                updateInactiveBadge(json.data ? json.data.length : 0);
             });
 
             function activateTab(tab) {
@@ -646,7 +769,7 @@
             });
 
             let table = $('#usersTable').DataTable({
-                ajax: "{{ route('users.json') }}",
+                ajax: "{{ $usersSby ? route('users-sby.json') : route('users.json') }}",
                 processing: true,
                 serverSide: false,
                 lengthMenu: [
@@ -875,7 +998,7 @@
 
                 $('#closeModal').prop('disabled', false);
 
-                $.get(`/users/${appId}/edit`, function(app) {
+                $.get(`{{ $usersBase }}/${appId}/edit`, function(app) {
 
                     $('#modalTitle').text('Edit User');
 
@@ -910,7 +1033,7 @@
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                 $.ajax({
-                    url: `/users/${appId}/toggle-status`,
+                    url: `{{ $usersBase }}/${appId}/toggle-status`,
                     type: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -937,7 +1060,7 @@
                 }
 
                 let appId = $('#id').val();
-                let url = appId ? `/users/${appId}` : "{{ route('users.store') }}";
+                let url = appId ? `{{ $usersBase }}/${appId}` : "{{ $usersSby ? route('users-sby.store') : route('users.store') }}";
                 let method = 'POST';
 
                 let formData = new FormData(document.getElementById('appForm'));
