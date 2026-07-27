@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Http\Controllers\MeetingController;
-use App\Models\MsMeetingRoom;
+use App\Models\MsMeetingAccessories;
 use App\Models\TrMeeting;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -15,9 +15,17 @@ class RetryFailedTeamsLinks extends Command
 
     public function handle(MeetingController $meetingController): void
     {
-        $teamsRoomIds = MsMeetingRoom::query()
-            ->where('status', 'T')
-            ->pluck('room_id');
+        // Any accessory wired to a Teams account can produce a Teams link,
+        // regardless of which room (or room status) the meeting was booked in.
+        $teamsAccessoryIds = MsMeetingAccessories::query()
+            ->whereNotNull('userid_msteams')
+            ->pluck('acc_id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+
+        if (empty($teamsAccessoryIds)) {
+            return;
+        }
 
         $meetings = TrMeeting::on('pgsql5')
             ->whereNull('msteams_join_url')
@@ -25,8 +33,14 @@ class RetryFailedTeamsLinks extends Command
             ->where('end_meeting_time', '>=', now())
             ->whereNotNull('acc_id')
             ->where('acc_id', '!=', '')
-            ->whereIn('room_id', $teamsRoomIds)
-            ->get();
+            ->get()
+            ->filter(function ($meeting) use ($teamsAccessoryIds) {
+                $accIds = collect(explode(',', (string) $meeting->acc_id))
+                    ->map(fn ($x) => trim($x))
+                    ->filter();
+
+                return $accIds->intersect($teamsAccessoryIds)->isNotEmpty();
+            });
 
         foreach ($meetings as $meeting) {
             try {

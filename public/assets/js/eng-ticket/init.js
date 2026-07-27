@@ -41,7 +41,6 @@ function initTicketViewToggle() {
     $(document).on("click", ".js-toggle-ticket-view", function () {
         $("#ticketCalendarWrapper").toggleClass("hidden");
         $("#ticketTableWrapper").toggleClass("hidden");
-        $("#ticketFilterToolbar").toggleClass("hidden");
         $("#ticketStatusFilterRow").toggleClass("hidden");
         $("#ticketCalendarStatusFilterRow").toggleClass("hidden");
 

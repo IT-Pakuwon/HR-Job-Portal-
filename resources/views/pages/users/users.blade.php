@@ -41,6 +41,12 @@
                 <span id="dupCountBadge"
                     class="ml-1 hidden rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"></span>
             </button>
+            <button type="button" id="tabBtnInactive"
+                class="user-tab-btn rounded-t-lg border border-b-0 border-gray-200 bg-gray-50 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                🚫 Inactive Users
+                <span id="inactiveCountBadge"
+                    class="ml-1 hidden rounded-full bg-gray-500 px-2 py-0.5 text-xs font-bold text-white"></span>
+            </button>
         </div>
 
         <div id="tabPanelList"
@@ -168,6 +174,37 @@
                             <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
                             <th class="px-4 py-3 text-left font-medium">Jabatan</th>
                             <th class="px-4 py-3 text-left font-medium">Created</th>
+                            <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tabPanelInactive"
+            class="hidden rounded-b-xl rounded-tr-xl border border-t-0 border-gray-200 bg-white shadow-sm dark:border-white/[0.06] dark:bg-[#0f172a]">
+            <div class="border-b border-gray-100 px-5 py-2 dark:border-white/[0.06]">
+                <h2 class="text-base font-semibold tracking-tight text-gray-800 dark:text-gray-100">🚫 Inactive Users</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Users currently deactivated. Toggle the switch to reactivate an account.
+                </p>
+            </div>
+
+            <div class="relative overflow-hidden">
+                <table id="inactiveUsersTable" class="w-full min-w-full border-separate border-spacing-0 text-sm">
+                    <thead>
+                        <tr
+                            class="border-b border-gray-100 bg-gray-50/70 text-[11px] uppercase tracking-[0.08em] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-gray-400">
+                            <th class="w-10 px-4 py-3"></th>
+                            <th class="w-48 px-4 py-3 text-left font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Username</th>
+                            <th class="px-4 py-3 text-left font-medium">Email</th>
+                            <th class="px-4 py-3 text-left font-medium">Company</th>
+                            <th class="px-4 py-3 text-left font-medium">Departement</th>
+                            <th class="px-4 py-3 text-left font-medium">BusinessUnit</th>
+                            <th class="px-4 py-3 text-left font-medium">Jabatan</th>
                             <th class="w-32 px-4 py-3 text-left font-medium">Status</th>
                         </tr>
                     </thead>
@@ -385,11 +422,12 @@
                                                 User Type
                                             </label>
 
-                                            <select name="role" required
-                                                class="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white">
-                                                <option value="">Select Type</option>
+                                            <select name="role[]" class="select2 w-full" multiple
+                                                data-placeholder="Search and select user type" required>
+                                                <option></option>
                                                 <option value="user">User</option>
                                                 <option value="admin">Admin</option>
+                                                <option value="adminsby">Admin Surabaya</option>
                                             </select>
                                         </div>
 
@@ -618,23 +656,154 @@
                 updateDupBadge(json.data ? json.data.length : 0);
             });
 
+            // ===== Inactive Users tab =====
+            let inactiveTable = null;
+            let inactiveTableLoaded = false;
+
+            function initInactiveTable() {
+                if (inactiveTableLoaded) return;
+                inactiveTableLoaded = true;
+
+                inactiveTable = $('#inactiveUsersTable').DataTable({
+                    ajax: {
+                        url: "{{ route('users.inactive.json') }}",
+                        dataSrc: function(json) {
+                            updateInactiveBadge(json.data ? json.data.length : 0);
+                            return json.data;
+                        }
+                    },
+                    processing: true,
+                    serverSide: false,
+                    lengthMenu: [
+                        [10, 25, 50, 100, 250, -1],
+                        [10, 25, 50, 100, 250, 'All']
+                    ],
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 0
+                        }
+                    },
+                    columnDefs: [{
+                        targets: 0,
+                        width: '28px',
+                        className: 'dtr-control',
+                        orderable: false
+                    }],
+                    dom: '<"dt-toolbar flex items-center justify-start gap-4"lf>rtip',
+                    columns: [{
+                            data: null,
+                            defaultContent: ''
+                        },
+                        {
+                            data: 'id',
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="flex justify-center space-x-2">
+                                        <label class="switch cursor-pointer">
+                                            <input type="checkbox" class="toggleStatus" data-id="${row.id}" ${row.status === 'A' ? 'checked' : ''}>
+                                            <span class="slider round"></span>
+                                        </label>
+                                        <button type="button"
+                                                class="editAppBtn bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="impersonateBtn bg-yellow-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Login As">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="resetPwdBtn bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                                                data-id="${data}" title="Reset Password">
+                                            <i class="fas fa-undo"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        },
+                        {
+                            data: 'name',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'username',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'email',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'cpny_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'department_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'business_unit_id',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'jabatan',
+                            className: 'no-pointer'
+                        },
+                        {
+                            data: 'status',
+                            className: 'no-pointer',
+                            render: function(data) {
+                                return data === 'A' ?
+                                    '<span class="w-full max-w-25 bg-green-300/30 dark:bg-green-300 text-green-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Active</span>' :
+                                    '<span class="w-full max-w-25 bg-red-300/30 dark:bg-red-300 text-red-600 focus:outline-none pointer-events-none border-none font-semibold px-4 py-2 text-center rounded">Inactive</span>';
+                            }
+                        }
+                    ]
+                });
+            }
+
+            function updateInactiveBadge(count) {
+                if (count > 0) {
+                    $('#inactiveCountBadge').removeClass('hidden').text(count);
+                } else {
+                    $('#inactiveCountBadge').addClass('hidden');
+                }
+            }
+
+            // Preload the inactive count badge even before the tab is opened
+            $.getJSON("{{ route('users.inactive.json') }}", function(json) {
+                updateInactiveBadge(json.data ? json.data.length : 0);
+            });
+
             function activateTab(tab) {
                 const isList = tab === 'list';
+                const isDuplicates = tab === 'duplicates';
+                const isInactive = tab === 'inactive';
+
                 $('#tabPanelList').toggleClass('hidden', !isList);
-                $('#tabPanelDuplicates').toggleClass('hidden', isList).toggleClass('flex', !isList);
+                $('#tabPanelDuplicates').toggleClass('hidden', !isDuplicates);
+                $('#tabPanelInactive').toggleClass('hidden', !isInactive);
 
                 $('#tabBtnList')
                     .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isList)
                     .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isList);
                 $('#tabBtnDuplicates')
-                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', !isList)
-                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', isList);
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isDuplicates)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isDuplicates);
+                $('#tabBtnInactive')
+                    .toggleClass('bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400', isInactive)
+                    .toggleClass('bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400', !isInactive);
 
                 if (isList) {
                     table.columns.adjust().draw(false);
-                } else {
+                } else if (isDuplicates) {
                     initDupTable();
                     if (dupTable) dupTable.columns.adjust().draw(false);
+                } else if (isInactive) {
+                    initInactiveTable();
+                    if (inactiveTable) inactiveTable.columns.adjust().draw(false);
                 }
             }
 
@@ -643,6 +812,9 @@
             });
             $('#tabBtnDuplicates').on('click', function() {
                 activateTab('duplicates');
+            });
+            $('#tabBtnInactive').on('click', function() {
+                activateTab('inactive');
             });
 
             let table = $('#usersTable').DataTable({
@@ -845,7 +1017,7 @@
 
                 $('#homepage').val(null).trigger('change');
 
-                $('select[name="role"]').val('').trigger('change');
+                $('select[name="role[]"]').val(null).trigger('change');
                 $('select[name="jabatan"]').val('').trigger('change');
 
                 $('select[name="cpny_id[]"]').val(null).trigger('change');
@@ -888,7 +1060,7 @@
                     $('#homepage').val(app.homepage).trigger('change');
 
                     $('select[name="jabatan"]').val(app.jabatan).trigger('change');
-                    $('select[name="role"]').val(app.role).trigger('change');
+                    $('select[name="role[]"]').val(app.role).trigger('change');
 
                     $('select[name="cpny_id[]"]').val(app.cpny_id).trigger('change');
                     $('select[name="department_id[]"]').val(app.department_id).trigger('change');
@@ -920,6 +1092,8 @@
                     },
                     success: function() {
                         table.ajax.reload(null, false);
+                        if (inactiveTable) inactiveTable.ajax.reload(null, false);
+                        if (dupTable) dupTable.ajax.reload(null, false);
                     }
                 });
             });
@@ -1215,6 +1389,9 @@
                             }
                             if ($.fn.DataTable.isDataTable('#usersTable')) {
                                 $('#usersTable').DataTable().ajax.reload(null, false);
+                            }
+                            if ($.fn.DataTable.isDataTable('#inactiveUsersTable')) {
+                                $('#inactiveUsersTable').DataTable().ajax.reload(null, false);
                             }
                         },
                         error: function(xhr) {

@@ -31,7 +31,30 @@ const EngTicketCalendar = {
 
         EngTicketCalendar.initCalendar();
         EngTicketCalendar.bindStatusFilter();
+        EngTicketCalendar.bindToolbarFilter();
         EngTicketCalendar.loadEvents();
+    },
+
+    // --------------------------------------------------------
+    // TOOLBAR FILTER (search / status / workflow / category /
+    // company / date range — shared markup with the Table view)
+    // --------------------------------------------------------
+    bindToolbarFilter() {
+        $(document).on('click', '#btn_apply_filter, #btn_reset_filter', function () {
+            EngTicketCalendar.loadEvents();
+        });
+    },
+
+    getFilterParams() {
+        return {
+            search:           $('#filter_search').val() || '',
+            status_filter:    $('#filter_status').val() || '',
+            status_pekerjaan: $('#filter_status_pekerjaan').val() || '',
+            category_id:      $('#filter_category_id').val() || '',
+            cpny_id:          $('#filter_company_id').val() || '',
+            date_from:        $('#filter_date_from').val() || '',
+            date_to:          $('#filter_date_to').val() || '',
+        };
     },
 
     // --------------------------------------------------------
@@ -126,7 +149,7 @@ const EngTicketCalendar = {
         EngTicketCalendar.state.isLoading = true;
 
         try {
-            const response = await $.getJSON(window.ticketRoutes.calendarJson);
+            const response = await $.getJSON(window.ticketRoutes.calendarJson, EngTicketCalendar.getFilterParams());
 
             const items = Array.isArray(response.data) ? response.data : [];
 

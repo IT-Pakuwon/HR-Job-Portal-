@@ -561,14 +561,55 @@ class EngTicketController extends Controller
 
         $engTypes = $this->engTicketTypes();
 
-        $tickets = TrTicket::with('responseActivity')
+        $query = TrTicket::with('responseActivity')
             ->whereIn('ticket_type', $engTypes)
             ->where(function ($q) use ($broadTypes, $user) {
                 $q->whereIn('ticket_type', $broadTypes)
                     ->orWhere('created_by', $user->username)
                     ->orWhere('pic_ticket', $user->username);
-            })
-            ->get();
+            });
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('ticketid',        'ilike', "%{$search}%")
+                  ->orWhere('issue_summary', 'ilike', "%{$search}%")
+                  ->orWhere('pic_ticket',    'ilike', "%{$search}%")
+                  ->orWhere('ticket_type',   'ilike', "%{$search}%")
+                  ->orWhere('created_by',    'ilike', "%{$search}%")
+                  ->orWhere('user_peminta',  'ilike', "%{$search}%")
+                  ->orWhere('department_id', 'ilike', "%{$search}%")
+                  ->orWhere('cpny_id',       'ilike', "%{$search}%")
+                  ->orWhere('status_pekerjaan', 'ilike', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status_filter')) {
+            $query->where('status', $request->status_filter);
+        }
+
+        if ($request->filled('status_pekerjaan')) {
+            $query->where('status_pekerjaan', $request->status_pekerjaan);
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('ticket_categoryid', $request->category_id);
+        }
+
+        if ($request->filled('cpny_id')) {
+            $query->where('cpny_id', $request->cpny_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('ticketdate', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('ticketdate', '<=', $request->date_to);
+        }
+
+        $tickets = $query->get();
 
         $scheduledActivities = TrTicketActivity::query()
             ->whereIn('ticketid', $tickets->pluck('ticketid'))

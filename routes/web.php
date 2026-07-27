@@ -2270,6 +2270,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users', [UsersController::class, 'index'])->name('users');
         Route::get('/users/json', [UsersController::class, 'json'])->name('users.json');
         Route::get('/users/duplicates/json', [UsersController::class, 'duplicatesJson'])->name('users.duplicates.json');
+        Route::get('/users/inactive/json', [UsersController::class, 'inactiveJson'])->name('users.inactive.json');
         Route::post('/users', [UsersController::class, 'store'])->name('users.store');
         Route::get('/users/{id}/edit', [UsersController::class, 'edit'])->name('users.edit');
         Route::put('/users/{post}', [UsersController::class, 'update'])->name('users.update');
