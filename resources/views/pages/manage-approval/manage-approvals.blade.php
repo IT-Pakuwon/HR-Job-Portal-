@@ -1,4 +1,8 @@
 <x-app-layout>
+    @php
+        $maSby = Route::is('manage-approvals-sby') || Route::is('manage-approvals-sby.*');
+        $maBase = $maSby ? '/manage-approvals-sby' : '/manage-approvals';
+    @endphp
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -344,7 +348,7 @@
             // ===== Search table =====
             let table = $('#manageApprovalTable').DataTable({
                 ajax: {
-                    url: "{{ route('manage-approvals.json') }}",
+                    url: "{{ $maSby ? route('manage-approvals-sby.json') : route('manage-approvals.json') }}",
                     type: 'GET',
                     data: function(d) {
                         d.refnbr = $('#filterRefnbr').val();
@@ -437,7 +441,7 @@
                 if (!setStatusRowId) return;
 
                 $.ajax({
-                    url: `/manage-approvals/${setStatusRowId}/set-status`,
+                    url: `{{ $maBase }}/${setStatusRowId}/set-status`,
                     type: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrfToken },
                     data: { preview: 1, new_status: $('#setStatusNewStatus').val() },
@@ -512,7 +516,7 @@
                     if (!result.isConfirmed) return;
 
                     $.ajax({
-                        url: `/manage-approvals/${setStatusRowId}/set-status`,
+                        url: `{{ $maBase }}/${setStatusRowId}/set-status`,
                         type: 'POST',
                         headers: { 'X-CSRF-TOKEN': csrfToken },
                         data: {
@@ -563,7 +567,7 @@
                 }
 
                 $.ajax({
-                    url: `/manage-approvals/${editLineRowId}/update-line`,
+                    url: `{{ $maBase }}/${editLineRowId}/update-line`,
                     type: 'PUT',
                     headers: { 'X-CSRF-TOKEN': csrfToken },
                     data: {
@@ -597,7 +601,7 @@
                 }
 
                 $.ajax({
-                    url: "{{ route('manage-approvals.transfer.preview') }}",
+                    url: "{{ $maSby ? route('manage-approvals-sby.transfer.preview') : route('manage-approvals.transfer.preview') }}",
                     type: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrfToken },
                     data: {
@@ -659,7 +663,7 @@
                     if (!result.isConfirmed) return;
 
                     $.ajax({
-                        url: "{{ route('manage-approvals.transfer.confirm') }}",
+                        url: "{{ $maSby ? route('manage-approvals-sby.transfer.confirm') : route('manage-approvals.transfer.confirm') }}",
                         type: 'POST',
                         headers: { 'X-CSRF-TOKEN': csrfToken },
                         data: {

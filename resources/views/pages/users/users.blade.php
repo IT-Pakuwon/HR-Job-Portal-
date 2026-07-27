@@ -1,6 +1,8 @@
 <x-app-layout>
     @php
-        $currentPage = Route::currentRouteName() == 'users' ? 'Users' : '';
+        $currentPage = in_array(Route::currentRouteName(), ['users', 'users-sby']) ? 'Users' : '';
+        $usersSby = Route::is('users-sby') || Route::is('users-sby.*');
+        $usersBase = $usersSby ? '/users-sby' : '/users';
     @endphp
     <style>
         .select2-container--default .select2-selection--multiple {
@@ -509,7 +511,7 @@
 
                 dupTable = $('#dupUsersTable').DataTable({
                     ajax: {
-                        url: "{{ route('users.duplicates.json') }}",
+                        url: "{{ $usersSby ? route('users-sby.duplicates.json') : route('users.duplicates.json') }}",
                         dataSrc: function(json) {
                             updateDupBadge(json.data ? json.data.length : 0);
                             return json.data;
@@ -652,7 +654,7 @@
             }
 
             // Preload the duplicate count badge even before the tab is opened
-            $.getJSON("{{ route('users.duplicates.json') }}", function(json) {
+            $.getJSON("{{ $usersSby ? route('users-sby.duplicates.json') : route('users.duplicates.json') }}", function(json) {
                 updateDupBadge(json.data ? json.data.length : 0);
             });
 
@@ -666,7 +668,7 @@
 
                 inactiveTable = $('#inactiveUsersTable').DataTable({
                     ajax: {
-                        url: "{{ route('users.inactive.json') }}",
+                        url: "{{ $usersSby ? route('users-sby.inactive.json') : route('users.inactive.json') }}",
                         dataSrc: function(json) {
                             updateInactiveBadge(json.data ? json.data.length : 0);
                             return json.data;
@@ -773,7 +775,7 @@
             }
 
             // Preload the inactive count badge even before the tab is opened
-            $.getJSON("{{ route('users.inactive.json') }}", function(json) {
+            $.getJSON("{{ $usersSby ? route('users-sby.inactive.json') : route('users.inactive.json') }}", function(json) {
                 updateInactiveBadge(json.data ? json.data.length : 0);
             });
 
@@ -818,7 +820,7 @@
             });
 
             let table = $('#usersTable').DataTable({
-                ajax: "{{ route('users.json') }}",
+                ajax: "{{ $usersSby ? route('users-sby.json') : route('users.json') }}",
                 processing: true,
                 serverSide: false,
                 lengthMenu: [
@@ -1047,7 +1049,7 @@
 
                 $('#closeModal').prop('disabled', false);
 
-                $.get(`/users/${appId}/edit`, function(app) {
+                $.get(`{{ $usersBase }}/${appId}/edit`, function(app) {
 
                     $('#modalTitle').text('Edit User');
 
@@ -1082,7 +1084,7 @@
                 let newStatus = $(this).is(':checked') ? 'A' : 'X';
 
                 $.ajax({
-                    url: `/users/${appId}/toggle-status`,
+                    url: `{{ $usersBase }}/${appId}/toggle-status`,
                     type: 'PUT',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1111,7 +1113,7 @@
                 }
 
                 let appId = $('#id').val();
-                let url = appId ? `/users/${appId}` : "{{ route('users.store') }}";
+                let url = appId ? `{{ $usersBase }}/${appId}` : "{{ $usersSby ? route('users-sby.store') : route('users.store') }}";
                 let method = 'POST';
 
                 let formData = new FormData(document.getElementById('appForm'));

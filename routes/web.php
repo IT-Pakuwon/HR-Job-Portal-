@@ -2496,6 +2496,25 @@ Route::middleware(['auth'])->group(function () {
             ->name('attachments.delete');
     }); // end admin middleware
 
+    // ── Admin Surabaya (adminsby): scoped duplicate of Users / Manage Approval ──
+    Route::middleware('adminsby')->group(function () {
+        Route::get('/users-sby', [UsersController::class, 'index'])->name('users-sby');
+        Route::get('/users-sby/json', [UsersController::class, 'json'])->name('users-sby.json');
+        Route::get('/users-sby/duplicates/json', [UsersController::class, 'duplicatesJson'])->name('users-sby.duplicates.json');
+        Route::get('/users-sby/inactive/json', [UsersController::class, 'inactiveJson'])->name('users-sby.inactive.json');
+        Route::post('/users-sby', [UsersController::class, 'store'])->name('users-sby.store');
+        Route::get('/users-sby/{id}/edit', [UsersController::class, 'edit'])->name('users-sby.edit');
+        Route::put('/users-sby/{post}', [UsersController::class, 'update'])->name('users-sby.update');
+        Route::put('/users-sby/{id}/toggle-status', [UsersController::class, 'toggleStatus'])->name('users-sby.toggle-status');
+
+        Route::get('/manage-approvals-sby', [ManageApprovalController::class, 'index'])->name('manage-approvals-sby');
+        Route::get('/manage-approvals-sby/json', [ManageApprovalController::class, 'search'])->name('manage-approvals-sby.json');
+        Route::post('/manage-approvals-sby/{id}/set-status', [ManageApprovalController::class, 'setStatus'])->name('manage-approvals-sby.set-status');
+        Route::put('/manage-approvals-sby/{id}/update-line', [ManageApprovalController::class, 'updateLine'])->name('manage-approvals-sby.update-line');
+        Route::post('/manage-approvals-sby/transfer/preview', [ManageApprovalController::class, 'transferPreview'])->name('manage-approvals-sby.transfer.preview');
+        Route::post('/manage-approvals-sby/transfer/confirm', [ManageApprovalController::class, 'transferConfirm'])->name('manage-approvals-sby.transfer.confirm');
+    });
+
     // ── Group Biaya Non Purch (admin + cost control) ──────────────────────────
     Route::get('/groupbiaya-nonpurch', [MsGroupbiayaNonPurchController::class, 'index'])->name('groupbiayanonpurch');
     Route::get('/groupbiaya-nonpurch/json', [MsGroupbiayaNonPurchController::class, 'json'])->name('groupbiayanonpurch.json');

@@ -77,6 +77,7 @@ class Kernel extends HttpKernel
         'bearer.sanctum' => \App\Http\Middleware\BearerSanctum::class,
         'ajax' => \App\Http\Middleware\AjaxMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'adminsby' => \App\Http\Middleware\AdminSbyMiddleware::class,
     ];
 
 }
