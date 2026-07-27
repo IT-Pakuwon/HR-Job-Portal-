@@ -46,7 +46,7 @@ class SelfRegisterApplicantController extends Controller
         $all       = (clone $base)->count();
         $unchecked = (clone $base)->where(function ($q) {
             $q->where('sp.is_read', 'N')->orWhereNull('sp.is_read');
-        })->count();
+        })->whereIn('vc.status', ['H', 'P'])->count();
         $checked   = (clone $base)->where('sp.is_read', 'Y')->whereIn('vc.status', ['H', 'P'])->count();
         $reject    = (clone $base)->where('vc.status', 'R')->count();
         $mapped    = (clone $base)->whereNotNull('map.jobid')->count();
@@ -111,7 +111,7 @@ class SelfRegisterApplicantController extends Controller
             if ($status === 'is_read_N') {
                 $base->where(function ($q) {
                     $q->where('sp.is_read', 'N')->orWhereNull('sp.is_read');
-                });
+                })->whereIn('vc.status', ['H', 'P']);
             } elseif ($status === 'is_read_Y') {
                 $base->where('sp.is_read', 'Y')
                     ->whereIn('vc.status', ['H', 'P']);
