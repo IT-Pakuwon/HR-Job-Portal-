@@ -2738,11 +2738,28 @@ class MeetingController extends Controller
 
             $json = $response->json();
 
+            $joinUrl = data_get($json, 'onlineMeeting.joinUrl')
+                ?: ($json['onlineMeetingUrl'] ?? null);
+
+            if (empty($joinUrl)) {
+                Log::error('MS Graph event created without online meeting join info', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'userId' => $userId,
+                    'eventId' => $json['id'] ?? null,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Teams event was created but Microsoft Graph did not return a join link.',
+                    'msteams_event_id' => $json['id'] ?? null,
+                ];
+            }
+
             return [
                 'success' => true,
                 'msteams_event_id' => $json['id'] ?? null,
-                'msteams_join_url' => data_get($json, 'onlineMeeting.joinUrl')
-                    ?: ($json['onlineMeetingUrl'] ?? null),
+                'msteams_join_url' => $joinUrl,
                 'msteams_passcode' => data_get($json, 'onlineMeeting.joinMeetingIdSettings.passcode'),
                 'msteams_meetingid' => data_get($json, 'onlineMeeting.joinMeetingIdSettings.joinMeetingId')
                     ?: data_get($json, 'onlineMeeting.conferenceId'),

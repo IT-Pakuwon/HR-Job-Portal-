@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class TrMessage extends Model
 {
     protected $connection = 'pgsql2';
-    protected $table = "tr_message";
-    protected $primaryKey = 'id';    
+    protected $table = 'tr_message';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'refnbr',

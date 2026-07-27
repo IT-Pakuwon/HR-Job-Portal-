@@ -85,6 +85,31 @@ class UsersController extends Controller
             'homepage',
             'status'
         ])
+            ->where('status', 'A')
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json(['data' => $users]);
+    }
+
+
+    public function inactiveJson()
+    {
+        $users = User::select([
+            'id',
+            'name',
+            'username',
+            'email',
+            'cpny_id',
+            'department_id',
+            'business_unit_id',
+            'division_id',
+            'jabatan',
+            'npk',
+            'homepage',
+            'status'
+        ])
+            ->where('status', '!=', 'A')
             ->orderByDesc('id')
             ->get();
 
@@ -186,7 +211,7 @@ class UsersController extends Controller
             'business_unit_id' => 'nullable|array',
             'homepage' => 'nullable|string',
             'jabatan' => 'required',
-            'role' => 'required',
+            'role' => 'required|array',
             'role_ids' => 'nullable|array',
         ]);
         DB::beginTransaction();
@@ -198,6 +223,7 @@ class UsersController extends Controller
             $deptIdsString    = implode(',', $request->department_id);
             $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
             $divisionIdsString = implode(',', $request->division_id ?? []);
+            $roleString = implode(',', $request->role);
 
             $email    = $request->email;
             $username = $request->filled('username')
@@ -217,7 +243,7 @@ class UsersController extends Controller
                 'homepage' => $request->homepage,
                 'jabatan'            => $request->jabatan,
                 'password'           => $password,
-                'user_role'          => $request->role, // user/admin (level UI)
+                'user_role'          => $roleString, // user/admin (level UI)
                 'notification_email' => $email,
                 'npk'                => $request->npk,
                 'created_by'         => $loginUser->username,
@@ -315,7 +341,7 @@ class UsersController extends Controller
             'email' => $user->email,
             'npk' => $user->npk,
             'jabatan' => $user->jabatan,
-            'role' => $user->user_role,
+            'role' => array_values(array_filter(explode(',', $user->user_role ?? ''), fn($v) => $v !== '')),
             'homepage' => $user->homepage,
             'cpny_id' => array_values(array_filter(explode(',', $user->cpny_id ?? ''), fn($v) => $v !== '')),
             'department_id' => array_values(array_filter(explode(',', $user->department_id ?? ''), fn($v) => $v !== '')),
@@ -337,7 +363,7 @@ class UsersController extends Controller
             'business_unit_id' => 'nullable|array',
             'homepage'      => 'nullable|string',
             'jabatan'       => 'required',
-            'role'          => 'required',
+            'role'          => 'required|array',
             'role_ids'      => 'nullable|array',
         ]);
 
@@ -357,6 +383,7 @@ class UsersController extends Controller
             $deptIdsString    = implode(',', $request->department_id);
             $divisionIdsString = implode(',', $request->division_id ?? []);
             $businessUnitIdsString = implode(',', $request->business_unit_id ?? []);
+            $roleString = implode(',', $request->role);
 
             $updateData = [
                 'name' => strtoupper($request->name),
@@ -366,7 +393,7 @@ class UsersController extends Controller
                 'division_id' => $divisionIdsString,
                 'business_unit_id' => $businessUnitIdsString,
                 'homepage' => $request->homepage,
-                'user_role' => $request->role,
+                'user_role' => $roleString,
                 'npk' => $request->npk,
                 'jabatan' => $request->jabatan,
                 'updated_by' => $loginUser->username,

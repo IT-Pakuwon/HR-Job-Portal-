@@ -10,7 +10,9 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->user_role !== 'admin') {
+        $userRoles = array_map('trim', explode(',', auth()->user()->user_role ?? ''));
+
+        if (!auth()->check() || !in_array('admin', $userRoles)) {
             abort(403);
         }
 
